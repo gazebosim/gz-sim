@@ -63,8 +63,24 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,
+                               const EntityComponentManager &_ecm);
+
+    /// \brief Function for updating the scene from the ecm
+    /// \param[in] _info Update info for this iteration
+    /// \param[in] _ecm Entity component manager
+    /// \param[in] _updatePoses when true, poses will be synced from the ECM
+    ///                         when false, create/remove entities only
+    ///
+    /// This provides a small optimization, if a render call is not about to
+    /// happen, then poses don't need to be syncronized.  Create/Remove must
+    /// be called every iteration, though to capture entities that were
+    /// created or destroyed in that simultaion iteration.
+    ///
+    /// \TODO(ABI) Merge this with UpdateFromECM with default arg for
+    ///            _updatePoses set to true
+    public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm,
-                               bool _render=true);
+                               bool _updatePoses);
 
     /// \brief Set the rendering engine to use
     /// \param[in] _engineName Name of the rendering engine.
