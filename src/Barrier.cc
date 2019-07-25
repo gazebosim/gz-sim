@@ -68,7 +68,7 @@ Barrier::ExitStatus Barrier::Wait()
     this->dataPtr->generation++;
     this->dataPtr->count = this->dataPtr->numThreads;
     this->dataPtr->cv.notify_all();
-    return Barrier::ExitStatus::GENERATION_DONE;
+    return Barrier::ExitStatus::DONE_LAST;
   }
 
   while (gen == this->dataPtr->generation && !this->dataPtr->cancelled)
@@ -84,7 +84,7 @@ Barrier::ExitStatus Barrier::Wait()
   }
   else
   {
-    return Barrier::ExitStatus::GENERATION_PENDING;
+    return Barrier::ExitStatus::DONE;
   }
 }
 
