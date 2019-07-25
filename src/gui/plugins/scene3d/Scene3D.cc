@@ -23,6 +23,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/MeshManager.hh>
+#include <ignition/common/Profiler.hh>
 
 #include <ignition/plugin/Register.hh>
 
@@ -157,6 +158,8 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  IGN_PROFILE_THREAD_NAME("RenderThread");
+  IGN_PROFILE("IgnRenderer::Render");
   if (this->textureDirty)
   {
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
@@ -164,7 +167,10 @@ void IgnRenderer::Render()
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
         static_cast<double>(this->textureSize.height()));
     // setting the size should cause the render texture to be rebuilt
-    this->dataPtr->camera->PreRender();
+    {
+      IGN_PROFILE("IgnRenderer::Render Pre-render camera");
+      this->dataPtr->camera->PreRender();
+    }
     this->textureId = this->dataPtr->camera->RenderTextureGLId();
     this->textureDirty = false;
   }
@@ -178,7 +184,10 @@ void IgnRenderer::Render()
   this->HandleMouseEvent();
 
   // update and render to texture
-  this->dataPtr->camera->Update();
+  {
+    IGN_PROFILE("IgnRenderer::Render Update camera");
+    this->dataPtr->camera->Update();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -844,6 +853,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Scene3D::Update");
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
