@@ -139,7 +139,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: transport::Node::Publisher dyPosePub;
 
   /// \brief Rate at which to publish dynamic poses
-  public: int dyPoseHertz{60};
+  public: double dyPosePeriod {1.0/60.0};
 
   /// \brief Scene publisher
   public: transport::Node::Publisher scenePub;
@@ -182,6 +182,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
 
+  public: std::chrono::time_point<std::chrono::system_clock>
+      lastPosePubTime{std::chrono::system_clock::now()};
+
   /// \brief Period to publish state, defaults to 60 Hz.
   public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
       statePublishPeriod{std::chrono::milliseconds(1000/60)};
@@ -214,7 +217,10 @@ void SceneBroadcaster::Configure(
   this->dataPtr->worldName = name->Data();
 
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
-  this->dataPtr->dyPoseHertz = readHertz.first;
+  if (readHertz.first > 0)
+  {
+    this->dataPtr->dyPosePeriod = 1.0/readHertz.first;
+  }
 
   // Add to graph
   {
@@ -302,6 +308,14 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   IGN_PROFILE("SceneBroadcast::PoseUpdate");
+
+  auto now = std::chrono::system_clock::now();
+  bool itsPubTime =
+    std::chrono::duration<double>(now - this->lastPosePubTime).count() >
+    this->dyPosePeriod;
+
+  if (!itsPubTime)
+    return;
 
   msgs::Pose_V poseMsg, dyPoseMsg;
   bool dyPoseConnections = this->dyPosePub.HasConnections();
@@ -411,6 +425,8 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 
     this->posePub.Publish(poseMsg);
   }
+
+  this->lastPosePubTime = now;
 }
 
 //////////////////////////////////////////////////
@@ -476,21 +492,14 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Pose info publisher
   std::string poseTopic{"pose/info"};
 
-  transport::AdvertiseMessageOptions poseAdvertOpts;
-  poseAdvertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node->Advertise<msgs::Pose_V>(poseTopic,
-      poseAdvertOpts);
+  this->posePub = this->node->Advertise<msgs::Pose_V>(poseTopic);
 
   ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
          << poseTopic << "]" << std::endl;
 
   // Dynamic pose info publisher
   std::string dyPoseTopic{"dynamic_pose/info"};
-
-  transport::AdvertiseMessageOptions dyPoseAdvertOpts;
-  dyPoseAdvertOpts.SetMsgsPerSec(this->dyPoseHertz);
-  this->dyPosePub = this->node->Advertise<msgs::Pose_V>(dyPoseTopic,
-      dyPoseAdvertOpts);
+  this->dyPosePub = this->node->Advertise<msgs::Pose_V>(dyPoseTopic);
 
   ignmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
          << dyPoseTopic << "]" << std::endl;

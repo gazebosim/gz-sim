@@ -63,7 +63,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,
-                               const EntityComponentManager &_ecm);
+                               const EntityComponentManager &_ecm,
+                               bool _render=true);
 
     /// \brief Set the rendering engine to use
     /// \param[in] _engineName Name of the rendering engine.

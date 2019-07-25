@@ -294,8 +294,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
-    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
-
     auto time = math::durationToSecNsec(_info.simTime);
     auto t = common::Time(time.first, time.second);
 
@@ -327,6 +325,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       }
     }
     this->dataPtr->sensorMaskMutex.unlock();
+
+    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm, activeSensors.size());
 
     if (activeSensors.size() || this->dataPtr->renderUtil.PendingSensors() > 0)
     {
