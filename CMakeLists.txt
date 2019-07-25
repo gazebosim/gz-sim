@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.4.0)
+project(ignition-gazebo2 VERSION 2.6.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -46,7 +46,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs4 REQUIRED VERSION 4.3)
+ign_find_package(ignition-msgs4 REQUIRED VERSION 4.5)
 set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
 
 #--------------------------------------
@@ -81,7 +81,7 @@ ign_find_package(ignition-physics1
     dartsim
     dartsim-plugin
   REQUIRED
-  VERSION 1.1)
+  VERSION 1.3)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
