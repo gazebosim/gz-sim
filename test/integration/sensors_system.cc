@@ -17,9 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+#include <vector>
+
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
+
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
@@ -63,6 +68,34 @@ class SensorsFixture : public ::testing::Test
   private: gazebo::SystemLoader sm;
 };
 
+void TestDefaultTopics()
+{
+  // TODO(anyone) This should be a new test, but running multiple tests with
+  // sensors is not currently working
+  std::string prefix{"/world/camera_sensor/model/default_topics/"};
+  std::vector<std::string> topics{
+      prefix + "link/camera_link/sensor/camera/image",
+      prefix + "link/camera_link/sensor/camera/camera_info",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
+      prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image"
+  };
+
+  std::vector<transport::MessagePublisher> publishers;
+  transport::Node node;
+
+  for (const std::string &topic : topics)
+  {
+    bool result = node.TopicInfo(topic, publishers);
+
+    EXPECT_TRUE(result) << "Could not get topic info for " << topic;
+    EXPECT_EQ(1u, publishers.size());
+    publishers.clear();
+  }
+}
+
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
@@ -93,6 +126,8 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   server.AddSystem(this->systemPtr);
   server.Run(true, 10, false);
   ASSERT_NE(nullptr, ecm);
+
+  TestDefaultTopics();
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator

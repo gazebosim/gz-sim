@@ -177,6 +177,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // Step all systems
   this->dataPtr->stepFunction(_info);
 
+  this->dataPtr->ecm->SetAllComponentsUnchanged();
+
   return true;
 }
 
@@ -194,7 +196,7 @@ std::map<std::string, SecondaryControl::Ptr>
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerPrimary::OnStepAck(const msgs::SerializedState &_msg)
+void NetworkManagerPrimary::OnStepAck(const msgs::SerializedStateMap &_msg)
 {
   this->secondaryStates.push_back(_msg);
 }

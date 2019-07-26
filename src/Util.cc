@@ -137,6 +137,17 @@ std::string scopedName(const Entity &_entity,
 
   return result;
 }
+
+//////////////////////////////////////////////////
+std::string removeParentScope(const std::string &_name,
+                              const std::string &_delim)
+{
+  auto sepPos = _name.find(_delim);
+  if (sepPos == std::string::npos || (sepPos + _delim.size()) > _name.size())
+    return _name;
+
+  return _name.substr(sepPos + _delim.size());
+}
 }
 }
 }
