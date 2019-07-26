@@ -295,7 +295,7 @@ void LinearBatteryPlugin::PreUpdate(
       if (jointVelocityCmd) {
         for (double jointVel : jointVelocityCmd->Data())
         {
-          if (fabsf(jointVel) > 0)
+          if (fabsf(static_cast<float>(jointVel)) > 0)
           {
             this->dataPtr->startDraining = true;
             return;
