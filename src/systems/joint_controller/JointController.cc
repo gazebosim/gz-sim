@@ -15,6 +15,7 @@
  *
  */
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/msgs/double.pb.h>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -98,6 +99,7 @@ void JointController::Configure(const Entity &_entity,
 void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("JointController::PreUpdate");
   // If the joint hasn't been identified yet, look for it
   if (this->dataPtr->jointEntity == kNullEntity)
   {

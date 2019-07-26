@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -102,6 +103,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
 void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ApplyJointForce::PreUpdate");
   // If the joint hasn't been identified yet, look for it
   if (this->dataPtr->jointEntity == kNullEntity)
   {

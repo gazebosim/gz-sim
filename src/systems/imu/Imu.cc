@@ -19,6 +19,8 @@
 
 #include <sdf/Element.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
@@ -79,6 +81,7 @@ Imu::~Imu() = default;
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Imu::PreUpdate");
   this->dataPtr->CreateImuEntities(_ecm);
 }
 
@@ -86,6 +89,7 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
 void Imu::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Imu::PostUpdate");
   // Only update and publish if not paused.
   if (!_info.paused)
   {
@@ -106,6 +110,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity
   if (kNullEntity == this->worldEntity)
     this->worldEntity = _ecm.EntityByComponents(components::World());
@@ -167,6 +172,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ImuPrivate::Update(const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ImuPrivate::Update");
   _ecm.Each<components::Imu,
             components::WorldPose,
             components::AngularVelocity,
@@ -203,6 +209,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
 void ImuPrivate::RemoveImuEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ImuPrivate::RemoveImuEntities");
   _ecm.EachRemoved<components::Imu>(
     [&](const Entity &_entity,
         const components::Imu *)->bool

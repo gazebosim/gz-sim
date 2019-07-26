@@ -27,6 +27,8 @@
 #include <sdf/SDFImpl.hh>
 #include <sdf/Visual.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
@@ -174,6 +176,7 @@ rendering::ScenePtr RenderUtil::Scene() const
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm);
   if (!_info.paused)
@@ -184,6 +187,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
+  IGN_PROFILE("RenderUtil::Update");
   if (!this->dataPtr->initialized)
     return;
 
@@ -227,92 +231,101 @@ void RenderUtil::Update()
   }
 
   // create new entities
-  for (auto &model : newModels)
   {
-    sdf::Model m = std::get<1>(model);
-    this->dataPtr->sceneManager.CreateModel(
-        std::get<0>(model), std::get<1>(model), std::get<2>(model));
-  }
-
-  for (auto &link : newLinks)
-  {
-    this->dataPtr->sceneManager.CreateLink(
-        std::get<0>(link), std::get<1>(link), std::get<2>(link));
-  }
-
-  for (auto &visual : newVisuals)
-  {
-    this->dataPtr->sceneManager.CreateVisual(
-        std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
-  }
-
-  for (auto &light : newLights)
-  {
-    this->dataPtr->sceneManager.CreateLight(
-        std::get<0>(light), std::get<1>(light), std::get<2>(light));
-  }
-
-  if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
-  {
-    for (auto &sensor : newSensors)
+    IGN_PROFILE("RenderUtil::Update Create");
+    for (auto &model : newModels)
     {
-       Entity entity = std::get<0>(sensor);
-       sdf::Sensor dataSdf = std::get<1>(sensor);
-       Entity parent = std::get<2>(sensor);
+      sdf::Model m = std::get<1>(model);
+      this->dataPtr->sceneManager.CreateModel(
+          std::get<0>(model), std::get<1>(model), std::get<2>(model));
+    }
 
-       // two sensors with the same name cause conflicts. We'll need to use
-       // scoped names
-       // TODO(anyone) do this in ign-sensors?
-       auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-       if (!parentNode)
-       {
-         ignerr << "Failed to create sensor with name[" << dataSdf.Name()
-                << "] for entity [" << entity
-                << "]. Parent not found with ID[" << parent << "]."
-                << std::endl;
-         continue;
-       }
+    for (auto &link : newLinks)
+    {
+      this->dataPtr->sceneManager.CreateLink(
+          std::get<0>(link), std::get<1>(link), std::get<2>(link));
+    }
 
-       std::string sensorName =
-           this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
-       // Add to the system's scene manager
-       if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
-       {
-         ignerr << "Failed to create sensor [" << sensorName << "]"
-                << std::endl;
-       }
+    for (auto &visual : newVisuals)
+    {
+      this->dataPtr->sceneManager.CreateVisual(
+          std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
+    }
+
+    for (auto &light : newLights)
+    {
+      this->dataPtr->sceneManager.CreateLight(
+          std::get<0>(light), std::get<1>(light), std::get<2>(light));
+    }
+
+    if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
+    {
+      for (auto &sensor : newSensors)
+      {
+         Entity entity = std::get<0>(sensor);
+         sdf::Sensor dataSdf = std::get<1>(sensor);
+         Entity parent = std::get<2>(sensor);
+
+         // two sensors with the same name cause conflicts. We'll need to use
+         // scoped names
+         // TODO(anyone) do this in ign-sensors?
+         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
+         if (!parentNode)
+         {
+           ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                  << "] for entity [" << entity
+                  << "]. Parent not found with ID[" << parent << "]."
+                  << std::endl;
+           continue;
+         }
+
+         std::string sensorName =
+             this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
+         // Add to the system's scene manager
+         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
+         {
+           ignerr << "Failed to create sensor [" << sensorName << "]"
+                  << std::endl;
+         }
+      }
     }
   }
 
   // remove existing entities
   // \todo(anyone) Remove sensors
-  for (auto &entity : removeEntities)
   {
-    if (this->dataPtr->selectedEntity &&
-        this->dataPtr->sceneManager.NodeById(entity) ==
-        this->dataPtr->selectedEntity)
+    IGN_PROFILE("RenderUtil::Update Remove");
+    for (auto &entity : removeEntities)
     {
-      this->dataPtr->selectedEntity.reset();
+      if (this->dataPtr->selectedEntity &&
+          this->dataPtr->sceneManager.NodeById(entity) ==
+          this->dataPtr->selectedEntity)
+      {
+        this->dataPtr->selectedEntity.reset();
+      }
+      this->dataPtr->sceneManager.RemoveEntity(entity);
     }
-    this->dataPtr->sceneManager.RemoveEntity(entity);
   }
 
   // update entities' pose
-  for (auto &pose : entityPoses)
   {
-    auto node = this->dataPtr->sceneManager.NodeById(pose.first);
-    if (!node)
-      continue;
-
-    // TODO(anyone) Check top level visual instead of parent
-    if (this->dataPtr->transformActive &&
-        (node == this->dataPtr->selectedEntity ||
-        node->Parent() == this->dataPtr->selectedEntity))
+    IGN_PROFILE("RenderUtil::Update Poses");
+    for (auto &pose : entityPoses)
     {
-      continue;
-    }
+      auto node = this->dataPtr->sceneManager.NodeById(pose.first);
+      if (!node)
+        continue;
 
-    node->SetLocalPose(pose.second);
+      // TODO(anyone) Check top level visual instead of parent
+      if (this->dataPtr->transformActive &&
+          (node == this->dataPtr->selectedEntity ||
+          node->Parent() == this->dataPtr->selectedEntity))
+      {
+        continue;
+      }
+
+      node->SetLocalPose(pose.second);
+    }
   }
 }
 
@@ -320,6 +333,7 @@ void RenderUtil::Update()
 void RenderUtilPrivate::CreateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
   auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
                                     Entity _parent,
                                     const std::string &_topicSuffix)
@@ -618,6 +632,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
 void RenderUtilPrivate::UpdateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtilPrivate::UpdateRenderingEntities");
   _ecm.Each<components::Model, components::Pose>(
       [&](const Entity &_entity,
         const components::Model *,
@@ -701,6 +716,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 void RenderUtilPrivate::RemoveRenderingEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
