@@ -1,4 +1,15 @@
 <?xml version="1.0" ?>
+<!--
+  Multicopter motor plugin demo
+
+  Send commands to go straight up:
+
+      ign topic -t /X3/gazebo/command/motor_speed --msgtype ignition.msgs.Actuators -p 'velocity:[700, 700, 700, 700]'
+
+  And to turn off propellers:
+
+      ign topic -t /X3/gazebo/command/motor_speed --msgtype ignition.msgs.Actuators -p 'velocity:[0, 0, 0, 0]'
+-->
 <sdf version="1.6">
   <world name="quadcopter">
     <plugin

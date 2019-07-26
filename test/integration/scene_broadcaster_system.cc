@@ -295,7 +295,7 @@ TEST_P(SceneBroadcasterTest, State)
   server.Run(true, 1, false);
 
   bool received{false};
-  auto checkMsg = [&](const msgs::SerializedStep &_msg)
+  auto checkMsg = [&](const msgs::SerializedStepMap &_msg, int _count)
   {
     // Stats
     ASSERT_TRUE(_msg.has_stats());
@@ -308,21 +308,22 @@ TEST_P(SceneBroadcasterTest, State)
 
     // State
     ASSERT_TRUE(_msg.has_state());
-    EXPECT_EQ(16, _msg.state().entities().size());
+
+    EXPECT_EQ(_count, _msg.state().entities_size());
 
     received = true;
   };
 
-  std::function<void(const msgs::SerializedStep &, const bool)> cb =
-      [&](const msgs::SerializedStep &_res, const bool _success)
+  std::function<void(const msgs::SerializedStepMap &, const bool)> cb =
+      [&](const msgs::SerializedStepMap &_res, const bool _success)
   {
     EXPECT_TRUE(_success);
-    checkMsg(_res);
+    checkMsg(_res, 16);
   };
-  std::function<void(const msgs::SerializedStep &)> cb2 =
-      [&](const msgs::SerializedStep &_res)
+  std::function<void(const msgs::SerializedStepMap &)> cb2 =
+      [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res);
+    checkMsg(_res, 3);
   };
 
   // The request is blocking even though it's meant to be async, so we spin a

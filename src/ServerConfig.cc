@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <ignition/math/Rand.hh>
 #include "ignition/gazebo/ServerConfig.hh"
 
 using namespace ignition;
@@ -200,7 +201,8 @@ class ignition::gazebo::ServerConfigPrivate
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
-            networkSecondaries(_cfg->networkSecondaries) { }
+            networkSecondaries(_cfg->networkSecondaries),
+            seed(_cfg->seed) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -238,6 +240,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief The number of network secondaries.
   public: unsigned int networkSecondaries = 0;
+
+  /// \brief The given random seed.
+  public: unsigned int seed = 0;
 };
 
 //////////////////////////////////////////////////
@@ -396,6 +401,19 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
+}
+
+/////////////////////////////////////////////////
+unsigned int ServerConfig::Seed() const
+{
+  return this->dataPtr->seed;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetSeed(unsigned int _seed)
+{
+  this->dataPtr->seed = _seed;
+  ignition::math::Rand::Seed(_seed);
 }
 
 /////////////////////////////////////////////////

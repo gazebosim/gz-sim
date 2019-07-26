@@ -1,4 +1,7 @@
 <?xml version="1.0" ?>
+<!--
+  Demo of models being downloaded from http://app.ignitionrobotics.org/
+-->
 <sdf version="1.6">
   <world name="shapes">
     <plugin

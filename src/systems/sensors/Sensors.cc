@@ -15,6 +15,8 @@
  *
  */
 
+#include <set>
+
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -29,6 +31,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
@@ -51,6 +54,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Main rendering interface
   public: RenderUtil renderUtil;
+
+  /// \brief Unique set of senor ids
+  public: std::set<sensors::SensorId> sensorIds;
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -89,7 +95,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId)))
+       _ecm.HasComponentType(components::GpuLidar::typeId) ||
+       _ecm.HasComponentType(components::RgbdCamera::typeId)))
   {
     this->dataPtr->renderUtil.Init();
     this->dataPtr->scene = this->dataPtr->renderUtil.Scene();
@@ -100,10 +107,43 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     return;
 
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+
+  // update scene graph
   this->dataPtr->renderUtil.Update();
 
+  // udate rendering sensors
   auto time = math::durationToSecNsec(_info.simTime);
-  this->dataPtr->sensorManager.RunOnce(common::Time(time.first, time.second));
+  auto t = common::Time(time.first, time.second);
+
+  // enable sensors if they need to be updated
+  std::vector<sensors::RenderingSensor *> activeSensors;
+
+  for (auto id : this->dataPtr->sensorIds)
+  {
+    sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+    sensors::RenderingSensor *rs = dynamic_cast<sensors::RenderingSensor *>(s);
+    if (rs && rs->NextUpdateTime() <= t)
+    {
+      activeSensors.push_back(rs);
+    }
+  }
+
+  if (activeSensors.empty())
+    return;
+
+  common::Time tn = common::Time::SystemTime();
+
+  // Update the scene graph manually to improve performance
+  // We only need to do this once per frame It is important to call
+  // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+  // so we don't waste cycles doing one scene graph update per sensor
+  this->dataPtr->scene->PreRender();
+
+  // publish data
+  this->dataPtr->sensorManager.RunOnce(t);
+
+  common::Time dt = common::Time::SystemTime() - tn;
+  // igndbg << "sensor update time: " << dt.Double() << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -119,6 +159,7 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   // Create within ign-sensors
   auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+  this->dataPtr->sensorIds.insert(sensorId);
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {
@@ -131,6 +172,7 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
       dynamic_cast<sensors::RenderingSensor *>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
+  renderingSensor->SetManualSceneUpdate(true);
 
   return sensor->Name();
 }

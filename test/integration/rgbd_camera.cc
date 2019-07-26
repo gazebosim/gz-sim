@@ -17,9 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/laserscan.pb.h>
+#include <ignition/msgs/image.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
@@ -27,13 +28,13 @@
 
 #include "plugins/MockSystem.hh"
 
-#define LASER_TOL 1e-4
+#define DEPTH_TOL 1e-4
 
 using namespace ignition;
 using namespace gazebo;
 
-/// \brief Test GpuLidarTest system
-class GpuLidarTest : public ::testing::Test
+/// \brief Test RgbdCameraTest system
+class RgbdCameraTest : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -45,68 +46,69 @@ class GpuLidarTest : public ::testing::Test
 };
 
 std::mutex mutex;
-std::vector<msgs::LaserScan> laserMsgs;
+msgs::Image depthMsg;
+float *depthBuffer = nullptr;
 
 /////////////////////////////////////////////////
-void laserCb(const msgs::LaserScan &_msg)
+void depthCb(const msgs::Image &_msg)
 {
   mutex.lock();
-  laserMsgs.push_back(_msg);
+  unsigned int depthSamples = _msg.width() * _msg.height();
+  unsigned int depthBufferSize = depthSamples * sizeof(float);
+
+  if (!depthBuffer)
+    depthBuffer = new float[depthSamples];
+  memcpy(depthBuffer, _msg.data().c_str(), depthBufferSize);
   mutex.unlock();
 }
 
 /////////////////////////////////////////////////
-// The test checks the Gpu Lidar readings when it faces a box
-TEST_F(GpuLidarTest, GpuLidarBox)
+// The test checks the Rgbd Camera readings when it faces a box
+TEST_F(RgbdCameraTest, RgbdCameraBox)
 {
-  const int horzSamples = 640;
-
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/gpu_lidar_sensor.sdf";
+    "/test/worlds/rgbd_camera_sensor.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // subscribe to lidar topic
+  // subscribe to the depth image topic
   transport::Node node;
-  node.Subscribe("/lidar", &laserCb);
+  node.Subscribe("/rgbd_camera/depth_image", &depthCb);
 
   // Run server and verify that we are receiving a message
-  // from the lidar
+  // from the depth camera
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
 
-  // Wait for a message to be received
-  for (int sleep = 0; sleep < 30; ++sleep)
+  ignition::common::Time waitTime = ignition::common::Time(0.001);
+  int i = 0;
+  while (i < 300)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    mutex.lock();
-    bool received = !laserMsgs.empty();
-    mutex.unlock();
-
-    if (received)
-      break;
+    ignition::common::Time::Sleep(waitTime);
+    i++;
   }
+  EXPECT_NE(depthBuffer, nullptr);
 
-  mutex.lock();
-  EXPECT_GT(laserMsgs.size(), 0u);
-  auto lastMsg = laserMsgs.back();
-  mutex.unlock();
-
-  int mid = horzSamples / 2;
-  int last = (horzSamples - 1);
   // Take into account box of 1 m on each side and 0.05 cm sensor offset
-  double expectedRangeAtMidPointBox1 = 0.45;
+  double expectedRangeAtMidPointBox1 = 2.45;
+  unsigned int height = 256;
+  unsigned int width = 256;
 
-  // Sensor 1 should see TestBox1
-  EXPECT_DOUBLE_EQ(lastMsg.ranges(0), ignition::math::INF_D);
-  EXPECT_NEAR(lastMsg.ranges(mid), expectedRangeAtMidPointBox1,
-              LASER_TOL);
-  EXPECT_DOUBLE_EQ(lastMsg.ranges(last), ignition::math::INF_D);
-  EXPECT_EQ("gpu_lidar::gpu_lidar_link::gpu_lidar", lastMsg.frame());
+  // Sensor should see TestBox1
+  int left = height/2 * width;
+  int mid = height/2 * width + width/2 - 1;
+  int right = height/2 * width  + width - 1;
+
+  // Lock access to buffer and don't release it
+  mutex.lock();
+  EXPECT_DOUBLE_EQ(depthBuffer[left], ignition::math::INF_D);
+  EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, DEPTH_TOL);
+  EXPECT_DOUBLE_EQ(depthBuffer[right], ignition::math::INF_D);
+
+  delete[] depthBuffer;
 }

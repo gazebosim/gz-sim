@@ -258,6 +258,14 @@ namespace ignition
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
+      /// \brief The given random seed.
+      /// \return The random seed or 0 if not specified.
+      public: unsigned int Seed() const;
+
+      /// \brief Set the random seed.
+      /// \param[in] _seed The seed.
+      public: void SetSeed(unsigned int _seed);
+
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if
       /// an UpdateRate has not been set.
