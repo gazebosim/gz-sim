@@ -1,5 +1,12 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.X.X
+
+### Ignition Gazebo 2.6.1 (2019-07-26)
+
+1. Clear stepMsg before populating it
+   * [Pull Request 398](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/398)
+
 ### Ignition Gazebo 2.6.0 (2019-07-24)
 
 1.  Improve performance of Pose Publisher
