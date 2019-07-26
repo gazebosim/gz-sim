@@ -162,7 +162,7 @@ for dependency installation instructions for each supported operating system.
     ```
 
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering-dev libignition-tools-dev libignition-transport6-dev libignition-gui-dev libignition-msgs3-dev libsdformat8-dev
+    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering2-dev libignition-tools-dev libignition-transport7-dev libignition-gui2-dev libignition-msgs4-dev libsdformat8-dev
     ```
 
 ### Building from source

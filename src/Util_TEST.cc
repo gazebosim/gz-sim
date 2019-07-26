@@ -187,3 +187,17 @@ TEST(UtilTest, ScopedName)
     "world_name/modelC_name/modelCC_name/linkCC_name");
 }
 
+/////////////////////////////////////////////////
+TEST(UtilTest, RemoveParentScopedName)
+{
+  EXPECT_EQ(removeParentScope("world/world_name", "/"), "world_name");
+  EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", "::"),
+            "world_name::light::lightA_name");
+  EXPECT_EQ(removeParentScope("world_name/model/modelB_name", "/"),
+            "model/modelB_name");
+  EXPECT_EQ(removeParentScope(
+                "world world_name model modelB_name link linkB_name", " "),
+            "world_name model modelB_name link linkB_name");
+  EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", ""),
+            "world::world_name::light::lightA_name");
+}

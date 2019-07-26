@@ -114,7 +114,8 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         auto data = _logicalCamera->Data()->Clone();
         data->GetAttribute("name")->Set(sensorScopedName);
         // check topic

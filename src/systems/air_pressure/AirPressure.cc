@@ -109,7 +109,8 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         sdf::Sensor data = _airPressure->Data();
         data.SetName(sensorScopedName);
         // check topic

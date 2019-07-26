@@ -207,7 +207,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 
   // TODO(louise) Combine with SceneBroadcaster's state topic
   std::string stateTopic = "/world/" + this->worldName + "/changed_state";
-  this->statePub = this->node.Advertise<msgs::SerializedState>(stateTopic);
+  this->statePub = this->node.Advertise<msgs::SerializedStateMap>(stateTopic);
 
   // Append file name
   std::string dbPath = common::joinPaths(logPath, "state.tlog");
@@ -251,7 +251,12 @@ void LogRecord::PostUpdate(const UpdateInfo &,
 
   // TODO(louise) Use the SceneBroadcaster's topic once that publishes
   // the changed state
-  auto stateMsg = _ecm.ChangedState();
+  // \todo(anyone) A potential enhancement here is have a keyframe mechanism
+  // to store complete state periodically, and then store incremental from
+  // that. It would reduce some of the compute on replaying
+  // (especially in tools like plotting or seeking through logs).
+  msgs::SerializedStateMap stateMsg;
+  _ecm.ChangedState(stateMsg);
   if (!stateMsg.entities().empty())
     this->dataPtr->statePub.Publish(stateMsg);
 }

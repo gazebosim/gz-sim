@@ -57,6 +57,12 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// parenting.
   public: EntityGraph entities;
 
+  /// \brief Components that have been changed through a peridic change.
+  public: std::set<ComponentKey> periodicChangedComponents;
+
+  /// \brief Components that have been changed through a one-time change.
+  public: std::set<ComponentKey> oneTimeChangedComponents;
+
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
 
@@ -281,6 +287,8 @@ bool EntityComponentManager::RemoveComponent(
 
   this->dataPtr->components.at(_key.first)->Remove(_key.second);
   this->dataPtr->entityComponents[_entity].erase(entityComponentIter);
+  this->dataPtr->oneTimeChangedComponents.erase(_key);
+  this->dataPtr->periodicChangedComponents.erase(_key);
 
   this->UpdateViews(_entity);
   return true;
@@ -336,6 +344,40 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 }
 
 /////////////////////////////////////////////////
+ComponentState EntityComponentManager::ComponentState(const Entity _entity,
+    const ComponentTypeId _typeId) const
+{
+  auto result = ComponentState::NoChange;
+
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return result;
+
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _typeId;
+  });
+
+  if (iter == ecIter->second.end())
+    return result;
+
+  if (this->dataPtr->oneTimeChangedComponents.find(*iter) !=
+      this->dataPtr->oneTimeChangedComponents.end())
+  {
+    result = ComponentState::OneTimeChange;
+  }
+  else if (this->dataPtr->periodicChangedComponents.find(*iter) !=
+      this->dataPtr->periodicChangedComponents.end())
+  {
+    result = ComponentState::PeriodicChange;
+  }
+
+  return result;
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasNewEntities() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
@@ -348,6 +390,12 @@ bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   return this->dataPtr->removeAllEntities ||
       !this->dataPtr->toRemoveEntities.empty();
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasOneTimeComponentChanges() const
+{
+  return !this->dataPtr->oneTimeChangedComponents.empty();
 }
 
 /////////////////////////////////////////////////
@@ -415,6 +463,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   ComponentKey componentKey{_componentTypeId, componentIdPair.first};
 
   this->dataPtr->entityComponents[_entity].push_back(componentKey);
+  this->dataPtr->oneTimeChangedComponents.insert(componentKey);
 
   if (componentIdPair.second)
     this->RebuildViews();
@@ -714,6 +763,100 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 }
 
 //////////////////////////////////////////////////
+void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
+    Entity _entity, const std::unordered_set<ComponentTypeId> &_types,
+    bool _full) const
+{
+  // Set the default entity iterator to the end. This will allow us to know
+  // if the entity has been added to the message.
+  auto entIter = _msg.mutable_entities()->end();
+
+  // Add an entity to the message and set it to be removed if the entity
+  // exists in the toRemoveEntities list.
+  if (this->dataPtr->toRemoveEntities.find(_entity) !=
+      this->dataPtr->toRemoveEntities.end())
+  {
+    // Find the entity in the message, and add if not present.
+    entIter = _msg.mutable_entities()->find(_entity);
+    if (entIter == _msg.mutable_entities()->end())
+    {
+      msgs::SerializedEntityMap ent;
+      ent.set_id(_entity);
+      (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+      entIter = _msg.mutable_entities()->find(_entity);
+    }
+
+    entIter->second.set_remove(true);
+  }
+
+  // Empty means all types
+  bool allTypes = _types.empty();
+
+  for (const ComponentKey &comp : this->dataPtr->entityComponents[_entity])
+  {
+    if (!allTypes && _types.find(comp.first) == _types.end())
+    {
+      continue;
+    }
+
+    const components::BaseComponent *compBase =
+      this->ComponentImplementation(_entity, comp.first);
+
+    // If not sending full state, skip unchanged components
+    if (!_full &&
+        this->dataPtr->oneTimeChangedComponents.find(comp) ==
+        this->dataPtr->oneTimeChangedComponents.end() &&
+        this->dataPtr->periodicChangedComponents.find(comp) ==
+        this->dataPtr->periodicChangedComponents.end())
+    {
+      continue;
+    }
+
+    /// Find the entity in the message, if not already found.
+    /// Add the entity to the message, if not already added.
+    if (entIter == _msg.mutable_entities()->end())
+    {
+      entIter = _msg.mutable_entities()->find(_entity);
+      if (entIter == _msg.mutable_entities()->end())
+      {
+        msgs::SerializedEntityMap ent;
+        ent.set_id(_entity);
+        (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+        entIter = _msg.mutable_entities()->find(_entity);
+      }
+    }
+
+    // Find the component in the message, and add the component to the
+    // message if it's not present.
+    auto compIter = entIter->second.mutable_components()->find(comp.first);
+    if (compIter == entIter->second.mutable_components()->end())
+    {
+      msgs::SerializedComponent cmp;
+      cmp.set_type(compBase->TypeId());
+      (*(entIter->second.mutable_components()))[
+        static_cast<int64_t>(comp.first)] = cmp;
+      compIter = entIter->second.mutable_components()->find(comp.first);
+    }
+
+    // Serialize and store the message
+    std::ostringstream ostr;
+    compBase->Serialize(ostr);
+    compIter->second.set_component(ostr.str());
+
+    // TODO(anyone) Set component being removed once we have a way to queue it
+  }
+
+  // Remove the entity from the message if a component for the entity was
+  // not modified or added. This will allow the state message to shrink.
+  if (entIter == _msg.mutable_entities()->end() &&
+      (entIter = _msg.mutable_entities()->find(_entity)) !=
+      _msg.mutable_entities()->end())
+  {
+    _msg.mutable_entities()->erase(entIter);
+  }
+}
+
+//////////////////////////////////////////////////
 ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 {
   ignition::msgs::SerializedState stateMsg;
@@ -736,6 +879,26 @@ ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 }
 
 //////////////////////////////////////////////////
+void EntityComponentManager::ChangedState(
+    ignition::msgs::SerializedStateMap &_state) const
+{
+  // New entities
+  for (const auto &entity : this->dataPtr->newlyCreatedEntities)
+  {
+    this->AddEntityToMessage(_state, entity);
+  }
+
+  // Entities being removed
+  for (const auto &entity : this->dataPtr->toRemoveEntities)
+  {
+    this->AddEntityToMessage(_state, entity);
+  }
+
+  // TODO(anyone) New / removed / changed components
+}
+
+
+//////////////////////////////////////////////////
 ignition::msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types) const
@@ -753,6 +916,20 @@ ignition::msgs::SerializedState EntityComponentManager::State(
   }
 
   return stateMsg;
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::State(
+    msgs::SerializedStateMap  &_state,
+    const std::unordered_set<Entity> &_entities,
+    const std::unordered_set<ComponentTypeId> &_types,
+    bool _full) const
+{
+  for (const auto &it : this->dataPtr->entityComponents)
+  {
+    if (_entities.empty() || _entities.find(it.first) != _entities.end())
+      this->AddEntityToMessage(_state, it.first, _types, _full);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -857,6 +1034,103 @@ void EntityComponentManager::SetState(
 }
 
 //////////////////////////////////////////////////
+void EntityComponentManager::SetState(
+    const ignition::msgs::SerializedStateMap &_stateMsg)
+{
+  // Create / remove / update entities
+  for (const auto &iter : _stateMsg.entities())
+  {
+    const auto &entityMsg = iter.second;
+
+    Entity entity{entityMsg.id()};
+
+    // Remove entity
+    if (entityMsg.remove())
+    {
+      this->RequestRemoveEntity(entity);
+      continue;
+    }
+
+    // Create entity if it doesn't exist
+    if (!this->HasEntity(entity))
+    {
+      this->dataPtr->CreateEntityImplementation(entity);
+    }
+
+    // Create / remove / update components
+    for (auto compIter = iter.second.components().begin();
+         compIter != iter.second.components().end(); ++compIter)
+
+    {
+      const auto &compMsg = compIter->second;
+
+      // Skip if component not set. Note that this will also skip components
+      // setting an empty value.
+      if (compMsg.component().empty())
+      {
+        continue;
+      }
+
+      uint64_t type = compMsg.type();
+
+      // Components which haven't been registered in this process, such as 3rd
+      // party components streamed to other secondaries and the GUI.
+      if (!components::Factory::Instance()->HasType(type))
+      {
+        static std::unordered_set<unsigned int> printedComps;
+        if (printedComps.find(type) == printedComps.end())
+        {
+          printedComps.insert(type);
+          ignwarn << "Component type [" << type << "] has not been "
+                  << "registered in this process, so it can't be deserialized."
+                  << std::endl;
+        }
+        continue;
+      }
+
+      // Remove component
+      if (compMsg.remove())
+      {
+        this->RemoveComponent(entity, compIter->first);
+        continue;
+      }
+
+      // Get Component
+      components::BaseComponent *comp =
+        this->ComponentImplementation(entity, compIter->first);
+
+      // Create if new
+      if (nullptr == comp)
+      {
+        // Create component
+        auto newComp = components::Factory::Instance()->New(compMsg.type());
+
+        if (nullptr == newComp)
+        {
+          ignerr << "Failed to create component of type [" << compMsg.type()
+            << "]" << std::endl;
+          continue;
+        }
+
+        std::istringstream istr(compMsg.component());
+        newComp->Deserialize(istr);
+
+        this->CreateComponentImplementation(entity,
+            newComp->TypeId(), newComp.get());
+      }
+      // Update component value
+      else
+      {
+        std::istringstream istr(compMsg.component());
+        comp->Deserialize(istr);
+        this->SetChanged(entity, compIter->first,
+            ComponentState::OneTimeChange);
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
     const
 {
@@ -881,3 +1155,45 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
   return descendants;
 }
 
+//////////////////////////////////////////////////
+void EntityComponentManager::SetAllComponentsUnchanged()
+{
+  this->dataPtr->periodicChangedComponents.clear();
+  this->dataPtr->oneTimeChangedComponents.clear();
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::SetChanged(
+    const Entity _entity, const ComponentTypeId _type,
+    gazebo::ComponentState _c)
+{
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return;
+
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
+
+  if (iter == ecIter->second.end())
+    return;
+
+  if (_c == ComponentState::PeriodicChange)
+  {
+    this->dataPtr->periodicChangedComponents.insert(*iter);
+    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+  }
+  else if (_c == ComponentState::OneTimeChange)
+  {
+    this->dataPtr->periodicChangedComponents.erase(*iter);
+    this->dataPtr->oneTimeChangedComponents.insert(*iter);
+  }
+  else
+  {
+    this->dataPtr->periodicChangedComponents.erase(*iter);
+    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+  }
+}
