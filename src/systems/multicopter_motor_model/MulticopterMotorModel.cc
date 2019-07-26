@@ -59,37 +59,37 @@
 template <typename T>
 class FirstOrderFilter {
   public:
-  FirstOrderFilter(double timeConstantUp, double timeConstantDown, T initialState): // NOLINT
-      timeConstantUp_(timeConstantUp),
-      timeConstantDown_(timeConstantDown),
-      previousState_(initialState) {}
+  FirstOrderFilter(double _timeConstantUp, double _timeConstantDown, T _initialState): // NOLINT
+      timeConstantUp(_timeConstantUp),
+      timeConstantDown(_timeConstantDown),
+      previousState(_initialState) {}
 
-  /// \brief    This method will apply a first order filter on the inputState.
-  T updateFilter(T inputState, double samplingTime)
+  /// \brief    This method will apply a first order filter on the _inputState.
+  T UpdateFilter(T _inputState, double _samplingTime)
   {
     T outputState;
-    if (inputState > previousState_) {
+    if (_inputState > previousState) {
       // Calcuate the outputState if accelerating.
-      double alphaUp = exp(-samplingTime / timeConstantUp_);
+      double alphaUp = exp(-_samplingTime / timeConstantUp);
       // x(k+1) = Ad*x(k) + Bd*u(k)
-      outputState = alphaUp * previousState_ + (1 - alphaUp) * inputState;
+      outputState = alphaUp * previousState + (1 - alphaUp) * _inputState;
     }
     else
     {
       // Calculate the outputState if decelerating.
-      double alphaDown = exp(-samplingTime / timeConstantDown_);
-      outputState = alphaDown * previousState_ + (1 - alphaDown) * inputState;
+      double alphaDown = exp(-_samplingTime / timeConstantDown);
+      outputState = alphaDown * previousState + (1 - alphaDown) * _inputState;
     }
-    previousState_ = outputState;
+    previousState = outputState;
     return outputState;
   }
 
-  ~FirstOrderFilter() {}
+  ~FirstOrderFilter() = default;
 
   protected:
-  double timeConstantUp_;
-  double timeConstantDown_;
-  T previousState_;
+  double timeConstantUp;
+  double timeConstantDown;
+  T previousState;
 };
 
 using namespace ignition;
@@ -613,7 +613,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       }
       // Apply the filter on the motor's velocity.
       double refMotorRotVel;
-      refMotorRotVel = this->rotorVelocityFilter->updateFilter(
+      refMotorRotVel = this->rotorVelocityFilter->UpdateFilter(
           refMotorInputCopy, this->samplingTime);
 
       const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
