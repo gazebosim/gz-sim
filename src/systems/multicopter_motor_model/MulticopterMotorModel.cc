@@ -277,7 +277,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (sdfClone->HasElement("turningDirection"))
   {
-    std::string turningDirection =
+    auto turningDirection =
         sdfClone->GetElement("turningDirection")->Get<std::string>();
     if (turningDirection == "cw")
       this->dataPtr->turningDirection = turning_direction::kCw;
@@ -293,8 +293,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (sdfClone->HasElement("motorType"))
   {
-    std::string motorType =
-      sdfClone->GetElement("motorType")->Get<std::string>();
+    auto motorType = sdfClone->GetElement("motorType")->Get<std::string>();
     if (motorType == "velocity")
       this->dataPtr->motorType = MotorType::kVelocity;
     else if (motorType == "position")
@@ -343,10 +342,10 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->rotorVelocitySlowdownSim, 10);
 
   // Create the first order filter.
-  this->dataPtr->rotorVelocityFilter.reset(
-      new FirstOrderFilter<double>(
+  this->dataPtr->rotorVelocityFilter =
+      std::make_unique<FirstOrderFilter<double>>(
           this->dataPtr->timeConstantUp, this->dataPtr->timeConstantDown,
-          this->dataPtr->refMotorInput));
+          this->dataPtr->refMotorInput);
 
   // Subscribe to actuator command messages
   std::string topic{this->dataPtr->robotNamespace + "/"
