@@ -43,7 +43,7 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
                           "/test/worlds/level_performance.sdf");
   math::Stopwatch watch;
 
-  const std::size_t iters = 1000;
+  const std::size_t iters = 5000;
 
   // Server with levels
   {

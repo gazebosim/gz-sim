@@ -192,6 +192,9 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
           components::Name(name));
       this->runner->entityCompMgr.CreateComponent(performerEntity,
           components::Geometry(geometry));
+
+      ignmsg << "Created performer [" << performerEntity << " / " << name << "]"
+             << std::endl;
     }
   }
 
@@ -442,8 +445,7 @@ void LevelManager::UpdateLevelsState()
 
   {
     std::lock_guard<std::mutex> lock(this->performerToAddMutex);
-    std::list<std::pair<std::string, sdf::Geometry>>::iterator iter =
-      this->performersToAdd.begin();
+    auto iter = this->performersToAdd.begin();
     while (iter != this->performersToAdd.end())
     {
       int result = this->CreatePerformerEntity(iter->first, iter->second);
@@ -516,6 +518,12 @@ void LevelManager::UpdateLevelsState()
                 // Check if the performer is in this level
                 // assume a box for now
                 auto box = _levelGeometry->Data().BoxShape();
+                if (nullptr == box)
+                {
+                  ignerr << "Level [" << _entity
+                         << "]'s geometry is not a box." << std::endl;
+                  return true;
+                }
                 auto buffer = _levelBuffer->Data();
                 auto center = _pose->Data().Pos();
                 math::AxisAlignedBox region{center - box->Size() / 2,
@@ -567,9 +575,10 @@ void LevelManager::UpdateLevelsState()
   std::set<std::string> entityNamesMarked;
   for (const auto &toLoad : levelsToLoad)
   {
-    auto entityNames = this->runner->entityCompMgr
-                           .Component<components::LevelEntityNames>(toLoad)
-                           ->Data();
+    const components::LevelEntityNames *lvlEntNames =
+      this->runner->entityCompMgr.Component<components::LevelEntityNames>(
+          toLoad);
+    const auto &entityNames = lvlEntNames->Data();
     for (const auto &name : entityNames)
     {
       entityNamesMarked.insert(name);
@@ -638,6 +647,7 @@ void LevelManager::UpdateLevelsState()
   auto pendingEnd = this->activeLevels.end();
   for (const auto &toUnload : levelsToUnload)
   {
+    ignmsg << "Unloaded level [" << toUnload << "]" << std::endl;
     pendingEnd = std::remove(this->activeLevels.begin(), pendingEnd, toUnload);
   }
   // Erase from vector

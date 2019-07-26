@@ -344,9 +344,22 @@ namespace components
     // Documentation inherited
     public: void Deserialize(std::istream &_in) override;
 
-    /// \brief Get the mutable component data.
+    /// \brief Get the mutable component data. This function will be
+    /// deprecated in Gazebo 3, replaced by const DataType &Data() const.
+    /// Use void SetData(const DataType &) to modify data.
     /// \return Mutable reference to the actual component information.
+    /// \todo(nkoenig) Deprecate this function in version 3.
     public: DataType &Data();
+
+    /// \brief Set the data of this component.
+    /// \param[in] _data New data for this component.
+    /// \param[in] _eql Equality comparison function. This function should
+    /// return true if two instances of DataType are equal.
+    /// \param[in} _ecm Pointer to the entity component manager.
+    /// \return True if the _eql function returns true.
+    public: bool SetData(const DataType &_data,
+                const std::function<
+                  bool(const DataType &, const DataType &)> &_eql);
 
     /// \brief Get the immutable component data.
     /// \return Immutable reference to the actual component information.
@@ -419,6 +432,17 @@ namespace components
   DataType &Component<DataType, Identifier, Serializer>::Data()
   {
     return this->data;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier, typename Serializer>
+  bool Component<DataType, Identifier, Serializer>::SetData(
+      const DataType &_data,
+      const std::function<bool(const DataType &, const DataType &)> &_eql)
+  {
+    bool result = !_eql(_data, this->data);
+    this->data = _data;
+    return result;
   }
 
   //////////////////////////////////////////////////

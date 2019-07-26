@@ -99,6 +99,9 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     return rendering::VisualPtr();
   }
 
+  std::string name = _model.Name().empty() ? std::to_string(_id) :
+      _model.Name();
+
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
   {
@@ -106,14 +109,14 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding model: [" << _id << "]" << std::endl;
+             << "Not adding model visual with ID[" << _id
+             << "]  and name [" << name << "] to the rendering scene."
+             << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
   }
 
-  std::string name = _model.Name().empty() ? std::to_string(_id) :
-      _model.Name();
   if (parent)
     name = parent->Name() +  "::" + name;
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
@@ -311,6 +314,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
 
     // Assume absolute path to mesh file
     descriptor.meshName = _geom.MeshShape()->Uri();
+    descriptor.subMeshName = _geom.MeshShape()->Submesh();
+    descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
     ignition::common::MeshManager* meshManager =
         ignition::common::MeshManager::Instance();

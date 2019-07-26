@@ -222,6 +222,7 @@ TEST_F(WindEffectsTest, WindEnabledInLink)
   EXPECT_TRUE(linkWindMode.values.back().Data());
 }
 
+
 ////////////////////////////////////////////////
 TEST_F(WindEffectsTest , WindForce)
 {
@@ -250,9 +251,11 @@ TEST_F(WindEffectsTest , WindForce)
   ASSERT_EQ(nIters, linkAccelerations.values.size());
 
   double lastAccelMagnitude = linkAccelerations.values[0].Data().Length();
-  for (std::size_t i = 1; i < nIters; ++i) {
+  for (std::size_t i = 1; i < nIters; ++i)
+  {
     double accelMagnitude = linkAccelerations.values[i].Data().Length();
-    EXPECT_GT(lastAccelMagnitude - accelMagnitude, 1e-6);
+    // std::cout << linkAccelerations.values[i].Data() << std::endl;
+    EXPECT_LT(1e-6, lastAccelMagnitude - accelMagnitude);
     lastAccelMagnitude = accelMagnitude;
   }
 }

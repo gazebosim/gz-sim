@@ -234,7 +234,7 @@ TEST_F(ImuTest, ModelFalling)
   mutex.unlock();
 
   // Verify reported name
-  std::string scopedName = "imu_sensor::imu_model::link::imu_sensor";
+  std::string scopedName = "imu_model::link::imu_sensor";
   mutex.lock();
   EXPECT_EQ(imuMsgs.back().entity_name(), scopedName);
   mutex.unlock();

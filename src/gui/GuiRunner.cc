@@ -65,7 +65,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnStateService(const msgs::SerializedStep &_res,
+void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
     const bool _result)
 {
   if (!_result)
@@ -78,7 +78,7 @@ void GuiRunner::OnStateService(const msgs::SerializedStep &_res,
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnState(const msgs::SerializedStep &_msg)
+void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
   this->ecm.SetState(_msg.state());
 

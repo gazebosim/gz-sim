@@ -21,9 +21,11 @@
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 #include "network/NetworkManagerPrimary.hh"
 
 using namespace ignition;
@@ -279,6 +281,10 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_system()->set_nsec(
       IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
   this->clockPub.Publish(clockMsg);
+
+  // Only publish to root topic if no others are.
+  if (this->rootClockPub.Valid())
+    this->rootClockPub.Publish(clockMsg);
 }
 
 /////////////////////////////////////////////////
@@ -412,6 +418,35 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->clockPub.Valid())
     this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
 
+  // Create the global clock publisher.
+  if (!this->rootClockPub.Valid())
+  {
+    // Check for the existence of other publishers on `/clock`
+    std::vector<ignition::transport::MessagePublisher> publishers;
+    this->node->TopicInfo("/clock", publishers);
+
+    if (!publishers.empty())
+    {
+      ignwarn << "Found additional publishers on /clock," <<
+                 " using namespaced clock topic only" << std::endl;
+      igndbg << "Publishers [Address, Message Type]:\n";
+
+      /// List the publishers
+      for (auto & pub : publishers)
+      {
+        igndbg << "  " << pub.Addr() << ", "
+          << pub.MsgTypeName() << std::endl;
+      }
+    }
+    else
+    {
+      ignmsg << "Found no publishers on /clock, adding root clock topic"
+             << std::endl;
+      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>(
+          "/clock");
+    }
+  }
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   for (uint64_t startingIterations = this->currentInfo.iterations;
@@ -506,6 +541,10 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
+
+  // Each network manager takes care of marking its components as unchanged
+  if (!this->networkMgr)
+    this->entityCompMgr.SetAllComponentsUnchanged();
 }
 
 //////////////////////////////////////////////////
@@ -568,6 +607,22 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     {
       entity = this->entityCompMgr.EntityByComponents(
           components::Name(plugin.EntityName()), components::World());
+    }
+    else if ("sensor" == plugin.EntityType())
+    {
+      // TODO(louise) Use scoped names for models and worlds too
+      auto sensors = this->entityCompMgr.EntitiesByComponents(
+          components::Sensor());
+
+      for (auto sensor : sensors)
+      {
+        if (scopedName(sensor, this->entityCompMgr, "::", false) ==
+            plugin.EntityName())
+        {
+          entity = sensor;
+          break;
+        }
+      }
     }
     else
     {
