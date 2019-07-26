@@ -96,11 +96,11 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Constants for specifying clockwise (CW) and counter-clockwise (CCW)
+/// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
 /// directions of rotation.
 namespace turning_direction {
-static const int CCW = 1;
-static const int CW = -1;
+static const int kCcw = 1;
+static const int kCw = -1;
 }  // namespace turning_direction
 
 /// \brief Type of input command to motor.
@@ -152,7 +152,7 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   public: int motorNumber = 0;
 
   /// \brief Turning direction of the motor.
-  public: int turningDirection = turning_direction::CW;
+  public: int turningDirection = turning_direction::kCw;
 
   /// \brief Type of input command to motor.
   public: MotorType motorType = MotorType::kVelocity;
@@ -280,9 +280,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     std::string turningDirection =
         sdfClone->GetElement("turningDirection")->Get<std::string>();
     if (turningDirection == "cw")
-      this->dataPtr->turningDirection = turning_direction::CW;
+      this->dataPtr->turningDirection = turning_direction::kCw;
     else if (turningDirection == "ccw")
-      this->dataPtr->turningDirection = turning_direction::CCW;
+      this->dataPtr->turningDirection = turning_direction::kCcw;
     else
       ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
   }
