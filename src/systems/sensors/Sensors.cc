@@ -17,6 +17,7 @@
 
 #include <set>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -91,6 +92,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Sensors::PostUpdate");
   // Only initialize if there are rendering sensors
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
@@ -137,10 +139,16 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   // We only need to do this once per frame It is important to call
   // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
   // so we don't waste cycles doing one scene graph update per sensor
-  this->dataPtr->scene->PreRender();
+  {
+    IGN_PROFILE("Sensors::PostUpdate Pre-render scene");
+    this->dataPtr->scene->PreRender();
+  }
 
   // publish data
-  this->dataPtr->sensorManager.RunOnce(t);
+  {
+    IGN_PROFILE("Sensors::PostUpdate Run sensor manager");
+    this->dataPtr->sensorManager.RunOnce(t);
+  }
 
   common::Time dt = common::Time::SystemTime() - tn;
   // igndbg << "sensor update time: " << dt.Double() << std::endl;
