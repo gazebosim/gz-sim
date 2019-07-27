@@ -15,13 +15,13 @@
  *
  */
 
-#include <ignition/common/Profiler.hh>
 
 #include <ignition/msgs/contact.pb.h>
 #include <ignition/msgs/contacts.pb.h>
 
 #include <unordered_map>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Element.hh>

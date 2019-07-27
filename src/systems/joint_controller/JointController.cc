@@ -15,8 +15,8 @@
  *
  */
 
-#include <ignition/common/Profiler.hh>
 #include <ignition/msgs/double.pb.h>
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
