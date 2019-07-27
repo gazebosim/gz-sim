@@ -17,13 +17,12 @@
 
 #include <set>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
-
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
