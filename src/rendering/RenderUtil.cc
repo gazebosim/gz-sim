@@ -195,7 +195,6 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   if (!_info.paused && _updatePoses)
     this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
-
 }
 
 //////////////////////////////////////////////////
