@@ -74,7 +74,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics2
+ign_find_package(ignition-physics1
   COMPONENTS
     mesh
     sdf
@@ -83,8 +83,8 @@ ign_find_package(ignition-physics2
     bullet
     bullet-plugin
   REQUIRED
-  VERSION 2.0)
-set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
+  VERSION 1.3)
+set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
