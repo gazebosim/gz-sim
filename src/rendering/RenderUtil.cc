@@ -139,7 +139,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, math::Pose3d> entityPoses;
 
   /// \brief Mutex to protect updates
-  public: mutable std::mutex updateMutex;
+  public: std::mutex updateMutex;
 
   //// \brief Flag to indicate whether to create sensors
   public: bool enableSensors = false;
