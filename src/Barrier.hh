@@ -47,11 +47,11 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE Barrier
     {
       /// \brief Constructor
-      /// \param[in] _numThreads Number of threads to syncronize
+      /// \param[in] _threadCount Number of threads to syncronize
       /// Note: it is important to include a main thread (if used) in this
       ///       count.  For instance, controlling 10 worker threads from
-      ///       1 main thread would require _numThreads=11.
-      public: explicit Barrier(unsigned int _numThreads);
+      ///       1 main thread would require _threadCount=11.
+      public: explicit Barrier(unsigned int _threadCount);
 
       /// \brief Destructor
       public: ~Barrier();
@@ -67,7 +67,8 @@ namespace ignition
         CANCELLED,
       };
 
-      /// \brief Block until _numThreads have reached the wait() function.
+      /// \brief Block until _threadCount, specified in the constructor, have
+      /// reached the wait() function.
       /// \returns An exit status
       ///
       /// In general, all threads should return DONE or DONE_LAST,

@@ -29,9 +29,9 @@ class ignition::gazebo::BarrierPrivate
   public: std::atomic<bool> cancelled { false };
 
   /// \brief Number of participating threads
-  public: unsigned int numThreads;
+  public: unsigned int threadCount;
 
-  /// \brief Current remaining thread count (decrements from numThreads)
+  /// \brief Current remaining thread count (decrements from threadCount)
   public: unsigned int count;
 
   /// \brief Barrier generation, incremented when all threads report
@@ -41,11 +41,11 @@ class ignition::gazebo::BarrierPrivate
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-Barrier::Barrier(unsigned int _numThreads)
+Barrier::Barrier(unsigned int _threadCount)
   : dataPtr(std::make_unique<BarrierPrivate>())
 {
-  this->dataPtr->numThreads = _numThreads;
-  this->dataPtr->count = _numThreads;
+  this->dataPtr->threadCount = _threadCount;
+  this->dataPtr->count = _threadCount;
 }
 
 //////////////////////////////////////////////////
@@ -66,7 +66,7 @@ Barrier::ExitStatus Barrier::Wait()
   {
     // All threads have reached the wait, so reset the barrier.
     this->dataPtr->generation++;
-    this->dataPtr->count = this->dataPtr->numThreads;
+    this->dataPtr->count = this->dataPtr->threadCount;
     this->dataPtr->cv.notify_all();
     return Barrier::ExitStatus::DONE_LAST;
   }
