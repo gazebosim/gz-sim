@@ -2,11 +2,37 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Add worker threads for System PostUpdate phase
+   * [Pull Request 387](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/387)
+
 1. Added a test runner for executing an SDF and recording simulation rates.
    See the `test/performance/READEM.md` file for more info.
    * [Pull Request 389](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/389)
 
-### Ignition Gazebo 2.3.X
+### Ignition Gazebo 2.6.1 (2019-07-26)
+
+1. Clear stepMsg before populating it
+   * [Pull Request 398](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/398)
+
+### Ignition Gazebo 2.6.0 (2019-07-24)
+
+1.  Improve performance of Pose Publisher
+   * [Pull Request 392](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/392)
+
+1. Fix distributed sim
+    * [Pull Request 385](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/385)
+
+### Ignition Gazebo 2.5.0 (2019-07-19)
+
+1. The LinearBatteryPlugin system publishes battery state
+   * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
+
+### Ignition Gazebo 2.4.0 (2019-07-17)
+
+1. Bundle scene updates in sensor system
+    * [Pull Request 386](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/386)
+
+### Ignition Gazebo 2.3.0 (2019-07-13)
 
 1. Improve physics system peformance by skipping static model updates.
    Components state information has been incorporated, which is used to

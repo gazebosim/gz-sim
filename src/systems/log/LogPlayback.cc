@@ -28,6 +28,7 @@
 #include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
@@ -329,6 +330,7 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 //////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogPlayback::Update");
   if (_info.paused)
     return;
 

@@ -19,6 +19,8 @@
 
 #include <sdf/Sensor.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
@@ -76,6 +78,7 @@ Magnetometer::~Magnetometer() = default;
 void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Magnetometer::PreUpdate");
   this->dataPtr->CreateMagnetometerEntities(_ecm);
 }
 
@@ -83,6 +86,7 @@ void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
 void Magnetometer::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Magnetometer::PostUpdate");
   // Only update and publish if not paused.
   if (!_info.paused)
   {
@@ -104,6 +108,7 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
 void MagnetometerPrivate::CreateMagnetometerEntities(
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("MagnetometerPrivate::CreateMagnetometerEntities");
   auto worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == worldEntity)
   {
@@ -165,6 +170,7 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
 void MagnetometerPrivate::Update(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("MagnetometerPrivate::Update");
   _ecm.Each<components::Magnetometer,
             components::WorldPose>(
     [&](const Entity &_entity,
@@ -192,6 +198,7 @@ void MagnetometerPrivate::Update(
 void MagnetometerPrivate::RemoveMagnetometerEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("MagnetometerPrivate::RemoveMagnetometerEntities");
   _ecm.EachRemoved<components::Magnetometer>(
     [&](const Entity &_entity,
         const components::Magnetometer *)->bool
