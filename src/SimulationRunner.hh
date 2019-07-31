@@ -415,7 +415,7 @@ namespace ignition
       private: std::vector<std::thread> postUpdateThreads;
 
       /// \brief Flag to indicate running status of PostUpdate threads
-      private: std::atomic<bool> postUpdateThreadsRunning;
+      private: std::atomic<bool> postUpdateThreadsRunning{false};
 
       /// \brief Barrier to signal beginning of PostUpdate thread execution
       private: std::unique_ptr<Barrier> postUpdateStartBarrier;

@@ -359,7 +359,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     }
     this->dataPtr->sensorMaskMutex.unlock();
 
-    if (activeSensors.size() || this->dataPtr->renderUtil.PendingSensors() > 0)
+    if (!activeSensors.empty() ||
+        this->dataPtr->renderUtil.PendingSensors() > 0)
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
       this->dataPtr->renderCv.wait(lock, [this] {
