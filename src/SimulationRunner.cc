@@ -516,7 +516,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       ignmsg << "Found no publishers on /stats, adding root stats topic"
              << std::endl;
-      this->rootStatsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+      this->rootStatsPub = this->node->Advertise<msgs::WorldStatistics>(
           "/stats");
     }
   }
