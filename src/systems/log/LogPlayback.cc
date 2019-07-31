@@ -131,10 +131,12 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
-
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
+
+    _ecm.SetChanged(_entity, components::Pose::typeId,
+        ComponentState::PeriodicChange);
 
     return true;
   });
@@ -287,30 +289,6 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     it->RemoveFromParent();
     igndbg << "Removed " << it->GetAttribute("name")->GetAsString()
       << " plugin from loaded SDF\n";
-  }
-
-  // Create all Entities in SDF <world> tag
-  ignition::gazebo::SdfEntityCreator creator =
-    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
-
-  // Models
-  for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
-      ++modelIndex)
-  {
-    auto model = sdfWorld->ModelByIndex(modelIndex);
-    auto modelEntity = creator.CreateEntities(model);
-
-    creator.SetParent(modelEntity, _worldEntity);
-  }
-
-  // Lights
-  for (uint64_t lightIndex = 0; lightIndex < sdfWorld->LightCount();
-      ++lightIndex)
-  {
-    auto light = sdfWorld->LightByIndex(lightIndex);
-    auto lightEntity = creator.CreateEntities(light);
-
-    creator.SetParent(lightEntity, _worldEntity);
   }
 
   // Access all messages in .tlog file
