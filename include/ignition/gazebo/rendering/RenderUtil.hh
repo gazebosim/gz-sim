@@ -55,7 +55,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     ///
     /// In the case that RenderUtil has not been initialized, this method
     /// will return -1.
-    public: int PendingSensors();
+    public: int PendingSensors() const;
 
     /// \brief Main update function. Must be called in the rendering thread.
     public: void Update();

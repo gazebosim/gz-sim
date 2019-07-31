@@ -139,7 +139,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, math::Pose3d> entityPoses;
 
   /// \brief Mutex to protect updates
-  public: std::mutex updateMutex;
+  public: mutable std::mutex updateMutex;
 
   //// \brief Flag to indicate whether to create sensors
   public: bool enableSensors = false;
@@ -185,7 +185,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-int RenderUtil::PendingSensors()
+int RenderUtil::PendingSensors() const
 {
   if (!this->dataPtr->initialized)
     return -1;
