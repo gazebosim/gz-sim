@@ -72,6 +72,7 @@ if __name__ == '__main__':
     if args.plot:
         plt.figure()
         plt.plot(sim_time[:-1], rtfs)
+        plt.title('Sim Time vs Real Time Factor')
         plt.xlabel('Sim Time (s)')
         plt.ylabel('Real Time Factor')
         plt.grid(True)
@@ -79,6 +80,9 @@ if __name__ == '__main__':
     if args.hist:
         plt.figure()
         _ = plt.hist(rtfs, bins=100)
+        plt.title('Real Time Factor Histogram')
+        plt.xlabel('Real Time Factor')
+        plt.ylabel('Iteration Count')
         plt.grid(True)
 
 
