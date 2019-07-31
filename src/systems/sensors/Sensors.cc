@@ -192,12 +192,20 @@ void SensorsPrivate::RunOnce()
   if (!this->activeSensors.empty())
   {
     this->sensorMaskMutex.lock();
+    // Check the active sensors against masked sensors.
+    //
+    // The internal state of a rendering sensor is not updated until the
+    // rendering operation is complete, which can leave us in a position
+    // where the sensor is falsely indicating that an update is needed.
+    //
+    // To prevent this, add sensors that are currently being rendered to
+    // a mask. Sensors are removed from the mask when 90% of the update
+    // delta has passed, which will allow rendering to proceed.
     for (const auto & sensor : this->activeSensors)
     {
+      // 90% of update delta (1/UpdateRate());
       ignition::common::Time delta(0.9 / sensor->UpdateRate());
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
-      // igndbg << "Masking: " << sensor->Id() << " until "
-      //       << this->dataPtr->sensorMask[sensor->Id()] << std::endl;
     }
     this->sensorMaskMutex.unlock();
 
