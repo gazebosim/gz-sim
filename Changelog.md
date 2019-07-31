@@ -1,5 +1,11 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.X.X
+
+1. Added a test runner for executing an SDF and recording simulation rates.
+   See the `test/performance/READEM.md` file for more info.
+   * [Pull Request 389](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/389)
+
 ### Ignition Gazebo 2.3.X
 
 1. Improve physics system peformance by skipping static model updates.
