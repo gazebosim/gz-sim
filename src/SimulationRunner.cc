@@ -185,7 +185,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() {
+SimulationRunner::~SimulationRunner()
+{
   this->StopWorkerThreads();
 }
 
@@ -321,20 +322,25 @@ void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
 void SimulationRunner::ProcessSystemQueue()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-
   auto pending = this->pendingSystems.size();
+
+  if (pending > 0)
+  {
+    // If additional systems are to be added, stop the existing threads.
+    this->StopWorkerThreads();
+  }
 
   for (const auto &system : this->pendingSystems)
   {
     this->AddSystemToRunner(system);
   }
+
   this->pendingSystems.clear();
 
+  // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
-    this->StopWorkerThreads();
-
-    igndbg << "Creating postupdate worker threads: "
+    igndbg << "Creating PostUpdate worker threads: "
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
@@ -345,24 +351,26 @@ void SimulationRunner::ProcessSystemQueue()
     this->postUpdateThreadsRunning = true;
     int id = 0;
 
-    for (auto& system: this->systemsPostupdate)
+    for (auto &system : this->systemsPostupdate)
     {
-      consoleMutex.lock();
       igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
-      consoleMutex.unlock();
-      this->postUpdateThreads.push_back(std::thread([&, id](){
-        while(this->postUpdateThreadsRunning)
+
+      this->postUpdateThreads.push_back(std::thread([&, id]()
+      {
+        std::stringstream ss;
+        ss << "PostUpdateThread: " << id;
+        IGN_PROFILE_THREAD_NAME(ss.str().c_str());
+        while (this->postUpdateThreadsRunning)
         {
-          this->postUpdateStartBarrier->wait();
+          this->postUpdateStartBarrier->Wait();
           if (this->postUpdateThreadsRunning)
           {
             system->PostUpdate(this->currentInfo, this->entityCompMgr);
           }
-          this->postUpdateStopBarrier->wait();
+          this->postUpdateStopBarrier->Wait();
         }
-        consoleMutex.lock();
-        igndbg << "Exiting postupdate worker thread (" << id << ")" << std::endl;
-        consoleMutex.unlock();
+        igndbg << "Exiting postupdate worker thread ("
+          << id << ")" << std::endl;
       }));
       id++;
     }
@@ -393,8 +401,13 @@ void SimulationRunner::UpdateSystems()
 
   {
     IGN_PROFILE("PostUpdate");
-    this->postUpdateStartBarrier->wait();
-    this->postUpdateStopBarrier->wait();
+    // If no systems implementing PostUpdate have been added, then
+    // the barriers will be uninitialized, so guard against that condition.
+    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    {
+      this->postUpdateStartBarrier->Wait();
+      this->postUpdateStopBarrier->Wait();
+    }
   }
 }
 
@@ -414,19 +427,20 @@ void SimulationRunner::OnStop()
 /////////////////////////////////////////////////
 void SimulationRunner::StopWorkerThreads()
 {
-  if (this->postUpdateStartBarrier && this->postUpdateThreads.size())
+  this->postUpdateThreadsRunning = false;
+  if (this->postUpdateStartBarrier)
   {
-    this->postUpdateThreadsRunning = false;
-
-    this->postUpdateStartBarrier->cancel();
-    this->postUpdateStopBarrier->cancel();
-
-    for (auto & thread: this->postUpdateThreads)
-    {
-      thread.join();
-    }
-    this->postUpdateThreads.clear();
+    this->postUpdateStartBarrier->Cancel();
   }
+  if (this->postUpdateStopBarrier)
+  {
+    this->postUpdateStopBarrier->Cancel();
+  }
+  for (auto &thread : this->postUpdateThreads)
+  {
+    thread.join();
+  }
+  this->postUpdateThreads.clear();
 }
 
 /////////////////////////////////////////////////
@@ -636,10 +650,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
-  // Mark all components as not changed, if this is the primary.
-  // If the a network secondard marks all components as unchanged, then it
-  // will never see pose changes.
-  if (!this->networkMgr || this->networkMgr->IsPrimary())
+  // Each network manager takes care of marking its components as unchanged
+  if (!this->networkMgr)
     this->entityCompMgr.SetAllComponentsUnchanged();
 }
 
