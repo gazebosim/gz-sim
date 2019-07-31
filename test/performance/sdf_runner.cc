@@ -109,7 +109,6 @@ int main(int _argc, char** _argv)
         std::cout << "Simulation Progress: " << nIters << "%" << std::endl;
         progress += 1.0;
       }
-
     };
 
   node.Subscribe("/clock", cb);
