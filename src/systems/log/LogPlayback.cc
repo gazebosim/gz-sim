@@ -220,6 +220,27 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
   }
 
+  // Look for the first SerializedState message and use it to set the initial
+  // state of the world. Messages received before this are ignored.
+  for (; this->iter != this->batch.end(); ++this->iter)
+  {
+    auto msgType = this->iter->Type();
+    if (msgType == "ignition.msgs.SerializedState")
+    {
+      msgs::SerializedState msg;
+      msg.ParseFromString(this->iter->Data());
+      this->Parse(_ecm, msg);
+      break;
+    }
+    else if (msgType == "ignition.msgs.SerializedStateMap")
+    {
+      msgs::SerializedStateMap msg;
+      msg.ParseFromString(this->iter->Data());
+      this->Parse(_ecm, msg);
+      break;
+    }
+  }
+
   this->instStarted = true;
   LogPlaybackPrivate::started = true;
   return true;
