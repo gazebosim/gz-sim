@@ -472,7 +472,7 @@ void LevelManager::UpdateLevelsState()
         });
   }
 
-  // If level's are not being used, we only process the default level.
+  // If levels are not being used, we only process the default level.
   if (this->useLevels)
   {
     this->runner->entityCompMgr.Each<
@@ -507,7 +507,7 @@ void LevelManager::UpdateLevelsState()
           std::set<Entity> newPerfLevels;
 
           // loop through levels and check for intersections
-          // Add all levels with inersections to the levelsToLoad even if they
+          // Add all levels with intersections to the levelsToLoad even if they
           // are currently active.
           this->runner->entityCompMgr.Each<components::Level, components::Pose,
             components::Geometry,
