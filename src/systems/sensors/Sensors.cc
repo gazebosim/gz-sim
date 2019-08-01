@@ -70,7 +70,6 @@ class ignition::gazebo::systems::SensorsPrivate
   /// Value: Pointer to camera
   // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
-
 };
 
 //////////////////////////////////////////////////
