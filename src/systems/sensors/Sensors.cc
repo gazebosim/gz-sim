@@ -220,7 +220,7 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
         std::swap(rightCamera, leftCamera);
       }
 
-      // Camera sensor's Y axis corresponds to the optical X axis
+      // Camera sensor's Y axis is orthogonal to the optical axis
       auto baseline = abs(rightCamera->Pose().Pos().Y() -
                           leftCamera->Pose().Pos().Y());
       rightCamera->SetBaseline(baseline);

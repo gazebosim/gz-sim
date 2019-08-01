@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Baseline for stereo cameras
+   * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
+
 ### Ignition Gazebo 2.6.1 (2019-07-26)
 
 1. Clear stepMsg before populating it
