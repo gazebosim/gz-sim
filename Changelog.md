@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Throttle scenebroadcaster and render system. For SceneBroadcaster, defer updating poses until a publish is required in this update (60Hz). For Sensors system, defer updating poses until a render operation is required in this update.
+   * [Pull Request 396](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/396)
+
 1. Baseline for stereo cameras
    * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
 
