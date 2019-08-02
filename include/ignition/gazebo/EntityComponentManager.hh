@@ -450,6 +450,11 @@ namespace ignition
       /// \return True if there are entities marked to be removed.
       public: bool HasEntitiesMarkedForRemoval() const;
 
+      /// \brief Get whether there are one-time component changes. These changes
+      /// do not happen frequently and should be processed immediately.
+      /// \return True if there are any components with one-time changes.
+      public: bool HasOneTimeComponentChanges() const;
+
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
       /// one will be created.
@@ -506,9 +511,19 @@ namespace ignition
       /// \brief Set the changed state of a component.
       /// \param[in] _entity The entity.
       /// \param[in] _type Type of the component.
-      /// \param[in] _c Changed state value.
+      /// \param[in] _c Changed state value, defaults to one-time-change.
       public: void SetChanged(
-                  const Entity _entity, const ComponentTypeId _type, bool _c);
+          const Entity _entity, const ComponentTypeId _type,
+          gazebo::ComponentState _c = ComponentState::OneTimeChange);
+
+      /// \brief Mark all components as not changed.
+      protected: void SetAllComponentsUnchanged();
+      /// \brief Get a component's state.
+      /// \param[in] _entity Entity that contains the component.
+      /// \param[in] _typeId Component type ID.
+      /// \return Component's current state
+      public: gazebo::ComponentState ComponentState(const Entity _entity,
+          const ComponentTypeId _typeId) const;
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
@@ -681,6 +696,11 @@ namespace ignition
       // to Gazebo.
       friend class GuiRunner;
       friend class SimulationRunner;
+
+      // Make network managers friends so they have control over component
+      // states. Like the runners, the managers are internal.
+      friend class NetworkManagerPrimary;
+      friend class NetworkManagerSecondary;
 
       // Make View a friend so that it can access components.
       // This should be safe since View is internal to Gazebo.
