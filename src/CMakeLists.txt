@@ -39,6 +39,7 @@ target_link_libraries(${ign_lib_target}
 )
 
 set (sources
+  Barrier.cc
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
@@ -60,6 +61,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Barrier_TEST.cc
   Component_TEST.cc
   ComponentFactory_TEST.cc
   Conversions_TEST.cc

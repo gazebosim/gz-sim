@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -212,6 +213,7 @@ LiftDrag::LiftDrag()
 //////////////////////////////////////////////////
 void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LiftDragPrivate::Update");
   // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
@@ -488,6 +490,7 @@ void LiftDrag::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LiftDrag::PreUpdate");
   if (!this->dataPtr->initialized)
   {
     // We call Load here instead of Configure because we can't be guaranteed

@@ -97,7 +97,7 @@ ign_find_package(ignition-sensors2 REQUIRED
     logical_camera
     magnetometer
     depth_camera
-  VERSION 2.1
+  VERSION 2.5
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
