@@ -322,10 +322,14 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
   bool poseConnections = this->posePub.HasConnections();
 
   bool poseReady = std::chrono::duration<double>(
-      _info.simTime - this->lastPosePubTime).count() > this->posePeriod;
+      _info.simTime - this->lastPosePubTime).count() > this->posePeriod ||
+    // Send pose info if this is the first iteration.
+    this->lastPosePubTime.count() == 0;
 
   bool dyPoseReady = std::chrono::duration<double>(
-      _info.simTime - this->lastDyPosePubTime).count() > this->dyPosePeriod;
+      _info.simTime - this->lastDyPosePubTime).count() > this->dyPosePeriod ||
+    // Send pose info if this is the first iteration.
+    this->lastDyPosePubTime.count() == 0;
 
   bool doPose = poseConnections && poseReady;
   bool doDyPose = dyPoseConnections && dyPoseReady;
