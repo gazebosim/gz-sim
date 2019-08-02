@@ -47,11 +47,11 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE Barrier
     {
       /// \brief Constructor
-      /// \param[in] _numThreads Number of threads to syncronize
+      /// \param[in] _threadCount Number of threads to syncronize
       /// Note: it is important to include a main thread (if used) in this
       ///       count.  For instance, controlling 10 worker threads from
-      ///       1 main thread would require _numThreads=11.
-      public: explicit Barrier(unsigned int _numThreads);
+      ///       1 main thread would require _threadCount=11.
+      public: explicit Barrier(unsigned int _threadCount);
 
       /// \brief Destructor
       public: ~Barrier();
@@ -59,25 +59,31 @@ namespace ignition
       /// \brief Enumeration of possible return values from wait()
       public: enum class ExitStatus
       {
-        GENERATION_PENDING,  // There are more threads to wait()
-        GENERATION_DONE,     // All threads have reached wait()
-        CANCELLED,           // Barrier was cancelled
+        /// \brief Returned if the caller was not the last to call wait()
+        DONE,
+        /// \brief Returned if the caller was the last to call wait()
+        DONE_LAST,
+        /// \brief Returned if the barrier was cancelled.
+        CANCELLED,
       };
 
-      /// \brief Block until _numThreads have reached the wait() function.
+      /// \brief Block until _threadCount, specified in the constructor, have
+      /// reached the wait() function.
       /// \returns An exit status
       ///
-      /// In general, all threads should return GENERATION_PENDING or
-      /// GENERATION_DONE, depending on the order that the wait function
-      /// was reached.
+      /// In general, all threads should return DONE or DONE_LAST,
+      /// depending on the order that the wait function was reached.
+      ///
+      /// Exactly one thread in each generation of Wait will return
+      /// DONE_LAST.
       ///
       /// Alternatively, if the barrier is cancelled, the ExitStatus will
       /// reflect that.
-      public: ExitStatus wait();
+      public: ExitStatus Wait();
 
       /// \brief Cancel the barrier, causing all threads to unblock and
       ///        return CANCELLED
-      public: void cancel();
+      public: void Cancel();
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<BarrierPrivate> dataPtr;

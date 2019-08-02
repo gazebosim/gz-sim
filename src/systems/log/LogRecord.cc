@@ -25,6 +25,7 @@
 #include <ctime>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
@@ -242,6 +243,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 void LogRecord::PostUpdate(const UpdateInfo &,
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogRecord::PostUpdate");
   // Publish only once
   if (!this->dataPtr->sdfPublished)
   {

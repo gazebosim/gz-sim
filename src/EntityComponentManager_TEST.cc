@@ -1959,6 +1959,8 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
       manager.ComponentState(e2, c2.first));
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(999, 888));
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e1, 888));
 
   // This would normally be done after each simulation step after systems are
   // updated
@@ -1977,6 +1979,19 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   EXPECT_EQ(ComponentState::PeriodicChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e2, c2.first));
+
+  // Remove components
+  EXPECT_TRUE(manager.RemoveComponent(e1, c1.first));
+
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(ComponentState::NoChange,
+      manager.ComponentState(e1, c1.first));
+
+  EXPECT_TRUE(manager.RemoveComponent(e2, c2.first));
+
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e2, c2.first));
 }
 

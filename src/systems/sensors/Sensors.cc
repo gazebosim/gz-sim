@@ -81,6 +81,10 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex renderMutex;
 
   /// \brief Condition variable to signal rendering thread
+  ///
+  /// This variable is used to block/unblock operations in the rendering
+  /// thread.  For a more detailed explanation on the flow refer to the
+  /// documentation on RenderThread.
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
@@ -105,6 +109,31 @@ class ignition::gazebo::systems::SensorsPrivate
   private: void RunOnce();
 
   /// \brief Top level function for the rendering thread
+  ///
+  /// This function captures all of the behavior of the rendering thread.
+  /// The behavior is captured in two phases: initialization and steady state.
+  ///
+  /// When the thread is first started, it waits on renderCv until the
+  /// prerequisites for initialization are met, and the `doInit` flag is set.
+  /// In order for initialization to proceed, rendering sensors must be
+  /// available in the EntityComponentManager.
+  ///
+  /// When doInit is set, and renderCv is notified, initialization
+  /// is performed (creating the render context and scene). During
+  /// initialization, execution is blocked for the caller of PostUpdate.
+  /// When initialization is complete, PostUpdate will be notified via
+  /// renderCv and execution will continue.
+  ///
+  /// Once in steady state, a rendering operation is triggered by setting
+  /// updateAvailable to true, and notifying via the renderCv.
+  /// The rendering operation is done in `RunOnce`.
+  ///
+  /// The caller of PostUpdate will not be blocked if there is no
+  /// rendering operation currently ongoing. Rendering will occur
+  /// asyncronously.
+  //
+  /// The caller of PostUpdate will be blocked if there is a rendering
+  /// operation currently ongoing, until that completes.
   private: void RenderThread();
 
   /// \brief Launch the rendering thread
@@ -123,8 +152,10 @@ void SensorsPrivate::WaitForInit()
     std::unique_lock<std::mutex> lock(this->renderMutex);
     // Wait to be ready for initialization or stopped running.
     // We need rendering sensors to be available to initialize.
-    this->renderCv.wait(lock, [this](){
-        return this->doInit || !this->running; });
+    this->renderCv.wait(lock, [this]()
+    {
+        return this->doInit || !this->running;
+    });
 
     if (this->doInit)
     {
@@ -145,7 +176,8 @@ void SensorsPrivate::WaitForInit()
 void SensorsPrivate::RunOnce()
 {
   std::unique_lock<std::mutex> lock(this->renderMutex);
-  this->renderCv.wait(lock, [this](){
+  this->renderCv.wait(lock, [this]()
+  {
       return !this->running || this->updateAvailable;
   });
 
@@ -161,12 +193,20 @@ void SensorsPrivate::RunOnce()
   if (!this->activeSensors.empty())
   {
     this->sensorMaskMutex.lock();
+    // Check the active sensors against masked sensors.
+    //
+    // The internal state of a rendering sensor is not updated until the
+    // rendering operation is complete, which can leave us in a position
+    // where the sensor is falsely indicating that an update is needed.
+    //
+    // To prevent this, add sensors that are currently being rendered to
+    // a mask. Sensors are removed from the mask when 90% of the update
+    // delta has passed, which will allow rendering to proceed.
     for (const auto & sensor : this->activeSensors)
     {
+      // 90% of update delta (1/UpdateRate());
       ignition::common::Time delta(0.9 / sensor->UpdateRate());
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
-      // igndbg << "Masking: " << sensor->Id() << " until "
-      //       << this->dataPtr->sensorMask[sensor->Id()] << std::endl;
     }
     this->sensorMaskMutex.unlock();
 
@@ -326,9 +366,11 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     }
     this->dataPtr->sensorMaskMutex.unlock();
 
-    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm, activeSensors.size());
+    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm,
+        !activeSensors.empty());
 
-    if (activeSensors.size() || this->dataPtr->renderUtil.PendingSensors() > 0)
+    if (!activeSensors.empty() ||
+        this->dataPtr->renderUtil.PendingSensors() > 0)
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
       this->dataPtr->renderCv.wait(lock, [this] {

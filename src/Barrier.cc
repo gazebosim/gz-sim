@@ -29,31 +29,30 @@ class ignition::gazebo::BarrierPrivate
   public: std::atomic<bool> cancelled { false };
 
   /// \brief Number of participating threads
-  public: unsigned int numThreads;
+  public: unsigned int threadCount;
 
-  /// \brief Current remaining thread count (decrements from numThreads)
+  /// \brief Current remaining thread count (decrements from threadCount)
   public: unsigned int count;
 
   /// \brief Barrier generation, incremented when all threads report
-  public: unsigned int generation;
+  public: unsigned int generation{0};
 };
 
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-Barrier::Barrier(unsigned int _numThreads)
+Barrier::Barrier(unsigned int _threadCount)
   : dataPtr(std::make_unique<BarrierPrivate>())
 {
-  this->dataPtr->numThreads = _numThreads;
-  this->dataPtr->count = _numThreads;
-  this->dataPtr->generation = 0;
+  this->dataPtr->threadCount = _threadCount;
+  this->dataPtr->count = _threadCount;
 }
 
 //////////////////////////////////////////////////
 Barrier::~Barrier() = default;
 
 //////////////////////////////////////////////////
-Barrier::ExitStatus Barrier::wait()
+Barrier::ExitStatus Barrier::Wait()
 {
   if (this->dataPtr->cancelled)
   {
@@ -67,9 +66,9 @@ Barrier::ExitStatus Barrier::wait()
   {
     // All threads have reached the wait, so reset the barrier.
     this->dataPtr->generation++;
-    this->dataPtr->count = this->dataPtr->numThreads;
+    this->dataPtr->count = this->dataPtr->threadCount;
     this->dataPtr->cv.notify_all();
-    return Barrier::ExitStatus::GENERATION_DONE;
+    return Barrier::ExitStatus::DONE_LAST;
   }
 
   while (gen == this->dataPtr->generation && !this->dataPtr->cancelled)
@@ -85,12 +84,12 @@ Barrier::ExitStatus Barrier::wait()
   }
   else
   {
-    return Barrier::ExitStatus::GENERATION_PENDING;
+    return Barrier::ExitStatus::DONE;
   }
 }
 
 //////////////////////////////////////////////////
-void Barrier::cancel()
+void Barrier::Cancel()
 {
   std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
   // This forces pending threads to release
