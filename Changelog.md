@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Baseline for stereo cameras
+   * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
+
 1. Fix log playback with levels. This drops support for logs created before v2.0.0.
    * [Pull Request 407](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/407)
 
