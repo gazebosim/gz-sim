@@ -27,6 +27,7 @@
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
+#include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
@@ -58,12 +59,19 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Main rendering interface
   public: RenderUtil renderUtil;
 
-  /// \brief Unique set of senor ids
+  /// \brief Unique set of sensor ids
+  // TODO(anyone) Remove element when sensor is deleted
   public: std::set<sensors::SensorId> sensorIds;
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
   public: rendering::ScenePtr scene;
+
+  /// \brief Keep track of cameras, in case we need to handle stereo cameras.
+  /// Key: Camera's parent scoped name
+  /// Value: Pointer to camera
+  // TODO(anyone) Remove element when sensor is deleted
+  public: std::map<std::string, sensors::CameraSensor *> cameras;
 
   /// \brief Flag to indicate if worker threads are running
   public: std::atomic<bool> running { false };
@@ -402,13 +410,15 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   // Create within ign-sensors
   auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
-  this->dataPtr->sensorIds.insert(sensorId);
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {
     ignerr << "Failed to create sensor [" << _sdf.Name()
            << "]" << std::endl;
+    return std::string();
   }
+
+  this->dataPtr->sensorIds.insert(sensorId);
 
   // Set the scene so it can create the rendering sensor
   auto renderingSensor =
@@ -416,6 +426,44 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
   renderingSensor->SetManualSceneUpdate(true);
+
+  // Special case for stereo cameras
+  auto cameraSensor = dynamic_cast<sensors::CameraSensor *>(sensor);
+  if (nullptr != cameraSensor)
+  {
+    // Parent
+    auto parent = cameraSensor->Parent();
+
+    // If parent has other camera children, set the baseline.
+    // For stereo pairs, the baseline for the left camera is zero, and for the
+    // right camera it's the distance between them.
+    // For more than 2 cameras, the first camera's baseline is zero and the
+    // others have the distance between them.
+    if (this->dataPtr->cameras.find(parent) !=
+        this->dataPtr->cameras.end())
+    {
+      // TODO(anyone) This is safe because we're not removing sensors
+      // First camera added to the parent link
+      auto leftCamera = this->dataPtr->cameras[parent];
+      auto rightCamera = cameraSensor;
+
+      // If cameras have right / left topic, use that to decide which is which
+      if (leftCamera->Topic().find("right") != std::string::npos &&
+          rightCamera->Topic().find("left") != std::string::npos)
+      {
+        std::swap(rightCamera, leftCamera);
+      }
+
+      // Camera sensor's Y axis is orthogonal to the optical axis
+      auto baseline = abs(rightCamera->Pose().Pos().Y() -
+                          leftCamera->Pose().Pos().Y());
+      rightCamera->SetBaseline(baseline);
+    }
+    else
+    {
+      this->dataPtr->cameras[parent] = cameraSensor;
+    }
+  }
 
   return sensor->Name();
 }
