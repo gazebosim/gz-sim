@@ -176,12 +176,7 @@ rendering::ScenePtr RenderUtil::Scene() const
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("RenderUtil::UpdateFromECM");
-  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-  this->dataPtr->CreateRenderingEntities(_ecm);
-  if (!_info.paused)
-    this->dataPtr->UpdateRenderingEntities(_ecm);
-  this->dataPtr->RemoveRenderingEntities(_ecm);
+  this->UpdateFromECM(_info, _ecm, true);
 }
 
 //////////////////////////////////////////////////
