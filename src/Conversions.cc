@@ -483,6 +483,10 @@ msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
   out.set_profile_name(_in.Name());
   out.set_max_step_size(_in.MaxStepSize());
   out.set_real_time_factor(_in.RealTimeFactor());
+
+  // TODO: Add other params in physics msg
+  // Will need to extend sdf::Physics for this.
+
   return out;
 }
 
@@ -500,6 +504,10 @@ sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
   out.SetName(_in.profile_name());
   out.SetMaxStepSize(_in.max_step_size());
   out.SetRealTimeFactor(_in.real_time_factor());
+
+  // TODO: Add other params in physics msg
+  // Will need to extend sdf::Physics for this.
+
   return out;
 }
 
