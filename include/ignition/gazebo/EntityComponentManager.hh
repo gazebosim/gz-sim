@@ -516,8 +516,6 @@ namespace ignition
           const Entity _entity, const ComponentTypeId _type,
           gazebo::ComponentState _c = ComponentState::OneTimeChange);
 
-      /// \brief Mark all components as not changed.
-      protected: void SetAllComponentsUnchanged();
       /// \brief Get a component's state.
       /// \param[in] _entity Entity that contains the component.
       /// \param[in] _typeId Component type ID.
