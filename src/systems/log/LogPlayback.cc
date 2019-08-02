@@ -51,15 +51,10 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Start log playback.
   /// \param[in] _logPath Path of recorded state to playback.
-  /// \param[in] _worldEntity The world entity this plugin is attached to.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  /// \param[in] _eventMgr The EventManager of the given simulation
-  /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(const std::string &_logPath,
-      const Entity &_worldEntity, EntityComponentManager &_ecm,
-      EventManager &_eventMgr);
+  public: bool Start(const std::string &_logPath, EntityComponentManager &_ecm);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -131,10 +126,12 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
-
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
+
+    _ecm.SetChanged(_entity, components::Pose::typeId,
+        ComponentState::PeriodicChange);
 
     return true;
   });
@@ -155,9 +152,9 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Configure(const Entity &_worldEntity,
+void LogPlayback::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &_eventMgr)
+    EntityComponentManager &_ecm, EventManager &)
 {
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
@@ -165,7 +162,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(logPath, _worldEntity, _ecm, _eventMgr);
+    this->dataPtr->Start(logPath, _ecm);
   }
   else
   {
@@ -176,8 +173,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
 //////////////////////////////////////////////////
 bool LogPlaybackPrivate::Start(const std::string &_logPath,
-  const Entity &_worldEntity, EntityComponentManager &_ecm,
-  EventManager &_eventMgr)
+                               EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -215,104 +211,6 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
-  // Find SDF string in .tlog file
-  transport::log::TopicList sdfOpts("/" + common::basename(_logPath) + "/sdf");
-  transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
-  transport::log::MsgIter sdfIter = sdfBatch.begin();
-  if (sdfIter == sdfBatch.end())
-  {
-    // location of log may have changed from where it was recorded.
-    // search through the topics available in the log and find the sdf topic
-    sdfBatch = log->QueryMessages(
-        transport::log::TopicPattern(std::regex(".*/sdf")));
-    sdfIter = sdfBatch.begin();
-    if (sdfIter == sdfBatch.end())
-    {
-      ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
-      return false;
-    }
-  }
-
-  // Parse SDF message
-  msgs::StringMsg sdfMsg;
-  sdfMsg.ParseFromString(sdfIter->Data());
-
-  // Load recorded SDF file
-  sdf::Root root;
-  if (root.LoadSdfString(sdfMsg.data()).size() != 0 || root.WorldCount() <= 0)
-  {
-    ignerr << "Error loading SDF string logged in file [" << dbPath << "]"
-      << std::endl;
-    return false;
-  }
-  const sdf::World *sdfWorld = root.WorldByIndex(0);
-
-  std::vector <sdf::ElementPtr> pluginsRm;
-
-  // Look for LogRecord plugin in the SDF and remove it, so that playback
-  //   is not re-recorded.
-  // Remove Physics plugin, so that it does not clash with recorded poses.
-  // TODO(anyone) Cherry-picking plugins to remove doesn't scale well,
-  // handle this better once we're logging the initial world state in the DB
-  // file.
-  if (sdfWorld->Element()->HasElement("plugin"))
-  {
-    sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
-
-    // If never found, nothing to remove
-    while (pluginElt != nullptr)
-    {
-      if (pluginElt->HasAttribute("name"))
-      {
-        if ((pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
-          != std::string::npos) ||
-          (pluginElt->GetAttribute("name")->GetAsString().find("Physics")
-          != std::string::npos))
-        {
-          // Flag for removal.
-          // Do not actually remove plugin from parent while looping through
-          //   children of this parent. Else cannot access next element.
-          pluginsRm.push_back(pluginElt);
-        }
-      }
-
-      // Go to next plugin
-      pluginElt = pluginElt->GetNextElement("plugin");
-    }
-  }
-
-  // Remove the marked plugins
-  for (auto &it : pluginsRm)
-  {
-    it->RemoveFromParent();
-    igndbg << "Removed " << it->GetAttribute("name")->GetAsString()
-      << " plugin from loaded SDF\n";
-  }
-
-  // Create all Entities in SDF <world> tag
-  ignition::gazebo::SdfEntityCreator creator =
-    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
-
-  // Models
-  for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
-      ++modelIndex)
-  {
-    auto model = sdfWorld->ModelByIndex(modelIndex);
-    auto modelEntity = creator.CreateEntities(model);
-
-    creator.SetParent(modelEntity, _worldEntity);
-  }
-
-  // Lights
-  for (uint64_t lightIndex = 0; lightIndex < sdfWorld->LightCount();
-      ++lightIndex)
-  {
-    auto light = sdfWorld->LightByIndex(lightIndex);
-    auto lightEntity = creator.CreateEntities(light);
-
-    creator.SetParent(lightEntity, _worldEntity);
-  }
-
   // Access all messages in .tlog file
   this->batch = log->QueryMessages();
   this->iter = this->batch.begin();
@@ -320,6 +218,27 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   if (this->iter == this->batch.end())
   {
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+  }
+
+  // Look for the first SerializedState message and use it to set the initial
+  // state of the world. Messages received before this are ignored.
+  for (; this->iter != this->batch.end(); ++this->iter)
+  {
+    auto msgType = this->iter->Type();
+    if (msgType == "ignition.msgs.SerializedState")
+    {
+      msgs::SerializedState msg;
+      msg.ParseFromString(this->iter->Data());
+      this->Parse(_ecm, msg);
+      break;
+    }
+    else if (msgType == "ignition.msgs.SerializedStateMap")
+    {
+      msgs::SerializedStateMap msg;
+      msg.ParseFromString(this->iter->Data());
+      this->Parse(_ecm, msg);
+      break;
+    }
   }
 
   this->instStarted = true;
