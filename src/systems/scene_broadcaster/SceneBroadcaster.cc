@@ -145,12 +145,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: float dyPosePeriod { 1.0/60.0 };
 
   /// \brief Last time poses were published.
-  public: std::chrono::time_point<std::chrono::system_clock>
-      lastPosePubTime{std::chrono::system_clock::now()};
+  public: std::chrono::steady_clock::duration lastPosePubTime{0};
 
   /// \brief Last time dynamic poses were published.
-  public: std::chrono::time_point<std::chrono::system_clock>
-      lastDyPosePubTime{std::chrono::system_clock::now()};
+  public: std::chrono::steady_clock::duration lastDyPosePubTime{0};
 
   /// \brief Scene publisher
   public: transport::Node::Publisher scenePub;
@@ -323,14 +321,11 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
   bool dyPoseConnections = this->dyPosePub.HasConnections();
   bool poseConnections = this->posePub.HasConnections();
 
-  auto now = std::chrono::system_clock::now();
-  bool poseReady =
-    std::chrono::duration<double>(now - this->lastPosePubTime).count() >
-    this->posePeriod;
+  bool poseReady = std::chrono::duration<double>(
+      _info.simTime - this->lastPosePubTime).count() > this->posePeriod;
 
-  bool dyPoseReady =
-    std::chrono::duration<double>(now - this->lastDyPosePubTime).count() >
-    this->dyPosePeriod;
+  bool dyPoseReady = std::chrono::duration<double>(
+      _info.simTime - this->lastDyPosePubTime).count() > this->dyPosePeriod;
 
   bool doPose = poseConnections && poseReady;
   bool doDyPose = dyPoseConnections && dyPoseReady;
@@ -407,7 +402,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
         convert<msgs::Time>(_info.simTime));
 
     this->dyPosePub.Publish(dyPoseMsg);
-    this->lastDyPosePubTime = now;
+    this->lastDyPosePubTime = _info.simTime;
   }
 
   // Visuals
@@ -444,7 +439,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
         });
 
     this->posePub.Publish(poseMsg);
-    this->lastPosePubTime = now;
+    this->lastPosePubTime = _info.simTime;
   }
 }
 
