@@ -25,6 +25,7 @@
 
 #include <ignition/common/Util.hh>
 #include <ignition/common/Battery.hh>
+#include <ignition/common/Profiler.hh>
 
 #include <sdf/Element.hh>
 #include <sdf/Physics.hh>
@@ -281,6 +282,7 @@ void LinearBatteryPlugin::PreUpdate(
   const ignition::gazebo::UpdateInfo &/*_info*/,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
   // // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
   {
@@ -295,7 +297,7 @@ void LinearBatteryPlugin::PreUpdate(
       if (jointVelocityCmd) {
         for (double jointVel : jointVelocityCmd->Data())
         {
-          if (fabsf(jointVel) > 0)
+          if (fabsf(static_cast<float>(jointVel)) > 0)
           {
             this->dataPtr->startDraining = true;
             return;
@@ -310,6 +312,7 @@ void LinearBatteryPlugin::PreUpdate(
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LinearBatteryPlugin::Update");
   if (_info.paused)
     return;
 
@@ -349,6 +352,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &/*_ecm*/)
 {
+  IGN_PROFILE("LinearBatteryPlugin::PostUpdate");
   // Nothing left to do if paused
   if (_info.paused)
     return;

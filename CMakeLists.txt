@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.6.0)
+project(ignition-gazebo2 VERSION 2.6.1)
 
 #============================================================================
 # Find ignition-cmake
@@ -97,7 +97,7 @@ ign_find_package(ignition-sensors2 REQUIRED
     logical_camera
     magnetometer
     depth_camera
-  VERSION 2.1
+  VERSION 2.5
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
