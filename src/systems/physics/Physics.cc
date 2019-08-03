@@ -449,7 +449,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
 
-        sdf::Collision collision = _collElement->Data();
+        const sdf::Collision& collision = _collElement->Data();
 
         ShapePtrType collisionPtrPhys;
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
