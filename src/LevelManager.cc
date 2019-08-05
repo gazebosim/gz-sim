@@ -472,66 +472,69 @@ void LevelManager::UpdateLevelsState()
         });
   }
 
-  this->runner->entityCompMgr.Each<
-         components::Performer,
-         components::PerformerLevels,
-         components::Geometry,
-         components::ParentEntity>(
-      [&](const Entity &_perfEntity,
-          components::Performer *,
-          components::PerformerLevels *_perfLevels,
-          components::Geometry *_geometry,
-          components::ParentEntity *_parent) -> bool
-      {
-        IGN_PROFILE("EachPerformer");
+  // If levels are not being used, we only process the default level.
+  if (this->useLevels)
+  {
+    this->runner->entityCompMgr.Each<
+      components::Performer,
+      components::PerformerLevels,
+      components::Geometry,
+      components::ParentEntity>(
+          [&](const Entity &_perfEntity,
+            components::Performer *,
+            components::PerformerLevels *_perfLevels,
+            components::Geometry *_geometry,
+            components::ParentEntity *_parent) -> bool
+          {
+          IGN_PROFILE("EachPerformer");
 
-        auto pose = this->runner->entityCompMgr.Component<components::Pose>(
-            _parent->Data());
+          auto pose = this->runner->entityCompMgr.Component<components::Pose>(
+              _parent->Data());
 
-        // We assume the geometry contains a box.
-        auto perfBox = _geometry->Data().BoxShape();
-        if (nullptr == perfBox)
-        {
+          // We assume the geometry contains a box.
+          auto perfBox = _geometry->Data().BoxShape();
+          if (nullptr == perfBox)
+          {
           ignerr << "Internal error: geometry of performer [" << _perfEntity
-                 << "] missing box." << std::endl;
+          << "] missing box." << std::endl;
           return true;
-        }
+          }
 
-        math::AxisAlignedBox performerVolume{
-             pose->Data().Pos() - perfBox->Size() / 2,
-             pose->Data().Pos() + perfBox->Size() / 2};
+          math::AxisAlignedBox performerVolume{
+            pose->Data().Pos() - perfBox->Size() / 2,
+              pose->Data().Pos() + perfBox->Size() / 2};
 
-        std::set<Entity> newPerfLevels;
+          std::set<Entity> newPerfLevels;
 
-        // loop through levels and check for intersections
-        // Add all levels with inersections to the levelsToLoad even if they
-        // are currently active.
-        this->runner->entityCompMgr.Each<components::Level, components::Pose,
-                                         components::Geometry,
-                                         components::LevelBuffer >(
-            [&](const Entity &_entity, const components::Level *,
-                const components::Pose *_pose,
-                const components::Geometry *_levelGeometry,
-                const components::LevelBuffer *_levelBuffer) -> bool
-            {
+          // loop through levels and check for intersections
+          // Add all levels with intersections to the levelsToLoad even if they
+          // are currently active.
+          this->runner->entityCompMgr.Each<components::Level, components::Pose,
+            components::Geometry,
+            components::LevelBuffer >(
+                [&](const Entity &_entity, const components::Level *,
+                  const components::Pose *_pose,
+                  const components::Geometry *_levelGeometry,
+                  const components::LevelBuffer *_levelBuffer) -> bool
+                {
                 IGN_PROFILE("CheckPerformerAgainstLevel");
                 // Check if the performer is in this level
                 // assume a box for now
                 auto box = _levelGeometry->Data().BoxShape();
                 if (nullptr == box)
                 {
-                  ignerr << "Level [" << _entity
-                         << "]'s geometry is not a box." << std::endl;
-                  return true;
+                ignerr << "Level [" << _entity
+                << "]'s geometry is not a box." << std::endl;
+                return true;
                 }
                 auto buffer = _levelBuffer->Data();
                 auto center = _pose->Data().Pos();
                 math::AxisAlignedBox region{center - box->Size() / 2,
-                                            center + box->Size() / 2};
+                center + box->Size() / 2};
 
                 math::AxisAlignedBox outerRegion{
-                    center - (box->Size() / 2 + buffer),
-                    center + (box->Size() / 2 + buffer)};
+                  center - (box->Size() / 2 + buffer),
+                         center + (box->Size() / 2 + buffer)};
 
                 if (region.Intersects(performerVolume))
                 {
@@ -555,12 +558,14 @@ void LevelManager::UpdateLevelsState()
                   }
                 }
                 return true;
-              });
+                });
 
-        *_perfLevels = components::PerformerLevels(newPerfLevels);
+          *_perfLevels = components::PerformerLevels(newPerfLevels);
 
-        return true;
-      });
+          return true;
+          });
+  }
+
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());

@@ -16,6 +16,7 @@
 */
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 
 // Include all components so they have first-class support
@@ -80,6 +81,9 @@ void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
 /////////////////////////////////////////////////
 void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
+  IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
+  IGN_PROFILE("GuiRunner::Update");
+
   this->ecm.SetState(_msg.state());
 
   // Update all plugins
