@@ -411,7 +411,7 @@ namespace ignition
 
       /// \brief Equality test with tolerance.
       /// \param[in] _p The pose to compare this against. Both the position
-      /// Vector3 and Quaternion are compared.
+      /// Vector3 and rotation Quaternion are compared.
       /// \param[in] _tol Equality tolerance.
       /// \return True if the position and orientation of the poses are equal
       /// within the tolerence specified by _tol.
