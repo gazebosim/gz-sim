@@ -1060,6 +1060,19 @@ namespace ignition
         return _in;
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _q The quaternion to compare against.
+      /// \param[in] _tol equality tolerance.
+      /// \return True if the elements of the quaternions are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Quaternion &_q, const T &_tol) const
+      {
+        return equal(this->qx, _q.qx, _tol) &&
+               equal(this->qy, _q.qy, _tol) &&
+               equal(this->qz, _q.qz, _tol) &&
+               equal(this->qw, _q.qw, _tol);
+      }
+
       /// \brief w value of the quaternion
       private: T qw;
 

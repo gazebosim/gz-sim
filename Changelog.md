@@ -1,3 +1,10 @@
+## Ignition Math 7.x
+
+### Ignition Math 7.0.x
+
+1. Added Equal functions with a tolerance parameter to Pose3 and Quaternion.
+    * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/xxx)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x
