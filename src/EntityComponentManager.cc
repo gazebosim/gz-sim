@@ -126,6 +126,7 @@ Entity EntityComponentManager::CreateEntity()
 /////////////////////////////////////////////////
 Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 {
+  IGN_PROFILE("EntityComponentManager::CreateEntityImplementation");
   this->entities.AddVertex(std::to_string(_entity), _entity, _entity);
 
   // Add entity to the list of newly created entities
@@ -277,6 +278,7 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::RemoveComponent(
     const Entity _entity, const ComponentKey &_key)
 {
+  IGN_PROFILE("EntityComponentManager::RemoveComponent");
   // Make sure the entity exists and has the component.
   if (!this->EntityHasComponent(_entity, _key))
     return false;
@@ -531,6 +533,7 @@ const components::BaseComponent
     *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
+  IGN_PROFILE("EntityComponentManager::ComponentImplementation");
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
@@ -936,6 +939,7 @@ void EntityComponentManager::State(
 void EntityComponentManager::SetState(
     const ignition::msgs::SerializedState &_stateMsg)
 {
+  IGN_PROFILE("EntityComponentManager::SetState Non-map");
   // Create / remove / update entities
   for (int e = 0; e < _stateMsg.entities_size(); ++e)
   {
@@ -1037,6 +1041,7 @@ void EntityComponentManager::SetState(
 void EntityComponentManager::SetState(
     const ignition::msgs::SerializedStateMap &_stateMsg)
 {
+  IGN_PROFILE("EntityComponentManager::SetState Map");
   // Create / remove / update entities
   for (const auto &iter : _stateMsg.entities())
   {

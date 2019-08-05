@@ -305,6 +305,7 @@ class Cmd
       if options['server'] == 0 && options['gui'] == 0
 
         serverPid = Process.fork do
+          ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
@@ -313,6 +314,7 @@ class Cmd
         end
 
         guiPid = Process.fork do
+          ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
           Importer.runGui()
         end
@@ -334,12 +336,14 @@ class Cmd
 
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1
+        ENV['RMT_PORT'] = '1500'
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['recordPath'], options['playback'])
       # Otherwise run the gui
       else options['gui']
+        ENV['RMT_PORT'] = '1501'
         Importer.runGui
       end
     rescue
