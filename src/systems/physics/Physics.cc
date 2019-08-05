@@ -94,6 +94,7 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -110,6 +111,7 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
+          ignition::physics::SetShapeFrictionPyramidSlipCompliance,
           // FreeGroup
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
@@ -750,6 +752,21 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Slip compliance on Collisions
+  _ecm.Each<components::SlipComplianceCmd>(
+      [&](const Entity &_entity,
+          const components::SlipComplianceCmd *_slipCmdComp)
+      {
+        auto shapeIt = this->entityCollisionMap.find(_entity);
+        if (shapeIt == this->entityCollisionMap.end())
+          return true;
+
+        shapeIt->second->SetPrimarySlipCompliance(_slipCmdComp->Data().X());
+        shapeIt->second->SetSecondarySlipCompliance(_slipCmdComp->Data().Y());
+
+        return true;
+      });
+
   // Clear pending commands
   // Note: Removing components from inside an Each call can be dangerous.
   // Instead, we collect all the entities that have the desired components and
@@ -1115,6 +1132,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         std::fill(_vel->Data().begin(), _vel->Data().end(), 0.0);
         return true;
       });
+
+  // _ecm.Each<components::SlipComplianceCmd>(
+  //     [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
+  //     {
+  //       _slip->Data().Set(0, 0);
+  //       return true;
+  //     });
 
   // Update joint positions
   _ecm.Each<components::Joint, components::JointPosition>(

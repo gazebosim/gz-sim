@@ -18,8 +18,14 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/SlipComplianceCmd.hh"
 
 #include "WheelSlip.hh"
 
@@ -27,11 +33,13 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+// Adapted from osrf/Gazebo WheelSlipPlugin
+// https://bitbucket.org/osrf/gazebo/pull-requests/2950
 class ignition::gazebo::systems::WheelSlipPrivate
 {
-  /// \brief Callback for joint force subscription
-  /// \param[in] _msg Joint force message
-  public: void OnCmdForce(const ignition::msgs::Double &_msg);
+  public: bool Load(const EntityComponentManager &_ecm, sdf::ElementPtr _sdf);
+
+  public: void Update(EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -50,8 +58,321 @@ class ignition::gazebo::systems::WheelSlipPrivate
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  public: class LinkSurfaceParams{
+      /// \brief Pointer to wheel spin joint.
+      public: Entity joint;
+
+      /// \brief Pointer to ODESurfaceParams object.
+      public: Entity collision;
+
+      /// \brief Unitless wheel slip compliance in lateral direction.
+      /// The parameter should be non-negative,
+      /// with a value of zero allowing no slip
+      /// and larger values allowing increasing slip.
+      public: double slipComplianceLateral = 0;
+
+      /// \brief Unitless wheel slip compliance in longitudinal direction.
+      /// The parameter should be non-negative,
+      /// with a value of zero allowing no slip
+      /// and larger values allowing increasing slip.
+      public: double slipComplianceLongitudinal = 0;
+
+      /// \brief Wheel normal force estimate used to compute slip
+      /// compliance for ODE, which takes units of 1/N.
+      public: double wheelNormalForce = 0;
+
+      /// \brief Wheel radius extracted from collision shape if not
+      /// specified as xml parameter.
+      public: double wheelRadius = 0;
+    };
+
+  /// \brief TODO
+  public: std::map<Entity, LinkSurfaceParams> mapLinkSurfaceParams;
+
+  public: bool validConfig{false};
+  public: bool initialized{false};
 };
 
+/////////////////////////////////////////////////
+bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
+                            sdf::ElementPtr _sdf)
+{
+  // GZ_ASSERT(_model, "WheelSlipPlugin model pointer is NULL");
+  // GZ_ASSERT(_sdf, "WheelSlipPlugin sdf pointer is NULL");
+
+  // auto world = _model->GetWorld();
+  // GZ_ASSERT(world, "world pointer is NULL");
+  // {
+  //   ignition::math::Vector3d gravity = world->Gravity();
+  //   ignition::math::Quaterniond initialModelRot =
+  //       _model->WorldPose().Rot();
+  //   this->dataPtr->initialGravityDirection =
+  //       initialModelRot.RotateVectorReverse(gravity.Normalized());
+  // }
+  const std::string modelName = this->model.Name(_ecm);
+
+  if (!_sdf->HasElement("wheel"))
+  {
+    ignerr << "No wheel tags specified, plugin is disabled" << std::endl;
+    return false;
+  }
+
+  // Read each wheel element
+  for (auto wheelElem = _sdf->GetElement("wheel"); wheelElem;
+      wheelElem = wheelElem->GetNextElement("wheel"))
+  {
+    if (!wheelElem->HasAttribute("link_name"))
+    {
+      ignerr << "wheel element missing link_name attribute" << std::endl;
+      continue;
+    }
+
+    // Get link name
+    auto linkName = wheelElem->Get<std::string>("link_name");
+
+    LinkSurfaceParams params;
+    if (wheelElem->HasElement("slip_compliance_lateral"))
+    {
+      params.slipComplianceLateral =
+        wheelElem->Get<double>("slip_compliance_lateral");
+    }
+    if (wheelElem->HasElement("slip_compliance_longitudinal"))
+    {
+      params.slipComplianceLongitudinal =
+        wheelElem->Get<double>("slip_compliance_longitudinal");
+    }
+    if (wheelElem->HasElement("wheel_normal_force"))
+    {
+      params.wheelNormalForce = wheelElem->Get<double>("wheel_normal_force");
+    }
+
+    if (wheelElem->HasElement("wheel_radius"))
+    {
+      params.wheelRadius = wheelElem->Get<double>("wheel_radius");
+    }
+
+    auto link = Link(this->model.LinkByName(_ecm, linkName));
+    if (!link.Valid(_ecm))
+    {
+      ignerr << "Could not find link named [" << linkName
+            << "] in model [" << modelName << "]"
+            << std::endl;
+      continue;
+    }
+
+    auto collisions =
+        _ecm.ChildrenByComponents(link.Entity(), components::Collision());
+    if (collisions.empty() || collisions.size() != 1)
+    {
+      ignerr << "There should be 1 collision in link named [" << linkName
+            << "] in model [" << modelName << "]"
+            << ", but " << collisions.size() << " were found"
+            << std::endl;
+      continue;
+    }
+
+
+    auto collision = collisions.front();
+
+    // if (collision == nullptr)
+    // {
+    //   ignerr << "Could not find collision in link named [" << linkName
+    //         << "] in model [" << modelName << "]"
+    //         << std::endl;
+    //   continue;
+    // }
+
+    // auto surface = collision->Data().GetSurface();
+    // auto odeSurface =
+    //   boost::dynamic_pointer_cast<physics::ODESurfaceParams>(surface);
+    // if (odeSurface == nullptr)
+    // {
+    //   ignerr << "Could not find ODE Surface "
+    //         << "in collision named [" << collision->GetName()
+    //         << "] in link named [" << linkName
+    //         << "] in model [" << _model->GetScopedName() << "]"
+    //         << std::endl;
+    //   continue;
+    // }
+
+    params.collision = collision;
+
+    auto joints =
+        _ecm.ChildrenByComponents(model.Entity(), components::Joint(),
+                                  components::ChildLinkName(linkName));
+    if (joints.empty() || joints.size() != 1)
+    {
+      ignerr << "There should be 1 parent joint for link named [" << linkName
+            << "] in model [" << modelName << "]"
+            << ", but " << joints.size() << " were found"
+            << std::endl;
+      continue;
+    }
+    // auto joint = joints.front();
+    // if (joint == nullptr)
+    // {
+    //   ignerr << "Could not find parent joint for link named [" << linkName
+    //         << "] in model [" << _model->GetScopedName() << "]"
+    //         << std::endl;
+    //   continue;
+    // }
+    params.joint = joints.front();
+
+    if (params.wheelRadius <= 0)
+    {
+      // get collision shape and extract radius if it is a cylinder or sphere
+      // auto shape = collision->GetShape();
+      // if (shape->HasType(physics::Base::CYLINDER_SHAPE))
+      // {
+      //   auto cyl = boost::dynamic_pointer_cast<physics::CylinderShape>(shape);
+      //   if (cyl != nullptr)
+      //   {
+      //     params.wheelRadius = cyl->GetRadius();
+      //   }
+      // }
+      // else if (shape->HasType(physics::Base::SPHERE_SHAPE))
+      // {
+      //   auto sphere = boost::dynamic_pointer_cast<physics::SphereShape>(shape);
+      //   if (sphere != nullptr)
+      //   {
+      //     params.wheelRadius = sphere->GetRadius();
+      //   }
+      // }
+      // else
+      // {
+      //   ignerr << "A positive wheel radius was not specified in the"
+      //         << " [wheel_radius] parameter, and the the wheel radius"
+      //         << " could not be identified automatically because a"
+      //         << " sphere or cylinder collision shape could not be found."
+      //         << " Skipping link [" << linkName << "]."
+      //         << std::endl;
+      //   continue;
+      // }
+
+      // if that still didn't work, skip this link
+      if (params.wheelRadius <= 0)
+      {
+        ignerr << "Found wheel radius [" << params.wheelRadius
+              << "], which is not positive"
+              << " in link named [" << linkName
+              << "] in model [" << modelName << "]"
+              << std::endl;
+        continue;
+      }
+    }
+
+    if (params.wheelNormalForce <= 0)
+    {
+      ignerr << "Found wheel normal force [" << params.wheelNormalForce
+            << "], which is not positive"
+            << " in link named [" << linkName
+            << "] in model [" << modelName << "]"
+            << std::endl;
+      continue;
+    }
+
+    this->mapLinkSurfaceParams[link.Entity()] = params;
+  }
+
+  if (this->mapLinkSurfaceParams.empty())
+  {
+    ignerr << "No ODE links and surfaces found, plugin is disabled"
+           << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////
+void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
+{
+  // Get slip data so it can be published later
+  // std::map<std::string, ignition::math::Vector3d> slips;
+  // this->GetSlips(slips);
+
+  // std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  for (const auto &linkSurface : this->mapLinkSurfaceParams)
+  {
+    const auto &params = linkSurface.second;
+
+    // get user-defined normal force constant
+    double force = params.wheelNormalForce;
+
+    // get link angular velocity parallel to joint axis
+    // ignition::math::Vector3d wheelAngularVelocity;
+    // auto link = linkSurface.first.lock();
+    // if (link)
+    //   wheelAngularVelocity = link->WorldAngularVel();
+
+    // ignition::math::Vector3d jointAxis;
+    auto joint = params.joint;
+    // if (joint)
+    //   jointAxis = joint->GlobalAxis(0);
+
+    // double spinAngularVelocity = wheelAngularVelocity.Dot(jointAxis);
+    // TODO This actually gets the difference between the wheel and body
+    // velocities. It would be better to compute the absolute wheel velocity
+    // using the commented code.
+    auto spinAngularVelocityComp =
+        _ecm.Component<components::JointVelocity>(joint);
+
+    if (!spinAngularVelocityComp || spinAngularVelocityComp->Data().empty())
+      continue;
+    double spinAngularVelocity = spinAngularVelocityComp->Data()[0];
+
+    // As discussed in WheelSlipPlugin.hh, the ODE slip1 and slip2
+    // parameters have units of inverse viscous damping:
+    // [linear velocity / force] or [m / s / N].
+    // Since the slip compliance parameters supplied to the plugin
+    // are unitless, they must be scaled by a linear speed and force
+    // magnitude before being passed to ODE.
+    // The force is taken from a user-defined constant that should roughly
+    // match the steady-state normal force at the wheel.
+    // The linear speed is computed dynamically at each time step as
+    // radius * spin angular velocity.
+    // This choice of linear speed corresponds to the denominator of
+    // the slip ratio during acceleration (see equation (1) in
+    // Yoshida, Hamano 2002 DOI 10.1109/ROBOT.2002.1013712
+    // "Motion dynamics of a rover with slip-based traction model").
+    // The acceleration form is more well-behaved numerically at low-speed
+    // and when the vehicle is at rest than the braking form,
+    // so it is used for both slip directions.
+    double speed = params.wheelRadius * std::abs(spinAngularVelocity);
+    double slip1 = speed / force * params.slipComplianceLateral;
+    double slip2 = speed / force * params.slipComplianceLongitudinal;
+
+    std::cout << "slip1: " << slip1 << " slip2: " << slip2 <<std::endl;
+
+    math::Vector2d slipCmd;
+    slipCmd.X() = slip1;
+    slipCmd.Y() = slip2;
+
+    components::SlipComplianceCmd newSlipCmdComp(slipCmd);
+
+    auto currSlipCmdComp =
+        _ecm.Component<components::SlipComplianceCmd>(params.collision);
+    if (currSlipCmdComp )
+    {
+      *currSlipCmdComp = newSlipCmdComp;
+    }
+    else
+    {
+      _ecm.CreateComponent(params.collision, newSlipCmdComp);
+    }
+
+    // Try to publish slip data for this wheel
+    // if (link)
+    // {
+    //   msgs::Vector3d msg;
+    //   auto name = link->GetName();
+    //   msg = msgs::Convert(slips[name]);
+    //   if (params.slipPub)
+    //     params.slipPub->Publish(msg);
+    // }
+  }
+}
 //////////////////////////////////////////////////
 WheelSlip::WheelSlip()
   : dataPtr(std::make_unique<WheelSlipPrivate>())
@@ -74,73 +395,49 @@ void WheelSlip::Configure(const Entity &_entity,
   }
 
   auto sdfClone = _sdf->Clone();
-
-  // Get params from SDF
-  auto sdfElem = sdfClone->GetElement("joint_name");
-  if (sdfElem)
+  if (this->dataPtr->Load(_ecm, sdfClone))
   {
-    this->dataPtr->jointName = sdfElem->Get<std::string>();
+    this->dataPtr->validConfig = true;
   }
-
-  if (this->dataPtr->jointName == "")
-  {
-    ignerr << "WheelSlip found an empty jointName parameter. "
-           << "Failed to initialize.";
-    return;
-  }
-
-  // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
-                    this->dataPtr->jointName + "/cmd_force"};
-  this->dataPtr->node.Subscribe(topic, &WheelSlipPrivate::OnCmdForce,
-                                this->dataPtr.get());
-
-  ignmsg << "WheelSlip subscribing to Double messages on [" << topic
-         << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void WheelSlip::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   IGN_PROFILE("WheelSlip::PreUpdate");
-  // If the joint hasn't been identified yet, look for it
-  if (this->dataPtr->jointEntity == kNullEntity)
-  {
-    this->dataPtr->jointEntity =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
-  }
 
-  if (this->dataPtr->jointEntity == kNullEntity)
+  if (!this->dataPtr->validConfig)
     return;
 
-  // Nothing left to do if paused.
-  if (_info.paused)
-    return;
-
-  // Update joint force
-  auto force = _ecm.Component<components::JointForceCmd>(
-      this->dataPtr->jointEntity);
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
-
-  if (force == nullptr)
+  if (!this->dataPtr->initialized)
   {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity,
-        components::JointForceCmd({this->dataPtr->jointForceCmd}));
+    if (this->dataPtr->validConfig)
+    {
+      for (const auto &linkSurface : this->dataPtr->mapLinkSurfaceParams)
+      {
+        if (!_ecm.Component<components::WorldAngularVelocity>(
+                linkSurface.first))
+        {
+          _ecm.CreateComponent(linkSurface.first, components::JointVelocity());
+        }
+        if (!_ecm.Component<components::JointVelocity>(
+                linkSurface.second.joint))
+        {
+          _ecm.CreateComponent(linkSurface.second.joint,
+                               components::JointVelocity());
+        }
+      }
+    }
+    this->dataPtr->initialized = true;
   }
   else
   {
-    force->Data()[0] += this->dataPtr->jointForceCmd;
-  }
-}
+    // Nothing left to do if paused.
+    if (_info.paused)
+      return;
 
-//////////////////////////////////////////////////
-void WheelSlipPrivate::OnCmdForce(const msgs::Double &_msg)
-{
-  std::lock_guard<std::mutex> lock(this->jointForceCmdMutex);
-  this->jointForceCmd = _msg.data();
+    this->dataPtr->Update(_ecm);
+  }
 }
 
 IGNITION_ADD_PLUGIN(WheelSlip,
