@@ -31,7 +31,7 @@ pipelines:
           - make
           # Make sure documentation generation generated no warnings.
           - make doc
-          - bash <(curl -s https://bitbucket.org/ignitionrobotics/ign-cmake/raw/3b2778025650d050d0a85f5170a0aa6b35b68bc7/tools/doc_check.sh) 
+          - bash <(curl -s https://bitbucket.org/ignitionrobotics/ign-cmake/raw/02de4e1a3690e0ea37b190f9c35ecf25e6b0e251/tools/doc_check.sh) 
           - make test
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
