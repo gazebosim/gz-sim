@@ -329,7 +329,7 @@ namespace ignition
       }
 
       /// \brief Rotate vector part of a pose about the origin
-      /// \param[in] _rot rotation
+      /// \param[in] _q rotation
       /// \return the rotated pose
       public: Pose3<T> RotatePositionAboutOrigin(const Quaternion<T> &_q) const
       {
