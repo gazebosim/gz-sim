@@ -36,7 +36,7 @@ namespace math
 inline namespace IGNITION_MATH_VERSION_NAMESPACE {
 namespace graph
 {
-  /// \def VertexId.
+  /// \typedef VertexId.
   /// \brief The unique Id of each vertex.
   using VertexId = uint64_t;
 

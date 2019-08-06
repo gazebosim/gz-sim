@@ -52,19 +52,19 @@ namespace ignition
       /// \brief (0, 1, 1)
       public: static const Color Cyan;
 
-      /// \def RGBA
+      /// \typedef RGBA
       /// \brief A RGBA packed value as an unsigned int
       public: typedef unsigned int RGBA;
 
-      /// \def BGRA
+      /// \typedef BGRA
       /// \brief A BGRA packed value as an unsigned int
       public: typedef unsigned int BGRA;
 
-      /// \def ARGB
+      /// \typedef ARGB
       /// \brief A ARGB packed value as an unsigned int
       public: typedef unsigned int ARGB;
 
-      /// \def ABGR
+      /// \typedef ABGR
       /// \brief A ABGR packed value as an unsigned int
       public: typedef unsigned int ABGR;
 

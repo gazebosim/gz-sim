@@ -35,7 +35,7 @@ namespace math
 inline namespace IGNITION_MATH_VERSION_NAMESPACE {
 namespace graph
 {
-  /// \def EdgeId.
+  /// \typedef EdgeId.
   /// \brief The unique Id for an edge.
   using EdgeId = uint64_t;
 

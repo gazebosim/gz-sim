@@ -37,7 +37,7 @@ namespace math
 inline namespace IGNITION_MATH_VERSION_NAMESPACE {
 namespace graph
 {
-  /// \def CostInfo.
+  /// \typedef CostInfo.
   /// \brief Used in Dijkstra. For a given source vertex, this pair represents
   /// the cost (first element) to reach a destination vertex (second element).
   using CostInfo = std::pair<double, VertexId>;
