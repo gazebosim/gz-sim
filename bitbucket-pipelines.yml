@@ -46,4 +46,3 @@ pipelines:
           - cmake ..
           - make
           - ./graph_example
-
