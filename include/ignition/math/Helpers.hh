@@ -395,10 +395,13 @@ namespace ignition
     static const int64_t IGN_DEPRECATED(3) DPRCT_LOW_I64 = LOW_I64;
     static const int64_t IGN_DEPRECATED(3) DPRCT_INF_I64 = INF_I64;
 
-    /// \brief Simple clamping function
-    /// \param[in] _v value
-    /// \param[in] _min minimum
-    /// \param[in] _max maximum
+    /// \brief Simple clamping function that constrains a value to
+    /// a range defined by a min and max value. This function is equalivent to
+    /// std::max(std::min(value, max), min).
+    /// \param[in] _v Value to clamp
+    /// \param[in] _min Minimum allowed value.
+    /// \param[in] _max Maximum allowed value.
+    /// \return The value _v clamped to the range defined by _min and _max.
     template<typename T>
     inline T clamp(T _v, T _min, T _max)
     {
