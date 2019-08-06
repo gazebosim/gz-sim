@@ -1,6 +1,18 @@
 ## Ignition Math 6.x
 
-### Ignition Math 6.x.x
+### Ignition Math 6.4.0
+
+1. Added a function that rounds up a number to the nearest multiple of
+   another number.
+    * [Pull request 318](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/318)
+
+### Ignition Math 6.3.0
+
+1.  Added Odometry class that computes odometry for a two wheeled vehicle. 
+    * [Pull request 313](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/313)
+
+1.  Added RollingMean class. 
+    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/314)
 
 ### Ignition Math 6.2.0
 
