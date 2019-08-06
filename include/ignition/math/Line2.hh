@@ -298,7 +298,7 @@ namespace ignition
 
       /// \brief Stream extraction operator
       /// \param[in] _out output stream
-      /// \param[in] _pt Line2 to output
+      /// \param[in] _line Line2 to output
       /// \return The stream
       public: friend std::ostream &operator<<(
                   std::ostream &_out, const Line2<T> &_line)
