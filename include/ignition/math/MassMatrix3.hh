@@ -174,7 +174,6 @@ namespace ignition
       /// \brief Set the off-diagonal moments of inertia (Ixy, Ixz, Iyz).
       /// \param[in] _ixyxzyz off-diagonal moments of inertia
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated See bool SetOffDiagonalMoments(const Vector3<T> &_ixyxzyz)
       public: bool SetOffDiagonalMoments(const Vector3<T> &_ixyxzyz)
       {
         this->Ixyxzyz = _ixyxzyz;
