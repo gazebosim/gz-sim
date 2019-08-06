@@ -245,10 +245,10 @@ namespace ignition
       }
 
       /// \brief Set the quaternion from an axis and angle
-      /// \param[in] _x X axis
-      /// \param[in] _y Y axis
-      /// \param[in] _z Z axis
-      /// \param[in] _a Angle in radians
+      /// \param[in] _ax X axis
+      /// \param[in] _ay Y axis
+      /// \param[in] _az Z axis
+      /// \param[in] _aa Angle in radians
       public: void Axis(T _ax, T _ay, T _az, T _aa)
       {
         T l;
@@ -284,7 +284,7 @@ namespace ignition
       }
 
       /// \brief Set this quaternion from 4 floating numbers
-      /// \param[in] _u u
+      /// \param[in] _w w
       /// \param[in] _x x
       /// \param[in] _y y
       /// \param[in] _z z
@@ -659,9 +659,9 @@ namespace ignition
       /// \brief Multiplication operator
       /// \param[in] _qt Quaternion<T> for multiplication
       /// \return This quaternion multiplied by the parameter
-      public: Quaternion<T> operator*=(const Quaternion<T> &qt)
+      public: Quaternion<T> operator*=(const Quaternion<T> &_qt)
       {
-        *this = *this * qt;
+        *this = *this * _qt;
         return *this;
       }
 
@@ -839,7 +839,7 @@ namespace ignition
 
       /// \brief Spherical quadratic interpolation
       /// given the ends and an interpolation parameter between 0 and 1
-      /// \param[in] _ft the interpolation parameter
+      /// \param[in] _fT the interpolation parameter
       /// \param[in] _rkP the beginning quaternion
       /// \param[in] _rkA first intermediate quaternion
       /// \param[in] _rkB second intermediate quaternion
@@ -860,7 +860,7 @@ namespace ignition
 
       /// \brief Spherical linear interpolation between 2 quaternions,
       /// given the ends and an interpolation parameter between 0 and 1
-      /// \param[in] _ft the interpolation parameter
+      /// \param[in] _fT the interpolation parameter
       /// \param[in] _rkP the beginning quaternion
       /// \param[in] _rkQ the end quaternion
       /// \param[in] _shortestPath when true, the rotation may be inverted to

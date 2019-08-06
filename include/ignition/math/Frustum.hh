@@ -169,7 +169,7 @@ namespace ignition
       public: void SetPose(const Pose3d &_pose);
 
       /// \brief Assignment operator. Set this frustum to the parameter.
-      /// \param[in]  _b Frustum to copy
+      /// \param[in] _f Frustum to copy
       /// \return The new frustum.
       public: Frustum &operator=(const Frustum &_f);
 

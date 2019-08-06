@@ -306,7 +306,7 @@ namespace ignition
       /// \brief Division assignment operator
       /// \remarks Performs element wise division,
       /// which has limited use.
-      /// \param[in] _pt another vector
+      /// \param[in] _v another vector
       /// \return a result vector
       public: const Vector4<T> operator/(T _v) const
       {

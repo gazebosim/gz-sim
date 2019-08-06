@@ -504,9 +504,10 @@ namespace ignition
 
         return _out;
       }
+
       /// \brief Stream extraction operator
-      /// \param _in input stream
-      /// \param _pt Matrix3 to read values into
+      /// \param[in,out] _in input stream
+      /// \param[out] _m Matrix3 to read values into
       /// \return the stream
       public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix3<T> &_m)

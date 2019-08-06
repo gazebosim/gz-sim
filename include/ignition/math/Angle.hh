@@ -21,18 +21,21 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
 
+/// \def IGN_RTOD(d)
 /// \brief Macro that converts radians to degrees
-/// \param[in] radians
+/// \param[in] r radians
 /// \return degrees
 #define IGN_RTOD(r) ((r) * 180 / IGN_PI)
 
+/// \def IGN_DTOR(d)
 /// \brief Converts degrees to radians
-/// \param[in] degrees
+/// \param[in] d degrees
 /// \return radians
 #define IGN_DTOR(d) ((d) * IGN_PI / 180)
 
+/// \def IGN_NORMALIZE(a)
 /// \brief Macro that normalizes an angle in the range -Pi to Pi
-/// \param[in] angle
+/// \param[in] a angle
 /// \return the angle, in range
 #define IGN_NORMALIZE(a) (atan2(sin(a), cos(a)))
 
@@ -186,8 +189,8 @@ namespace ignition
       }
 
       /// \brief Stream extraction operator. Assumes input is in radians
-      /// \param in input stream
-      /// \param pt angle to read value into
+      /// \param[in,out] _in input stream
+      /// \param[out] _a angle to read value into
       /// \return The input stream
       public: friend std::istream &operator>>(std::istream &_in,
                                               ignition::math::Angle &_a)
