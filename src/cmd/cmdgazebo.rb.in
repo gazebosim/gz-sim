@@ -67,10 +67,15 @@ COMMANDS = { 'gazebo' =>
   "\n"\
   "  -r                          Run simulation on start.                   \n"\
   "\n"\
-  "  --record                 Use logging system to record states.          \n"\
+  "  --record                    Use logging system to record states and    \n"\
+  "                              console messages to the default location,  \n"\
+  "                              in ~/.ignition/gazebo/log.                 \n"\
   "\n"\
   "  --record-path [arg]         Custom path to put recorded files. Argument\n"\
-  "                              is path to record states.                  \n"\
+  "                              is path to record states and console       \n"\
+  "                              messages. Specifying this argument will    \n"\
+  "                              enable console logging to a console.log    \n"\
+  "                              file in the specified path.                \n"\
   "\n"\
   "  -s                          Run only the server (headless mode). This  \n"\
   "                              overrides -g, if it is also present.       \n"\
@@ -310,7 +315,7 @@ class Cmd
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['recordPath'], options['playback'])
+            options['record-path'], options['playback'])
         end
 
         guiPid = Process.fork do
