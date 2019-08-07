@@ -260,10 +260,10 @@ TEST(SphericalCoordinatesTest, CoordinateTransforms)
 TEST(SphericalCoordinatesTest, Distance)
 {
   ignition::math::Angle latA, longA, latB, longB;
-  latA.Degree(46.250944);
-  longA.Degree(-122.249972);
-  latB.Degree(46.124953);
-  longB.Degree(-122.251683);
+  latA.SetDegree(46.250944);
+  longA.SetDegree(-122.249972);
+  latB.SetDegree(46.124953);
+  longB.SetDegree(-122.251683);
   double d = math::SphericalCoordinates::Distance(latA, longA, latB, longB);
 
   EXPECT_NEAR(14002, d, 20);
