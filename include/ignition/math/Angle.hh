@@ -59,6 +59,10 @@ namespace ignition
       /// \brief math::Angle(IGN_PI * 2)
       public: static const Angle TwoPi;
 
+      /// \brief Default constructor that initializes an Angle to zero
+      /// radians/degrees.
+      public: Angle() = default;
+
       /// \brief Conversion Constructor
       /// \param[in] _radian Radians
       // cppcheck-suppress noExplicitConstructor
@@ -85,7 +89,7 @@ namespace ignition
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
       /// \deprecated Use void SetDegree(double)
-      public: void Degree(double _degree);
+      public: void SetDegree(double _degree);
 
       /// \brief Get the angle in radians
       /// \return double containing the angle's radian value

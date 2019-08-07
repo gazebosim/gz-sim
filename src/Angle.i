@@ -34,8 +34,8 @@ namespace ignition
       public: Angle(double _radian);
       public: Angle(const Angle &_angle);
       public: virtual ~Angle();
-      public: void Radian(double _radian);
-      public: void Degree(double _degree);
+      public: void SetRadian(double _radian);
+      public: void SetDegree(double _degree);
       public: double Radian() const;
       public: double Degree() const;
       public: void Normalize();

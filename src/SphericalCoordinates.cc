@@ -244,7 +244,7 @@ void SphericalCoordinates::SetElevationReference(const double _elevation)
 //////////////////////////////////////////////////
 void SphericalCoordinates::SetHeadingOffset(const ignition::math::Angle &_angle)
 {
-  this->dataPtr->headingOffset.Radian(_angle.Radian());
+  this->dataPtr->headingOffset.SetRadian(_angle.Radian());
   this->UpdateTransformationMatrix();
 }
 
