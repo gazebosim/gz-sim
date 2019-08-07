@@ -43,6 +43,7 @@ pipelines:
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
           - export IGN_CONFIG_PATH=/usr/local/share/ignition
+          - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
           # run codecheck before tests so flaky tests don't obscure codecheck failures
           - make codecheck
           - make test ARGS="-VV"
