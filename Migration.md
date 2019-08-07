@@ -5,6 +5,14 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Math 6.X to 7.X
+
+### Deprecations
+
+1. **Angle.hh**
+    + All mutator functions that lacked a `Set` prefix have been deprecated
+    and replaced by version with a `Set` prefix.
+
 ## Ignition Math 4.X to 5.X
 
 ### Additions
