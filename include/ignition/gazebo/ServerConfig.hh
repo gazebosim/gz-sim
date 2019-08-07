@@ -305,6 +305,7 @@ namespace ignition
       /// time when this ServerConfig was created. The timestamp is used
       /// internally to create log file paths so that both state and console
       /// logs are co-located.
+      /// \return Time when this ServerConfig was created.
       public: const std::chrono::time_point<std::chrono::system_clock> &
               Timestamp() const;
 
