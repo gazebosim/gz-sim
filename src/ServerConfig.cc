@@ -474,5 +474,5 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &_cfg)
 const std::chrono::time_point<std::chrono::system_clock> &
 ServerConfig::Timestamp() const
 {
-  return this->dataptr->timestamp;
+  return this->dataPtr->timestamp;
 }
