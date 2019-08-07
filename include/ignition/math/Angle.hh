@@ -59,27 +59,32 @@ namespace ignition
       /// \brief math::Angle(IGN_PI * 2)
       public: static const Angle TwoPi;
 
-      /// \brief Constructor
-      public: Angle();
-
       /// \brief Conversion Constructor
       /// \param[in] _radian Radians
       // cppcheck-suppress noExplicitConstructor
-      public: Angle(const double _radian);
+      public: Angle(double _radian);
 
       /// \brief Copy constructor
       /// \param[in] _angle Angle to copy
       public: Angle(const Angle &_angle);
 
-      /// \brief Destructor
-      public: virtual ~Angle();
+      /// \brief Set the value from an angle in radians
+      /// \param[in] _radian Radian value
+      /// \deprecated Use void SetRadian(double)
+      public: void IGN_DEPRECATED(7) Radian(double _radian);
 
       /// \brief Set the value from an angle in radians
       /// \param[in] _radian Radian value
-      public: void Radian(double _radian);
+      public: void SetRadian(double _radian);
 
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
+      /// \deprecated Use void SetDegree(double)
+      public: void IGN_DEPRECATED(7) Degree(double _degree);
+
+      /// \brief Set the value from an angle in degrees
+      /// \param[in] _degree Degree value
+      /// \deprecated Use void SetDegree(double)
       public: void Degree(double _degree);
 
       /// \brief Get the angle in radians
@@ -198,8 +203,8 @@ namespace ignition
         return _in;
       }
 
-      /// The angle in radians
-      private: double value;
+      /// The angle in radians, with a default value of zero.
+      private: double value{0};
     };
     }
   }
