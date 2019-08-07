@@ -1,7 +1,12 @@
 ## Ignition Math 6.x
 
-### Ignition Math 6.4.0
+## Ignition Math 6.x.x
 
+#1. Updating documentation.
+    * Angle: [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/325)
+
+## Ignition Math 6.4.0
+  
 1. Added a function that rounds up a number to the nearest multiple of
    another number.
     * [Pull request 318](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/318)
