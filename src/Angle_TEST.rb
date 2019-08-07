@@ -25,7 +25,7 @@ class Angle_TEST < Test::Unit::TestCase
     assert(angle1.Radian() == 0.0,
            "Angle::Radian() should equal zero")
 
-    angle1.Degree(180.0)
+    angle1.SetDegree(180.0)
     assert(angle1 == Ignition::Math::Angle.Pi,
            "180.0 degrees should equal PI")
 
@@ -53,13 +53,16 @@ class Angle_TEST < Test::Unit::TestCase
     angle = Ignition::Math::Angle.new(0.5)
     assert(0.5 == angle.Radian, "Angle should equal 0.5")
 
-    angle.Radian(Math::PI)
+    angle.SetRadian(Math::PI)
     assert(Ignition::Math::Angle.Pi.Degree == angle.Degree,
-           "Pi in degrees should equal Angle.Radian(Pi).Degree")
+           "Pi in degrees should equal Angle.SetRadian(Pi).Degree")
+
+    angleNorm = angle.Normalized() 
 
     angle.Normalize()
     assert(Ignition::Math::Angle.new(Math::PI).Degree == angle.Degree,
            "Normalized angle should equal PI")
+    assert(angleNorm == angle, "Normalized angles should be equal")
 
     angle = Ignition::Math::Angle.new(0.1) + Ignition::Math::Angle.new(0.2)
     assert((angle.Radian - 0.3).abs < 1e-6, "Angle should equal 0.3")
