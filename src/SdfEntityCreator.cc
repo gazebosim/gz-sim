@@ -48,6 +48,7 @@
 #include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/ModelSdf.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -183,6 +184,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
   // Components
   this->dataPtr->ecm->CreateComponent(modelEntity, components::Model());
+  this->dataPtr->ecm->CreateComponent(modelEntity,
+      components::ModelSdf(*_model));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Pose(_model->Pose()));
   this->dataPtr->ecm->CreateComponent(modelEntity,
