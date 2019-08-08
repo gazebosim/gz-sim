@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -32,6 +33,7 @@
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/Matrix4.hh>
 
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -41,6 +43,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -79,6 +82,10 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Update rendering entities
   /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Total time elapsed in simulation. This will not increase while
+  /// paused.
+  public: double simTime{0};
 
   /// \brief Name of rendering engine
   public: std::string engineName = "ogre2";
@@ -123,6 +130,10 @@ class ignition::gazebo::RenderUtilPrivate
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Visual, Entity>> newVisuals;
 
+  /// \brief New actors to be created. The elements in the tuple are:
+  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Actor, Entity>> newActors;
+
   /// \brief New lights to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
@@ -137,6 +148,10 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief A map of entity ids and pose updates.
   public: std::map<Entity, math::Pose3d> entityPoses;
+
+  /// \brief A map of entity ids and pose updates.
+  public: std::map<Entity, std::map<std::string, math::Matrix4d>>
+                          actorTransforms;
 
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
@@ -178,6 +193,9 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 {
   IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  using toSeconds = std::chrono::duration<float, std::ratio<1, 1  >>;
+  this->dataPtr->simTime = toSeconds(_info.simTime).count();
+
   this->dataPtr->CreateRenderingEntities(_ecm);
   if (!_info.paused)
     this->dataPtr->UpdateRenderingEntities(_ecm);
@@ -214,17 +232,21 @@ void RenderUtil::Update()
   auto newModels = std::move(this->dataPtr->newModels);
   auto newLinks = std::move(this->dataPtr->newLinks);
   auto newVisuals = std::move(this->dataPtr->newVisuals);
+  auto newActors = std::move(this->dataPtr->newActors);
   auto newLights = std::move(this->dataPtr->newLights);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto actorTransforms = std::move(this->dataPtr->actorTransforms);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
   this->dataPtr->newLinks.clear();
   this->dataPtr->newVisuals.clear();
+  this->dataPtr->newActors.clear();
   this->dataPtr->newLights.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->actorTransforms.clear();
 
   std::vector<std::tuple<Entity, sdf::Sensor, Entity>> newSensors;
   if (this->dataPtr->enableSensors)
@@ -265,6 +287,12 @@ void RenderUtil::Update()
     {
       this->dataPtr->sceneManager.CreateVisual(
           std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
+    }
+
+    for (auto &actor : newActors)
+    {
+      this->dataPtr->sceneManager.CreateActor(
+          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor));
     }
 
     for (auto &light : newLights)
@@ -340,6 +368,23 @@ void RenderUtil::Update()
       }
 
       node->SetLocalPose(pose.second);
+    }
+
+    // update entities' local transformations
+    for (auto &tf : actorTransforms)
+    {
+      auto actorMesh = this->dataPtr->sceneManager.MeshById(tf.first);
+      auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
+      if (!actorMesh || !actorVisual)
+        continue;
+
+      math::Pose3d actorPose;
+      actorPose.Pos() = tf.second["actorPose"].Translation();
+      actorPose.Rot() = tf.second["actorPose"].Rotation();
+      actorVisual->SetLocalPose(actorPose);
+
+      tf.second.erase("actorPose");
+      actorMesh->SetSkeletonLocalTransforms(tf.second);
     }
   }
 }
@@ -446,6 +491,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
+          return true;
+        });
+
+    // actors
+    _ecm.Each<components::Actor, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Actor *_actor,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newActors.push_back(
+              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
           return true;
         });
 
@@ -583,6 +639,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
+    // actors
+    _ecm.EachNew<components::Actor, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Actor *_actor,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newActors.push_back(
+              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
+          return true;
+        });
+
     // lights
     _ecm.EachNew<components::Light, components::ParentEntity>(
         [&](const Entity &_entity,
@@ -673,6 +740,19 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Pose *_pose)->bool
       {
         this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
+  // actors
+  _ecm.Each<components::Actor, components::Pose>(
+      [&](const Entity &_entity,
+        const components::Actor *,
+        const components::Pose *)->bool
+      {
+        // this->entityPoses[_entity] = _pose->Data();
+        this->actorTransforms[_entity] =
+              this->sceneManager.EntityMeshAnimationAt(_entity,
+                                    this->simTime, true);
         return true;
       });
 
