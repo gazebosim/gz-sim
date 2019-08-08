@@ -60,10 +60,20 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _networkSecondaries, int _record, const char *_recordPath,
     const char *_playback)
 {
+  ignition::gazebo::ServerConfig serverConfig;
+
+  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  {
+    ignLogInit(_recordPath, "server_console.log");
+  }
+  else
+  {
+    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+  }
+
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
-  ignition::gazebo::ServerConfig serverConfig;
 
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
