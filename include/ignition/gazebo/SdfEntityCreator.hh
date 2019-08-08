@@ -22,6 +22,7 @@
 #include <sdf/Collision.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Joint.hh>
+#include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -95,6 +96,12 @@ namespace ignition
       /// \param[in] _model SDF model object.
       /// \return Model entity.
       public: Entity CreateEntities(const sdf::Model *_model);
+
+      /// \brief Create all entities that exist in the sdf::Actor object and
+      /// load their plugins.
+      /// \param[in] _actor SDF actor object.
+      /// \return Actor entity.
+      public: Entity CreateEntities(const sdf::Actor *_actor);
 
       /// \brief Create all entities that exist in the sdf::Light object and
       /// load their plugins.
