@@ -1,6 +1,6 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.X.X
+### Ignition Gazebo 2.7.0
 
 1. Move creation of default log path to ServerConfig. This lets both console logs and state logs to be stored in the same directory.  The console messages are always logged.  Allow state log files to be overwritten.
    * [Pull Request 413](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/413)
