@@ -49,13 +49,9 @@
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
-#include <ignition/physics/sdf/ConstructCollision.hh>
-#include <ignition/physics/sdf/ConstructJoint.hh>
-#include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructVisual.hh>
 #include <ignition/physics/sdf/ConstructWorld.hh>
-#include <ignition/physics/sdf/FinalizeModels.hh>
 
 // SDF
 #include <sdf/Collision.hh>
