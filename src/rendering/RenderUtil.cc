@@ -136,7 +136,7 @@ class ignition::gazebo::RenderUtilPrivate
       newSensors;
 
   /// \brief Ids of entities to be removed
-  public: std::map<Entity, unsigned int> removeEntities;
+  public: std::map<Entity, uint64_t> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
   public: std::map<Entity, math::Pose3d> entityPoses;
