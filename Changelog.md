@@ -1,5 +1,11 @@
 ## Ignition Gazebo 2.x
 
+
+### Ignition Gazebo 2.X.X
+
+1. Fix order of adding and removing rendering entities
+   * [Pull Request 415](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/415)
+
 ### Ignition Gazebo 2.7.0
 
 1. Move creation of default log path to ServerConfig. This lets both console logs and state logs to be stored in the same directory.  The console messages are always logged.  Allow state log files to be overwritten.
