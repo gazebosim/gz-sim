@@ -257,7 +257,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     // TODO(anyone) set transparency)
     // material->SetTransparency(_visual.Transparency());
     if (material)
+    {
       geom->SetMaterial(material);
+      // todo(anyone) SetMaterial function clones the input material.
+      // but does not take ownership of it so we need to destroy it here.
+      // This is not ideal. We should let ign-rendering handle the lifetime
+      // of this material
+      this->dataPtr->scene->DestroyMaterial(material);
+    }
   }
   else
   {
