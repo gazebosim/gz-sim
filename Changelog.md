@@ -1,10 +1,11 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.7.1
 
-### Ignition Gazebo 2.X.X
-
-1. Fix order of adding and removing rendering entities
+1. Fix order of adding and removing rendering entities, and clean up mesh
+   materials in the SceneManager.
    * [Pull Request 415](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/415)
+   * [Pull Request 416](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/416)
 
 ### Ignition Gazebo 2.7.0
 
