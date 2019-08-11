@@ -114,7 +114,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<sdf::Scene> newScenes;
 
   /// \brief New models to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
   public: std::vector<std::tuple<Entity, sdf::Model, Entity, uint64_t>>
       newModels;
 
@@ -135,7 +135,8 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
-  /// \brief Ids of entities to be removed
+  /// \brief Map of ids of entites to be removed and sim iteration when the
+  /// remove request is received
   public: std::map<Entity, uint64_t> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
@@ -275,6 +276,8 @@ void RenderUtil::Update()
       // to check their creation timestamp to make sure we do not create a new
       // entity when there is also a remove request with a more recent
       // timestamp
+      // \todo(anyone) add test to check scene entities are properly added
+      // and removed.
       auto removeIt = removeEntities.find(entityId);
       if (removeIt != removeEntities.end())
       {
