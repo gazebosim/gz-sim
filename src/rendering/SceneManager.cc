@@ -526,8 +526,8 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     auto it = this->dataPtr->visuals.find(_parentGazeboId);
     if (it == this->dataPtr->visuals.end())
     {
-      ignerr << "Parent entity with Id [" << _parentGazeboId << "] not found. "
-             << "Not adding sensor entity [" << _gazeboId << "]" << std::endl;
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
       return false;
     }
     parent = it->second;
