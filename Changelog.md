@@ -1,6 +1,16 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.X.X
+### Ignition Gazebo 2.7.1
+
+1. Fix order of adding and removing rendering entities, and clean up mesh
+   materials in the SceneManager.
+   * [Pull Request 415](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/415)
+   * [Pull Request 416](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/416)
+
+### Ignition Gazebo 2.7.0
+
+1. Move creation of default log path to ServerConfig. This lets both console logs and state logs to be stored in the same directory.  The console messages are always logged.  Allow state log files to be overwritten.
+   * [Pull Request 413](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/413)
 
 1. Baseline for stereo cameras
    * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
