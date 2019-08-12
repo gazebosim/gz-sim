@@ -99,7 +99,7 @@ are handled for you. The downside of a binary install is that you won't be able 
 the code. See [Source Install](#markdown-header-source-install) for information on
 installing Ignition Gazebo from source.
 
-**Ubuntu Bionic**
+**Ubuntu Bionic (version 2)**
 
 1. Configure package repositories.
 
@@ -122,10 +122,10 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo-dev
+    sudo apt-get install libignition-gazebo2-dev
     ```
 
-## Source Install
+## Source Install (version 3)
 
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
@@ -180,7 +180,7 @@ for dependency installation instructions for each supported operating system.
 1. Clone the repository.
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo -b default
     ```
 
 2. Configure and  build.
