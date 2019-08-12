@@ -223,21 +223,23 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 
   this->logPath = _logPath;
 
-  // If unspecified, or specified is not a directory, use default directory
+  // The ServerConfig takes care of specifying a default log record path.
+  // This if statement should never be reached.
   if (this->logPath.empty() ||
       (common::exists(this->logPath) && !common::isDirectory(this->logPath)))
   {
-    this->logPath = this->DefaultRecordPath();
-    ignmsg << "Unspecified or invalid log path to record to. "
-      << "Recording to default location [" << this->logPath << "]" << std::endl;
+    ignerr << "Unspecified or invalid log path[" << this->logPath << "]. "
+      << "Recording will not take place." << std::endl;
+    return false;
   }
 
-  // If directory already exists, do not overwrite
+  // A user could have manually specified a record path. In this case, it's
+  // okay to overwrite existing log files.
   if (common::exists(this->logPath))
   {
-    this->logPath = common::uniqueDirectoryPath(this->logPath);
     ignwarn << "Log path already exists on disk! "
-      << "Recording instead to [" << this->logPath << "]" << std::endl;
+      << "Recording will overwrite existing state log file, if present."
+      << std::endl;
   }
 
   // Create log directory
@@ -266,6 +268,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 
   // Append file name
   std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
+  if (common::exists(dbPath))
+    common::removeFile(dbPath);
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Use ign-transport directly

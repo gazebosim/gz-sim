@@ -119,6 +119,13 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 
   if (parent)
     name = parent->Name() +  "::" + name;
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return rendering::VisualPtr();
+  }
+
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
   modelVis->SetLocalPose(_model.Pose());
   this->dataPtr->visuals[_id] = modelVis;
@@ -148,8 +155,8 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {
-      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding link: [" << _id << "]" << std::endl;
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
       return rendering::VisualPtr();
     }
     parent = it->second;
@@ -186,8 +193,8 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {
-      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding visual: [" << _id << "]" << std::endl;
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
       return rendering::VisualPtr();
     }
     parent = it->second;
@@ -250,7 +257,14 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     // TODO(anyone) set transparency)
     // material->SetTransparency(_visual.Transparency());
     if (material)
+    {
       geom->SetMaterial(material);
+      // todo(anyone) SetMaterial function clones the input material.
+      // but does not take ownership of it so we need to destroy it here.
+      // This is not ideal. We should let ign-rendering handle the lifetime
+      // of this material
+      this->dataPtr->scene->DestroyMaterial(material);
+    }
   }
   else
   {
@@ -441,8 +455,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {
-      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding light: [" << _id << "]" << std::endl;
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
       return rendering::LightPtr();
     }
     parent = it->second;
@@ -519,8 +533,8 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     auto it = this->dataPtr->visuals.find(_parentGazeboId);
     if (it == this->dataPtr->visuals.end())
     {
-      ignerr << "Parent entity with Id [" << _parentGazeboId << "] not found. "
-             << "Not adding sensor entity [" << _gazeboId << "]" << std::endl;
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
       return false;
     }
     parent = it->second;
