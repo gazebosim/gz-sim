@@ -122,7 +122,7 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo-dev
+    sudo apt-get install libignition-gazebo2-dev
     ```
 
 ## Source Install
@@ -180,7 +180,7 @@ for dependency installation instructions for each supported operating system.
 1. Clone the repository.
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo -b ign-gazebo2
     ```
 
 2. Configure and  build.
