@@ -186,16 +186,6 @@ namespace ignition
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
-      /// \deprecated Use SetTranslation instead
-      public: void
-              IGN_DEPRECATED(4)
-              Translate(const Vector3<T> &_t)
-      {
-        this->SetTranslation(_t);
-      }
-
-      /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
-      /// \param[in] _t Values to set
       public: void SetTranslation(const Vector3<T> &_t)
       {
         this->data[0][3] = _t.X();
@@ -203,17 +193,6 @@ namespace ignition
         this->data[2][3] = _t.Z();
       }
 
-      /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
-      /// \param[in] _x X translation value.
-      /// \param[in] _y Y translation value.
-      /// \param[in] _z Z translation value.
-      /// \deprecated Use SetTranslation instead
-      public: void
-              IGN_DEPRECATED(4)
-              Translate(T _x, T _y, T _z)
-      {
-        this->SetTranslation(_x, _y, _z);
-      }
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _x X translation value.
@@ -398,31 +377,6 @@ namespace ignition
           equal(this->data[3][1], static_cast<T>(0)) &&
           equal(this->data[3][2], static_cast<T>(0)) &&
           equal(this->data[3][3], static_cast<T>(1));
-      }
-
-      /// \brief Perform an affine transformation
-      /// \param[in] _v Vector3 value for the transformation
-      /// \return The result of the transformation. A default constructed
-      /// Vector3<T> is returned if this matrix is not affine.
-      /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
-      /// Vector3<T> &_result) const;
-      public: Vector3<T>
-              IGN_DEPRECATED(3.0)
-              TransformAffine(const Vector3<T> &_v) const
-      {
-        if (this->IsAffine())
-        {
-          return Vector3<T>(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
-                            this->data[0][2]*_v.Z() + this->data[0][3],
-                            this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
-                            this->data[1][2]*_v.Z() + this->data[1][3],
-                            this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
-                            this->data[2][2]*_v.Z() + this->data[2][3]);
-        }
-        else
-        {
-          return Vector3<T>();
-        }
       }
 
       /// \brief Perform an affine transformation

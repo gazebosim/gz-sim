@@ -5,6 +5,9 @@
 1. Deprecated `Angle::Degree(double)` and `Angle::Radian(double)`. Use `Angle::SetDegree(double)` and `Angle::SetRadian(double)` instead.
     * [Pull request 326](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/326)
 
+1. Removed deprecations.
+    * [Pull request 320](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/320)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x
