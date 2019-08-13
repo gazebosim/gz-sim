@@ -116,7 +116,7 @@ TEST(PoseTest, Pose)
       math::Pose3d(0, 0, 0, 0, 0, 0));
 
   pose.Pos().Set(5, 6, 7);
-  pose.Rot().Euler(math::Vector3d(.4, .6, 0));
+  pose.Rot().SetFromEuler(math::Vector3d(.4, .6, 0));
 
   EXPECT_TRUE(pose.CoordPositionAdd(math::Vector3d(1, 2, 3)) ==
       math::Vector3d(7.82531, 6.67387, 9.35871));
