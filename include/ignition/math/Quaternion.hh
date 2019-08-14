@@ -37,7 +37,7 @@ namespace ignition
     /// orientations. Four scalar values, [w,x,y,z], are used represent
     /// orientations and rotations.
     ///
-    /// The follow two type definitions are provided:
+    /// The following two type definitions are provided:
     ///
     /// * \ref Quaternionf
     /// * \ref Quaterniond
