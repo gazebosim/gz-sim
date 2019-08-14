@@ -46,9 +46,50 @@ namespace ignition
     ///
     /// * C++
     ///
-    /// \snippet examples/quaternion_example.cc complete
+    /// \snippet examples/matrix3_example.cc complete
     ///
     /// * Ruby
+    /// \code{.cc}
+    /// # Modify the RUBYLIB environment variable to include the ignition math
+    /// # library install path. For example, if you install to /user:
+    /// #
+    /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
+    /// #
+    /// require 'ignition/math'
+    ///
+    /// # Construct a default matrix3.
+    /// m = Ignition::Math::Matrix3d.new
+    /// printf("The default constructed matrix m has the following "+
+    ///        "values.\n\t" +
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        m.(0, 0), m.(0, 1), m.(0, 2),
+    ///        m.(1, 0), m.(1, 1), m.(1, 2),
+    ///        m.(2, 0), m.(2, 1), m.(2, 2))
+    ///
+    /// # Set the first column of the matrix.
+    /// m.SetCol(0, Ignition::Math::Vector3d.new(3, 4, 5))
+    /// printf("Setting the first column of the matrix m to 3, 4, 5.\n\t" +
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        m.(0, 0), m.(0, 1), m.(0, 2),
+    ///        m.(1, 0), m.(1, 1), m.(1, 2),
+    ///        m.(2, 0), m.(2, 1), m.(2, 2))
+    ///
+    /// # Transpose the matrix.
+    /// t = m.Transposed()
+    /// printf("The transposed matrix t has the values.\n\t"+
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        t.(0, 0), t.(0, 1), t.(0, 2),
+    ///        t.(1, 0), t.(1, 1), t.(1, 2),
+    ///        t.(2, 0), t.(2, 1), t.(2, 2))
+    ///
+    /// # Multiply the two matrices.
+    /// m = m * t
+    /// printf("m * t = " +
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        m.(0, 0), m.(0, 1), m.(0, 2),
+    ///        m.(1, 0), m.(1, 1), m.(1, 2),
+    ///        m.(2, 0), m.(2, 1), m.(2, 2))
+    /// \endcode
     template<typename T>
     class Matrix3
     {
