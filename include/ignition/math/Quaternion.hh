@@ -830,6 +830,19 @@ namespace ignition
                equal(this->qw, _qt.qw, static_cast<T>(0.001));
       }
 
+      /// \brief Equality comparison test with a tolerance parameter.
+      /// The tolerance is used with the ignition::math::equal function for
+      /// each component of the quaternions.
+      /// \param[in] _qt Quaternion<T> for comparison.
+      /// \return True if each component of both quaternions are equal.
+      public: bool Equal(const Quaternion<T> &_qt, const T &_tol) const
+      {
+        return equal<T>(this->qx, _qt.qx, _tol) &&
+               equal<T>(this->qy, _qt.qy, _tol) &&
+               equal<T>(this->qz, _qt.qz, _tol) &&
+               equal<T>(this->qw, _qt.qw, _tol);
+      }
+
       /// \brief Not equal to operator.
       /// \param[in] _qt Quaternion for comparison.
       /// \return True if any compoent of both quaternions are not equal.
