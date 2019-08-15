@@ -58,7 +58,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    const char *_playback)
+    int _recordResources, const char *_playback)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -104,7 +104,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetUseLevels(true);
   }
 
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
+    _record > 0 || _recordResources > 0)
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -113,6 +114,10 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
 
     serverConfig.SetUseLogRecord(true);
+    if (_recordResources > 0)
+      serverConfig.SetUseLogRecordResources(true);
+    else
+      serverConfig.SetUseLogRecordResources(false);
 
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
     {

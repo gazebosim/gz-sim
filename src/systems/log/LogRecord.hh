@@ -62,15 +62,6 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
-    /// \brief Get whether the model meshes and materials are saved when
-    /// recording.
-    /// \return True if model meshes and materials are saved when recording.
-    public: bool RecordResources() const;
-
-    /// \brief Set whether to save model meshes and materials when recording.
-    /// \param[in] _record True to save model resources when recording.
-    public: void SetRecordResources(const bool _record);
-
     /// \brief Private data pointer.
     private: std::unique_ptr<LogRecordPrivate> dataPtr;
   };

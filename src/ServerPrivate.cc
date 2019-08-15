@@ -209,9 +209,32 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             if (!_config.LogRecordPath().empty())
             {
               pluginElem->AddAttribute("path", "string", "", false);
-              sdf::ParamPtr recordParam = pluginElem->GetAttribute("path");
-              recordParam->SetFromString(_config.LogRecordPath());
+              sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
+              pathParam->SetFromString(_config.LogRecordPath());
             }
+
+            // If a resource flag is passed in through command line or in SDF,
+            //   take logical OR.
+            sdf::ParamPtr resourceParam = pluginElem->GetAttribute(
+              "record_resources");
+            bool resources = false;
+            // If not specified in SDF, take command line option
+            if (resourceParam == nullptr)
+            {
+              pluginElem->AddAttribute("record_resources", "bool", "false",
+                false);
+              resourceParam = pluginElem->GetAttribute("record_resources");
+              resources = _config.UseLogRecordResources();
+            }
+            // If specified in SDF, take logical OR of command line and SDF
+            else
+            {
+              if (!resourceParam->GetAsString().compare("true"))
+                resources = true;
+              resources = (resources || _config.UseLogRecordResources());
+            }
+            resourceParam->SetFromString(resources ? "true" : "false");
+
             return;
           }
 
@@ -229,7 +252,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     }
   }
 
-  // Add record plugin
+  // A record plugin is not already specified in SDF. Add one.
   sdf::ElementPtr recordElem = worldElem->AddElement("plugin");
   sdf::ParamPtr recordName = recordElem->GetAttribute("name");
   recordName->SetFromString(LoggingPlugin::RecordPluginName());
@@ -240,9 +263,15 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   if (!_config.LogRecordPath().empty())
   {
     recordElem->AddAttribute("path", "string", "", false);
-    sdf::ParamPtr recordParam = recordElem->GetAttribute("path");
-    recordParam->SetFromString(_config.LogRecordPath());
+    sdf::ParamPtr pathParam = recordElem->GetAttribute("path");
+    pathParam->SetFromString(_config.LogRecordPath());
   }
+
+  // Set whether to record resources
+  recordElem->AddAttribute("record_resources", "bool", "false", false);
+  sdf::ParamPtr resourceParam = recordElem->GetAttribute("record_resources");
+  resourceParam->SetFromString(_config.UseLogRecordResources() ? "true" :
+    "false");
 }
 
 //////////////////////////////////////////////////
