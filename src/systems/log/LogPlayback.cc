@@ -33,10 +33,14 @@
 #include <ignition/transport/log/Message.hh>
 
 #include <sdf/Root.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Mesh.hh>
 
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 
@@ -54,17 +58,13 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \param[in] _logPath Path of recorded state to playback.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  /// \param[in] _eventMgr The EventManager of the given simulation
-  /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(EntityComponentManager &_ecm,
-      EventManager &_eventMgr);
+  public: bool Start(EntityComponentManager &_ecm);
 
   /// \brief Prepend log path to mesh file path in the SDF element.
   /// \param[in] _uri URI of mesh in geometry
-  /// \param[in] _geomElem SDF Element pointer to geometry
-  public: void PrependLogPath(const std::string &_uri,
-      sdf::ElementPtr &_geomElem);
+  /// \return String of prepended path.
+  public: std::string PrependLogPath(const std::string &_uri);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -168,7 +168,7 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void LogPlayback::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &_eventMgr)
+    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   // Get directory paths from SDF
   this->dataPtr->logPath = _sdf->Get<std::string>("path");
@@ -178,7 +178,7 @@ void LogPlayback::Configure(const Entity &,
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(_ecm, _eventMgr);
+    this->dataPtr->Start(_ecm);
   }
   else
   {
@@ -188,8 +188,7 @@ void LogPlayback::Configure(const Entity &,
 }
 
 //////////////////////////////////////////////////
-bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm,
-  EventManager &_eventMgr)
+bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -228,110 +227,67 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm,
     ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
-  // Find SDF string in .tlog file
-  transport::log::TopicList sdfOpts("/" + common::basename(this->logPath) +
-    "/sdf");
-  transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
-  transport::log::MsgIter sdfIter = sdfBatch.begin();
-  if (sdfIter == sdfBatch.end())
+  // Define equality functions for setting component data
+  auto UriEqual = [&](const std::string &s1, const std::string &s2) -> bool
   {
-    // location of log may have changed from where it was recorded.
-    // search through the topics available in the log and find the sdf topic
-    sdfBatch = log->QueryMessages(
-        transport::log::TopicPattern(std::regex(".*/sdf")));
-    sdfIter = sdfBatch.begin();
-    if (sdfIter == sdfBatch.end())
+    return (s1.compare(s2) == 0);
+  };
+
+  auto GeoUriEqual = [&](const sdf::Geometry &g1,
+    const sdf::Geometry &g2) -> bool
+  {
+    if (g1.Type() == sdf::GeometryType::MESH &&
+      g2.Type() == sdf::GeometryType::MESH)
     {
-      ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
+      return UriEqual(g1.MeshShape()->Uri(), g2.MeshShape()->Uri());
+    }
+    else
       return false;
-    }
-  }
+  };
 
-  // Parse SDF message
-  msgs::StringMsg sdfMsg;
-  sdfMsg.ParseFromString(sdfIter->Data());
-
-  // Load recorded SDF file
-  sdf::Root root;
-  if (root.LoadSdfString(sdfMsg.data()).size() != 0 || root.WorldCount() <= 0)
+  auto MatUriEqual = [&](const sdf::Material &m1,
+    const sdf::Material &m2) -> bool
   {
-    ignerr << "Error loading SDF string logged in file [" << dbPath << "]"
-      << std::endl;
-    return false;
-  }
-  const sdf::World *sdfWorld = root.WorldByIndex(0);
+    return UriEqual(m1.ScriptUri(), m2.ScriptUri());
+  };
 
-  // Models
-  for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
-      ++modelIndex)
+  // Loop through geometries in world. Prepend to URI
+  _ecm.Each<components::Geometry>(
+      [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
   {
-    auto model = sdfWorld->ModelByIndex(modelIndex);
-
-    // Find uri tags and prepend log path to original absolute paths
-    sdf::ElementPtr modelElem = model->Element();
-    if (modelElem->HasElement("link"))
+    sdf::Geometry geoSdf = _geoComp->Data();
+    if (geoSdf.Type() == sdf::GeometryType::MESH)
     {
-      sdf::ElementPtr linkElem = modelElem->GetElement("link");
-      while (linkElem)
+      std::string meshUri = geoSdf.MeshShape()->Uri();
+      if (!meshUri.empty())
       {
-        if (linkElem->HasElement("visual"))
-        {
-          sdf::ElementPtr visualElem = linkElem->GetElement("visual");
-          while (visualElem)
-          {
-            sdf::ElementPtr geomElem = visualElem->GetElement("geometry");
-            if (geomElem->HasElement("mesh"))
-            {
-              const std::string meshUri = geomElem->GetElement("mesh")
-                ->Get<std::string>("uri");
-              if (!meshUri.empty())
-              {
-                this->PrependLogPath(meshUri, geomElem);
-              }
-            }
-            if (visualElem->HasElement("material"))
-            {
-              sdf::ElementPtr matElem = visualElem->GetElement("material");
-              if (matElem->HasElement("script"))
-              {
-                sdf::ElementPtr scriptElem = matElem->GetElement("script");
-                if (scriptElem->HasElement("uri"))
-                {
-                  auto matUri = scriptElem->Get<std::string>("uri");
-                  if (!matUri.empty())
-                  {
-                    this->PrependLogPath(matUri, geomElem);
-                  }
-                }
-              }
-            }
-            visualElem = visualElem->GetNextElement("visual");
-          }
-        }
-        if (linkElem->HasElement("collision"))
-        {
-          sdf::ElementPtr collisionElem = linkElem->GetElement("collision");
-          while (collisionElem)
-          {
-            sdf::ElementPtr geomElem = collisionElem->GetElement("geometry");
-            if (geomElem->HasElement("mesh"))
-            {
-              const std::string meshUri = geomElem->GetElement("mesh")
-                  ->Get<std::string>("uri");
-              if (!meshUri.empty())
-              {
-                this->PrependLogPath(meshUri, geomElem);
-              }
-            }
-            collisionElem = collisionElem->GetNextElement("collision");
-          }
-        }
-        linkElem = linkElem->GetNextElement("link");
+        // Make a copy of mesh shape, and change the uri in the new copy
+        sdf::Mesh meshShape = sdf::Mesh(*(geoSdf.MeshShape()));
+        meshShape.SetUri(this->PrependLogPath(meshUri));
+        geoSdf.SetMeshShape(meshShape);
+        _geoComp->SetData(geoSdf, GeoUriEqual);
       }
+      igndbg << meshUri << std::endl;
     }
-  }
 
+    return true;
+  });
 
+  // Loop through materials in world. Prepend to URI
+  _ecm.Each<components::Material>(
+      [&](const Entity &/*_entity*/, components::Material *_matComp) -> bool
+  {
+    sdf::Material matSdf = _matComp->Data();
+    std::string matUri = matSdf.ScriptUri();
+    if (!matUri.empty())
+    {
+      matSdf.SetScriptUri(this->PrependLogPath(matUri));
+      _matComp->SetData(matSdf, MatUriEqual);
+    }
+    igndbg << matUri << std::endl;
+
+    return true;
+  });
 
   // Access all messages in .tlog file
   this->batch = log->QueryMessages();
@@ -369,20 +325,18 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void LogPlaybackPrivate::PrependLogPath(const std::string &_uri,
-  sdf::ElementPtr &_geomElem)
+std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
 {
   const std::string filePrefix = "file://";
 
   if (_uri.compare(0, filePrefix.length(), filePrefix) == 0 || _uri[0] == '/')
   {
-    sdf::ElementPtr uriElem = _geomElem->GetElement("mesh")
-      ->GetElement("uri");
-
-    // Prepend log path to file path
-    uriElem->Set(common::joinPaths(filePrefix, this->logPath,
-      _uri.substr(filePrefix.length())));
+    // Prepend log path to file path to return
+    return common::joinPaths(filePrefix, this->logPath,
+      _uri.substr(filePrefix.length()));
   }
+  else
+    return std::string(_uri);
 }
 
 //////////////////////////////////////////////////
