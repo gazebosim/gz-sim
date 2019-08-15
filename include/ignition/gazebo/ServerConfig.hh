@@ -258,6 +258,13 @@ namespace ignition
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
+      /// \brief Get whether meshes and material files are recorded
+      public: bool UseLogRecordResources() const;
+
+      /// \brief Set whether meshes and material files are recorded
+      /// \param[in] _recordResources Value to set
+      public: void SetUseLogRecordResources(const bool _recordResources);
+
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
       public: unsigned int Seed() const;

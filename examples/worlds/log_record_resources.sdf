@@ -23,6 +23,7 @@
       <!-- Optional, directories to write recorded files. If unspecified,
              will record to default. -->
       <path>/tmp/log</path>
+      <record_resources>1</record_resources>
     </plugin>
 
     <gui fullscreen="0">

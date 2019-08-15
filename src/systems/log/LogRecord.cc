@@ -65,6 +65,15 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
+  /// \brief Get whether the model meshes and materials are saved when
+  /// recording.
+  /// \return True if model meshes and materials are saved when recording.
+  public: bool RecordResources() const;
+
+  /// \brief Set whether to save model meshes and materials when recording.
+  /// \param[in] _record True to save model resources when recording.
+  public: void SetRecordResources(const bool _record);
+
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.
   public: void LogModelResources(EntityComponentManager &_ecm);
@@ -124,7 +133,7 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: bool sdfPublished{false};
 
   /// \brief Record with model resources.
-  public: bool recordResources = true;
+  public: bool recordResources = false;
 
   /// \brief List of saved models if record with resources is enabled.
   public: std::set<std::string> savedModels;
@@ -164,7 +173,6 @@ LogRecord::~LogRecord()
     this->dataPtr->recorder.Stop();
 
     this->dataPtr->CompressStateAndResources();
-
     this->dataPtr->savedModels.clear();
     this->dataPtr->savedFiles.clear();
 
@@ -181,6 +189,8 @@ void LogRecord::Configure(const Entity &_entity,
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
+  this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources"));
+
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
   if (!LogRecordPrivate::started)
@@ -193,18 +203,6 @@ void LogRecord::Configure(const Entity &_entity,
     ignwarn << "A LogRecord instance has already been started. "
       << "Will not start another.\n";
   }
-}
-
-//////////////////////////////////////////////////
-bool LogRecord::RecordResources() const
-{
-  return this->dataPtr->recordResources;
-}
-
-//////////////////////////////////////////////////
-void LogRecord::SetRecordResources(const bool _record)
-{
-  this->dataPtr->recordResources = _record;
 }
 
 //////////////////////////////////////////////////
@@ -296,6 +294,18 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 }
 
 //////////////////////////////////////////////////
+bool LogRecordPrivate::RecordResources() const
+{
+  return this->recordResources;
+}
+
+//////////////////////////////////////////////////
+void LogRecordPrivate::SetRecordResources(const bool _record)
+{
+  this->recordResources = _record;
+}
+
+//////////////////////////////////////////////////
 void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
 {
   if (!this->recordResources)
@@ -369,6 +379,9 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
 {
+  if (!this->recordResources)
+    return false;
+
   std::set<std::string> diff;
   std::set_difference(_models.begin(), _models.end(),
       this->savedModels.begin(), this->savedModels.end(),
@@ -405,6 +418,9 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
 //////////////////////////////////////////////////
 bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 {
+  if (!this->recordResources)
+    return false;
+
   if (_files.empty())
     return true;
 
@@ -525,7 +541,7 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   // If there are new models loaded, save meshes and textures
-  if (_ecm.HasNewEntities())
+  if (this->dataPtr->RecordResources() && _ecm.HasNewEntities())
     this->dataPtr->LogModelResources(_ecm);
 }
 

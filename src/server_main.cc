@@ -42,6 +42,7 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
+DEFINE_bool(record_resources, false, "Record meshes and material files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 DEFINE_uint32(seed, 0, "Start with a given random number seed");
 
@@ -96,6 +97,8 @@ void help()
   << std::endl
   << "  --record-path arg      Custom path to put recorded files."
   << " Arg is path to recorded states."
+  << std::endl
+  << "  --record-resources     Record meshes and material files."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
   << " Arg is path to recorded states."
@@ -242,7 +245,7 @@ int main(int _argc, char **_argv)
     serverConfig.SetUseLevels(true);
   }
 
-  if (!FLAGS_record_path.empty() || FLAGS_record)
+  if (!FLAGS_record_path.empty() || FLAGS_record || FLAGS_record_resources)
   {
     if (!FLAGS_playback.empty())
     {
@@ -251,6 +254,7 @@ int main(int _argc, char **_argv)
     }
 
     serverConfig.SetUseLogRecord(true);
+    serverConfig.SetUseLogRecordResources(FLAGS_record_resources);
 
     if (!FLAGS_record_path.empty())
     {
