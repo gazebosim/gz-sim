@@ -300,7 +300,7 @@ class Cmd
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
-                               const char *)'
+                               const char *, const char *)'
 
       # Import the runGui function
       Importer.extern 'int runGui()'
@@ -315,7 +315,7 @@ class Cmd
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['record-path'], options['playback'])
+            options['record-path'], options['playback'], options['file'])
         end
 
         guiPid = Process.fork do
@@ -345,7 +345,7 @@ class Cmd
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['recordPath'], options['playback'])
+            options['recordPath'], options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'
