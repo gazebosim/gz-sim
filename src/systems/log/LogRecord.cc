@@ -25,9 +25,7 @@
 #include <ctime>
 #include <set>
 #include <list>
-// #include <system>
 #include <filesystem>
-// #include <algorithm/string/predicate.hpp>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
