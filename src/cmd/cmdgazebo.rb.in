@@ -137,6 +137,7 @@ class Cmd
   #
   def parse(args)
     options = {
+      'file' => '',
       'gui' => 0,
       'hz' => -1,
       'iterations' => 0,
@@ -207,7 +208,7 @@ class Cmd
 
     # SDF file as positional argument
     filename = args.pop
-    if filename and filename != 'gazebo' and not options.key?('file')
+    if filename and filename != 'gazebo'
       options['file'] = filename
     end
 
@@ -271,7 +272,7 @@ class Cmd
       end
 
       parsed = ''
-      if options.key?('file')
+      if options['file'] != ''
         # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
