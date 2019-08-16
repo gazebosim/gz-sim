@@ -477,7 +477,21 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   descriptor.meshName = _actor.SkinFilename();
   common::MeshManager *meshManager = common::MeshManager::Instance();
   descriptor.mesh = meshManager->Load(descriptor.meshName);
+  if (nullptr == descriptor.mesh)
+  {
+    ignerr << "Actor skin mesh [" << _actor.SkinFilename() << "] not found."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
   common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
+  if (nullptr == meshSkel)
+  {
+    ignerr << "Mesh skeleton in [" << _actor.SkinFilename() << "] not found."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
   rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
   if (nullptr == actorMesh)
   {
@@ -759,7 +773,13 @@ std::map<std::string, math::Matrix4d> SceneManager::EntityMeshAnimationAt(
     Entity _id, double _time, bool _loop) const
 {
   auto trajs = this->dataPtr->actorTrajectories[_id];
-  common::TrajectoryInfo traj;
+  bool followTraj = true;
+  if ( 1 == trajs.size() && nullptr == trajs[0].Waypoints())
+  {
+    followTraj = false;
+  }
+
+  common::TrajectoryInfo traj = trajs[0];
   auto poseFrame = common::PoseKeyFrame(0.0);
 
   double totalTime = trajs.rbegin()->EndTime();
@@ -770,15 +790,18 @@ std::map<std::string, math::Matrix4d> SceneManager::EntityMeshAnimationAt(
     {
       _time -= totalTime;
     }
-    for (unsigned int i = 0; i < trajs.size(); ++i)
+    if (followTraj)
     {
-      if (trajs[i].StartTime() <= _time && trajs[i].EndTime() >= _time)
+      for (unsigned int i = 0; i < trajs.size(); ++i)
       {
-        traj = trajs[i];
-        _time -= trajs[i].StartTime();
-        traj.Waypoints()->Time(_time);
-        traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
-        break;
+        if (trajs[i].StartTime() <= _time && trajs[i].EndTime() >= _time)
+        {
+          traj = trajs[i];
+          _time -= trajs[i].StartTime();
+          traj.Waypoints()->Time(_time);
+          traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
+          break;
+        }
       }
     }
   }
@@ -787,23 +810,30 @@ std::map<std::string, math::Matrix4d> SceneManager::EntityMeshAnimationAt(
   rootTf.SetTranslation(poseFrame.Translation());
 
   std::map<std::string, math::Matrix4d> allFrames;
-  allFrames["actorPose"] = rootTf;
 
   auto vIt = this->dataPtr->actorSkeletons.find(_id);
   if (vIt != this->dataPtr->actorSkeletons.end())
   {
     auto skel = vIt->second;
     unsigned int animIndex = traj.AnimIndex();
-    double distance = traj.DistanceSoFar(_time);
     std::map<std::string, math::Matrix4d> rawFrames;
-    if (distance < 0.1)
+
+    if (followTraj)
     {
-      rawFrames = skel->Animation(animIndex)->PoseAt(_time, _loop);
+      double distance = traj.DistanceSoFar(_time);
+      if (distance < 0.1)
+      {
+        rawFrames = skel->Animation(animIndex)->PoseAt(_time, _loop);
+      }
+      else
+      {
+        rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
+                                        skel->RootNode()->Name());
+      }
     }
     else
     {
-      rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
-                                      skel->RootNode()->Name());
+      rawFrames = skel->Animation(animIndex)->PoseAt(_time, _loop);
     }
 
     for (auto pair : rawFrames)
@@ -821,6 +851,18 @@ std::map<std::string, math::Matrix4d> SceneManager::EntityMeshAnimationAt(
 
   // correct animation root pose
   auto skel = this->dataPtr->actorSkeletons[_id];
+
+  if (followTraj)
+  {
+    allFrames["actorPose"] = rootTf;
+  }
+  else
+  {
+    allFrames["actorPose"] = math::Matrix4d(math::Quaterniond::Identity);
+    allFrames["actorPose"].SetTranslation(
+            allFrames[skel->RootNode()->Name()].Translation());
+  }
+
   allFrames[skel->RootNode()->Name()].SetTranslation(math::Vector3d::Zero);
   return allFrames;
 }
