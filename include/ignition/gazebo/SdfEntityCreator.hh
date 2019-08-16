@@ -19,10 +19,10 @@
 
 #include <memory>
 
+#include <sdf/Actor.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Joint.hh>
-#include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>

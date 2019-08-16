@@ -277,9 +277,8 @@ template<>
 msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
-  out.set_name(_in.Name());
+  out.mutable_entity()->set_name(_in.Name());
   msgs::Set(out.mutable_pose(), _in.Pose());
-  out.set_is_static(_in.Static());
   out.set_skin_filename(_in.SkinFilename());
   out.set_skin_scale(_in.SkinScale());
   for (unsigned int i = 0; i < _in.AnimationCount(); ++i)
@@ -317,9 +316,8 @@ template<>
 sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
-  out.SetName(_in.name());
+  out.SetName(_in.entity().name());
   out.SetPose(msgs::Convert(_in.pose()));
-  out.SetStatic(_in.is_static());
   out.SetSkinFilename(_in.skin_filename());
   out.SetSkinScale(_in.skin_scale());
   for (int i = 0; i < _in.animations_size(); ++i)
