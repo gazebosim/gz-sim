@@ -58,7 +58,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    const char *_playback)
+    const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -84,6 +84,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
+  serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
