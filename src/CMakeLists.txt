@@ -23,6 +23,7 @@ if (SWIG_FOUND)
   set(swig_files
     ruby
     Angle
+    Pose3
     Quaternion
     Vector2
     Vector3)

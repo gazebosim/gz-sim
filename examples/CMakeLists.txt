@@ -10,6 +10,9 @@ target_link_libraries(vector2_example ignition-math${IGN_MATH_VER}::ignition-mat
 add_executable(triangle_example triangle_example.cc)
 target_link_libraries(triangle_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(pose3_example pose3_example.cc)
+target_link_libraries(pose3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(quaternion_example quaternion_example.cc)
 target_link_libraries(quaternion_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 

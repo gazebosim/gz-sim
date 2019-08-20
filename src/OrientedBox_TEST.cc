@@ -71,9 +71,9 @@ TEST(OrientedBoxTest, NegativeSizeConstructor)
 /////////////////////////////////////////////////
 TEST(OrientedBoxTest, SizePoseConstructor)
 {
-  OrientedBoxi box(Vector3i(1, 2, 3), Pose3i(-1, -2, -3, 0, 1, 2));
-  EXPECT_EQ(box.Size(), Vector3i(1, 2, 3));
-  EXPECT_EQ(box.Pose(), Pose3i(-1, -2, -3, 0, 1, 2));
+  OrientedBoxf box(Vector3f(1, 2, 3), Pose3f(-1, -2, -3, 0, 1, 2));
+  EXPECT_EQ(box.Size(), Vector3f(1, 2, 3));
+  EXPECT_EQ(box.Pose(), Pose3f(-1, -2, -3, 0, 1, 2));
 }
 
 /////////////////////////////////////////////////
