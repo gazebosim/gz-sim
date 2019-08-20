@@ -129,16 +129,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::NodePtr NodeById(Entity _id) const;
 
     /// \brief Get a rendering mesh given an id
-    /// \param[in] _id Entity's unique id
+    /// \param[in] _id Actor entity's unique id
     /// \return Pointer to requested entity's mesh
-    public: rendering::MeshPtr MeshById(Entity _id) const;
+    public: rendering::MeshPtr ActorMeshById(Entity _id) const;
 
-    /// \brief Get the animation of entity mesh given an id
+    /// \brief Get the animation of actor mesh given an id
     /// \param[in] _id Entity's unique id
     /// \param[in] _time Timepoint for the animation
     /// \param[in] _loop True if getting animation in loop
     /// \return Map from the skeleton node name to transforms
-    public: std::map<std::string, math::Matrix4d> EntityMeshAnimationAt(
+    public: std::map<std::string, math::Matrix4d> ActorMeshAnimationAt(
         Entity _id, double _time, bool _loop) const;
 
     /// \brief Remove an entity by id
