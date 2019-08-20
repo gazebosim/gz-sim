@@ -32,18 +32,18 @@
 
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
 #include <ignition/math/Matrix4.hh>
+#include <ignition/math/Pose3.hh>
 
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -149,7 +149,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and pose updates.
   public: std::map<Entity, math::Pose3d> entityPoses;
 
-  /// \brief A map of entity ids and pose updates.
+  /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
@@ -193,7 +193,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 {
   IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-  using toSeconds = std::chrono::duration<float, std::ratio<1, 1  >>;
+  using toSeconds = std::chrono::duration<float, std::ratio<1, 1>>;
   this->dataPtr->simTime = toSeconds(_info.simTime).count();
 
   this->dataPtr->CreateRenderingEntities(_ecm);
@@ -270,32 +270,32 @@ void RenderUtil::Update()
   // create new entities
   {
     IGN_PROFILE("RenderUtil::Update Create");
-    for (auto &model : newModels)
+    for (const auto &model : newModels)
     {
       sdf::Model m = std::get<1>(model);
       this->dataPtr->sceneManager.CreateModel(
           std::get<0>(model), std::get<1>(model), std::get<2>(model));
     }
 
-    for (auto &link : newLinks)
+    for (const auto &link : newLinks)
     {
       this->dataPtr->sceneManager.CreateLink(
           std::get<0>(link), std::get<1>(link), std::get<2>(link));
     }
 
-    for (auto &visual : newVisuals)
+    for (const auto &visual : newVisuals)
     {
       this->dataPtr->sceneManager.CreateVisual(
           std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
     }
 
-    for (auto &actor : newActors)
+    for (const auto &actor : newActors)
     {
       this->dataPtr->sceneManager.CreateActor(
           std::get<0>(actor), std::get<1>(actor), std::get<2>(actor));
     }
 
-    for (auto &light : newLights)
+    for (const auto &light : newLights)
     {
       this->dataPtr->sceneManager.CreateLight(
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
@@ -303,7 +303,7 @@ void RenderUtil::Update()
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
     {
-      for (auto &sensor : newSensors)
+      for (const auto &sensor : newSensors)
       {
          Entity entity = std::get<0>(sensor);
          sdf::Sensor dataSdf = std::get<1>(sensor);
@@ -373,7 +373,7 @@ void RenderUtil::Update()
     // update entities' local transformations
     for (auto &tf : actorTransforms)
     {
-      auto actorMesh = this->dataPtr->sceneManager.MeshById(tf.first);
+      auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
       auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
       if (!actorMesh || !actorVisual)
         continue;
@@ -751,7 +751,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
       {
         // this->entityPoses[_entity] = _pose->Data();
         this->actorTransforms[_entity] =
-              this->sceneManager.EntityMeshAnimationAt(_entity,
+              this->sceneManager.ActorMeshAnimationAt(_entity,
                                     this->simTime, true);
         return true;
       });

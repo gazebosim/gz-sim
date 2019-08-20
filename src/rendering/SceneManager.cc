@@ -331,7 +331,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    common::MeshManager* meshManager = common::MeshManager::Instance();
+    common::MeshManager *meshManager = common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -518,7 +518,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     std::string animFilename = _actor.AnimationByIndex(i)->Filename();
     double animScale = _actor.AnimationByIndex(i)->Scale();
 
-    std::string extension = animFilename.substr(animFilename.rfind(".") + 1,
+    std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
                                   animFilename.size());
     std::transform(extension.begin(), extension.end(),
                     extension.begin(), ::tolower);
@@ -585,11 +585,11 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   // sequencing all trajectories
   double time = 0.0;
-  for (unsigned int i = 0; i < trajectories.size(); ++i)
+  for (auto &trajectory : trajectories)
   {
-    trajectories[i].SetStartTime(time);
-    time += trajectories[i].Duration();
-    trajectories[i].SetEndTime(time);
+    trajectory.SetStartTime(time);
+    time += trajectory.Duration();
+    trajectory.SetEndTime(time);
   }
 
   this->dataPtr->actorTrajectories[_id] = trajectories;
@@ -758,7 +758,7 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
 }
 
 /////////////////////////////////////////////////
-rendering::MeshPtr SceneManager::MeshById(Entity _id) const
+rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 {
   auto vIt = this->dataPtr->actors.find(_id);
   if (vIt != this->dataPtr->actors.end())
@@ -769,7 +769,7 @@ rendering::MeshPtr SceneManager::MeshById(Entity _id) const
 }
 
 /////////////////////////////////////////////////
-std::map<std::string, math::Matrix4d> SceneManager::EntityMeshAnimationAt(
+std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     Entity _id, double _time, bool _loop) const
 {
   auto trajs = this->dataPtr->actorTrajectories[_id];
@@ -792,12 +792,12 @@ std::map<std::string, math::Matrix4d> SceneManager::EntityMeshAnimationAt(
     }
     if (followTraj)
     {
-      for (unsigned int i = 0; i < trajs.size(); ++i)
+      for (auto &trajectory : trajs)
       {
-        if (trajs[i].StartTime() <= _time && trajs[i].EndTime() >= _time)
+        if (trajectory.StartTime() <= _time && trajectory.EndTime() >= _time)
         {
-          traj = trajs[i];
-          _time -= trajs[i].StartTime();
+          traj = trajectory;
+          _time -= traj.StartTime();
           traj.Waypoints()->Time(_time);
           traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
           break;

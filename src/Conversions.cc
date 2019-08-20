@@ -288,7 +288,7 @@ msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
     newAnim->set_name(anim->Name());
     newAnim->set_filename(anim->Filename());
     newAnim->set_scale(anim->Scale());
-    newAnim->set_is_interpolate_x(anim->InterpolateX());
+    newAnim->set_interpolate_x(anim->InterpolateX());
   }
   out.set_script_loop(_in.ScriptLoop());
   out.set_script_delay_start(_in.ScriptDelayStart());
@@ -322,12 +322,12 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   out.SetSkinScale(_in.skin_scale());
   for (int i = 0; i < _in.animations_size(); ++i)
   {
-    auto anim = _in.animations(i);
+    const auto &anim = _in.animations(i);
     auto newAnim = new sdf::Animation();
     newAnim->SetName(anim.name());
     newAnim->SetFilename(anim.filename());
     newAnim->SetScale(anim.scale());
-    newAnim->SetInterpolateX(anim.is_interpolate_x());
+    newAnim->SetInterpolateX(anim.interpolate_x());
     out.AddAnimation(*newAnim);
   }
   out.SetScriptLoop(_in.script_loop());
@@ -335,14 +335,14 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   out.SetScriptAutoStart(_in.script_auto_start());
   for (int i = 0; i < _in.trajectories_size(); ++i)
   {
-    auto traj = _in.trajectories(i);
+    const auto &traj = _in.trajectories(i);
     auto newTraj = new sdf::Trajectory();
     newTraj->SetId(traj.id());
     newTraj->SetType(traj.type());
     newTraj->SetTension(traj.tension());
     for (int j = 0; j < traj.waypoints_size(); ++j)
     {
-      auto point = traj.waypoints(j);
+      const auto &point = traj.waypoints(j);
       auto newPoint = new sdf::Waypoint();
       newPoint->SetTime(point.time());
       newPoint->SetPose(msgs::Convert(point.pose()));
