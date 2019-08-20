@@ -467,6 +467,52 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 
 //////////////////////////////////////////////////
 template<>
+msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
+{
+  msgs::Physics out;
+
+  std::string engineType = _in.EngineType();
+  std::transform(engineType.begin(), engineType.end(), engineType.begin(),
+                 toupper);
+  msgs::Physics_Type type;
+  if (msgs::Physics_Type_Parse(engineType, &type))
+    out.set_type(type);
+  else
+    ignerr << "Unknown physics engine type [" << engineType << "].\n";
+
+  out.set_profile_name(_in.Name());
+  out.set_max_step_size(_in.MaxStepSize());
+  out.set_real_time_factor(_in.RealTimeFactor());
+
+  // TODO: Add other params in physics msg
+  // Will need to extend sdf::Physics for this.
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
+{
+  sdf::Physics out;
+
+  std::string engineType = msgs::Physics_Type_Name(_in.type());
+  std::transform(engineType.begin(), engineType.end(), engineType.begin(),
+                 tolower);
+  out.SetEngineType(engineType);
+
+  out.SetName(_in.profile_name());
+  out.SetMaxStepSize(_in.max_step_size());
+  out.SetRealTimeFactor(_in.real_time_factor());
+
+  // TODO: Add other params in physics msg
+  // Will need to extend sdf::Physics for this.
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
 {
   msgs::Scene out;

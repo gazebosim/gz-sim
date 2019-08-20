@@ -48,9 +48,11 @@
 #include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/ModelSdf.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -123,6 +125,14 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
+  // Physics
+  auto physics = _world->PhysicsDefault();
+  if (physics)
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Physics(*physics));
+  }
+
   // scene
   if (_world->Scene())
   {
@@ -174,6 +184,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
   // Components
   this->dataPtr->ecm->CreateComponent(modelEntity, components::Model());
+  this->dataPtr->ecm->CreateComponent(modelEntity,
+      components::ModelSdf(*_model));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Pose(_model->Pose()));
   this->dataPtr->ecm->CreateComponent(modelEntity,

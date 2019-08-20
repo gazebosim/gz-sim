@@ -80,6 +80,8 @@ ign_find_package(ignition-physics1
     sdf
     dartsim
     dartsim-plugin
+    bullet
+    bullet-plugin
   REQUIRED
   VERSION 1.3)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})

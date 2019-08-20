@@ -49,9 +49,6 @@
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
-#include <ignition/physics/sdf/ConstructCollision.hh>
-#include <ignition/physics/sdf/ConstructJoint.hh>
-#include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructVisual.hh>
 #include <ignition/physics/sdf/ConstructWorld.hh>
@@ -87,11 +84,13 @@
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/ModelSdf.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -124,9 +123,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointProperties,
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
-          ignition::physics::sdf::ConstructSdfCollision,
-          ignition::physics::sdf::ConstructSdfJoint,
-          ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
@@ -244,12 +240,48 @@ class ignition::gazebo::systems::PhysicsPrivate
 //////////////////////////////////////////////////
 Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
+}
+
+//////////////////////////////////////////////////
+void Physics::Configure(const Entity &/*_entity*/,
+    const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+    EntityComponentManager &_ecm,
+    EventManager &/*_eventMgr*/)
+{
+  // Read physics engine type
+  std::string engineType = "dart";
+  Entity worldEntity = _ecm.EntityByComponents(components::World());
+  auto physics = _ecm.Component<components::Physics>(worldEntity);
+  if (physics)
+    engineType = physics->Data().EngineType();
+
+  // Check whether engine type is implemented
+  if (engineType != "dart" && engineType != "bullet")
+  {
+    ignerr << "Unregistered physics engine [" << engineType << "], the default"
+           << " [dart] will be used instead.\n";
+    engineType = "dart";
+  }
+
+  // Load physics engine plugin
+  std::string libPath;
+  std::string className;
+  if (engineType == "dart")
+  {
+    libPath = dartsim_plugin_LIB;
+    className = "ignition::physics::dartsim::Plugin";
+  }
+  else if (engineType == "bullet")
+  {
+    libPath = bullet_plugin_LIB;
+    className = "ignition::physics::bullet::Plugin";
+  }
+
   ignition::plugin::Loader pl;
-  // dartsim_plugin_LIB is defined by cmake
-  std::unordered_set<std::string> plugins = pl.LoadLib(dartsim_plugin_LIB);
+  // libPaths are defined by cmake
+  std::unordered_set<std::string> plugins = pl.LoadLib(libPath);
   if (!plugins.empty())
   {
-    const std::string className = "ignition::physics::dartsim::Plugin";
     ignition::plugin::PluginPtr plugin = pl.Instantiate(className);
 
     if (plugin)
@@ -257,6 +289,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
       this->dataPtr->engine = ignition::physics::RequestEngine<
         ignition::physics::FeaturePolicy3d,
         PhysicsPrivate::MinimumFeatureList>::From(plugin);
+      ignmsg << "Running engine: " << this->dataPtr->engine->GetName() << "\n";
     }
     else
     {
@@ -265,7 +298,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
   }
   else
   {
-    ignerr << "Unable to load the " << dartsim_plugin_LIB << " library.\n";
+    ignerr << "Unable to load the " << libPath << " library.\n";
     return;
   }
 }
@@ -323,12 +356,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  _ecm.EachNew<components::Model, components::Name, components::Pose,
-            components::ParentEntity>(
+  _ecm.EachNew<components::Model, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Model *,
-          const components::Name *_name,
-          const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
         // Check if model already exists
@@ -354,15 +384,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
 
-        sdf::Model model;
-        model.SetName(_name->Data());
-        model.SetPose(_pose->Data());
-
-        auto staticComp = _ecm.Component<components::Static>(_entity);
-        if (staticComp && staticComp->Data())
-        {
-          model.SetStatic(staticComp->Data());
-        }
+        auto model = _ecm.Component<components::ModelSdf>(_entity)->Data();
 
         auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
         this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
@@ -370,12 +392,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  _ecm.EachNew<components::Link, components::Name, components::Pose,
+  _ecm.EachNew<components::Link, components::Name,
             components::ParentEntity>(
       [&](const Entity &_entity,
         const components::Link * /* _link */,
         const components::Name *_name,
-        const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
       {
         // Check if link already exists
@@ -399,18 +420,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto modelPtrPhys = this->entityModelMap.at(_parent->Data());
 
-        sdf::Link link;
-        link.SetName(_name->Data());
-        link.SetPose(_pose->Data());
-
-        // get link inertial
-        auto inertial = _ecm.Component<components::Inertial>(_entity);
-        if (inertial)
-        {
-          link.SetInertial(inertial->Data());
-        }
-
-        auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
+        auto linkPtrPhys = modelPtrPhys->GetLink(_name->Data());
         this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
 
         return true;
@@ -419,15 +429,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   // We don't need to add visuals to the physics engine.
 
   // collisions
-  _ecm.EachNew<components::Collision, components::Name, components::Pose,
-            components::Geometry, components::CollisionElement,
-            components::ParentEntity>(
+  _ecm.EachNew<components::Collision, components::Name,
+               components::ParentEntity>(
       [&](const Entity &  _entity,
           const components::Collision *,
           const components::Name *_name,
-          const components::Pose *_pose,
-          const components::Geometry *_geom,
-          const components::CollisionElement *_collElement,
           const components::ParentEntity *_parent) -> bool
       {
         if (this->entityCollisionMap.find(_entity) !=
@@ -449,36 +455,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
 
-        const sdf::Collision& collision = _collElement->Data();
-
-        ShapePtrType collisionPtrPhys;
-        if (_geom->Data().Type() == sdf::GeometryType::MESH)
-        {
-          const sdf::Mesh *meshSdf = _geom->Data().MeshShape();
-          if (nullptr == meshSdf)
-          {
-            ignwarn << "Mesh geometry for collision [" << _name->Data()
-                    << "] missing mesh shape." << std::endl;
-            return true;
-          }
-
-          auto &meshManager = *ignition::common::MeshManager::Instance();
-          auto *mesh = meshManager.Load(meshSdf->Uri());
-          if (nullptr == mesh)
-          {
-            ignwarn << "Failed to load mesh from [" << meshSdf->Uri()
-                    << "]." << std::endl;
-            return true;
-          }
-
-          collisionPtrPhys = linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
-              ignition::math::eigen3::convert(_pose->Data()),
-              ignition::math::eigen3::convert(meshSdf->Scale()));
-        }
-        else
-        {
-          collisionPtrPhys = linkPtrPhys->ConstructCollision(collision);
-        }
+        auto collisionPtrPhys = linkPtrPhys->GetShape(_name->Data());
 
         this->entityCollisionMap.insert(
             std::make_pair(_entity, collisionPtrPhys));
@@ -488,19 +465,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 
   // joints
-  _ecm.EachNew<components::Joint, components::Name, components::JointType,
-               components::Pose, components::ThreadPitch,
-               components::ParentEntity, components::ParentLinkName,
-               components::ChildLinkName>(
+  _ecm.EachNew<components::Joint, components::Name,
+               components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Joint * /* _joint */,
           const components::Name *_name,
-          const components::JointType *_jointType,
-          const components::Pose *_pose,
-          const components::ThreadPitch *_threadPitch,
-          const components::ParentEntity *_parentModel,
-          const components::ParentLinkName *_parentLinkName,
-          const components::ChildLinkName *_childLinkName) -> bool
+          const components::ParentEntity *_parentModel) -> bool
       {
         // Check if joint already exists
         if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
@@ -521,25 +491,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
 
-        sdf::Joint joint;
-        joint.SetName(_name->Data());
-        joint.SetType(_jointType->Data());
-        joint.SetPose(_pose->Data());
-        joint.SetThreadPitch(_threadPitch->Data());
-
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
-
-        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
-        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
-
-        if (jointAxis)
-          joint.SetAxis(0, jointAxis->Data());
-        if (jointAxis2)
-          joint.SetAxis(1, jointAxis2->Data());
-
         // Use the parent link's parent model as the model of this joint
-        auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
+        auto jointPtrPhys = modelPtrPhys->GetJoint(_name->Data());
 
         this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
         return true;
@@ -553,6 +506,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           _ecm.ParentEntity(_entity), false));
         return true;
       });
+
 }
 
 //////////////////////////////////////////////////
@@ -1255,6 +1209,7 @@ physics::FrameData3d PhysicsPrivate::LinkFrameDataAtOffset(
 
 IGNITION_ADD_PLUGIN(Physics,
                     ignition::gazebo::System,
+                    Physics::ISystemConfigure,
                     Physics::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

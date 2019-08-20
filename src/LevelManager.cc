@@ -39,6 +39,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -90,6 +91,14 @@ void LevelManager::ReadLevelPerformerInfo()
       components::MagneticField(this->runner->sdfWorld->MagneticField()));
 
   auto worldElem = this->runner->sdfWorld->Element();
+
+  // Create physics entity
+  auto physics = this->runner->sdfWorld->PhysicsDefault();
+  if (physics)
+  {
+    this->runner->entityCompMgr.CreateComponent(worldEntity,
+        components::Physics(*physics));
+  }
 
   // Create Wind
   auto windEntity = this->runner->entityCompMgr.CreateEntity();
@@ -416,6 +425,7 @@ void LevelManager::CreatePerformers()
     ignerr << "Could not find the world entity while creating performers\n";
     return;
   }
+
   // Models
   for (uint64_t modelIndex = 0;
        modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)

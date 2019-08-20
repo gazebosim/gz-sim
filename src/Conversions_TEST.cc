@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2018 Open Source Robotics Foundation
  *
@@ -29,6 +30,7 @@
 #include <sdf/Plane.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
@@ -429,6 +431,28 @@ TEST(Conversions, JointAxis)
   EXPECT_DOUBLE_EQ(0.5, newJointAxis.Effort());
   EXPECT_DOUBLE_EQ(0.6, newJointAxis.MaxVelocity());
   EXPECT_TRUE(newJointAxis.UseParentModelFrame());
+}
+
+//////////////////////////////////////////////////
+TEST(Conversions, Physics)
+{
+  sdf::Physics physics;
+  physics.SetEngineType("bullet");
+  physics.SetMaxStepSize(0.01);
+  physics.SetName("test_physics");
+  physics.SetRealTimeFactor(2.0);
+
+  auto physicsMsg = convert<msgs::Physics>(physics);
+  EXPECT_EQ("BULLET", msgs::Physics_Type_Name(physicsMsg.type()));
+  EXPECT_DOUBLE_EQ(0.01, physicsMsg.max_step_size());
+  EXPECT_EQ("test_physics", physicsMsg.profile_name());
+  EXPECT_DOUBLE_EQ(2.0, physicsMsg.real_time_factor());
+
+  auto newPhysics = convert<sdf::Physics>(physicsMsg);
+  EXPECT_EQ("bullet", newPhysics.EngineType());
+  EXPECT_DOUBLE_EQ(0.01, newPhysics.MaxStepSize());
+  EXPECT_EQ("test_physics", newPhysics.Name());
+  EXPECT_DOUBLE_EQ(2.0, newPhysics.RealTimeFactor());
 }
 
 /////////////////////////////////////////////////
