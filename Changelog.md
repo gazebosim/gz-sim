@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.X.X
+
+1. Add video recorder gui plugin
+   * [Pull Request 4xx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/4xx)
+
 ### Ignition Gazebo 2.7.1
 
 1. Fix order of adding and removing rendering entities, and clean up mesh
