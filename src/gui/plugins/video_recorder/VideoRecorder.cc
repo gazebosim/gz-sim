@@ -42,6 +42,9 @@ namespace ignition::gazebo
 
     /// \brief Video record service name
     public: std::string service;
+
+    /// \brief Filename of the recorded video
+    public: std::string filename;
   };
 }
 
@@ -80,10 +83,12 @@ void VideoRecorder::OnStart(const QString &_format)
   };
 
   std::string format = _format.toStdString();
+  this->dataPtr->filename = "ign_recording." + format;
+
   ignition::msgs::VideoRecord req;
   req.set_start(true);
   req.set_format(format);
-  req.set_save_path("ign_recording" + "." + format);
+  req.set_save_filename(this->dataPtr->filename);
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
 
@@ -100,6 +105,20 @@ void VideoRecorder::OnStop()
   ignition::msgs::VideoRecord req;
   req.set_stop(true);
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+}
+
+/////////////////////////////////////////////////
+void VideoRecorder::OnSave(const QString &_url)
+{
+
+  std::string path = QUrl(_url).toLocalFile().toStdString();
+  bool result = common::moveFile(this->dataPtr->filename, path);
+
+  if (!result)
+  {
+    ignerr  << "Unable to rename file from[" << this->dataPtr->filename
+      << "] to [" << path << "]" << std::endl;
+  }
 }
 
 // Register this plugin

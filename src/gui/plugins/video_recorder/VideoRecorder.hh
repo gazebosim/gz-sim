@@ -47,12 +47,16 @@ namespace gazebo
     public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         override;
 
-    /// \brief Callback in Qt thread when video record start request is received
+    /// \brief Callback when video record start request is received
     /// \param[in] _format Video encoding format
     public slots: void OnStart(const QString &_format);
 
-    /// \brief Callback in Qt thread when video record stop request is received.
+    /// \brief Callback when video record stop request is received.
     public slots: void OnStop();
+
+    /// \brief Callback when user selects a path to save the recorded video
+    /// \param[in] _url Path of the file to save the recorded video
+    public slots: void OnSave(const QString &_url);
 
     /// \internal
     /// \brief Pointer to private data.

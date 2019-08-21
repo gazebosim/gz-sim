@@ -4,6 +4,7 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import QtQuick.Dialogs 1.0
 
 ToolBar {
   Layout.minimumWidth: 200
@@ -14,6 +15,20 @@ ToolBar {
   }
 
   RowLayout {
+
+    FileDialog {
+        id: fileDialog
+        title: "Save the recorded video"
+        folder: shortcuts.home
+        selectExisting: false
+        onAccepted: {
+          VideoRecorder.OnSave(fileDialog.fileUrl)
+          close()
+        }
+        onRejected: {
+          close()
+        }
+    }
 
     SequentialAnimation {
       id: animation;
@@ -36,7 +51,7 @@ ToolBar {
     }
 
     Menu {
-      id: menu
+      id: recordMenu
       y: record.height
       MenuItem {
         text: "mp4"
@@ -53,6 +68,20 @@ ToolBar {
         }
       }
     }
+
+    Menu {
+      id: stopMenu
+      y: record.height
+      MenuItem {
+        text: "Stop"
+        onTriggered: {
+          animation.stop()
+          VideoRecorder.OnStop()
+          fileDialog.open()
+        }
+      }
+    }
+
 
     ToolButton {
       id: record
@@ -86,12 +115,7 @@ ToolBar {
         color: record.Material.rippleColor
       }
       onClicked: {
-        animation.running ? stopRecording() :  menu.open()
-      }
-
-      function stopRecording(){
-        animation.stop()
-        VideoRecorder.OnStop()
+        animation.running ? stopMenu.open() :  recordMenu.open()
       }
     }
   }
