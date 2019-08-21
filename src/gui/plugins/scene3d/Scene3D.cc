@@ -967,7 +967,7 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
       this->PluginItem()->findChild<RenderWindowItem *>();
 
   bool record = _msg.start() && !_msg.stop();
-  renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_path());
+  renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
 
   _res.set_data(true);
   return true;
