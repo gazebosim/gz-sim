@@ -110,7 +110,6 @@ void VideoRecorder::OnStop()
 /////////////////////////////////////////////////
 void VideoRecorder::OnSave(const QString &_url)
 {
-
   std::string path = QUrl(_url).toLocalFile().toStdString();
   bool result = common::moveFile(this->dataPtr->filename, path);
 
