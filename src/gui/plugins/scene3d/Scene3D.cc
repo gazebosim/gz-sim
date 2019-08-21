@@ -97,10 +97,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path to save the recorded video
     public: std::string recordVideoSavePath;
 
-    /// \brief Path to save the recorded video
+    /// \brief Image from usr camera
     public: rendering::Image cameraImage;
 
-    /// \brief True to record a video from the user camera
+    /// \brief Video encoder
     public: common::VideoEncoder videoEncoder;
 
     /// \brief Ray query for mouse clicks
@@ -209,7 +209,7 @@ void IgnRenderer::Render()
     this->dataPtr->camera->Update();
   }
 
-  // record video is requeted
+  // record video is requested
   {
     IGN_PROFILE("IgnRenderer::Render Record Video");
     if (this->dataPtr->recordVideo)
