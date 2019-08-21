@@ -3,7 +3,7 @@
 ### Ignition Gazebo 2.X.X
 
 1. Add video recorder gui plugin
-   * [Pull Request 4xx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/4xx)
+   * [Pull Request 422](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/422)
 
 ### Ignition Gazebo 2.7.1
 
