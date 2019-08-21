@@ -30,9 +30,6 @@ namespace gazebo
 
   /// \brief TODO
   /// \brief Provides buttons for starting and stopping video recording
-  ///
-  /// ## Configuration
-  /// \<service\> : Set the service to receive video recording requests.
   class VideoRecorder : public ignition::gui::Plugin
   {
     Q_OBJECT
