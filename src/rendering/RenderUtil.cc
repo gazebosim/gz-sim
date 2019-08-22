@@ -85,7 +85,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
-  public: double simTime{0};
+  public: std::chrono::steady_clock::duration simTime{0};
 
   /// \brief Name of rendering engine
   public: std::string engineName = "ogre2";
@@ -193,8 +193,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 {
   IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-  using toSeconds = std::chrono::duration<float, std::ratio<1, 1>>;
-  this->dataPtr->simTime = toSeconds(_info.simTime).count();
+  this->dataPtr->simTime = _info.simTime;
 
   this->dataPtr->CreateRenderingEntities(_ecm);
   if (!_info.paused)
