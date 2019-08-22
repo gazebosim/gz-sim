@@ -115,6 +115,17 @@ void VideoRecorder::OnSave(const QString &_url)
     ignerr  << "Unable to rename file from[" << this->dataPtr->filename
       << "] to [" << path << "]" << std::endl;
   }
+  else
+  {
+    ignmsg << "Video saved to: " << path << std::endl;
+  }
+}
+
+/////////////////////////////////////////////////
+void VideoRecorder::OnCancel()
+{
+  if (common::exists(this->dataPtr->filename))
+    std::remove(this->dataPtr->filename.c_str());
 }
 
 // Register this plugin

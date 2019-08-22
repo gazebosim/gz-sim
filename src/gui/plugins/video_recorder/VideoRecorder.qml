@@ -26,6 +26,7 @@ ToolBar {
           close()
         }
         onRejected: {
+          VideoRecorder.OnCancel()
           close()
         }
     }

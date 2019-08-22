@@ -55,6 +55,9 @@ namespace gazebo
     /// \param[in] _url Path of the file to save the recorded video
     public slots: void OnSave(const QString &_url);
 
+    /// \brief Callback when user cancels saving the recorded video
+    public slots: void OnCancel();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<VideoRecorderPrivate> dataPtr;
