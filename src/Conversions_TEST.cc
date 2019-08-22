@@ -654,7 +654,8 @@ TEST(Conversions, Actor)
   EXPECT_FLOAT_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
 
   ASSERT_EQ(1u, newActor.TrajectoryByIndex(0)->WaypointCount());
-  EXPECT_FLOAT_EQ(0.123, newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Time());
+  EXPECT_FLOAT_EQ(0.123,
+          newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Pose());
 }
