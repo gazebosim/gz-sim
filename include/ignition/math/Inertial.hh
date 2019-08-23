@@ -114,13 +114,6 @@ namespace ignition
         return this->pose;
       }
 
-      /// \copydoc Moi() const
-      /// \deprecated See Matrix3<T> Moi() const
-      public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
-      {
-        return this->Moi();
-      }
-
       /// \brief Get the moment of inertia matrix computer about the body's
       /// center of mass and expressed in this Inertial object’s frame F.
       /// \return The inertia matrix computed about the body’s center of
