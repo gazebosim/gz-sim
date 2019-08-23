@@ -18,7 +18,6 @@
     </plugin>
 
     <gui fullscreen="0">
-
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>

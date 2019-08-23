@@ -778,6 +778,12 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     Entity _id, std::chrono::steady_clock::duration _time, bool _loop) const
 {
+  if (this->dataPtr->actorTrajectories.find(_id) 
+           == this->dataPtr->actorTrajectories.end())
+  {
+    return std::map<std::string, math::Matrix4d>();
+  }
+
   auto trajs = this->dataPtr->actorTrajectories[_id];
   bool followTraj = true;
   if ( 1 == trajs.size() && nullptr == trajs[0].Waypoints())
