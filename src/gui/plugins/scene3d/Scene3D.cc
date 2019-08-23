@@ -24,12 +24,14 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/VideoEncoder.hh>
 
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 
+#include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
@@ -86,6 +88,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::TransformMode transformMode =
         rendering::TransformMode::TM_NONE;
 
+    /// \brief True to record a video from the user camera
+    public: bool recordVideo = false;
+
+    /// \brief Video encoding format
+    public: std::string recordVideoFormat;
+
+    /// \brief Path to save the recorded video
+    public: std::string recordVideoSavePath;
+
+    /// \brief Image from usr camera
+    public: rendering::Image cameraImage;
+
+    /// \brief Video encoder
+    public: common::VideoEncoder videoEncoder;
+
     /// \brief Ray query for mouse clicks
     public: rendering::RayQueryPtr rayQuery;
 
@@ -129,6 +146,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Transform mode service
     public: std::string transformModeService;
+
+    /// \brief Record video service
+    public: std::string recordVideoService;
   };
 }
 }
@@ -187,6 +207,40 @@ void IgnRenderer::Render()
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
+  }
+
+  // record video is requested
+  {
+    IGN_PROFILE("IgnRenderer::Render Record Video");
+    if (this->dataPtr->recordVideo)
+    {
+      unsigned int width = this->dataPtr->camera->ImageWidth();
+      unsigned int height = this->dataPtr->camera->ImageHeight();
+
+      if (this->dataPtr->cameraImage.Width() != width ||
+          this->dataPtr->cameraImage.Height() != height)
+      {
+        this->dataPtr->cameraImage = this->dataPtr->camera->CreateImage();
+      }
+
+      // Video recorder is on. Add more frames to it
+      if (this->dataPtr->videoEncoder.IsEncoding())
+      {
+        this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
+        this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
+      }
+      // Video recorder is idle. Start recording.
+      else
+      {
+        this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
+            this->dataPtr->recordVideoSavePath, width, height);
+      }
+    }
+    else if (this->dataPtr->videoEncoder.IsEncoding())
+    {
+      this->dataPtr->videoEncoder.Stop();
+    }
   }
 }
 
@@ -496,6 +550,16 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
+    const std::string &_savePath)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideo = _record;
+  this->dataPtr->recordVideoFormat = _format;
+  this->dataPtr->recordVideoSavePath = _savePath;
 }
 
 /////////////////////////////////////////////////
@@ -841,12 +905,21 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     }
   }
 
+  // transform mode
   this->dataPtr->transformModeService =
       "/gui/transform_mode";
   this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
       &Scene3D::OnTransformMode, this);
   ignmsg << "Transform mode service on ["
          << this->dataPtr->transformModeService << "]" << std::endl;
+
+  // video recorder
+  this->dataPtr->recordVideoService =
+      "/gui/record_video";
+  this->dataPtr->node.Advertise(this->dataPtr->recordVideoService,
+      &Scene3D::OnRecordVideo, this);
+  ignmsg << "Record video service on ["
+         << this->dataPtr->recordVideoService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -887,9 +960,31 @@ bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
+  msgs::Boolean &_res)
+{
+  RenderWindowItem *renderWindow =
+      this->PluginItem()->findChild<RenderWindowItem *>();
+
+  bool record = _msg.start() && !_msg.stop();
+  renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
+    const std::string &_savePath)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideo(_record, _format,
+      _savePath);
 }
 
 /////////////////////////////////////////////////
