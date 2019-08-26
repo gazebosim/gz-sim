@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1.  Use the JointSetVelocityCommand feature to set joint velocities
+   * [Pull Request 424](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/424)
+
 ### Ignition Gazebo 2.8.0 (2019-08-23)
 
 1. Add video recorder gui plugin
