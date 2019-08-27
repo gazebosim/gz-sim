@@ -124,6 +124,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointProperties,
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
+          ignition::physics::SetJointVelocityCommandFeature,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -637,7 +638,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             jointIt->second->SetForce(i, 0);
             // TODO(anyone): Only for diff drive, which does not use
             //   JointForceCmd. Remove when it does.
-            jointIt->second->SetVelocity(i, 0);
+            jointIt->second->SetVelocityCommand(i, 0);
           }
           return true;
         }
@@ -678,7 +679,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                 jointIt->second->GetDegreesOfFreedom());
             for (std::size_t i = 0; i < nDofs; ++i)
             {
-              jointIt->second->SetVelocity(i, velCmd->Data()[i]);
+              jointIt->second->SetVelocityCommand(i, velCmd->Data()[i]);
             }
           }
         }
