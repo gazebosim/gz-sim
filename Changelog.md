@@ -2,6 +2,8 @@
 
 ### Ignition Gazebo 2.X.X
 
+### Ignition Gazebo 2.9.0
+
 1.  Use the JointSetVelocityCommand feature to set joint velocities
    * [Pull Request 424](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/424)
 
