@@ -228,7 +228,7 @@ namespace ignition
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
 
     /// \brief Simple clamping function that constrains a value to
-    /// a range defined by a min and max value. This function is equalivent to
+    /// a range defined by a min and max value. This function is equivalent to
     /// std::max(std::min(value, max), min).
     /// \param[in] _v Value to clamp
     /// \param[in] _min Minimum allowed value.
