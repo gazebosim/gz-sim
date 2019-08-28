@@ -25,7 +25,7 @@
 // https://bitbucket.org/ignitionrobotics/ign-common/raw/default/src/Filesystem_TEST.cc
 
 #ifndef _WIN32
-#include <dirent.h> // NOLINT(build/include_order)
+#include <dirent.h>  // NOLINT(build/include_order)
 #include <fcntl.h>  // NOLINT(build/include_order)
 #include <limits.h>  // NOLINT(build/include_order)
 #include <stdlib.h>  // NOLINT(build/include_order)
@@ -133,7 +133,7 @@ void removeAll(const std::string &_path)
   }
   closedir(dir);
 
-  bool removed = false;
+  bool removed;
 #ifdef _WIN32
   removed = RemoveDirectory(_path.c_str());
 #else
