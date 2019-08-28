@@ -227,10 +227,13 @@ namespace ignition
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
 
-    /// \brief Simple clamping function
-    /// \param[in] _v value
-    /// \param[in] _min minimum
-    /// \param[in] _max maximum
+    /// \brief Simple clamping function that constrains a value to
+    /// a range defined by a min and max value. This function is equivalent to
+    /// std::max(std::min(value, max), min).
+    /// \param[in] _v Value to clamp
+    /// \param[in] _min Minimum allowed value.
+    /// \param[in] _max Maximum allowed value.
+    /// \return The value _v clamped to the range defined by _min and _max.
     template<typename T>
     inline T clamp(T _v, T _min, T _max)
     {
