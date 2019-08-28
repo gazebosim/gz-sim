@@ -748,6 +748,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Actor *,
         const components::Pose *)->bool
       {
+        // TODO(anyone) Support setting actor pose from other systems
         // this->entityPoses[_entity] = _pose->Data();
         this->actorTransforms[_entity] =
               this->sceneManager.ActorMeshAnimationAt(_entity,
