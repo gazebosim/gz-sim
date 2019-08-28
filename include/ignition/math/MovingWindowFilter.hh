@@ -53,7 +53,6 @@ namespace ignition
       /// \brief keep track of number of elements
       public: unsigned int samples = 0;
     };
-    /// \endcond
 
     //////////////////////////////////////////////////
     template<typename T>
@@ -64,6 +63,7 @@ namespace ignition
       this->valIter = this->valHistory.begin();
       this->sum = T();
     }
+    /// \endcond
 
     /// \brief Base class for MovingWindowFilter. This replaces the
     /// version of MovingWindowFilter in the Ignition Common library.

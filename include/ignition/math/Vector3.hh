@@ -322,7 +322,7 @@ namespace ignition
       }
 
       /// \brief Assignment operator
-      /// \param[in] _value assigned to all elements
+      /// \param[in] _v assigned to all elements
       /// \return this
       public: Vector3 &operator=(T _v)
       {

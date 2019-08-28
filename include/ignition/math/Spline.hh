@@ -198,7 +198,7 @@ namespace ignition
       /// \brief Interpolates the mth derivative of the spline at
       /// parameter value \p _t.
       /// \param[in] _mth order of curve derivative to interpolate.
-      /// \param[in] _t parameter value (range 0 to 1).
+      /// \param[in] _1 parameter value (range 0 to 1).
       /// \return the interpolated mth derivative, or [INF, INF, INF]
       /// on error. Use Vector3d::IsFinite() to check for an error.
       public: Vector3d InterpolateMthDerivative(const unsigned int _mth,
@@ -211,7 +211,7 @@ namespace ignition
       /// \param[in] _fromIndex point index to treat as t = 0, fromIndex + 1
       /// is deemed to be t = 1.
       /// \param[in] _mth order of curve derivative to interpolate.
-      /// \param[in] _t parameter value (range 0 to 1).
+      /// \param[in] _s parameter value (range 0 to 1).
       /// \return the interpolated mth derivative, or [INF, INF, INF] on
       /// error. Use Vector3d::IsFinite() to check for an error.
       public: Vector3d InterpolateMthDerivative(const unsigned int _fromIndex,

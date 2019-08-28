@@ -115,9 +115,9 @@ namespace ignition
       /// Example: _latA = 38.0016667 and _lonA = -123.0016667) represents
       /// the point with latitude 38d 0'6.00"N and longitude 123d 0'6.00"W.
       /// \param[in] _latA Latitude of point A.
-      /// \param[in] _longA Longitude of point A.
+      /// \param[in] _lonA Longitude of point A.
       /// \param[in] _latB Latitude of point B.
-      /// \param[in] _longB Longitude of point B.
+      /// \param[in] _lonB Longitude of point B.
       /// \return Distance in meters.
       public: static double Distance(const ignition::math::Angle &_latA,
                                      const ignition::math::Angle &_lonA,
@@ -174,7 +174,7 @@ namespace ignition
 
       /// \brief Convert a Cartesian velocity vector with components East,
       /// North, Up to a local cartesian frame vector XYZ.
-      /// \param[in] Vector with components (x,y,z): (East, North, Up).
+      /// \param[in] _xyz Vector with components (x,y,z): (East, North, Up).
       /// \return Cartesian vector in the world frame.
       public: ignition::math::Vector3d LocalFromGlobalVelocity(
                   const ignition::math::Vector3d &_xyz) const;

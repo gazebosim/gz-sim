@@ -85,7 +85,7 @@ namespace ignition
       }
 
       /// \brief Update the filter's output.
-      /// \paran[in] _x Input value.
+      /// \param[in] _x Input value.
       /// \return The filter's current output.
       public: const T& Process(const T &_x)
       {
@@ -120,7 +120,7 @@ namespace ignition
       }
 
       /// \brief Update the filter's output.
-      /// \paran[in] _x Input value.
+      /// \param[in] _x Input value.
       /// \return The filter's current output.
       public: const math::Quaterniond& Process(
                   const math::Quaterniond &_x)

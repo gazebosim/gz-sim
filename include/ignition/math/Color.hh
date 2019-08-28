@@ -52,19 +52,19 @@ namespace ignition
       /// \brief (0, 1, 1)
       public: static const Color Cyan;
 
-      /// \def RGBA
+      /// \typedef RGBA
       /// \brief A RGBA packed value as an unsigned int
       public: typedef unsigned int RGBA;
 
-      /// \def BGRA
+      /// \typedef BGRA
       /// \brief A BGRA packed value as an unsigned int
       public: typedef unsigned int BGRA;
 
-      /// \def ARGB
+      /// \typedef ARGB
       /// \brief A ARGB packed value as an unsigned int
       public: typedef unsigned int ARGB;
 
-      /// \def ABGR
+      /// \typedef ABGR
       /// \brief A ABGR packed value as an unsigned int
       public: typedef unsigned int ABGR;
 
@@ -290,19 +290,19 @@ namespace ignition
       public: float &A();
 
       /// \brief Set the red value
-      /// \param _r New red value
+      /// \param[in] _r New red value
       public: void R(const float _r);
 
       /// \brief Set the green value
-      /// \param _r New green value
+      /// \param[in] _g New green value
       public: void G(const float _g);
 
       /// \brief Set the blue value
-      /// \param _r New blue value
+      /// \param[in] _b New blue value
       public: void B(const float _b);
 
       /// \brief Set the alpha value
-      /// \param _r New alpha value
+      /// \param[in] _a New alpha value
       public: void A(const float _a);
 
       /// \brief Red value

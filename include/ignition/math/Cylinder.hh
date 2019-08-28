@@ -116,7 +116,7 @@ namespace ignition
       /// \brief Get the mass matrix for this cylinder. This function
       /// is only meaningful if the cylinder's radius, length, and material
       /// have been set. Optionally, set the rotational offset.
-      /// \param[out] _massMatrix The computed mass matrix will be stored
+      /// \param[out] _massMat The computed mass matrix will be stored
       /// here.
       /// \return False if computation of the mass matrix failed, which
       /// could be due to an invalid radius (<=0), length (<=0), or density

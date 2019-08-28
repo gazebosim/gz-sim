@@ -75,7 +75,7 @@ namespace ignition
       /// \brief Parse a version string and set the major, minor, patch
       /// numbers, and prerelease and build strings.
       /// \param[in] _versionStr The version string, such as "1.2.3-pr+123"
-      /// \retur True on success.
+      /// \return True on success.
       public: bool Parse(const std::string &_versionStr);
 
       /// \brief Returns the version as a string
