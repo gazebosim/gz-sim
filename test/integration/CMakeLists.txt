@@ -1,9 +1,6 @@
 set(TEST_TYPE "INTEGRATION")
 
-set(tests
-)
-
-link_directories(${PROJECT_BINARY_DIR}/test)
+ign_get_sources(tests)
 
 # Test symbols having the right name on linux only
 if (UNIX AND NOT APPLE)
