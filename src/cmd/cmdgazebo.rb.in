@@ -140,6 +140,7 @@ class Cmd
   #
   def parse(args)
     options = {
+      'file' => '',
       'gui' => 0,
       'hz' => -1,
       'iterations' => 0,
@@ -214,7 +215,7 @@ class Cmd
 
     # SDF file as positional argument
     filename = args.pop
-    if filename and filename != 'gazebo' and not options.key?('file')
+    if filename and filename != 'gazebo'
       options['file'] = filename
     end
 
@@ -278,7 +279,7 @@ class Cmd
       end
 
       parsed = ''
-      if options.key?('file')
+      if options['file'] != ''
         # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
@@ -307,7 +308,7 @@ class Cmd
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
-                               int, const char *)'
+                               int, const char *, const char *)'
 
       # Import the runGui function
       Importer.extern 'int runGui()'
@@ -323,7 +324,7 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['record-resources'],
-            options['playback'])
+            options['playback'], options['file'])
         end
 
         guiPid = Process.fork do
@@ -354,7 +355,7 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['recordPath'], options['recordResources'],
-            options['playback'])
+            options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'

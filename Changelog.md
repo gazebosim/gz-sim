@@ -1,5 +1,23 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.X.X
+
+### Ignition Gazebo 2.9.0
+
+1.  Use the JointSetVelocityCommand feature to set joint velocities
+   * [Pull Request 424](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/424)
+
+### Ignition Gazebo 2.8.0 (2019-08-23)
+
+1. Add video recorder gui plugin
+   * [Pull Request 422](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/422)
+
+1. Vertical rays for lidar demo
+   * [Pull Request 419](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/419)
+
+1. Print world path when using cli
+   * [Pull Request 420](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/420)
+
 ### Ignition Gazebo 2.7.1
 
 1. Fix order of adding and removing rendering entities, and clean up mesh

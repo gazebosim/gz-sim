@@ -20,6 +20,7 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/video_record.pb.h>
 
 #include <string>
 #include <memory>
@@ -90,6 +91,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnTransformMode(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a record video request
+    /// \param[in] _msg Request message to enable/disable video recording.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnRecordVideo(const msgs::VideoRecord &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -124,6 +132,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
+
+    /// \brief Set whether to record video
+    /// \param[in] _record True to start video recording, false to stop.
+    /// \param[in] _format Video encoding format: "mp4", "ogv"
+    /// \param[in] _savePath Path to save the recorded video.
+    public: void SetRecordVideo(bool _record, const std::string &_format,
+        const std::string &_savePath);
 
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
@@ -226,6 +241,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
+
+    /// \brief Set whether to record video
+    /// \param[in] _record True to start video recording, false to stop.
+    /// \param[in] _format Video encoding format: "mp4", "ogv"
+    /// \param[in] _savePath Path to save the recorded video.
+    public: void SetRecordVideo(bool _record, const std::string &_format,
+        const std::string &_savePath);
 
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
