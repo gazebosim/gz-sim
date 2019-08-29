@@ -41,7 +41,7 @@ namespace gazebo
     public: TransformControl();
 
     /// \brief Destructor
-    public: virtual ~TransformControl() override;
+    public: ~TransformControl() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
