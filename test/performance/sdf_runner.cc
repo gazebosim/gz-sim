@@ -124,7 +124,7 @@ int main(int _argc, char** _argv)
   ofs << "# Rate: " << FLAGS_z << std::endl;
   ofs << "# Real s, Real ns, sim s, sim ns" << std::endl;
 
-  for (auto msg : msgs)
+  for (auto &msg : msgs)
   {
     ofs << msg.real().sec() << ", " << msg.real().nsec() << ", "
         << msg.sim().sec() << ", " << msg.sim().nsec() << std::endl;

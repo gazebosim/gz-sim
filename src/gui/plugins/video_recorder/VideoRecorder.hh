@@ -38,7 +38,7 @@ namespace gazebo
     public: VideoRecorder();
 
     /// \brief Destructor
-    public: virtual ~VideoRecorder() override;
+    public: ~VideoRecorder() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
