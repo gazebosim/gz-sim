@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <cstring>
+#include <fstream>
 #include <string>
 
 #include "test_config.h"  // NOLINT(build/include)
@@ -116,35 +117,75 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #endif
 
 //////////////////////////////////////////////////
+bool isDirectory(const std::string &_path)
+{
+#ifndef _WIN32
+  struct stat path_stat;
+
+  if (::stat(_path.c_str(), &path_stat) != 0)
+  {
+    return false;
+  }
+
+  return S_ISDIR(path_stat.st_mode);
+#else
+  DWORD attr;
+
+  if (internal_check_path(_path, attr))
+  {
+    return (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
+  }
+
+  return false;
+#endif
+}
+
+//////////////////////////////////////////////////
+bool isFile(const std::string &_path)
+{
+  std::ifstream f(_path);
+  return (!isDirectory(_path)) && f.good();
+}
+
+//////////////////////////////////////////////////
 void removeAll(const std::string &_path)
 {
-  DIR *dir = opendir(_path.c_str());
-  if (dir)
+  if (isDirectory(_path))
   {
-    struct dirent *p;
-    while ((p=readdir(dir)))
+    DIR *dir = opendir(_path.c_str());
+    if (dir)
     {
-      // Skip special files.
-      if (!std::strcmp(p->d_name, ".") || !std::strcmp(p->d_name, ".."))
-        continue;
+      struct dirent *p;
+      while ((p=readdir(dir)))
+      {
+        // Skip special files.
+        if (!std::strcmp(p->d_name, ".") || !std::strcmp(p->d_name, ".."))
+          continue;
 
-      removeAll(_path + "/" + p->d_name);
+        removeAll(_path + "/" + p->d_name);
+      }
     }
-  }
-  closedir(dir);
+    closedir(dir);
 
-  bool removed;
+    // Remove the directory
+    bool removed;
 #ifdef _WIN32
-  removed = RemoveDirectory(_path.c_str());
+    removed = RemoveDirectory(_path.c_str());
 #else
-  removed = (rmdir(_path.c_str()) == 0);
-  if (!removed)
-  {
-    // A sym link would end up here
-    removed = (std::remove(_path.c_str()) == 0);
-  }
+    removed = (rmdir(_path.c_str()) == 0);
+    if (!removed)
+    {
+      // A sym link would end up here
+      removed = (std::remove(_path.c_str()) == 0);
+    }
 #endif
-  ASSERT_TRUE(removed);
+    ASSERT_TRUE(removed);
+  }
+  else if (isFile(_path))
+  {
+    const bool removed = (std::remove(_path.c_str()) == 0);
+    ASSERT_TRUE(removed);
+  }
 }
 
 //////////////////////////////////////////////////
