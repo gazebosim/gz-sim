@@ -72,10 +72,12 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 }
 
 #else
+#include <io.h>  // NOLINT(build/include_order)
 #include <windows.h>  // NOLINT(build/include_order)
 #include <winioctl.h>  // NOLINT(build/include_order)
 #include <winnt.h>  // NOLINT(build/include_order)
 #include <cstdint>
+#include "win_dirent.h"
 
 /////////////////////////////////////////////////
 bool createAndSwitchToTempDir(std::string &_newTempPath)
