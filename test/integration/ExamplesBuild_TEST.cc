@@ -114,6 +114,140 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
   return false;
 }
 
+struct handle_wrapper
+{
+  HANDLE handle;
+  explicit handle_wrapper(HANDLE h)
+    : handle(h) {}
+  ~handle_wrapper()
+  {
+    if (handle != INVALID_HANDLE_VALUE)
+    {
+      ::CloseHandle(handle);
+    }
+  }
+};
+
+//////////////////////////////////////////////////
+HANDLE create_file_handle(const std::string &_path, DWORD _dwDesiredAccess,
+    DWORD _dwShareMode,
+    LPSECURITY_ATTRIBUTES _lpSecurityAttributes,
+    DWORD _dwCreationDisposition,
+    DWORD _dwFlagsAndAttributes,
+    HANDLE _hTemplateFile)
+{
+  return ::CreateFileA(_path.c_str(), _dwDesiredAccess,
+      _dwShareMode, _lpSecurityAttributes,
+      _dwCreationDisposition, _dwFlagsAndAttributes,
+      _hTemplateFile);
+}
+
+//////////////////////////////////////////////////
+bool not_found_error(int _errval)
+{
+  return _errval == ERROR_FILE_NOT_FOUND
+    || _errval == ERROR_PATH_NOT_FOUND
+    || _errval == ERROR_INVALID_NAME  // "tools/src/:sys:stat.h", "//foo"
+    || _errval == ERROR_INVALID_DRIVE  // USB card reader with no card
+    || _errval == ERROR_NOT_READY  // CD/DVD drive with no disc inserted
+    || _errval == ERROR_INVALID_PARAMETER  // ":sys:stat.h"
+    || _errval == ERROR_BAD_PATHNAME  // "//nosuch" on Win64
+    || _errval == ERROR_BAD_NETPATH;  // "//nosuch" on Win32
+}
+
+#ifndef MAXIMUM_REPARSE_DATA_BUFFER_SIZE
+#define MAXIMUM_REPARSE_DATA_BUFFER_SIZE  (16 * 1024)
+#endif
+
+//////////////////////////////////////////////////
+bool is_reparse_point_a_symlink(const std::string &_path)
+{
+  handle_wrapper h(create_file_handle(_path, FILE_READ_EA,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        nullptr, OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+        nullptr));
+  if (h.handle == INVALID_HANDLE_VALUE)
+  {
+    return false;
+  }
+
+  std::vector<wchar_t> buf(MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+
+  // Query the reparse data
+  DWORD dwRetLen;
+  BOOL result = ::DeviceIoControl(h.handle, FSCTL_GET_REPARSE_POINT,
+      nullptr, 0, buf.data(), (DWORD)buf.size(), &dwRetLen, nullptr);
+  if (!result)
+  {
+    return false;
+  }
+
+  return reinterpret_cast<const REPARSE_DATA_BUFFER*>(&buf[0])->ReparseTag
+    == IO_REPARSE_TAG_SYMLINK
+    // Issue 9016 asked that NTFS directory junctions be recognized as
+    // directories.  That is equivalent to recognizing them as symlinks, and
+    // then the normal symlink mechanism will recognize them as directories.
+    //
+    // Directory junctions are very similar to symlinks, but have some
+    // performance and other advantages over symlinks. They can be created
+    // from the command line with "mklink /j junction-name target-path".
+    || reinterpret_cast<const REPARSE_DATA_BUFFER*>(&buf[0])->ReparseTag
+    == IO_REPARSE_TAG_MOUNT_POINT;  // "directory junction" or "junction"
+}
+
+//////////////////////////////////////////////////
+bool process_status_failure()
+{
+  int errval(::GetLastError());
+
+  if (not_found_error(errval))
+  {
+    return false;
+  }
+  else if ((errval == ERROR_SHARING_VIOLATION))
+  {
+    return true;  // odd, but this is what boost does
+  }
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool internal_check_path(const std::string &_path, DWORD &attr)
+{
+  attr = ::GetFileAttributesA(_path.c_str());
+  if (attr == 0xFFFFFFFF)
+  {
+    return process_status_failure();
+  }
+
+  // reparse point handling;
+  //   since GetFileAttributesW does not resolve symlinks, try to open file
+  //   handle to discover if the file exists
+  if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
+  {
+    handle_wrapper h(
+        create_file_handle(
+          _path,
+          0,  // dwDesiredAccess; attributes only
+          FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+          0,  // lpSecurityAttributes
+          OPEN_EXISTING,
+          FILE_FLAG_BACKUP_SEMANTICS,
+          0));  // hTemplateFile
+    if (h.handle == INVALID_HANDLE_VALUE)
+    {
+      return process_status_failure();
+    }
+
+    if (!is_reparse_point_a_symlink(_path))
+    {
+      return true;
+    }
+  }
+
+  return true;
+}
 #endif
 
 //////////////////////////////////////////////////
