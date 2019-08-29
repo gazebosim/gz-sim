@@ -22,6 +22,17 @@
 
 #include "test_config.h"  // NOLINT(build/include)
 
+#ifdef _WIN32
+# define IGN_PATH_MAX _MAX_PATH
+#elif defined(PATH_MAX)
+# define IGN_PATH_MAX PATH_MAX
+#elif defined(_XOPEN_PATH_MAX)
+# define IGN_PATH_MAX _XOPEN_PATH_MAX
+#else
+# define IGN_PATH_MAX _POSIX_PATH_MAX
+#endif
+
+
 // Helper functions copied from
 // https://bitbucket.org/ignitionrobotics/ign-common/raw/default/src/Filesystem_TEST.cc
 
@@ -60,6 +71,7 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
     return false;
   }
 
+  // cppcheck-suppress *
   char resolved[PATH_MAX];
   if (realpath(dtemp, resolved) == nullptr)
   {
@@ -295,6 +307,7 @@ bool isDirectory(const std::string &_path)
     return false;
   }
 
+  // cppcheck-suppress *
   return S_ISDIR(path_stat.st_mode);
 #else
   DWORD attr;

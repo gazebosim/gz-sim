@@ -225,6 +225,7 @@ struct _wdirent {
     int d_type;
 
     /* File name */
+    // cppcheck-suppress *
     wchar_t d_name[PATH_MAX];
 };
 typedef struct _wdirent _wdirent;
@@ -277,6 +278,7 @@ struct dirent {
     int d_type;
 
     /* File name */
+    // cppcheck-suppress *
     char d_name[PATH_MAX];
 };
 typedef struct dirent dirent;
@@ -454,6 +456,7 @@ _wreaddir(
          * to PATH_MAX characters and zero-terminate the buffer.
          */
         n = 0;
+        // cppcheck-suppress *
         while (n + 1 < PATH_MAX  &&  datap->cFileName[n] != 0) {
             entp->d_name[n] = datap->cFileName[n];
             n++;
@@ -465,11 +468,15 @@ _wreaddir(
 
         /* File type */
         attr = datap->dwFileAttributes;
+        // cppcheck-suppress *
         if ((attr & FILE_ATTRIBUTE_DEVICE) != 0) {
+            // cppcheck-suppress *
             entp->d_type = DT_CHR;
         } else if ((attr & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+            // cppcheck-suppress *
             entp->d_type = DT_DIR;
         } else {
+            // cppcheck-suppress *
             entp->d_type = DT_REG;
         }
 
@@ -625,10 +632,12 @@ opendir(
     /* Allocate memory for DIR structure */
     dirp = (DIR*) malloc (sizeof (struct DIR));
     if (dirp) {
+        // cppcheck-suppress *
         wchar_t wname[PATH_MAX];
         size_t n;
 
         /* Convert directory name to wide-character string */
+        // cppcheck-suppress *
         error = dirent_mbstowcs_s (&n, wname, PATH_MAX, dirname, PATH_MAX);
         if (!error) {
 
@@ -694,6 +703,7 @@ readdir(
 
         /* Attempt to convert file name to multi-byte string */
         error = dirent_wcstombs_s(
+            // cppcheck-suppress *
             &n, dirp->ent.d_name, PATH_MAX, datap->cFileName, PATH_MAX);
 
         /*
@@ -708,7 +718,9 @@ readdir(
          */
         if (error  &&  datap->cAlternateFileName[0] != '\0') {
             error = dirent_wcstombs_s(
+                // cppcheck-suppress *
                 &n, dirp->ent.d_name, PATH_MAX,
+                // cppcheck-suppress *
                 datap->cAlternateFileName, PATH_MAX);
         }
 
@@ -723,11 +735,15 @@ readdir(
 
             /* File attributes */
             attr = datap->dwFileAttributes;
+            // cppcheck-suppress *
             if ((attr & FILE_ATTRIBUTE_DEVICE) != 0) {
+                // cppcheck-suppress *
                 entp->d_type = DT_CHR;
             } else if ((attr & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+                // cppcheck-suppress *
                 entp->d_type = DT_DIR;
             } else {
+                // cppcheck-suppress *
                 entp->d_type = DT_REG;
             }
 
