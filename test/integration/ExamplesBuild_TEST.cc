@@ -73,6 +73,7 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 
 #else
 #include <windows.h>  // NOLINT(build/include_order)
+#include <winioctl.h>  // NOLINT(build/include_order)
 #include <winnt.h>  // NOLINT(build/include_order)
 #include <cstdint>
 
@@ -158,6 +159,37 @@ bool not_found_error(int _errval)
 #ifndef MAXIMUM_REPARSE_DATA_BUFFER_SIZE
 #define MAXIMUM_REPARSE_DATA_BUFFER_SIZE  (16 * 1024)
 #endif
+
+typedef struct _REPARSE_DATA_BUFFER {
+  ULONG  ReparseTag;
+  USHORT  ReparseDataLength;
+  USHORT  Reserved;
+  union {
+    struct {
+      USHORT  SubstituteNameOffset;
+      USHORT  SubstituteNameLength;
+      USHORT  PrintNameOffset;
+      USHORT  PrintNameLength;
+      ULONG  Flags;
+      WCHAR  PathBuffer[1];
+      /*  Example of distinction between substitute and print names:
+          mklink /d ldrive c:\
+SubstituteName: c:\\??\
+PrintName: c:\
+*/
+    } SymbolicLinkReparseBuffer;
+    struct {
+      USHORT  SubstituteNameOffset;
+      USHORT  SubstituteNameLength;
+      USHORT  PrintNameOffset;
+      USHORT  PrintNameLength;
+      WCHAR  PathBuffer[1];
+    } MountPointReparseBuffer;
+    struct {
+      UCHAR  DataBuffer[1];
+    } GenericReparseBuffer;
+  };
+} REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
 //////////////////////////////////////////////////
 bool is_reparse_point_a_symlink(const std::string &_path)
