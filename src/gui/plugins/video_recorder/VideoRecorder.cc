@@ -55,9 +55,7 @@ VideoRecorder::VideoRecorder()
 }
 
 /////////////////////////////////////////////////
-VideoRecorder::~VideoRecorder()
-{
-}
+VideoRecorder::~VideoRecorder() = default;
 
 /////////////////////////////////////////////////
 void VideoRecorder::LoadConfig(const tinyxml2::XMLElement *)

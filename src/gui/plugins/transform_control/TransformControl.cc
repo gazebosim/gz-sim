@@ -55,10 +55,7 @@ TransformControl::TransformControl()
 }
 
 /////////////////////////////////////////////////
-TransformControl::~TransformControl()
-{
-}
-
+TransformControl::~TransformControl() = default;
 /////////////////////////////////////////////////
 void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
