@@ -98,6 +98,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnRecordVideo(const msgs::VideoRecord &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a move to request
+    /// \param[in] _msg Request message to set the target to move to.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnMoveTo(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -140,6 +147,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
 
+    /// \brief Move the user camera to move to the speficied target
+    /// \param[in] _target Target to move the camera to
+    public: void SetMoveTo(const std::string &_target);
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
@@ -161,6 +172,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return 3D coordinates of a point in the 3D scene.
     private: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
+
+    /// \brief Callback when a move to animation is complete
+    private: void OnMoveToComplete();
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -248,6 +262,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Move the user camera to move to the speficied target
+    /// \param[in] _target Target to move the camera to
+    public: void SetMoveTo(const std::string &_target);
 
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.

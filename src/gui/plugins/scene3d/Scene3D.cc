@@ -21,7 +21,9 @@
 #include <string>
 #include <vector>
 
+#include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/VideoEncoder.hh>
@@ -56,6 +58,38 @@ namespace ignition
 namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+
+  /// \brief Helper class for animating a user camera to move to a target entity
+  class MoveToHelper
+  {
+    /// \brief Move the camera to look at the specified target
+    /// param[in] _camera Camera to be moved
+    /// param[in] _target Target to look at
+    /// param[in] _duration Duration of the move to animation
+    /// param[in] _onAnimationComplete Callback function when animation is
+    /// complete
+    public: void MoveTo(rendering::CameraPtr _camera, rendering::NodePtr _target,
+        double _duration, std::function<void()> _onAnimationComplete);
+
+    /// \brief Add time to the animation.
+    /// \param[in] _time Time to add in seconds
+    public: void AddTime(double _time);
+
+    /// \brief Get whether the move to helper is idle, i.e. no animation
+    /// is being executed.
+    /// \return True if idle, false otherwise
+    public: bool Idle() const;
+
+    /// \brief Pose animation object
+    public: std::unique_ptr<common::PoseAnimation> poseAnim;
+
+    /// \brief Pointer to the camera being moved
+    public: rendering::CameraPtr camera;
+
+    /// \brief Callback function when animation is complete.
+    public: std::function<void()> onAnimationComplete;
+  };
+
   /// \brief Private data class for IgnRenderer
   class IgnRendererPrivate
   {
@@ -97,7 +131,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path to save the recorded video
     public: std::string recordVideoSavePath;
 
-    /// \brief Image from usr camera
+    /// \brief Target to move the user camera to
+    public: std::string moveToTarget;
+
+    /// \brief Helper object to move user camera
+    public: MoveToHelper moveToHelper;
+
+    /// \brief Last move to animation time
+    public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
+
+    /// \brief Image from user camera
     public: rendering::Image cameraImage;
 
     /// \brief Video encoder
@@ -149,6 +192,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Record video service
     public: std::string recordVideoService;
+
+    /// \brief Transform mode service
+    public: std::string moveToService;
   };
 }
 }
@@ -240,6 +286,38 @@ void IgnRenderer::Render()
     else if (this->dataPtr->videoEncoder.IsEncoding())
     {
       this->dataPtr->videoEncoder.Stop();
+    }
+  }
+
+  // Move To
+  {
+    IGN_PROFILE("IgnRenderer::Render MoveTo");
+    if (!this->dataPtr->moveToTarget.empty())
+    {
+      if (this->dataPtr->moveToHelper.Idle())
+      {
+        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+        rendering::NodePtr target = scene->NodeByName(this->dataPtr->moveToTarget);
+        if (target)
+        {
+          this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera, target, 0.5,
+              std::bind(&IgnRenderer::OnMoveToComplete, this));
+          this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
+        }
+        else
+        {
+          std::cerr << "Unable to move to target. Target: '"
+                    << this->dataPtr->moveToTarget << "' not found" << std::endl;
+          this->dataPtr->moveToTarget.clear();
+        }
+      }
+      else
+      {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
+        this->dataPtr->moveToHelper.AddTime(dt.count());
+        this->dataPtr->prevMoveToTime = now;
+      }
     }
   }
 }
@@ -560,6 +638,20 @@ void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
   this->dataPtr->recordVideo = _record;
   this->dataPtr->recordVideoFormat = _format;
   this->dataPtr->recordVideoSavePath = _savePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetMoveTo(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::OnMoveToComplete()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToTarget.clear();
 }
 
 /////////////////////////////////////////////////
@@ -920,6 +1012,15 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       &Scene3D::OnRecordVideo, this);
   ignmsg << "Record video service on ["
          << this->dataPtr->recordVideoService << "]" << std::endl;
+
+  // move to
+  this->dataPtr->moveToService =
+      "/gui/move_to";
+  this->dataPtr->node.Advertise(this->dataPtr->moveToService,
+      &Scene3D::OnMoveTo, this);
+  ignmsg << "Move to service on ["
+         << this->dataPtr->moveToService << "]" << std::endl;
+
 }
 
 //////////////////////////////////////////////////
@@ -974,6 +1075,18 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnMoveTo(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetMoveTo(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
@@ -985,6 +1098,12 @@ void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideo(_record, _format,
       _savePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetMoveTo(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
 }
 
 /////////////////////////////////////////////////
@@ -1066,6 +1185,85 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 //  }
 // }
 //
+
+////////////////////////////////////////////////
+void MoveToHelper::MoveTo(rendering::CameraPtr _camera,
+    rendering::NodePtr _target,
+    double _duration, std::function<void()> _onAnimationComplete)
+{
+  this->camera = _camera;
+  this->poseAnim = std::make_unique<common::PoseAnimation>(
+      "move_to", _duration, false);
+  this->onAnimationComplete = _onAnimationComplete;
+
+  math::Pose3d start = _node->WorldPose();
+
+  // todo(anyone) implement bounding box function in rendering to get
+  // target size and center.
+  // Assume fixed size and target world position is its center
+  math::Box targetBBox(1.0, 1.0, 1.0);
+  math::Vector3d targetCenter = _target->WorldPosition();
+  math::Vector3d dir = targetCenter - start.Pos();
+  dir.Correct();
+  dir.Normalize();
+
+  // distance to move
+  double maxSize = targetBBox.Size().Max();
+  double dist = start.Pos().Distance(targetCenter) - maxSize;
+
+  // Scale to fit in view
+  double hfov = this->camera->HFOV().Radian();
+  double offset = maxSize*0.5 / std::tan(hfov/2.0);
+  std::cerr << "scale " << offset << std::endl;
+
+  // End position and rotation
+  math::Vector3d endPos = start.Pos() + dir*(dist - offset);
+  math::Quaterniond endRot =
+      math::Matrix4d::LookAt(endPos, targetCenter).Rotation();
+  math::Pose3d end(endPos, endRot);
+
+
+  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
+  key->Translation(start.Pos());
+  key->Rotation(start.Rot());
+
+  key = this->poseAnim->CreateKeyFrame(_duration);
+  key->Translation(end.Pos());
+  key->Rotation(end.Rot());
+}
+
+////////////////////////////////////////////////
+void MoveToHelper::AddTime(double _time)
+{
+  if (!this->camera || !this->poseAnim)
+    return;
+
+  common::PoseKeyFrame kf(0);
+
+  this->poseAnim->AddTime(_time);
+  this->poseAnim->InterpolatedKeyFrame(kf);
+
+  math::Pose3d offset(kf.Translation(), kf.Rotation());
+
+  this->camera->SetWorldPose(offset);
+
+  if (this->poseAnim->Length() <= this->poseAnim->Time())
+  {
+    if (this->onAnimationComplete)
+    {
+      this->onAnimationComplete();
+    }
+    this->node.reset();
+    this->poseAnim.reset();
+    this->onAnimationComplete = 0;
+  }
+}
+
+////////////////////////////////////////////////
+bool MoveToHelper::Idle() const
+{
+  return this->poseAnim == nullptr;
+}
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,
