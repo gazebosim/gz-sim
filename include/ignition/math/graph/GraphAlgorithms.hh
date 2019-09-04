@@ -325,6 +325,40 @@ namespace graph
 
     return res;
   }
+
+  /// \brief Copy a DirectedGraph to an UndirectedGraph with the same vertices
+  /// and edges.
+  /// \param[in] _graph A directed graph.
+  /// \return An undirected graph with the same vertices and edges as the
+  /// original graph.
+  template<typename V, typename E>
+  UndirectedGraph<V, E> ToUndirectedGraph(const DirectedGraph<V, E> &_graph)
+  {
+    UndirectedGraph<V, E> result;
+
+    // Add all vertices.
+    for (auto const &vPair : _graph.Vertices())
+    {
+      auto const &v = vPair.second.get();
+      if (!result.AddVertex(v.Name(), v.Data(), v.Id()).Valid())
+      {
+        std::cerr << "Invalid vertex with Id [" << v.Id() << "]. Ignoring."
+                  << std::endl;
+      }
+    }
+
+    // Add all edges.
+    for (auto const &ePair : _graph.Edges())
+    {
+      auto const &e = ePair.second.get();
+      if (!result.AddEdge(e.Vertices(), e.Data(), e.Weight()).Valid())
+      {
+        std::cerr << "Ignoring edge" << std::endl;
+      }
+    }
+
+    return result;
+  }
 }
 }
 }

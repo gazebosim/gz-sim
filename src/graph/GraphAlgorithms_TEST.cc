@@ -310,3 +310,62 @@ TEST(GraphTestFixture, ConnectedComponents)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(GraphTestFixture, ToUndirectedGraph)
+{
+  ///              (6)                  |
+  ///           0------>1               |
+  ///           |      /|\              |
+  ///           |     / | \(5)          |
+  ///           | (2)/  |  ┘            |
+  ///           |   /   |   2           |
+  ///        (1)|  / (2)|  /            |
+  ///           | /     | /(5)          |
+  ///           VL      VL              |
+  ///           3------>4               |
+  ///              (1)                  |
+  DirectedGraph<int, double> directed(
+  {
+    // Vertices.
+    {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}, {"3", 3, 3}, {"4", 4, 4}},
+    // Edges.
+    {{{0, 1}, 2.0, 6.0}, {{0, 3}, 3.0, 1.0},
+     {{1, 2}, 4.0, 5.0}, {{1, 3}, 4.0, 2.0}, {{1, 4}, 4.0, 2.0},
+     {{2, 4}, 2.0, 5.0},
+     {{3, 4}, 2.0, 1.0}}
+  });
+
+  // Convert to undirected graph.
+  auto undirected = ToUndirectedGraph(directed);
+  EXPECT_EQ(5u, undirected.Vertices().size());
+  EXPECT_EQ(7u, undirected.Edges().size());
+  EXPECT_EQ(directed.Vertices().size(), undirected.Vertices().size());
+  EXPECT_EQ(directed.Edges().size(), undirected.Edges().size());
+
+  // Compare vertices.
+  for (auto const &dvPair : directed.Vertices())
+  {
+    const VertexId dvId = dvPair.first;
+    auto const &uv = undirected.VertexFromId(dvId);
+    EXPECT_TRUE(uv.Valid());
+    EXPECT_TRUE(dvPair.second.get().Valid());
+    EXPECT_EQ(uv.Id(), dvId);
+    EXPECT_EQ(uv.Name(), dvPair.second.get().Name());
+    EXPECT_EQ(uv.Data(), dvPair.second.get().Data());
+  }
+
+  // Compare edges.
+  for (auto const &dePair : directed.Edges())
+  {
+    const EdgeId deId = dePair.first;
+    auto const &ue = undirected.EdgeFromId(deId);
+    EXPECT_TRUE(ue.Valid());
+    EXPECT_TRUE(dePair.second.get().Valid());
+    EXPECT_EQ(ue.Id(), deId);
+    EXPECT_DOUBLE_EQ(ue.Data(), dePair.second.get().Data());
+    EXPECT_DOUBLE_EQ(ue.Weight(), dePair.second.get().Weight());
+  }
+
+  // std::cerr << directed << std::endl;
+  // std::cerr << undirected << std::endl;
+}
