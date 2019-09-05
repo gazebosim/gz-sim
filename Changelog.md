@@ -2,6 +2,9 @@
 
 ### Ignition Math 5.x.x
 
+1. Doxygen fixes for graph classes 
+    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/331)
+
 1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
     * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/312)
 
