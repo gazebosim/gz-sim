@@ -28,7 +28,6 @@ namespace gazebo
 {
   class VideoRecorderPrivate;
 
-  /// \brief TODO
   /// \brief Provides buttons for starting and stopping video recording
   class VideoRecorder : public ignition::gui::Plugin
   {
