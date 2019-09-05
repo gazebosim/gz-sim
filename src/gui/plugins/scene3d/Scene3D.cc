@@ -346,8 +346,6 @@ void IgnRenderer::HandleMouseContextMenu()
     math::Vector2i dt =
       this->dataPtr->mouseEvent.PressPos() - this->dataPtr->mouseEvent.Pos();
 
-   std::cerr << "dt.Length " << dt.Length() << std::endl;
-
    // check for click with some tol for mouse movement
    if (dt.Length() > 5.0)
      return;
@@ -359,10 +357,7 @@ void IgnRenderer::HandleMouseContextMenu()
     if (!visual)
       return;
 
-    std::cerr << "emit context menu request " << visual->Name() << " " <<  common::MouseEvent::MOVE << " vs " << this->dataPtr->mouseEvent.Type() << std::endl;
     emit ContextMenuRequested(visual->Name().c_str());
-
-
     this->dataPtr->mouseDirty = false;
   }
 }
@@ -954,7 +949,6 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 ///////////////////////////////////////////////////
 void RenderWindowItem::OnContextMenuRequested(QString _entity)
 {
-  std::cerr << "emit open context menu request " << _entity.toStdString() << std::endl;
   emit openContextMenu(_entity);
 }
 
@@ -1264,7 +1258,6 @@ void MoveToHelper::MoveTo(rendering::CameraPtr _camera,
   // Scale to fit in view
   double hfov = this->camera->HFOV().Radian();
   double offset = maxSize*0.5 / std::tan(hfov/2.0);
-  std::cerr << "scale " << offset << std::endl;
 
   // End position and rotation
   math::Vector3d endPos = start.Pos() + dir*(dist - offset);
