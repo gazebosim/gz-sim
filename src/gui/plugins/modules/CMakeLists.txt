@@ -5,7 +5,6 @@ set(module_name IgnGazebo)
 gz_add_gui_library(EntityContextMenu
   SOURCES EntityContextMenu.cc
   QT_HEADERS EntityContextMenu.hh
-#  PRIVATE_LINK_LIBS ${PROJECT_LIBRARY_TARGET_NAME}-rendering
 )
 
 install (TARGETS EntityContextMenu DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR}/${module_name})

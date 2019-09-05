@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1.  Add Move To gui plugin
+   * [Pull Request ](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/)
+
 ### Ignition Gazebo 2.9.0
 
 1.  Use the JointSetVelocityCommand feature to set joint velocities

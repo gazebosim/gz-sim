@@ -78,7 +78,7 @@ function(gz_add_gui_plugin plugin_name)
   install (TARGETS ${plugin_name} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
 endfunction()
 
-add_subdirectory(common)
+add_subdirectory(modules)
 add_subdirectory(entity_tree)
 add_subdirectory(scene3d)
 add_subdirectory(transform_control)
