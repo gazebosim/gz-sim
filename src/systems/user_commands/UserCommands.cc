@@ -403,6 +403,7 @@ bool CreateCommand::Execute()
 
   bool isModel{false};
   bool isLight{false};
+  bool isActor{false};
   if (root.ModelCount() > 0)
   {
     isModel = true;
@@ -411,16 +412,20 @@ bool CreateCommand::Execute()
   {
     isLight = true;
   }
+  else if (root.ActorCount() > 0)
+  {
+    isActor = true;
+  }
   else
   {
-    ignerr << "Expected exactly one top-level <model> or <light> on SDF."
-           << std::endl;
+    ignerr << "Expected exactly one top-level <model>, <light> or <actor> on"
+           << " SDF." << std::endl;
     return false;
   }
 
-  if ((root.ModelCount() + root.LightCount()) > 1)
+  if ((root.ModelCount() + root.LightCount() + root.ActorCount()) > 1)
   {
-    ignwarn << "Expected exactly one top-level <model> or <light>, "
+    ignwarn << "Expected exactly one top-level <model>, <light> or <actor>, "
             << "but found more. Only the 1st will be spawned." << std::endl;
   }
 
@@ -437,6 +442,10 @@ bool CreateCommand::Execute()
   else if (isLight)
   {
     desiredName = root.LightByIndex(0)->Name();
+  }
+  else if (isActor)
+  {
+    desiredName = root.ActorByIndex(0)->Name();
   }
 
   // Check if there's already a top-level entity with the given name
@@ -473,6 +482,10 @@ bool CreateCommand::Execute()
   else if (isLight)
   {
     entity = this->iface->creator->CreateEntities(root.LightByIndex(0));
+  }
+  else if (isActor)
+  {
+    entity = this->iface->creator->CreateEntities(root.ActorByIndex(0));
   }
 
   this->iface->creator->SetParent(entity, this->iface->worldEntity);
