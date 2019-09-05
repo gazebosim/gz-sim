@@ -20,7 +20,6 @@
 #include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
-//#include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
@@ -28,6 +27,7 @@
 
 namespace ignition::gazebo
 {
+  /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
   {
     /// \brief Ignition communication node.
@@ -42,11 +42,10 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-void EntityContextMenuPlugin::registerTypes(const char *_uri) {
+void IgnGazeboPlugin::registerTypes(const char *_uri) {
   // Register our 'EntityContextMenuItem' in qml engine
   qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,
       "EntityContextMenuItem");
-  std::cerr << "========================  registering type " << _uri << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -80,7 +79,3 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
   }
 }
-
-// static QML type registration
-//static int unused = qmlRegisterType<ignition::gazebo::EntityContextMenu>(
-//    "EntityContextMenuItem", 1, 0, "EntityContextMenuItem");

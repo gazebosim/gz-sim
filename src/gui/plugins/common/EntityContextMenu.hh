@@ -22,27 +22,25 @@
 #include <ignition/gui/qt.h>
 #include <QtQml/QQmlExtensionPlugin>
 
-//#include <ignition/gui/Plugin.hh>
-
 namespace ignition
 {
 namespace gazebo
 {
   class EntityContextMenuPrivate;
 
-  class EntityContextMenuPlugin: public QQmlExtensionPlugin
+  /// \brief IgnGazebo QML Plugin that registers C++ class so that they are
+  /// accessible from QML.
+  class IgnGazeboPlugin : public QQmlExtensionPlugin
   {
     Q_OBJECT
 
     // unique id
     Q_PLUGIN_METADATA(IID "IgnGazebo/1.0")
 
-    /// \brief registerTypes Overrided function that should register all
-    /// C++ classes exported by this plugin.
+    /// \brief Overrided function that registers C++ class as a QML type
     /// \param[in] _uri Plugin uri.
     public: void registerTypes(const char *_uri) override;
   };
-
 
   /// \brief A context menu providing actions that can be invoked on an entity
   class EntityContextMenu : public QQuickItem
