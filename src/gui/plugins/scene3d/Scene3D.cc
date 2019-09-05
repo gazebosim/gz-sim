@@ -306,8 +306,8 @@ void IgnRenderer::Render()
         }
         else
         {
-          std::cerr << "Unable to move to target. Target: '"
-                    << this->dataPtr->moveToTarget << "' not found" << std::endl;
+          ignerr << "Unable to move to target. Target: '"
+                 << this->dataPtr->moveToTarget << "' not found" << std::endl;
           this->dataPtr->moveToTarget.clear();
         }
       }
@@ -326,8 +326,45 @@ void IgnRenderer::Render()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->HandleMouseContextMenu();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+
+/////////////////////////////////////////////////
+void IgnRenderer::HandleMouseContextMenu()
+{
+  if (!this->dataPtr->mouseDirty)
+    return;
+
+  if (!this->dataPtr->mouseEvent.Dragging() &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT)
+  {
+
+    math::Vector2i dt =
+      this->dataPtr->mouseEvent.PressPos() - this->dataPtr->mouseEvent.Pos();
+
+   std::cerr << "dt.Length " << dt.Length() << std::endl;
+
+   // check for click with some tol for mouse movement
+   if (dt.Length() > 5.0)
+     return;
+
+    rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
+          this->dataPtr->camera,
+          this->dataPtr->mouseEvent.Pos());
+
+    if (!visual)
+      return;
+
+    std::cerr << "emit context menu request " << visual->Name() << " " <<  common::MouseEvent::MOVE << " vs " << this->dataPtr->mouseEvent.Type() << std::endl;
+    emit ContextMenuRequested(visual->Name().c_str());
+
+
+    this->dataPtr->mouseDirty = false;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -828,6 +865,10 @@ void RenderWindowItem::Ready()
   this->dataPtr->renderThread->ignRenderer.textureSize =
       QSize(std::max({this->width(), 1.0}), std::max({this->height(), 1.0}));
 
+  this->connect(&this->dataPtr->renderThread->ignRenderer,
+      &IgnRenderer::ContextMenuRequested,
+      this, &RenderWindowItem::OnContextMenuRequested, Qt::QueuedConnection);
+
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
 
   this->connect(this, &QObject::destroyed,
@@ -908,6 +949,13 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
   node->setRect(this->boundingRect());
 
   return node;
+}
+
+///////////////////////////////////////////////////
+void RenderWindowItem::OnContextMenuRequested(QString _entity)
+{
+  std::cerr << "emit open context menu request " << _entity.toStdString() << std::endl;
+  emit openContextMenu(_entity);
 }
 
 ////////////////////////////////////////////////
@@ -1133,7 +1181,9 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  this->dataPtr->mouseEvent = gui::convert(*_e);
+  auto event = gui::convert(*_e);
+  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
+  this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
@@ -1196,7 +1246,7 @@ void MoveToHelper::MoveTo(rendering::CameraPtr _camera,
       "move_to", _duration, false);
   this->onAnimationComplete = _onAnimationComplete;
 
-  math::Pose3d start = _node->WorldPose();
+  math::Pose3d start = _camera->WorldPose();
 
   // todo(anyone) implement bounding box function in rendering to get
   // target size and center.
@@ -1253,7 +1303,7 @@ void MoveToHelper::AddTime(double _time)
     {
       this->onAnimationComplete();
     }
-    this->node.reset();
+    this->camera.reset();
     this->poseAnim.reset();
     this->onAnimationComplete = 0;
   }

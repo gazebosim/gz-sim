@@ -116,8 +116,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// with QtQuick's opengl render operations. The main Render function will
   /// render to an offscreen texture and notify via signal and slots when it's
   /// ready to be displayed.
-  class IgnRenderer
+  class IgnRenderer : public QObject
   {
+    Q_OBJECT
+
     ///  \brief Constructor
     public: IgnRenderer();
 
@@ -160,6 +162,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
 
+    /// \brief Handle mouse event for context menu
+    private: void HandleMouseContextMenu();
+
     /// \brief Handle mouse event for view control
     private: void HandleMouseViewControl();
 
@@ -175,6 +180,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when a move to animation is complete
     private: void OnMoveToComplete();
+
+    /// \brief Signal fired when context menu event is triggered
+    signals: void ContextMenuRequested(QString _entity);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -294,6 +302,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Updated node.
     private: QSGNode *updatePaintNode(QSGNode *_oldNode,
         QQuickItem::UpdatePaintNodeData *_data) override;
+
+    /// \brief Signal fired to open context menu
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    signals: void openContextMenu(QString _entity);
+
+    /// \brief Qt callback when context menu request is received
+    public slots: void OnContextMenuRequested(QString _entity);
 
     /// \internal
     /// \brief Pointer to private data.
