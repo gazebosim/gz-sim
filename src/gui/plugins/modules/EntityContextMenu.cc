@@ -57,9 +57,7 @@ EntityContextMenu::EntityContextMenu()
 }
 
 /////////////////////////////////////////////////
-EntityContextMenu::~EntityContextMenu()
-{
-}
+EntityContextMenu::~EntityContextMenu() = default;
 
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)

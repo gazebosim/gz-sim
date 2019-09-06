@@ -51,7 +51,7 @@ namespace gazebo
     public: EntityContextMenu();
 
     /// \brief Destructor
-    public: virtual ~EntityContextMenu();
+    public: ~EntityContextMenu() override;
 
     /// \brief Callback when a context menu item is invoked
     /// \param[in] _request Request type

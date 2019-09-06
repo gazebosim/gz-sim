@@ -124,7 +124,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: IgnRenderer();
 
     ///  \brief Destructor
-    public: ~IgnRenderer();
+    public: ~IgnRenderer() override;
 
     ///  \brief Main render function
     public: void Render();
@@ -306,7 +306,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Signal fired to open context menu
     /// Note that the function name needs to start with lowercase in order for
     /// the connection to work on the QML side
-    signals: void openContextMenu(QString _entity);
+    signals: void openContextMenu(QString _entity); // NOLINT
 
     /// \brief Qt callback when context menu request is received
     public slots: void OnContextMenuRequested(QString _entity);
