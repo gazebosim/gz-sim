@@ -352,8 +352,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     for (auto id : this->dataPtr->sensorIds)
     {
       sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
-      sensors::RenderingSensor *rs =
-        dynamic_cast<sensors::RenderingSensor *>(s);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
 
       auto it = this->dataPtr->sensorMask.find(id);
       if (it != this->dataPtr->sensorMask.end())

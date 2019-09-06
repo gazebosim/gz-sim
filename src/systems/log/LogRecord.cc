@@ -150,21 +150,19 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   }
   LogRecordPrivate::started = true;
 
-  std::string logPath = _logPath;
-
   // The ServerConfig takes care of specifying a default log record path.
   // This if statement should never be reached.
-  if (logPath.empty() ||
-      (common::exists(logPath) && !common::isDirectory(logPath)))
+  if (_logPath.empty() ||
+      (common::exists(_logPath) && !common::isDirectory(_logPath)))
   {
-    ignerr << "Unspecified or invalid log path[" << logPath << "]. "
+    ignerr << "Unspecified or invalid log path[" << _logPath << "]. "
       << "Recording will not take place." << std::endl;
     return false;
   }
 
   // A user could have manually specified a record path. In this case, it's
   // okay to overwrite existing log files.
-  if (common::exists(logPath))
+  if (common::exists(_logPath))
   {
     ignwarn << "Log path already exists on disk! "
       << "Recording will overwrite existing state log file, if present."
@@ -172,9 +170,9 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   }
 
   // Create log directory
-  if (!common::exists(logPath))
+  if (!common::exists(_logPath))
   {
-    common::createDirectories(logPath);
+    common::createDirectories(_logPath);
   }
 
   // Go up to root of SDF, to record entire SDF file
@@ -188,7 +186,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->sdfMsg.set_data(sdfRoot->ToString(""));
 
   // Use directory basename as topic name, to be able to retrieve at playback
-  std::string sdfTopic = "/" + common::basename(logPath) + "/sdf";
+  std::string sdfTopic = "/" + common::basename(_logPath) + "/sdf";
   this->sdfPub = this->node.Advertise(sdfTopic, this->sdfMsg.GetTypeName());
 
   // TODO(louise) Combine with SceneBroadcaster's state topic
@@ -196,7 +194,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->statePub = this->node.Advertise<msgs::SerializedStateMap>(stateTopic);
 
   // Append file name
-  std::string dbPath = common::joinPaths(logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
   if (common::exists(dbPath))
     common::removeFile(dbPath);
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;

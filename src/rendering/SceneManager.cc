@@ -634,7 +634,7 @@ rendering::VisualPtr SceneManager::TopLevelVisual(
   rendering::VisualPtr rootVisual =
       this->dataPtr->scene->RootVisual();
 
-  rendering::VisualPtr visual = _visual;
+  rendering::VisualPtr visual = std::move(_visual);
   while (visual && visual->Parent() != rootVisual)
   {
     visual =
