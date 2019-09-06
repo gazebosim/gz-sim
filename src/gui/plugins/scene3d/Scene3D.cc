@@ -70,8 +70,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// param[in] _duration Duration of the move to animation
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
-    public: void MoveTo(rendering::CameraPtr _camera,
-        rendering::NodePtr _target, double _duration,
+    public: void MoveTo(const rendering::CameraPtr &_camera,
+        const rendering::NodePtr &_target, double _duration,
         std::function<void()> _onAnimationComplete);
 
     /// \brief Add time to the animation.
@@ -951,7 +951,7 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 ///////////////////////////////////////////////////
 void RenderWindowItem::OnContextMenuRequested(QString _entity)
 {
-  emit openContextMenu(_entity);
+  emit openContextMenu(std::move(_entity));
 }
 
 ////////////////////////////////////////////////
@@ -1230,14 +1230,14 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 //
 
 ////////////////////////////////////////////////
-void MoveToHelper::MoveTo(rendering::CameraPtr _camera,
-    rendering::NodePtr _target,
+void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
+    const rendering::NodePtr &_target,
     double _duration, std::function<void()> _onAnimationComplete)
 {
   this->camera = _camera;
   this->poseAnim = std::make_unique<common::PoseAnimation>(
       "move_to", _duration, false);
-  this->onAnimationComplete = _onAnimationComplete;
+  this->onAnimationComplete = std::move(_onAnimationComplete);
 
   math::Pose3d start = _camera->WorldPose();
 
@@ -1297,7 +1297,7 @@ void MoveToHelper::AddTime(double _time)
     }
     this->camera.reset();
     this->poseAnim.reset();
-    this->onAnimationComplete = 0;
+    this->onAnimationComplete = nullptr;
   }
 }
 
