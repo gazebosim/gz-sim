@@ -5,34 +5,6 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
-## Ignition Math 6.X to 7.X
-
-### Deprecations
-
-1. **Quaternion.hh**
-    + ***Deprecation:*** public: void Axis(T, T, T, T)
-    + ***Replacement:*** public: void SetFromAxisAngle(T, T, T, T)
-    + ***Deprecation:*** public: void Axis(const Vector3<T>&, T)
-    + ***Replacement:*** public: void SetFromAxisAngle(const Vector3<T>&, T)
-    + ***Deprecation:*** public: void Euler(const Vector3<T> &)
-    + ***Replacement:*** public: void SetFromEuler(const Vector3<T> &)
-    + ***Deprecation:*** public: void Euler(T, T, T)
-    + ***Replacement:*** public: void SetFromEuler(T, T, T)
-    + ***Deprecation:*** public: void ToAxis(Vector3<T> &, T &) const
-    + ***Replacement:*** public: void void AxisAngle(Vector3<T> &, T &) const
-    + ***Deprecation:*** public: void Matrix(const Matrix3<T> &)
-    + ***Replacement:*** public: void SetFromMatrix(const Matrix3<T> &)
-    + ***Deprecation:*** public: void From2Axes(const Vector3<T> &, const Vector3<T> &)
-    + ***Replacement:*** public: void SetFrom2Axes(const Vector3<T> &, const Vector3<T> &)
-    + ***Deprecation:*** public: void X(T)
-    + ***Replacement:*** public: void SetX(T)
-    + ***Deprecation:*** public: void Y(T)
-    + ***Replacement:*** public: void SetY(T)
-    + ***Deprecation:*** public: void Z(T)
-    + ***Replacement:*** public: void SetZ(T)
-    + ***Deprecation:*** public: void W(T)
-    + ***Replacement:*** public: void SetW(T)
-
 ## Ignition Math 4.X to 5.X
 
 ### Additions
