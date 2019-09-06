@@ -30,14 +30,17 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Box Box.hh ignition/math/Box.hh
-    /// \brief A representation of a box. All units are in meters.
-    ///
-    /// The box class supports defining a size and material properties.
-    /// See Material for more on material properties.
+    /// \brief A representation of a three dimensional box. The Box class
+    /// supports defining a size, in meters, and \ref Material "material"
+    /// properties.
     ///
     /// By default, a box's size (length, width, and height)  is zero.
     ///
     /// See AxisAlignedBox for an axis aligned box implementation.
+    ///
+    /// ## Example
+    ///
+    /// \snippet examples/box_example.cc complete
     template<typename Precision>
     class Box
     {
@@ -55,8 +58,8 @@ namespace ignition
       /// \brief Construct a box with specified dimensions and a material.
       /// \param[in] _length Length of the box in meters.
       /// \param[in] _width Width of the box in meters.
-      /// \param[in] _height Height of the box.
-      /// \param[in] _mat Material property for the box.
+      /// \param[in] _height Height of the box in meters.
+      /// \param[in] _mat Material properties for the box.
       public: Box(const Precision _length, const Precision _width,
                   const Precision _height,
                   const ignition::math::Material &_mat);
@@ -64,21 +67,19 @@ namespace ignition
       /// \brief Construct a box with specified dimensions, in vector form.
       /// \param[in] _size Size of the box. The vector _size has the following
       /// mapping:
-      ///
-      /// * _size[0] == length in meters
-      /// * _size[1] == width in meters
-      /// * _size[2] == height in meters
+      ///   * _size[0] == length in meters
+      ///   * _size[1] == width in meters
+      ///   * _size[2] == height in meters
       public: explicit Box(const Vector3<Precision> &_size);
 
       /// \brief Construct a box with specified dimensions, in vector form
       /// and a material.
       /// \param[in] _size Size of the box. The vector _size has the following
       /// mapping:
-      ///
       /// * _size[0] == length in meters
       /// * _size[1] == width in meters
       /// * _size[2] == height in meters
-      /// \param[in] _mat Material property for the box.
+      /// \param[in] _mat Material properties for the box.
       public: Box(const Vector3<Precision> &_size,
                   const ignition::math::Material &_mat);
 
@@ -96,7 +97,6 @@ namespace ignition
       /// \brief Set the size of the box.
       /// \param[in] _size Size of the box. The vector _size has the following
       /// mapping:
-      ///
       /// * _size[0] == lengt in metersh
       /// * _size[1] == widt in metersh
       /// * _size[2] == heigh in meterst

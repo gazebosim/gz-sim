@@ -23,6 +23,11 @@ if (SWIG_FOUND)
   set(swig_files
     ruby
     Angle
+    Box
+    MassMatrix3
+    Material
+    Matrix3
+    Quaternion
     Vector2
     Vector3)
 endif()
