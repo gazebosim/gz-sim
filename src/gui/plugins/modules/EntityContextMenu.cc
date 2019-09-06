@@ -52,7 +52,7 @@ void IgnGazeboPlugin::registerTypes(const char *_uri) {
 EntityContextMenu::EntityContextMenu()
   : dataPtr(std::make_unique<EntityContextMenuPrivate>())
 {
-  // For video record requests
+  // For move to service requests
   this->dataPtr->moveToService = "/gui/move_to";
 }
 
