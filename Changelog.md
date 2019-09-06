@@ -3,7 +3,7 @@
 ### Ignition Gazebo 2.X.X
 
 1.  Add Move To gui plugin
-   * [Pull Request ](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/)
+   * [Pull Request 426](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/426)
 
 ### Ignition Gazebo 2.9.0
 
