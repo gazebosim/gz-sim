@@ -132,7 +132,9 @@ Rectangle {
             hoverEnabled: true
             acceptedButtons: Qt.RightButton
             onClicked: {
-              entityContextMenu.open(treeItemText.text)
+              var type = EntityTreeModel.EntityType(styleData.index)
+              var scopedName = EntityTreeModel.ScopedName(styleData.index)
+              entityContextMenu.open(scopedName, type)
             }
           }
         }
