@@ -144,7 +144,15 @@ void DiffDrive::Configure(const Entity &_entity,
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
       this->dataPtr->wheelRadius).first;
 
-  double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
+  double defaultFreq = 50;
+  double odomFreq = _sdf->Get<double>("odom_publish_frequency",
+     defaultFreq).first;
+  if (odomFreq <= 0)
+  {
+    ignwarn << "Requestted invalid odometry publish frequency [" << odomFreq
+            << " Hz], defaulting to [" << defaultFreq << " Hz]." << std::endl;
+    odomFreq = defaultFreq;
+  }
   std::chrono::duration<double> odomPer{1 / odomFreq};
   this->dataPtr->odomPubPeriod =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
