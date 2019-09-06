@@ -220,7 +220,6 @@ QString TreeModel::ScopedName(const QModelIndex &_index) const
     }
     idx = idx.parent();
   }
-  std::cerr << "scoped name " << scopedName.toStdString() << std::endl;
   return scopedName;
 }
 
