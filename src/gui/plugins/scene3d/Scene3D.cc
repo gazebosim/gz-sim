@@ -496,9 +496,8 @@ void IgnRenderer::HandleMouseTransformControl()
       && this->dataPtr->transformControl.Active())
   {
     // compute the the start and end mouse positions in normalized coordinates
-    double imageWidth = static_cast<double>(
-        this->dataPtr->camera->ImageWidth());
-    double imageHeight = static_cast<double>(
+    auto imageWidth = static_cast<double>(this->dataPtr->camera->ImageWidth());
+    auto imageHeight = static_cast<double>(
         this->dataPtr->camera->ImageHeight());
     double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() /
       imageWidth - 1.0;
@@ -1085,8 +1084,7 @@ void Scene3D::Update(const UpdateInfo &_info,
           return true;
         });
 
-    RenderWindowItem *renderWindow =
-        this->PluginItem()->findChild<RenderWindowItem *>();
+    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     renderWindow->SetWorldName(this->dataPtr->worldName);
   }
 
@@ -1097,8 +1095,7 @@ void Scene3D::Update(const UpdateInfo &_info,
 bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
   msgs::Boolean &_res)
 {
-  RenderWindowItem *renderWindow =
-      this->PluginItem()->findChild<RenderWindowItem *>();
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   renderWindow->SetTransformMode(_msg.data());
 
   _res.set_data(true);
@@ -1109,8 +1106,7 @@ bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
 bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
   msgs::Boolean &_res)
 {
-  RenderWindowItem *renderWindow =
-      this->PluginItem()->findChild<RenderWindowItem *>();
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   bool record = _msg.start() && !_msg.stop();
   renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
