@@ -334,30 +334,23 @@ namespace graph
   template<typename V, typename E>
   UndirectedGraph<V, E> ToUndirectedGraph(const DirectedGraph<V, E> &_graph)
   {
-    UndirectedGraph<V, E> result;
+    std::vector<Vertex<V>> vertices;
+    std::vector<EdgeInitializer<E>> edges;
 
     // Add all vertices.
     for (auto const &vPair : _graph.Vertices())
     {
-      auto const &v = vPair.second.get();
-      if (!result.AddVertex(v.Name(), v.Data(), v.Id()).Valid())
-      {
-        std::cerr << "Invalid vertex with Id [" << v.Id() << "]. Ignoring."
-                  << std::endl;
-      }
+      vertices.push_back(vPair.second.get());
     }
 
     // Add all edges.
     for (auto const &ePair : _graph.Edges())
     {
       auto const &e = ePair.second.get();
-      if (!result.AddEdge(e.Vertices(), e.Data(), e.Weight()).Valid())
-      {
-        std::cerr << "Ignoring edge" << std::endl;
-      }
+      edges.push_back(EdgeInitializer<E>(e.Vertices(), e.Data(), e.Weight()));
     }
 
-    return result;
+    return UndirectedGraph<V, E>(vertices, edges);
   }
 }
 }
