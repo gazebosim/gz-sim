@@ -18,9 +18,9 @@
 #ifndef IGNITION_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
 #define IGNITION_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
 
-#include <memory>
 #include <ignition/gui/qt.h>
 #include <QtQml/QQmlExtensionPlugin>
+#include <memory>
 
 namespace ignition
 {

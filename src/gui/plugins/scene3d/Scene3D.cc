@@ -58,8 +58,10 @@ namespace ignition
 namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
+  //
   /// \brief Helper class for animating a user camera to move to a target entity
+  /// todo(anyone) Move this functionality to rendering::Camera class in
+  /// ign-rendering3
   class MoveToHelper
   {
     /// \brief Move the camera to look at the specified target
@@ -68,8 +70,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// param[in] _duration Duration of the move to animation
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
-    public: void MoveTo(rendering::CameraPtr _camera, rendering::NodePtr _target,
-        double _duration, std::function<void()> _onAnimationComplete);
+    public: void MoveTo(rendering::CameraPtr _camera,
+        rendering::NodePtr _target, double _duration,
+        std::function<void()> _onAnimationComplete);
 
     /// \brief Add time to the animation.
     /// \param[in] _time Time to add in seconds
@@ -297,7 +300,8 @@ void IgnRenderer::Render()
       if (this->dataPtr->moveToHelper.Idle())
       {
         rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
-        rendering::NodePtr target = scene->NodeByName(this->dataPtr->moveToTarget);
+        rendering::NodePtr target = scene->NodeByName(
+            this->dataPtr->moveToTarget);
         if (target)
         {
           this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera, target, 0.5,
@@ -342,13 +346,12 @@ void IgnRenderer::HandleMouseContextMenu()
       this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
       this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT)
   {
-
     math::Vector2i dt =
       this->dataPtr->mouseEvent.PressPos() - this->dataPtr->mouseEvent.Pos();
 
-   // check for click with some tol for mouse movement
-   if (dt.Length() > 5.0)
-     return;
+    // check for click with some tol for mouse movement
+    if (dt.Length() > 5.0)
+      return;
 
     rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
           this->dataPtr->camera,
@@ -1062,8 +1065,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       &Scene3D::OnMoveTo, this);
   ignmsg << "Move to service on ["
          << this->dataPtr->moveToService << "]" << std::endl;
-
 }
+
 
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
