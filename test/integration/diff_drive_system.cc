@@ -87,14 +87,6 @@ class Relay
   private: MockSystem *mockSystem;
 };
 
-std::vector<math::Pose3d> kPoses;
-/////////////////////////////////////////////////
-void odomCb(const msgs::Odometry &_msg)
-{
-  EXPECT_EQ(0, _msg.header().stamp().nsec() % 1000000);
-  EXPECT_EQ(0, (_msg.header().stamp().nsec() / 1000000) % 20);
-  kPoses.push_back(msgs::Convert(_msg.pose()));
-}
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, PublishCmd)
@@ -137,10 +129,30 @@ TEST_P(DiffDriveTest, PublishCmd)
     EXPECT_EQ(poses[0], pose);
   }
 
+  // Get odometry messages
+  double period{1.0 / 50.0};
+  double lastMsgTime{1.0};
+  std::vector<math::Pose3d> odomPoses;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      double msgTime =
+          static_cast<double>(_msg.header().stamp().sec()) +
+          static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
+
+      EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
+      lastMsgTime = msgTime;
+
+      odomPoses.push_back(msgs::Convert(_msg.pose()));
+    };
+
   // Publish command and check that vehicle moved
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/model/vehicle/odometry", &odomCb);
+  node.Subscribe("/model/vehicle/odometry", odomCb);
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -153,9 +165,17 @@ TEST_P(DiffDriveTest, PublishCmd)
   // Poses for 4s
   ASSERT_EQ(4000u, poses.size());
 
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+
   // Odom for 3s
-  ASSERT_FALSE(kPoses.empty());
-  EXPECT_EQ(150u, kPoses.size());
+  ASSERT_FALSE(odomPoses.empty());
+  EXPECT_EQ(150u, odomPoses.size());
 
   EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
   EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
@@ -168,10 +188,10 @@ TEST_P(DiffDriveTest, PublishCmd)
   // pose of the robot model. This is partially due to throttling the
   // odometry publisher, partially due to a frame difference between the
   // odom frame and the model frame, and partially due to wheel slip.
-  EXPECT_NEAR(poses[0].Pos().X(), kPoses[0].Pos().X(), 1e-2);
-  EXPECT_NEAR(poses[0].Pos().Y(), kPoses[0].Pos().Y(), 1e-2);
-  EXPECT_NEAR(poses.end()->Pos().X(), kPoses.end()->Pos().X(), 1e-2);
-  EXPECT_NEAR(poses.end()->Pos().Y(), kPoses.end()->Pos().Y(), 1e-2);
+  EXPECT_NEAR(poses[1020].Pos().X(), odomPoses[0].Pos().X(), 1e-2);
+  EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
+  EXPECT_NEAR(poses.end()->Pos().X(), odomPoses.end()->Pos().X(), 1e-2);
+  EXPECT_NEAR(poses.end()->Pos().Y(), odomPoses.end()->Pos().Y(), 1e-2);
 }
 
 /////////////////////////////////////////////////
@@ -218,8 +238,28 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
   }
 
   // Publish command and check that vehicle moved
+  double period{1.0};
+  double lastMsgTime{1.0};
+  std::vector<math::Pose3d> odomPoses;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      double msgTime =
+          static_cast<double>(_msg.header().stamp().sec()) +
+          static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
+
+      EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
+      lastMsgTime = msgTime;
+
+      odomPoses.push_back(msgs::Convert(_msg.pose()));
+    };
+
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/model/vehicle/odometry", odomCb);
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -229,7 +269,20 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
 
   server.Run(true, 3000, false);
 
+  // Poses for 4s
   EXPECT_EQ(4000u, poses.size());
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+
+  // Odom for 3s
+  ASSERT_FALSE(odomPoses.empty());
+  EXPECT_EQ(3u, odomPoses.size());
 
   EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
   EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
