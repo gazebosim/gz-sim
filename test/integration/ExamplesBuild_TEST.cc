@@ -89,7 +89,7 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #include <winioctl.h>  // NOLINT(build/include_order)
 #include <winnt.h>  // NOLINT(build/include_order)
 #include <cstdint>
-#include "win_dirent.h"
+#include "./win_dirent.h"
 
 /////////////////////////////////////////////////
 bool createAndSwitchToTempDir(std::string &_newTempPath)
@@ -307,7 +307,7 @@ bool isDirectory(const std::string &_path)
     return false;
   }
 
-  // cppcheck-suppress *
+  // cppcheck-suppress ConfigurationNotChecked
   return S_ISDIR(path_stat.st_mode);
 #else
   DWORD attr;
