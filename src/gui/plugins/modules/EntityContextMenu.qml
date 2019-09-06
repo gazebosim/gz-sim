@@ -16,22 +16,34 @@ Item {
     id: menu
     transformOrigin: Menu.TopRight
     MenuItem {
+      id: moveToMenu
       text: "Move To"
-      onTriggered: context.OnRequest("move_to",
-          context.entity);
+      onTriggered: context.OnRequest("move_to", context.entity)
     }
   }
 
-  function open(_entity) {
+  function open(_entity, _type) {
     menu.x = mouse.mouseX
     menu.y = mouse.mouseY
     context.entity = _entity
+    context.type = _type
+    moveToMenu.enabled = false
+
+    // enable / disable menu items
+    if (context.type == "model" || context.type == "link" ||
+        context.type == "visual" || context.type == "light" ||
+        context.type == "performer")
+    {
+      moveToMenu.enabled = true
+    }
+
     menu.open()
   }
 
   IgnGazebo.EntityContextMenuItem {
     id: context
     property string entity
+    property string type
   }
 }
 

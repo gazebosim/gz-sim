@@ -20,7 +20,7 @@ Rectangle {
 
     Connections {
       target: renderWindow
-      onOpenContextMenu: entityContextMenu.open(_entity);
+      onOpenContextMenu: entityContextMenu.open(_entity, "visual");
     }
   }
 
