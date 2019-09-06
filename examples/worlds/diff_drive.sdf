@@ -319,6 +319,7 @@
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
+        <odom_publish_frequency>1</odom_publish_frequency>
       </plugin>
 
     </model>
