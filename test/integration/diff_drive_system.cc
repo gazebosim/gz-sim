@@ -91,6 +91,8 @@ std::vector<math::Pose3d> kPoses;
 /////////////////////////////////////////////////
 void odomCb(const msgs::Odometry &_msg)
 {
+  EXPECT_EQ(0, _msg.header().stamp().nsec() % 1000000);
+  EXPECT_EQ(0, (_msg.header().stamp().nsec() / 1000000) % 20);
   kPoses.push_back(msgs::Convert(_msg.pose()));
 }
 
@@ -148,7 +150,12 @@ TEST_P(DiffDriveTest, PublishCmd)
 
   server.Run(true, 3000, false);
 
-  EXPECT_EQ(4000u, poses.size());
+  // Poses for 4s
+  ASSERT_EQ(4000u, poses.size());
+
+  // Odom for 3s
+  ASSERT_FALSE(kPoses.empty());
+  EXPECT_EQ(150u, kPoses.size());
 
   EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
   EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
