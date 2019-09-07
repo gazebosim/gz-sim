@@ -109,7 +109,6 @@ Rectangle {
         }
 
         Text {
-          id: treeItemText
           anchors.verticalCenter: parent.verticalCenter
           anchors.left: icon.right
           leftPadding: 2
