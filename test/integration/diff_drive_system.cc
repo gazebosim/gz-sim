@@ -155,10 +155,28 @@ TEST_P(DiffDriveTest, PublishCmd)
   node.Subscribe("/model/vehicle/odometry", odomCb);
 
   msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
 
-  pub.Publish(msg);
+  // Avoid wheel slip by limiting acceleration
+  Relay velocityRamp;
+  const double desiredLinVel = 0.5;
+  const double desiredAngVel = 0.2;
+  const double linAccel = 1;
+  const double angAccel = 1;
+  velocityRamp.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &)
+      {
+        double dt = std::chrono::duration<double>(_info.dt).count();
+        double nextLinVel = msg.linear().x() + dt * linAccel;
+        double nextAngVel = msg.angular().z() + dt * angAccel;
+        msgs::Set(msg.mutable_linear(),
+                  math::Vector3d(std::min(nextLinVel, desiredLinVel), 0, 0));
+        msgs::Set(msg.mutable_angular(),
+                  math::Vector3d(0.0, 0, std::min(nextAngVel, desiredAngVel)));
+        pub.Publish(msg);
+      });
+
+  server.AddSystem(velocityRamp.systemPtr);
 
   server.Run(true, 3000, false);
 
@@ -172,6 +190,16 @@ TEST_P(DiffDriveTest, PublishCmd)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_NE(maxSleep, sleep);
+
+  // Odometry calculates the pose of a point that is located half way between
+  // the two wheels, not the origin of the model. For example, if the vehicle is
+  // commanded to rotate in place, the vehicle will rotate about the point half
+  // way between the two wheels, thus, the odometry position will remain zero.
+  // However, since the model origin is offset, the model position will change.
+  // To find the final pose of the model, we have to do the following similarity
+  // transformation
+  math::Pose3d T_od_M(0.554283, 0, -0.325, 0, 0, 0);
+  auto finalModelFramePose = T_od_M * odomPoses.back() * T_od_M.Inverse();
 
   // Odom for 3s
   ASSERT_FALSE(odomPoses.empty());
@@ -190,8 +218,8 @@ TEST_P(DiffDriveTest, PublishCmd)
   // odom frame and the model frame, and partially due to wheel slip.
   EXPECT_NEAR(poses[1020].Pos().X(), odomPoses[0].Pos().X(), 1e-2);
   EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
-  EXPECT_NEAR(poses.end()->Pos().X(), odomPoses.end()->Pos().X(), 1e-2);
-  EXPECT_NEAR(poses.end()->Pos().Y(), odomPoses.end()->Pos().Y(), 1e-2);
+  EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
+  EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
 }
 
 /////////////////////////////////////////////////
