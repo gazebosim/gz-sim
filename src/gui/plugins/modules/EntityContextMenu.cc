@@ -19,9 +19,7 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
 
 #include "EntityContextMenu.hh"
 
@@ -42,7 +40,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-void IgnGazeboPlugin::registerTypes(const char *_uri) {
+void IgnGazeboPlugin::registerTypes(const char *_uri)
+{
   // Register our 'EntityContextMenuItem' in qml engine
   qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,
       "EntityContextMenuItem");
@@ -75,5 +74,9 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
+  }
+  else
+  {
+    ignwarn << "Unknown request [" << request << "]" << std::endl;
   }
 }

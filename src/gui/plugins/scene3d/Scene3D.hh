@@ -306,9 +306,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Signal fired to open context menu
     /// Note that the function name needs to start with lowercase in order for
     /// the connection to work on the QML side
+    /// \param[in] _entity Scoped name of entity.
     signals: void openContextMenu(QString _entity); // NOLINT
 
     /// \brief Qt callback when context menu request is received
+    /// \param[in] _entity Scoped name of entity.
     public slots: void OnContextMenuRequested(QString _entity);
 
     /// \internal
