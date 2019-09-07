@@ -67,7 +67,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Move the camera to look at the specified target
     /// param[in] _camera Camera to be moved
     /// param[in] _target Target to look at
-    /// param[in] _duration Duration of the move to animation
+    /// param[in] _duration Duration of the move to animation, in seconds.
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
     public: void MoveTo(const rendering::CameraPtr &_camera,
@@ -1058,8 +1058,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
          << this->dataPtr->recordVideoService << "]" << std::endl;
 
   // move to
-  this->dataPtr->moveToService =
-      "/gui/move_to";
+  this->dataPtr->moveToService = "/gui/move_to";
   this->dataPtr->node.Advertise(this->dataPtr->moveToService,
       &Scene3D::OnMoveTo, this);
   ignmsg << "Move to service on ["
@@ -1263,7 +1262,6 @@ void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
   math::Quaterniond endRot =
       math::Matrix4d::LookAt(endPos, targetCenter).Rotation();
   math::Pose3d end(endPos, endRot);
-
 
   common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
   key->Translation(start.Pos());
