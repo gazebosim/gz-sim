@@ -149,7 +149,7 @@ void DiffDrive::Configure(const Entity &_entity,
      defaultFreq).first;
   if (odomFreq <= 0)
   {
-    ignwarn << "Requestted invalid odometry publish frequency [" << odomFreq
+    ignwarn << "Requested invalid odometry publish frequency [" << odomFreq
             << " Hz], defaulting to [" << defaultFreq << " Hz]." << std::endl;
     odomFreq = defaultFreq;
   }
