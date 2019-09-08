@@ -2,6 +2,12 @@
 
 ### Ignition Gazebo 2.X.X
 
+
+### Ignition Gazebo 2.10.0 (2019-09-08)
+
+1.  Custom odom frequency in sim time
+   * [Pull Request 427](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/427)
+
 1.  Add Move To gui plugin
    * [Pull Request 426](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/426)
 
