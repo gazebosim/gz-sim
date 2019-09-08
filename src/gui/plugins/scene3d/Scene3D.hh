@@ -98,6 +98,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnRecordVideo(const msgs::VideoRecord &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a move to request
+    /// \param[in] _msg Request message to set the target to move to.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnMoveTo(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -109,13 +116,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// with QtQuick's opengl render operations. The main Render function will
   /// render to an offscreen texture and notify via signal and slots when it's
   /// ready to be displayed.
-  class IgnRenderer
+  class IgnRenderer : public QObject
   {
+    Q_OBJECT
+
     ///  \brief Constructor
     public: IgnRenderer();
 
     ///  \brief Destructor
-    public: ~IgnRenderer();
+    public: ~IgnRenderer() override;
 
     ///  \brief Main render function
     public: void Render();
@@ -140,6 +149,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
 
+    /// \brief Move the user camera to move to the speficied target
+    /// \param[in] _target Target to move the camera to
+    public: void SetMoveTo(const std::string &_target);
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
@@ -148,6 +161,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
+
+    /// \brief Handle mouse event for context menu
+    private: void HandleMouseContextMenu();
 
     /// \brief Handle mouse event for view control
     private: void HandleMouseViewControl();
@@ -161,6 +177,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return 3D coordinates of a point in the 3D scene.
     private: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
+
+    /// \brief Callback when a move to animation is complete
+    private: void OnMoveToComplete();
+
+    /// \brief Signal fired when context menu event is triggered
+    signals: void ContextMenuRequested(QString _entity);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -249,6 +271,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
 
+    /// \brief Move the user camera to move to the speficied target
+    /// \param[in] _target Target to move the camera to
+    public: void SetMoveTo(const std::string &_target);
+
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
@@ -276,6 +302,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Updated node.
     private: QSGNode *updatePaintNode(QSGNode *_oldNode,
         QQuickItem::UpdatePaintNodeData *_data) override;
+
+    /// \brief Signal fired to open context menu
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    /// \param[in] _entity Scoped name of entity.
+    signals: void openContextMenu(QString _entity); // NOLINT
+
+    /// \brief Qt callback when context menu request is received
+    /// \param[in] _entity Scoped name of entity.
+    public slots: void OnContextMenuRequested(QString _entity);
 
     /// \internal
     /// \brief Pointer to private data.
