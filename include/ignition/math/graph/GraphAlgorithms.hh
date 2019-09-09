@@ -347,7 +347,7 @@ namespace graph
     for (auto const &ePair : _graph.Edges())
     {
       auto const &e = ePair.second.get();
-      edges.push_back(EdgeInitializer<E>(e.Vertices(), e.Data(), e.Weight()));
+      edges.push_back({e.Vertices(), e.Data(), e.Weight()});
     }
 
     return UndirectedGraph<V, E>(vertices, edges);
