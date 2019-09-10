@@ -2,7 +2,10 @@
 
 ### Ignition Math 5.x.x
 
-1. Doxygen fixes for graph classes 
+1. GraphAlgorithms: add ToUndirected(DirectedGraph) that copies to an UndirectedGraph.
+    * [Pull request 332](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/332)
+
+1. Doxygen fixes for graph classes
     * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/331)
 
 1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
@@ -69,7 +72,7 @@ specify a density.
    between two vertices.
     * [Pull request 254](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/254)
 
-1. Added multiply assign operator to Matrix4. 
+1. Added multiply assign operator to Matrix4.
     * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
 
 
