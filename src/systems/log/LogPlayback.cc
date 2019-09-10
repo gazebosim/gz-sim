@@ -79,6 +79,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Iterator to go through messages in Batch
   public: transport::log::MsgIter iter;
 
+  /// \brief
+  public: std::unique_ptr<transport::log::Log> log;
+
   /// \brief Indicator of whether any playback instance has ever been started
   public: static bool started;
 
@@ -205,14 +208,14 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   }
 
   // Call Log.hh directly to load a .tlog file
-  auto log = std::make_unique<transport::log::Log>();
-  if (!log->Open(dbPath))
+  this->log = std::make_unique<transport::log::Log>();
+  if (!this->log->Open(dbPath))
   {
     ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
   // Access all messages in .tlog file
-  this->batch = log->QueryMessages();
+  this->batch = this->log->QueryMessages();
   this->iter = this->batch.begin();
 
   if (this->iter == this->batch.end())
@@ -256,75 +259,64 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (!this->dataPtr->instStarted)
     return;
 
-  // TODO(anyone) Support rewind
-  // Sanity check. If playing reached the end, done.
-  if (this->dataPtr->iter == this->dataPtr->batch.end())
+  // FIXME checking the network timestamp, which is not the most accurate!
+  this->dataPtr->batch = this->dataPtr->log->QueryMessages(
+      transport::log::AllTopics({_info.simTime, _info.simTime + _info.dt}));
+
+  this->dataPtr->iter = this->dataPtr->batch.begin();
+
+  while (this->dataPtr->iter != this->dataPtr->batch.end())
   {
-    // Print only once
-    if (!this->dataPtr->printedEnd)
+    auto msgType = this->dataPtr->iter->Type();
+
+    if (msgType == "ignition.msgs.Pose_V")
     {
-      ignmsg << "Finished playing all recorded data\n";
-      this->dataPtr->printedEnd = true;
+      msgs::Pose_V msg;
+      msg.ParseFromString(this->dataPtr->iter->Data());
+
+      auto stamp = convert<std::chrono::steady_clock::duration>(
+          msg.header().stamp());
+
+      if (_info.simTime >= stamp)
+      {
+        this->dataPtr->Parse(_ecm, msg);
+      }
     }
-    return;
-  }
-
-  auto msgType = this->dataPtr->iter->Type();
-
-  // Only playback if current sim time has exceeded next logged timestamp
-  // TODO(anyone) Support multiple msgs per update, in case playback has a lower
-  // frequency than record
-  if (msgType == "ignition.msgs.Pose_V")
-  {
-    msgs::Pose_V msg;
-    msg.ParseFromString(this->dataPtr->iter->Data());
-
-    auto stamp = convert<std::chrono::steady_clock::duration>(
-        msg.header().stamp());
-
-    if (_info.simTime >= stamp)
+    else if (msgType == "ignition.msgs.SerializedState")
     {
-      this->dataPtr->Parse(_ecm, msg);
-      ++(this->dataPtr->iter);
+      msgs::SerializedState msg;
+      msg.ParseFromString(this->dataPtr->iter->Data());
+
+      auto stamp = convert<std::chrono::steady_clock::duration>(
+          msg.header().stamp());
+
+      if (_info.simTime >= stamp)
+      {
+        this->dataPtr->Parse(_ecm, msg);
+      }
     }
-  }
-  else if (msgType == "ignition.msgs.SerializedState")
-  {
-    msgs::SerializedState msg;
-    msg.ParseFromString(this->dataPtr->iter->Data());
-
-    auto stamp = convert<std::chrono::steady_clock::duration>(
-        msg.header().stamp());
-
-    if (_info.simTime >= stamp)
+    else if (msgType == "ignition.msgs.SerializedStateMap")
     {
-      this->dataPtr->Parse(_ecm, msg);
-      ++(this->dataPtr->iter);
+      msgs::SerializedStateMap msg;
+      msg.ParseFromString(this->dataPtr->iter->Data());
+
+      auto stamp = convert<std::chrono::steady_clock::duration>(
+          msg.header().stamp());
+
+      if (_info.simTime >= stamp)
+      {
+        this->dataPtr->Parse(_ecm, msg);
+      }
     }
-  }
-  else if (msgType == "ignition.msgs.SerializedStateMap")
-  {
-    msgs::SerializedStateMap msg;
-    msg.ParseFromString(this->dataPtr->iter->Data());
-
-    auto stamp = convert<std::chrono::steady_clock::duration>(
-        msg.header().stamp());
-
-    if (_info.simTime >= stamp)
+    else if (msgType == "ignition.msgs.StringMsg")
     {
-      this->dataPtr->Parse(_ecm, msg);
-      ++(this->dataPtr->iter);
+      // Do nothing, we assume this is the SDF string
     }
-  }
-  else if (msgType == "ignition.msgs.StringMsg")
-  {
-    // Do nothing, we assume this is the SDF string
-    ++(this->dataPtr->iter);
-  }
-  else
-  {
-    ignwarn << "Trying to playback unsupported message type ["
-            << msgType << "]" << std::endl;
+    else
+    {
+      ignwarn << "Trying to playback unsupported message type ["
+              << msgType << "]" << std::endl;
+    }
     ++(this->dataPtr->iter);
   }
 }

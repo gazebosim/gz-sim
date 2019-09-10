@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/log_playback_control.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -61,6 +62,15 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+
+    struct WorldControl
+    {
+      bool pause;
+      uint64_t multiStep;
+      // Rewinding resets sim and real time. Seek doesn't change real time.
+      bool rewind;
+      std::chrono::steady_clock::duration seek;
+    };
 
     /// \brief Class to hold systems internally
     class SystemInternal
@@ -266,6 +276,16 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief World control service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnPlaybackControl(const msgs::LogPlaybackControl &_req,
+                                            msgs::Boolean &_res);
+
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
       /// \return True if successful.
@@ -399,11 +419,18 @@ namespace ignition
       /// executed yet.
       private: unsigned int pendingSimIterations{0};
 
+      /// \brief Number of simulation steps requested when calling Run().
+      /// If zero, simulation will run until user stops it.
+      /// If not zero, jumps in time like rewind and seek will be disabled.
+      private: uint64_t requestedIterations{0};
+
+      private: bool requestedRewind{false};
+
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
 
       /// \brief Buffer of world control messages.
-      private: std::list<msgs::WorldControl> worldControlMsgs;
+      private: std::list<WorldControl> worldControls;
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;

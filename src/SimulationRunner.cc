@@ -165,7 +165,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   this->node = std::make_unique<transport::Node>(opts);
 
+  // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("playback/control",
+      &SimulationRunner::OnPlaybackControl, this);
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
@@ -195,8 +198,13 @@ void SimulationRunner::UpdateCurrentInfo()
 {
   IGN_PROFILE("SimulationRunner::UpdateCurrentInfo");
 
+  if (this->requestedRewind)
+  {
+    this->realTimes.clear();
+    this->simTimes.clear();
+  }
   // Store the real time and sim time only if not paused.
-  if (this->realTimeWatch.Running())
+  else if (this->realTimeWatch.Running())
   {
     this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
     this->simTimes.push_back(this->currentInfo.simTime);
@@ -230,20 +238,37 @@ void SimulationRunner::UpdateCurrentInfo()
     this->realTimeFactor = math::precision(
           static_cast<double>(simAvg.count()) / realAvg.count(), 4);
   }
+  else
+  {
+    this->realTimeFactor = 0;
+  }
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
   this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
 
+  // If rewinding, have negative dt and zero time and iterations
+  if (this->requestedRewind)
+  {
+    this->currentInfo.dt = -this->currentInfo.simTime;
+    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.iterations = 0;
+    this->realTimeWatch.Reset();
+    if (!this->currentInfo.paused)
+      this->realTimeWatch.Start();
+  }
   // In the case that networking is not running, or this is a primary.
   // If this is a network secondary, this data is populated via the network.
-  if (!this->currentInfo.paused &&
+  else if (!this->currentInfo.paused &&
       (!this->networkMgr || this->networkMgr->IsPrimary()))
   {
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
   }
+
+  this->requestedRewind = false;
 }
 
 /////////////////////////////////////////////////
@@ -554,11 +579,15 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
   }
 
+  // Keep number of iterations requested by caller
+  this->requestedIterations = _iterations;
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   for (uint64_t startingIterations = this->currentInfo.iterations;
-       this->running && (_iterations == 0 ||
-         this->currentInfo.iterations < _iterations + startingIterations);)
+       this->running && (this->requestedIterations == 0 ||
+       this->currentInfo.iterations <
+       this->requestedIterations + startingIterations);)
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
     // Compute the time to sleep in order to match, as closely as possible,
@@ -839,7 +868,43 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
-  this->worldControlMsgs.push_back(_req);
+
+  WorldControl control;
+  control.pause = _req.pause();
+
+  if (_req.multi_step() != 0)
+    control.multiStep = _req.multi_step();
+  else if (_req.step())
+    control.multiStep = 1;
+
+  if (_req.has_reset())
+    control.rewind = _req.reset().all() || _req.reset().time_only();
+
+  this->worldControls.push_back(control);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
+    msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+
+  WorldControl control;
+  control.pause = _req.pause();
+  control.multiStep = _req.multi_step();
+  control.rewind = _req.rewind();
+
+  if (_req.has_seek())
+  {
+    control.seek = std::chrono::seconds(_req.seek().sec()) +
+                   std::chrono::nanoseconds(_req.seek().nsec());
+  }
+
+  this->worldControls.push_back(control);
+
   _res.set_data(true);
   return true;
 }
@@ -856,21 +921,38 @@ void SimulationRunner::ProcessMessages()
 void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
-  for (const msgs::WorldControl &msg : this->worldControlMsgs)
+  for (const auto &control : this->worldControls)
   {
     // Play / pause
-    this->SetPaused(msg.pause());
+    this->SetPaused(control.pause);
 
     // Step, only if we are paused.
-    if (this->Paused() && msg.multi_step() > 0)
+    if (this->Paused() && control.multiStep > 0)
     {
-      this->pendingSimIterations += msg.multi_step();
+      this->pendingSimIterations += control.multiStep;
       // Unpause so that stepping can occur.
       this->SetPaused(false);
     }
+
+    if (this->requestedIterations != 0 && (control.rewind ||
+        control.seek != std::chrono::steady_clock::duration::zero()))
+    {
+      ignwarn << "Request to jump in time will not work. Running a predefined "
+              << "number of iterations [" << this->requestedIterations << "]."
+              << std::endl;
+      continue;
+    }
+
+    // Rewind / reset
+    this->requestedRewind = control.rewind;
+
+    // Seek
+    if (control.seek != std::chrono::steady_clock::duration::zero())
+    {
+    }
   }
 
-  this->worldControlMsgs.clear();
+  this->worldControls.clear();
 }
 
 /////////////////////////////////////////////////

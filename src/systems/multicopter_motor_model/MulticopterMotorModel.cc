@@ -361,6 +361,14 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterMotorModel::PreUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time. System may not work properly."
+            << std::endl;
+  }
+
   // If the joint or links haven't been identified yet, look for them
   if (this->dataPtr->jointEntity == kNullEntity)
   {

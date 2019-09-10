@@ -229,6 +229,14 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time. System may not work properly."
+            << std::endl;
+  }
+
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
