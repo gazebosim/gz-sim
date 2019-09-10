@@ -269,6 +269,14 @@ void Contact::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Contact::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time. System may not work properly."
+            << std::endl;
+  }
+
   if (!_info.paused)
   {
     this->dataPtr->UpdateSensors(_info, _ecm);

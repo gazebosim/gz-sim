@@ -327,6 +327,13 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 {
   IGN_PROFILE("Sensors::PostUpdate");
 
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time. System may not work properly."
+            << std::endl;
+  }
+
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||

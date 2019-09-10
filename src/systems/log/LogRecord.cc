@@ -225,10 +225,18 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 }
 
 //////////////////////////////////////////////////
-void LogRecord::PostUpdate(const UpdateInfo &,
+void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogRecord::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time. System may not work properly."
+            << std::endl;
+  }
+
   // Publish only once
   if (!this->dataPtr->sdfPublished)
   {
