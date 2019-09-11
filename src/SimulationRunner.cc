@@ -198,13 +198,52 @@ void SimulationRunner::UpdateCurrentInfo()
 {
   IGN_PROFILE("SimulationRunner::UpdateCurrentInfo");
 
+  // Rewind
   if (this->requestedRewind)
   {
+    igndbg << "Rewinding simulation back to time zero." << std::endl;
     this->realTimes.clear();
     this->simTimes.clear();
+    this->realTimeFactor = 0;
+
+    this->currentInfo.dt = -this->currentInfo.simTime;
+    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.iterations = 0;
+    this->realTimeWatch.Reset();
+    if (!this->currentInfo.paused)
+      this->realTimeWatch.Start();
+
+    this->requestedRewind = false;
+
+    return;
   }
+
+  // Seek
+  if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
+  {
+    igndbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
+        this->requestedSeek).count() << "s." << std::endl;
+
+    this->realTimes.clear();
+    this->simTimes.clear();
+    this->realTimeFactor = 0;
+
+    this->currentInfo.dt = this->requestedSeek - this->currentInfo.simTime;
+    this->currentInfo.simTime = this->requestedSeek;
+    this->currentInfo.iterations = 0;
+
+    this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
+
+    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+
+    return;
+  }
+
+  // Regular time flow
+
   // Store the real time and sim time only if not paused.
-  else if (this->realTimeWatch.Running())
+  if (this->realTimeWatch.Running())
   {
     this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
     this->simTimes.push_back(this->currentInfo.simTime);
@@ -238,37 +277,20 @@ void SimulationRunner::UpdateCurrentInfo()
     this->realTimeFactor = math::precision(
           static_cast<double>(simAvg.count()) / realAvg.count(), 4);
   }
-  else
-  {
-    this->realTimeFactor = 0;
-  }
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
   this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
 
-  // If rewinding, have negative dt and zero time and iterations
-  if (this->requestedRewind)
-  {
-    this->currentInfo.dt = -this->currentInfo.simTime;
-    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
-    this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
-    this->currentInfo.iterations = 0;
-    this->realTimeWatch.Reset();
-    if (!this->currentInfo.paused)
-      this->realTimeWatch.Start();
-  }
   // In the case that networking is not running, or this is a primary.
   // If this is a network secondary, this data is populated via the network.
-  else if (!this->currentInfo.paused &&
+  if (!this->currentInfo.paused &&
       (!this->networkMgr || this->networkMgr->IsPrimary()))
   {
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
   }
-
-  this->requestedRewind = false;
 }
 
 /////////////////////////////////////////////////
@@ -947,8 +969,9 @@ void SimulationRunner::ProcessWorldControl()
     this->requestedRewind = control.rewind;
 
     // Seek
-    if (control.seek != std::chrono::steady_clock::duration::zero())
+    if (control.seek >= std::chrono::steady_clock::duration::zero())
     {
+      this->requestedSeek = control.seek;
     }
   }
 
