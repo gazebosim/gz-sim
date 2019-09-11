@@ -104,8 +104,9 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time. System may not work properly."
-            << std::endl;
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
   }
 
   // If the joint hasn't been identified yet, look for it

@@ -63,13 +63,24 @@ namespace ignition
     // Forward declarations.
     class SimulationRunnerPrivate;
 
+    /// \brief Helper struct to control world time. It's used to hold
+    /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
     struct WorldControl
     {
+      /// \brief True to pause simulation.
       bool pause;
+
+      /// \biref Run a given number of simulation iterations.
       uint64_t multiStep;
-      // Rewinding resets sim and real time. Seek doesn't change real time.
+
+      /// \brief Reset simulation back to time zero. Rewinding resets sim time,
+      /// real time and iterations.
       bool rewind;
-      std::chrono::steady_clock::duration seek;
+
+      /// \brief Sim time to jump to. A negative value means don't seek.
+      /// Seeking changes sim time but doesn't affect real time.
+      /// It also resets iterations back to zero.
+      std::chrono::steady_clock::duration seek{-1};
     };
 
     /// \brief Class to hold systems internally
@@ -424,7 +435,12 @@ namespace ignition
       /// If not zero, jumps in time like rewind and seek will be disabled.
       private: uint64_t requestedIterations{0};
 
+      /// \brief True if user requested to rewind simulation.
       private: bool requestedRewind{false};
+
+      /// \brief If user asks to seek to a specific sim time, this holds the
+      /// time.s A negative value means there's no request from the user.
+      private: std::chrono::steady_clock::duration requestedSeek{-1};
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;

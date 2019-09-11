@@ -252,16 +252,24 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 //////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+
   IGN_PROFILE("LogPlayback::Update");
-  if (_info.paused)
+  if (_info.dt == std::chrono::steady_clock::duration::zero())
     return;
 
   if (!this->dataPtr->instStarted)
     return;
 
   // FIXME checking the network timestamp, which is not the most accurate!
+  auto startTime = _info.simTime - _info.dt;
+  auto endTime = _info.simTime;
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    startTime = endTime - std::chrono::seconds(1);
+  }
+
   this->dataPtr->batch = this->dataPtr->log->QueryMessages(
-      transport::log::AllTopics({_info.simTime, _info.simTime + _info.dt}));
+      transport::log::AllTopics({startTime, endTime}));
 
   this->dataPtr->iter = this->dataPtr->batch.begin();
 
