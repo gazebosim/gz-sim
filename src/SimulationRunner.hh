@@ -430,11 +430,6 @@ namespace ignition
       /// executed yet.
       private: unsigned int pendingSimIterations{0};
 
-      /// \brief Number of simulation steps requested when calling Run().
-      /// If zero, simulation will run until user stops it.
-      /// If not zero, jumps in time like rewind and seek will be disabled.
-      private: uint64_t requestedIterations{0};
-
       /// \brief True if user requested to rewind simulation.
       private: bool requestedRewind{false};
 

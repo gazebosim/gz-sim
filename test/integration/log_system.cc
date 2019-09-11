@@ -18,7 +18,9 @@
 #include <gtest/gtest.h>
 #include <ignition/msgs/pose_v.pb.h>
 
+#include <algorithm>
 #include <climits>
+#include <numeric>
 #include <string>
 
 #include <ignition/common/Console.hh>
@@ -34,13 +36,58 @@
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
+
+#include "plugins/MockSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
+class Relay
+{
+  public: Relay()
+  {
+    auto plugin = loader.LoadPlugin("libMockSystem.so",
+                                    "ignition::gazebo::MockSystem", nullptr);
+    EXPECT_TRUE(plugin.has_value());
+
+    this->systemPtr = plugin.value();
+
+    this->mockSystem =
+        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
+    EXPECT_NE(nullptr, this->mockSystem);
+  }
+
+  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
+  {
+    this->mockSystem->preUpdateCallback = std::move(_cb);
+    return *this;
+  }
+
+  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
+  {
+    this->mockSystem->updateCallback = std::move(_cb);
+    return *this;
+  }
+
+  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
+  {
+    this->mockSystem->postUpdateCallback = std::move(_cb);
+    return *this;
+  }
+
+  public: SystemPluginPtr systemPtr;
+
+  private: SystemLoader loader;
+  private: MockSystem *mockSystem;
+};
+
+//////////////////////////////////////////////////
 class LogSystemTest : public ::testing::Test
 {
   // Documentation inherited
@@ -305,4 +352,118 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   #endif
 
   common::removeAll(this->logsDir);
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogControl)
+{
+  auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "rolling_shapes_log");
+
+  ServerConfig config;
+  config.SetLogPlaybackPath(logPath);
+
+  Server server(config);
+
+  Relay testSystem;
+  math::Pose3d spherePose;
+  bool sphereFound{false};
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Pose, components::Name>(
+            [&](const Entity &,
+                const components::Pose *_pose,
+                const components::Name *_name)->bool
+            {
+              if (_name->Data() == "sphere")
+              {
+                sphereFound = true;
+                spherePose = _pose->Data();
+                return false;
+              }
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
+
+  EXPECT_TRUE(sphereFound);
+  sphereFound = false;
+
+  math::Pose3d initialSpherePose(0, 1.5, 0.5, 0, 0, 0);
+  EXPECT_EQ(initialSpherePose, spherePose);
+  auto latestSpherePose = spherePose;
+
+  transport::Node node;
+
+  // Seek forward (downhill)
+  std::vector<int> secs(9);
+  std::iota(std::begin(secs), std::end(secs), 1);
+
+  msgs::LogPlaybackControl req;
+  msgs::Boolean res;
+  bool result{false};
+  unsigned int timeout = 1000;
+  std::string service{"/world/default/playback/control"};
+  for (auto i : secs)
+  {
+    req.mutable_seek()->set_sec(i);
+
+    EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+
+    // Run 2 iterations because control messages are processed in the end of an
+    // update cycle
+    server.Run(true, 2, false);
+
+    EXPECT_TRUE(sphereFound);
+    sphereFound = false;
+
+    EXPECT_GT(latestSpherePose.Pos().Z(), spherePose.Pos().Z())
+        << "Seconds: [" << i << "]";
+
+    latestSpherePose = spherePose;
+  }
+
+  // Rewind
+  req.Clear();
+  req.set_rewind(true);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 2, false);
+
+  EXPECT_TRUE(sphereFound);
+  sphereFound = false;
+
+  EXPECT_EQ(initialSpherePose, spherePose);
+
+  latestSpherePose = math::Pose3d(0, 0, -100, 0, 0, 0);
+
+  // Seek backwards (uphill)
+  req.Clear();
+  std::reverse(std::begin(secs), std::end(secs));
+  for (auto i : secs)
+  {
+    req.mutable_seek()->set_sec(i);
+
+    EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+
+    server.Run(true, 2, false);
+
+    EXPECT_TRUE(sphereFound);
+    sphereFound = false;
+
+    EXPECT_LT(latestSpherePose.Pos().Z(), spherePose.Pos().Z())
+        << "Seconds: [" << i << "]";
+
+    latestSpherePose = spherePose;
+  }
 }

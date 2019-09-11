@@ -249,7 +249,6 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 //////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-
   IGN_PROFILE("LogPlayback::Update");
   if (_info.dt == std::chrono::steady_clock::duration::zero())
     return;
