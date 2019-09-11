@@ -170,6 +170,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
+  ignmsg << "Serving world controls on [" << opts.NameSpace()
+         << "/control] and [" << opts.NameSpace() << "/playback/control]"
+         << std::endl;
+
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
   if (_world->Gui())
@@ -602,14 +606,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   }
 
   // Keep number of iterations requested by caller
-  this->requestedIterations = _iterations;
+  uint64_t processedIterations{0};
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (uint64_t startingIterations = this->currentInfo.iterations;
-       this->running && (this->requestedIterations == 0 ||
-       this->currentInfo.iterations <
-       this->requestedIterations + startingIterations);)
+  while (this->running && (_iterations == 0 ||
+       processedIterations < _iterations))
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
     // Compute the time to sleep in order to match, as closely as possible,
@@ -641,6 +643,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update time information. This will update the iteration count, RTF,
     // and other values.
     this->UpdateCurrentInfo();
+    if (!this->currentInfo.paused)
+    {
+      processedIterations++;
+    }
 
     // If network, wait for network step, otherwise do our own step
     if (this->networkMgr)
@@ -900,7 +906,19 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     control.multiStep = 1;
 
   if (_req.has_reset())
+  {
     control.rewind = _req.reset().all() || _req.reset().time_only();
+
+    if (_req.reset().model_only())
+    {
+      ignwarn << "Model only reset is not supported." << std::endl;
+    }
+  }
+
+  if (_req.seed() != 0)
+  {
+    ignwarn << "Changing seed is not supported." << std::endl;
+  }
 
   this->worldControls.push_back(control);
 
@@ -923,6 +941,11 @@ bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
   {
     control.seek = std::chrono::seconds(_req.seek().sec()) +
                    std::chrono::nanoseconds(_req.seek().nsec());
+  }
+
+  if (_req.forward())
+  {
+    ignwarn << "Log forwarding is not supported, use seek." << std::endl;
   }
 
   this->worldControls.push_back(control);
@@ -954,15 +977,6 @@ void SimulationRunner::ProcessWorldControl()
       this->pendingSimIterations += control.multiStep;
       // Unpause so that stepping can occur.
       this->SetPaused(false);
-    }
-
-    if (this->requestedIterations != 0 && (control.rewind ||
-        control.seek != std::chrono::steady_clock::duration::zero()))
-    {
-      ignwarn << "Request to jump in time will not work. Running a predefined "
-              << "number of iterations [" << this->requestedIterations << "]."
-              << std::endl;
-      continue;
     }
 
     // Rewind / reset

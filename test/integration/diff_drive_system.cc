@@ -198,8 +198,9 @@ TEST_P(DiffDriveTest, PublishCmd)
   // However, since the model origin is offset, the model position will change.
   // To find the final pose of the model, we have to do the following similarity
   // transformation
-  math::Pose3d T_od_M(0.554283, 0, -0.325, 0, 0, 0);
-  auto finalModelFramePose = T_od_M * odomPoses.back() * T_od_M.Inverse();
+  math::Pose3d tOdomModel(0.554283, 0, -0.325, 0, 0, 0);
+  auto finalModelFramePose =
+      tOdomModel * odomPoses.back() * tOdomModel.Inverse();
 
   // Odom for 3s
   ASSERT_FALSE(odomPoses.empty());
