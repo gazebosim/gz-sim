@@ -47,4 +47,9 @@ Rectangle {
     id: entityContextMenu
     anchors.fill: parent
   }
+
+//  Keys.onPressed: {
+//    console.log("scene3d key event")
+//    event.accepted = true;
+//  }
 }

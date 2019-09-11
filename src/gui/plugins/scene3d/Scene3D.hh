@@ -105,6 +105,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnMoveTo(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a follow request
+    /// \param[in] _msg Request message to set the target to follow.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnFollow(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -152,6 +159,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
+
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    public: void SetFollow(const std::string &_target);
+
+    /// \brief Get the target which the user camera is following
+    /// \return Target being followed
+    public: std::string FollowTarget() const;
 
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
@@ -275,6 +290,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
 
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    public: void SetFollow(const std::string &_target);
+
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
@@ -293,6 +312,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
+
+    // Documentation inherited
+    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
