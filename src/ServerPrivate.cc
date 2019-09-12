@@ -229,9 +229,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             // If specified in SDF, take logical OR of command line and SDF
             else
             {
-              if (!resourceParam->GetAsString().compare("true"))
-                resources = true;
-              resources = (resources || _config.UseLogRecordResources());
+              auto success = resourceParam->Get<bool>(resources);
+              if (success)
+                resources = (resources || _config.UseLogRecordResources());
             }
             resourceParam->SetFromString(resources ? "true" : "false");
 
