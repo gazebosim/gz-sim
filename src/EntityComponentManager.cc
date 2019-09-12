@@ -1063,11 +1063,9 @@ void EntityComponentManager::SetState(
     }
 
     // Create / remove / update components
-    for (auto compIter = iter.second.components().begin();
-         compIter != iter.second.components().end(); ++compIter)
-
+    for (const auto &compIter : iter.second.components())
     {
-      const auto &compMsg = compIter->second;
+      const auto &compMsg = compIter.second;
 
       // Skip if component not set. Note that this will also skip components
       // setting an empty value.
@@ -1096,13 +1094,13 @@ void EntityComponentManager::SetState(
       // Remove component
       if (compMsg.remove())
       {
-        this->RemoveComponent(entity, compIter->first);
+        this->RemoveComponent(entity, compIter.first);
         continue;
       }
 
       // Get Component
       components::BaseComponent *comp =
-        this->ComponentImplementation(entity, compIter->first);
+        this->ComponentImplementation(entity, compIter.first);
 
       // Create if new
       if (nullptr == comp)
@@ -1128,7 +1126,7 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        this->SetChanged(entity, compIter->first,
+        this->SetChanged(entity, compIter.first,
             ComponentState::OneTimeChange);
       }
     }

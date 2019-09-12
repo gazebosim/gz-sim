@@ -903,7 +903,7 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  this->dataPtr->selectedEntity = _node;
+  this->dataPtr->selectedEntity = std::move(_node);
 }
 
 /////////////////////////////////////////////////

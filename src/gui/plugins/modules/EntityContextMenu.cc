@@ -19,29 +19,20 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-
-#include "TransformControl.hh"
+#include "EntityContextMenu.hh"
 
 namespace ignition::gazebo
 {
-  class TransformControlPrivate
+  /// \brief Private data class for EntityContextMenu
+  class EntityContextMenuPrivate
   {
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
-    /// \brief Transform control service name
-    public: std::string service;
+    /// \brief Move to service name
+    public: std::string moveToService;
   };
 }
 
@@ -49,38 +40,43 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TransformControl::TransformControl()
-  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
+void IgnGazeboPlugin::registerTypes(const char *_uri)
 {
+  // Register our 'EntityContextMenuItem' in qml engine
+  qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,
+      "EntityContextMenuItem");
 }
 
 /////////////////////////////////////////////////
-TransformControl::~TransformControl() = default;
-/////////////////////////////////////////////////
-void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
+EntityContextMenu::EntityContextMenu()
+  : dataPtr(std::make_unique<EntityContextMenuPrivate>())
 {
-  if (this->title.empty())
-    this->title = "Transform control";
-
-  // For transform requests
-  this->dataPtr->service = "/gui/transform_mode";
+  // For move to service requests
+  this->dataPtr->moveToService = "/gui/move_to";
 }
 
 /////////////////////////////////////////////////
-void TransformControl::OnMode(const QString &_mode)
+EntityContextMenu::~EntityContextMenu() = default;
+
+/////////////////////////////////////////////////
+void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting transform mode" << std::endl;
+      ignerr << "Error sending move to request" << std::endl;
   };
 
-  ignition::msgs::StringMsg req;
-  req.set_data(_mode.toStdString());
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  std::string request = _request.toStdString();
+  if (request == "move_to")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
+  }
+  else
+  {
+    ignwarn << "Unknown request [" << request << "]" << std::endl;
+  }
 }
-
-// Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TransformControl,
-                    ignition::gui::Plugin)

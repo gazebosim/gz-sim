@@ -1,7 +1,8 @@
-import QtQuick 2.0
+import QtQuick 2.9
 import QtQuick.Controls 2.0
 import RenderWindow 1.0
 import QtGraphicalEffects 1.0
+import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
   width: 1000
@@ -16,6 +17,11 @@ Rectangle {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
+
+    Connections {
+      target: renderWindow
+      onOpenContextMenu: entityContextMenu.open(_entity, "visual");
+    }
   }
 
   /*
@@ -36,6 +42,9 @@ Rectangle {
       width = Qt.binding(function() {return parent.parent.width})
       height = Qt.binding(function() {return parent.parent.height})
   }
+
+  IgnGazebo.EntityContextMenu {
+    id: entityContextMenu
+    anchors.fill: parent
+  }
 }
-
-
