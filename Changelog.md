@@ -2,6 +2,8 @@
 
 ### Ignition Math 5.x.x
 
+### Ignition Math 5.1.0 (2019-09-11)
+
 1. GraphAlgorithms: add ToUndirected(DirectedGraph) that copies to an UndirectedGraph.
     * [Pull request 332](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/332)
 
