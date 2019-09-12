@@ -72,7 +72,7 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Set whether to save model meshes and materials when recording.
   /// \param[in] _record True to save model resources when recording.
-  public: void SetRecordResources(const bool _record);
+  public: void SetRecordResources(bool _record);
 
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.

@@ -71,14 +71,16 @@ COMMANDS = { 'gazebo' =>
   "                              console messages to the default location,  \n"\
   "                              in ~/.ignition/gazebo/log.                 \n"\
   "\n"\
-  "  --record-path [arg]         Custom path to put recorded files. Argument\n"\
+  "  --record-path [arg]         Implicitly invokes --record, and specifies \n"\
+  "                              custom path to put recorded files. Argument\n"\
   "                              is path to record states and console       \n"\
   "                              messages. Specifying this argument will    \n"\
   "                              enable console logging to a console.log    \n"\
   "                              file in the specified path.                \n"\
   "\n"\
-  "  --record-resources          Record meshes and material files, in       \n"\
-  "                              addition to states and console messages    \n"\
+  "  --record-resources          Implicitly invokes --record, and records   \n"\
+  "                              meshes and material files, in addition to  \n"\
+  "                              states and console messages.               \n"\
   "\n"\
   "  -s                          Run only the server (headless mode). This  \n"\
   "                              overrides -g, if it is also present.       \n"\

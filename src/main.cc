@@ -98,10 +98,11 @@ void help()
   << std::endl
   << "  --record               Use logging system to record states."
   << std::endl
-  << "  --record-path arg      Custom path to put recorded files."
-  << " Arg is path to recorded states."
+  << "  --record-path arg      Implicitly invokes --record, and specifies"
+  << " custom path to put recorded files. Argument is path to recorded states."
   << std::endl
-  << "  --record-resources     Record meshes and material files."
+  << "  --record-resources     Implicitly invokes --record, and records"
+  << " meshes and material files."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
   << " Arg is path to recorded states."
