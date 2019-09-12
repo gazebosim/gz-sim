@@ -11,7 +11,7 @@ Rectangle {
   /**
    * True to enable gamma correction
    */
-  property bool gammacorrect: false
+  property bool gammaCorrect: false
 
   RenderWindow {
     id: renderWindow
