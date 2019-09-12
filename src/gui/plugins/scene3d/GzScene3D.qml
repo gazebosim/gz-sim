@@ -11,16 +11,21 @@ Rectangle {
   /**
    * True to enable gamma correction
    */
-  property bool gammaCorrect: false
+  property bool gammacorrect: false
 
   RenderWindow {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
 
+    /**
+     * Message to be displayed over the render window
+     */
+    property string message: ""
+
     Connections {
       target: renderWindow
-      onOpenContextMenu: entityContextMenu.open(_entity, "visual");
+      onOpenContextMenu: entityContextMenu.open(_entity, "model");
     }
   }
 
@@ -48,8 +53,9 @@ Rectangle {
     anchors.fill: parent
   }
 
-//  Keys.onPressed: {
-//    console.log("scene3d key event")
-//    event.accepted = true;
-//  }
+  Text {
+    anchors.top: renderWindow.achors.top
+    anchors.left: renderWindow.achors.left
+    text: renderWindow.message
+  }
 }

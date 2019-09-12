@@ -343,9 +343,7 @@ void IgnRenderer::Render()
   // Follow
   {
     IGN_PROFILE("IgnRenderer::Render Follow");
-    bool following =  (this->dataPtr->camera->FollowTarget() ||
-          this->dataPtr->camera->TrackTarget());
-
+    rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
@@ -353,7 +351,7 @@ void IgnRenderer::Render()
           this->dataPtr->followTarget);
       if (target)
       {
-        if (!following)
+        if (!followTarget || target != followTarget)
         {
           this->dataPtr->camera->SetFollowTarget(target,
               this->dataPtr->followOffset);
@@ -378,7 +376,7 @@ void IgnRenderer::Render()
         this->dataPtr->followTarget.clear();
       }
     }
-    else if (following)
+    else if (followTarget)
     {
       this->dataPtr->camera->SetFollowTarget(nullptr);
       this->dataPtr->camera->SetTrackTarget(nullptr);
@@ -419,6 +417,13 @@ void IgnRenderer::HandleMouseContextMenu()
 
     if (!visual)
       return;
+
+    // get model visual
+    while (visual->HasParent() && visual->Parent() !=
+        visual->Scene()->RootVisual())
+    {
+      visual = std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+    }
 
     emit ContextMenuRequested(visual->Name().c_str());
     this->dataPtr->mouseDirty = false;
@@ -1256,6 +1261,8 @@ void RenderWindowItem::SetMoveTo(const std::string &_target)
 /////////////////////////////////////////////////
 void RenderWindowItem::SetFollow(const std::string &_target)
 {
+  this->setProperty("message", _target.empty() ? "" :
+      "Press Escape to exit Follow mode");
   this->dataPtr->renderThread->ignRenderer.SetFollow(_target);
 }
 
@@ -1274,6 +1281,8 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 /////////////////////////////////////////////////
 void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
+  this->forceActiveFocus();
+
   auto event = gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
@@ -1316,6 +1325,8 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 {
+  this->forceActiveFocus();
+
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
@@ -1331,6 +1342,8 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
     if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
     {
       this->SetFollow(std::string());
+      this->setProperty("message", "");
+
       _e->accept();
     }
   }
