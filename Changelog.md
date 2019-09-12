@@ -2,6 +2,8 @@
 
 ### Ignition Gazebo 2.X.X
 
+1.  Add Follow mode to GUI
+   * [Pull Request 430](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/430)
 
 ### Ignition Gazebo 2.10.0 (2019-09-08)
 
