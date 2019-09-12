@@ -28,7 +28,6 @@ namespace gazebo
 {
   class VideoRecorderPrivate;
 
-  /// \brief TODO
   /// \brief Provides buttons for starting and stopping video recording
   class VideoRecorder : public ignition::gui::Plugin
   {
@@ -38,11 +37,10 @@ namespace gazebo
     public: VideoRecorder();
 
     /// \brief Destructor
-    public: virtual ~VideoRecorder();
+    public: ~VideoRecorder() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     /// \brief Callback when video record start request is received
     /// \param[in] _format Video encoding format

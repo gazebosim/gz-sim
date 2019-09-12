@@ -226,6 +226,7 @@
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
+        <!-- no odom_publisher_frequency defaults to 50 Hz -->
       </plugin>
 
     </model>

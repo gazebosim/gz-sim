@@ -178,6 +178,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   ignition::gui::Application app(argc, argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
+  // add import path so we can load custom modules
+  app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
       IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
