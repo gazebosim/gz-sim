@@ -515,6 +515,9 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 //////////////////////////////////////////////////
 void LogRecordPrivate::CompressStateAndResources()
 {
+  if (!this->recordResources)
+    return;
+
   std::string cmpDest = this->logPath;
 
   size_t sepIdx = this->logPath.find(common::separator(""));
