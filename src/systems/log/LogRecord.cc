@@ -74,6 +74,14 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \param[in] _record True to save model resources when recording.
   public: void SetRecordResources(bool _record);
 
+  /// \brief Set whether to overwrite exiting log files.
+  /// \param[in] _overwrite True to overwrite existing files.
+  public: void SetOverwrite(bool _overwrite);
+
+  /// \brief Set whether to compress log files at the end.
+  /// \param[in] _compress True to compress log files.
+  public: void SetCompress(bool _compress);
+
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.
   public: void LogModelResources(EntityComponentManager &_ecm);
@@ -132,8 +140,14 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Whether the SDF has already been published
   public: bool sdfPublished{false};
 
-  /// \brief Record with model resources.
-  public: bool recordResources = false;
+  /// \brief Record with model resources
+  public: bool recordResources{false};
+
+  /// \brief Overwrite existing log files
+  public: bool overwrite{false};
+
+  /// \brief Compress log files at the end
+  public: bool compress{false};
 
   /// \brief List of saved models if record with resources is enabled.
   public: std::set<std::string> savedModels;
@@ -303,6 +317,18 @@ bool LogRecordPrivate::RecordResources() const
 void LogRecordPrivate::SetRecordResources(const bool _record)
 {
   this->recordResources = _record;
+}
+
+//////////////////////////////////////////////////
+void LogRecordPrivate::SetOverwrite(bool _overwrite)
+{
+  this->overwrite = _overwrite;
+}
+
+//////////////////////////////////////////////////
+void LogRecordPrivate::SetCompress(bool _compress)
+{
+  this->compress = _compress;
 }
 
 //////////////////////////////////////////////////

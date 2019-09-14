@@ -43,6 +43,8 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
 DEFINE_bool(record_resources, false, "Record meshes and material files");
+DEFINE_bool(overwrite_existing, false, "When recording, overwrite existing log files");
+DEFINE_bool(compress, false, "When recording, compress final log files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 DEFINE_uint32(seed, 0, "Start with a given random number seed");
 
@@ -264,6 +266,16 @@ int main(int _argc, char **_argv)
     else
     {
       ignmsg << "Recording states to default path\n";
+    }
+
+    if (FLAGS_overwrite_existing)
+    {
+      serverConfig.SetLogRecordOverwrite(FLAGS_overwrite_existing);
+    }
+
+    if (FLAGS_compress)
+    {
+      serverConfig.SetLogRecordCompress(FLAGS_compress);
     }
   }
 

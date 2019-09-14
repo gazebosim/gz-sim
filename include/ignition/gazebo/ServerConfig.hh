@@ -263,7 +263,21 @@ namespace ignition
 
       /// \brief Set whether meshes and material files are recorded
       /// \param[in] _recordResources Value to set
-      public: void SetUseLogRecordResources(const bool _recordResources);
+      public: void SetUseLogRecordResources(bool _recordResources);
+
+      /// \brief Get whether to overwrite existing log files
+      public: bool LogRecordOverwrite();
+
+      /// \brief Set whether to overwrite existing log files
+      /// \param[in] _overwrite Value to set
+      public: void SetLogRecordOverwrite(bool _overwrite);
+
+      /// \brief Get whether to compress log files
+      public: bool LogRecordCompress();
+
+      /// \brief Set whether to compress log files
+      /// \param[in] _compress Value to set
+      public: void SetLogRecordCompress(bool _compress);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.

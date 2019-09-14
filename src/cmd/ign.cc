@@ -58,7 +58,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    int _recordResources, const char *_playback, const char *_file)
+    int _recordResources, int _overwrite, int _compress,
+    const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -128,6 +129,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     {
       ignmsg << "Recording states to default path\n";
     }
+
+    if (_overwrite > 0)
+      serverConfig.SetLogRecordOverwrite(true);
+    else
+      serverConfig.SetLogRecordOverwrite(false);
+
+    if (_compress > 0)
+      serverConfig.SetLogRecordCompress(true);
+    else
+      serverConfig.SetLogRecordCompress(false);
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
