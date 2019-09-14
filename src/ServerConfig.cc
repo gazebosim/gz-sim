@@ -219,6 +219,8 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordPath(_cfg->logRecordPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             useLogRecordResources(_cfg->useLogRecordResources),
+            logRecordOverwrite(_cfg->logRecordOverwrite),
+            logRecordCompress(_cfg->logRecordCompress),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -251,6 +253,12 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Record meshes and material files
   public: bool useLogRecordResources{false};
+
+  /// \brief When recording, overwrite existing log files
+  public: bool logRecordOverwrite{false};
+
+  /// \brief When recording, compress final log files
+  public: bool logRecordCompress{false};
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -437,9 +445,33 @@ bool ServerConfig::UseLogRecordResources() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetUseLogRecordResources(const bool _recordResources)
+void ServerConfig::SetUseLogRecordResources(bool _recordResources)
 {
   this->dataPtr->useLogRecordResources = _recordResources;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::LogRecordOverwrite()
+{
+  return this->dataPtr->logRecordOverwrite;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
+{
+  this->dataPtr->logRecordOverwrite = _overwrite;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::LogRecordCompress()
+{
+  return this->dataPtr->logRecordCompress;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompress(bool _compress)
+{
+  this->dataPtr->logRecordCompress = _compress;
 }
 
 /////////////////////////////////////////////////

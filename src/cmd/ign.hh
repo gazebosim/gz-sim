@@ -45,14 +45,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _record --record option
 /// \param[in] _recordPath --record-path option
 /// \param[in] _recordResources --record-resources option
+/// \param[in] _overwrite --overwrite-existing option
+/// \param[in] _compress --compress option
 /// \param[in] _playback --playback option
 /// \param[in] _file Path to file being loaded
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
-    const char *_recordPath, int _recordResources, const char *_playback,
-    const char *_file);
+    const char *_recordPath, int _recordResources, int _overwrite,
+    int _compress, const char *_playback, const char *_file);
 
 /// \brief External hook to run simulation GUI.
 /// \return 0 if successful, 1 if not.

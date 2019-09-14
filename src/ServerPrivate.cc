@@ -272,6 +272,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   sdf::ParamPtr resourceParam = recordElem->GetAttribute("record_resources");
   resourceParam->SetFromString(_config.UseLogRecordResources() ? "true" :
     "false");
+
+  // Overwrite and compress are per-run options and do not need to be added to
+  //   SDF
 }
 
 //////////////////////////////////////////////////
