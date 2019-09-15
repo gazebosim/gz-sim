@@ -69,8 +69,8 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \param[in] _dir Path of a directory
   /// \param[in] _ext Extension to append, starting with "."
   /// \return Path with extension appended to the end.
-  public: std::string AppendExtension(const std::string _dir,
-    const std::string _ext);
+  public: std::string AppendExtension(const std::string & _dir,
+    const std::string & _ext);
 
   /// \brief Get whether the model meshes and materials are saved when
   /// recording.
@@ -191,8 +191,8 @@ std::string LogRecordPrivate::DefaultRecordPath()
 }
 
 //////////////////////////////////////////////////
-std::string LogRecordPrivate::AppendExtension(const std::string _dir,
-  const std::string _ext)
+std::string LogRecordPrivate::AppendExtension(const std::string &_dir,
+  const std::string &_ext)
 {
   std::string rv = std::string(_dir);
   size_t sepIdx = _dir.find(common::separator(""));
@@ -238,10 +238,6 @@ void LogRecord::Configure(const Entity &_entity,
   this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources"));
   this->dataPtr->SetOverwrite(_sdf->Get<bool>("overwrite"));
   this->dataPtr->SetCompress(_sdf->Get<bool>("compress"));
-
-  ignwarn << "record_resources? " << this->dataPtr->RecordResources() << std::endl;
-  ignwarn << "overwrite? " << this->dataPtr->Overwrite() << std::endl;
-  ignwarn << "compress? " << this->dataPtr->Compress() << std::endl;
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
@@ -291,7 +287,11 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
     {
       ignwarn << "Log path already exists on disk! Existing files will be "
         << "overwritten." << std::endl;
-      common::removeAll(this->logPath);
+      if (common::exists(this->logPath))
+      {
+        ignmsg << "Overwriting existing path [" << this->logPath << "]\n";
+        common::removeAll(this->logPath);
+      }
     }
     // Otherwise rename path to write to
     else
@@ -607,9 +607,6 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 //////////////////////////////////////////////////
 void LogRecordPrivate::CompressStateAndResources()
 {
-  if (!this->recordResources)
-    return;
-
   if (common::exists(this->cmpPath))
   {
     if (this->overwrite)
