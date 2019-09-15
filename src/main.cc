@@ -107,7 +107,7 @@ void help()
   << " meshes and material files."
   << std::endl
   << "  --overwrite            When recording, overwrite existing log files."
-  << std::endl 
+  << std::endl
   << "  --compress             When recording, compress final log files."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
