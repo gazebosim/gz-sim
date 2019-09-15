@@ -218,7 +218,7 @@ class ignition::gazebo::ServerConfigPrivate
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
             logPlaybackPath(_cfg->logPlaybackPath),
-            useLogRecordResources(_cfg->useLogRecordResources),
+            logRecordResources(_cfg->logRecordResources),
             logRecordOverwrite(_cfg->logRecordOverwrite),
             logRecordCompress(_cfg->logRecordCompress),
             resourceCache(_cfg->resourceCache),
@@ -252,7 +252,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: std::string logPlaybackPath = "";
 
   /// \brief Record meshes and material files
-  public: bool useLogRecordResources{false};
+  public: bool logRecordResources{false};
 
   /// \brief When recording, overwrite existing log files
   public: bool logRecordOverwrite{false};
@@ -439,19 +439,19 @@ void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::UseLogRecordResources() const
+bool ServerConfig::LogRecordResources() const
 {
-  return this->dataPtr->useLogRecordResources;
+  return this->dataPtr->logRecordResources;
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetUseLogRecordResources(bool _recordResources)
+void ServerConfig::SetLogRecordResources(bool _recordResources)
 {
-  this->dataPtr->useLogRecordResources = _recordResources;
+  this->dataPtr->logRecordResources = _recordResources;
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogRecordOverwrite()
+bool ServerConfig::LogRecordOverwrite() const
 {
   return this->dataPtr->logRecordOverwrite;
 }
@@ -463,7 +463,7 @@ void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogRecordCompress()
+bool ServerConfig::LogRecordCompress() const
 {
   return this->dataPtr->logRecordCompress;
 }

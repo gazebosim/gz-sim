@@ -259,21 +259,21 @@ namespace ignition
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
       /// \brief Get whether meshes and material files are recorded
-      public: bool UseLogRecordResources() const;
+      public: bool LogRecordResources() const;
 
       /// \brief Set whether meshes and material files are recorded
       /// \param[in] _recordResources Value to set
-      public: void SetUseLogRecordResources(bool _recordResources);
+      public: void SetLogRecordResources(bool _recordResources);
 
       /// \brief Get whether to overwrite existing log files
-      public: bool LogRecordOverwrite();
+      public: bool LogRecordOverwrite() const;
 
       /// \brief Set whether to overwrite existing log files
       /// \param[in] _overwrite Value to set
       public: void SetLogRecordOverwrite(bool _overwrite);
 
       /// \brief Get whether to compress log files
-      public: bool LogRecordCompress();
+      public: bool LogRecordCompress() const;
 
       /// \brief Set whether to compress log files
       /// \param[in] _compress Value to set

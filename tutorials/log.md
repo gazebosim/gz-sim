@@ -14,6 +14,13 @@ A custom path can be specified for recorded files through the `--record-path` fl
 
 `ign gazebo -v 4 -r --record-path ./foo pose_publisher.sdf `
 
+Other options for recording:
+
+`--record-resources`: Models and textures can be recorded, in addition to states, by specifying this flag. This implicitly enables `--record` flag.
+
+`--overwrite-existing`: If the record path already exists, overwrite it.
+
+`--compress`: Compress the recorded file.
 
 ## Record by specifying plugin in SDF
 

@@ -201,39 +201,70 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
         if (pluginFileName->GetAsString().find(
             LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
         {
-          // If record plugin already specified in SDF, no need to add
+          // If record plugin already specified in SDF, and record flags are
+          //   specified on command line, replace SDF parameters with those on
+          //   command line. (If none specified on command line, use those in
+          //   SDF.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            // If a custom path is passed in through command line, overwrite
-            //   the path in SDF
+            // If a record path is specified on command line, replace in SDF
             if (!_config.LogRecordPath().empty())
             {
-              pluginElem->AddAttribute("path", "string", "", false);
               sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
+              // If parameter not specified in SDF, add it
+              if (pathParam == nullptr)
+              {
+                pluginElem->AddAttribute("path", "string", "", false);
+                pathParam = pluginElem->GetAttribute("path");
+              }
               pathParam->SetFromString(_config.LogRecordPath());
             }
 
-            // If a resource flag is passed in through command line or in SDF,
-            //   take logical OR.
-            sdf::ParamPtr resourceParam = pluginElem->GetAttribute(
-              "record_resources");
-            bool resources = false;
-            // If not specified in SDF, take command line option
-            if (resourceParam == nullptr)
+            // If resource flag specified on command line, replace in SDF
+            if (_config.LogRecordResources())
             {
-              pluginElem->AddAttribute("record_resources", "bool", "false",
-                false);
-              resourceParam = pluginElem->GetAttribute("record_resources");
-              resources = _config.UseLogRecordResources();
+              sdf::ParamPtr resourceParam = pluginElem->GetAttribute(
+                "record_resources");
+              // If parameter not specified in SDF, add it
+              if (resourceParam == nullptr)
+              {
+                pluginElem->AddAttribute("record_resources", "bool", "false",
+                  false);
+                resourceParam = pluginElem->GetAttribute("record_resources");
+              }
+              resourceParam->SetFromString(_config.LogRecordResources() ?
+                "true" : "false");
             }
-            // If specified in SDF, take logical OR of command line and SDF
-            else
+
+            // If overwrite flag specified on command line, replace in SDF
+            if (_config.LogRecordOverwrite())
             {
-              auto success = resourceParam->Get<bool>(resources);
-              if (success)
-                resources = (resources || _config.UseLogRecordResources());
+              sdf::ParamPtr overwriteParam = pluginElem->GetAttribute(
+                "overwrite");
+              // If parameter not specified in SDF, add it
+              if (overwriteParam == nullptr)
+              {
+                pluginElem->AddAttribute("overwrite", "bool", "false", false);
+                overwriteParam = pluginElem->GetAttribute("overwrite");
+              }
+              overwriteParam->SetFromString(_config.LogRecordOverwrite() ?
+                "true" : "false");
             }
-            resourceParam->SetFromString(resources ? "true" : "false");
+
+            // If compress flag specified on command line, replace in SDF
+            if (_config.LogRecordCompress())
+            {
+              sdf::ParamPtr compressParam = pluginElem->GetAttribute(
+                "compress");
+              // If parameter not specified in SDF, add it
+              if (compressParam == nullptr)
+              {
+                pluginElem->AddAttribute("compress", "bool", "false", false);
+                compressParam = pluginElem->GetAttribute("compress");
+              }
+              compressParam->SetFromString(_config.LogRecordCompress() ?
+                "true" : "false");
+            }
 
             return;
           }
@@ -269,12 +300,21 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 
   // Set whether to record resources
   recordElem->AddAttribute("record_resources", "bool", "false", false);
-  sdf::ParamPtr resourceParam = recordElem->GetAttribute("record_resources");
-  resourceParam->SetFromString(_config.UseLogRecordResources() ? "true" :
+  sdf::ParamPtr resourcesParam = recordElem->GetAttribute("record_resources");
+  resourcesParam->SetFromString(_config.LogRecordResources() ? "true" :
     "false");
 
-  // Overwrite and compress are per-run options and do not need to be added to
-  //   SDF
+  // Set whether to overwrite
+  recordElem->AddAttribute("overwrite", "bool", "false", false);
+  sdf::ParamPtr overwriteParam = recordElem->GetAttribute("overwrite");
+  overwriteParam->SetFromString(_config.LogRecordOverwrite() ?
+    "true" : "false");
+
+  // Set whether to compress
+  recordElem->AddAttribute("compress", "bool", "false", false);
+  sdf::ParamPtr compressParam = recordElem->GetAttribute("compress");
+  compressParam->SetFromString(_config.LogRecordCompress() ?
+    "true" : "false");
 }
 
 //////////////////////////////////////////////////
