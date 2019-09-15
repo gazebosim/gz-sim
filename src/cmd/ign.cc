@@ -117,9 +117,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
     serverConfig.SetUseLogRecord(true);
     if (_recordResources > 0)
-      serverConfig.SetUseLogRecordResources(true);
+      serverConfig.SetLogRecordResources(true);
     else
-      serverConfig.SetUseLogRecordResources(false);
+      serverConfig.SetLogRecordResources(false);
 
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
     {
@@ -129,17 +129,17 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     {
       ignmsg << "Recording states to default path\n";
     }
-
-    if (_overwrite > 0)
-      serverConfig.SetLogRecordOverwrite(true);
-    else
-      serverConfig.SetLogRecordOverwrite(false);
-
-    if (_compress > 0)
-      serverConfig.SetLogRecordCompress(true);
-    else
-      serverConfig.SetLogRecordCompress(false);
   }
+
+  if (_overwrite > 0)
+    serverConfig.SetLogRecordOverwrite(true);
+  else
+    serverConfig.SetLogRecordOverwrite(false);
+
+  if (_compress > 0)
+    serverConfig.SetLogRecordCompress(true);
+  else
+    serverConfig.SetLogRecordCompress(false);
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {

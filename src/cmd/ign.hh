@@ -45,7 +45,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _record --record option
 /// \param[in] _recordPath --record-path option
 /// \param[in] _recordResources --record-resources option
-/// \param[in] _overwrite --overwrite-existing option
+/// \param[in] _overwrite --overwrite option
 /// \param[in] _compress --compress option
 /// \param[in] _playback --playback option
 /// \param[in] _file Path to file being loaded

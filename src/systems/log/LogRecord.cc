@@ -65,6 +65,13 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
+  /// \brief Append an extension to the end of a directory path.
+  /// \param[in] _dir Path of a directory
+  /// \param[in] _ext Extension to append, starting with "."
+  /// \return Path with extension appended to the end.
+  public: std::string AppendExtension(const std::string _dir,
+    const std::string _ext);
+
   /// \brief Get whether the model meshes and materials are saved when
   /// recording.
   /// \return True if model meshes and materials are saved when recording.
@@ -74,9 +81,17 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \param[in] _record True to save model resources when recording.
   public: void SetRecordResources(bool _record);
 
-  /// \brief Set whether to overwrite exiting log files.
+  /// \brief Get whether to overwrite existing log files.
+  /// \return True if overwrite existing log files.
+  public: bool Overwrite() const;
+
+  /// \brief Set whether to overwrite existing log files.
   /// \param[in] _overwrite True to overwrite existing files.
   public: void SetOverwrite(bool _overwrite);
+
+  /// \brief Get whether to compress log files at the end.
+  /// \return True if compress log files.
+  public: bool Compress() const;
 
   /// \brief Set whether to compress log files at the end.
   /// \param[in] _compress True to compress log files.
@@ -111,6 +126,9 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Directory in which to place log file
   public: std::string logPath{""};
+
+  /// \brief File path to write compressed file
+  public: std::string cmpPath{""};
 
   /// \brief Clock used to timestamp recorded messages with sim time
   /// coming from /clock topic. This is not the timestamp on the header,
@@ -173,6 +191,19 @@ std::string LogRecordPrivate::DefaultRecordPath()
 }
 
 //////////////////////////////////////////////////
+std::string LogRecordPrivate::AppendExtension(const std::string _dir,
+  const std::string _ext)
+{
+  std::string rv = std::string(_dir);
+  size_t sepIdx = _dir.find(common::separator(""));
+  // Remove the separator at end of path
+  if (sepIdx == _dir.length() - 1)
+    rv = _dir.substr(0, _dir.length() - 1);
+  rv += _ext;
+  return rv;
+}
+
+//////////////////////////////////////////////////
 LogRecord::LogRecord()
   : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
@@ -186,7 +217,8 @@ LogRecord::~LogRecord()
     // Use ign-transport directly
     this->dataPtr->recorder.Stop();
 
-    this->dataPtr->CompressStateAndResources();
+    if (this->dataPtr->compress)
+      this->dataPtr->CompressStateAndResources();
     this->dataPtr->savedModels.clear();
     this->dataPtr->savedFiles.clear();
 
@@ -204,6 +236,12 @@ void LogRecord::Configure(const Entity &_entity,
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
   this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources"));
+  this->dataPtr->SetOverwrite(_sdf->Get<bool>("overwrite"));
+  this->dataPtr->SetCompress(_sdf->Get<bool>("compress"));
+
+  ignwarn << "record_resources? " << this->dataPtr->RecordResources() << std::endl;
+  ignwarn << "overwrite? " << this->dataPtr->Overwrite() << std::endl;
+  ignwarn << "compress? " << this->dataPtr->Compress() << std::endl;
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
@@ -233,6 +271,9 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 
   this->logPath = _logPath;
 
+  // Define path for compressed file
+  this->cmpPath = this->AppendExtension(this->logPath, ".zip");
+
   // The ServerConfig takes care of specifying a default log record path.
   // This if statement should never be reached.
   if (this->logPath.empty() ||
@@ -243,13 +284,23 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
     return false;
   }
 
-  // A user could have manually specified a record path. In this case, it's
-  // okay to overwrite existing log files.
-  if (common::exists(this->logPath))
+  if (common::exists(this->logPath) || common::exists(this->cmpPath))
   {
-    ignwarn << "Log path already exists on disk! "
-      << "Recording will overwrite existing state log file, if present."
-      << std::endl;
+    // Overwrite if flag specified. Files will be removed at time of writing.
+    if (this->overwrite)
+    {
+      ignwarn << "Log path already exists on disk! Existing files will be "
+        << "overwritten." << std::endl;
+      common::removeAll(this->logPath);
+    }
+    // Otherwise rename path to write to
+    else
+    {
+      this->logPath = common::uniqueDirectoryPath(this->logPath);
+      this->cmpPath = this->AppendExtension(this->logPath, ".zip");
+      ignwarn << "Log path already exists on disk! "
+        << "Recording instead to [" << this->logPath << "]" << std::endl;
+    }
   }
 
   // Create log directory
@@ -279,7 +330,10 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   // Append file name
   std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   if (common::exists(dbPath))
+  {
+    ignmsg << "Overwriting existing file [" << dbPath << "]\n";
     common::removeFile(dbPath);
+  }
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Use ign-transport directly
@@ -320,9 +374,21 @@ void LogRecordPrivate::SetRecordResources(const bool _record)
 }
 
 //////////////////////////////////////////////////
+bool LogRecordPrivate::Overwrite() const
+{
+  return this->overwrite;
+}
+
+//////////////////////////////////////////////////
 void LogRecordPrivate::SetOverwrite(bool _overwrite)
 {
   this->overwrite = _overwrite;
+}
+
+//////////////////////////////////////////////////
+bool LogRecordPrivate::Compress() const
+{
+  return this->compress;
 }
 
 //////////////////////////////////////////////////
@@ -544,24 +610,29 @@ void LogRecordPrivate::CompressStateAndResources()
   if (!this->recordResources)
     return;
 
-  std::string cmpDest = this->logPath;
-
-  size_t sepIdx = this->logPath.find(common::separator(""));
-  // Remove the separator at end of path
-  if (sepIdx == this->logPath.length() - 1)
-    cmpDest = this->logPath.substr(0, this->logPath.length() - 1);
-  cmpDest += ".zip";
+  if (common::exists(this->cmpPath))
+  {
+    if (this->overwrite)
+    {
+      ignmsg << "Overwriting existing file [" << this->cmpPath << "]\n";
+      common::removeFile(this->cmpPath);
+    }
+  }
 
   // Compress directory
-  if (fuel_tools::Zip::Compress(this->logPath, cmpDest))
+  if (fuel_tools::Zip::Compress(this->logPath, this->cmpPath))
   {
-    ignmsg << "Compressed log file and resources to [" << cmpDest
-           << "]" << std::endl;
+    ignmsg << "Compressed log file and resources to [" << this->cmpPath
+           << "]. Removing recorded directory [" << this->logPath << "]."
+           << std::endl;
+    // Remove directory after compressing successfully
+    common::removeAll(this->logPath);
   }
   else
   {
-    ignerr << "Failed to compressed log file and resources to [" << cmpDest
-           << "]" << std::endl;
+    ignerr << "Failed to compressed log file and resources to ["
+           << this->cmpPath << "]. Keeping recorded directory ["
+           << this->logPath << "]." << std::endl;
   }
 }
 
