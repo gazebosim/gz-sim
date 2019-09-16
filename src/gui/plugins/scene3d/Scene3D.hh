@@ -67,6 +67,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///                          (0.3, 0.3, 0.3, 1.0)
   /// * \<camera_pose\> : Optional starting pose for the camera, defaults to
   ///                     (0, 0, 5, 0, 0, 0)
+  /// * \<camera_follow\> :
+  ///     * \<p_gain\>    : Camera follow movement p gain.
+  ///     * \<target\>    : Target to follow.
   class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
