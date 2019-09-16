@@ -143,6 +143,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Target to follow
     public: std::string followTarget;
 
+    /// \brief Wait for follow target
+    public: bool followTargetWait = false;
+
     /// \brief Offset of camera from taget being followed
     public: math::Vector3d followOffset = math::Vector3d(-5, 0, 3);
 
@@ -343,6 +346,8 @@ void IgnRenderer::Render()
   // Follow
   {
     IGN_PROFILE("IgnRenderer::Render Follow");
+    if (!this->dataPtr->moveToTarget.empty())
+      return;
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
@@ -369,7 +374,7 @@ void IgnRenderer::Render()
           this->dataPtr->followOffsetDirty = false;
         }
       }
-      else
+      else if (!this->dataPtr->followTargetWait)
       {
         ignerr << "Unable to follow target. Target: '"
                << this->dataPtr->followTarget << "' not found" << std::endl;
@@ -761,10 +766,19 @@ void IgnRenderer::SetMoveTo(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetFollow(const std::string &_target)
+void IgnRenderer::SetFollowTarget(const std::string &_target,
+    bool _waitForTarget)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followTarget = _target;
+  this->dataPtr->followTargetWait = _waitForTarget;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowPGain(double _gain)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followPGain = _gain;
 }
 
 /////////////////////////////////////////////////
@@ -1132,6 +1146,28 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       poseStr >> pose;
       renderWindow->SetCameraPose(pose);
     }
+
+    if (auto elem = _pluginElem->FirstChildElement("camera_follow"))
+    {
+      if (auto gainElem = elem->FirstChildElement("p_gain"))
+      {
+        double gain;
+        std::stringstream gainStr;
+        gainStr << std::string(gainElem->GetText());
+        gainStr >> gain;
+        if (gain >= 0 && gain <= 1.0)
+          renderWindow->SetFollowPGain(gain);
+        else
+          ignerr << "Camera follow p gain outside of range [0, 1]" << std::endl;
+      }
+
+      if (auto targetElem = elem->FirstChildElement("target"))
+      {
+        std::stringstream targetStr;
+        targetStr << std::string(targetElem->GetText());
+        renderWindow->SetFollowTarget(targetStr.str(), true);
+      }
+    }
   }
 
   // transform mode
@@ -1232,7 +1268,7 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 {
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
-  renderWindow->SetFollow(_msg.data());
+  renderWindow->SetFollowTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -1259,11 +1295,19 @@ void RenderWindowItem::SetMoveTo(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::SetFollow(const std::string &_target)
+void RenderWindowItem::SetFollowTarget(const std::string &_target,
+    bool _waitForTarget)
 {
   this->setProperty("message", _target.empty() ? "" :
       "Press Escape to exit Follow mode");
-  this->dataPtr->renderThread->ignRenderer.SetFollow(_target);
+  this->dataPtr->renderThread->ignRenderer.SetFollowTarget(_target,
+      _waitForTarget);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowPGain(double _gain)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
 }
 
 /////////////////////////////////////////////////
@@ -1341,7 +1385,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
   {
     if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
     {
-      this->SetFollow(std::string());
+      this->SetFollowTarget(std::string());
       this->setProperty("message", "");
 
       _e->accept();

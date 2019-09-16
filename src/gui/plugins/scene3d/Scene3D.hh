@@ -162,7 +162,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Move the user camera to follow the speficied target
     /// \param[in] _target Target to follow
-    public: void SetFollow(const std::string &_target);
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is follow a target that is not present
+    /// on startup but spawned later into simulation
+    public: void SetFollowTarget(const std::string &_target,
+        bool _waitForTarget = false);
+
+    /// \brief Set the p gain for the camera follow movement
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowPGain(double _gain);
 
     /// \brief Get the target which the user camera is following
     /// \return Target being followed
@@ -292,7 +300,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Move the user camera to follow the speficied target
     /// \param[in] _target Target to follow
-    public: void SetFollow(const std::string &_target);
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is follow a target that is not present
+    /// on startup but spawned later into simulation
+    public: void SetFollowTarget(const std::string &_target,
+        bool _waitForTarget = false);
+
+    /// \brief Set the p gain for the camera follow movement
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowPGain(double _gain);
 
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.

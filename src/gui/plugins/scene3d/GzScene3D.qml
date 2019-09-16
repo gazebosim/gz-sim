@@ -53,6 +53,7 @@ Rectangle {
     anchors.fill: parent
   }
 
+  // todo(anyone) replace this with snackbar notifications
   Text {
     anchors.top: renderWindow.achors.top
     anchors.left: renderWindow.achors.left
