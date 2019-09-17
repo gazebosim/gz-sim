@@ -42,6 +42,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /// \brief Private data class.
 class ignition::gazebo::SceneManagerPrivate
@@ -532,8 +533,22 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     {
       common::MeshManager::Instance()->Load(animFilename);
       auto animMesh = common::MeshManager::Instance()->MeshByName(animFilename);
+
       // add the first animation
-      meshSkel->AddAnimation(animMesh->MeshSkeleton()->Animation(0));
+      if (animMesh->MeshSkeleton()->AnimationCount() > 1)
+      {
+        ignwarn << "File [" << animFilename
+            << "] has more than one animation, but only the 1st one is used."
+            << std::endl;
+      }
+      auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
+      if (nullptr == firstAnim)
+      {
+        ignerr << "Failed to get animations from [" << animFilename
+                << "]" << std::endl;
+        return nullptr;
+      }
+      meshSkel->AddAnimation(firstAnim);
       mapAnimNameId[animName] = numAnims++;
     }
   }
@@ -547,8 +562,15 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     // Load all trajectories specified in sdf
     for (unsigned i = 0; i < _actor.TrajectoryCount(); i++)
     {
-      common::TrajectoryInfo trajInfo;
       const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
+      if (nullptr == trajSdf)
+      {
+        ignerr << "Null trajectory SDF for [" << _actor.Name() << "]"
+               << std::endl;
+        continue;
+      }
+
+      common::TrajectoryInfo trajInfo;
       trajInfo.SetId(trajSdf->Id());
       trajInfo.SetAnimIndex(mapAnimNameId[trajSdf->Type()]);
 
@@ -558,15 +580,14 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         for (unsigned j = 0; j < trajSdf->WaypointCount(); j++)
         {
           auto point = trajSdf->WaypointByIndex(j);
-          TP point_tp(std::chrono::milliseconds(
+          TP pointTp(std::chrono::milliseconds(
                     static_cast<int>(point->Time()*1000)));
-          waypoints[point_tp] = point->Pose();
+          waypoints[pointTp] = point->Pose();
         }
         trajInfo.SetWaypoints(waypoints);
       }
       else
       {
-        auto skel = this->dataPtr->actorSkeletons[_id];
         trajInfo.SetTranslated(false);
       }
       trajectories.push_back(trajInfo);
@@ -579,9 +600,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     common::TrajectoryInfo trajInfo;
     trajInfo.SetId(0);
     trajInfo.SetAnimIndex(0);
-    std::chrono::milliseconds timepoint(0);
-    trajInfo.SetStartTime(TP(timepoint));
-    timepoint = std::chrono::milliseconds(
+    trajInfo.SetStartTime(TP(0ms));
+    auto timepoint = std::chrono::milliseconds(
                   static_cast<int>(skel->Animation(0)->Length() * 1000));
     trajInfo.SetEndTime(TP(timepoint));
     trajInfo.SetTranslated(false);
@@ -589,7 +609,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   // sequencing all trajectories
-  TP time(std::chrono::milliseconds(0));
+  TP time(0ms);
   for (auto &trajectory : trajectories)
   {
     auto dura = trajectory.Duration();
@@ -778,15 +798,17 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     Entity _id, std::chrono::steady_clock::duration _time, bool _loop) const
 {
-  if (this->dataPtr->actorTrajectories.find(_id) 
-           == this->dataPtr->actorTrajectories.end())
+  std::map<std::string, math::Matrix4d> allFrames;
+
+  if (this->dataPtr->actorTrajectories.find(_id)
+      == this->dataPtr->actorTrajectories.end())
   {
-    return std::map<std::string, math::Matrix4d>();
+    return allFrames;
   }
 
   auto trajs = this->dataPtr->actorTrajectories[_id];
   bool followTraj = true;
-  if ( 1 == trajs.size() && nullptr == trajs[0].Waypoints())
+  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
   {
     followTraj = false;
   }
@@ -796,9 +818,10 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
 
   common::TrajectoryInfo traj = trajs[0];
 
-  std::chrono::steady_clock::duration totalTime =
-          trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
+  auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
 
+  // FIXME(mingfeisun) Animation always loops even it _loop is false
+  // FIXME(mingfeisun) delay_start is not being handled
   if (_loop || _time <= totalTime)
   {
     while (_time > totalTime)
@@ -810,14 +833,12 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
       for (auto &trajectory : trajs)
       {
         if (trajectory.StartTime() - firstTraj->StartTime() <= _time
-                  && trajectory.EndTime() - firstTraj->StartTime() >= _time)
+            && trajectory.EndTime() - firstTraj->StartTime() >= _time)
         {
           traj = trajectory;
           _time -= traj.StartTime() - firstTraj->StartTime();
-          auto [sec, nsec] = math::durationToSecNsec(_time);
-          double time_seconds = sec + nsec / 1000000000.0;
 
-          traj.Waypoints()->Time(time_seconds);
+          traj.Waypoints()->Time(std::chrono::duration<double>(_time).count());
           traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
           break;
         }
@@ -828,8 +849,6 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
   math::Matrix4d rootTf(poseFrame.Rotation());
   rootTf.SetTranslation(poseFrame.Translation());
 
-  std::map<std::string, math::Matrix4d> allFrames;
-
   auto vIt = this->dataPtr->actorSkeletons.find(_id);
   if (vIt != this->dataPtr->actorSkeletons.end())
   {
@@ -837,15 +856,14 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     unsigned int animIndex = traj.AnimIndex();
     std::map<std::string, math::Matrix4d> rawFrames;
 
-    auto [sec, nsec] = math::durationToSecNsec(_time);
-    double time_seconds = sec + nsec / 1000000000.0;
+    double timeSeconds = std::chrono::duration<double>(_time).count();
 
     if (followTraj)
     {
       double distance = traj.DistanceSoFar(_time);
       if (distance < 0.1)
       {
-        rawFrames = skel->Animation(animIndex)->PoseAt(time_seconds, _loop);
+        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, _loop);
       }
       else
       {
@@ -855,7 +873,7 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     }
     else
     {
-      rawFrames = skel->Animation(animIndex)->PoseAt(time_seconds, _loop);
+      rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, _loop);
     }
 
     for (auto pair : rawFrames)
