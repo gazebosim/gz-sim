@@ -5,6 +5,9 @@
 1.  Rewind / reset and seek
     * [Pull Request 429](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/429)
 
+1.  Add Follow mode to GUI
+    * [Pull Request 430](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/430)
+
 ### Ignition Gazebo 2.10.0 (2019-09-08)
 
 1.  Custom odom frequency in sim time
