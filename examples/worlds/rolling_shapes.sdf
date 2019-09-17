@@ -41,6 +41,12 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+
+        <!-- user camera will follow the box as it rolls downhill -->
+        <camera_follow>
+          <p_gain>0</p_gain>
+          <target>box</target>
+        </camera_follow>
       </plugin>
 
       <!-- World control -->
