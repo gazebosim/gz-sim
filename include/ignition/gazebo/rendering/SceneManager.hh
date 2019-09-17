@@ -139,8 +139,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _loop True if getting animation in loop
     /// \return Map from the skeleton node name to transforms
     public: std::map<std::string, math::Matrix4d> ActorMeshAnimationAt(
-        Entity _id, std::chrono::steady_clock::duration _time,
-        bool _loop) const;
+        Entity _id, std::chrono::steady_clock::duration _time) const;
 
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id

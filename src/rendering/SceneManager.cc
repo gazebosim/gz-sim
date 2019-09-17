@@ -609,13 +609,27 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   // sequencing all trajectories
-  TP time(0ms);
+  auto delay_start_time = std::chrono::milliseconds(
+              static_cast<int>(_actor.ScriptDelayStart() * 1000));
+  TP time(delay_start_time);
   for (auto &trajectory : trajectories)
   {
     auto dura = trajectory.Duration();
     trajectory.SetStartTime(time);
     time += dura;
     trajectory.SetEndTime(time);
+  }
+
+  // loop flag: add a placeholder trajectory to indicate no loop
+  if (!_actor.ScriptLoop())
+  {
+    common::TrajectoryInfo noLoopTrajInfo;
+    noLoopTrajInfo.SetId(0);
+    noLoopTrajInfo.SetAnimIndex(0);
+    noLoopTrajInfo.SetStartTime(time);
+    noLoopTrajInfo.SetEndTime(time);
+    noLoopTrajInfo.SetTranslated(false);
+    trajectories.push_back(noLoopTrajInfo);
   }
 
   this->dataPtr->actorTrajectories[_id] = trajectories;
@@ -796,7 +810,7 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 
 /////////////////////////////////////////////////
 std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
-    Entity _id, std::chrono::steady_clock::duration _time, bool _loop) const
+    Entity _id, std::chrono::steady_clock::duration _time) const
 {
   std::map<std::string, math::Matrix4d> allFrames;
 
@@ -818,11 +832,28 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
 
   common::TrajectoryInfo traj = trajs[0];
 
+  using TP = std::chrono::steady_clock::time_point;
   auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
 
-  // FIXME(mingfeisun) Animation always loops even it _loop is false
-  // FIXME(mingfeisun) delay_start is not being handled
-  if (_loop || _time <= totalTime)
+  // delay start
+  if (_time < (trajs.begin()->StartTime() - TP(0ms)))
+  {
+    _time = std::chrono::steady_clock::duration(0);
+  }
+  else
+  {
+    _time -= trajs.begin()->StartTime() - TP(0ms);
+  }
+
+  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
+            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
+
+  if (_time >= totalTime && noLoop)
+  {
+    _time = totalTime;
+  }
+
+  if (!noLoop || _time <= totalTime)
   {
     while (_time > totalTime)
     {
@@ -863,7 +894,7 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
       double distance = traj.DistanceSoFar(_time);
       if (distance < 0.1)
       {
-        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, _loop);
+        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
       }
       else
       {
@@ -873,7 +904,7 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     }
     else
     {
-      rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, _loop);
+      rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
     }
 
     for (auto pair : rawFrames)

@@ -751,8 +751,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // TODO(anyone) Support setting actor pose from other systems
         // this->entityPoses[_entity] = _pose->Data();
         this->actorTransforms[_entity] =
-              this->sceneManager.ActorMeshAnimationAt(_entity,
-                                    this->simTime, true);
+              this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
         return true;
       });
 
