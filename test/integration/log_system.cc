@@ -211,7 +211,34 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Load log file recorded above
   transport::log::Log log;
   log.Open(logPlaybackFile);
-  auto batch = log.QueryMessages();
+
+  // Check it has SDF message
+  auto batch = log.QueryMessages(transport::log::TopicPattern(
+      std::regex(".*/sdf")));
+  auto recordedIter = batch.begin();
+  EXPECT_NE(batch.end(), recordedIter);
+
+  EXPECT_EQ("ignition.msgs.StringMsg", recordedIter->Type());
+  EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
+
+  msgs::StringMsg sdfMsg;
+  sdfMsg.ParseFromString(recordedIter->Data());
+  EXPECT_FALSE(sdfMsg.data().empty());
+  EXPECT_EQ(batch.end(), ++recordedIter);
+
+  // Check initial state message
+  batch = log.QueryMessages(transport::log::TopicPattern(
+      std::regex(".*/changed_state")));
+  recordedIter = batch.begin();
+  EXPECT_NE(batch.end(), recordedIter);
+
+  EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+  EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
+
+  msgs::SerializedStateMap stateMsg;
+  stateMsg.ParseFromString(recordedIter->Data());
+  EXPECT_EQ(28, stateMsg.entities_size());
+  EXPECT_EQ(batch.end(), ++recordedIter);
 
   // Pass changed SDF to server
   ServerConfig playServerConfig;
@@ -219,11 +246,23 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   // Keep track of total number of pose comparisons
   int nTotal{0};
-  bool hasSdfMessage{false};
-  bool hasState{false};
 
-  // Set start time for the batch to load in initial iteration
-  auto recordedIter = batch.begin();
+  // Check poses
+  batch = log.QueryMessages(transport::log::TopicPattern(
+      std::regex(".*/dynamic_pose/info")));
+  recordedIter = batch.begin();
+  EXPECT_NE(batch.end(), recordedIter);
+  EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
+
+  // First pose at 1ms time, both from log clock and header
+  EXPECT_EQ(1000000, recordedIter->TimeReceived().count());
+
+  msgs::Pose_V recordedMsg;
+  recordedMsg.ParseFromString(recordedIter->Data());
+  ASSERT_TRUE(recordedMsg.has_header());
+  ASSERT_TRUE(recordedMsg.header().has_stamp());
+  EXPECT_EQ(0, recordedMsg.header().stamp().sec());
+  EXPECT_EQ(1000000, recordedMsg.header().stamp().nsec());
 
   // Start server
   Server playServer(playServerConfig);
@@ -234,93 +273,66 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   std::function<void(const msgs::Pose_V &)> msgCb =
       [&](const msgs::Pose_V &_playedMsg) -> void
   {
-    playServer.SetPaused(true);
+    // Playback continues even after the log file is over
+    if (batch.end() == recordedIter)
+      return;
 
     ASSERT_TRUE(_playedMsg.has_header());
     ASSERT_TRUE(_playedMsg.header().has_stamp());
     EXPECT_EQ(0, _playedMsg.header().stamp().sec());
 
-    // Check SDF message
-    if (recordedIter->Type() == "ignition.msgs.StringMsg")
+    // Get next recorded message
+    EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
+    recordedMsg.ParseFromString(recordedIter->Data());
+
+    ASSERT_TRUE(recordedMsg.has_header());
+    ASSERT_TRUE(recordedMsg.header().has_stamp());
+    EXPECT_EQ(0, recordedMsg.header().stamp().sec());
+
+    // Log clock timestamp matches message timestamp
+    EXPECT_EQ(recordedMsg.header().stamp().nsec(),
+        recordedIter->TimeReceived().count());
+
+    // Dynamic poses are throttled according to real time during playback,
+    // so we can't guarantee the exact timestamp as recorded.
+    EXPECT_NEAR(_playedMsg.header().stamp().nsec(),
+        recordedMsg.header().stamp().nsec(), 100000000);
+
+    // Loop through all recorded poses, update map
+    std::map<std::string, msgs::Pose> entityRecordedPose;
+    for (int i = 0; i < recordedMsg.pose_size(); ++i)
     {
-      EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
-
-      msgs::StringMsg sdfMsg;
-      sdfMsg.ParseFromString(recordedIter->Data());
-
-      EXPECT_FALSE(sdfMsg.data().empty());
-
-      hasSdfMessage = true;
-      ++recordedIter;
+      entityRecordedPose[recordedMsg.pose(i).name()] = recordedMsg.pose(i);
     }
 
-    // Check initial state message
-    if (recordedIter->Type() == "ignition.msgs.SerializedStateMap")
+    // Has 4 dynamic entities
+    EXPECT_EQ(4, _playedMsg.pose().size());
+    EXPECT_EQ(4u, entityRecordedPose.size());
+
+    // Loop through all entities and compare played poses to recorded ones
+    for (int i = 0; i < _playedMsg.pose_size(); ++i)
     {
-      EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
+      auto posePlayed = msgs::Convert(_playedMsg.pose(i));
+      auto poseRecorded = msgs::Convert(
+          entityRecordedPose[_playedMsg.pose(i).name()]);
 
-      msgs::SerializedStateMap stateMsg;
-      stateMsg.ParseFromString(recordedIter->Data());
+      EXPECT_NEAR(posePlayed.Pos().X(), poseRecorded.Pos().X(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Pos().Y(), poseRecorded.Pos().Y(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Pos().Z(), poseRecorded.Pos().Z(), 0.1)
+          << _playedMsg.pose(i).name();
 
-      EXPECT_EQ(28, stateMsg.entities_size());
-
-      hasState = true;
-      ++recordedIter;
+      EXPECT_NEAR(posePlayed.Rot().Roll(), poseRecorded.Rot().Roll(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Rot().Pitch(), poseRecorded.Rot().Pitch(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Rot().Yaw(), poseRecorded.Rot().Yaw(), 0.1)
+          << _playedMsg.pose(i).name();
     }
 
-    if (recordedIter != batch.end())
-    {
-      EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
-
-      // Get next recorded message
-      msgs::Pose_V recordedMsg;
-      recordedMsg.ParseFromString(recordedIter->Data());
-
-      ASSERT_TRUE(recordedMsg.has_header());
-      ASSERT_TRUE(recordedMsg.header().has_stamp());
-      EXPECT_EQ(0, recordedMsg.header().stamp().sec());
-
-      // Check time stamps are close
-      EXPECT_LT(abs(_playedMsg.header().stamp().nsec() -
-            recordedMsg.header().stamp().nsec()), 100000000);
-
-      // Maps entity to recorded pose
-      // Key: entity. Value: pose
-      std::map <Entity, msgs::Pose> entityRecordedPose;
-      // Loop through all recorded poses, update map
-      for (int i = 0; i < recordedMsg.pose_size(); ++i)
-      {
-        msgs::Pose pose = recordedMsg.pose(i);
-        entityRecordedPose.insert_or_assign(pose.id(), pose);
-      }
-
-      // Has 4 dynamic entities
-      EXPECT_EQ(4, _playedMsg.pose().size());
-      EXPECT_EQ(4u, entityRecordedPose.size());
-
-      // Loop through all entities and compare played poses to recorded ones
-      for (int i = 0; i < _playedMsg.pose_size(); ++i)
-      {
-        auto posePlayed = msgs::Convert(_playedMsg.pose(i));
-        auto poseRecorded = msgs::Convert(entityRecordedPose.at(
-              _playedMsg.pose(i).id()));
-
-        auto diff = posePlayed - poseRecorded;
-
-        EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
-        EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
-        EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
-
-        EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
-        EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
-        EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
-        EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
-      }
-      playServer.SetPaused(false);
-
-      ++recordedIter;
-      nTotal++;
-    }
+    ++recordedIter;
+    nTotal++;
   };
 
   // Subscribe to ignition topic and compare to logged poses
@@ -341,8 +353,6 @@ TEST_F(LogSystemTest, RecordAndPlayback)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_NE(maxSleep, sleep);
-  EXPECT_TRUE(hasSdfMessage);
-  EXPECT_TRUE(hasState);
 
   #if !defined (__APPLE__)
   /// \todo(anyone) there seems to be a race condition that sometimes cause an
