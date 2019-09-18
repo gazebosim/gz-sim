@@ -18,9 +18,14 @@ Rectangle {
     objectName: "renderWindow"
     anchors.fill: parent
 
+    /**
+     * Message to be displayed over the render window
+     */
+    property string message: ""
+
     Connections {
       target: renderWindow
-      onOpenContextMenu: entityContextMenu.open(_entity, "visual");
+      onOpenContextMenu: entityContextMenu.open(_entity, "model");
     }
   }
 
@@ -46,5 +51,12 @@ Rectangle {
   IgnGazebo.EntityContextMenu {
     id: entityContextMenu
     anchors.fill: parent
+  }
+
+  // todo(anyone) replace this with snackbar notifications
+  Text {
+    anchors.top: renderWindow.achors.top
+    anchors.left: renderWindow.achors.left
+    text: renderWindow.message
   }
 }

@@ -140,6 +140,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Target to follow
+    public: std::string followTarget;
+
+    /// \brief Wait for follow target
+    public: bool followTargetWait = false;
+
+    /// \brief Offset of camera from taget being followed
+    public: math::Vector3d followOffset = math::Vector3d(-5, 0, 3);
+
+    /// \brief Flag to indicate the follow offset needs to be updated
+    public: bool followOffsetDirty = false;
+
+    /// \brief Follow P gain
+    public: double followPGain = 0.01;
+
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
 
@@ -196,8 +211,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Record video service
     public: std::string recordVideoService;
 
-    /// \brief Transform mode service
+    /// \brief Move to service
     public: std::string moveToService;
+
+    /// \brief Follow service
+    public: std::string followService;
   };
 }
 }
@@ -324,6 +342,51 @@ void IgnRenderer::Render()
       }
     }
   }
+
+  // Follow
+  {
+    IGN_PROFILE("IgnRenderer::Render Follow");
+    if (!this->dataPtr->moveToTarget.empty())
+      return;
+    rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
+    if (!this->dataPtr->followTarget.empty())
+    {
+      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      rendering::NodePtr target = scene->NodeByName(
+          this->dataPtr->followTarget);
+      if (target)
+      {
+        if (!followTarget || target != followTarget)
+        {
+          this->dataPtr->camera->SetFollowTarget(target,
+              this->dataPtr->followOffset);
+          this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
+
+          this->dataPtr->camera->SetTrackTarget(target);
+        }
+        else if (this->dataPtr->followOffsetDirty)
+        {
+          math::Vector3d offset =
+              this->dataPtr->camera->WorldPosition() - target->WorldPosition();
+          offset = target->WorldRotation().RotateVectorReverse(
+              offset);
+          this->dataPtr->camera->SetFollowOffset(offset);
+          this->dataPtr->followOffsetDirty = false;
+        }
+      }
+      else if (!this->dataPtr->followTargetWait)
+      {
+        ignerr << "Unable to follow target. Target: '"
+               << this->dataPtr->followTarget << "' not found" << std::endl;
+        this->dataPtr->followTarget.clear();
+      }
+    }
+    else if (followTarget)
+    {
+      this->dataPtr->camera->SetFollowTarget(nullptr);
+      this->dataPtr->camera->SetTrackTarget(nullptr);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -359,6 +422,13 @@ void IgnRenderer::HandleMouseContextMenu()
 
     if (!visual)
       return;
+
+    // get model visual
+    while (visual->HasParent() && visual->Parent() !=
+        visual->Scene()->RootVisual())
+    {
+      visual = std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+    }
 
     emit ContextMenuRequested(visual->Name().c_str());
     this->dataPtr->mouseDirty = false;
@@ -548,6 +618,10 @@ void IgnRenderer::HandleMouseViewControl()
   if (!this->dataPtr->mouseDirty)
     return;
 
+  math::Vector3d camWorldPos;
+  if (!this->dataPtr->followTarget.empty())
+    this->dataPtr->camera->WorldPosition();
+
   this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
@@ -594,6 +668,16 @@ void IgnRenderer::HandleMouseViewControl()
   }
   this->dataPtr->drag = 0;
   this->dataPtr->mouseDirty = false;
+
+
+  if (!this->dataPtr->followTarget.empty())
+  {
+    math::Vector3d dPos = this->dataPtr->camera->WorldPosition() - camWorldPos;
+    if (dPos != math::Vector3d::Zero)
+    {
+      this->dataPtr->followOffsetDirty = true;
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -679,6 +763,29 @@ void IgnRenderer::SetMoveTo(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowTarget(const std::string &_target,
+    bool _waitForTarget)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followTarget = _target;
+  this->dataPtr->followTargetWait = _waitForTarget;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowPGain(double _gain)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followPGain = _gain;
+}
+
+/////////////////////////////////////////////////
+std::string IgnRenderer::FollowTarget() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followTarget;
 }
 
 /////////////////////////////////////////////////
@@ -1039,6 +1146,28 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       poseStr >> pose;
       renderWindow->SetCameraPose(pose);
     }
+
+    if (auto elem = _pluginElem->FirstChildElement("camera_follow"))
+    {
+      if (auto gainElem = elem->FirstChildElement("p_gain"))
+      {
+        double gain;
+        std::stringstream gainStr;
+        gainStr << std::string(gainElem->GetText());
+        gainStr >> gain;
+        if (gain >= 0 && gain <= 1.0)
+          renderWindow->SetFollowPGain(gain);
+        else
+          ignerr << "Camera follow p gain outside of range [0, 1]" << std::endl;
+      }
+
+      if (auto targetElem = elem->FirstChildElement("target"))
+      {
+        std::stringstream targetStr;
+        targetStr << std::string(targetElem->GetText());
+        renderWindow->SetFollowTarget(targetStr.str(), true);
+      }
+    }
   }
 
   // transform mode
@@ -1063,6 +1192,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       &Scene3D::OnMoveTo, this);
   ignmsg << "Move to service on ["
          << this->dataPtr->moveToService << "]" << std::endl;
+
+  // follow
+  this->dataPtr->followService = "/gui/follow";
+  this->dataPtr->node.Advertise(this->dataPtr->followService,
+      &Scene3D::OnFollow, this);
+  ignmsg << "Follow service on ["
+         << this->dataPtr->followService << "]" << std::endl;
 }
 
 
@@ -1127,6 +1263,18 @@ bool Scene3D::OnMoveTo(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetFollowTarget(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
@@ -1147,6 +1295,22 @@ void RenderWindowItem::SetMoveTo(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetFollowTarget(const std::string &_target,
+    bool _waitForTarget)
+{
+  this->setProperty("message", _target.empty() ? "" :
+      "Press Escape to exit Follow mode");
+  this->dataPtr->renderThread->ignRenderer.SetFollowTarget(_target,
+      _waitForTarget);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowPGain(double _gain)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetCameraPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.cameraPose = _pose;
@@ -1161,6 +1325,8 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 /////////////////////////////////////////////////
 void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
+  this->forceActiveFocus();
+
   auto event = gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
@@ -1203,11 +1369,28 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 {
+  this->forceActiveFocus();
+
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
+}
+
+////////////////////////////////////////////////
+void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+{
+  if (_e->key() == Qt::Key_Escape)
+  {
+    if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
+    {
+      this->SetFollowTarget(std::string());
+      this->setProperty("message", "");
+
+      _e->accept();
+    }
+  }
 }
 
 ///////////////////////////////////////////////////
