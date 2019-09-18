@@ -20,6 +20,11 @@ Item {
       text: "Move To"
       onTriggered: context.OnRequest("move_to", context.entity)
     }
+    MenuItem {
+      id: followMenu
+      text: "Follow"
+      onTriggered: context.OnRequest("follow", context.entity)
+    }
   }
 
   function open(_entity, _type) {
@@ -28,6 +33,7 @@ Item {
     context.entity = _entity
     context.type = _type
     moveToMenu.enabled = false
+    followMenu.enabled = false
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -35,6 +41,7 @@ Item {
         context.type == "performer")
     {
       moveToMenu.enabled = true
+      followMenu.enabled = true
     }
 
     menu.open()

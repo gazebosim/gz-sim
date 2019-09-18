@@ -67,6 +67,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///                          (0.3, 0.3, 0.3, 1.0)
   /// * \<camera_pose\> : Optional starting pose for the camera, defaults to
   ///                     (0, 0, 5, 0, 0, 0)
+  /// * \<camera_follow\> :
+  ///     * \<p_gain\>    : Camera follow movement p gain.
+  ///     * \<target\>    : Target to follow.
   class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
@@ -103,6 +106,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _res Response data
     /// \return True if the request is received
     private: bool OnMoveTo(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for a follow request
+    /// \param[in] _msg Request message to set the target to follow.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
     /// \internal
@@ -152,6 +162,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
+
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is when following a target that is not
+    ///  present on startup but spawned later into simulation
+    public: void SetFollowTarget(const std::string &_target,
+        bool _waitForTarget = false);
+
+    /// \brief Set the p gain for the camera follow movement
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowPGain(double _gain);
+
+    /// \brief Get the target which the user camera is following
+    /// \return Target being followed
+    public: std::string FollowTarget() const;
 
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
@@ -275,6 +301,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
 
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is follow a target that is not present
+    /// on startup but spawned later into simulation
+    public: void SetFollowTarget(const std::string &_target,
+        bool _waitForTarget = false);
+
+    /// \brief Set the p gain for the camera follow movement
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowPGain(double _gain);
+
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
@@ -293,6 +331,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
+
+    // Documentation inherited
+    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view

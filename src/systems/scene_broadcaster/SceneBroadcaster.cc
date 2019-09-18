@@ -229,6 +229,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
+
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
@@ -249,13 +250,17 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
-  // * also publish off-rate if there are change events (new / erased entities,
-  // or components with one-time changes)
+  // * also publish off-rate if there are change events:
+  //     * new / erased entities
+  //     * components with one-time changes
+  //     * jump back in time
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
+  bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges();
+        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
+        jumpBackInTime;
   bool itsPubTime = now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&

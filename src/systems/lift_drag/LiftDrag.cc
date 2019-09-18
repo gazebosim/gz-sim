@@ -491,6 +491,15 @@ void LiftDrag::Configure(const Entity &_entity,
 void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LiftDrag::PreUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   if (!this->dataPtr->initialized)
   {
     // We call Load here instead of Configure because we can't be guaranteed
