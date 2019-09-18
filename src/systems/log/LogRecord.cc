@@ -64,11 +64,11 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
-  /// \brief Clock used to timestamp recorded messages with sim time
-  /// coming from /clock topic. This is not the timestamp on the header,
-  /// rather a logging-specific stamp.
+  /// \brief Clock used to timestamp recorded messages with sim time.
+  /// This is not the timestamp on the header, rather a logging-specific stamp.
+  /// This stamp is used by LogPlayback to step through logs.
   /// In case there's disagreement between these stamps, the one in the
-  /// header should be used.
+  /// header should be the most accurate.
   public: std::unique_ptr<transport::NetworkClock> clock;
 
   /// \brief Name of this world
@@ -206,9 +206,10 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->recorder.AddTopic(stateTopic);
   // this->recorder.AddTopic(std::regex(".*"));
 
-  // Timestamp messages with sim time from clock topic
+  // Timestamp messages with sim time and republish that time on
+  // a ~/log/clock topic (which we don't really need).
   // Note that the message headers should also have a timestamp
-  auto clockTopic = "/world/" + this->worldName + "/clock";
+  auto clockTopic = "/world/" + this->worldName + "/log/clock";
   this->clock = std::make_unique<transport::NetworkClock>(clockTopic,
       transport::NetworkClock::TimeBase::SIM);
   this->recorder.Sync(this->clock.get());
@@ -225,10 +226,27 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 }
 
 //////////////////////////////////////////////////
-void LogRecord::PostUpdate(const UpdateInfo &,
+void LogRecord::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &)
+{
+  IGN_PROFILE("LogRecord::PreUpdate");
+  this->dataPtr->clock->SetTime(_info.simTime);
+}
+
+//////////////////////////////////////////////////
+void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogRecord::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Publish only once
   if (!this->dataPtr->sdfPublished)
   {
@@ -251,6 +269,7 @@ void LogRecord::PostUpdate(const UpdateInfo &,
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
                     LogRecord::ISystemConfigure,
+                    LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,

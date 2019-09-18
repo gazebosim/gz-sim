@@ -177,6 +177,15 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::PreUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // If the joints haven't been identified yet, look for them
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
