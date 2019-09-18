@@ -33,6 +33,9 @@ namespace ignition::gazebo
 
     /// \brief Move to service name
     public: std::string moveToService;
+
+    /// \brief Follow service name
+    public: std::string followService;
   };
 }
 
@@ -53,6 +56,9 @@ EntityContextMenu::EntityContextMenu()
 {
   // For move to service requests
   this->dataPtr->moveToService = "/gui/move_to";
+
+  // For follow service requests
+  this->dataPtr->followService = "/gui/follow";
 }
 
 /////////////////////////////////////////////////
@@ -75,6 +81,13 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
   }
+  else if (request == "follow")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
+  }
+
   else
   {
     ignwarn << "Unknown request [" << request << "]" << std::endl;
