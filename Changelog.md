@@ -2,65 +2,70 @@
 
 ### Ignition Gazebo 2.X.X
 
+1.  Rewind / reset and seek
+    * [Pull Request 429](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/429)
+
+1.  Add Follow mode to GUI
+    * [Pull Request 430](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/430)
 
 ### Ignition Gazebo 2.10.0 (2019-09-08)
 
 1.  Custom odom frequency in sim time
-   * [Pull Request 427](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/427)
+    * [Pull Request 427](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/427)
 
 1.  Add Move To gui plugin
-   * [Pull Request 426](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/426)
+    * [Pull Request 426](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/426)
 
 ### Ignition Gazebo 2.9.0
 
 1.  Use the JointSetVelocityCommand feature to set joint velocities
-   * [Pull Request 424](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/424)
+    * [Pull Request 424](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/424)
 
 ### Ignition Gazebo 2.8.0 (2019-08-23)
 
 1. Add video recorder gui plugin
-   * [Pull Request 422](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/422)
+    * [Pull Request 422](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/422)
 
 1. Vertical rays for lidar demo
-   * [Pull Request 419](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/419)
+    * [Pull Request 419](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/419)
 
 1. Print world path when using cli
-   * [Pull Request 420](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/420)
+    * [Pull Request 420](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/420)
 
 ### Ignition Gazebo 2.7.1
 
 1. Fix order of adding and removing rendering entities, and clean up mesh
    materials in the SceneManager.
-   * [Pull Request 415](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/415)
-   * [Pull Request 416](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/416)
+    * [Pull Request 415](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/415)
+    * [Pull Request 416](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/416)
 
 ### Ignition Gazebo 2.7.0
 
 1. Move creation of default log path to ServerConfig. This lets both console logs and state logs to be stored in the same directory.  The console messages are always logged.  Allow state log files to be overwritten.
-   * [Pull Request 413](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/413)
+    * [Pull Request 413](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/413)
 
 1. Baseline for stereo cameras
-   * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
+    * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
 
 1. Fix log playback with levels. This drops support for logs created before v2.0.0.
-   * [Pull Request 407](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/407)
+    * [Pull Request 407](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/407)
 
 1. Add worker threads for System PostUpdate phase
-   * [Pull Request 387](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/387)
+    * [Pull Request 387](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/387)
 
 1. Added a test runner for executing an SDF and recording simulation rates.
    See the `test/performance/READEM.md` file for more info.
-   * [Pull Request 389](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/389)
+    * [Pull Request 389](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/389)
 
 ### Ignition Gazebo 2.6.1 (2019-07-26)
 
 1. Clear stepMsg before populating it
-   * [Pull Request 398](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/398)
+    * [Pull Request 398](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/398)
 
 ### Ignition Gazebo 2.6.0 (2019-07-24)
 
 1.  Improve performance of Pose Publisher
-   * [Pull Request 392](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/392)
+    * [Pull Request 392](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/392)
 
 1. Fix distributed sim
     * [Pull Request 385](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/385)
@@ -68,7 +73,7 @@
 ### Ignition Gazebo 2.5.0 (2019-07-19)
 
 1. The LinearBatteryPlugin system publishes battery state
-   * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
+    * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
 
 ### Ignition Gazebo 2.4.0 (2019-07-17)
 
@@ -81,7 +86,7 @@
    Components state information has been incorporated, which is used to
    indicate if a component change is periodic (such as through a physics
    update) or a one-time change (such as through a user command).
-   * [Pull Request 384](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/384)
+    * [Pull Request 384](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/384)
 
 1. Add sdf parameter to battery to start draining only when robot has started moving
     * [Pull Request 370](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/370)
