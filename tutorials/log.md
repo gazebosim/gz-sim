@@ -18,7 +18,7 @@ Other options for recording:
 
 `--record-resources`: Models and textures can be recorded, in addition to states, by specifying this flag. This implicitly enables `--record` flag.
 
-`--overwrite-existing`: If the record path already exists, overwrite it.
+`--overwrite`: If the record path already exists, overwrite it.
 
 `--compress`: Compress the recorded file.
 
