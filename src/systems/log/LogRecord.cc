@@ -620,7 +620,7 @@ void LogRecordPrivate::CompressStateAndResources()
   if (fuel_tools::Zip::Compress(this->logPath, this->cmpPath))
   {
     ignmsg << "Compressed log file and resources to [" << this->cmpPath
-           << "]. Removing recorded directory [" << this->logPath << "]."
+           << "].\nRemoving recorded directory [" << this->logPath << "]."
            << std::endl;
     // Remove directory after compressing successfully
     common::removeAll(this->logPath);

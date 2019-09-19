@@ -202,13 +202,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   }
 
   // Verify files are created
-  auto logFile = common::joinPaths(this->logDir, "state.tlog");
-  EXPECT_TRUE(common::exists(logFile));
   std::string zipFile = this->AppendExtension(this->logDir, ".zip");
   EXPECT_TRUE(common::exists(zipFile));
-
-  // Remove recorded directory
-  common::removeAll(this->logDir);
 
   // World file to load
   const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -217,7 +212,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Change log path in world SDF to build directory
   sdf::Root playSdfRoot;
   this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
-      this->logDir);
+      zipFile);
   ASSERT_EQ(1u, playSdfRoot.WorldCount());
 
   const auto sdfWorld = playSdfRoot.WorldByIndex(0);
