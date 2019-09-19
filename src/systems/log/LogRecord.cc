@@ -25,7 +25,6 @@
 #include <ctime>
 #include <set>
 #include <list>
-#include <filesystem>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
