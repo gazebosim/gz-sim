@@ -106,12 +106,6 @@ ign_find_package(ignition-rendering3 REQUIRED)
 set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------
-# Find gflags
-ign_find_package(gflags
-    REQUIRED
-    PKGCONFIG gflags)
-
-#--------------------------------------
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.2)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})

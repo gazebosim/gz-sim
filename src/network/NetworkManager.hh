@@ -63,7 +63,7 @@ namespace ignition
       public: static std::unique_ptr<NetworkManager> Create(
           const std::function<void(const UpdateInfo &_info)> &_stepFunction,
           EntityComponentManager &_ecm, EventManager *_eventMgr = nullptr,
-          const NetworkConfig &_config = NetworkConfig::FromEnv(),
+          const NetworkConfig &_config = NetworkConfig(),
           const NodeOptions &_options = NodeOptions());
 
       /// \brief Constructor with configuration passed in.
