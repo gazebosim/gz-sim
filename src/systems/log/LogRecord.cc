@@ -98,7 +98,7 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.
-  public: void LogModelResources(EntityComponentManager &_ecm);
+  public: void LogModelResources(const EntityComponentManager &_ecm);
 
   /// \brief Return true if all the models are saved successfully.
   /// \return True if all the models are saved successfully.
@@ -398,7 +398,7 @@ void LogRecordPrivate::SetCompress(bool _compress)
 }
 
 //////////////////////////////////////////////////
-void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
+void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
 {
   if (!this->recordResources)
     return;
@@ -430,7 +430,7 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
 
   // Loop through geometries in world
   _ecm.EachNew<components::Geometry>(
-      [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
+      [&](const Entity &/*_entity*/, const components::Geometry *_geoComp) -> bool
   {
     sdf::Geometry geoSdf = _geoComp->Data();
     if (geoSdf.Type() == sdf::GeometryType::MESH)
@@ -448,7 +448,7 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
 
   // Loop through materials in world
   _ecm.EachNew<components::Material>(
-      [&](const Entity &/*_entity*/, components::Material *_matComp) -> bool
+      [&](const Entity &/*_entity*/, const components::Material *_matComp) -> bool
   {
     sdf::Material matSdf = _matComp->Data();
     std::string matUri = matSdf.ScriptUri();
@@ -634,15 +634,6 @@ void LogRecordPrivate::CompressStateAndResources()
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &_ecm)
-{
-  // If there are new models loaded, save meshes and textures
-  if (this->dataPtr->RecordResources() && _ecm.HasNewEntities())
-    this->dataPtr->LogModelResources(_ecm);
-}
-
-//////////////////////////////////////////////////
 void LogRecord::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &)
 {
@@ -681,12 +672,15 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
   _ecm.ChangedState(stateMsg);
   if (!stateMsg.entities().empty())
     this->dataPtr->statePub.Publish(stateMsg);
+
+  // If there are new models loaded, save meshes and textures
+  if (this->dataPtr->RecordResources() && _ecm.HasNewEntities())
+    this->dataPtr->LogModelResources(_ecm);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
                     LogRecord::ISystemConfigure,
-                    LogRecord::ISystemUpdate,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 

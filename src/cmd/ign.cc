@@ -116,10 +116,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
 
     serverConfig.SetUseLogRecord(true);
-    if (_recordResources > 0)
-      serverConfig.SetLogRecordResources(true);
-    else
-      serverConfig.SetLogRecordResources(false);
+    serverConfig.SetLogRecordResources(_recordResources);
 
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
     {
@@ -131,15 +128,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
   }
 
-  if (_overwrite > 0)
-    serverConfig.SetLogRecordOverwrite(true);
-  else
-    serverConfig.SetLogRecordOverwrite(false);
-
-  if (_compress > 0)
-    serverConfig.SetLogRecordCompress(true);
-  else
-    serverConfig.SetLogRecordCompress(false);
+  serverConfig.SetLogRecordOverwrite(_overwrite);
+  serverConfig.SetLogRecordCompress(_compress);
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {
