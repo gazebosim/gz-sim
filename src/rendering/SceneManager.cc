@@ -609,9 +609,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   // sequencing all trajectories
-  auto delay_start_time = std::chrono::milliseconds(
+  auto delayStartTime = std::chrono::milliseconds(
               static_cast<int>(_actor.ScriptDelayStart() * 1000));
-  TP time(delay_start_time);
+  TP time(delayStartTime);
   for (auto &trajectory : trajectories)
   {
     auto dura = trajectory.Duration();

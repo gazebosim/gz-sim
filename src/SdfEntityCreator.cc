@@ -21,6 +21,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -39,7 +40,6 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Lidar.hh"
-#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
