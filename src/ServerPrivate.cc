@@ -210,60 +210,29 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             // If a record path is specified on command line, replace in SDF
             if (!_config.LogRecordPath().empty())
             {
-              sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
-              // If parameter not specified in SDF, add it
-              if (pathParam == nullptr)
-              {
-                pluginElem->AddAttribute("path", "string", "", false);
-                pathParam = pluginElem->GetAttribute("path");
-              }
-              pathParam->SetFromString(_config.LogRecordPath());
+              sdf::ElementPtr pathElem = pluginElem->GetElement("path");
+              pathElem->Set<std::string>(_config.LogRecordPath());
             }
 
             // If resource flag specified on command line, replace in SDF
             if (_config.LogRecordResources())
             {
-              sdf::ParamPtr resourceParam = pluginElem->GetAttribute(
-                "record_resources");
-              // If parameter not specified in SDF, add it
-              if (resourceParam == nullptr)
-              {
-                pluginElem->AddAttribute("record_resources", "bool", "false",
-                  false);
-                resourceParam = pluginElem->GetAttribute("record_resources");
-              }
-              resourceParam->SetFromString(_config.LogRecordResources() ?
-                "true" : "false");
+              sdf::ElementPtr resourceElem = pluginElem->GetElement("record_resources");
+              resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
             }
 
             // If overwrite flag specified on command line, replace in SDF
             if (_config.LogRecordOverwrite())
             {
-              sdf::ParamPtr overwriteParam = pluginElem->GetAttribute(
-                "overwrite");
-              // If parameter not specified in SDF, add it
-              if (overwriteParam == nullptr)
-              {
-                pluginElem->AddAttribute("overwrite", "bool", "false", false);
-                overwriteParam = pluginElem->GetAttribute("overwrite");
-              }
-              overwriteParam->SetFromString(_config.LogRecordOverwrite() ?
-                "true" : "false");
+              sdf::ElementPtr overwriteElem = pluginElem->GetElement("overwrite");
+              overwriteElem->Set<bool>(_config.LogRecordOverwrite() ? true : false);
             }
 
             // If compress flag specified on command line, replace in SDF
             if (_config.LogRecordCompress())
             {
-              sdf::ParamPtr compressParam = pluginElem->GetAttribute(
-                "compress");
-              // If parameter not specified in SDF, add it
-              if (compressParam == nullptr)
-              {
-                pluginElem->AddAttribute("compress", "bool", "false", false);
-                compressParam = pluginElem->GetAttribute("compress");
-              }
-              compressParam->SetFromString(_config.LogRecordCompress() ?
-                "true" : "false");
+              sdf::ElementPtr compressElem = pluginElem->GetElement("compress");
+              compressElem->Set<bool>(_config.LogRecordCompress() ? true : false);
             }
 
             return;
@@ -293,28 +262,21 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   // Add custom record path
   if (!_config.LogRecordPath().empty())
   {
-    recordElem->AddAttribute("path", "string", "", false);
-    sdf::ParamPtr pathParam = recordElem->GetAttribute("path");
-    pathParam->SetFromString(_config.LogRecordPath());
+    sdf::ElementPtr pathElem = recordElem->GetElement("path");
+    pathElem->Set<std::string>(_config.LogRecordPath());
   }
 
   // Set whether to record resources
-  recordElem->AddAttribute("record_resources", "bool", "false", false);
-  sdf::ParamPtr resourcesParam = recordElem->GetAttribute("record_resources");
-  resourcesParam->SetFromString(_config.LogRecordResources() ? "true" :
-    "false");
+  sdf::ElementPtr resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
 
   // Set whether to overwrite
-  recordElem->AddAttribute("overwrite", "bool", "false", false);
-  sdf::ParamPtr overwriteParam = recordElem->GetAttribute("overwrite");
-  overwriteParam->SetFromString(_config.LogRecordOverwrite() ?
-    "true" : "false");
+  sdf::ElementPtr overwriteElem = recordElem->GetElement("overwrite");
+  overwriteElem->Set<bool>(_config.LogRecordOverwrite() ? true : false);
 
   // Set whether to compress
-  recordElem->AddAttribute("compress", "bool", "false", false);
-  sdf::ParamPtr compressParam = recordElem->GetAttribute("compress");
-  compressParam->SetFromString(_config.LogRecordCompress() ?
-    "true" : "false");
+  sdf::ElementPtr compressElem = recordElem->GetElement("compress");
+  compressElem->Set<bool>(_config.LogRecordCompress() ? true : false);
 }
 
 //////////////////////////////////////////////////
