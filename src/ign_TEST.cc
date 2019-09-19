@@ -25,19 +25,12 @@
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
-#ifdef __APPLE__
-static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
-"-f ";
-static const std::string kIgnCommand(
-  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
-  "/bin/ign-gazebo-server");
-#else
-static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
-" ";
+// Command line not working on OSX, see
+// https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/25/
+#ifndef __APPLE__
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
   kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
-#endif
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -64,7 +57,7 @@ std::string customExecStr(std::string _cmd)
 /////////////////////////////////////////////////
 TEST(CmdLine, Server)
 {
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " + kSdfFileOpt +
+  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -80,7 +73,7 @@ TEST(CmdLine, Server)
   // Use IGN_GAZEBO_RESOURCE_PATH instead of specifying the complete path
   cmd = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds " + kIgnCommand +
-    " -r -v 4 --iterations 5 " + kSdfFileOpt + " plugins.sdf";
+    " -r -v 4 --iterations 5 " + " plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -96,7 +89,7 @@ TEST(CmdLine, Server)
 /////////////////////////////////////////////////
 TEST(CmdLine, GazeboServer)
 {
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " + kSdfFileOpt +
+  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -113,7 +106,7 @@ TEST(CmdLine, GazeboServer)
 /////////////////////////////////////////////////
 TEST(CmdLine, Gazebo)
 {
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " + kSdfFileOpt +
+  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -126,6 +119,7 @@ TEST(CmdLine, Gazebo)
         << output;
   }
 }
+#endif
 
 /////////////////////////////////////////////////
 /// Main

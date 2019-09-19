@@ -86,7 +86,7 @@ COMMANDS = { 'gazebo' =>
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                  \n"\
   "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
-  " resources. Can be useful with the -f option to find an SDF file.     \n\n"
+  " resources. Can be useful to find an SDF file.                          \n\n"
 }
 
 #
