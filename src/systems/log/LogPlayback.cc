@@ -52,7 +52,7 @@ using namespace systems;
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Extract model resource files and state file from compression.
-  public: void ExtractStateAndResources();
+  public: bool ExtractStateAndResources();
 
   /// \brief Start log playback.
   /// \param[in] _logPath Path of recorded state to playback.
@@ -173,7 +173,16 @@ void LogPlayback::Configure(const Entity &,
   // Get directory paths from SDF
   this->dataPtr->logPath = _sdf->Get<std::string>("path");
 
-  this->dataPtr->ExtractStateAndResources();
+  // If path is a file, assume it is a compressed file
+  // (Otherwise assume it is a directory containing recorded files.)
+  if (common::isFile(this->dataPtr->logPath))
+  {
+    if (!this->dataPtr->ExtractStateAndResources())
+    {
+      ignerr << "Cannot play back files.\n";
+      return;
+    }
+  }
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
@@ -340,8 +349,9 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
 }
 
 //////////////////////////////////////////////////
-void LogPlaybackPrivate::ExtractStateAndResources()
+bool LogPlaybackPrivate::ExtractStateAndResources()
 {
+  /*
   std::string cmpSrc = this->logPath;
 
   size_t sepIdx = this->logPath.find(common::separator(""));
@@ -349,21 +359,27 @@ void LogPlaybackPrivate::ExtractStateAndResources()
   if (sepIdx == this->logPath.length() - 1)
     cmpSrc = this->logPath.substr(0, this->logPath.length() - 1);
   cmpSrc += ".zip";
+  */
 
   std::string cmpDest = common::parentPath(this->logPath);
 
-  // Currently not removing the extracted directory after playback
-  //   termination, because the directory could be from an unfinished recording
-  //   that terminated unexpectedly, and zip file might not have been created.
-  if (fuel_tools::Zip::Extract(cmpSrc, cmpDest))
+  if (fuel_tools::Zip::Extract(this->logPath, cmpDest))
   {
     ignmsg << "Extracted log file and resources to [" << cmpDest
            << "]" << std::endl;
+
+    // Replace value in variable with the directory of extracted files
+    // Assume directory has same name as compressed file, without extension
+    size_t sepIdx = this->logPath.find_last_of(".");
+    // Remove extension
+    this->logPath = this->logPath.substr(0, sepIdx);
+    return true;
   }
   else
   {
     ignerr << "Failed to extract log file and resources to [" << cmpDest
            << "]" << std::endl;
+    return false;
   }
 }
 
