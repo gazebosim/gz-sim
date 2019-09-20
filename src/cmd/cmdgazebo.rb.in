@@ -82,7 +82,7 @@ COMMANDS = { 'gazebo' =>
   "                              meshes and material files, in addition to  \n"\
   "                              states and console messages.               \n"\
   "\n"\
-  "  --overwrite                 When recording, overwrite existing files.  \n"\
+  "  --record-overwrite          When recording, overwrite existing files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
   "\n"\
   "  --compress                  When recording, compress final log files.  \n"\
@@ -158,7 +158,7 @@ class Cmd
       'record' => 0,
       'record-path' => '',
       'record-resources' => 0,
-      'overwrite' => 0,
+      'record-overwrite' => 0,
       'compress' => 0,
       'playback' => '',
       'run' => 0,
@@ -209,8 +209,8 @@ class Cmd
       opts.on('--record-resources') do
         options['record-resources'] = 1
       end
-      opts.on('--overwrite') do
-        options['overwrite'] = 1
+      opts.on('--record-overwrite') do
+        options['record-overwrite'] = 1
       end
       opts.on('--compress') do
         options['compress'] = 1
@@ -340,7 +340,7 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['record-resources'],
-            options['overwrite'], options['compress'],
+            options['record-overwrite'], options['compress'],
             options['playback'], options['file'])
         end
 
@@ -372,7 +372,7 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['recordPath'], options['recordResources'],
-            options['overwrite'], options['compress'],
+            options['recordOverwrite'], options['compress'],
             options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']

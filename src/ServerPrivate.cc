@@ -217,22 +217,27 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             // If resource flag specified on command line, replace in SDF
             if (_config.LogRecordResources())
             {
-              sdf::ElementPtr resourceElem = pluginElem->GetElement("record_resources");
-              resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
+              sdf::ElementPtr resourceElem = pluginElem->GetElement(
+                "record_resources");
+              resourceElem->Set<bool>(_config.LogRecordResources()
+                ? true : false);
             }
 
             // If overwrite flag specified on command line, replace in SDF
             if (_config.LogRecordOverwrite())
             {
-              sdf::ElementPtr overwriteElem = pluginElem->GetElement("overwrite");
-              overwriteElem->Set<bool>(_config.LogRecordOverwrite() ? true : false);
+              sdf::ElementPtr overwriteElem = pluginElem->GetElement(
+                "record_overwrite");
+              overwriteElem->Set<bool>(_config.LogRecordOverwrite()
+                ? true : false);
             }
 
             // If compress flag specified on command line, replace in SDF
             if (_config.LogRecordCompress())
             {
               sdf::ElementPtr compressElem = pluginElem->GetElement("compress");
-              compressElem->Set<bool>(_config.LogRecordCompress() ? true : false);
+              compressElem->Set<bool>(_config.LogRecordCompress()
+                ? true : false);
             }
 
             return;
@@ -271,7 +276,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
 
   // Set whether to overwrite
-  sdf::ElementPtr overwriteElem = recordElem->GetElement("overwrite");
+  sdf::ElementPtr overwriteElem = recordElem->GetElement("record_overwrite");
   overwriteElem->Set<bool>(_config.LogRecordOverwrite() ? true : false);
 
   // Set whether to compress
