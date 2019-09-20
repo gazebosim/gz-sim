@@ -201,3 +201,62 @@ TEST(UtilTest, RemoveParentScopedName)
   EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", ""),
             "world::world_name::light::lightA_name");
 }
+
+/////////////////////////////////////////////////
+TEST(UtilTest, AsFullPath)
+{
+  const std::string relativeUri =
+      common::joinPaths("meshes", "collision.dae");
+  const std::string absoluteUri{"/path/to/collision.dae"};
+  const std::string schemeUri{"https://website.com/collision.dae"};
+
+  // Empty path
+  {
+    const std::string path{""};
+
+    EXPECT_EQ(relativeUri, asFullPath(relativeUri, path));
+    EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+  }
+
+  // Absolute path
+  {
+#ifdef _WIN32
+    const std::string path{"C:\\abs\\path"};
+#else
+    const std::string path{"/abs/path"};
+#endif
+
+    // Directory
+    EXPECT_EQ(common::joinPaths(path, relativeUri),
+        asFullPath(relativeUri, path));
+    EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+
+    // File
+    auto filePath = common::joinPaths(path, "file.sdf");
+
+    EXPECT_EQ(common::joinPaths(path, relativeUri),
+        asFullPath(relativeUri, filePath));
+    EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, filePath));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
+  }
+
+  // Scheme path
+  {
+    const std::string path{"scheme://"};
+
+    EXPECT_EQ(path + "/" + relativeUri, asFullPath(relativeUri, path));
+    EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+  }
+
+  // Data string
+  {
+    const std::string path{"data-string"};
+
+    EXPECT_EQ(relativeUri, asFullPath(relativeUri, path));
+    EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+  }
+}
