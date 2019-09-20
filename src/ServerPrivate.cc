@@ -207,15 +207,48 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           //   SDF.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            // If a record path is specified on command line, replace in SDF
             if (!_config.LogRecordPath().empty())
             {
-              sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-              pathElem->SetName("path");
-              pluginElem->AddElementDescription(pathElem);
-              pathElem = pluginElem->GetElement("path");
-              pathElem->AddValue("string", "", false, "");
-              pathElem->Set<std::string>(_config.LogRecordPath());
+              bool overwrite_sdf = false;
+              // If <path> is specified in SDF, check whether to replace it
+              if (pluginElem->HasElement("path"))
+              {
+                // If record path came from command line, overwrite <path> in SDF
+                //if (_config.LogRecordPath().compare(ignLogDirectory()) != 0)
+                if (_config.LogRecordPathFromCmdLine())
+                {
+                  overwrite_sdf = true;
+                }
+                // TODO(anyone) In Ignition-D, remove this. <path> will be
+                //   permanently ignored in favor of common::ignLogDirectory().
+                //   Always overwrite SDF.
+                // Otherwise, record path is same as the default timestamp log
+                //   path. Take the path in SDF <path>.
+                else
+                {
+                  ignwarn << "--record-path is not specified on command line. "
+                    << "<path> is specified in SDF. Will record to <path>. "
+                    << "Console will be logged to [" << ignLogDirectory()
+                    << "]. Note: In Ignition-D, <path> will be ignored, and "
+                    << "all recordings will be written to default console log "
+                    << "path if no path is specified on command line.\n";
+                  overwrite_sdf = false;
+                }
+              }
+              else
+              {
+                overwrite_sdf = true;
+              }
+              
+              if (overwrite_sdf)
+              {
+                sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+                pathElem->SetName("path");
+                pluginElem->AddElementDescription(pathElem);
+                pathElem = pluginElem->GetElement("path");
+                pathElem->AddValue("string", "", false, "");
+                pathElem->Set<std::string>(_config.LogRecordPath());
+              }
             }
 
             // If resource flag specified on command line, replace in SDF

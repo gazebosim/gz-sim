@@ -217,6 +217,7 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
+            logRecordPathFromCmdLine(_cfg->logRecordPathFromCmdLine),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
             logRecordOverwrite(_cfg->logRecordOverwrite),
@@ -249,6 +250,10 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
 
+  /// TODO(anyone) Remove this in Ignition-D
+  /// \brief Whether log record path is specified from command line
+  public: bool logRecordPathFromCmdLine{false};
+
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
 
@@ -262,7 +267,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: bool logRecordCompress{false};
 
   /// \brief Path to compress log files to
-  public: std::string logRecordCompressPath{""};
+  public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -428,6 +433,18 @@ const std::string ServerConfig::LogRecordPath() const
 void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 {
   this->dataPtr->logRecordPath = _recordPath;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::LogRecordPathFromCmdLine() const
+{
+  return this->dataPtr->logRecordPathFromCmdLine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordPathFromCmdLine(bool _fromCmdLine)
+{
+  this->dataPtr->logRecordPathFromCmdLine = _fromCmdLine;
 }
 
 /////////////////////////////////////////////////
