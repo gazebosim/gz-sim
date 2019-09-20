@@ -236,7 +236,7 @@ void LogRecord::Configure(const Entity &_entity,
 
   this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources",
     false).first);
-  this->dataPtr->SetOverwrite(_sdf->Get<bool>("record_overwrite",
+  this->dataPtr->SetOverwrite(_sdf->Get<bool>("log_overwrite",
     false).first);
   this->dataPtr->SetCompress(_sdf->Get<bool>("compress", false).first);
 
