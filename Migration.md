@@ -5,6 +5,10 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 2.x to 3.x
+
+* Use ign-rendering3, ign-sensors3 and ign-gui3.
+
 ## Ignition Gazebo 1.x to 2.x
 
 * Changed component data types:
