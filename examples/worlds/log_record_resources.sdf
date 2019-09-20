@@ -24,7 +24,6 @@
              will record to default. -->
       <path>/tmp/log</path>
       <record_resources>0</record_resources>
-      <log_overwrite>0</log_overwrite>
       <compress>0</compress>
     </plugin>
 
