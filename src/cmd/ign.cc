@@ -58,7 +58,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    int _recordResources, int _recordOverwrite, int _compress,
+    int _recordResources, int _logOverwrite, int _compress,
     const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -128,7 +128,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
   }
 
-  serverConfig.SetLogRecordOverwrite(_recordOverwrite);
+  serverConfig.SetLogRecordOverwrite(_logOverwrite);
   serverConfig.SetLogRecordCompress(_compress);
 
   if (_playback != nullptr && std::strlen(_playback) > 0)

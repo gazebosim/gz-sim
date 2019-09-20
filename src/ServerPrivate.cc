@@ -234,9 +234,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             if (_config.LogRecordOverwrite())
             {
               sdf::ElementPtr overwriteElem = std::make_shared<sdf::Element>();
-              overwriteElem->SetName("record_overwrite");
+              overwriteElem->SetName("log_overwrite");
               pluginElem->AddElementDescription(overwriteElem);
-              overwriteElem = pluginElem->GetElement("record_overwrite");
+              overwriteElem = pluginElem->GetElement("log_overwrite");
               overwriteElem->AddValue("bool", "false", false, "");
               overwriteElem->Set<bool>(_config.LogRecordOverwrite()
                 ? true : false);
@@ -299,9 +299,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 
   // Set whether to overwrite
   sdf::ElementPtr overwriteElem = std::make_shared<sdf::Element>();
-  overwriteElem->SetName("record_overwrite");
+  overwriteElem->SetName("log_overwrite");
   recordElem->AddElementDescription(overwriteElem);
-  overwriteElem = recordElem->GetElement("record_overwrite");
+  overwriteElem = recordElem->GetElement("log_overwrite");
   overwriteElem->AddValue("bool", "false", false, "");
   overwriteElem->Set<bool>(_config.LogRecordOverwrite() ? true : false);
 
