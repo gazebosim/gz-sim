@@ -221,6 +221,7 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordResources(_cfg->logRecordResources),
             logRecordOverwrite(_cfg->logRecordOverwrite),
             logRecordCompress(_cfg->logRecordCompress),
+            logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -259,6 +260,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief When recording, compress final log files
   public: bool logRecordCompress{false};
+
+  /// \brief Path to compress log files to
+  public: std::string logRecordCompressPath{""};
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -472,6 +476,18 @@ bool ServerConfig::LogRecordCompress() const
 void ServerConfig::SetLogRecordCompress(bool _compress)
 {
   this->dataPtr->logRecordCompress = _compress;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::LogRecordCompressPath() const
+{
+  return this->dataPtr->logRecordCompressPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompressPath(const std::string _path)
+{
+  this->dataPtr->logRecordCompressPath = _path;
 }
 
 /////////////////////////////////////////////////
