@@ -16,6 +16,8 @@
  */
 #include <ignition/msgs/odometry.pb.h>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/math/DiffDriveOdometry.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
@@ -162,6 +164,7 @@ void DiffDrive::Configure(const Entity &_entity,
 void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("DiffDrive::PreUpdate");
   // If the joints haven't been identified yet, look for them
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
@@ -243,6 +246,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void DiffDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("DiffDrive::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -254,6 +258,7 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("DiffDrive::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {

@@ -27,6 +27,8 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/common/Profiler.hh"
+
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -234,6 +236,7 @@ void UserCommands::Configure(const Entity &_entity,
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
 {
+  IGN_PROFILE("UserCommands::PreUpdate");
   // make a copy the cmds so execution does not block receiving other
   // incoming cmds
   std::vector<std::unique_ptr<UserCommandBase>> cmds;

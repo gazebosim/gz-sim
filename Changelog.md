@@ -1,6 +1,26 @@
+## Ignition Gazebo 3.x
+
+### Ignition Gazebo 3.X.X
+
+1. Depend on ign-rendering3, ign-gui3, ign-sensors3
+   * [Pull Request 411](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/411)
+
 ## Ignition Gazebo 2.x
 
 ### Ignition Gazebo 2.X.X
+
+1. Baseline for stereo cameras
+   * [Pull Request 406](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/406)
+
+1. Fix log playback with levels. This drops support for logs created before v2.0.0.
+   * [Pull Request 407](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/407)
+
+1. Add worker threads for System PostUpdate phase
+   * [Pull Request 387](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/387)
+
+1. Added a test runner for executing an SDF and recording simulation rates.
+   See the `test/performance/READEM.md` file for more info.
+   * [Pull Request 389](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/389)
 
 ### Ignition Gazebo 2.6.1 (2019-07-26)
 
