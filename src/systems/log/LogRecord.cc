@@ -234,9 +234,11 @@ void LogRecord::Configure(const Entity &_entity,
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
-  this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources"));
-  this->dataPtr->SetOverwrite(_sdf->Get<bool>("overwrite"));
-  this->dataPtr->SetCompress(_sdf->Get<bool>("compress"));
+  this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources",
+    false).first);
+  this->dataPtr->SetOverwrite(_sdf->Get<bool>("record_overwrite",
+    false).first);
+  this->dataPtr->SetCompress(_sdf->Get<bool>("compress", false).first);
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
@@ -430,7 +432,8 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
 
   // Loop through geometries in world
   _ecm.EachNew<components::Geometry>(
-      [&](const Entity &/*_entity*/, const components::Geometry *_geoComp) -> bool
+      [&](const Entity &/*_entity*/,
+      const components::Geometry *_geoComp) -> bool
   {
     sdf::Geometry geoSdf = _geoComp->Data();
     if (geoSdf.Type() == sdf::GeometryType::MESH)
@@ -448,7 +451,8 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
 
   // Loop through materials in world
   _ecm.EachNew<components::Material>(
-      [&](const Entity &/*_entity*/, const components::Material *_matComp) -> bool
+      [&](const Entity &/*_entity*/,
+      const components::Material *_matComp) -> bool
   {
     sdf::Material matSdf = _matComp->Data();
     std::string matUri = matSdf.ScriptUri();
