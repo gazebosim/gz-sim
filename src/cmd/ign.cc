@@ -74,11 +74,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       // Overwrite if flag specified
       if (_logOverwrite > 0)
       {
+        ignition::common::removeAll(recordPathMod);
         ignLogInit(recordPathMod, "server_console.log");
-        ignwarn << "Log path already exists on disk! Existing files will be "
+        ignmsg << "Log path already exists on disk! Existing files will be "
           << "overwritten." << std::endl;
         ignmsg << "Removing existing path [" << recordPathMod << "]\n";
-        ignition::common::removeAll(recordPathMod);
       }
       // Otherwise rename to unique path
       else
