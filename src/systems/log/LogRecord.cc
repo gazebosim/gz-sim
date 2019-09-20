@@ -281,6 +281,11 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
     return false;
   }
 
+  if (this->recordResources)
+  {
+    ignmsg << "Resources will be recorded\n";
+  }
+
   if (common::exists(this->logPath) || common::exists(this->cmpPath))
   {
     // Overwrite if flag specified. Files will be removed at time of writing.

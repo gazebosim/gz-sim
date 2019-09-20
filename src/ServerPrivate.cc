@@ -210,15 +210,22 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             // If a record path is specified on command line, replace in SDF
             if (!_config.LogRecordPath().empty())
             {
-              sdf::ElementPtr pathElem = pluginElem->GetElement("path");
+              sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+              pathElem->SetName("path");
+              pluginElem->AddElementDescription(pathElem);
+              pathElem = pluginElem->GetElement("path");
+              pathElem->AddValue("string", "", false, "");
               pathElem->Set<std::string>(_config.LogRecordPath());
             }
 
             // If resource flag specified on command line, replace in SDF
             if (_config.LogRecordResources())
             {
-              sdf::ElementPtr resourceElem = pluginElem->GetElement(
-                "record_resources");
+              sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+              resourceElem->SetName("record_resources");
+              pluginElem->AddElementDescription(resourceElem);
+              resourceElem = pluginElem->GetElement("record_resources");
+              resourceElem->AddValue("bool", "false", false, "");
               resourceElem->Set<bool>(_config.LogRecordResources()
                 ? true : false);
             }
@@ -226,8 +233,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             // If overwrite flag specified on command line, replace in SDF
             if (_config.LogRecordOverwrite())
             {
-              sdf::ElementPtr overwriteElem = pluginElem->GetElement(
-                "record_overwrite");
+              sdf::ElementPtr overwriteElem = std::make_shared<sdf::Element>();
+              overwriteElem->SetName("record_overwrite");
+              pluginElem->AddElementDescription(overwriteElem);
+              overwriteElem = pluginElem->GetElement("record_overwrite");
+              overwriteElem->AddValue("bool", "false", false, "");
               overwriteElem->Set<bool>(_config.LogRecordOverwrite()
                 ? true : false);
             }
@@ -235,7 +245,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             // If compress flag specified on command line, replace in SDF
             if (_config.LogRecordCompress())
             {
-              sdf::ElementPtr compressElem = pluginElem->GetElement("compress");
+              sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+              compressElem->SetName("compress");
+              pluginElem->AddElementDescription(compressElem);
+              compressElem = pluginElem->GetElement("compress");
+              compressElem->AddValue("bool", "false", false, "");
               compressElem->Set<bool>(_config.LogRecordCompress()
                 ? true : false);
             }
@@ -267,20 +281,36 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   // Add custom record path
   if (!_config.LogRecordPath().empty())
   {
-    sdf::ElementPtr pathElem = recordElem->GetElement("path");
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    recordElem->AddElementDescription(pathElem);
+    pathElem = recordElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(_config.LogRecordPath());
   }
 
   // Set whether to record resources
-  sdf::ElementPtr resourceElem = recordElem->GetElement("record_resources");
+  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+  resourceElem->SetName("record_resources");
+  recordElem->AddElementDescription(resourceElem);
+  resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->AddValue("bool", "false", false, "");
   resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
 
   // Set whether to overwrite
-  sdf::ElementPtr overwriteElem = recordElem->GetElement("record_overwrite");
+  sdf::ElementPtr overwriteElem = std::make_shared<sdf::Element>();
+  overwriteElem->SetName("record_overwrite");
+  recordElem->AddElementDescription(overwriteElem);
+  overwriteElem = recordElem->GetElement("record_overwrite");
+  overwriteElem->AddValue("bool", "false", false, "");
   overwriteElem->Set<bool>(_config.LogRecordOverwrite() ? true : false);
 
   // Set whether to compress
-  sdf::ElementPtr compressElem = recordElem->GetElement("compress");
+  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+  compressElem->SetName("compress");
+  recordElem->AddElementDescription(compressElem);
+  compressElem = recordElem->GetElement("compress");
+  compressElem->AddValue("bool", "false", false, "");
   compressElem->Set<bool>(_config.LogRecordCompress() ? true : false);
 }
 
