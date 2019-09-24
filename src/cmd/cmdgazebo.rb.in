@@ -85,7 +85,7 @@ COMMANDS = { 'gazebo' =>
   "  --log-overwrite             When recording, overwrite existing files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
   "\n"\
-  "  --compress                  When recording, compress final log files.  \n"\
+  "  --log-compress              When recording, compress final log files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
   "\n"\
   "  -s                          Run only the server (headless mode). This  \n"\
@@ -159,7 +159,7 @@ class Cmd
       'record-path' => '',
       'record-resources' => 0,
       'log-overwrite' => 0,
-      'compress' => 0,
+      'log-compress' => 0,
       'playback' => '',
       'run' => 0,
       'server' => 0,
@@ -212,8 +212,8 @@ class Cmd
       opts.on('--log-overwrite') do
         options['log-overwrite'] = 1
       end
-      opts.on('--compress') do
-        options['compress'] = 1
+      opts.on('--log-compress') do
+        options['log-compress'] = 1
       end
       opts.on('--playback [arg]', String) do |p|
         options['playback'] = p
@@ -340,7 +340,7 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['record-resources'],
-            options['log-overwrite'], options['compress'],
+            options['log-overwrite'], options['log-compress'],
             options['playback'], options['file'])
         end
 
@@ -372,7 +372,7 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['recordPath'], options['recordResources'],
-            options['logOverwrite'], options['compress'],
+            options['logOverwrite'], options['logCompress'],
             options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
