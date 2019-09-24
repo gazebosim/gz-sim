@@ -64,29 +64,71 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  // Initialize console log
+  // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
+
+  // Path for compressed log, used to check for duplicates
+  std::string cmpPath = std::string(recordPathMod);
+  if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
+    // Remove the separator at end of path
+    cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+  cmpPath += ".zip";
+
+  // Initialize console log
   if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
   {
     recordPathMod = std::string(_recordPath);
-    if (ignition::common::exists(recordPathMod))
+
+    // Check if path or compressed file with same prefix exists
+    if (ignition::common::exists(recordPathMod) ||
+      ignition::common::exists(cmpPath))
     {
       // Overwrite if flag specified
       if (_logOverwrite > 0)
       {
+        // Remove files before initializing console log files on top of them
         ignition::common::removeAll(recordPathMod);
+        ignition::common::removeFile(cmpPath);
         ignLogInit(recordPathMod, "server_console.log");
+
         ignmsg << "Log path already exists on disk! Existing files will be "
           << "overwritten." << std::endl;
         ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+
+        ignwarn << "Compressed log path already exists on disk! Existing "
+          << "files will be overwritten." << std::endl;
+        ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
       }
       // Otherwise rename to unique path
       else
       {
+        // Remove the separator at end of path
+        if (!std::string(1, recordPathMod.back()).compare(
+          ignition::common::separator("")))
+          recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
         recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+
+        cmpPath = std::string(recordPathMod);
+        // Remove the separator at end of path
+        if (!std::string(1, cmpPath.back()).compare(
+          ignition::common::separator("")))
+          cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+        cmpPath += ".zip";
+
+        // If compressed file exists, rename again
+        if (ignition::common::exists(cmpPath))
+        {
+          cmpPath = ignition::common::uniqueFilePath(recordPathMod, ".zip");
+
+          size_t extIdx = cmpPath.find_last_of(".");
+          recordPathMod = cmpPath.substr(0, extIdx);
+        }
+
         ignLogInit(recordPathMod, "server_console.log");
         ignwarn << "Log path already exists on disk! "
           << "Recording instead to [" << recordPathMod << "]" << std::endl;
+        ignwarn << "Compressed log path already exists on disk! "
+          << "Recording instead to [" << cmpPath << "]" << std::endl;
       }
     }
     else
@@ -105,6 +147,12 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   else
   {
     ignLogInit(recordPathMod, "server_console.log");
+  }
+
+  serverConfig.SetLogRecordCompress(_compress);
+  if (_compress)
+  {
+    serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
@@ -160,38 +208,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     {
       ignmsg << "Recording states to default path\n";
     }
-  }
-
-  serverConfig.SetLogRecordCompress(_compress);
-
-  // Check if compressed file with same prefix as directory name exists
-  if (_compress)
-  {
-    std::string cmpPath = std::string(recordPathMod);
-    size_t sepIdx = cmpPath.find(ignition::common::separator(""));
-    // Remove the separator at end of path
-    if (sepIdx == cmpPath.length() - 1)
-      cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
-    cmpPath += ".zip";
-
-    if (ignition::common::exists(cmpPath))
-    {
-      if (_logOverwrite > 0)
-      {
-        ignwarn << "Compressed log path already exists on disk! Existing "
-          << "files will be overwritten." << std::endl;
-        ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
-        ignition::common::removeFile(cmpPath);
-      }
-      // Otherwise rename to unique path
-      else
-      {
-        cmpPath = ignition::common::uniqueDirectoryPath(cmpPath);
-        ignwarn << "Compressed log path already exists on disk! "
-          << "Recording instead to [" << cmpPath << "]" << std::endl;
-      }
-    }
-    serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
