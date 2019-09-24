@@ -222,6 +222,7 @@ void LogRecord::Configure(const Entity &_entity,
     EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   this->dataPtr->sdf = _sdf;
+  ignerr << _sdf->ToString("");
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
@@ -260,7 +261,13 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   this->logPath = _logPath;
 
   // Define path for compressed file
-  this->cmpPath = _cmpPath; //this->AppendExtension(this->logPath, ".zip");
+  if (_cmpPath.empty())
+    // This case happens if plugin is enabled only from SDF and no command
+    //   line arguments enable recording plugin. Then compress path is not
+    //   set from Server.
+    this->cmpPath = this->AppendExtension(this->logPath, ".zip");
+  else
+    this->cmpPath = _cmpPath;
 
   // The ServerConfig takes care of specifying a default log record path.
   // This if statement should never be reached.
@@ -572,6 +579,12 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 //////////////////////////////////////////////////
 void LogRecordPrivate::CompressStateAndResources()
 {
+  if (common::exists(this->cmpPath))
+  {
+    ignmsg << "Removing existing file [" << this->cmpPath << "].\n";
+    common::removeFile(this->cmpPath);
+  }
+
   // Compress directory
   if (fuel_tools::Zip::Compress(this->logPath, this->cmpPath))
   {
@@ -583,7 +596,7 @@ void LogRecordPrivate::CompressStateAndResources()
   }
   else
   {
-    ignerr << "Failed to compressed log file and resources to ["
+    ignerr << "Failed to compress log file and resources to ["
            << this->cmpPath << "]. Keeping recorded directory ["
            << this->logPath << "]." << std::endl;
   }

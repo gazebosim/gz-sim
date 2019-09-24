@@ -207,6 +207,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           //   SDF.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
+            std::string recordPath = _config.LogRecordPath();
+            std::string cmpPath = _config.LogRecordCompressPath();
+
             if (!_config.LogRecordPath().empty())
             {
               bool overwrite_sdf = false;
@@ -214,7 +217,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               if (pluginElem->HasElement("path"))
               {
                 // If record path came from command line, overwrite <path> in SDF
-                //if (_config.LogRecordPath().compare(ignLogDirectory()) != 0)
                 if (_config.LogRecordPathFromCmdLine())
                 {
                   overwrite_sdf = true;
@@ -233,6 +235,17 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
                     << "all recordings will be written to default console log "
                     << "path if no path is specified on command line.\n";
                   overwrite_sdf = false;
+
+                  // Take <path> in SDF
+                  recordPath = pluginElem->Get<std::string>("path");
+
+                  // Update path for compressed file to match record path
+                  cmpPath = std::string(recordPath);
+                  if (!std::string(1, cmpPath.back()).compare(
+                    ignition::common::separator("")))
+                    // Remove the separator at end of path
+                    cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+                  cmpPath += ".zip";
                 }
               }
               else
@@ -247,7 +260,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
                 pluginElem->AddElementDescription(pathElem);
                 pathElem = pluginElem->GetElement("path");
                 pathElem->AddValue("string", "", false, "");
-                pathElem->Set<std::string>(_config.LogRecordPath());
+                pathElem->Set<std::string>(recordPath);
               }
             }
 
@@ -279,7 +292,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               pluginElem->AddElementDescription(cPathElem);
               cPathElem = pluginElem->GetElement("compress_path");
               cPathElem->AddValue("string", "", false, "");
-              cPathElem->Set<std::string>(_config.LogRecordCompressPath());
+              cPathElem->Set<std::string>(cmpPath);
             }
 
             return;
