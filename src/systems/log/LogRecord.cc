@@ -222,7 +222,6 @@ void LogRecord::Configure(const Entity &_entity,
     EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   this->dataPtr->sdf = _sdf;
-  ignerr << _sdf->ToString("");
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
