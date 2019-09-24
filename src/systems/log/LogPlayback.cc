@@ -32,9 +32,9 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
 
-#include <sdf/Root.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/Root.hh>
 
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Events.hh"
