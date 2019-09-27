@@ -182,6 +182,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   if (!_info.paused)
     this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
+  //TODO(jshep1): update MarkerManager here
 }
 
 //////////////////////////////////////////////////
