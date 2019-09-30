@@ -216,7 +216,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               // If <path> is specified in SDF, check whether to replace it
               if (pluginElem->HasElement("path"))
               {
-                // If record path came from command line, overwrite <path> in SDF
+                // If record path came from command line, overwrite SDF <path>
                 if (_config.LogRecordPathFromCmdLine())
                 {
                   overwrite_sdf = true;
@@ -252,7 +252,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               {
                 overwrite_sdf = true;
               }
-              
+
               if (overwrite_sdf)
               {
                 sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();

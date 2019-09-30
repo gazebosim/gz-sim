@@ -502,7 +502,7 @@ std::string ServerConfig::LogRecordCompressPath() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetLogRecordCompressPath(const std::string _path)
+void ServerConfig::SetLogRecordCompressPath(const std::string &_path)
 {
   this->dataPtr->logRecordCompressPath = _path;
 }

@@ -81,7 +81,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
     // Update compressed file path to name of recording directory path
     cmpPath = std::string(recordPathMod);
-    if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
+    if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
+      "")))
       // Remove the separator at end of path
       cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
     cmpPath += ".zip";
