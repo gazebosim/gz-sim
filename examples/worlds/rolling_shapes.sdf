@@ -44,8 +44,9 @@
 
         <!-- user camera will follow the box as it rolls downhill -->
         <camera_follow>
-          <p_gain>0</p_gain>
+          <p_gain>0.05</p_gain>
           <target>box</target>
+          <world_frame>true</world_frame>
         </camera_follow>
       </plugin>
 
