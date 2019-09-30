@@ -296,7 +296,7 @@ namespace ignition
 
       /// \brief Set file path to compress log files to
       /// \param[in] _path File path to compress log files to
-      public: void SetLogRecordCompressPath(const std::string _path);
+      public: void SetLogRecordCompressPath(const std::string &_path);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
