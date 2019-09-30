@@ -175,6 +175,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
 
+    /// \brief True to set the camera to follow the target in world frame,
+    /// false to follow in target's local frame
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowWorldFrame(bool _worldFrame);
+
     /// \brief Get the target which the user camera is following
     /// \return Target being followed
     public: std::string FollowTarget() const;
@@ -312,6 +317,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
+
+    /// \brief True to set the camera to follow the target in world frame,
+    /// false to follow in target's local frame
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowWorldFrame(bool _worldFrame);
 
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
