@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Support camera follow in world frame
+    * [Pull Request 436](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/436)
+
 1.  Rewind / reset and seek
     * [Pull Request 429](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/429)
 
