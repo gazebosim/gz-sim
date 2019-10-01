@@ -208,6 +208,31 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
 }
 
 //////////////////////////////////////////////////
+std::optional<double> Link::WorldKineticEnergy(
+    const EntityComponentManager &_ecm) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldAngVel =
+      _ecm.Component<components::WorldAngularVelocity>(this->dataPtr->id);
+
+  if (!worldAngVel || !inertial)
+    return std::nullopt;
+
+  // get linear velocity at the center of mass using Inertial::Pose
+  auto worldLinVel =
+      this->WorldLinearVelocity(_ecm, inertial->Data().Pose().Pos());
+  auto worldInertiaMatrix =
+      this->WorldInertiaMatrix(_ecm);
+
+  if (!worldLinVel || !worldInertiaMatrix)
+    return std::nullopt;
+
+  return std::make_optional(0.5 * (
+      inertial->Data().MassMatrix().Mass() * worldLinVel->SquaredLength() +
+      worldAngVel->Data().Dot(*worldInertiaMatrix * worldAngVel->Data())));
+}
+
+//////////////////////////////////////////////////
 void Link::AddWorldForce(EntityComponentManager &_ecm,
                          const math::Vector3d &_force) const
 {
