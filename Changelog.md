@@ -5,6 +5,9 @@
 1. Support camera follow in world frame
     * [Pull Request 436](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/436)
 
+1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
+    * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
+
 1.  Rewind / reset and seek
     * [Pull Request 429](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/429)
 
