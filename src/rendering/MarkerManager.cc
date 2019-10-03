@@ -25,12 +25,9 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Events.hh"
-//#include "ignition/transport/TransportIface.hh"
 #include "ignition/common/Console.hh"
-#include "ignition/transport/Node.hh"
 #include "ignition/rendering/RenderingIface.hh"
 #include "ignition/rendering/Scene.hh"
-//#include "ignition/rendering/Marker.hh"
 #include "ignition/gazebo/rendering/MarkerManager.hh"
 
 using namespace ignition;
@@ -72,7 +69,7 @@ class ignition::gazebo::MarkerManagerPrivate
 
   /// \brief Receive messages from the world_stats topic
   /// \param[in] _msg The world stats message
-  //public: void OnStatsMsg(ConstWorldStatisticsPtr &_msg);
+  /// public: void OnStatsMsg(ConstWorldStatisticsPtr &_msg);
 
   /// \brief Previous sim time received
   public: common::Time lastSimTime;
@@ -93,7 +90,7 @@ class ignition::gazebo::MarkerManagerPrivate
   public: ignition::transport::Node node;
 
   /// \brief Gazebo transport node
-  //public: rendering::NodePtr ign_node;
+  /// public: rendering::NodePtr ign_node;
 
   /// \brief Connect to the prerender signal
   // public: event::ConnectionPtr preRenderConnection;
@@ -102,7 +99,7 @@ class ignition::gazebo::MarkerManagerPrivate
   public: common::Time simTime;
 
   /// \brief Subscribe to world_stats topic
-  //public: transport::SubscriberPtr statsSub;
+  /// public: transport::SubscriberPtr statsSub;
 };
 
 /////////////////////////////////////////////////
@@ -114,8 +111,8 @@ MarkerManager::MarkerManager()
 /////////////////////////////////////////////////
 MarkerManager::~MarkerManager()
 {
-  //this->dataPtr->statsSub.reset();
-  //this->dataPtr->ign_node.reset();
+  // this->dataPtr->statsSub.reset();
+  // this->dataPtr->ign_node.reset();
 }
 
 /////////////////////////////////////////////////
@@ -143,14 +140,14 @@ bool MarkerManager::Init(ignition::rendering::Scene *_scene)
     ignerr << "Unable to advertise to the /marker service.\n";
   }
 
-  //this->dataPtr->ign_node = transport::NodePtr(new transport::Node());
-  //this->dataPtr->ign_node->Init();
+  // this->dataPtr->ign_node = transport::NodePtr(new transport::Node());
+  // this->dataPtr->ign_node->Init();
 
-  //this->dataPtr->statsSub = this->dataPtr->ign_node->Subscribe("~/world_stats",
+  // this->dataPtr->statsSub = this->dataPtr->ign_node->Subscribe("~/world_stats",
   //    &MarkerManagerPrivate::OnStatsMsg, this->dataPtr.get());
 
   // Process markers on PreRender
-  //this->dataPtr->preRenderConnection = event::Events::ConnectPreRender(
+  // this->dataPtr->preRenderConnection = event::Events::ConnectPreRender(
   //    std::bind(&MarkerManagerPrivate::OnPreRender, this->dataPtr.get()));
 
   return true;
@@ -224,35 +221,37 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
   if (_msg.action() == ignition::msgs::Marker::ADD_MODIFY)
   {
     // Modify an existing marker, identified by namespace and id
-    if (nsIter != this->visualMarkers.end() && markerIter != nsIter->second.end())
+    if (nsIter != this->visualMarkers.end() &&
+        markerIter != nsIter->second.end())
     {
-      //TODO(jshep1): set the properties for the marker here
-      //markerIter->second->Load(_msg);
+      // TODO(jshep1): set the properties for the marker here
+      // markerIter->second->Load(_msg);
     }
     // Otherwise create a new marker
     else
     {
       // Create the name for the marker
-      std::string name = "__GZ_MARKER_VISUAL_" + ns + "_" +
-        std::to_string(id);
+      // std::string name = "__GZ_MARKER_VISUAL_" + ns + "_" +
+      // std::to_string(id);
 
       // Create the new marker
-      //MarkerPtr marker(new Marker(name,
+      // MarkerPtr marker(new Marker(name,
       //      this->scene->WorldVisual()));
-      //TODO(jshep1): Create marker and attach to visual here
+      // TODO(jshep1): Create marker and attach to visual here
 
       // Load the marker
-      //marker->Load(_msg);
+      // marker->Load(_msg);
 
       // Store the marker
-      //this->visualMarkers[ns][id] = marker;
+      // this->visualMarkers[ns][id] = marker;
     }
   }
   // Remove a single marker
   else if (_msg.action() == ignition::msgs::Marker::DELETE_MARKER)
   {
     // Remove the marker if it can be found.
-    if (nsIter != this->visualMarkers.end() && markerIter != nsIter->second.end())
+    if (nsIter != this->visualMarkers.end() &&
+        markerIter != nsIter->second.end())
     {
       // TODO(jshep1): cleanup code here for Fini()
       // markerIter->second->Fini();
@@ -340,8 +339,8 @@ bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
       ignition::msgs::Marker *markerMsg = _rep.add_marker();
       markerMsg->set_ns(mIter->first);
       markerMsg->set_id(iter->first);
-      //TODO(jshep1): set markerMsg properties from Marker
-      //iter->second->FillMsg(*markerMsg);
+      // TODO(jshep1): set markerMsg properties from Marker
+      // iter->second->FillMsg(*markerMsg);
     }
   }
 

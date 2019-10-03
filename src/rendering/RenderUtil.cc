@@ -56,7 +56,7 @@
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
-//#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 #include "ignition/gazebo/Util.hh"
 
@@ -101,7 +101,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Marker manager
   public: MarkerManager markerManager;
-  
+
   /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine{nullptr};
 
@@ -161,7 +161,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Whether the transform gizmo is being dragged.
   public: bool transformActive{false};
 
-
 };
 
 //////////////////////////////////////////////////
@@ -188,8 +187,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   if (!_info.paused)
     this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
-  //TODO(jshep1): set time
-
+  // TODO(jshep1): set time
 }
 
 //////////////////////////////////////////////////
@@ -210,7 +208,7 @@ int RenderUtil::PendingSensors() const
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
-  //TODO(jshep1): update MarkerManager here
+  // TODO(jshep1): update MarkerManager here
   //              pass in time/update info to func
   // onPreRender func here, with additional check for
   // lifetime ending
@@ -833,7 +831,7 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
-  //TODO(jshep1): init markermanager here
+  // TODO(jshep1): init markermanager here
 }
 
 /////////////////////////////////////////////////
