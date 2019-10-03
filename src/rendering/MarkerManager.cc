@@ -24,28 +24,29 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/common/Events.hh"
-#include "ignition/transport/TransportIface.hh"
+#include "ignition/gazebo/Events.hh"
+//#include "ignition/transport/TransportIface.hh"
+#include "ignition/common/Console.hh"
 #include "ignition/transport/Node.hh"
 #include "ignition/rendering/RenderingIface.hh"
 #include "ignition/rendering/Scene.hh"
-#include "ignition/rendering/MarkerVisual.hh"
-#include "ignition/rendering/MarkerManager.hh"
+//#include "ignition/rendering/Marker.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 using namespace ignition;
-using namespace rendering;
+using namespace gazebo;
 
 /// Private data for the MarkerManager class
-class ignition::rendering::MarkerManagerPrivate
+class ignition::gazebo::MarkerManagerPrivate
 {
-  /// \def MarkerVisualPtr
-  /// \brief Shared pointer to MarkerVisual
-  typedef std::shared_ptr<MarkerVisual> MarkerVisualPtr;
+  /// \def MarkerPtr
+  /// \brief Shared pointer to Marker
+  typedef std::shared_ptr<ignition::rendering::Visual> VisualPtr;
 
   /// \def Marker_M
   /// \brief Map of markers. The key is a marker namespace, the
   /// value is the map of markers in the namespace and their ids.
-  typedef std::map<std::string, std::map<uint64_t, MarkerVisualPtr>> Marker_M;
+  typedef std::map<std::string, std::map<uint64_t, VisualPtr>> VisualMarker_M;
 
   /// \def MarkerMsgs_L
   /// \brief List of marker messages.
@@ -71,7 +72,7 @@ class ignition::rendering::MarkerManagerPrivate
 
   /// \brief Receive messages from the world_stats topic
   /// \param[in] _msg The world stats message
-  public: void OnStatsMsg(ConstWorldStatisticsPtr &_msg);
+  //public: void OnStatsMsg(ConstWorldStatisticsPtr &_msg);
 
   /// \brief Previous sim time received
   public: common::Time lastSimTime;
@@ -80,28 +81,28 @@ class ignition::rendering::MarkerManagerPrivate
   public: std::mutex mutex;
 
   /// \brief Map of markers
-  public: Marker_M markers;
+  public: VisualMarker_M visualMarkers;
 
   /// \brief List of marker message to process.
   public: MarkerMsgs_L markerMsgs;
 
   /// \brief Pointer to the scene
-  public: Scene *scene = nullptr;
+  public: ignition::rendering::Scene *scene = nullptr;
 
   /// \brief Ignition node
   public: ignition::transport::Node node;
 
   /// \brief Gazebo transport node
-  public: transport::NodePtr gznode;
+  //public: rendering::NodePtr ign_node;
 
   /// \brief Connect to the prerender signal
-  public: event::ConnectionPtr preRenderConnection;
+  // public: event::ConnectionPtr preRenderConnection;
 
   /// \brief Sim time according to world_stats
   public: common::Time simTime;
 
   /// \brief Subscribe to world_stats topic
-  public: transport::SubscriberPtr statsSub;
+  //public: transport::SubscriberPtr statsSub;
 };
 
 /////////////////////////////////////////////////
@@ -113,16 +114,16 @@ MarkerManager::MarkerManager()
 /////////////////////////////////////////////////
 MarkerManager::~MarkerManager()
 {
-  this->dataPtr->statsSub.reset();
-  this->dataPtr->gznode.reset();
+  //this->dataPtr->statsSub.reset();
+  //this->dataPtr->ign_node.reset();
 }
 
 /////////////////////////////////////////////////
-bool MarkerManager::Init(Scene *_scene)
+bool MarkerManager::Init(ignition::rendering::Scene *_scene)
 {
   if (!_scene)
   {
-    gzerr << "Scene pointer is invalid\n";
+    ignerr << "Scene pointer is invalid\n";
     return false;
   }
 
@@ -132,25 +133,25 @@ bool MarkerManager::Init(Scene *_scene)
   if (!this->dataPtr->node.Advertise("/marker/list",
       &MarkerManagerPrivate::OnList, this->dataPtr.get()))
   {
-    gzerr << "Unable to advertise to the /marker/list service.\n";
+    ignerr << "Unable to advertise to the /marker/list service.\n";
   }
 
   // Advertise to the marker service
   if (!this->dataPtr->node.Advertise("/marker",
         &MarkerManagerPrivate::OnMarkerMsg, this->dataPtr.get()))
   {
-    gzerr << "Unable to advertise to the /marker service.\n";
+    ignerr << "Unable to advertise to the /marker service.\n";
   }
 
-  this->dataPtr->gznode = transport::NodePtr(new transport::Node());
-  this->dataPtr->gznode->Init();
+  //this->dataPtr->ign_node = transport::NodePtr(new transport::Node());
+  //this->dataPtr->ign_node->Init();
 
-  this->dataPtr->statsSub = this->dataPtr->gznode->Subscribe("~/world_stats",
-      &MarkerManagerPrivate::OnStatsMsg, this->dataPtr.get());
+  //this->dataPtr->statsSub = this->dataPtr->ign_node->Subscribe("~/world_stats",
+  //    &MarkerManagerPrivate::OnStatsMsg, this->dataPtr.get());
 
   // Process markers on PreRender
-  this->dataPtr->preRenderConnection = event::Events::ConnectPreRender(
-      std::bind(&MarkerManagerPrivate::OnPreRender, this->dataPtr.get()));
+  //this->dataPtr->preRenderConnection = event::Events::ConnectPreRender(
+  //    std::bind(&MarkerManagerPrivate::OnPreRender, this->dataPtr.get()));
 
   return true;
 }
@@ -169,14 +170,15 @@ void MarkerManagerPrivate::OnPreRender()
   }
 
   // Erase any markers that have a lifetime.
-  for (auto mit = this->markers.begin();
-       mit != this->markers.end();)
+  for (auto mit = this->visualMarkers.begin();
+       mit != this->visualMarkers.end();)
   {
     for (auto it = mit->second.cbegin();
          it != mit->second.cend();)
     {
       // Erase a marker if it has a lifetime and it's expired,
       // or if the world has reset
+      /*
       if (it->second->Lifetime() != common::Time::Zero &&
           (it->second->Lifetime() <= this->simTime ||
           this->simTime < this->lastSimTime))
@@ -186,12 +188,13 @@ void MarkerManagerPrivate::OnPreRender()
         it = mit->second.erase(it);
       }
       else
-        ++it;
+      */
+      ++it;
     }
 
     // Erase a namespace if it's empty
     if (mit->second.empty())
-      mit = this->markers.erase(mit);
+      mit = this->visualMarkers.erase(mit);
     else
       ++mit;
   }
@@ -203,44 +206,28 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
 {
   // Get the namespace, if it exists. Otherwise, use the global namespace
   std::string ns;
-  if (_msg.has_ns())
-    ns = _msg.ns();
+  ns = _msg.ns();
 
   // Get the namespace that the marker belongs to
-  Marker_M::iterator nsIter = this->markers.find(ns);
+  VisualMarker_M::iterator nsIter = this->visualMarkers.find(ns);
 
   // If an id is given
   size_t id;
-  if (_msg.has_id())
-  {
-    id = _msg.id();
-  }
-  // Otherwise generate unique id
-  else
-  {
-    id = ignition::math::Rand::IntUniform(0, ignition::math::MAX_I32);
-
-    // Make sure it's unique if namespace is given
-    if (nsIter != this->markers.end())
-    {
-      while (nsIter->second.find(id) != nsIter->second.end())
-        id = ignition::math::Rand::IntUniform(ignition::math::MIN_UI32,
-                                              ignition::math::MAX_UI32);
-    }
-  }
+  id = _msg.id();
 
   // Get marker for this namespace and id
-  std::map<uint64_t, MarkerVisualPtr>::iterator markerIter;
-  if (nsIter != this->markers.end())
+  std::map<uint64_t, VisualPtr>::iterator markerIter;
+  if (nsIter != this->visualMarkers.end())
     markerIter = nsIter->second.find(id);
 
   // Add/modify a marker
   if (_msg.action() == ignition::msgs::Marker::ADD_MODIFY)
   {
     // Modify an existing marker, identified by namespace and id
-    if (nsIter != this->markers.end() && markerIter != nsIter->second.end())
+    if (nsIter != this->visualMarkers.end() && markerIter != nsIter->second.end())
     {
-      markerIter->second->Load(_msg);
+      //TODO(jshep1): set the properties for the marker here
+      //markerIter->second->Load(_msg);
     }
     // Otherwise create a new marker
     else
@@ -250,33 +237,35 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
         std::to_string(id);
 
       // Create the new marker
-      MarkerVisualPtr marker(new MarkerVisual(name,
-            this->scene->WorldVisual()));
+      //MarkerPtr marker(new Marker(name,
+      //      this->scene->WorldVisual()));
+      //TODO(jshep1): Create marker and attach to visual here
 
       // Load the marker
-      marker->Load(_msg);
+      //marker->Load(_msg);
 
       // Store the marker
-      this->markers[ns][id] = marker;
+      //this->visualMarkers[ns][id] = marker;
     }
   }
   // Remove a single marker
   else if (_msg.action() == ignition::msgs::Marker::DELETE_MARKER)
   {
     // Remove the marker if it can be found.
-    if (nsIter != this->markers.end() && markerIter != nsIter->second.end())
+    if (nsIter != this->visualMarkers.end() && markerIter != nsIter->second.end())
     {
-      markerIter->second->Fini();
-      this->scene->RemoveVisual(markerIter->second);
-      this->markers[ns].erase(markerIter);
+      // TODO(jshep1): cleanup code here for Fini()
+      // markerIter->second->Fini();
+      this->scene->DestroyVisual(markerIter->second);
+      this->visualMarkers[ns].erase(markerIter);
 
       // Remove namespace if empty
-      if (this->markers[ns].empty())
-        this->markers.erase(nsIter);
+      if (this->visualMarkers[ns].empty())
+        this->visualMarkers.erase(nsIter);
     }
     else
     {
-      gzwarn << "Unable to delete marker with id[" << id << "] "
+      ignwarn << "Unable to delete marker with id[" << id << "] "
         << "in namespace[" << ns << "]" << std::endl;
       return false;
     }
@@ -285,41 +274,43 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
   else if (_msg.action() == ignition::msgs::Marker::DELETE_ALL)
   {
     // If given namespace doesn't exist
-    if (!ns.empty() && nsIter == this->markers.end())
+    if (!ns.empty() && nsIter == this->visualMarkers.end())
     {
-      gzwarn << "Unable to delete all markers in namespace[" << ns <<
+      ignwarn << "Unable to delete all markers in namespace[" << ns <<
           "], namespace can't be found." << std::endl;
       return false;
     }
     // Remove all markers in the specified namespace
-    else if (nsIter != this->markers.end())
+    else if (nsIter != this->visualMarkers.end())
     {
       for (auto it = nsIter->second.begin(); it != nsIter->second.end(); ++it)
       {
-        it->second->Fini();
-        this->scene->RemoveVisual(it->second);
+        // TODO(jshep1): cleanup code here for Fini()
+        // it->second->Fini();
+        this->scene->DestroyVisual(it->second);
       }
       nsIter->second.clear();
-      this->markers.erase(nsIter);
+      this->visualMarkers.erase(nsIter);
     }
     // Remove all markers in all namespaces.
     else
     {
-      for (nsIter = this->markers.begin();
-           nsIter != this->markers.end(); ++nsIter)
+      for (nsIter = this->visualMarkers.begin();
+           nsIter != this->visualMarkers.end(); ++nsIter)
       {
         for (auto it = nsIter->second.begin(); it != nsIter->second.end(); ++it)
         {
-          it->second->Fini();
-          this->scene->RemoveVisual(it->second);
+          // TODO(jshep1): cleanup code here for Fini()
+          // it->second->Fini();
+          this->scene->DestroyVisual(it->second);
         }
       }
-      this->markers.clear();
+      this->visualMarkers.clear();
     }
   }
   else
   {
-    gzerr << "Unknown marker action[" << _msg.action() << "]\n";
+    ignerr << "Unknown marker action[" << _msg.action() << "]\n";
     return false;
   }
 
@@ -340,25 +331,19 @@ bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
   _rep.clear_marker();
 
   // Create the list of markers
-  for (Marker_M::const_iterator mIter = this->markers.begin();
-       mIter != this->markers.end(); ++mIter)
+  for (VisualMarker_M::const_iterator mIter = this->visualMarkers.begin();
+       mIter != this->visualMarkers.end(); ++mIter)
   {
-    for (std::map<uint64_t, MarkerVisualPtr>::const_iterator iter =
+    for (std::map<uint64_t, VisualPtr>::const_iterator iter =
         mIter->second.begin(); iter != mIter->second.end(); ++iter)
     {
       ignition::msgs::Marker *markerMsg = _rep.add_marker();
       markerMsg->set_ns(mIter->first);
       markerMsg->set_id(iter->first);
-      iter->second->FillMsg(*markerMsg);
+      //TODO(jshep1): set markerMsg properties from Marker
+      //iter->second->FillMsg(*markerMsg);
     }
   }
 
   return true;
-}
-
-/////////////////////////////////////////////////
-void MarkerManagerPrivate::OnStatsMsg(ConstWorldStatisticsPtr &_msg)
-{
-  std::lock_guard<std::mutex> lock(this->mutex);
-  this->simTime = msgs::Convert(_msg->sim_time());
 }

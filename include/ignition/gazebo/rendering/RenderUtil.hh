@@ -27,6 +27,7 @@
 #include <ignition/gazebo/System.hh>
 
 #include "ignition/gazebo/rendering/SceneManager.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 
 namespace ignition
@@ -108,6 +109,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();
+
+    /// \brief Get the marker manager
+    /// Returns reference to the marker manager.
+    public: class MarkerManager &MarkerManager();
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity

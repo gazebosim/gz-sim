@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_RENDERING_MARKERMANAGER_HH_
-#define IGNITION_RENDERING_MARKERMANAGER_HH_
+#ifndef IGNITION_GAZEBO_MARKERMANAGER_HH_
+#define IGNITION_GAZEBO_MARKERMANAGER_HH_
 
 #include <memory>
 
@@ -23,35 +23,36 @@
 
 namespace ignition
 {
-  namespace rendering
-  {
-    // Forwared declare private data class.
-    class MarkerManagerPrivate;
+namespace gazebo
+{
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+// Forward declare private data class.
+class MarkerManagerPrivate;
 
-    /// \cond
-    /// \brief Creates, deletes, and maintains marker visuals. Only the
-    /// Scene class should instantiate and use this class.
-    class MarkerManager
-    {
-      /// \brief Constructor
-      public: MarkerManager();
+/// \brief Creates, deletes, and maintains marker visuals. Only the
+/// Scene class should instantiate and use this class.
+class IGNITION_GAZEBO_VISIBLE MarkerManager
+{
+  /// \brief Constructor
+  public: MarkerManager();
 
-      /// \brief Destructor
-      public: virtual ~MarkerManager();
+  /// \brief Destructor
+  public: virtual ~MarkerManager();
 
-      /// \brief Initialize the marker manager.
-      /// \param[in] _scene Reference to the scene.
-      /// \return True on success
-      private: bool Init(Scene *_scene);
+  /// \brief Initialize the marker manager.
+  /// \param[in] _scene Reference to the scene.
+  /// \return True on success
+  private: bool Init(ignition::rendering::Scene *_scene);
 
-      /// \internal
-      /// \brief Private data pointer
-      private: std::unique_ptr<MarkerManagerPrivate> dataPtr;
+  /// \internal
+  /// \brief Private data pointer
+  private: std::unique_ptr<MarkerManagerPrivate> dataPtr;
 
-      /// Make sure the Scene can access Init()
-      private: friend class Scene;
-    };
-    /// \endcond
-  }
+  /// Make sure the Scene can access Init()
+  private: friend class Scene;
+};
+}
+
+}
 }
 #endif
