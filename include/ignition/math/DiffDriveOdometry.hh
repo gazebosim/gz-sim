@@ -100,6 +100,7 @@ namespace ignition
       /// steerings position
       /// \param[in] _leftPos Left wheel position in radians.
       /// \param[in] _rightPos Right wheel postion in radians.
+      /// \param[in] _time Current time point.
       /// \return True if the odometry is actually updated.
       public: bool Update(const Angle &_leftPos, const Angle &_rightPos,
                           const clock::time_point &_time);
