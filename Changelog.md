@@ -2,9 +2,6 @@
 
 ### Ignition Gazebo 2.X.X
 
-1. Support camera follow in world frame
-    * [Pull Request 436](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/436)
-
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
 
@@ -13,6 +10,8 @@
 
 1.  Add Follow mode to GUI
     * [Pull Request 430](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/430)
+    * [Pull Request 436](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/436)
+    * [Pull Request 4](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/4)
 
 ### Ignition Gazebo 2.10.0 (2019-09-08)
 
