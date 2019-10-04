@@ -796,6 +796,13 @@ void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followOffset = _offset;
+}
+
+/////////////////////////////////////////////////
 std::string IgnRenderer::FollowTarget() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1200,6 +1207,15 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
                  << std::endl;
         }
       }
+
+      if (auto offsetElem = elem->FirstChildElement("offset"))
+      {
+        math::Vector3d offset;
+        std::stringstream offsetStr;
+        offsetStr << std::string(offsetElem->GetText());
+        offsetStr >> offset;
+        renderWindow->SetFollowOffset(offset);
+      }
     }
   }
 
@@ -1347,6 +1363,12 @@ void RenderWindowItem::SetFollowPGain(double _gain)
 void RenderWindowItem::SetFollowWorldFrame(bool _worldFrame)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowWorldFrame(_worldFrame);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowOffset(_offset);
 }
 
 /////////////////////////////////////////////////

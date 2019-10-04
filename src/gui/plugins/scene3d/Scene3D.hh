@@ -180,6 +180,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowWorldFrame(bool _worldFrame);
 
+    /// \brief Set the camera follow offset position
+    /// \param[in] _offset Camera follow offset position.
+    public: void SetFollowOffset(const math::Vector3d &_offset);
+
     /// \brief Get the target which the user camera is following
     /// \return Target being followed
     public: std::string FollowTarget() const;
@@ -322,6 +326,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// false to follow in target's local frame
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowWorldFrame(bool _worldFrame);
+
+    /// \brief Set the camera follow offset position
+    /// \param[in] _offset Camera follow offset position.
+    public: void SetFollowOffset(const math::Vector3d &_offset);
 
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
