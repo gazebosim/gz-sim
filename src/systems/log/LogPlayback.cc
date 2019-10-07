@@ -61,6 +61,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \return True if any playback has been started successfully.
   public: bool Start(EntityComponentManager &_ecm);
 
+  /// \brief Replace URIs of resources in components with recorded path.
+  public: void ReplaceResourceURIs(EntityComponentManager &_ecm);
+
   /// \brief Prepend log path to mesh file path in the SDF element.
   /// \param[in] _uri URI of mesh in geometry
   /// \return String of prepended path.
@@ -266,6 +269,16 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     }
   }
 
+  this->ReplaceResourceURIs(_ecm);
+
+  this->instStarted = true;
+  LogPlaybackPrivate::started = true;
+  return true;
+}
+
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
+{
   // Define equality functions for replacing component uri
   auto UriEqual = [&](const std::string &s1, const std::string &s2) -> bool
   {
@@ -337,10 +350,6 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 
     return true;
   });
-
-  this->instStarted = true;
-  LogPlaybackPrivate::started = true;
-  return true;
 }
 
 //////////////////////////////////////////////////
@@ -348,12 +357,17 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
 {
   const std::string filePrefix = "file://";
 
-  if (_uri.compare(0, filePrefix.length(), filePrefix) == 0 || _uri[0] == '/')
+  // Prepend if path starts with file:// or /, but recorded path has not alreay been prepended
+  if ((_uri.compare(0, filePrefix.length(), filePrefix) == 0 ||
+       _uri[0] == '/') &&
+    (_uri.substr(filePrefix.length()).compare(
+      0, this->logPath.length(), this->logPath) != 0))
   {
     igndbg << "Format matches. Prepending [" << this->logPath << "]" << std::endl;
+    igndbg << "_uri.substr(filePrefix.length()): " << _uri.substr(filePrefix.length()) << std::endl;
 
     // Prepend log path to file path to return
-    return common::joinPaths(filePrefix, this->logPath,
+    return filePrefix + common::joinPaths(this->logPath,
       _uri.substr(filePrefix.length()));
   }
   else
@@ -463,6 +477,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       ignwarn << "Trying to playback unsupported message type ["
               << msgType << "]" << std::endl;
     }
+    this->dataPtr->ReplaceResourceURIs(_ecm);
     ++iter;
   }
 
