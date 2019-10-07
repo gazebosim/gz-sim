@@ -325,13 +325,10 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
 
         nMeshes += 1;
       }
-      igndbg << newMeshUri << std::endl;
     }
 
     return true;
   });
-  // TEMPORARY
-  igndbg << "Replaced URIs of " << nMeshes << " meshes" << std::endl;
 
   // Loop through materials in world. Prepend log path to URI
   _ecm.Each<components::Material>(
@@ -346,7 +343,6 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
       matSdf.SetScriptUri(newMatUri);
       _matComp->SetData(matSdf, MatUriEqual);
     }
-    igndbg << newMatUri << std::endl;
 
     return true;
   });
@@ -363,17 +359,12 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
     (_uri.substr(filePrefix.length()).compare(
       0, this->logPath.length(), this->logPath) != 0))
   {
-    igndbg << "Format matches. Prepending [" << this->logPath << "]" << std::endl;
-    igndbg << "_uri.substr(filePrefix.length()): " << _uri.substr(filePrefix.length()) << std::endl;
-
     // Prepend log path to file path to return
     return filePrefix + common::joinPaths(this->logPath,
       _uri.substr(filePrefix.length()));
   }
   else
   {
-    igndbg << "Format does not match" << std::endl;
-
     return std::string(_uri);
   }
 }
