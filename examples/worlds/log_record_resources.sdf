@@ -23,7 +23,7 @@
       <!-- Deprecated, directories to write recorded files. If unspecified,
              will record to default. -->
       <path>/tmp/log</path>
-      <record_resources>0</record_resources>
+      <record_resources>1</record_resources>
       <compress>0</compress>
     </plugin>
 

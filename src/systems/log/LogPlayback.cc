@@ -236,68 +236,6 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
-  // Define equality functions for setting component data
-  auto UriEqual = [&](const std::string &s1, const std::string &s2) -> bool
-  {
-    return (s1.compare(s2) == 0);
-  };
-
-  auto GeoUriEqual = [&](const sdf::Geometry &g1,
-    const sdf::Geometry &g2) -> bool
-  {
-    if (g1.Type() == sdf::GeometryType::MESH &&
-      g2.Type() == sdf::GeometryType::MESH)
-    {
-      return UriEqual(g1.MeshShape()->Uri(), g2.MeshShape()->Uri());
-    }
-    else
-      return false;
-  };
-
-  auto MatUriEqual = [&](const sdf::Material &m1,
-    const sdf::Material &m2) -> bool
-  {
-    return UriEqual(m1.ScriptUri(), m2.ScriptUri());
-  };
-
-  // Loop through geometries in world. Prepend to URI
-  _ecm.Each<components::Geometry>(
-      [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
-  {
-    sdf::Geometry geoSdf = _geoComp->Data();
-    if (geoSdf.Type() == sdf::GeometryType::MESH)
-    {
-      std::string meshUri = geoSdf.MeshShape()->Uri();
-      if (!meshUri.empty())
-      {
-        // Make a copy of mesh shape, and change the uri in the new copy
-        sdf::Mesh meshShape = sdf::Mesh(*(geoSdf.MeshShape()));
-        meshShape.SetUri(this->PrependLogPath(meshUri));
-        geoSdf.SetMeshShape(meshShape);
-        _geoComp->SetData(geoSdf, GeoUriEqual);
-      }
-      igndbg << meshUri << std::endl;
-    }
-
-    return true;
-  });
-
-  // Loop through materials in world. Prepend to URI
-  _ecm.Each<components::Material>(
-      [&](const Entity &/*_entity*/, components::Material *_matComp) -> bool
-  {
-    sdf::Material matSdf = _matComp->Data();
-    std::string matUri = matSdf.ScriptUri();
-    if (!matUri.empty())
-    {
-      matSdf.SetScriptUri(this->PrependLogPath(matUri));
-      _matComp->SetData(matSdf, MatUriEqual);
-    }
-    igndbg << matUri << std::endl;
-
-    return true;
-  });
-
   // Access all messages in .tlog file
   this->batch = this->log->QueryMessages();
   auto iter = this->batch.begin();
@@ -328,6 +266,78 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     }
   }
 
+  // Define equality functions for replacing component uri
+  auto UriEqual = [&](const std::string &s1, const std::string &s2) -> bool
+  {
+    return (s1.compare(s2) == 0);
+  };
+
+  auto GeoUriEqual = [&](const sdf::Geometry &g1,
+    const sdf::Geometry &g2) -> bool
+  {
+    if (g1.Type() == sdf::GeometryType::MESH &&
+      g2.Type() == sdf::GeometryType::MESH)
+    {
+      return UriEqual(g1.MeshShape()->Uri(), g2.MeshShape()->Uri());
+    }
+    else
+      return false;
+  };
+
+  auto MatUriEqual = [&](const sdf::Material &m1,
+    const sdf::Material &m2) -> bool
+  {
+    return UriEqual(m1.ScriptUri(), m2.ScriptUri());
+  };
+
+  int nMeshes = 0;
+
+  // Loop through geometries in world. Prepend log path to URI
+  _ecm.Each<components::Geometry>(
+      [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
+  {
+    sdf::Geometry geoSdf = _geoComp->Data();
+    if (geoSdf.Type() == sdf::GeometryType::MESH)
+    {
+      std::string meshUri = geoSdf.MeshShape()->Uri();
+      std::string newMeshUri;
+      if (!meshUri.empty())
+      {
+        // Make a copy of mesh shape, and change the uri in the new copy
+        sdf::Mesh meshShape = sdf::Mesh(*(geoSdf.MeshShape()));
+        newMeshUri = this->PrependLogPath(meshUri);
+        meshShape.SetUri(newMeshUri);
+        geoSdf.SetMeshShape(meshShape);
+        _geoComp->SetData(geoSdf, GeoUriEqual);
+
+        nMeshes += 1;
+      }
+      igndbg << newMeshUri << std::endl;
+    }
+
+    return true;
+  });
+  // TEMPORARY
+  igndbg << "Replaced URIs of " << nMeshes << " meshes" << std::endl;
+
+  // Loop through materials in world. Prepend log path to URI
+  _ecm.Each<components::Material>(
+      [&](const Entity &/*_entity*/, components::Material *_matComp) -> bool
+  {
+    sdf::Material matSdf = _matComp->Data();
+    std::string matUri = matSdf.ScriptUri();
+    std::string newMatUri;
+    if (!matUri.empty())
+    {
+      newMatUri = this->PrependLogPath(matUri);
+      matSdf.SetScriptUri(newMatUri);
+      _matComp->SetData(matSdf, MatUriEqual);
+    }
+    igndbg << newMatUri << std::endl;
+
+    return true;
+  });
+
   this->instStarted = true;
   LogPlaybackPrivate::started = true;
   return true;
@@ -340,12 +350,18 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
 
   if (_uri.compare(0, filePrefix.length(), filePrefix) == 0 || _uri[0] == '/')
   {
+    igndbg << "Format matches. Prepending [" << this->logPath << "]" << std::endl;
+
     // Prepend log path to file path to return
     return common::joinPaths(filePrefix, this->logPath,
       _uri.substr(filePrefix.length()));
   }
   else
+  {
+    igndbg << "Format does not match" << std::endl;
+
     return std::string(_uri);
+  }
 }
 
 //////////////////////////////////////////////////
