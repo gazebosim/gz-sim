@@ -240,6 +240,23 @@ namespace ignition
     /// \return Steady clock duration.
     template<>
     std::chrono::steady_clock::duration convert(const msgs::Time &_in);
+    
+    /// \brief Generic conversion from a common time to another type.
+    /// \param[in] _in Common Time
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const common::Time &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from Common Time to a steady clock
+    /// duration.
+    /// \param[in] _in Time message.
+    /// \return Steady clock duration.
+    template<>
+    std::chrono::steady_clock::duration convert(const common::Time &_in);
 
     /// \brief Generic conversion from a math inertial to another type.
     /// \param[in] _in Math inertial.
