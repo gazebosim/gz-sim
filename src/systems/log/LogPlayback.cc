@@ -303,8 +303,6 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
     return UriEqual(m1.ScriptUri(), m2.ScriptUri());
   };
 
-  int nMeshes = 0;
-
   // Loop through geometries in world. Prepend log path to URI
   _ecm.Each<components::Geometry>(
       [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
@@ -322,8 +320,6 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
         meshShape.SetUri(newMeshUri);
         geoSdf.SetMeshShape(meshShape);
         _geoComp->SetData(geoSdf, GeoUriEqual);
-
-        nMeshes += 1;
       }
     }
 
@@ -353,7 +349,8 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
 {
   const std::string filePrefix = "file://";
 
-  // Prepend if path starts with file:// or /, but recorded path has not alreay been prepended
+  // Prepend if path starts with file:// or /, but recorded path has not
+  // already been prepended.
   if ((_uri.compare(0, filePrefix.length(), filePrefix) == 0 ||
        _uri[0] == '/') &&
     (_uri.substr(filePrefix.length()).compare(
