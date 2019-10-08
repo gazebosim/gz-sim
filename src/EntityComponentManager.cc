@@ -81,6 +81,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief A mutex to protect entity remove.
   public: std::mutex entityRemoveMutex;
 
+  /// \brief A mutex to protect from concurrent writes to views
+  public: mutable std::mutex viewsMutex;
+
   /// \brief The set of all views.
   public: mutable std::map<detail::ComponentTypeKey, detail::View> views;
 
@@ -146,6 +149,7 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   this->dataPtr->newlyCreatedEntities.clear();
+
   for (auto &view : this->dataPtr->views)
   {
     view.second.ClearNewEntities();
@@ -648,6 +652,7 @@ const EntityGraph &EntityComponentManager::Entities() const
 bool EntityComponentManager::FindView(const std::set<ComponentTypeId> &_types,
     std::map<detail::ComponentTypeKey, detail::View>::iterator &_iter) const
 {
+  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
   _iter = this->dataPtr->views.find(_types);
   return _iter != this->dataPtr->views.end();
 }
@@ -659,6 +664,7 @@ std::map<detail::ComponentTypeKey, detail::View>::iterator
 {
   // If the view already exists, then the map will return the iterator to
   // the location that prevented the insertion.
+  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
   return this->dataPtr->views.insert(
       std::make_pair(_types, std::move(_view))).first;
 }
