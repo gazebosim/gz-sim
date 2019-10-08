@@ -211,7 +211,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
 {
   IGN_PROFILE("EntityComponentManager::ProcessRemoveEntityRequests");
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
   // Short-cut if erasing all entities
   if (this->dataPtr->removeAllEntities)
   {
@@ -675,7 +674,6 @@ std::map<detail::ComponentTypeKey, detail::View>::iterator
 void EntityComponentManager::UpdateViews(const Entity _entity)
 {
   IGN_PROFILE("EntityComponentManager::UpdateViews");
-  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
   for (auto &view : this->dataPtr->views)
   {
     // Add/update the entity if it matches the view.
@@ -705,7 +703,6 @@ void EntityComponentManager::UpdateViews(const Entity _entity)
 void EntityComponentManager::RebuildViews()
 {
   IGN_PROFILE("EntityComponentManager::RebuildViews");
-  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
   for (auto &view : this->dataPtr->views)
   {
     view.second.entities.clear();
