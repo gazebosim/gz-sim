@@ -398,6 +398,14 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
+std::chrono::steady_clock::duration ignition::gazebo::convert(
+    const common::Time &_in)
+{
+  return std::chrono::seconds(_in.sec) + std::chrono::nanoseconds(_in.nsec);
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
 {
   msgs::Inertial out;

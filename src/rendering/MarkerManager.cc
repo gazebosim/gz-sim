@@ -234,10 +234,13 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     if (nsIter != this->visuals.end() &&
         markerIter != nsIter->second.end())
     {
-      // TODO(jshep1): set the properties for the marker here
-      // Probably update type of Renderable
-      // markerIter->second->Load(_msg);
-      //
+      // TODO(anyone): Note that the following set values assume
+      // that the Marker message has been fully populated by the user.
+      // Default values occurring in cases in which the user has left
+      // that field of the Marker message blank may override previously
+      // set custom values - possible checks for a "None" value may need
+      // to exist
+
       // TODO: check that visual has an attached geometry with
       // GeometryCount, if not, create one and populate
       ignition::rendering::Type type = MsgToType(_msg);
@@ -249,6 +252,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
             (markerIter->second->GeometryByIndex(0));
 
       // Set Marker Operation Type
+      // TODO Make sure dynamic renderable is updated?
       markerPtr->SetRenderOperation(type);
 
       // Set Visual Scale
@@ -258,16 +262,37 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       // Set Visual Pose
       markerIter->second->SetLocalPose(convert<math::Pose3d>(_msg.pose()));
 
-      // TODO Set Marker and Visual(?) Lifetime
-      markerPtr->SetLifetime(convert<std::chrono::steady_clock::duration>(_msg.lifetime()));
+      std::chrono::steady_clock::duration simTime();
+      // Set Marker Lifetime
+      markerPtr->SetLifetime(
+                      convert<std::chrono::steady_clock::duration>
+                      (_msg.lifetime()) +
+                      convert<std::chrono::steady_clock::duration>
+                      (this->scene->SimTime())
+		      );
 
-      // TODO Set Visual Parent
-
-      // TODO Set Marker and Visual (?) Layer
-
-      // TODO Make sure dynamic renderable is updated?
+      // Set Visual Parent
+      if (markerIter->second->HasParent())
+      {
+        markerIter->second->Parent()->RemoveChild(markerIter->second);
+      }
       
-      // TODO Update Marker Visibility
+      VisualPtr parent = this->scene->VisualByName(_msg.parent());
+
+      if (parent)
+      {
+        parent->AddChild(markerIter->second);
+      }
+      else
+      {
+        ignerr << "No visual with the name[" << _msg.parent() << "]\n";
+      }
+
+      // Set Marker and Visual (?) Layer
+      markerPtr->SetLayer(_msg.layer());
+ 
+      // Update Marker Visibility
+      markerIter->second->SetVisible(_msg.visibility());
     }
     // Otherwise create a new marker
     else
@@ -282,7 +307,12 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       // Create and load the marker
       rendering::MarkerPtr markerPtr = this->scene->CreateMarker();
       markerPtr->SetLayer(_msg.layer());
-      markerPtr->SetLifetime(convert<std::chrono::steady_clock::duration>(_msg.lifetime()));
+      markerPtr->SetLifetime(
+                      convert<std::chrono::steady_clock::duration>
+                      (_msg.lifetime()) + 
+                      convert<std::chrono::steady_clock::duration>
+                      (this->scene->SimTime()) 
+                      );
 
       visualPtr->AddGeometry(markerPtr);
       this->scene->RootVisual()->AddChild(visualPtr);
@@ -298,8 +328,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     if (nsIter != this->visuals.end() &&
         markerIter != nsIter->second.end())
     {
-      // TODO(jshep1): cleanup code here for Fini()
-      // markerIter->second->Fini();
+      //TODO may need to destroy marker here?
       this->scene->DestroyVisual(markerIter->second);
       this->visuals[ns].erase(markerIter);
 
@@ -329,8 +358,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     {
       for (auto it = nsIter->second.begin(); it != nsIter->second.end(); ++it)
       {
-        // TODO(jshep1): cleanup code here for Fini()
-        // it->second->Fini();
+        //TODO may need to destroy marker here?
         this->scene->DestroyVisual(it->second);
       }
       nsIter->second.clear();
@@ -344,8 +372,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       {
         for (auto it = nsIter->second.begin(); it != nsIter->second.end(); ++it)
         {
-          // TODO(jshep1): cleanup code here for Fini()
-          // it->second->Fini();
+          //TODO may need to destroy marker here?
           this->scene->DestroyVisual(it->second);
         }
       }
