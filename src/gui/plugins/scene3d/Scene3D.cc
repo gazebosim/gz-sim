@@ -796,10 +796,24 @@ void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
 }
 
 /////////////////////////////////////////////////
+bool IgnRenderer::FollowWorldFrame() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followWorldFrame;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followOffset = _offset;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::FollowOffset() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followOffset;
 }
 
 /////////////////////////////////////////////////
@@ -1191,12 +1205,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 
       if (auto worldFrameElem = elem->FirstChildElement("world_frame"))
       {
-        std::string worldFrameStr = std::string(worldFrameElem->GetText());
-        std::transform(worldFrameStr.begin(), worldFrameStr.end(),
-            worldFrameStr.begin(), [](unsigned char c) // NOLINT
-            {
-              return std::tolower(c);
-            });
+        std::string worldFrameStr =
+            common::lowercase(worldFrameElem->GetText());
         if (worldFrameStr == "true" || worldFrameStr == "1")
           renderWindow->SetFollowWorldFrame(true);
         else if (worldFrameStr == "false" || worldFrameStr == "0")

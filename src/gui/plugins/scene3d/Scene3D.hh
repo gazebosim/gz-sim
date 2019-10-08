@@ -188,6 +188,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Target being followed
     public: std::string FollowTarget() const;
 
+    /// \brief Get whether the camera is following the entity in world frame.
+    /// \return True if follow mode is in world frame, false if local frame
+    public: bool FollowWorldFrame() const;
+
+    /// \brief Get the camera follow offset position
+    /// \return Camera follow offset position.
+    public: math::Vector3d FollowOffset() const;
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
