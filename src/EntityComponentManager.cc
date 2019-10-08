@@ -150,7 +150,6 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   this->dataPtr->newlyCreatedEntities.clear();
 
-  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
   for (auto &view : this->dataPtr->views)
   {
     view.second.ClearNewEntities();
