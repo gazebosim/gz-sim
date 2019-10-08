@@ -57,6 +57,12 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \return True if the marker was processed successfully.
   public: bool ProcessMarkerMsg(const ignition::msgs::Marker &_msg);
 
+  /// \brief Convert an ignition msg render type to ignition rendering
+  /// \param[in] _msg The message data
+  /// \return Converted rendering type, if any
+  public: ignition::rendering::Type MsgToType(
+                    const ignition::msgs::Marker &_msg);
+  
   /// \brief Update the markers. This function is called on
   /// the PreRender event.
   public: void OnPreRender();
@@ -92,17 +98,11 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \brief Ignition node
   public: ignition::transport::Node node;
 
-  /// \brief Gazebo transport node
-  /// public: rendering::NodePtr ign_node;
-
-  /// \brief Connect to the prerender signal
-  // public: event::ConnectionPtr preRenderConnection;
-
   /// \brief Sim time according to world_stats
   public: common::Time simTime;
 
-  /// \brief Subscribe to world_stats topic
-  /// public: transport::SubscriberPtr statsSub;
+  /// \brief The last marker message received
+  public: ignition::msgs::Marker msg;
 };
 
 /////////////////////////////////////////////////
@@ -114,8 +114,6 @@ MarkerManager::MarkerManager()
 /////////////////////////////////////////////////
 MarkerManager::~MarkerManager()
 {
-  // this->dataPtr->statsSub.reset();
-  // this->dataPtr->ign_node.reset();
 }
 
 /////////////////////////////////////////////////
@@ -143,16 +141,6 @@ bool MarkerManager::Init(ignition::rendering::Scene *_scene)
     ignerr << "Unable to advertise to the /marker service.\n";
   }
 
-  // this->dataPtr->ign_node = transport::NodePtr(new transport::Node());
-  // this->dataPtr->ign_node->Init();
-
-  // this->dataPtr->statsSub = this->dataPtr->ign_node->Subscribe("~/world_stats",
-  //    &MarkerManagerPrivate::OnStatsMsg, this->dataPtr.get());
-
-  // Process markers on PreRender
-  // this->dataPtr->preRenderConnection = event::Events::ConnectPreRender(
-  //    std::bind(&MarkerManagerPrivate::OnPreRender, this->dataPtr.get()));
-
   return true;
 }
 
@@ -173,25 +161,6 @@ void MarkerManagerPrivate::OnPreRender()
   for (auto mit = this->visuals.begin();
        mit != this->visuals.end();)
   {
-    for (auto it = mit->second.cbegin();
-         it != mit->second.cend();)
-    {
-      // Erase a marker if it has a lifetime and it's expired,
-      // or if the world has reset
-      /*
-      if (it->second->Lifetime() != common::Time::Zero &&
-          (it->second->Lifetime() <= this->simTime ||
-          this->simTime < this->lastSimTime))
-      {
-        it->second->Fini();
-        this->scene->RemoveVisual(it->second);
-        it = mit->second.erase(it);
-      }
-      else
-      */
-      ++it;
-    }
-
     // Erase a namespace if it's empty
     if (mit->second.empty())
       mit = this->visuals.erase(mit);
@@ -199,6 +168,44 @@ void MarkerManagerPrivate::OnPreRender()
       ++mit;
   }
   this->lastSimTime = this->simTime;
+}
+
+ignition::rendering::Type MarkerManagerPrivate::MsgToType(
+                          const ignition::msgs::Marker &_msg)
+{
+  ignition::msgs::Marker_Type marker = this->msg.type();
+  if (marker != _msg.type() && _msg.type() != ignition::msgs::Marker::NONE)
+  {
+    marker = _msg.type();
+    this->msg.set_type(_msg.type());
+  }
+  switch (marker)
+  {
+    case ignition::msgs::Marker::BOX:
+      return ignition::rendering::Type::BOX;
+    case ignition::msgs::Marker::CYLINDER:
+      return ignition::rendering::Type::CYLINDER;
+    case ignition::msgs::Marker::LINE_STRIP:
+      return ignition::rendering::Type::LINE_STRIP;
+    case ignition::msgs::Marker::LINE_LIST:
+      return ignition::rendering::Type::LINE_LIST;
+    case ignition::msgs::Marker::POINTS:
+      return ignition::rendering::Type::POINTS;
+    case ignition::msgs::Marker::SPHERE:
+      return ignition::rendering::Type::SPHERE;
+    case ignition::msgs::Marker::TEXT:
+      return ignition::rendering::Type::TEXT;
+    case ignition::msgs::Marker::TRIANGLE_FAN:
+      return ignition::rendering::Type::TRIANGLE_FAN;
+    case ignition::msgs::Marker::TRIANGLE_LIST:
+      return ignition::rendering::Type::TRIANGLE_LIST;
+    case ignition::msgs::Marker::TRIANGLE_STRIP:
+      return ignition::rendering::Type::TRIANGLE_STRIP;
+    default:
+      ignerr << "Unable to create marker of type[" << _msg.type() << "]\n";
+      break;
+  }
+  return ignition::rendering::Type::NONE;
 }
 
 //////////////////////////////////////////////////
@@ -228,8 +235,39 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
         markerIter != nsIter->second.end())
     {
       // TODO(jshep1): set the properties for the marker here
+      // Probably update type of Renderable
       // markerIter->second->Load(_msg);
+      //
+      // TODO: check that visual has an attached geometry with
+      // GeometryCount, if not, create one and populate
+      ignition::rendering::Type type = MsgToType(_msg);
       
+      // TODO(anyone): Update so that multiple markers can
+      //               be attached to one visual
+      ignition::rendering::MarkerPtr markerPtr =
+            std::dynamic_pointer_cast<ignition::rendering::Marker>
+            (markerIter->second->GeometryByIndex(0));
+
+      // Set Marker Operation Type
+      markerPtr->SetRenderOperation(type);
+
+      // Set Visual Scale
+      markerIter->second->SetLocalScale(_msg.scale().x(), _msg.scale().y(),
+                                        _msg.scale().z());
+
+      // Set Visual Pose
+      markerIter->second->SetLocalPose(convert<math::Pose3d>(_msg.pose()));
+
+      // TODO Set Marker and Visual(?) Lifetime
+      markerPtr->SetLifetime(convert<std::chrono::steady_clock::duration>(_msg.lifetime()));
+
+      // TODO Set Visual Parent
+
+      // TODO Set Marker and Visual (?) Layer
+
+      // TODO Make sure dynamic renderable is updated?
+      
+      // TODO Update Marker Visibility
     }
     // Otherwise create a new marker
     else
