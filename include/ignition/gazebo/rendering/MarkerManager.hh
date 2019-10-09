@@ -39,10 +39,21 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \brief Destructor
   public: virtual ~MarkerManager();
 
+  /// \brief Set the scene to manage
+  /// \param[in] _scene Scene pointer.
+  public: void SetScene(rendering::ScenePtr _scene);
+
+  /// \brief Get the scene
+  /// \return Pointer to scene
+  public: rendering::ScenePtr Scene() const;
+  
+  /// \brief Update MarkerManager
+  public: void PreRender() const;
+
   /// \brief Initialize the marker manager.
   /// \param[in] _scene Reference to the scene.
   /// \return True on success
-  private: bool Init(ignition::rendering::Scene *_scene);
+  public: bool Init(ignition::rendering::ScenePtr _scene);
 
   /// \internal
   /// \brief Private data pointer
