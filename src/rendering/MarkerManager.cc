@@ -93,7 +93,7 @@ class ignition::gazebo::MarkerManagerPrivate
   public: MarkerMsgs_L markerMsgs;
 
   /// \brief Pointer to the scene
-  public: ignition::rendering::Scene *scene = nullptr;
+  public: rendering::ScenePtr scene;
 
   /// \brief Ignition node
   public: ignition::transport::Node node;
@@ -107,17 +107,33 @@ class ignition::gazebo::MarkerManagerPrivate
 
 /////////////////////////////////////////////////
 MarkerManager::MarkerManager()
-: dataPtr(new MarkerManagerPrivate)
+: dataPtr(std::make_unique<MarkerManagerPrivate>())
 {
 }
 
 /////////////////////////////////////////////////
-MarkerManager::~MarkerManager()
+MarkerManager::~MarkerManager() = default;
+
+/////////////////////////////////////////////////
+void MarkerManager::SetScene(rendering::ScenePtr _scene)
 {
+  this->dataPtr->scene = std::move(_scene);
 }
 
 /////////////////////////////////////////////////
-bool MarkerManager::Init(ignition::rendering::Scene *_scene)
+rendering::ScenePtr MarkerManager::Scene() const
+{
+  return this->dataPtr->scene;
+}
+
+/////////////////////////////////////////////////
+void MarkerManager::PreRender() const
+{
+  return this->dataPtr->OnPreRender();
+}
+
+/////////////////////////////////////////////////
+bool MarkerManager::Init(ignition::rendering::ScenePtr _scene)
 {
   if (!_scene)
   {

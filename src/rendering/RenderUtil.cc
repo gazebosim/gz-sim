@@ -236,6 +236,8 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
 
+  this->dataPtr->markerManager.PreRender();
+
   std::vector<std::tuple<Entity, sdf::Sensor, Entity>> newSensors;
   if (this->dataPtr->enableSensors)
   {
@@ -831,7 +833,7 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
-  // TODO(jshep1): init markermanager here
+  this->dataPtr->markerManager.Init(this->dataPtr->scene);
 }
 
 /////////////////////////////////////////////////
