@@ -388,6 +388,31 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
   return true;
 }
 
+
+/////////////////////////////////////////////////
+bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  _rep.clear_marker();
+
+  // Create the list of visuals
+  for (Visual_M::const_iterator mIter = this->visuals.begin();
+       mIter != this->visuals.end(); ++mIter)
+  {
+    for (std::map<uint64_t, VisualPtr>::const_iterator iter =
+        mIter->second.begin(); iter != mIter->second.end(); ++iter)
+    {
+      ignition::msgs::Marker *markerMsg = _rep.add_marker();
+      markerMsg->set_ns(mIter->first);
+      markerMsg->set_id(iter->first);
+      //iter->second->FillMsg(*markerMsg);
+    }
+  }
+
+  return true;
+}
+
+
 /////////////////////////////////////////////////
 void MarkerManagerPrivate::OnMarkerMsg(const ignition::msgs::Marker &_req)
 {
