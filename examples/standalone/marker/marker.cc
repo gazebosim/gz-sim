@@ -33,8 +33,8 @@ int main(int _argc, char **_argv)
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::SPHERE);
 
-  ignition::msgs::Material *matMsg = markerMsg.mutable_material();
-  matMsg->mutable_script()->set_name("Ignition/BlueLaser");
+  //ignition::msgs::Material *matMsg = markerMsg.mutable_material();
+  //matMsg->mutable_script()->set_name("Ignition/BlueLaser");
 
   // The rest of this function adds different shapes and/or modifies shapes.
   // Read the terminal statements to figure out what each node.Request
