@@ -322,6 +322,8 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
 
       // Create and load the marker
       rendering::MarkerPtr markerPtr = this->scene->CreateMarker();
+      ignwarn << "visualPtr is " << visualPtr << "\n";
+      ignwarn << "markerPtr is " << markerPtr << "\n";
       markerPtr->SetLayer(_msg.layer());
       markerPtr->SetLifetime(
                       convert<std::chrono::steady_clock::duration>
@@ -330,6 +332,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
                       (this->scene->SimTime()) 
                       );
 
+      //visualPtr->AddGeometry(markerPtr);
       visualPtr->AddGeometry(markerPtr);
       this->scene->RootVisual()->AddChild(visualPtr);
 
