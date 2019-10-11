@@ -10,7 +10,7 @@ to record videos for.
 
 ## Running the script
 
-The demo can be started by running the script:
+Start the demo by running the script:
 
         bash record_one_run.bash [path_to_log]
 
@@ -18,7 +18,7 @@ e.g.
 
         bash record_one_run.bash /tmp/ign/logs
 
-Once the script is run, ign-gazebo window should pop-up and the log playback
+Once the script is run, ign-gazebo window should pop-up and log playback
 should automatically start. The GUI camera will follow the first entity found
 and the video recorder will be started. When the log playback ends, the video
 is saved to a temporary directory (`tmp_recording`). The log playback rewinds
@@ -37,3 +37,17 @@ parameters in the GzScene3d GUI plugin in `log_video_recorder.sdf`, i.e.
           <offset>-1.0 0 2.5</offset>
         </camera_follow>
 
+## Troubleshooting
+
+1. The world / models are not being loaded on log playback?
+A: Make sure you have all the fuel models downloaded in ~/.ignition/fuel cache
+directory
+
+1. I see `tmp_recording` dir, `tmp_recording.mp4` and other left over mp4 files
+in the directory where I ran `record_one_run.bash script.
+A: The playback and recording process is probably interrupted and the
+script did not have the chance to clean up some of these intermediate files
+
+1. The video is missing the beginning of the playback.
+A: The log playback recorder system has to wait until an entity (that you want
+to record a video for) appears before doing any recordings.
