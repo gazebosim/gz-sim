@@ -14,6 +14,10 @@ The demo can be started by running the script:
 
         bash record_one_run.bash [path_to_log]
 
+e.g.
+
+        bash record_one_run.bash /tmp/ign/logs
+
 Once the script is run, ign-gazebo window should pop-up and the log playback
 should automatically start. The GUI camera will follow the first entity found
 and the video recorder will be started. When the log playback ends, the video
