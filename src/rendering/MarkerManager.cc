@@ -269,7 +269,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
 
       // Set Marker Operation Type
       // TODO Make sure dynamic renderable is updated?
-      markerPtr->SetRenderOperation(type);
+      markerPtr->SetType(type);
 
       // Set Visual Scale
       markerIter->second->SetLocalScale(_msg.scale().x(), _msg.scale().y(),
@@ -332,7 +332,9 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
                       (this->scene->SimTime()) 
                       );
 
-      //visualPtr->AddGeometry(markerPtr);
+      ignition::rendering::Type type = MsgToType(_msg);
+      markerPtr->SetType(type);
+      
       visualPtr->AddGeometry(markerPtr);
       this->scene->RootVisual()->AddChild(visualPtr);
 
