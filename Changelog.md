@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
+    * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
+
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
 
