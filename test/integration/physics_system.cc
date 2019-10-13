@@ -47,6 +47,10 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
+#include "ignition/gazebo/components/JointPositionReset.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -645,4 +649,176 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
     ASSERT_TRUE(jointPosDof.find(jName) != jointPosDof.end()) << jName;
     EXPECT_EQ(jDof, jointPosDof[jName]) << jName;
   }
+}
+
+/////////////////////////////////////////////////
+/// Test joint position reset component
+TEST_F(PhysicsSystemFixture, ResetPositionComponent)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string rotatingJointName{"j2"};
+
+  Relay testSystem;
+
+  double pos0 = 0.42;
+  bool firstRun = true;
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Joint *, components::Name *_name) -> bool
+      {
+        if (_name->Data() == rotatingJointName)
+        {
+          if (firstRun)
+          {
+            firstRun = false;
+
+            auto resetComp = _ecm.Component<components::JointPositionReset>(_entity);
+            if (!resetComp)
+            {
+              _ecm.CreateComponent(_entity, components::JointPositionReset({pos0}));
+            }
+
+            auto position = _ecm.Component<components::JointPosition>(_entity);
+            if (!position)
+            {
+                _ecm.CreateComponent(_entity, components::JointPosition());
+            }
+          }
+        }
+        return true;
+      });
+    });
+
+  std::vector<double> positions;
+
+  testSystem.OnPostUpdate([&](
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name, components::JointPosition>(
+          [&](const ignition::gazebo::Entity &, const components::Joint *,
+              const components::Name *_name, const components::JointPosition *_pos)
+          {
+            if (_name->Data() == rotatingJointName)
+            {
+              positions.push_back(_pos->Data()[0]);
+            }
+            return true;
+          });
+    });
+
+    server.AddSystem(testSystem.systemPtr);
+    server.Run(true, 2, false);
+
+    ASSERT_EQ(positions.size(), 2ul);
+
+    // First position should be exactly the same
+    ASSERT_NEAR(pos0, positions[0], 1e-4);
+
+    // Second position should be different, but close
+    ASSERT_NEAR(pos0, positions[1], 0.01);
+}
+
+/////////////////////////////////////////////////
+/// Test joint veocity reset component
+TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string rotatingJointName{"j2"};
+
+  Relay testSystem;
+
+  double vel0 = 3.0;
+  bool firstRun = true;
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Joint *, components::Name *_name) -> bool
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            if (firstRun)
+            {
+              firstRun= false;
+
+              auto resetComp = _ecm.Component<components::JointVelocityReset>(_entity);
+              if (!resetComp)
+              {
+                _ecm.CreateComponent(_entity, components::JointVelocityReset({vel0}));
+              }
+
+              auto velocity = _ecm.Component<components::JointVelocity>(_entity);
+              if (!velocity)
+              {
+                _ecm.CreateComponent(_entity, components::JointVelocity());
+              }
+            }
+          }
+          return true;
+        });
+    });
+
+  std::vector<double> velocities;
+
+  testSystem.OnPostUpdate([&](
+  const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Joint, components::Name, components::JointVelocity>(
+      [&](const ignition::gazebo::Entity &, const components::Joint *,
+          const components::Name *_name, const components::JointVelocity *_vel)
+      {
+        if (_name->Data() == rotatingJointName)
+        {
+          velocities.push_back(_vel->Data()[0]);
+        }
+        return true;
+      });
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 2, false);
+
+  ASSERT_EQ(velocities.size(), 2ul);
+
+  // First velocity should be exactly the same
+  ASSERT_NEAR(vel0, velocities[0], 2e-4);
+
+  // Second velocity should be different, but close
+  ASSERT_NEAR(vel0, velocities[1], 0.05);
 }
