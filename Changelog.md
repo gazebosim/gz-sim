@@ -146,6 +146,9 @@
 1.  Add mutex to protect views from potential concurrent access
     * [Pull Request 435](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/435)
 
+1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
+    * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
+
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
 
