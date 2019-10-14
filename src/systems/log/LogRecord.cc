@@ -233,9 +233,16 @@ void LogRecord::Configure(const Entity &_entity,
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
+    std::string logPath = _sdf->Get<std::string>("path");
+    // Prepend working directory if path is relative
+    if (this->dataPtr->logPath.find(ignition::common::separator("")) != 0)
+    {
+      this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
+        this->dataPtr->logPath);
+    }
+
     // Get directory path from SDF param
-    this->dataPtr->Start(_sdf->Get<std::string>("path"),
-      _sdf->Get<std::string>("compress_path"));
+    this->dataPtr->Start(logPath, _sdf->Get<std::string>("compress_path"));
   }
   else
   {
