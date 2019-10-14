@@ -176,6 +176,13 @@ void LogPlayback::Configure(const Entity &,
   // Get directory paths from SDF
   this->dataPtr->logPath = _sdf->Get<std::string>("path");
 
+  // Prepend working directory if path is relative
+  if (this->dataPtr->logPath.find(ignition::common::separator("")) != 0)
+  {
+    this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
+      this->dataPtr->logPath);
+  }
+
   // If path is a file, assume it is a compressed file
   // (Otherwise assume it is a directory containing recorded files.)
   if (common::isFile(this->dataPtr->logPath))
