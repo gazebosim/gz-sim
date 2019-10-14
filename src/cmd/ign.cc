@@ -246,7 +246,18 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(_playback);
+      // Absolute path
+      std::string playback_str = std::string(_playback);
+      if (playback_str.find(ignition::common::separator("")) == 0)
+      {
+        serverConfig.SetLogPlaybackPath(_playback);
+      }
+      // Relative path
+      else
+      {
+        serverConfig.SetLogPlaybackPath(ignition::common::joinPaths(
+          ignition::common::cwd(), _playback));
+      }
     }
   }
 

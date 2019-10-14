@@ -265,7 +265,8 @@ int main(int _argc, char **_argv)
 
     if (!FLAGS_record_path.empty())
     {
-      serverConfig.SetLogRecordPath(FLAGS_record_path);
+      serverConfig.SetLogRecordPath(ignition::common::joinPaths(
+        ignition::common::cwd(), FLAGS_record_path));
     }
     else
     {
@@ -294,7 +295,17 @@ int main(int _argc, char **_argv)
     else
     {
       ignmsg << "Playing back states" << FLAGS_playback << std::endl;
-      serverConfig.SetLogPlaybackPath(FLAGS_playback);
+      // Absolute path
+      if (FLAGS_playback.find(ignition::common::separator("")) == 0)
+      {
+        serverConfig.SetLogPlaybackPath(FLAGS_playback);
+      }
+      // Relative path
+      else
+      {
+        serverConfig.SetLogPlaybackPath(ignition::common::joinPaths(
+          ignition::common::cwd(), FLAGS_playback));
+      }
     }
   }
 
