@@ -233,9 +233,10 @@ void LogRecord::Configure(const Entity &_entity,
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
-    std::string logPath = _sdf->Get<std::string>("path");
+    auto logPath = _sdf->Get<std::string>("path");
     // Prepend working directory if path is relative
-    if (this->dataPtr->logPath.find(ignition::common::separator("")) != 0)
+    if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
+        != 0)
     {
       this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
         this->dataPtr->logPath);
@@ -409,7 +410,7 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
       [&](const Entity &/*_entity*/,
       const components::Geometry *_geoComp) -> bool
   {
-    sdf::Geometry geoSdf = _geoComp->Data();
+    const sdf::Geometry &geoSdf = _geoComp->Data();
     if (geoSdf.Type() == sdf::GeometryType::MESH)
     {
       std::string meshUri = geoSdf.MeshShape()->Uri();
@@ -428,7 +429,7 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
       [&](const Entity &/*_entity*/,
       const components::Material *_matComp) -> bool
   {
-    sdf::Material matSdf = _matComp->Data();
+    const sdf::Material &matSdf = _matComp->Data();
     std::string matUri = matSdf.ScriptUri();
     if (!matUri.empty())
     {

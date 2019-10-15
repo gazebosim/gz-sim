@@ -177,7 +177,8 @@ void LogPlayback::Configure(const Entity &,
   this->dataPtr->logPath = _sdf->Get<std::string>("path");
 
   // Prepend working directory if path is relative
-  if (this->dataPtr->logPath.find(ignition::common::separator("")) != 0)
+  if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
+      != 0)
   {
     this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
       this->dataPtr->logPath);
@@ -287,27 +288,27 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
 {
   // Define equality functions for replacing component uri
-  auto UriEqual = [&](const std::string &s1, const std::string &s2) -> bool
+  auto uriEqual = [&](const std::string &_s1, const std::string &_s2) -> bool
   {
-    return (s1.compare(s2) == 0);
+    return (_s1.compare(_s2) == 0);
   };
 
-  auto GeoUriEqual = [&](const sdf::Geometry &g1,
-    const sdf::Geometry &g2) -> bool
+  auto geoUriEqual = [&](const sdf::Geometry &_g1,
+    const sdf::Geometry &_g2) -> bool
   {
-    if (g1.Type() == sdf::GeometryType::MESH &&
-      g2.Type() == sdf::GeometryType::MESH)
+    if (_g1.Type() == sdf::GeometryType::MESH &&
+      _g2.Type() == sdf::GeometryType::MESH)
     {
-      return UriEqual(g1.MeshShape()->Uri(), g2.MeshShape()->Uri());
+      return uriEqual(_g1.MeshShape()->Uri(), _g2.MeshShape()->Uri());
     }
     else
       return false;
   };
 
-  auto MatUriEqual = [&](const sdf::Material &m1,
-    const sdf::Material &m2) -> bool
+  auto matUriEqual = [&](const sdf::Material &_m1,
+    const sdf::Material &_m2) -> bool
   {
-    return UriEqual(m1.ScriptUri(), m2.ScriptUri());
+    return uriEqual(_m1.ScriptUri(), _m2.ScriptUri());
   };
 
   // Loop through geometries in world. Prepend log path to URI
@@ -326,7 +327,7 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
         newMeshUri = this->PrependLogPath(meshUri);
         meshShape.SetUri(newMeshUri);
         geoSdf.SetMeshShape(meshShape);
-        _geoComp->SetData(geoSdf, GeoUriEqual);
+        _geoComp->SetData(geoSdf, geoUriEqual);
       }
     }
 
@@ -344,7 +345,7 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
     {
       newMatUri = this->PrependLogPath(matUri);
       matSdf.SetScriptUri(newMatUri);
-      _matComp->SetData(matSdf, MatUriEqual);
+      _matComp->SetData(matSdf, matUriEqual);
     }
 
     return true;
@@ -395,7 +396,7 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
 
     // Replace value in variable with the directory of extracted files
     // Assume directory has same name as compressed file, without extension
-    size_t sepIdx = this->logPath.find_last_of(".");
+    size_t sepIdx = this->logPath.find_last_of('.');
     // Remove extension
     this->logPath = this->logPath.substr(0, sepIdx);
     return true;
