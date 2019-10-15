@@ -40,6 +40,9 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
+#include "ignition/gazebo/components/JointPositionReset.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -47,10 +50,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointPositionReset.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -636,13 +635,17 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
           {
             firstRun = false;
 
-            auto resetComp = _ecm.Component<components::JointPositionReset>(_entity);
+            auto resetComp =
+                _ecm.Component<components::JointPositionReset>(_entity);
+
             if (!resetComp)
             {
-              _ecm.CreateComponent(_entity, components::JointPositionReset({pos0}));
+              _ecm.CreateComponent(_entity,
+                                   components::JointPositionReset({pos0}));
             }
 
             auto position = _ecm.Component<components::JointPosition>(_entity);
+
             if (!position)
             {
                 _ecm.CreateComponent(_entity, components::JointPosition());
@@ -658,9 +661,12 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
   testSystem.OnPostUpdate([&](
     const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.Each<components::Joint, components::Name, components::JointPosition>(
-          [&](const ignition::gazebo::Entity &, const components::Joint *,
-              const components::Name *_name, const components::JointPosition *_pos)
+      _ecm.Each<components::Joint,
+                components::Name, components::JointPosition>(
+          [&](const ignition::gazebo::Entity &,
+              const components::Joint *,
+              const components::Name *_name,
+              const components::JointPosition *_pos)
           {
             if (_name->Data() == rotatingJointName)
             {
@@ -720,15 +726,20 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
           {
             if (firstRun)
             {
-              firstRun= false;
+              firstRun = false;
 
-              auto resetComp = _ecm.Component<components::JointVelocityReset>(_entity);
+              auto resetComp =
+                  _ecm.Component<components::JointVelocityReset>(_entity);
+
               if (!resetComp)
               {
-                _ecm.CreateComponent(_entity, components::JointVelocityReset({vel0}));
+                _ecm.CreateComponent(_entity,
+                                     components::JointVelocityReset({vel0}));
               }
 
-              auto velocity = _ecm.Component<components::JointVelocity>(_entity);
+              auto velocity =
+                  _ecm.Component<components::JointVelocity>(_entity);
+
               if (!velocity)
               {
                 _ecm.CreateComponent(_entity, components::JointVelocity());
@@ -742,19 +753,23 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   std::vector<double> velocities;
 
   testSystem.OnPostUpdate([&](
-  const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
-  {
-    _ecm.Each<components::Joint, components::Name, components::JointVelocity>(
-      [&](const ignition::gazebo::Entity &, const components::Joint *,
-          const components::Name *_name, const components::JointVelocity *_vel)
-      {
-        if (_name->Data() == rotatingJointName)
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint,
+                components::Name,
+                components::JointVelocity>(
+        [&](const ignition::gazebo::Entity &,
+            const components::Joint *,
+            const components::Name *_name,
+            const components::JointVelocity *_vel)
         {
-          velocities.push_back(_vel->Data()[0]);
-        }
-        return true;
-      });
-  });
+          if (_name->Data() == rotatingJointName)
+          {
+            velocities.push_back(_vel->Data()[0]);
+          }
+          return true;
+        });
+    });
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 2, false);
