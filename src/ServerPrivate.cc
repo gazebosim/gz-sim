@@ -212,14 +212,14 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 
             if (!_config.LogRecordPath().empty())
             {
-              bool overwrite_sdf = false;
+              bool overwriteSdf = false;
               // If <path> is specified in SDF, check whether to replace it
               if (pluginElem->HasElement("path"))
               {
                 // If record path came from command line, overwrite SDF <path>
                 if (_config.LogRecordPathFromCmdLine())
                 {
-                  overwrite_sdf = true;
+                  overwriteSdf = true;
                 }
                 // TODO(anyone) In Ignition-D, remove this. <path> will be
                 //   permanently ignored in favor of common::ignLogDirectory().
@@ -234,7 +234,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
                     << "]. Note: In Ignition-D, <path> will be ignored, and "
                     << "all recordings will be written to default console log "
                     << "path if no path is specified on command line.\n";
-                  overwrite_sdf = false;
+                  overwriteSdf = false;
 
                   // Take <path> in SDF
                   recordPath = pluginElem->Get<std::string>("path");
@@ -250,10 +250,10 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               }
               else
               {
-                overwrite_sdf = true;
+                overwriteSdf = true;
               }
 
-              if (overwrite_sdf)
+              if (overwriteSdf)
               {
                 sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
                 pathElem->SetName("path");

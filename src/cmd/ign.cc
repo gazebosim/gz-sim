@@ -145,7 +145,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         {
           cmpPath = ignition::common::uniqueFilePath(recordPathMod, "zip");
 
-          size_t extIdx = cmpPath.find_last_of(".");
+          size_t extIdx = cmpPath.find_last_of('.');
           recordPathMod = cmpPath.substr(0, extIdx);
         }
 
@@ -247,8 +247,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     {
       ignmsg << "Playing back states" << _playback << std::endl;
       // Absolute path
-      std::string playback_str = std::string(_playback);
-      if (playback_str.find(ignition::common::separator("")) == 0)
+      std::string playbackStr = std::string(_playback);
+      if (playbackStr.compare(0, 1, ignition::common::separator("")) == 0)
       {
         serverConfig.SetLogPlaybackPath(_playback);
       }
