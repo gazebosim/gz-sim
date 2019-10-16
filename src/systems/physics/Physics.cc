@@ -551,7 +551,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         // Use the parent link's parent model as the model of this joint
         auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
 
-        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        if (jointPtrPhys.Valid())
+        {
+          // Some joints may not be supported, so only add them to the map if
+          // the physics entity is valid
+          this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        }
         return true;
       });
 
