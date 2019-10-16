@@ -167,7 +167,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 
   // Not a relative path, return unmodified
   if (_uri.find("://") != std::string::npos ||
-      _uri.find(absPrefix) == 0)
+      _uri.compare(0, absPrefix.size(), absPrefix) == 0)
   {
     return _uri;
   }
