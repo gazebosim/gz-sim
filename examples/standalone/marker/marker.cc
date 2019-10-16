@@ -32,6 +32,7 @@ int main(int _argc, char **_argv)
   markerMsg.set_id(0);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::SPHERE);
+  markerMsg.set_visibility(ignition::msgs::Marker::GUI);
 
   //ignition::msgs::Material *matMsg = markerMsg.mutable_material();
   //matMsg->mutable_script()->set_name("Ignition/BlueLaser");
