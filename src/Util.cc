@@ -15,6 +15,9 @@
  *
 */
 
+#ifndef __APPLE__
+#include <filesystem>
+#endif
 #include <ignition/common/Filesystem.hh>
 
 #include "ignition/gazebo/components/Collision.hh"
@@ -159,18 +162,23 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   {
     return _uri;
   }
-#ifdef _WIN32
-  const std::string absPrefix = "C:\\";
-#else
-  const std::string absPrefix = "/";
-#endif
 
+#ifdef __APPLE__
+  const std::string absPrefix = "/";
   // Not a relative path, return unmodified
   if (_uri.find("://") != std::string::npos ||
       _uri.compare(0, absPrefix.size(), absPrefix) == 0)
   {
     return _uri;
   }
+#else
+  // Not a relative path, return unmodified
+  if (_uri.find("://") != std::string::npos ||
+      !std::filesystem::path(_uri).is_relative())
+  {
+    return _uri;
+  }
+#endif
 
   // When SDF is loaded from a string instead of a file
   if ("data-string" == _filePath)
