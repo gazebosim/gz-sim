@@ -722,14 +722,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *,
           const components::WorldPoseCmd *_poseCmd)
       {
-        auto modelIt = this->entityModelMap.find(_entity);
-        if (modelIt == this->entityModelMap.end())
-          return true;
-
         // Get canonical link offset
         auto canonicalLink = _ecm.ChildrenByComponents(_entity,
             components::CanonicalLink());
         if (canonicalLink.empty())
+          return true;
+        auto canonicalLinkPhysIt = this->entityLinkMap.find(canonicalLink[0]);
+
+        if (canonicalLinkPhysIt == this->entityLinkMap.end())
           return true;
 
         auto canonicalPoseComp =
@@ -739,7 +739,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
-        auto freeGroup = modelIt->second->FindFreeGroup();
+        auto freeGroup = canonicalLinkPhysIt->second->FindFreeGroup();
         if (freeGroup)
         {
           freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
