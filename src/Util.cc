@@ -188,7 +188,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
     return _uri;
   }
 
-  // Remove file name form path
+  // Remove file name from path
   auto path = common::parentPath(_filePath);
 
   // If path is URI, use "/" separator for all platforms
