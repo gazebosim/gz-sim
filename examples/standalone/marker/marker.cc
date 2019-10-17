@@ -28,46 +28,60 @@ int main(int _argc, char **_argv)
 
   // Create the marker message
   ignition::msgs::Marker markerMsg;
+  ignition::msgs::Material matMsg;
   markerMsg.set_ns("default");
   markerMsg.set_id(0);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::SPHERE);
   markerMsg.set_visibility(ignition::msgs::Marker::GUI);
+  //markerMsg.set_material(matMsg);
+  markerMsg.mutable_material()->mutable_ambient()->set_r(0);
+  markerMsg.mutable_material()->mutable_ambient()->set_g(0);
+  markerMsg.mutable_material()->mutable_ambient()->set_b(1);
+  markerMsg.mutable_material()->mutable_ambient()->set_a(1);
+  ignition::msgs::Set(markerMsg.mutable_scale(),
+                    ignition::math::Vector3d(1.0, 1.0, 1.0));
 
-  //ignition::msgs::Material *matMsg = markerMsg.mutable_material();
-  //matMsg->mutable_script()->set_name("Ignition/BlueLaser");
-
+  /*
   // The rest of this function adds different shapes and/or modifies shapes.
   // Read the terminal statements to figure out what each node.Request
   // call accomplishes.
-
   std::cout << "Spawning a sphere at the origin\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
+  ignition::msgs::Set(markerMsg.mutable_pose(),
+                      ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
   node.Request("/marker", markerMsg);
-
-  std::cout << "Moving the sphere to x=0, y=0, z=1\n";
+  
+  std::cout << "Moving the sphere to x=0, y=1, z=1\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
-                      ignition::math::Pose3d(0, 0, 1, 0, 0, 0));
+                      ignition::math::Pose3d(0, 1, 1, 0, 0, 0));
   node.Request("/marker", markerMsg);
-  /*
+  
   std::cout << "Shrinking the sphere\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(0.2, 0.2, 0.2));
   node.Request("/marker", markerMsg);
 
   std::cout << "Changing the sphere to red\n";
-  gazebo::common::Time::Sleep(4);
-  matMsg->mutable_script()->set_name("Gazebo/Red");
+  markerMsg.mutable_material()->mutable_ambient()->set_r(1);
+  markerMsg.mutable_material()->mutable_ambient()->set_g(0);
+  markerMsg.mutable_material()->mutable_ambient()->set_b(0);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
+  //matMsg->mutable_script()->set_name("Red");
   node.Request("/marker", markerMsg);
+  
 
   std::cout << "Adding a green box\n";
-  gazebo::common::Time::Sleep(4);
+  markerMsg.mutable_material()->mutable_ambient()->set_r(0);
+  markerMsg.mutable_material()->mutable_ambient()->set_g(1);
+  markerMsg.mutable_material()->mutable_ambient()->set_b(0);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(1);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::BOX);
-  matMsg->mutable_script()->set_name("Gazebo/Green");
+  //matMsg->mutable_script()->set_name("Gazebo/Green");
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(1.0, 1.0, 1.0));
   ignition::msgs::Set(markerMsg.mutable_pose(),
@@ -75,12 +89,21 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Change the green box to a cylinder\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
   node.Request("/marker", markerMsg);
-
+  
+  
+  markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
+  node.Request("/marker", markerMsg);
+  
+  markerMsg.set_id(0);
+  
+  node.Request("/marker", markerMsg);
+*/
   std::cout << "Adding a line between the sphere and cylinder\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(2);
   ignition::msgs::Set(markerMsg.mutable_pose(),
                     ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
@@ -91,6 +114,24 @@ int main(int _argc, char **_argv)
   ignition::msgs::Set(markerMsg.add_point(),
       ignition::math::Vector3d(2, 0, 0.5));
   node.Request("/marker", markerMsg);
+  
+  std::cout << "Adding 100 points inside the square\n";
+  ignition::common::Time::Sleep(ignition::common::Time(4));
+  markerMsg.set_id(4);
+  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  markerMsg.set_type(ignition::msgs::Marker::POINTS);
+  markerMsg.clear_point();
+  for (int i = 0; i < 100; ++i)
+  {
+    ignition::msgs::Set(markerMsg.add_point(),
+        ignition::math::Vector3d(
+          ignition::math::Rand::DblUniform(-0.49, 0.49),
+          ignition::math::Rand::DblUniform(-0.49, 0.49),
+          0.05));
+  }
+  node.Request("/marker", markerMsg);
+  
+  /*
 
   std::cout << "Adding a square around the origin\n";
   gazebo::common::Time::Sleep(4);
