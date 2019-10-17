@@ -41,6 +41,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/FreeGroup.hh>
+#include <ignition/physics/FixedJoint.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Joint.hh>
@@ -77,6 +78,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
@@ -99,6 +101,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
+#include "ignition/gazebo/Util.hh"
 #include "Physics.hh"
 
 using namespace ignition;
@@ -110,11 +113,15 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
+          ignition::physics::AttachFixedJointFeature,
+          ignition::physics::DetachJointFeature,
+          ignition::physics::SetJointTransformFromParentFeature,
           // FreeGroup
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
           ignition::physics::FreeGroupFrameSemantics,
           ignition::physics::LinkFrameSemantics,
+          ignition::physics::AddLinkExternalForceTorque,
           ignition::physics::AddLinkExternalForceTorque,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
@@ -568,6 +575,58 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           _ecm.ParentEntity(_entity), false));
         return true;
       });
+
+  // Detachable joints
+  _ecm.EachNew<components::DetachableJoint>(
+      [&](const Entity &_entity,
+          const components::DetachableJoint * _jointInfo) -> bool
+      {
+        // Check if joint already exists
+        if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
+        {
+          ignwarn << "Joint entity [" << _entity
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
+          return true;
+        }
+
+        // Check if the link entities exist in the physics engine
+        auto parentLinkPhysIt =
+            this->entityLinkMap.find(_jointInfo->Data().parentLink);
+        if (parentLinkPhysIt == this->entityLinkMap.end())
+        {
+          ignwarn << "DetachableJoint's parent link entity ["
+                  << _jointInfo->Data().parentLink << "] not found in link map."
+                  << std::endl;
+          return true;
+        }
+
+        auto childLinkPhysIt =
+            this->entityLinkMap.find(_jointInfo->Data().childLink);
+        if (childLinkPhysIt == this->entityLinkMap.end())
+        {
+          ignwarn << "DetachableJoint's child link entity ["
+                  << _jointInfo->Data().childLink << "] not found in link map."
+                  << std::endl;
+          return true;
+        }
+
+        const auto poseParent =
+            parentLinkPhysIt->second->FrameDataRelativeToWorld().pose;
+        const auto poseChild =
+            childLinkPhysIt->second->FrameDataRelativeToWorld().pose;
+
+        // Pose of child relative to parent
+        auto poseParentChild = poseParent.inverse() * poseChild;
+        auto jointPtrPhys =
+            childLinkPhysIt->second->AttachFixedJoint(parentLinkPhysIt->second);
+        // We let the joint be at the origin of the child link.
+        jointPtrPhys->SetTransformFromParent(poseParentChild);
+
+        std::cout << "Creating detachable joint [" << _entity << "]" << std::endl;
+        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -614,6 +673,18 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           // Remove the model from the physics engine
           modelIt->second->Remove();
           this->entityModelMap.erase(_entity);
+        }
+        return true;
+      });
+
+  _ecm.EachRemoved<components::DetachableJoint>(
+      [&](const Entity &_entity, const components::DetachableJoint *) -> bool
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt != this->entityJointMap.end())
+        {
+          std::cout << "Detaching joint [" << _entity << "]" << std::endl;
+          jointIt->second->Detach();
         }
         return true;
       });
