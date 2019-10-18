@@ -43,7 +43,7 @@ namespace systems
   ///   <entity>     Name of entity to record.
   ///   <region>     Axis-aligned box region where entities are at start of log
   ///       <min>    Min corner position of region.
-  ///       <max>    Min corner position of region.
+  ///       <max>    Max corner position of region.
   ///   <start_time> Sim time when recording should start
   ///   <end_time>   Sim time when recording should end
   /// When recording is finished. An `end` string will be published to the
