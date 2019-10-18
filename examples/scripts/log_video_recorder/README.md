@@ -27,10 +27,10 @@ e.g.
 Once the script is run, ign-gazebo window should pop-up and log playback
 should automatically start. The GUI camera will follow the first entity found
 and the video recorder will be started. When the log playback ends, the video
-is saved to a temporary directory (`tmp_recording`). The log playback rewinds
-and the process is repeated for next entity until there are no more entities
-left. Once all videos are done, ign-gazebo is killed and the videos are moved
-to a timestamped directory where the `record_one_run.bash` is in.
+is saved to the current working directory. The log playback rewinds and the
+process is repeated for next entity until there are no more entities left. Once
+all videos are done, ign-gazebo is killed and the videos are moved to a
+timestamped directory where the `record_one_run.bash` is in.
 
 ## Changing camera follow behavior
 
@@ -46,14 +46,14 @@ parameters in the GzScene3d GUI plugin in `log_video_recorder.sdf`, i.e.
 ## Troubleshooting
 
 1. The world / models are not being loaded on log playback?
-A: Make sure you have all the fuel models downloaded in ~/.ignition/fuel cache
+    A: Make sure you have all the fuel models downloaded in ~/.ignition/fuel cache
 directory
 
-1. I see `tmp_recording` dir, `tmp_recording.mp4` and other left over mp4 files
+1. I see `tmp_record` dir, `tmp_recording.mp4` and other left over mp4 files
 in the directory where I ran `record_one_run.bash script.
-A: The playback and recording process is probably interrupted and the
+    A: The playback and recording process is probably interrupted and the
 script did not have the chance to clean up some of these intermediate files
 
 1. The video is missing the beginning of the playback.
-A: The log playback recorder system has to wait until an entity (that you want
+    A: The log playback recorder system has to wait until an entity (that you want
 to record a video for) appears before doing any recordings.
