@@ -39,6 +39,10 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \brief Destructor
   public: virtual ~MarkerManager();
 
+  /// \brief Set the simulation time.
+  /// \param[in] _time The provided time.
+  public: void SetSimTime(const std::chrono::steady_clock::duration &_time);
+  
   /// \brief Set the scene to manage
   /// \param[in] _scene Scene pointer.
   public: void SetScene(rendering::ScenePtr _scene);
