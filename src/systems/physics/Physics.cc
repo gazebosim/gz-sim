@@ -578,8 +578,14 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   // Detachable joints
   _ecm.EachNew<components::DetachableJoint>(
       [&](const Entity &_entity,
-          const components::DetachableJoint * _jointInfo) -> bool
+          const components::DetachableJoint *_jointInfo) -> bool
       {
+        if (_jointInfo->Data().jointType != "fixed")
+        {
+          ignerr << "Detachable joint type [" << _jointInfo->Data().jointType
+                 << "] is currently not supported" << std::endl;
+          return true;
+        }
         // Check if joint already exists
         if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
         {
