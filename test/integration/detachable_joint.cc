@@ -27,6 +27,7 @@
 
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -179,5 +180,81 @@ TEST_F(DetachableJointTest, StartConnected)
   EXPECT_GT(m2Poses.front().Pos().Z() - m2Poses.back().Pos().Z(), expDist);
 }
 
+/////////////////////////////////////////////////
+TEST_F(DetachableJointTest, LinksInSameModel)
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer("/test/worlds/detachable_joint.sdf");
+
+  // A lambda that takes a model name and a mutable reference to a vector of
+  // poses and returns another lambda that can be passed to
+  // `Relay::OnPostUpdate`.
+  auto poseRecorder =
+      [](const std::string &_linkName, std::vector<math::Pose3d> &_poses)
+  {
+    return [&](const gazebo::UpdateInfo &,
+               const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Link, components::Name, components::Pose>(
+          [&](const Entity &_entity, const components::Link *,
+              const components::Name *_name,
+              const components::Pose *_pose) -> bool
+          {
+            if (_name->Data() == _linkName)
+            {
+              EXPECT_NE(kNullEntity, _entity);
+              _poses.push_back(_pose->Data());
+            }
+            return true;
+          });
+    };
+  };
+
+  std::vector<math::Pose3d> b1Poses, b2Poses;
+  Relay testSystem1;
+  testSystem1.OnPostUpdate(poseRecorder("body1", b1Poses));
+  Relay testSystem2;
+  testSystem2.OnPostUpdate(poseRecorder("body2", b2Poses));
+
+  this->server->AddSystem(testSystem1.systemPtr);
+  this->server->AddSystem(testSystem2.systemPtr);
+
+  const std::size_t nIters{20};
+  this->server->Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, b1Poses.size());
+  ASSERT_EQ(nIters, b2Poses.size());
+
+  // Model1 is on the ground. It shouldn't move
+  EXPECT_EQ(b1Poses.front(), b1Poses.back());
+
+  // Model2 is rigidly connected to Model1 which isn't moving so it should
+  // remain at rest.
+  EXPECT_EQ(b2Poses.front(), b2Poses.back());
+
+  b1Poses.clear();
+  b2Poses.clear();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Empty>("/model/M3/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  const std::size_t nItersAfterDetach{100};
+  this->server->Run(true, nItersAfterDetach, false);
+
+  ASSERT_EQ(nItersAfterDetach, b1Poses.size());
+  ASSERT_EQ(nItersAfterDetach, b2Poses.size());
+
+  // Model1 is still on the ground. It shouldn't move
+  EXPECT_EQ(b1Poses.front(), b1Poses.back());
+
+  // Model2 is now detached. It should be falling
+  const double expDist =
+      0.5 * 9.8 * pow(static_cast<double>(nItersAfterDetach-1) / 1000, 2);
+  // Due to the timing of transport messages, we
+  EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
+}
 
 

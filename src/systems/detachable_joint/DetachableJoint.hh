@@ -24,6 +24,7 @@
 #include <string>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -67,6 +68,9 @@ namespace systems
 
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);
+
+    /// \brief The model associated with this system.
+    private: Model model;
 
     /// \brief Name of attachment link in the parent model
     private: std::string parentLinkName;
