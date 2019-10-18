@@ -207,7 +207,11 @@ TEST(UtilTest, AsFullPath)
 {
   const std::string relativeUri =
       common::joinPaths("meshes", "collision.dae");
+#ifdef _WIN32
+  const std::string absoluteUri{"C:\\path\\to\\collision.dae"};
+#else
   const std::string absoluteUri{"/path/to/collision.dae"};
+#endif
   const std::string schemeUri{"https://website.com/collision.dae"};
 
   // Empty path
@@ -222,13 +226,13 @@ TEST(UtilTest, AsFullPath)
   // Absolute path
   {
 #ifdef _WIN32
-    const std::string path{"C:\\abs\\path"};
+    const std::string path{"C:\\abs\\path\\file"};
 #else
-    const std::string path{"/abs/path"};
+    const std::string path{"/abs/path/file"};
 #endif
 
     // Directory
-    EXPECT_EQ(common::joinPaths(path, relativeUri),
+    EXPECT_EQ(common::joinPaths(common::parentPath(path), relativeUri),
         asFullPath(relativeUri, path));
     EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, path));
     EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
@@ -240,15 +244,6 @@ TEST(UtilTest, AsFullPath)
         asFullPath(relativeUri, filePath));
     EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, filePath));
     EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
-  }
-
-  // Scheme path
-  {
-    const std::string path{"scheme://"};
-
-    EXPECT_EQ(path + "/" + relativeUri, asFullPath(relativeUri, path));
-    EXPECT_EQ(absoluteUri, asFullPath(absoluteUri, path));
-    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
   }
 
   // Data string

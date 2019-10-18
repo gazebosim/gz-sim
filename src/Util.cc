@@ -188,13 +188,8 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
     return _uri;
   }
 
-  auto path = _filePath;
-
-  // Strip file, if any
-  if (common::basename(_filePath).find('.') != std::string::npos)
-  {
-    path = common::parentPath(_filePath);
-  }
+  // Remove file name from path
+  auto path = common::parentPath(_filePath);
 
   // If path is URI, use "/" separator for all platforms
   if (_filePath.find("://") != std::string::npos)
