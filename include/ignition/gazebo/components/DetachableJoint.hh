@@ -39,7 +39,8 @@ namespace components
     std::string jointType = {"fixed"};
   };
 
-  /// \brief A component that identifies an entity as being a joint.
+  /// \brief A component that identifies an entity as being a detachable joint.
+  /// It also contains additional information about the joint.
   using DetachableJoint =
       Component<DetachableJointInfo, class DetachableJointTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DetachableJoint",
