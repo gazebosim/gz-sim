@@ -625,12 +625,19 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto poseParentChild = poseParent.inverse() * poseChild;
         auto jointPtrPhys =
             childLinkPhysIt->second->AttachFixedJoint(parentLinkPhysIt->second);
-        // We let the joint be at the origin of the child link.
-        jointPtrPhys->SetTransformFromParent(poseParentChild);
+        if (jointPtrPhys.Valid())
+        {
+          // We let the joint be at the origin of the child link.
+          jointPtrPhys->SetTransformFromParent(poseParentChild);
 
-        std::cout << "Creating detachable joint [" << _entity << "]"
-                  << std::endl;
-        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+          std::cout << "Creating detachable joint [" << _entity << "]"
+            << std::endl;
+          this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        }
+        else
+        {
+          ignwarn << "DetachableJoint could not be created." << std::endl;
+        }
         return true;
       });
 }
