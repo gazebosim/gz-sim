@@ -159,8 +159,8 @@ TEST_F(DetachableJointTest, StartConnected)
   m2Poses.clear();
 
   transport::Node node;
-  auto pub = node.Advertise<msgs::Boolean>("/model/M1/detachable_joint/detach");
-  pub.Publish(msgs::Boolean());
+  auto pub = node.Advertise<msgs::Empty>("/model/M1/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
   std::this_thread::sleep_for(250ms);
 
   const std::size_t nItersAfterDetach{100};
