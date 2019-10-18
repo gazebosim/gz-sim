@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+
 #include <ignition/transport.hh>
 #include <ignition/math.hh>
 #include <ignition/msgs.hh>
@@ -34,7 +35,8 @@ int main(int _argc, char **_argv)
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::SPHERE);
   markerMsg.set_visibility(ignition::msgs::Marker::GUI);
-  //markerMsg.set_material(matMsg);
+  
+  // Set color to Blue
   markerMsg.mutable_material()->mutable_ambient()->set_r(0);
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
   markerMsg.mutable_material()->mutable_ambient()->set_b(1);
@@ -42,7 +44,6 @@ int main(int _argc, char **_argv)
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(1.0, 1.0, 1.0));
 
-  /*
   // The rest of this function adds different shapes and/or modifies shapes.
   // Read the terminal statements to figure out what each node.Request
   // call accomplishes.
@@ -51,7 +52,7 @@ int main(int _argc, char **_argv)
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
   node.Request("/marker", markerMsg);
-  
+ 
   std::cout << "Moving the sphere to x=0, y=1, z=1\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
@@ -69,7 +70,6 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
   markerMsg.mutable_material()->mutable_ambient()->set_b(0);
   ignition::common::Time::Sleep(ignition::common::Time(4));
-  //matMsg->mutable_script()->set_name("Red");
   node.Request("/marker", markerMsg);
   
 
@@ -81,7 +81,6 @@ int main(int _argc, char **_argv)
   markerMsg.set_id(1);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::BOX);
-  //matMsg->mutable_script()->set_name("Gazebo/Green");
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(1.0, 1.0, 1.0));
   ignition::msgs::Set(markerMsg.mutable_pose(),
@@ -93,15 +92,6 @@ int main(int _argc, char **_argv)
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
   node.Request("/marker", markerMsg);
   
-  
-  markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
-  ignition::common::Time::Sleep(ignition::common::Time(4));
-  node.Request("/marker", markerMsg);
-  
-  markerMsg.set_id(0);
-  
-  node.Request("/marker", markerMsg);
-*/
   std::cout << "Adding a line between the sphere and cylinder\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(2);
@@ -131,10 +121,10 @@ int main(int _argc, char **_argv)
   }
   node.Request("/marker", markerMsg);
   
-  /*
+  
 
   std::cout << "Adding a square around the origin\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(3);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::LINE_STRIP);
@@ -151,7 +141,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding 100 points inside the square\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(4);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::POINTS);
@@ -166,20 +156,8 @@ int main(int _argc, char **_argv)
   }
   node.Request("/marker", markerMsg);
 
-  std::cout << "Adding HELLO at 0, 0, 2\n";
-  gazebo::common::Time::Sleep(4);
-  markerMsg.set_id(5);
-  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  markerMsg.set_type(ignition::msgs::Marker::TEXT);
-  markerMsg.set_text("HELLO");
-  ignition::msgs::Set(markerMsg.mutable_scale(),
-                    ignition::math::Vector3d(0.2, 0.2, 0.2));
-  ignition::msgs::Set(markerMsg.mutable_pose(),
-                    ignition::math::Pose3d(0, 0, 2, 0, 0, 0));
-  node.Request("/marker", markerMsg);
-
   std::cout << "Adding a semi-circular triangle fan\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(6);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::TRIANGLE_FAN);
@@ -197,7 +175,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding two triangles using a triangle list\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(7);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::TRIANGLE_LIST);
@@ -221,7 +199,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding a rectangular triangle strip\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(8);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::TRIANGLE_STRIP);
@@ -245,8 +223,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Delete all the markers\n";
-  gazebo::common::Time::Sleep(4);
+  ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
   node.Request("/marker", markerMsg);
-  */
 }

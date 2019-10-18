@@ -187,7 +187,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   if (!_info.paused)
     this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
-  // TODO(jshep1): set time
+  this->dataPtr->markerManager.SetSimTime(_info.simTime);
 }
 
 //////////////////////////////////////////////////
@@ -208,10 +208,6 @@ int RenderUtil::PendingSensors() const
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
-  // TODO(jshep1): update MarkerManager here
-  //              pass in time/update info to func
-  // onPreRender func here, with additional check for
-  // lifetime ending
   IGN_PROFILE("RenderUtil::Update");
   if (!this->dataPtr->initialized)
     return;
