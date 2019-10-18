@@ -41,9 +41,9 @@
       </link>
 
       <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
-        <parent_model_link>body</parent_model_link>
+        <parent_link>body</parent_link>
         <child_model>M2</child_model>
-        <child_model_link>body</child_model_link>
+        <child_link>body</child_link>
       </plugin>
     </model>
 

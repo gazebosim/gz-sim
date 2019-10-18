@@ -39,12 +39,12 @@ namespace systems
   ///
   /// Parameters:
   ///
-  /// <parent_model_link>: Name of the link in the parent model to be used in
+  /// <parent_link>: Name of the link in the parent model to be used in
   /// creating a fixed joint with a link in the child model.
   ///
   /// <child_model>: Name of the model to which this model will be connected
   ///
-  /// <child_model_link>: Name of the link in the child model to be used in
+  /// <child_link>: Name of the link in the child model to be used in
   /// creating a fixed joint with a link in the parent model.
   ///
   /// <topic> (optional): Topic name to be used for detaching connections
@@ -70,22 +70,22 @@ namespace systems
     private: void OnDetachRequest(const msgs::Boolean &_msg);
 
     /// \brief Name of attachment link in the parent model
-    private: std::string parentModelLinkName;
+    private: std::string parentLinkName;
 
     /// \brief Name of child model
     private: std::string childModelName;
 
     /// \brief Name of attachment link in the child model
-    private: std::string childModelLinkName;
+    private: std::string childLinkName;
 
     /// \brief Topic to be used for detaching connections
     private: std::string topic;
 
     /// \brief Entity of attachment link in the parent model
-    private: Entity parentModelLinkEntity{kNullEntity};
+    private: Entity parentLinkEntity{kNullEntity};
 
     /// \brief Entity of attachment link in the child model
-    private: Entity childModelLinkEntity{kNullEntity};
+    private: Entity childLinkEntity{kNullEntity};
 
     /// \brief Entity of the detachable joint created by this system
     private: Entity detachableJointEntity{kNullEntity};
