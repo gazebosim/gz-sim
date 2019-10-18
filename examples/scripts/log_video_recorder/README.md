@@ -1,12 +1,10 @@
 # Log Video Recorder
 
-This demo shows how to record videos from a log playback. The video is recorded
-from the view of the GUI camera which is set to follow entities in the world.
-One video will be created per entity.
-
-How are the entities chosen? Currently models that are within a hardcoded region
-in the world will be recorded. A TODO item is to let users choose what entities
-to record videos for.
+This demo shows how to record videos from a log playback using the
+`LogVideoRecorder` system. The video is recorded from the view of the GUI camera
+which is set to follow entities in the world. One video will be created per
+entity. The entites can be specified by its name and by region (axis-aligned
+box) where the entities are located at the start of the log.
 
 ## Running the demo
 
