@@ -122,7 +122,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::FreeGroupFrameSemantics,
           ignition::physics::LinkFrameSemantics,
           ignition::physics::AddLinkExternalForceTorque,
-          ignition::physics::AddLinkExternalForceTorque,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::GetContactsFromLastStepFeature,
