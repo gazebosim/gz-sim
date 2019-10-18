@@ -56,7 +56,6 @@ class DetachableJointTest : public ::testing::Test
 
     EXPECT_FALSE(this->server->Running());
     EXPECT_FALSE(*this->server->Running(0));
-
   }
 
   public: std::unique_ptr<Server> server;

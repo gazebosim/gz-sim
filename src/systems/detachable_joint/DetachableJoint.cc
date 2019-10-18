@@ -80,7 +80,7 @@ void DetachableJoint::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("child_model_link"))
   {
-    this->childModelLinkName= _sdf->Get<std::string>("child_model_link");
+    this->childModelLinkName = _sdf->Get<std::string>("child_model_link");
   }
   else
   {
