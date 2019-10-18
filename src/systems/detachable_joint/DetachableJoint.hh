@@ -18,9 +18,11 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 #define IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 
+#include <ignition/msgs/boolean.pb.h>
+
+#include <memory>
 #include <string>
 #include <ignition/transport/Node.hh>
-#include <ignition/msgs/boolean.pb.h>
 
 #include "ignition/gazebo/System.hh"
 

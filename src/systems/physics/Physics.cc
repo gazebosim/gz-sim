@@ -622,7 +622,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         // We let the joint be at the origin of the child link.
         jointPtrPhys->SetTransformFromParent(poseParentChild);
 
-        std::cout << "Creating detachable joint [" << _entity << "]" << std::endl;
+        std::cout << "Creating detachable joint [" << _entity << "]"
+                  << std::endl;
         this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
         return true;
       });

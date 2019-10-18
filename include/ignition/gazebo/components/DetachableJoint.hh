@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_DETACHABLE_JOINT_HH_
 #define IGNITION_GAZEBO_COMPONENTS_DETACHABLE_JOINT_HH_
 
+#include <string>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
@@ -35,7 +36,7 @@ namespace components
     Entity parentLink;
     Entity childLink;
     // Only the "fixed" joint type is currently supported.
-    std::string jointType={"fixed"};
+    std::string jointType = {"fixed"};
   };
 
   /// \brief A component that identifies an entity as being a joint.
