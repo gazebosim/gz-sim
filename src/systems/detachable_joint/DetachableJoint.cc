@@ -51,17 +51,17 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("parent_model_link"))
+  if (_sdf->HasElement("parent_link"))
   {
-    this->parentModelLinkName =
-        _sdf->Get<std::string>("parent_model_link");
-    this->parentModelLinkEntity =
-        model.LinkByName(_ecm, this->parentModelLinkName);
-    if (kNullEntity == this->parentModelLinkEntity)
+    this->parentLinkName =
+        _sdf->Get<std::string>("parent_link");
+    this->parentLinkEntity =
+        model.LinkByName(_ecm, this->parentLinkName);
+    if (kNullEntity == this->parentLinkEntity)
     {
-      ignerr << "Link with name " << this->parentModelLinkName
+      ignerr << "Link with name " << this->parentLinkName
              << " not found in model " << model.Name(_ecm)
-             << ". Make sure the parameter 'parent_model_link' has the "
+             << ". Make sure the parameter 'parent_link' has the "
              << "correct value." << std::endl;
       return;
     }
@@ -78,13 +78,13 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("child_model_link"))
+  if (_sdf->HasElement("child_link"))
   {
-    this->childModelLinkName = _sdf->Get<std::string>("child_model_link");
+    this->childLinkName = _sdf->Get<std::string>("child_link");
   }
   else
   {
-    ignerr << "'child_model_link' is a required parameter for DetachableJoint."
+    ignerr << "'child_link' is a required parameter for DetachableJoint."
            << std::endl;
     return;
   }
@@ -110,11 +110,11 @@ void DetachableJoint::PreUpdate(
                             components::Name(this->childModelName));
     if (kNullEntity != modelEntity)
     {
-      this->childModelLinkEntity = _ecm.EntityByComponents(
+      this->childLinkEntity = _ecm.EntityByComponents(
           components::Link(), components::ParentEntity(modelEntity),
-          components::Name(this->childModelLinkName));
+          components::Name(this->childLinkName));
 
-      if (kNullEntity != this->childModelLinkEntity)
+      if (kNullEntity != this->childLinkEntity)
       {
         // Attach the models
         // We do this by creating a detachable joint entity.
@@ -122,8 +122,8 @@ void DetachableJoint::PreUpdate(
 
         _ecm.CreateComponent(
             this->detachableJointEntity,
-            components::DetachableJoint({this->parentModelLinkEntity,
-                                         this->childModelLinkEntity, "fixed"}));
+            components::DetachableJoint({this->parentLinkEntity,
+                                         this->childLinkEntity, "fixed"}));
 
         this->node.Subscribe(
             this->topic, &DetachableJoint::OnDetachRequest, this);
@@ -135,7 +135,7 @@ void DetachableJoint::PreUpdate(
       }
       else
       {
-        ignwarn << "Child Link " << this->childModelLinkName
+        ignwarn << "Child Link " << this->childLinkName
                 << " could not be found.\n";
       }
     }
