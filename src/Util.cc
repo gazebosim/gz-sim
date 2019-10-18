@@ -190,15 +190,24 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 
   // Remove file name from path
   auto path = common::parentPath(_filePath);
+  auto uri = _uri;
 
   // If path is URI, use "/" separator for all platforms
-  if (_filePath.find("://") != std::string::npos)
+  if (path.find("://") != std::string::npos)
   {
-    return path + "/" + _uri;
+    std::replace(uri.begin(), uri.end(), '\\', '/');
+    return path + "/" + uri;
   }
 
-  // Otherwise, use platform-specific separator
-  return common::joinPaths(path,  _uri);
+  // In case relative path doesn't match platform
+#ifdef _WIN32
+  std::replace(uri.begin(), uri.end(), '/', '\\');
+#else
+  std::replace(uri.begin(), uri.end(), '\\', '/');
+#endif
+
+  // Use platform-specific separator
+  return common::joinPaths(path,  uri);
 }
 }
 }
