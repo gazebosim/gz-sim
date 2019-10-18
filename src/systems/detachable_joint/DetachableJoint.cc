@@ -43,8 +43,8 @@ void DetachableJoint::Configure(const Entity &_entity,
                EventManager &/*_eventMgr*/)
 {
   // Store the pointer to the model this battery is under
-  auto model = Model(_entity);
-  if (!model.Valid(_ecm))
+  this->model = Model(_entity);
+  if (!this->model.Valid(_ecm))
   {
     ignerr << "DetachableJoint should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
@@ -56,11 +56,11 @@ void DetachableJoint::Configure(const Entity &_entity,
     this->parentLinkName =
         _sdf->Get<std::string>("parent_link");
     this->parentLinkEntity =
-        model.LinkByName(_ecm, this->parentLinkName);
+        this->model.LinkByName(_ecm, this->parentLinkName);
     if (kNullEntity == this->parentLinkEntity)
     {
       ignerr << "Link with name " << this->parentLinkName
-             << " not found in model " << model.Name(_ecm)
+             << " not found in model " << this->model.Name(_ecm)
              << ". Make sure the parameter 'parent_link' has the "
              << "correct value." << std::endl;
       return;
@@ -90,7 +90,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
 
   // Setup battery state topic
-  std::string defaultTopic{"/model/" + model.Name(_ecm) +
+  std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
                              "/detachable_joint/detach"};
   this->topic = _sdf->Get<std::string>("topic", defaultTopic).first;
 
@@ -106,8 +106,17 @@ void DetachableJoint::PreUpdate(
   if (this->validConfig && !this->initialized)
   {
     // Look for the child model and link
-    auto modelEntity = _ecm.EntityByComponents(components::Model(),
-                            components::Name(this->childModelName));
+    Entity modelEntity{kNullEntity};
+
+    if ("__model__" == this->childModelName)
+    {
+      modelEntity = this->model.Entity();
+    }
+    else
+    {
+      modelEntity = _ecm.EntityByComponents(
+          components::Model(), components::Name(this->childModelName));
+    }
     if (kNullEntity != modelEntity)
     {
       this->childLinkEntity = _ecm.EntityByComponents(
