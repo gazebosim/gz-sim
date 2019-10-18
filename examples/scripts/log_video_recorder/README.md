@@ -8,15 +8,23 @@ How are the entities chosen? Currently models that are within a hardcoded region
 in the world will be recorded. A TODO item is to let users choose what entities
 to record videos for.
 
-## Running the script
+## Running the demo
 
-Start the demo by running the script:
+Run the `log_record_shapes.sdf` world to generate a state log of the simulation:
+
+    ign gazebo log_record_shapes.sdf
+
+Press Play and let the simulation run for 10 seconds of sim time. Stop and exit.
+You should now see a `state.tlog` generated in `/tmp/log` directory. Now, let's
+record videos from playing back this log file.
+
+Start the log playback recorder by running the script:
 
         bash record_one_run.bash [path_to_log]
 
 e.g.
 
-        bash record_one_run.bash /tmp/ign/logs
+        bash record_one_run.bash /tmp/log
 
 Once the script is run, ign-gazebo window should pop-up and log playback
 should automatically start. The GUI camera will follow the first entity found
@@ -32,7 +40,7 @@ The camera follow behavior can be configured by setting the `<camera_follow>`
 parameters in the GzScene3d GUI plugin in `log_video_recorder.sdf`, i.e.
 
         <camera_follow>
-          <p_gain>0.05</p_gain>
+          <p_gain>0.01</p_gain>
           <world_frame>true</world_frame>
           <offset>-1.0 0 2.5</offset>
         </camera_follow>

@@ -368,8 +368,6 @@ void IgnRenderer::Render()
           this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
 
           this->dataPtr->camera->SetTrackTarget(target);
-          // todo(anyone) hack for better video
-          this->dataPtr->camera->SetTrackOffset(math::Vector3d(1.0, 0.0, 0.0));
         }
         else if (this->dataPtr->followOffsetDirty)
         {

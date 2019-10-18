@@ -37,6 +37,18 @@ namespace systems
    * ignition/gazebo/systems/LogVideoRecorder.hh
   **/
   /// \brief System which recordings videos from log playback
+  /// There are two ways to specify what entities in the log playback to follow
+  /// and record videos for: 1) by entity name and 2) by region. See the
+  /// following parameters:
+  ///   <entity>     Name of entity to record.
+  ///   <region>     Axis-aligned box region where entities are at start of log
+  ///       <min>    Min corner position of region.
+  ///       <max>    Min corner position of region.
+  ///   <start_time> Sim time when recording should start
+  ///   <end_time>   Sim time when recording should end
+  /// When recording is finished. An `end` string will be published to the
+  /// `/log_video_recorder/status` topic and the videos are saved to a
+  /// timestamped directory
   class IGNITION_GAZEBO_VISIBLE LogVideoRecorder:
     public System,
     public ISystemConfigure,
@@ -54,6 +66,7 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
+    /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 

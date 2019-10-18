@@ -20,6 +20,11 @@
     </plugin>
     <plugin filename='libignition-gazebo-log-video-recorder-system.so'
             name='ignition::gazebo::systems::LogVideoRecorder'>
+      <region>
+        <min>-5 -5 0.001</min>
+        <max>5 5 1</max>
+      </region>
+      <start_time>5.0</start_time>
     </plugin>
 
     <physics name="1ms" type="dart">
@@ -40,7 +45,7 @@
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
         <camera_follow>
-          <p_gain>0.05</p_gain>
+          <p_gain>0.01</p_gain>
           <world_frame>true</world_frame>
           <offset>-1.0 0 2.5</offset>
         </camera_follow>

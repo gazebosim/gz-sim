@@ -21,6 +21,7 @@
 #include <chrono>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -115,6 +116,18 @@ class ignition::gazebo::systems::LogVideoRecorderPrivate
 
   /// \brief Status message in string
   public: msgs::StringMsg statusMsg;
+
+  /// \brief Regions to look for entities when recording playback videos
+  public: std::vector<math::AxisAlignedBox> regions;
+
+  /// \brief Time when system is loaded
+  public: std::chrono::time_point<std::chrono::system_clock> loadTime;
+
+  /// \brief Sim time to start recording
+  public: std::chrono::steady_clock::duration startTime;
+
+  /// \brief Sim time to stop recording
+  public: std::chrono::steady_clock::duration endTime;
 };
 
 //////////////////////////////////////////////////
@@ -125,7 +138,7 @@ LogVideoRecorder::LogVideoRecorder()
 
 //////////////////////////////////////////////////
 void LogVideoRecorder::Configure(
-    const Entity &, const std::shared_ptr<const sdf::Element> &,
+    const Entity &, const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &, EventManager &_eventMgr)
 {
   this->dataPtr->eventManager = &_eventMgr;
@@ -147,7 +160,60 @@ void LogVideoRecorder::Configure(
 
   // publishes status msgs of the log video recorder
   this->dataPtr->statusPub =
-      this->dataPtr->node.Advertise<msgs::StringMsg>("/log_video_recorder/status");
+      this->dataPtr->node.Advertise<msgs::StringMsg>(
+      "/log_video_recorder/status");
+
+  // Ugly, but needed because the sdf::Element::GetElement is not a const
+  // function and _sdf is a const shared pointer to a const sdf::Element.
+  auto ptr = const_cast<sdf::Element *>(_sdf.get());
+
+  if (_sdf->HasElement("entity"))
+  {
+    auto entityElem = ptr->GetElement("entity");
+    while (entityElem)
+    {
+      this->dataPtr->modelsToRecord.insert(entityElem->Get<std::string>());
+      entityElem = entityElem->GetNextElement("entity");
+    }
+  }
+
+  if (_sdf->HasElement("region"))
+  {
+    sdf::ElementPtr regionElem = ptr->GetElement("region");
+    while (regionElem)
+    {
+      math::Vector3d min = regionElem->Get<math::Vector3d>("min");
+      math::Vector3d max = regionElem->Get<math::Vector3d>("max");
+      math::AxisAlignedBox box(min, max);
+      this->dataPtr->regions.push_back(box);
+
+      regionElem = regionElem->GetNextElement("region");
+    }
+  }
+
+
+  if (_sdf->HasElement("start_time"))
+  {
+    double t = ptr->Get<double>("start_time");
+    this->dataPtr->startTime =
+        std::chrono::milliseconds(static_cast<int64_t>(t * 1000.0));
+  }
+
+  if (_sdf->HasElement("end_time"))
+  {
+    double t = ptr->Get<double>("end_time");
+    std::chrono::milliseconds ms(static_cast<int64_t>(t * 1000.0));
+    if (this->dataPtr->startTime > ms)
+    {
+      ignerr << "<start_time> cannot be larger than <end_time>" << std::endl;
+    }
+    else
+    {
+      this->dataPtr->endTime = ms;
+    }
+  }
+
+  this->dataPtr->loadTime = std::chrono::system_clock::now();
 }
 
 //////////////////////////////////////////////////
@@ -156,32 +222,39 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
 {
   IGN_PROFILE("LogVideoRecorder::PostUpdate");
 
-  // Models
-  _ecm.Each<components::Model, components::Name, components::Pose>(
-      [&](const Entity &, const components::Model *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // record videos for models in the spawn area.
-        // \todo(anyone) This is very specific to subt
-        math::Pose3d p = _poseComp->Data();
-        double bounds = 5.5;
-        if (p.Pos().X() < bounds && p.Pos().X() > -bounds &&
-            p.Pos().Y() < bounds && p.Pos().Y() > -bounds && p.Pos().Z() > 0)
+  // record videos for models in the specified regions.
+  if (!this->dataPtr->regions.empty())
+  {
+    _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const Entity &, const components::Model *,
+            const components::Name *_nameComp,
+            const components::Pose *_poseComp) -> bool
         {
-          std::string name = _nameComp->Data();
-          if (this->dataPtr->modelsRecorded.find(name) ==
-              this->dataPtr->modelsRecorded.end())
+          math::Pose3d p = _poseComp->Data();
+          for (auto box : this->dataPtr->regions)
           {
-            this->dataPtr->modelsToRecord.insert(name);
+            if (box.Contains(p.Pos()))
+            {
+              std::string name = _nameComp->Data();
+              if (this->dataPtr->modelsRecorded.find(name) ==
+                  this->dataPtr->modelsRecorded.end())
+              {
+                this->dataPtr->modelsToRecord.insert(name);
+              }
+            }
           }
-        }
-        return true;
-      });
+          return true;
+        });
+  }
 
+  // play for a few seconds before doing anything
+  std::chrono::time_point<std::chrono::system_clock> t =
+      std::chrono::system_clock::now();
+  if (t - this->dataPtr->loadTime < std::chrono::seconds(5))
+    return;
 
-  // play for a few seconds sim time before doing anything
-  if (_info.simTime < std::chrono::seconds(8))
+  // start sim
+  if (_info.simTime < std::chrono::milliseconds(1))
   {
     if (_info.paused)
       this->dataPtr->Play();
@@ -191,6 +264,19 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
   }
   else if (this->dataPtr->rewindRequested)
   {
+    return;
+  }
+
+  // do not start recording until start time is reached.
+  // todo(anyone) use seek to fast forward to start time?
+  if (_info.simTime < this->dataPtr->startTime)
+  {
+    if (_info.paused)
+    {
+      igndbg << "Warning: Playback is either manually paused or <start_time> "
+             << "is smaller than total log playback time!"
+             << std::endl;
+    }
     return;
   }
 
@@ -242,22 +328,27 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
     }
     else
     {
-      igndbg << "Finish Recording" << std::endl;
+      // No more models to record.
+      if (this->dataPtr->statusMsg.data().empty())
+        igndbg << "Finish Recording" << std::endl;
       this->dataPtr->statusMsg.set_data("end");
       this->dataPtr->statusPub.Publish(this->dataPtr->statusMsg);
     }
   }
 
-   // check if playback reached the end
+  // check if we need to stop recording
   if (this->dataPtr->recording)
   {
-    if (_info.paused)
+    // stop when either end of log reached (indicated by paused state)
+    // or sim time has gone past specified end time
+    if (_info.paused ||
+        (this->dataPtr->endTime.count() > 0 &&
+        _info.simTime > this->dataPtr->endTime))
     {
       this->dataPtr->Record(false);
       this->dataPtr->recording = false;
     }
   }
-
 
   // rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
