@@ -161,7 +161,7 @@ void DetachableJoint::PreUpdate(
 }
 
 //////////////////////////////////////////////////
-void DetachableJoint::OnDetachRequest(const msgs::Boolean &)
+void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 {
   this->detachRequested = true;
 }

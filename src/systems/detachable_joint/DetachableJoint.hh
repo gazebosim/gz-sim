@@ -18,7 +18,7 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 #define IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 
-#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/empty.pb.h>
 
 #include <memory>
 #include <string>
@@ -66,8 +66,7 @@ namespace systems
                 ignition::gazebo::EntityComponentManager &_ecm) final;
 
     /// \brief Callback for detach request topic
-    /// \todo(addisu) This could simply be msgs::Empty
-    private: void OnDetachRequest(const msgs::Boolean &_msg);
+    private: void OnDetachRequest(const msgs::Empty &_msg);
 
     /// \brief Name of attachment link in the parent model
     private: std::string parentLinkName;
