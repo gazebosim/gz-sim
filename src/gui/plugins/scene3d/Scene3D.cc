@@ -155,6 +155,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Follow P gain
     public: double followPGain = 0.01;
 
+    /// \brief True follow the target at an offset that is in world frame,
+    /// false to follow in target's local frame
+    public: bool followWorldFrame = false;
+
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
 
@@ -359,7 +363,8 @@ void IgnRenderer::Render()
         if (!followTarget || target != followTarget)
         {
           this->dataPtr->camera->SetFollowTarget(target,
-              this->dataPtr->followOffset);
+              this->dataPtr->followOffset,
+              this->dataPtr->followWorldFrame);
           this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
 
           this->dataPtr->camera->SetTrackTarget(target);
@@ -368,8 +373,10 @@ void IgnRenderer::Render()
         {
           math::Vector3d offset =
               this->dataPtr->camera->WorldPosition() - target->WorldPosition();
-          offset = target->WorldRotation().RotateVectorReverse(
-              offset);
+          if (!this->dataPtr->followWorldFrame)
+          {
+            offset = target->WorldRotation().RotateVectorReverse(offset);
+          }
           this->dataPtr->camera->SetFollowOffset(offset);
           this->dataPtr->followOffsetDirty = false;
         }
@@ -782,6 +789,34 @@ void IgnRenderer::SetFollowPGain(double _gain)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followWorldFrame = _worldFrame;
+}
+
+/////////////////////////////////////////////////
+bool IgnRenderer::FollowWorldFrame() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followWorldFrame;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followOffset = _offset;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::FollowOffset() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followOffset;
+}
+
+/////////////////////////////////////////////////
 std::string IgnRenderer::FollowTarget() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1167,6 +1202,30 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         targetStr << std::string(targetElem->GetText());
         renderWindow->SetFollowTarget(targetStr.str(), true);
       }
+
+      if (auto worldFrameElem = elem->FirstChildElement("world_frame"))
+      {
+        std::string worldFrameStr =
+            common::lowercase(worldFrameElem->GetText());
+        if (worldFrameStr == "true" || worldFrameStr == "1")
+          renderWindow->SetFollowWorldFrame(true);
+        else if (worldFrameStr == "false" || worldFrameStr == "0")
+          renderWindow->SetFollowWorldFrame(false);
+        else
+        {
+          ignerr << "Faild to parse <world_frame> value: " << worldFrameStr
+                 << std::endl;
+        }
+      }
+
+      if (auto offsetElem = elem->FirstChildElement("offset"))
+      {
+        math::Vector3d offset;
+        std::stringstream offsetStr;
+        offsetStr << std::string(offsetElem->GetText());
+        offsetStr >> offset;
+        renderWindow->SetFollowOffset(offset);
+      }
     }
   }
 
@@ -1308,6 +1367,18 @@ void RenderWindowItem::SetFollowTarget(const std::string &_target,
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowWorldFrame(bool _worldFrame)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowWorldFrame(_worldFrame);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowOffset(_offset);
 }
 
 /////////////////////////////////////////////////
