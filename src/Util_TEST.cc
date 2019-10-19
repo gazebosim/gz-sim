@@ -239,9 +239,9 @@ TEST(UtilTest, AsFullPath)
     const std::string path{"C:\\abs\\path\\file"};
 
     // Directory
-    EXPECT_EQ("C:\\abs\\path\\file\\meshes\\collision.dae",
+    EXPECT_EQ("C:\\abs\\path\\meshes\\collision.dae",
         asFullPath(relativeUriUnix, path));
-    EXPECT_EQ("C:\\abs\\path\\file\\meshes\\collision.dae",
+    EXPECT_EQ("C:\\abs\\path\\meshes\\collision.dae",
         asFullPath(relativeUriWindows, path));
     // TODO(anyone) Support absolute Unix-style URIs on Windows
     EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, path));
@@ -251,12 +251,12 @@ TEST(UtilTest, AsFullPath)
     auto filePath = common::joinPaths(path, "file.sdf");
 
     EXPECT_EQ("C:\\abs\\path\\file\\meshes\\collision.dae",
-        asFullPath(relativeUriUnix, path));
+        asFullPath(relativeUriUnix, filePath));
     EXPECT_EQ("C:\\abs\\path\\file\\meshes\\collision.dae",
-        asFullPath(relativeUriWindows, path));
+        asFullPath(relativeUriWindows, filePath));
     // TODO(anyone) Support absolute Unix-style URIs on Windows
-    EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, path));
-    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+    EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, filePath));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
   }
 #else
   // Absolute Unix path
