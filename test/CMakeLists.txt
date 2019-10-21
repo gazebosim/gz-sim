@@ -20,6 +20,27 @@ execute_process(COMMAND cmake -E remove_directory ${CMAKE_BINARY_DIR}/test_resul
 execute_process(COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/test_results)
 include_directories(${GTEST_INCLUDE_DIRS})
 
+#============================================================================
+# Do a fake install of ign-math in order to test the examples.
+#============================================================================
+set(FAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/fake/install")
+
+file(MAKE_DIRECTORY ${FAKE_INSTALL_PREFIX})
+
+include(ExternalProject)
+ExternalProject_Add(
+  FAKE_INSTALL
+
+  SOURCE_DIR "${CMAKE_SOURCE_DIR}"
+  EXCLUDE_FROM_ALL 1
+  LOG_CONFIGURE 1
+  LOG_BUILD 1
+  LOG_INSTALL 1
+  CMAKE_ARGS
+    "-DBUILD_TESTING=OFF"
+    "-DCMAKE_INSTALL_PREFIX=${FAKE_INSTALL_PREFIX}"
+)
+
 add_subdirectory(integration)
 add_subdirectory(performance)
 add_subdirectory(regression)
