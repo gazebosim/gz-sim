@@ -326,10 +326,9 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // pause playback if end of log is reached
   if (_info.simTime >= this->dataPtr->log->EndTime())
   {
-    std::cerr << "end of log file reached " << std::endl;
-    std::cerr << "end time " <<
+    ignmsg << "End of log file reached. Time: " <<
       std::chrono::duration_cast<std::chrono::seconds>(
-      this->dataPtr->log->EndTime()).count() << std::endl;
+      this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
 
     this->dataPtr->eventManager->Emit<events::Pause>(true);
   }
