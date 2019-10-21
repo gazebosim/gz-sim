@@ -116,8 +116,8 @@ TEST_F(DetachableJointTest, StartConnected)
   auto poseRecorder =
       [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
   {
-    return [&](const gazebo::UpdateInfo &,
-               const gazebo::EntityComponentManager &_ecm)
+    return [&, _modelName](const gazebo::UpdateInfo &,
+                           const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
           [&](const Entity &_entity, const components::Model *,
@@ -193,8 +193,8 @@ TEST_F(DetachableJointTest, LinksInSameModel)
   auto poseRecorder =
       [](const std::string &_linkName, std::vector<math::Pose3d> &_poses)
   {
-    return [&](const gazebo::UpdateInfo &,
-               const gazebo::EntityComponentManager &_ecm)
+    return [&, _linkName](const gazebo::UpdateInfo &,
+                          const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose>(
           [&](const Entity &_entity, const components::Link *,
@@ -256,5 +256,3 @@ TEST_F(DetachableJointTest, LinksInSameModel)
   // Due to the timing of transport messages, we
   EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
 }
-
-
