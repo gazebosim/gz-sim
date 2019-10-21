@@ -233,9 +233,9 @@ TEST(UtilTest, AsFullPath)
     EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
   }
 
-  // Absolute Windows path
 #ifdef _WIN32
   {
+    // Absolute Windows path
     const std::string path{"C:\\abs\\path\\file"};
 
     // Directory
@@ -259,8 +259,8 @@ TEST(UtilTest, AsFullPath)
     EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
   }
 #else
-  // Absolute Unix path
   {
+    // Absolute Unix path
     const std::string path{"/abs/path/file"};
 
     // Directory
