@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_CONVERSIONS_HH_
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
+#include <ignition/msgs/actor.pb.h>
 #include <ignition/msgs/axis.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
@@ -33,6 +34,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Inertial.hh>
+#include <sdf/Actor.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
@@ -139,6 +141,40 @@ namespace ignition
     /// \return SDF material.
     template<>
     sdf::Material convert(const msgs::Material &_in);
+
+    /// \brief Generic conversion from an SDF actor to another type.
+    /// \param[in] _in SDF actor.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Actor &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF actor to an actor
+    /// message.
+    /// \param[in] _in SDF actor.
+    /// \return Actor message.
+    template<>
+    msgs::Actor convert(const sdf::Actor &_in);
+
+    /// \brief Generic conversion from an actor message to another type.
+    /// \param[in] _in Actor message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Actor& /*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an actor message to an actor
+    /// SDF object.
+    /// \param[in] _in Actor message.
+    /// \return Actor SDF object.
+    template<>
+    sdf::Actor convert(const msgs::Actor &_in);
 
     /// \brief Generic conversion from an SDF light to another type.
     /// \param[in] _in SDF light.
