@@ -89,7 +89,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
-  /// \brief
+  /// \brief Pointer to ign-transport Log
   public: std::unique_ptr<transport::log::Log> log;
 
   /// \brief Indicator of whether any playback instance has ever been started
@@ -103,6 +103,10 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
+
+  /// \brief Flag for backward compatibility with log files recorded in older
+  /// plugin versions that did not record resources. False for older log files.
+  public: bool doReplaceResourceURIs{true};
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -287,6 +291,13 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
 {
+  // For backward compatibility with log files recorded in older versions of
+  //   plugin, do not prepend resource paths with logPath.
+  if (!this->doReplaceResourceURIs)
+  {
+    return;
+  }
+
   // Define equality functions for replacing component uri
   auto uriEqual = [&](const std::string &_s1, const std::string &_s2) -> bool
   {
@@ -355,18 +366,47 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
 {
+  // For backward compatibility with log files recorded in older versions of
+  // plugin, do not prepend resource paths with logPath.
+  if (!this->doReplaceResourceURIs)
+  {
+    return std::string(_uri);
+  }
+
   const std::string filePrefix = "file://";
 
   // Prepend if path starts with file:// or /, but recorded path has not
   // already been prepended.
-  if ((_uri.compare(0, filePrefix.length(), filePrefix) == 0 ||
-       _uri[0] == '/') &&
-    (_uri.substr(filePrefix.length()).compare(
-      0, this->logPath.length(), this->logPath) != 0))
+  if (((_uri.compare(0, filePrefix.length(), filePrefix) == 0) &&
+      (_uri.substr(filePrefix.length()).compare(
+        0, this->logPath.length(), this->logPath) != 0))
+      || _uri[0] == '/')
   {
-    // Prepend log path to file path to return
-    return filePrefix + common::joinPaths(this->logPath,
-      _uri.substr(filePrefix.length()));
+    std::string pathNoPrefix;
+    if (_uri[0] == '/')
+    {
+      pathNoPrefix = std::string(_uri);
+    }
+    else
+    {
+      pathNoPrefix = _uri.substr(filePrefix.length());
+    }
+
+    // Prepend log path to file path
+    std::string pathPrepended = filePrefix + common::joinPaths(this->logPath,
+      pathNoPrefix);
+
+    // For backward compatibility. If prepended record path does not exist,
+    // then do not prepend logPath. Assume recording is from an older version.
+    if (!common::exists(pathPrepended))
+    {
+      this->doReplaceResourceURIs = false;
+      return std::string(_uri);
+    }
+    else
+    {
+      return pathPrepended;
+    }
   }
   else
   {
