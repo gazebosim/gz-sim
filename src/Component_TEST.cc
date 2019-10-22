@@ -298,7 +298,7 @@ TEST_F(ComponentTest, OStream)
 
     auto data = std::make_shared<sdf::Element>();
     data->SetName("element");
-    data->AddAttribute("test", "string", "foo", false, "foo description");
+    data->AddAttribute("test", "string", "foo", true, "foo description");
     data->AddValue("string", "val", false, "val description");
 
     Custom comp(data);
