@@ -32,14 +32,9 @@ ln -s $logDirPath $tmpDir
 echo "Starting log playback and video recording"
 
 sdfName="log_video_recorder"
-ign gazebo -v 4 $sdfName.sdf &
+ign gazebo -v 4 $sdfName.sdf
 
-while [ "$end" == "" ]; do
- end=$(timeout 3 ign topic -e -t /log_video_recorder/status)
- # echo "end: $end"
-done
-
-echo "Detect video recording ended. Shutting down playback"
+echo "Video recording ended. Shutting down playback"
 
 pgrep -f $sdfName | xargs kill -9
 

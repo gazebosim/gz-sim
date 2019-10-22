@@ -128,6 +128,9 @@ class ignition::gazebo::systems::LogVideoRecorderPrivate
 
   /// \brief Sim time to stop recording
   public: std::chrono::steady_clock::duration endTime;
+
+  /// \brief Auto exit when log playback recording ends
+  public: bool exitOnFinish = false;
 };
 
 //////////////////////////////////////////////////
@@ -191,7 +194,6 @@ void LogVideoRecorder::Configure(
     }
   }
 
-
   if (_sdf->HasElement("start_time"))
   {
     double t = ptr->Get<double>("start_time");
@@ -211,6 +213,11 @@ void LogVideoRecorder::Configure(
     {
       this->dataPtr->endTime = ms;
     }
+  }
+
+  if (_sdf->HasElement("exit_on_finish"))
+  {
+    this->dataPtr->exitOnFinish = ptr->Get<bool>("exit_on_finish");
   }
 
   this->dataPtr->loadTime = std::chrono::system_clock::now();
@@ -333,6 +340,9 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
         igndbg << "Finish Recording" << std::endl;
       this->dataPtr->statusMsg.set_data("end");
       this->dataPtr->statusPub.Publish(this->dataPtr->statusMsg);
+
+      if (this->dataPtr->exitOnFinish)
+        exit(0);
     }
   }
 

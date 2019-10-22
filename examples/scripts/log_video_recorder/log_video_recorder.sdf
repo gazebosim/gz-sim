@@ -25,6 +25,7 @@
         <max>5 5 1</max>
       </region>
       <start_time>5.0</start_time>
+      <exit_on_finish>true</exit_on_finish>
     </plugin>
 
     <physics name="1ms" type="dart">
