@@ -15,6 +15,7 @@
  *
  */
 
+#include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
@@ -24,6 +25,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Level.hh"
@@ -383,6 +385,26 @@ void LevelManager::ConfigureDefaultLevel()
     }
   }
 
+  // Actors
+  for (uint64_t actorIndex = 0;
+       actorIndex < this->runner->sdfWorld->ActorCount(); ++actorIndex)
+  {
+    // There is no sdf::World::ActorByName so we have to iterate by index and
+    // check if the actor is in this level
+    auto actor = this->runner->sdfWorld->ActorByIndex(actorIndex);
+    // If actor is a performer, it will be handled separately
+    if (this->performerMap.find(actor->Name()) != this->performerMap.end())
+    {
+      continue;
+    }
+
+    if (this->entityNamesInLevels.find(actor->Name()) ==
+        this->entityNamesInLevels.end())
+    {
+      entityNamesInDefault.insert(actor->Name());
+    }
+  }
+
   // Lights
   // We assume no performers are lights
   for (uint64_t lightIndex = 0;
@@ -431,6 +453,24 @@ void LevelManager::CreatePerformers()
 
       // Add parent world to the model
       this->entityCreator->SetParent(modelEntity, this->worldEntity);
+    }
+  }
+
+  // Actors
+  for (uint64_t actorIndex = 0;
+       actorIndex < this->runner->sdfWorld->ActorCount(); ++actorIndex)
+  {
+    auto actor = this->runner->sdfWorld->ActorByIndex(actorIndex);
+    if (this->performerMap.find(actor->Name()) != this->performerMap.end())
+    {
+      Entity actorEntity = this->entityCreator->CreateEntities(actor);
+
+      // Make the actor a parent of this performer
+      this->entityCreator->SetParent(this->performerMap[actor->Name()],
+                                     actorEntity);
+
+      // Add parent world to the actor
+      this->entityCreator->SetParent(actorEntity, this->worldEntity);
     }
   }
 }
@@ -685,6 +725,21 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     }
   }
 
+  // Actors
+  for (uint64_t actorIndex = 0;
+       actorIndex < this->runner->sdfWorld->ActorCount(); ++actorIndex)
+  {
+    // There is no sdf::World::ActorByName so we have to iterate by index and
+    // check if the actor is in this level
+    auto actor = this->runner->sdfWorld->ActorByIndex(actorIndex);
+    if (_namesToLoad.find(actor->Name()) != _namesToLoad.end())
+    {
+      Entity actorEntity = this->entityCreator->CreateEntities(actor);
+
+      this->entityCreator->SetParent(actorEntity, this->worldEntity);
+    }
+  }
+
   // Lights
   for (uint64_t lightIndex = 0;
        lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
@@ -707,6 +762,17 @@ void LevelManager::UnloadInactiveEntities(
 {
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
       [&](const Entity &_entity, const components::Model *,
+          const components::Name *_name) -> bool
+      {
+        if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
+        {
+          this->entityCreator->RequestRemoveEntity(_entity, true);
+        }
+        return true;
+      });
+
+  this->runner->entityCompMgr.Each<components::Actor, components::Name>(
+      [&](const Entity &_entity, const components::Actor *,
           const components::Name *_name) -> bool
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
