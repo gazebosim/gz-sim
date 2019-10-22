@@ -24,15 +24,15 @@
 using namespace ignition;
 
 //////////////////////////////////////////////////
-inline bool WasCancelled(const gazebo::Barrier::ExitStatus &_ret)
+inline bool wasCancelled(const gazebo::Barrier::ExitStatus &_ret)
 {
   return _ret == gazebo::Barrier::ExitStatus::CANCELLED;
 }
 
 //////////////////////////////////////////////////
-void SyncThreadsTest(unsigned int threadCount)
+void syncThreadsTest(unsigned int _threadCount)
 {
-  auto barrier = std::make_unique<gazebo::Barrier>(threadCount + 1);
+  auto barrier = std::make_unique<gazebo::Barrier>(_threadCount + 1);
 
   unsigned int preBarrier { 0 };
   unsigned int postBarrier { 0 };
@@ -41,7 +41,7 @@ void SyncThreadsTest(unsigned int threadCount)
   std::mutex mutex;
   std::condition_variable cv;
 
-  for (size_t ii = 0; ii < threadCount; ++ii)
+  for (size_t ii = 0; ii < _threadCount; ++ii)
   {
     threads.push_back(std::thread([&](){
         {
@@ -66,7 +66,7 @@ void SyncThreadsTest(unsigned int threadCount)
     auto ret = cv.wait_for(lock, std::chrono::milliseconds(100),
         [&]()
         {
-          return preBarrier == threadCount;
+          return preBarrier == _threadCount;
         });
     ASSERT_TRUE(ret);
   }
@@ -81,7 +81,7 @@ void SyncThreadsTest(unsigned int threadCount)
     auto ret = cv.wait_for(lock, std::chrono::milliseconds(100),
         [&]()
         {
-          return postBarrier == threadCount;
+          return postBarrier == _threadCount;
         });
     ASSERT_TRUE(ret);
   }
@@ -93,31 +93,31 @@ void SyncThreadsTest(unsigned int threadCount)
 //////////////////////////////////////////////////
 TEST(Barrier, Sync1Thread)
 {
-  SyncThreadsTest(1);
+  syncThreadsTest(1);
 }
 
 //////////////////////////////////////////////////
 TEST(Barrier, Sync5Threads)
 {
-  SyncThreadsTest(5);
+  syncThreadsTest(5);
 }
 
 //////////////////////////////////////////////////
 TEST(Barrier, Sync10Threads)
 {
-  SyncThreadsTest(10);
+  syncThreadsTest(10);
 }
 
 //////////////////////////////////////////////////
 TEST(Barrier, Sync20Threads)
 {
-  SyncThreadsTest(20);
+  syncThreadsTest(20);
 }
 
 //////////////////////////////////////////////////
 TEST(Barrier, Sync50Threads)
 {
-  SyncThreadsTest(50);
+  syncThreadsTest(50);
 }
 
 //////////////////////////////////////////////////
@@ -140,7 +140,7 @@ TEST(Barrier, Cancel)
         cv.notify_one();
       }
 
-      EXPECT_TRUE(WasCancelled(barrier->Wait()));
+      EXPECT_TRUE(wasCancelled(barrier->Wait()));
 
       {
         std::lock_guard<std::mutex> lock(mutex);
