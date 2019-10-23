@@ -2,8 +2,16 @@
 
 ### Ignition Gazebo 3.X.X
 
+### Ignition Gazebo 3.0.0
+
+1. Move function definitions to their correct locations in EntityComponentManager
+    * [Pull Request 380](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/380)
+
 1. Depend on ign-rendering3, ign-gui3, ign-sensors3
-   * [Pull Request 411](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/411)
+    * [Pull Request 411](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/411)
+
+1. Rendering and Animating Actors
+    * [Pull Request 414](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/414)
 
 
 ## Ignition Gazebo 2.x
