@@ -15,6 +15,11 @@
  *
 */
 
+#ifndef __APPLE__
+#include <filesystem>
+#endif
+#include <ignition/common/Filesystem.hh>
+
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -147,6 +152,62 @@ std::string removeParentScope(const std::string &_name,
     return _name;
 
   return _name.substr(sepPos + _delim.size());
+}
+
+//////////////////////////////////////////////////
+std::string asFullPath(const std::string &_uri, const std::string &_filePath)
+{
+  // No path, return unmodified
+  if (_filePath.empty())
+  {
+    return _uri;
+  }
+
+#ifdef __APPLE__
+  const std::string absPrefix = "/";
+  // Not a relative path, return unmodified
+  if (_uri.find("://") != std::string::npos ||
+      _uri.compare(0, absPrefix.size(), absPrefix) == 0)
+  {
+    return _uri;
+  }
+#else
+  // Not a relative path, return unmodified
+  if (_uri.find("://") != std::string::npos ||
+      !std::filesystem::path(_uri).is_relative())
+  {
+    return _uri;
+  }
+#endif
+
+  // When SDF is loaded from a string instead of a file
+  if ("data-string" == _filePath)
+  {
+    ignwarn << "Can't resolve full path for relative path ["
+            << _uri << "]. Loaded from a data-string." << std::endl;
+    return _uri;
+  }
+
+  // Remove file name from path
+  auto path = common::parentPath(_filePath);
+  auto uri = _uri;
+
+  // If path is URI, use "/" separator for all platforms
+  if (path.find("://") != std::string::npos)
+  {
+    std::replace(uri.begin(), uri.end(), '\\', '/');
+    return path + "/" + uri;
+  }
+
+  // In case relative path doesn't match platform
+#ifdef _WIN32
+  std::replace(uri.begin(), uri.end(), '/', '\\');
+#else
+  std::replace(uri.begin(), uri.end(), '\\', '/');
+#endif
+
+  // Use platform-specific separator
+  return common::joinPaths(path,  uri);
 }
 }
 }
