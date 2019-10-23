@@ -2,6 +2,8 @@
 
 ### Ignition Gazebo 2.X.X
 
+### Ignition Gazebo 2.11.0 (2019-10-24)
+
 1.  Handle Relative URIs
     * [Pull Request 433](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/433)
 
