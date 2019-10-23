@@ -44,6 +44,7 @@ using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
+//////////////////////////////////////////////////
 class SensorsFixture : public ::testing::Test
 {
   protected: void SetUp() override
@@ -68,7 +69,8 @@ class SensorsFixture : public ::testing::Test
   private: gazebo::SystemLoader sm;
 };
 
-void TestDefaultTopics()
+//////////////////////////////////////////////////
+void testDefaultTopics()
 {
   // TODO(anyone) This should be a new test, but running multiple tests with
   // sensors is not currently working
@@ -127,44 +129,49 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   server.Run(true, 10, false);
   ASSERT_NE(nullptr, ecm);
 
-  TestDefaultTopics();
+  testDefaultTopics();
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
   gazebo::EventManager dummyEventMgr;
   gazebo::SdfEntityCreator creator(*ecm, dummyEventMgr);
 
+  unsigned int runs = 100;
+  unsigned int runIterations = 2;
+  for (unsigned int i = 0; i < runs; ++i)
   {
-    auto modelEntity = ecm->EntityByComponents(
-        components::Model(), components::Name(sdfModel->Name()));
-    EXPECT_NE(gazebo::kNullEntity, modelEntity);
+    {
+      auto modelEntity = ecm->EntityByComponents(
+          components::Model(), components::Name(sdfModel->Name()));
+      EXPECT_NE(gazebo::kNullEntity, modelEntity);
 
-    // Remove the first model in the world
-    creator.RequestRemoveEntity(modelEntity, true);
-  }
+      // Remove the first model in the world
+      creator.RequestRemoveEntity(modelEntity, true);
+    }
 
-  server.Run(true, 10, false);
+    server.Run(true, runIterations, false);
 
-  {
-    auto modelEntity = ecm->EntityByComponents(components::Model(),
-        components::Name(sdfModel->Name()));
+    {
+      auto modelEntity = ecm->EntityByComponents(components::Model(),
+          components::Name(sdfModel->Name()));
 
-    // Since the model is removed, we should get a null entity
-    EXPECT_EQ(gazebo::kNullEntity, modelEntity);
-  }
+      // Since the model is removed, we should get a null entity
+      EXPECT_EQ(gazebo::kNullEntity, modelEntity);
+    }
 
-  // Create the model again
-  auto newModelEntity = creator.CreateEntities(sdfModel);
-  creator.SetParent(newModelEntity,
-                    ecm->EntityByComponents(components::World()));
+    // Create the model again
+    auto newModelEntity = creator.CreateEntities(sdfModel);
+    creator.SetParent(newModelEntity,
+                      ecm->EntityByComponents(components::World()));
 
-  // This would throw if entities that have not been properly removed from the
-  // scene manager in the Sensor system
-  EXPECT_NO_THROW(server.Run(true, 10, false));
+    // This would throw if entities that have not been properly removed from the
+    // scene manager in the Sensor system
+    EXPECT_NO_THROW(server.Run(true, runIterations, false));
 
-  {
-    auto modelEntity = ecm->EntityByComponents(components::Model(),
-        components::Name(sdfModel->Name()));
-    EXPECT_NE(gazebo::kNullEntity, modelEntity);
+    {
+      auto modelEntity = ecm->EntityByComponents(components::Model(),
+          components::Name(sdfModel->Name()));
+      EXPECT_NE(gazebo::kNullEntity, modelEntity);
+    }
   }
 }

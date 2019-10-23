@@ -41,11 +41,10 @@ namespace gazebo
     public: TransformControl();
 
     /// \brief Destructor
-    public: virtual ~TransformControl();
+    public: ~TransformControl() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode

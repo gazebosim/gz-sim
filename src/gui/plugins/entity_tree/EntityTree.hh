@@ -58,6 +58,16 @@ namespace gazebo
     /// \param[in] _entity Entity to be removed
     public slots: void RemoveEntity(unsigned int _entity);
 
+    /// \brief Get the entity type of a tree item at specified index
+    /// \param[in] _index Model index
+    /// \return Type of entity
+    public: Q_INVOKABLE QString EntityType(const QModelIndex &_index) const;
+
+    /// \brief Get the scoped name of a tree item at specified index
+    /// \param[in] _index Model index
+    /// \return Scoped name of the entity
+    public: Q_INVOKABLE QString ScopedName(const QModelIndex &_index) const;
+
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
   };

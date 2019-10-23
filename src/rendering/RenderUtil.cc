@@ -73,11 +73,13 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Create rendering entities
   /// \param[in] _ecm The entity-component manager
-  public: void CreateRenderingEntities(const EntityComponentManager &_ecm);
+  public: void CreateRenderingEntities(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
 
   /// \brief Remove rendering entities
   /// \param[in] _ecm The entity-component manager
-  public: void RemoveRenderingEntities(const EntityComponentManager &_ecm);
+  public: void RemoveRenderingEntities(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
 
   /// \brief Update rendering entities
   /// \param[in] _ecm The entity-component manager
@@ -119,8 +121,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<sdf::Scene> newScenes;
 
   /// \brief New models to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Model, Entity>> newModels;
+  /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
+  public: std::vector<std::tuple<Entity, sdf::Model, Entity, uint64_t>>
+      newModels;
 
   /// \brief New links to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
@@ -143,8 +146,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
-  /// \brief Ids of entities to be removed
-  public: std::set<Entity> removeEntities;
+  /// \brief Map of ids of entites to be removed and sim iteration when the
+  /// remove request is received
+  public: std::map<Entity, uint64_t> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
   public: std::map<Entity, math::Pose3d> entityPoses;
@@ -195,10 +199,10 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->simTime = _info.simTime;
 
-  this->dataPtr->CreateRenderingEntities(_ecm);
-  if (!_info.paused)
+  this->dataPtr->CreateRenderingEntities(_ecm, _info);
+  if (_info.dt != std::chrono::steady_clock::duration::zero())
     this->dataPtr->UpdateRenderingEntities(_ecm);
-  this->dataPtr->RemoveRenderingEntities(_ecm);
+  this->dataPtr->RemoveRenderingEntities(_ecm, _info);
 }
 
 //////////////////////////////////////////////////
@@ -266,14 +270,44 @@ void RenderUtil::Update()
     break;
   }
 
+  // remove existing entities
+  // \todo(anyone) Remove sensors
+  {
+    IGN_PROFILE("RenderUtil::Update Remove");
+    for (auto &entity : removeEntities)
+    {
+      if (this->dataPtr->selectedEntity &&
+          this->dataPtr->sceneManager.NodeById(entity.first) ==
+          this->dataPtr->selectedEntity)
+      {
+        this->dataPtr->selectedEntity.reset();
+      }
+      this->dataPtr->sceneManager.RemoveEntity(entity.first);
+    }
+  }
+
   // create new entities
   {
     IGN_PROFILE("RenderUtil::Update Create");
     for (const auto &model : newModels)
     {
-      sdf::Model m = std::get<1>(model);
+      uint64_t iteration = std::get<3>(model);
+      Entity entityId = std::get<0>(model);
+      // since entites to be created and removed are queued, we need
+      // to check their creation timestamp to make sure we do not create a new
+      // entity when there is also a remove request with a more recent
+      // timestamp
+      // \todo(anyone) add test to check scene entities are properly added
+      // and removed.
+      auto removeIt = removeEntities.find(entityId);
+      if (removeIt != removeEntities.end())
+      {
+        uint64_t removeIteration = removeIt->second;
+        if (iteration < removeIteration)
+          continue;
+      }
       this->dataPtr->sceneManager.CreateModel(
-          std::get<0>(model), std::get<1>(model), std::get<2>(model));
+          entityId, std::get<1>(model), std::get<2>(model));
     }
 
     for (const auto &link : newLinks)
@@ -333,22 +367,6 @@ void RenderUtil::Update()
     }
   }
 
-  // remove existing entities
-  // \todo(anyone) Remove sensors
-  {
-    IGN_PROFILE("RenderUtil::Update Remove");
-    for (auto &entity : removeEntities)
-    {
-      if (this->dataPtr->selectedEntity &&
-          this->dataPtr->sceneManager.NodeById(entity) ==
-          this->dataPtr->selectedEntity)
-      {
-        this->dataPtr->selectedEntity.reset();
-      }
-      this->dataPtr->sceneManager.RemoveEntity(entity);
-    }
-  }
-
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
@@ -390,7 +408,7 @@ void RenderUtil::Update()
 
 //////////////////////////////////////////////////
 void RenderUtilPrivate::CreateRenderingEntities(
-    const EntityComponentManager &_ecm)
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
   auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
@@ -446,7 +464,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
           this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data()));
+              std::make_tuple(_entity, model, _parent->Data(),
+              _info.iterations));
           return true;
         });
 
@@ -591,7 +610,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
           this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data()));
+              std::make_tuple(_entity, model, _parent->Data(),
+              _info.iterations));
           return true;
         });
 
@@ -808,20 +828,20 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 
 //////////////////////////////////////////////////
 void RenderUtilPrivate::RemoveRenderingEntities(
-    const EntityComponentManager &_ecm)
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   IGN_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
   _ecm.EachRemoved<components::Link>(
       [&](const Entity &_entity, const components::Link *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -829,7 +849,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Visual>(
       [&](const Entity &_entity, const components::Visual *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -837,7 +857,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -845,7 +865,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Camera>(
     [&](const Entity &_entity, const components::Camera *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -853,7 +873,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::DepthCamera>(
     [&](const Entity &_entity, const components::DepthCamera *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -861,7 +881,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::RgbdCamera>(
     [&](const Entity &_entity, const components::RgbdCamera *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -869,7 +889,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::GpuLidar>(
     [&](const Entity &_entity, const components::GpuLidar *)->bool
       {
-        this->removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 }
@@ -962,7 +982,7 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  this->dataPtr->selectedEntity = _node;
+  this->dataPtr->selectedEntity = std::move(_node);
 }
 
 /////////////////////////////////////////////////
