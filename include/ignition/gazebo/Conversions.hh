@@ -90,7 +90,7 @@ namespace ignition
     /// \return Geometry message.
     template<>
     msgs::Geometry convert(const sdf::Geometry &_in);
-    
+
     /// \brief Generic conversion from a msgs Pose to another type.
     /// \param[in] _in msgs Pose
     /// \return Conversion result.
@@ -100,8 +100,8 @@ namespace ignition
     {
       Out::ConversionNotImplemented;
     }
-    
-    /// \brief Specialized conversion for msgs Pose to math Pise
+
+    /// \brief Specialized conversion for msgs Pose to math Pose
     /// \param[in] _in msgs Pose
     /// \return math Pose.
     template<>
@@ -276,23 +276,6 @@ namespace ignition
     /// \return Steady clock duration.
     template<>
     std::chrono::steady_clock::duration convert(const msgs::Time &_in);
-    
-    /// \brief Generic conversion from a common time to another type.
-    /// \param[in] _in Common Time
-    /// \return Conversion result.
-    /// \tparam Out Output type.
-    template<class Out>
-    Out convert(const common::Time &/*_in*/)
-    {
-      Out::ConversionNotImplemented;
-    }
-
-    /// \brief Specialized conversion from Common Time to a steady clock
-    /// duration.
-    /// \param[in] _in Time message.
-    /// \return Steady clock duration.
-    template<>
-    std::chrono::steady_clock::duration convert(const common::Time &_in);
 
     /// \brief Generic conversion from a math inertial to another type.
     /// \param[in] _in Math inertial.
