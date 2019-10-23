@@ -42,7 +42,7 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \brief Set the simulation time.
   /// \param[in] _time The provided time.
   public: void SetSimTime(const std::chrono::steady_clock::duration &_time);
-  
+
   /// \brief Set the scene to manage
   /// \param[in] _scene Scene pointer.
   public: void SetScene(rendering::ScenePtr _scene);
@@ -50,7 +50,7 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \brief Get the scene
   /// \return Pointer to scene
   public: rendering::ScenePtr Scene() const;
-  
+
   /// \brief Update MarkerManager
   public: void PreRender() const;
 
@@ -62,9 +62,6 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \internal
   /// \brief Private data pointer
   private: std::unique_ptr<MarkerManagerPrivate> dataPtr;
-
-  /// Make sure the Scene can access Init()
-  private: friend class Scene;
 };
 }
 

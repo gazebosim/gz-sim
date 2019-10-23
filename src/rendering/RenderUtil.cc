@@ -175,7 +175,6 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Whether the transform gizmo is being dragged.
   public: bool transformActive{false};
-
 };
 
 //////////////////////////////////////////////////

@@ -41,18 +41,27 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
   markerMsg.mutable_material()->mutable_ambient()->set_b(1);
   markerMsg.mutable_material()->mutable_ambient()->set_a(1);
+  markerMsg.mutable_lifetime()->set_sec(2);
+  markerMsg.mutable_lifetime()->set_nsec(0);
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(1.0, 1.0, 1.0));
 
   // The rest of this function adds different shapes and/or modifies shapes.
   // Read the terminal statements to figure out what each node.Request
   // call accomplishes.
-  std::cout << "Spawning a sphere at the origin\n";
+  std::cout << "Spawning a sphere at the origin with lifetime 2s\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
   node.Request("/marker", markerMsg);
- 
+  std::cout << "Sleeping for 2 seconds\n";
+  ignition::common::Time::Sleep(ignition::common::Time(2));
+
+  std::cout << "Spawning a sphere at the origin with no lifetime\n";
+  ignition::common::Time::Sleep(ignition::common::Time(4));
+  markerMsg.mutable_lifetime()->set_sec(0);
+  node.Request("/marker", markerMsg);
+  
   std::cout << "Moving the sphere to x=0, y=1, z=1\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
@@ -71,7 +80,6 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_ambient()->set_b(0);
   ignition::common::Time::Sleep(ignition::common::Time(4));
   node.Request("/marker", markerMsg);
-  
 
   std::cout << "Adding a green box\n";
   markerMsg.mutable_material()->mutable_ambient()->set_r(0);
@@ -92,7 +100,7 @@ int main(int _argc, char **_argv)
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
   node.Request("/marker", markerMsg);
   
-  std::cout << "Adding a line between the sphere and cylinder\n";
+  std::cout << "Connecting the sphere and cylinder with a line\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(2);
   ignition::msgs::Set(markerMsg.mutable_pose(),
@@ -100,7 +108,7 @@ int main(int _argc, char **_argv)
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
   ignition::msgs::Set(markerMsg.add_point(),
-      ignition::math::Vector3d(0, 0, 1.1));
+      ignition::math::Vector3d(0.0, 1.0, 1.0));
   ignition::msgs::Set(markerMsg.add_point(),
       ignition::math::Vector3d(2, 0, 0.5));
   node.Request("/marker", markerMsg);

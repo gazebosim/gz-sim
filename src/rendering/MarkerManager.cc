@@ -52,25 +52,25 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \brief List of marker messages.
   typedef std::list<ignition::msgs::Marker> MarkerMsgs_L;
 
-  /// \brief Process a marker message.
+  /// \brief Processes a marker message.
   /// \param[in] _msg The message data.
   /// \return True if the marker was processed successfully.
   public: bool ProcessMarkerMsg(const ignition::msgs::Marker &_msg);
 
-  /// \brief Convert an ignition msg render type to ignition rendering
+  /// \brief Converts an ignition msg render type to ignition rendering
   /// \param[in] _msg The message data
   /// \return Converted rendering type, if any.
   public: ignition::rendering::MarkerType MsgToType(
                     const ignition::msgs::Marker &_msg);
-  
-  /// \brief Convert an ignition msg material to ignition rendering
+
+  /// \brief Converts an ignition msg material to ignition rendering
   //         material.
   //  \param[in] _msg The message data.
   //  \return Converted rendering material, if any.
   public: rendering::MaterialPtr MsgToMaterial(
                     const ignition::msgs::Marker &_msg);
 
-  /// \brief Update the markers. This function is called on
+  /// \brief Updates the markers. This function is called on
   /// the PreRender event.
   public: void OnPreRender();
 
@@ -78,30 +78,26 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \param[in] _req The marker message.
   public: void OnMarkerMsg(const ignition::msgs::Marker &_req);
 
-  /// \brief Service callback that returns a list of markers.
+  /// \brief Services callback that returns a list of markers.
   /// \param[out] _rep Service reply
   /// \return True on success.
   public: bool OnList(ignition::msgs::Marker_V &_rep);
 
-  /// \brief Set Marker from marker message.
+  /// \brief Sets Marker from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _markerPtr The message pointer to set.
   public: void SetMarker(const ignition::msgs::Marker &_msg,
                          rendering::MarkerPtr _markerPtr);
 
-  /// \brief Set Visual from marker message.
+  /// \brief Sets Visual from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _visualPtr The visual pointer to set.
   public: void SetVisual(const ignition::msgs::Marker &_msg,
                          rendering::VisualPtr _visualPtr);
 
-  /// \brief Set sim time from time.
+  /// \brief Sets sim time from time.
   /// \param[in] _time The time data.
   public: void SetSimTime(const std::chrono::steady_clock::duration &_time);
-
-  /// \brief Receive messages from the world_stats topic
-  /// \param[in] _msg The world stats message
-  /// public: void OnStatsMsg(ConstWorldStatisticsPtr &_msg);
 
   /// \brief Previous sim time received
   public: std::chrono::steady_clock::duration lastSimTime;
@@ -121,7 +117,7 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \brief Ignition node
   public: ignition::transport::Node node;
 
-  /// \brief Sim time according to world_stats
+  /// \brief Sim time according to UpdateInfo in RenderUtil
   public: std::chrono::steady_clock::duration simTime;
 
   /// \brief The last marker message received
@@ -183,7 +179,9 @@ bool MarkerManager::Init(ignition::rendering::ScenePtr _scene)
   return true;
 }
 
-void MarkerManager::SetSimTime(const std::chrono::steady_clock::duration &_time){
+/////////////////////////////////////////////////
+void MarkerManager::SetSimTime(
+    const std::chrono::steady_clock::duration &_time) {
   this->dataPtr->SetSimTime(_time);
 }
 
@@ -211,7 +209,7 @@ void MarkerManagerPrivate::OnPreRender()
       ignition::rendering::MarkerPtr markerPtr =
             std::dynamic_pointer_cast<ignition::rendering::Marker>
             (it->second->GeometryByIndex(0));
-      
+
       if (markerPtr != nullptr)
       {
         if (markerPtr->Lifetime().count() != 0 &&
@@ -234,20 +232,22 @@ void MarkerManagerPrivate::OnPreRender()
   this->lastSimTime = this->simTime;
 }
 
-void MarkerManagerPrivate::SetSimTime(const std::chrono::steady_clock::duration &_time)
+/////////////////////////////////////////////////
+void MarkerManagerPrivate::SetSimTime(
+    const std::chrono::steady_clock::duration &_time)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   simTime = _time;
 }
 
+/////////////////////////////////////////////////
 void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
                            rendering::VisualPtr _visualPtr)
 {
   // Set Visual Scale
   _visualPtr->SetLocalScale(_msg.scale().x(),
                             _msg.scale().y(),
-                            _msg.scale().z()
-                            );
+                            _msg.scale().z());
 
   // Set Visual Pose
   _visualPtr->SetLocalPose(convert<math::Pose3d>(_msg.pose()));
@@ -259,9 +259,9 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
     {
       _visualPtr->Parent()->RemoveChild(_visualPtr);
     }
-    
+
     VisualPtr parent = this->scene->VisualByName(_msg.parent());
-  
+
     if (parent)
     {
       parent->AddChild(_visualPtr);
@@ -271,11 +271,12 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
       ignerr << "No visual with the name[" << _msg.parent() << "]\n";
     }
   }
- 
+
   // Update Marker Visibility
   _visualPtr->SetVisible(_msg.visibility());
 }
 
+/////////////////////////////////////////////////
 void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
                            rendering::MarkerPtr _markerPtr)
 {
@@ -287,6 +288,10 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
   if (lifetime.count() != 0)
   {
     _markerPtr->SetLifetime(lifetime + this->simTime);
+  }
+  else
+  {
+    _markerPtr->SetLifetime(std::chrono::seconds(0));
   }
   // Set Marker Render Type
   ignition::rendering::MarkerType markerType = MsgToType(_msg);
@@ -306,8 +311,7 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
       _msg.material().ambient().r(),
       _msg.material().ambient().g(),
       _msg.material().ambient().b(),
-      _msg.material().ambient().a()
-      );
+      _msg.material().ambient().a());
 
   // Set Marker Points
   for (int i = 0; i < _msg.point().size(); ++i)
@@ -315,13 +319,13 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
     math::Vector3d vector(
         _msg.point(i).x(),
         _msg.point(i).y(),
-        _msg.point(i).z()
-        );
+        _msg.point(i).z());
 
     _markerPtr->AddPoint(vector, color);
   }
 }
 
+/////////////////////////////////////////////////
 ignition::rendering::MarkerType MarkerManagerPrivate::MsgToType(
                           const ignition::msgs::Marker &_msg)
 {
@@ -360,6 +364,7 @@ ignition::rendering::MarkerType MarkerManagerPrivate::MsgToType(
   return ignition::rendering::MarkerType::NONE;
 }
 
+/////////////////////////////////////////////////
 rendering::MaterialPtr MarkerManagerPrivate::MsgToMaterial(
                               const ignition::msgs::Marker &_msg)
 {
@@ -369,30 +374,26 @@ rendering::MaterialPtr MarkerManagerPrivate::MsgToMaterial(
       _msg.material().ambient().r(),
       _msg.material().ambient().g(),
       _msg.material().ambient().b(),
-      _msg.material().ambient().a()
-      );
-  
+      _msg.material().ambient().a());
+
   material->SetDiffuse(
       _msg.material().diffuse().r(),
       _msg.material().diffuse().g(),
       _msg.material().diffuse().b(),
-      _msg.material().diffuse().a()
-      );
-  
+      _msg.material().diffuse().a());
+
   material->SetSpecular(
       _msg.material().specular().r(),
       _msg.material().specular().g(),
       _msg.material().specular().b(),
-      _msg.material().specular().a()
-      );
-  
+      _msg.material().specular().a());
+
   material->SetEmissive(
       _msg.material().emissive().r(),
       _msg.material().emissive().g(),
       _msg.material().emissive().b(),
-      _msg.material().emissive().a()
-      );
-  
+      _msg.material().emissive().a());
+
   material->SetLightingEnabled(_msg.material().lighting());
 
   return material;
@@ -429,14 +430,14 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       ignition::rendering::MarkerPtr markerPtr =
             std::dynamic_pointer_cast<ignition::rendering::Marker>
             (visualIter->second->GeometryByIndex(0));
-      
+
       visualIter->second->RemoveGeometryByIndex(0);
 
       // Set the visual values from the Marker Message
-      SetVisual(_msg, visualIter->second);
-      
+      this->SetVisual(_msg, visualIter->second);
+
       // Set the marker values from the Marker Message
-      SetMarker(_msg, markerPtr);
+      this->SetMarker(_msg, markerPtr);
 
       visualIter->second->AddGeometry(markerPtr);
     }
@@ -454,14 +455,14 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       rendering::MarkerPtr markerPtr = this->scene->CreateMarker();
 
       // Set the visual values from the Marker Message
-      SetVisual(_msg, visualPtr);
+      this->SetVisual(_msg, visualPtr);
 
       // Set the marker values from the Marker Message
-      SetMarker(_msg, markerPtr);
+      this->SetMarker(_msg, markerPtr);
 
       // Add populated marker to the visual
       visualPtr->AddGeometry(markerPtr);
-      
+
       // Add visual to root visual
       this->scene->RootVisual()->AddChild(visualPtr);
 
@@ -550,7 +551,6 @@ bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
       ignition::msgs::Marker *markerMsg = _rep.add_marker();
       markerMsg->set_ns(mIter->first);
       markerMsg->set_id(iter->first);
-      //iter->second->FillMsg(*markerMsg);
     }
   }
 

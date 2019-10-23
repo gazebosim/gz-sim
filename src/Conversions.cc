@@ -62,8 +62,12 @@ using namespace ignition;
 template<>
 math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
 {
-  math::Pose3d out(_in.position().x(), _in.position().y(), _in.position().z(),
-                   _in.orientation().w(), _in.orientation().x(), _in.orientation().y(),
+  math::Pose3d out(_in.position().x(),
+                   _in.position().y(),
+                   _in.position().z(),
+                   _in.orientation().w(),
+                   _in.orientation().x(),
+                   _in.orientation().y(),
                    _in.orientation().z());
 
   return out;
@@ -477,14 +481,6 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
     const msgs::Time &_in)
 {
   return std::chrono::seconds(_in.sec()) + std::chrono::nanoseconds(_in.nsec());
-}
-
-//////////////////////////////////////////////////
-template<>
-std::chrono::steady_clock::duration ignition::gazebo::convert(
-    const common::Time &_in)
-{
-  return std::chrono::seconds(_in.sec) + std::chrono::nanoseconds(_in.nsec);
 }
 
 //////////////////////////////////////////////////

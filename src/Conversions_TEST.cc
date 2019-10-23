@@ -145,6 +145,22 @@ TEST(Conversions, Gui)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, Pose)
+{
+  msgs::Pose msg;
+  msg.mutable_position()->set_x(1);
+  msg.mutable_position()->set_y(2);
+  msg.mutable_position()->set_z(3);
+  msg.mutable_orientation()->set_w(0.1);
+  msg.mutable_orientation()->set_x(0.2);
+  msg.mutable_orientation()->set_y(0.3);
+  msg.mutable_orientation()->set_z(0.4);
+
+  auto pose = convert<math::Pose3d>(msg);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3, 0.4), pose);
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Time)
 {
   std::chrono::steady_clock::duration duration{2ms};
