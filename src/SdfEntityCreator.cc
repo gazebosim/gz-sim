@@ -21,6 +21,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -140,6 +141,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
     this->SetParent(modelEntity, worldEntity);
   }
 
+  // Actors
+  for (uint64_t actorIndex = 0; actorIndex < _world->ActorCount();
+      ++actorIndex)
+  {
+    auto actor = _world->ActorByIndex(actorIndex);
+    auto actorEntity = this->CreateEntities(actor);
+
+    this->SetParent(actorEntity, worldEntity);
+  }
+
   // Lights
   for (uint64_t lightIndex = 0; lightIndex < _world->LightCount();
       ++lightIndex)
@@ -230,6 +241,24 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   this->dataPtr->newSensors.clear();
 
   return modelEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
+{
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
+
+  // Entity
+  Entity actorEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(actorEntity, components::Actor(*_actor));
+  this->dataPtr->ecm->CreateComponent(actorEntity,
+      components::Pose(_actor->Pose()));
+  this->dataPtr->ecm->CreateComponent(actorEntity,
+      components::Name(_actor->Name()));
+
+  return actorEntity;
 }
 
 //////////////////////////////////////////////////

@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
+#include <sdf/Actor.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -572,4 +573,89 @@ TEST(Conversions, UpdateInfo)
   auto newInfo = convert<UpdateInfo>(statsMsg);
   EXPECT_EQ(1234000000, newInfo.simTime.count());
   EXPECT_TRUE(newInfo.paused);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Actor)
+{
+  sdf::Animation anim;
+  anim.SetName("animation");
+  anim.SetFilename("animation_filename");
+  anim.SetScale(1.23);
+  anim.SetInterpolateX(true);
+
+  sdf::Waypoint way;
+  way.SetTime(0.123);
+  way.SetPose({6, 5, 4, 0, 0, 0});
+
+  sdf::Trajectory traj;
+  traj.SetId(456);
+  traj.SetType("traj_type");
+  traj.SetTension(7.89);
+  traj.AddWaypoint(way);
+
+  sdf::Actor actor;
+  actor.SetName("test_convert_actor");
+  actor.SetPose({3, 2, 1, 0, 0, 0});
+  actor.SetSkinFilename("walk.dae");
+  actor.SetSkinScale(2.0);
+  actor.SetScriptLoop(true);
+  actor.SetScriptDelayStart(2.8);
+  actor.SetScriptAutoStart(true);
+  actor.AddAnimation(anim);
+  actor.AddTrajectory(traj);
+
+  msgs::Actor actorMsg = convert<msgs::Actor>(actor);
+
+  EXPECT_TRUE(actorMsg.has_entity());
+  EXPECT_EQ("test_convert_actor", actorMsg.entity().name());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0),
+      msgs::Convert(actorMsg.pose()));
+  EXPECT_EQ("walk.dae", actorMsg.skin_filename());
+  EXPECT_FLOAT_EQ(2.0, actorMsg.skin_scale());
+  EXPECT_TRUE(actorMsg.script_loop());
+  EXPECT_FLOAT_EQ(2.8, actorMsg.script_delay_start());
+  EXPECT_TRUE(actorMsg.script_auto_start());
+
+  ASSERT_EQ(1, actorMsg.animations_size());
+  EXPECT_EQ("animation", actorMsg.animations(0).name());
+  EXPECT_EQ("animation_filename", actorMsg.animations(0).filename());
+  EXPECT_FLOAT_EQ(1.23, actorMsg.animations(0).scale());
+  EXPECT_TRUE(actorMsg.animations(0).interpolate_x());
+
+  ASSERT_EQ(1, actorMsg.trajectories_size());
+  EXPECT_EQ(456u, actorMsg.trajectories(0).id());
+  EXPECT_EQ("traj_type", actorMsg.trajectories(0).type());
+  EXPECT_FLOAT_EQ(7.89, actorMsg.trajectories(0).tension());
+
+  ASSERT_EQ(1, actorMsg.trajectories(0).waypoints_size());
+  EXPECT_FLOAT_EQ(0.123, actorMsg.trajectories(0).waypoints(0).time());
+  EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
+      msgs::Convert(actorMsg.trajectories(0).waypoints(0).pose()));
+
+  auto newActor = convert<sdf::Actor>(actorMsg);
+  EXPECT_EQ("test_convert_actor", newActor.Name());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), newActor.Pose());
+  EXPECT_EQ("walk.dae", newActor.SkinFilename());
+  EXPECT_FLOAT_EQ(2.0, newActor.SkinScale());
+  EXPECT_TRUE(newActor.ScriptLoop());
+  EXPECT_FLOAT_EQ(2.8, newActor.ScriptDelayStart());
+  EXPECT_TRUE(newActor.ScriptAutoStart());
+
+  ASSERT_EQ(1u, newActor.AnimationCount());
+  EXPECT_EQ("animation", newActor.AnimationByIndex(0)->Name());
+  EXPECT_EQ("animation_filename", newActor.AnimationByIndex(0)->Filename());
+  EXPECT_FLOAT_EQ(1.23, newActor.AnimationByIndex(0)->Scale());
+  EXPECT_TRUE(newActor.AnimationByIndex(0)->InterpolateX());
+
+  ASSERT_EQ(1u, newActor.TrajectoryCount());
+  EXPECT_EQ(456u, newActor.TrajectoryByIndex(0)->Id());
+  EXPECT_EQ("traj_type", newActor.TrajectoryByIndex(0)->Type());
+  EXPECT_FLOAT_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
+
+  ASSERT_EQ(1u, newActor.TrajectoryByIndex(0)->WaypointCount());
+  EXPECT_FLOAT_EQ(0.123,
+          newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Time());
+  EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
+      newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Pose());
 }
