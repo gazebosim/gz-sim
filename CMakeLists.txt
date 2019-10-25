@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.10.0)
+project(ignition-gazebo2 VERSION 2.11.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -32,7 +32,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED)
+ign_find_package(sdformat8 REQUIRED VERSION 8.4)
 
 #--------------------------------------
 # Find ignition-plugin
