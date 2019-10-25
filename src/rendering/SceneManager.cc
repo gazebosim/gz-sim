@@ -34,6 +34,7 @@
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
 
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 
 using namespace ignition;
@@ -319,7 +320,9 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::MESH)
   {
-    if (_geom.MeshShape()->Uri().empty())
+    auto fullPath = asFullPath(_geom.MeshShape()->Uri(),
+        _geom.MeshShape()->FilePath());
+    if (fullPath.empty())
     {
       ignerr << "Mesh geometry missing uri" << std::endl;
       return geom;
@@ -327,7 +330,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::MeshDescriptor descriptor;
 
     // Assume absolute path to mesh file
-    descriptor.meshName = _geom.MeshShape()->Uri();
+    descriptor.meshName = fullPath;
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
