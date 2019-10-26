@@ -451,6 +451,17 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       else
         ignerr << "Unable to find file [" << environmentMap << "]\n";
     }
+
+    // emissive map
+    std::string emissiveMap = workflow->EmissiveMap();
+    if (!emissiveMap.empty())
+    {
+      std::string fullPath = common::findFile(emissiveMap);
+      if (!fullPath.empty())
+        material->SetEmissiveMap(fullPath);
+      else
+        ignerr << "Unable to find file [" << emissiveMap << "]\n";
+    }
   }
   return material;
 }
