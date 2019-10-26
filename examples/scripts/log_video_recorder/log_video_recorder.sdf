@@ -48,7 +48,7 @@
         <camera_follow>
           <p_gain>0.01</p_gain>
           <world_frame>true</world_frame>
-          <offset>-1.0 0 2.5</offset>
+          <offset>-2.0 0 1.0</offset>
         </camera_follow>
       </plugin>
       <plugin filename='WorldControl' name='World control'>

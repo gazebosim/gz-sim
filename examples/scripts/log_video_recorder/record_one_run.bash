@@ -38,10 +38,10 @@ echo "Video recording ended. Shutting down playback"
 
 pgrep -f $sdfName | xargs kill -9
 
-videoDir=$(date +%s)
-echo "Moving mp4 videos to dir: $videoDir"
-mkdir $videoDir
-mv *.mp4 $videoDir
+# videoDir=$(date +%s)
+echo "Moving mp4 videos to dir: $logDirPath"
+mkdir $logDirPath
+mv *.mp4 $logDirPath
 
 # remove tmp dir
 if [ -d "$tmpDir" ]; then
