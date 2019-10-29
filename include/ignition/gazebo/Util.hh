@@ -57,6 +57,17 @@ namespace ignition
     /// \return A new string with the parent scope removed.
     std::string IGNITION_GAZEBO_VISIBLE removeParentScope(
         const std::string &_name, const std::string &_delim);
+
+    /// \brief Combine a URI and a file path into a full path.
+    /// If the URI is already a full path or contains a scheme, it won't be
+    /// modified.
+    /// If the URI is a relative path, the file path will be prepended.
+    /// \param[in] _uri URI, which can have a scheme, or be full or relative
+    /// paths.
+    /// \param[in] _filePath The path to a file in disk.
+    /// \return The full path URI.
+    std::string asFullPath(const std::string &_uri,
+        const std::string &_filePath);
     }
   }
 }

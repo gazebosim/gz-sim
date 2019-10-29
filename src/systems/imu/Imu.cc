@@ -90,6 +90,15 @@ void Imu::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Imu::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {

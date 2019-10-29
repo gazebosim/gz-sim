@@ -55,6 +55,7 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 
@@ -133,7 +134,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     auto meshMsg = out.mutable_mesh();
 
     msgs::Set(meshMsg->mutable_scale(), meshSdf->Scale());
-    meshMsg->set_filename(meshSdf->Uri());
+    meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
