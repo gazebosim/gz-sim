@@ -96,6 +96,8 @@ uint64_t iterations()
 /////////////////////////////////////////////////
 TEST(PlayPause, PlayPause)
 {
+  common::Console::SetVerbosity(4);
+
   ServerConfig serverConfig;
   Server server(serverConfig);
   server.SetUpdatePeriod(1us);

@@ -58,12 +58,22 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    const char *_playback)
+    const char *_playback, const char *_file)
 {
+  ignition::gazebo::ServerConfig serverConfig;
+
+  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  {
+    ignLogInit(_recordPath, "server_console.log");
+  }
+  else
+  {
+    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+  }
+
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
-  ignition::gazebo::ServerConfig serverConfig;
 
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -74,6 +84,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
+  serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
@@ -161,6 +172,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   // Initialize Qt app
   ignition::gui::Application app(argc, argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+
+  // add import path so we can load custom modules
+  app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
