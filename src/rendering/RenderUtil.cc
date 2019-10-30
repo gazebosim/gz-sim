@@ -256,7 +256,7 @@ void RenderUtil::Update()
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
 
-  this->dataPtr->markerManager.PreRender();
+  this->dataPtr->markerManager.Update();
 
   std::vector<std::tuple<Entity, sdf::Sensor, Entity>> newSensors;
   if (this->dataPtr->enableSensors)
@@ -346,7 +346,7 @@ void RenderUtil::Update()
       for (const auto &sensor : newSensors)
       {
          Entity entity = std::get<0>(sensor);
-         sdf::Sensor dataSdf = std::get<1>(sensor);
+         const sdf::Sensor &dataSdf = std::get<1>(sensor);
          Entity parent = std::get<2>(sensor);
 
          // two sensors with the same name cause conflicts. We'll need to use
