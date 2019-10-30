@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1.  Add log video recorder
+    * [Pull Request 441](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/441)
+
 ### Ignition Gazebo 2.11.0 (2019-10-23)
 
 1.  Handle Relative URIs
