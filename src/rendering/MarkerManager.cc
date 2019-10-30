@@ -112,8 +112,8 @@ class ignition::gazebo::MarkerManagerPrivate
 };
 
 /////////////////////////////////////////////////
-MarkerManager::MarkerManager()
-    : dataPtr(std::make_unique<MarkerManagerPrivate>())
+MarkerManager::MarkerManager() : dataPtr(
+    std::make_unique<MarkerManagerPrivate>())
 {
 }
 
