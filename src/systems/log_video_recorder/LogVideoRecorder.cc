@@ -185,8 +185,8 @@ void LogVideoRecorder::Configure(
     sdf::ElementPtr regionElem = ptr->GetElement("region");
     while (regionElem)
     {
-      math::Vector3d min = regionElem->Get<math::Vector3d>("min");
-      math::Vector3d max = regionElem->Get<math::Vector3d>("max");
+      auto min = regionElem->Get<math::Vector3d>("min");
+      auto max = regionElem->Get<math::Vector3d>("max");
       math::AxisAlignedBox box(min, max);
       this->dataPtr->regions.push_back(box);
 
@@ -196,14 +196,14 @@ void LogVideoRecorder::Configure(
 
   if (_sdf->HasElement("start_time"))
   {
-    double t = ptr->Get<double>("start_time");
+    auto t = ptr->Get<double>("start_time");
     this->dataPtr->startTime =
         std::chrono::milliseconds(static_cast<int64_t>(t * 1000.0));
   }
 
   if (_sdf->HasElement("end_time"))
   {
-    double t = ptr->Get<double>("end_time");
+    auto t = ptr->Get<double>("end_time");
     std::chrono::milliseconds ms(static_cast<int64_t>(t * 1000.0));
     if (this->dataPtr->startTime > ms)
     {
@@ -238,11 +238,11 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
             const components::Pose *_poseComp) -> bool
         {
           math::Pose3d p = _poseComp->Data();
-          for (auto box : this->dataPtr->regions)
+          for (const auto &box : this->dataPtr->regions)
           {
             if (box.Contains(p.Pos()))
             {
-              std::string name = _nameComp->Data();
+              const std::string &name = _nameComp->Data();
               if (this->dataPtr->modelsRecorded.find(name) ==
                   this->dataPtr->modelsRecorded.end())
               {
