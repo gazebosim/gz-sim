@@ -1177,19 +1177,31 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
       });
 
   // Clear reset components
+  std::vector<Entity> entitiesPositionReset;
   _ecm.Each<components::JointPositionReset>(
       [&](const Entity &_entity, components::JointPositionReset *) -> bool
       {
-          _ecm.RemoveComponent<components::JointPositionReset>(_entity);
+          entitiesPositionReset.push_back(_entity);
           return true;
       });
 
+  for (const auto entity: entitiesPositionReset)
+  {
+    _ecm.RemoveComponent<components::JointPositionReset>(entity);
+  }
+
+  std::vector<Entity> entitiesVelocityReset;
   _ecm.Each<components::JointVelocityReset>(
       [&](const Entity &_entity, components::JointVelocityReset *) -> bool
       {
-          _ecm.RemoveComponent<components::JointVelocityReset>(_entity);
+          entitiesVelocityReset.push_back(_entity);
           return true;
       });
+
+  for (const auto entity: entitiesVelocityReset)
+  {
+    _ecm.RemoveComponent<components::JointVelocityReset>(entity);
+  }
 
   // Clear pending commands
   _ecm.Each<components::JointForceCmd>(
