@@ -1,0 +1,97 @@
+<?xml version='1.0'?>
+<!--
+  Log video recorder.
+
+  This world is to be used with the log playback and log video recorder system.
+  Change the log playback path to the directory containing state.tlog before
+  launching the world. Videos will be created in the directory where ign gazebo
+  is run. A string message will be published to /log_video_recorder/status when
+  recording is finished.
+-->
+<sdf version='1.6'>
+  <world name='default'>
+    <plugin filename='libignition-gazebo-scene-broadcaster-system.so'
+            name='ignition::gazebo::systems::SceneBroadcaster'>
+    </plugin>
+    <plugin
+      filename='libignition-gazebo-log-system.so'
+      name='ignition::gazebo::systems::LogPlayback'>
+      <path>tmp_record</path>
+    </plugin>
+    <plugin filename='libignition-gazebo-log-video-recorder-system.so'
+            name='ignition::gazebo::systems::LogVideoRecorder'>
+      <region>
+        <min>-5 -5 0.001</min>
+        <max>5 5 1</max>
+      </region>
+      <start_time>5.0</start_time>
+      <exit_on_finish>true</exit_on_finish>
+    </plugin>
+
+    <physics name="1ms" type="dart">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <gui fullscreen='0'>
+      <plugin filename='GzScene3D' name='3D View'>
+        <ignition-gui>
+          <title>3D View</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='string' key='state'>docked</property>
+        </ignition-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_follow>
+          <p_gain>0.01</p_gain>
+          <world_frame>true</world_frame>
+          <offset>-1.0 0 2.5</offset>
+        </camera_follow>
+      </plugin>
+      <plugin filename='WorldControl' name='World control'>
+        <ignition-gui>
+          <title>World control</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='bool' key='resizable'>false</property>
+          <property type='double' key='height'>72</property>
+          <property type='double' key='width'>121</property>
+          <property type='double' key='z'>1</property>
+          <property type='string' key='state'>floating</property>
+          <anchors target='3D View'>
+            <line own='left' target='left'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+        </ignition-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/default/control</service>
+        <stats_topic>/world/default/stats</stats_topic>
+      </plugin>
+      <plugin filename='WorldStats' name='World stats'>
+        <ignition-gui>
+          <title>World stats</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='bool' key='resizable'>false</property>
+          <property type='double' key='height'>110</property>
+          <property type='double' key='width'>290</property>
+          <property type='double' key='z'>1</property>
+          <property type='string' key='state'>floating</property>
+          <anchors target='3D View'>
+            <line own='right' target='right'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+        </ignition-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/default/stats</topic>
+      </plugin>
+    </gui>
+  </world>
+</sdf>
+
