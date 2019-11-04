@@ -27,9 +27,9 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/common/Console.hh"
+#include "ignition/rendering/Marker.hh"
 #include "ignition/rendering/RenderingIface.hh"
 #include "ignition/rendering/Scene.hh"
-#include "ignition/rendering/Marker.hh"
 
 #include "ignition/gazebo/rendering/MarkerManager.hh"
 
@@ -39,19 +39,6 @@ using namespace gazebo;
 /// Private data for the MarkerManager class
 class ignition::gazebo::MarkerManagerPrivate
 {
-  /// \def MarkerPtr
-  /// \brief Shared pointer to Marker
-  typedef std::shared_ptr<ignition::rendering::Visual> VisualPtr;
-
-  /// \def Marker_M
-  /// \brief Map of markers. The key is a marker namespace, the
-  /// value is the map of markers in the namespace and their ids.
-  typedef std::map<std::string, std::map<uint64_t, VisualPtr>> Visual_M;
-
-  /// \def MarkerMsgs_L
-  /// \brief List of marker messages.
-  typedef std::list<ignition::msgs::Marker> MarkerMsgs_L;
-
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.
   /// \return True if the marker was processed successfully.
@@ -70,9 +57,8 @@ class ignition::gazebo::MarkerManagerPrivate
   public: rendering::MaterialPtr MsgToMaterial(
                     const ignition::msgs::Marker &_msg);
 
-  /// \brief Updates the markers. This function is called on
-  /// the PreRender event.
-  public: void OnPreRender();
+  /// \brief Updates the markers.
+  public: void Update();
 
   /// \brief Callback that receives marker messages.
   /// \param[in] _req The marker message.
@@ -87,13 +73,13 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \param[in] _msg The message data.
   /// \param[out] _markerPtr The message pointer to set.
   public: void SetMarker(const ignition::msgs::Marker &_msg,
-                         rendering::MarkerPtr _markerPtr);
+                         const rendering::MarkerPtr &_markerPtr);
 
   /// \brief Sets Visual from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _visualPtr The visual pointer to set.
   public: void SetVisual(const ignition::msgs::Marker &_msg,
-                         rendering::VisualPtr _visualPtr);
+                         const rendering::VisualPtr &_visualPtr);
 
   /// \brief Sets sim time from time.
   /// \param[in] _time The time data.
@@ -106,10 +92,11 @@ class ignition::gazebo::MarkerManagerPrivate
   public: std::mutex mutex;
 
   /// \brief Map of visuals
-  public: Visual_M visuals;
+  public: std::map<std::string,
+      std::map<uint64_t, ignition::rendering::VisualPtr>> visuals;
 
   /// \brief List of marker message to process.
-  public: MarkerMsgs_L markerMsgs;
+  public: std::list<ignition::msgs::Marker> markerMsgs;
 
   /// \brief Pointer to the scene
   public: rendering::ScenePtr scene;
@@ -125,8 +112,8 @@ class ignition::gazebo::MarkerManagerPrivate
 };
 
 /////////////////////////////////////////////////
-MarkerManager::MarkerManager()
-: dataPtr(std::make_unique<MarkerManagerPrivate>())
+MarkerManager::MarkerManager() : dataPtr(
+    std::make_unique<MarkerManagerPrivate>())
 {
 }
 
@@ -146,13 +133,13 @@ rendering::ScenePtr MarkerManager::Scene() const
 }
 
 /////////////////////////////////////////////////
-void MarkerManager::PreRender() const
+void MarkerManager::Update()
 {
-  return this->dataPtr->OnPreRender();
+  return this->dataPtr->Update();
 }
 
 /////////////////////////////////////////////////
-bool MarkerManager::Init(ignition::rendering::ScenePtr _scene)
+bool MarkerManager::Init(const ignition::rendering::ScenePtr &_scene)
 {
   if (!_scene)
   {
@@ -181,12 +168,13 @@ bool MarkerManager::Init(ignition::rendering::ScenePtr _scene)
 
 /////////////////////////////////////////////////
 void MarkerManager::SetSimTime(
-    const std::chrono::steady_clock::duration &_time) {
+    const std::chrono::steady_clock::duration &_time)
+{
   this->dataPtr->SetSimTime(_time);
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::OnPreRender()
+void MarkerManagerPrivate::Update()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -242,7 +230,7 @@ void MarkerManagerPrivate::SetSimTime(
 
 /////////////////////////////////////////////////
 void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
-                           rendering::VisualPtr _visualPtr)
+                           const rendering::VisualPtr &_visualPtr)
 {
   // Set Visual Scale
   _visualPtr->SetLocalScale(_msg.scale().x(),
@@ -260,7 +248,7 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
       _visualPtr->Parent()->RemoveChild(_visualPtr);
     }
 
-    VisualPtr parent = this->scene->VisualByName(_msg.parent());
+    rendering::VisualPtr parent = this->scene->VisualByName(_msg.parent());
 
     if (parent)
     {
@@ -278,7 +266,7 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
 
 /////////////////////////////////////////////////
 void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
-                           rendering::MarkerPtr _markerPtr)
+                           const rendering::MarkerPtr &_markerPtr)
 {
   _markerPtr->SetLayer(_msg.layer());
 
@@ -407,14 +395,14 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
   ns = _msg.ns();
 
   // Get the namespace that the marker belongs to
-  Visual_M::iterator nsIter = this->visuals.find(ns);
+  auto nsIter = this->visuals.find(ns);
 
   // If an id is given
   size_t id;
   id = _msg.id();
 
   // Get visual for this namespace and id
-  std::map<uint64_t, VisualPtr>::iterator visualIter;
+  std::map<uint64_t, rendering::VisualPtr>::iterator visualIter;
   if (nsIter != this->visuals.end())
     visualIter = nsIter->second.find(id);
 
@@ -504,9 +492,9 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     // Remove all markers in the specified namespace
     else if (nsIter != this->visuals.end())
     {
-      for (auto it = nsIter->second.begin(); it != nsIter->second.end(); ++it)
+      for (auto it : nsIter->second)
       {
-        this->scene->DestroyVisual(it->second);
+        this->scene->DestroyVisual(it.second);
       }
       nsIter->second.clear();
       this->visuals.erase(nsIter);
@@ -517,9 +505,9 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       for (nsIter = this->visuals.begin();
            nsIter != this->visuals.end(); ++nsIter)
       {
-        for (auto it = nsIter->second.begin(); it != nsIter->second.end(); ++it)
+        for (auto it : nsIter->second)
         {
-          this->scene->DestroyVisual(it->second);
+          this->scene->DestroyVisual(it.second);
         }
       }
       this->visuals.clear();
@@ -542,21 +530,18 @@ bool MarkerManagerPrivate::OnList(ignition::msgs::Marker_V &_rep)
   _rep.clear_marker();
 
   // Create the list of visuals
-  for (Visual_M::const_iterator mIter = this->visuals.begin();
-       mIter != this->visuals.end(); ++mIter)
+  for (auto mIter : this->visuals)
   {
-    for (std::map<uint64_t, VisualPtr>::const_iterator iter =
-        mIter->second.begin(); iter != mIter->second.end(); ++iter)
+    for (auto iter : mIter.second)
     {
       ignition::msgs::Marker *markerMsg = _rep.add_marker();
-      markerMsg->set_ns(mIter->first);
-      markerMsg->set_id(iter->first);
+      markerMsg->set_ns(mIter.first);
+      markerMsg->set_id(iter.first);
     }
   }
 
   return true;
 }
-
 
 /////////////////////////////////////////////////
 void MarkerManagerPrivate::OnMarkerMsg(const ignition::msgs::Marker &_req)

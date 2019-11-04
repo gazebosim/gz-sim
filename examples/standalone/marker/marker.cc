@@ -35,7 +35,7 @@ int main(int _argc, char **_argv)
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::SPHERE);
   markerMsg.set_visibility(ignition::msgs::Marker::GUI);
-  
+
   // Set color to Blue
   markerMsg.mutable_material()->mutable_ambient()->set_r(0);
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
@@ -61,13 +61,13 @@ int main(int _argc, char **_argv)
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.mutable_lifetime()->set_sec(0);
   node.Request("/marker", markerMsg);
-  
+
   std::cout << "Moving the sphere to x=0, y=1, z=1\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d(0, 1, 1, 0, 0, 0));
   node.Request("/marker", markerMsg);
-  
+
   std::cout << "Shrinking the sphere\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_scale(),
@@ -99,7 +99,7 @@ int main(int _argc, char **_argv)
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
   node.Request("/marker", markerMsg);
-  
+
   std::cout << "Connecting the sphere and cylinder with a line\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(2);
@@ -112,7 +112,7 @@ int main(int _argc, char **_argv)
   ignition::msgs::Set(markerMsg.add_point(),
       ignition::math::Vector3d(2, 0, 0.5));
   node.Request("/marker", markerMsg);
-  
+
   std::cout << "Adding 100 points inside the square\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(4);
@@ -128,8 +128,6 @@ int main(int _argc, char **_argv)
           0.05));
   }
   node.Request("/marker", markerMsg);
-  
-  
 
   std::cout << "Adding a square around the origin\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
