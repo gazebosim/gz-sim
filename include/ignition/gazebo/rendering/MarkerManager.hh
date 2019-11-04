@@ -52,12 +52,12 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   public: rendering::ScenePtr Scene() const;
 
   /// \brief Update MarkerManager
-  public: void PreRender() const;
+  public: void Update();
 
   /// \brief Initialize the marker manager.
   /// \param[in] _scene Reference to the scene.
   /// \return True on success
-  public: bool Init(ignition::rendering::ScenePtr _scene);
+  public: bool Init(const ignition::rendering::ScenePtr &_scene);
 
   /// \internal
   /// \brief Private data pointer
