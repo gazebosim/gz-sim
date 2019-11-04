@@ -28,7 +28,7 @@ pipelines:
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
-          - make install
+          - make
           # Make sure documentation generation generated no warnings.
           - make doc
           - bash <(curl -s https://bitbucket.org/ignitionrobotics/ign-cmake/raw/9db5e5487bc4b979b2f602d0b43b7074e010a0c8/tools/doc_check.sh) 
