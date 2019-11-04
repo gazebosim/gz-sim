@@ -87,6 +87,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
+
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -154,10 +157,12 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void LogPlayback::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &)
+    EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
+
+  this->dataPtr->eventManager = &_eventMgr;
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
@@ -316,6 +321,16 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (queuedPose.pose_size() > 0)
   {
     this->dataPtr->Parse(_ecm, queuedPose);
+  }
+
+  // pause playback if end of log is reached
+  if (_info.simTime >= this->dataPtr->log->EndTime())
+  {
+    ignmsg << "End of log file reached. Time: " <<
+      std::chrono::duration_cast<std::chrono::seconds>(
+      this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
+
+    this->dataPtr->eventManager->Emit<events::Pause>(true);
   }
 }
 
