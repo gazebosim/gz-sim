@@ -188,6 +188,42 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 }
 
 /////////////////////////////////////////////////
+QString TreeModel::EntityType(const QModelIndex &_index) const
+{
+  QString type;
+  QStandardItem *item = this->itemFromIndex(_index);
+  if (!item)
+    return type;
+
+  QVariant typeVar  = item->data(this->roleNames().key("type"));
+  if (!typeVar.isValid())
+    return type;
+
+  return typeVar.toString();
+}
+
+/////////////////////////////////////////////////
+QString TreeModel::ScopedName(const QModelIndex &_index) const
+{
+  QString scopedName;
+  QModelIndex idx = _index;
+  while (idx.isValid())
+  {
+    QVariant v = idx.data();
+    if (v.isValid())
+    {
+      QString str = v.toString();
+      if (!str.isEmpty())
+      {
+        scopedName = scopedName.isEmpty() ? str : str + "::" + scopedName;
+      }
+    }
+    idx = idx.parent();
+  }
+  return scopedName;
+}
+
+/////////////////////////////////////////////////
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(100, "entityName"),

@@ -28,6 +28,7 @@
 #include <sdf/Pbr.hh>
 #include <sdf/Sensor.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -79,6 +80,34 @@ class ComponentsTest : public ::testing::Test
     common::Console::SetVerbosity(4);
   }
 };
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, Actor)
+{
+  sdf::Actor data1;
+  data1.SetName("abc");
+  data1.SetPose({3, 2, 1, 0, 0, 0});
+  data1.SetSkinFilename("def");
+
+  sdf::Actor data2;
+
+  // Create components
+  auto comp11 = components::Actor(data1);
+  auto comp12 = components::Actor(data1);
+  auto comp2 = components::Actor(data2);
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  std::istringstream istr(ostr.str());
+  components::Actor comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("abc", comp3.Data().Name());
+  EXPECT_EQ("def", comp3.Data().SkinFilename());
+  EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().Pose());
+}
 
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, AirPressureSensor)

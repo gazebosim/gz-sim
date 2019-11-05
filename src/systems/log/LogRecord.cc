@@ -53,9 +53,6 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \return True if any recorder has been started successfully.
   public: bool Start(const std::string &_logPath = std::string(""));
 
-  /// \brief Default directory to record to
-  public: static std::string DefaultRecordPath();
-
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
   /// in the future.
@@ -67,11 +64,11 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
-  /// \brief Clock used to timestamp recorded messages with sim time
-  /// coming from /clock topic. This is not the timestamp on the header,
-  /// rather a logging-specific stamp.
+  /// \brief Clock used to timestamp recorded messages with sim time.
+  /// This is not the timestamp on the header, rather a logging-specific stamp.
+  /// This stamp is used by LogPlayback to step through logs.
   /// In case there's disagreement between these stamps, the one in the
-  /// header should be used.
+  /// header should be the most accurate.
   public: std::unique_ptr<transport::NetworkClock> clock;
 
   /// \brief Name of this world
@@ -97,20 +94,6 @@ class ignition::gazebo::systems::LogRecordPrivate
 };
 
 bool LogRecordPrivate::started{false};
-
-//////////////////////////////////////////////////
-std::string LogRecordPrivate::DefaultRecordPath()
-{
-  std::string home;
-  common::env(IGN_HOMEDIR, home);
-
-  std::string timestamp = common::systemTimeISO();
-
-  std::string path = common::joinPaths(home,
-    ".ignition", "gazebo", "log", timestamp);
-
-  return path;
-}
 
 //////////////////////////////////////////////////
 LogRecord::LogRecord()
@@ -167,29 +150,29 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   }
   LogRecordPrivate::started = true;
 
-  std::string logPath = _logPath;
-
-  // If unspecified, or specified is not a directory, use default directory
-  if (logPath.empty() ||
-      (common::exists(logPath) && !common::isDirectory(logPath)))
+  // The ServerConfig takes care of specifying a default log record path.
+  // This if statement should never be reached.
+  if (_logPath.empty() ||
+      (common::exists(_logPath) && !common::isDirectory(_logPath)))
   {
-    logPath = this->DefaultRecordPath();
-    ignmsg << "Unspecified or invalid log path to record to. "
-      << "Recording to default location [" << logPath << "]" << std::endl;
+    ignerr << "Unspecified or invalid log path[" << _logPath << "]. "
+      << "Recording will not take place." << std::endl;
+    return false;
   }
 
-  // If directoriy already exists, do not overwrite
-  if (common::exists(logPath))
+  // A user could have manually specified a record path. In this case, it's
+  // okay to overwrite existing log files.
+  if (common::exists(_logPath))
   {
-    logPath = common::uniqueDirectoryPath(logPath);
     ignwarn << "Log path already exists on disk! "
-      << "Recording instead to [" << logPath << "]" << std::endl;
+      << "Recording will overwrite existing state log file, if present."
+      << std::endl;
   }
 
   // Create log directory
-  if (!common::exists(logPath))
+  if (!common::exists(_logPath))
   {
-    common::createDirectories(logPath);
+    common::createDirectories(_logPath);
   }
 
   // Go up to root of SDF, to record entire SDF file
@@ -203,7 +186,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->sdfMsg.set_data(sdfRoot->ToString(""));
 
   // Use directory basename as topic name, to be able to retrieve at playback
-  std::string sdfTopic = "/" + common::basename(logPath) + "/sdf";
+  std::string sdfTopic = "/" + common::basename(_logPath) + "/sdf";
   this->sdfPub = this->node.Advertise(sdfTopic, this->sdfMsg.GetTypeName());
 
   // TODO(louise) Combine with SceneBroadcaster's state topic
@@ -211,7 +194,9 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->statePub = this->node.Advertise<msgs::SerializedStateMap>(stateTopic);
 
   // Append file name
-  std::string dbPath = common::joinPaths(logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  if (common::exists(dbPath))
+    common::removeFile(dbPath);
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Use ign-transport directly
@@ -221,9 +206,10 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->recorder.AddTopic(stateTopic);
   // this->recorder.AddTopic(std::regex(".*"));
 
-  // Timestamp messages with sim time from clock topic
+  // Timestamp messages with sim time and republish that time on
+  // a ~/log/clock topic (which we don't really need).
   // Note that the message headers should also have a timestamp
-  auto clockTopic = "/world/" + this->worldName + "/clock";
+  auto clockTopic = "/world/" + this->worldName + "/log/clock";
   this->clock = std::make_unique<transport::NetworkClock>(clockTopic,
       transport::NetworkClock::TimeBase::SIM);
   this->recorder.Sync(this->clock.get());
@@ -240,10 +226,27 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 }
 
 //////////////////////////////////////////////////
-void LogRecord::PostUpdate(const UpdateInfo &,
+void LogRecord::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &)
+{
+  IGN_PROFILE("LogRecord::PreUpdate");
+  this->dataPtr->clock->SetTime(_info.simTime);
+}
+
+//////////////////////////////////////////////////
+void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogRecord::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Publish only once
   if (!this->dataPtr->sdfPublished)
   {
@@ -266,6 +269,7 @@ void LogRecord::PostUpdate(const UpdateInfo &,
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
                     LogRecord::ISystemConfigure,
+                    LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,

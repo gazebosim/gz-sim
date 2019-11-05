@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -185,7 +187,25 @@ void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
 class ignition::gazebo::ServerConfigPrivate
 {
   /// \brief Default constructor.
-  public: ServerConfigPrivate() = default;
+  public: ServerConfigPrivate()
+  {
+    std::string home;
+    common::env(IGN_HOMEDIR, home);
+
+    this->timestamp = IGN_SYSTEM_TIME();
+
+    // Set a default log record path
+    this->logRecordPath = common::joinPaths(home,
+        ".ignition", "gazebo", "log", common::timeToIso(this->timestamp));
+
+    // If directory already exists, do not overwrite. This could potentially
+    // happen if multiple simulation instances are started in rapid
+    // succession.
+    if (common::exists(this->logRecordPath))
+    {
+      this->logRecordPath = common::uniqueDirectoryPath(this->logRecordPath);
+    }
+  }
 
   /// \brief Copy constructor.
   /// \param[in] _cfg Configuration to copy.
@@ -239,6 +259,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief The given random seed.
   public: unsigned int seed = 0;
+
+  /// \brief Timestamp that marks when this ServerConfig was created.
+  public: std::chrono::time_point<std::chrono::system_clock> timestamp;
 };
 
 //////////////////////////////////////////////////
@@ -433,4 +456,11 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &_cfg)
 {
   this->dataPtr = std::make_unique<ServerConfigPrivate>(_cfg.dataPtr);
   return *this;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::time_point<std::chrono::system_clock> &
+ServerConfig::Timestamp() const
+{
+  return this->dataPtr->timestamp;
 }

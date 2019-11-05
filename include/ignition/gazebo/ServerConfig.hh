@@ -294,6 +294,14 @@ namespace ignition
       /// \return Reference to this class.
       public: ServerConfig &operator=(const ServerConfig &_cfg);
 
+      /// \brief Get the timestamp of this ServerConfig. This is the system
+      /// time when this ServerConfig was created. The timestamp is used
+      /// internally to create log file paths so that both state and console
+      /// logs are co-located.
+      /// \return Time when this ServerConfig was created.
+      public: const std::chrono::time_point<std::chrono::system_clock> &
+              Timestamp() const;
+
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
