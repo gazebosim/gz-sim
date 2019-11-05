@@ -21,15 +21,19 @@
 #include <string>
 #include <vector>
 
+#include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/VideoEncoder.hh>
 
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 
+#include <ignition/rendering/Image.hh>
 #include <ignition/rendering/OrbitViewController.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
@@ -54,6 +58,41 @@ namespace ignition
 namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  //
+  /// \brief Helper class for animating a user camera to move to a target entity
+  /// todo(anyone) Move this functionality to rendering::Camera class in
+  /// ign-rendering3
+  class MoveToHelper
+  {
+    /// \brief Move the camera to look at the specified target
+    /// param[in] _camera Camera to be moved
+    /// param[in] _target Target to look at
+    /// param[in] _duration Duration of the move to animation, in seconds.
+    /// param[in] _onAnimationComplete Callback function when animation is
+    /// complete
+    public: void MoveTo(const rendering::CameraPtr &_camera,
+        const rendering::NodePtr &_target, double _duration,
+        std::function<void()> _onAnimationComplete);
+
+    /// \brief Add time to the animation.
+    /// \param[in] _time Time to add in seconds
+    public: void AddTime(double _time);
+
+    /// \brief Get whether the move to helper is idle, i.e. no animation
+    /// is being executed.
+    /// \return True if idle, false otherwise
+    public: bool Idle() const;
+
+    /// \brief Pose animation object
+    public: std::unique_ptr<common::PoseAnimation> poseAnim;
+
+    /// \brief Pointer to the camera being moved
+    public: rendering::CameraPtr camera;
+
+    /// \brief Callback function when animation is complete.
+    public: std::function<void()> onAnimationComplete;
+  };
+
   /// \brief Private data class for IgnRenderer
   class IgnRendererPrivate
   {
@@ -85,6 +124,49 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Transform mode: none, translation, rotation, or scale
     public: rendering::TransformMode transformMode =
         rendering::TransformMode::TM_NONE;
+
+    /// \brief True to record a video from the user camera
+    public: bool recordVideo = false;
+
+    /// \brief Video encoding format
+    public: std::string recordVideoFormat;
+
+    /// \brief Path to save the recorded video
+    public: std::string recordVideoSavePath;
+
+    /// \brief Target to move the user camera to
+    public: std::string moveToTarget;
+
+    /// \brief Helper object to move user camera
+    public: MoveToHelper moveToHelper;
+
+    /// \brief Target to follow
+    public: std::string followTarget;
+
+    /// \brief Wait for follow target
+    public: bool followTargetWait = false;
+
+    /// \brief Offset of camera from taget being followed
+    public: math::Vector3d followOffset = math::Vector3d(-5, 0, 3);
+
+    /// \brief Flag to indicate the follow offset needs to be updated
+    public: bool followOffsetDirty = false;
+
+    /// \brief Follow P gain
+    public: double followPGain = 0.01;
+
+    /// \brief True follow the target at an offset that is in world frame,
+    /// false to follow in target's local frame
+    public: bool followWorldFrame = false;
+
+    /// \brief Last move to animation time
+    public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
+
+    /// \brief Image from user camera
+    public: rendering::Image cameraImage;
+
+    /// \brief Video encoder
+    public: common::VideoEncoder videoEncoder;
 
     /// \brief Ray query for mouse clicks
     public: rendering::RayQueryPtr rayQuery;
@@ -129,6 +211,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Transform mode service
     public: std::string transformModeService;
+
+    /// \brief Record video service
+    public: std::string recordVideoService;
+
+    /// \brief Move to service
+    public: std::string moveToService;
+
+    /// \brief Follow service
+    public: std::string followService;
   };
 }
 }
@@ -188,14 +279,167 @@ void IgnRenderer::Render()
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
   }
+
+  // record video is requested
+  {
+    IGN_PROFILE("IgnRenderer::Render Record Video");
+    if (this->dataPtr->recordVideo)
+    {
+      unsigned int width = this->dataPtr->camera->ImageWidth();
+      unsigned int height = this->dataPtr->camera->ImageHeight();
+
+      if (this->dataPtr->cameraImage.Width() != width ||
+          this->dataPtr->cameraImage.Height() != height)
+      {
+        this->dataPtr->cameraImage = this->dataPtr->camera->CreateImage();
+      }
+
+      // Video recorder is on. Add more frames to it
+      if (this->dataPtr->videoEncoder.IsEncoding())
+      {
+        this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
+        this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
+      }
+      // Video recorder is idle. Start recording.
+      else
+      {
+        this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
+            this->dataPtr->recordVideoSavePath, width, height);
+      }
+    }
+    else if (this->dataPtr->videoEncoder.IsEncoding())
+    {
+      this->dataPtr->videoEncoder.Stop();
+    }
+  }
+
+  // Move To
+  {
+    IGN_PROFILE("IgnRenderer::Render MoveTo");
+    if (!this->dataPtr->moveToTarget.empty())
+    {
+      if (this->dataPtr->moveToHelper.Idle())
+      {
+        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+        rendering::NodePtr target = scene->NodeByName(
+            this->dataPtr->moveToTarget);
+        if (target)
+        {
+          this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera, target, 0.5,
+              std::bind(&IgnRenderer::OnMoveToComplete, this));
+          this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
+        }
+        else
+        {
+          ignerr << "Unable to move to target. Target: '"
+                 << this->dataPtr->moveToTarget << "' not found" << std::endl;
+          this->dataPtr->moveToTarget.clear();
+        }
+      }
+      else
+      {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
+        this->dataPtr->moveToHelper.AddTime(dt.count());
+        this->dataPtr->prevMoveToTime = now;
+      }
+    }
+  }
+
+  // Follow
+  {
+    IGN_PROFILE("IgnRenderer::Render Follow");
+    if (!this->dataPtr->moveToTarget.empty())
+      return;
+    rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
+    if (!this->dataPtr->followTarget.empty())
+    {
+      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      rendering::NodePtr target = scene->NodeByName(
+          this->dataPtr->followTarget);
+      if (target)
+      {
+        if (!followTarget || target != followTarget)
+        {
+          this->dataPtr->camera->SetFollowTarget(target,
+              this->dataPtr->followOffset,
+              this->dataPtr->followWorldFrame);
+          this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
+
+          this->dataPtr->camera->SetTrackTarget(target);
+        }
+        else if (this->dataPtr->followOffsetDirty)
+        {
+          math::Vector3d offset =
+              this->dataPtr->camera->WorldPosition() - target->WorldPosition();
+          if (!this->dataPtr->followWorldFrame)
+          {
+            offset = target->WorldRotation().RotateVectorReverse(offset);
+          }
+          this->dataPtr->camera->SetFollowOffset(offset);
+          this->dataPtr->followOffsetDirty = false;
+        }
+      }
+      else if (!this->dataPtr->followTargetWait)
+      {
+        ignerr << "Unable to follow target. Target: '"
+               << this->dataPtr->followTarget << "' not found" << std::endl;
+        this->dataPtr->followTarget.clear();
+      }
+    }
+    else if (followTarget)
+    {
+      this->dataPtr->camera->SetFollowTarget(nullptr);
+      this->dataPtr->camera->SetTrackTarget(nullptr);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->HandleMouseContextMenu();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+
+/////////////////////////////////////////////////
+void IgnRenderer::HandleMouseContextMenu()
+{
+  if (!this->dataPtr->mouseDirty)
+    return;
+
+  if (!this->dataPtr->mouseEvent.Dragging() &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT)
+  {
+    math::Vector2i dt =
+      this->dataPtr->mouseEvent.PressPos() - this->dataPtr->mouseEvent.Pos();
+
+    // check for click with some tol for mouse movement
+    if (dt.Length() > 5.0)
+      return;
+
+    rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
+          this->dataPtr->camera,
+          this->dataPtr->mouseEvent.Pos());
+
+    if (!visual)
+      return;
+
+    // get model visual
+    while (visual->HasParent() && visual->Parent() !=
+        visual->Scene()->RootVisual())
+    {
+      visual = std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+    }
+
+    emit ContextMenuRequested(visual->Name().c_str());
+    this->dataPtr->mouseDirty = false;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -329,9 +573,8 @@ void IgnRenderer::HandleMouseTransformControl()
       && this->dataPtr->transformControl.Active())
   {
     // compute the the start and end mouse positions in normalized coordinates
-    double imageWidth = static_cast<double>(
-        this->dataPtr->camera->ImageWidth());
-    double imageHeight = static_cast<double>(
+    auto imageWidth = static_cast<double>(this->dataPtr->camera->ImageWidth());
+    auto imageHeight = static_cast<double>(
         this->dataPtr->camera->ImageHeight());
     double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() /
       imageWidth - 1.0;
@@ -382,6 +625,10 @@ void IgnRenderer::HandleMouseViewControl()
   if (!this->dataPtr->mouseDirty)
     return;
 
+  math::Vector3d camWorldPos;
+  if (!this->dataPtr->followTarget.empty())
+    this->dataPtr->camera->WorldPosition();
+
   this->dataPtr->viewControl.SetCamera(this->dataPtr->camera);
 
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::SCROLL)
@@ -428,6 +675,16 @@ void IgnRenderer::HandleMouseViewControl()
   }
   this->dataPtr->drag = 0;
   this->dataPtr->mouseDirty = false;
+
+
+  if (!this->dataPtr->followTarget.empty())
+  {
+    math::Vector3d dPos = this->dataPtr->camera->WorldPosition() - camWorldPos;
+    if (dPos != math::Vector3d::Zero)
+    {
+      this->dataPtr->followOffsetDirty = true;
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -496,6 +753,81 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
+    const std::string &_savePath)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideo = _record;
+  this->dataPtr->recordVideoFormat = _format;
+  this->dataPtr->recordVideoSavePath = _savePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetMoveTo(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToTarget = _target;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowTarget(const std::string &_target,
+    bool _waitForTarget)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followTarget = _target;
+  this->dataPtr->followTargetWait = _waitForTarget;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowPGain(double _gain)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followPGain = _gain;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followWorldFrame = _worldFrame;
+}
+
+/////////////////////////////////////////////////
+bool IgnRenderer::FollowWorldFrame() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followWorldFrame;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followOffset = _offset;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::FollowOffset() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followOffset;
+}
+
+/////////////////////////////////////////////////
+std::string IgnRenderer::FollowTarget() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followTarget;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::OnMoveToComplete()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToTarget.clear();
 }
 
 /////////////////////////////////////////////////
@@ -672,6 +1004,10 @@ void RenderWindowItem::Ready()
   this->dataPtr->renderThread->ignRenderer.textureSize =
       QSize(std::max({this->width(), 1.0}), std::max({this->height(), 1.0}));
 
+  this->connect(&this->dataPtr->renderThread->ignRenderer,
+      &IgnRenderer::ContextMenuRequested,
+      this, &RenderWindowItem::OnContextMenuRequested, Qt::QueuedConnection);
+
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
 
   this->connect(this, &QObject::destroyed,
@@ -752,6 +1088,12 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
   node->setRect(this->boundingRect());
 
   return node;
+}
+
+///////////////////////////////////////////////////
+void RenderWindowItem::OnContextMenuRequested(QString _entity)
+{
+  emit openContextMenu(std::move(_entity));
 }
 
 ////////////////////////////////////////////////
@@ -839,15 +1181,85 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       poseStr >> pose;
       renderWindow->SetCameraPose(pose);
     }
+
+    if (auto elem = _pluginElem->FirstChildElement("camera_follow"))
+    {
+      if (auto gainElem = elem->FirstChildElement("p_gain"))
+      {
+        double gain;
+        std::stringstream gainStr;
+        gainStr << std::string(gainElem->GetText());
+        gainStr >> gain;
+        if (gain >= 0 && gain <= 1.0)
+          renderWindow->SetFollowPGain(gain);
+        else
+          ignerr << "Camera follow p gain outside of range [0, 1]" << std::endl;
+      }
+
+      if (auto targetElem = elem->FirstChildElement("target"))
+      {
+        std::stringstream targetStr;
+        targetStr << std::string(targetElem->GetText());
+        renderWindow->SetFollowTarget(targetStr.str(), true);
+      }
+
+      if (auto worldFrameElem = elem->FirstChildElement("world_frame"))
+      {
+        std::string worldFrameStr =
+            common::lowercase(worldFrameElem->GetText());
+        if (worldFrameStr == "true" || worldFrameStr == "1")
+          renderWindow->SetFollowWorldFrame(true);
+        else if (worldFrameStr == "false" || worldFrameStr == "0")
+          renderWindow->SetFollowWorldFrame(false);
+        else
+        {
+          ignerr << "Faild to parse <world_frame> value: " << worldFrameStr
+                 << std::endl;
+        }
+      }
+
+      if (auto offsetElem = elem->FirstChildElement("offset"))
+      {
+        math::Vector3d offset;
+        std::stringstream offsetStr;
+        offsetStr << std::string(offsetElem->GetText());
+        offsetStr >> offset;
+        renderWindow->SetFollowOffset(offset);
+      }
+    }
   }
 
+  // transform mode
   this->dataPtr->transformModeService =
       "/gui/transform_mode";
   this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
       &Scene3D::OnTransformMode, this);
   ignmsg << "Transform mode service on ["
          << this->dataPtr->transformModeService << "]" << std::endl;
+
+  // video recorder
+  this->dataPtr->recordVideoService =
+      "/gui/record_video";
+  this->dataPtr->node.Advertise(this->dataPtr->recordVideoService,
+      &Scene3D::OnRecordVideo, this);
+  ignmsg << "Record video service on ["
+         << this->dataPtr->recordVideoService << "]" << std::endl;
+
+  // move to
+  this->dataPtr->moveToService = "/gui/move_to";
+  this->dataPtr->node.Advertise(this->dataPtr->moveToService,
+      &Scene3D::OnMoveTo, this);
+  ignmsg << "Move to service on ["
+         << this->dataPtr->moveToService << "]" << std::endl;
+
+  // follow
+  this->dataPtr->followService = "/gui/follow";
+  this->dataPtr->node.Advertise(this->dataPtr->followService,
+      &Scene3D::OnFollow, this);
+  ignmsg << "Follow service on ["
+         << this->dataPtr->followService << "]" << std::endl;
 }
+
 
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
@@ -866,8 +1278,7 @@ void Scene3D::Update(const UpdateInfo &_info,
           return true;
         });
 
-    RenderWindowItem *renderWindow =
-        this->PluginItem()->findChild<RenderWindowItem *>();
+    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     renderWindow->SetWorldName(this->dataPtr->worldName);
   }
 
@@ -878,9 +1289,45 @@ void Scene3D::Update(const UpdateInfo &_info,
 bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
   msgs::Boolean &_res)
 {
-  RenderWindowItem *renderWindow =
-      this->PluginItem()->findChild<RenderWindowItem *>();
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   renderWindow->SetTransformMode(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  bool record = _msg.start() && !_msg.stop();
+  renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnMoveTo(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetMoveTo(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetFollowTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -890,6 +1337,48 @@ bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
+    const std::string &_savePath)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideo(_record, _format,
+      _savePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetMoveTo(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowTarget(const std::string &_target,
+    bool _waitForTarget)
+{
+  this->setProperty("message", _target.empty() ? "" :
+      "Press Escape to exit Follow mode");
+  this->dataPtr->renderThread->ignRenderer.SetFollowTarget(_target,
+      _waitForTarget);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowPGain(double _gain)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowWorldFrame(bool _worldFrame)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowWorldFrame(_worldFrame);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowOffset(_offset);
 }
 
 /////////////////////////////////////////////////
@@ -907,6 +1396,8 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 /////////////////////////////////////////////////
 void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
+  this->forceActiveFocus();
+
   auto event = gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
@@ -919,7 +1410,9 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  this->dataPtr->mouseEvent = gui::convert(*_e);
+  auto event = gui::convert(*_e);
+  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
+  this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
@@ -947,11 +1440,28 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 {
+  this->forceActiveFocus();
+
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
+}
+
+////////////////////////////////////////////////
+void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+{
+  if (_e->key() == Qt::Key_Escape)
+  {
+    if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
+    {
+      this->SetFollowTarget(std::string());
+      this->setProperty("message", "");
+
+      _e->accept();
+    }
+  }
 }
 
 ///////////////////////////////////////////////////
@@ -971,6 +1481,83 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 //  }
 // }
 //
+
+////////////////////////////////////////////////
+void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
+    const rendering::NodePtr &_target,
+    double _duration, std::function<void()> _onAnimationComplete)
+{
+  this->camera = _camera;
+  this->poseAnim = std::make_unique<common::PoseAnimation>(
+      "move_to", _duration, false);
+  this->onAnimationComplete = std::move(_onAnimationComplete);
+
+  math::Pose3d start = _camera->WorldPose();
+
+  // todo(anyone) implement bounding box function in rendering to get
+  // target size and center.
+  // Assume fixed size and target world position is its center
+  math::Box targetBBox(1.0, 1.0, 1.0);
+  math::Vector3d targetCenter = _target->WorldPosition();
+  math::Vector3d dir = targetCenter - start.Pos();
+  dir.Correct();
+  dir.Normalize();
+
+  // distance to move
+  double maxSize = targetBBox.Size().Max();
+  double dist = start.Pos().Distance(targetCenter) - maxSize;
+
+  // Scale to fit in view
+  double hfov = this->camera->HFOV().Radian();
+  double offset = maxSize*0.5 / std::tan(hfov/2.0);
+
+  // End position and rotation
+  math::Vector3d endPos = start.Pos() + dir*(dist - offset);
+  math::Quaterniond endRot =
+      math::Matrix4d::LookAt(endPos, targetCenter).Rotation();
+  math::Pose3d end(endPos, endRot);
+
+  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
+  key->Translation(start.Pos());
+  key->Rotation(start.Rot());
+
+  key = this->poseAnim->CreateKeyFrame(_duration);
+  key->Translation(end.Pos());
+  key->Rotation(end.Rot());
+}
+
+////////////////////////////////////////////////
+void MoveToHelper::AddTime(double _time)
+{
+  if (!this->camera || !this->poseAnim)
+    return;
+
+  common::PoseKeyFrame kf(0);
+
+  this->poseAnim->AddTime(_time);
+  this->poseAnim->InterpolatedKeyFrame(kf);
+
+  math::Pose3d offset(kf.Translation(), kf.Rotation());
+
+  this->camera->SetWorldPose(offset);
+
+  if (this->poseAnim->Length() <= this->poseAnim->Time())
+  {
+    if (this->onAnimationComplete)
+    {
+      this->onAnimationComplete();
+    }
+    this->camera.reset();
+    this->poseAnim.reset();
+    this->onAnimationComplete = nullptr;
+  }
+}
+
+////////////////////////////////////////////////
+bool MoveToHelper::Idle() const
+{
+  return this->poseAnim == nullptr;
+}
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,

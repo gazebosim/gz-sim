@@ -174,6 +174,16 @@ namespace ignition
       public: std::optional<math::Matrix3d> WorldInertiaMatrix(
           const EntityComponentManager &_ecm) const;
 
+      /// \brief Get the rotational and translational kinetic energy of the
+      /// link with respect to the world frame.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Kinetic energy in world frame, returns nullopt if link
+      /// does not have components components::Inertial,
+      /// components::WorldAngularVelocity, components::WorldLinearVelocity,
+      /// and components::WorldPose.
+      public: std::optional<double> WorldKineticEnergy(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Add a force expressed in world coordinates and applied at the
       /// center of mass of the link.
       /// \param[in] _ecm Mutable Entity-component manager.

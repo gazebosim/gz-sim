@@ -154,8 +154,22 @@ Server::Server(const ServerConfig &_config)
 
   sdf::Errors errors;
 
-  // Load a world if specified.
-  if (!_config.SdfFile().empty())
+  // Load a world if specified. Check SDF string first, then SDF file
+  if (!_config.SdfString().empty())
+  {
+    std::string msg = "Loading SDF string. ";
+    if (_config.SdfFile().empty())
+    {
+      msg += "File path not available.\n";
+    }
+    else
+    {
+      msg += "File path [" + _config.SdfFile() + "].\n";
+    }
+    ignmsg <<  msg;
+    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+  }
+  else if (!_config.SdfFile().empty())
   {
     common::SystemPaths systemPaths;
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
@@ -169,11 +183,6 @@ Server::Server(const ServerConfig &_config)
     // a black screen (search for "Async resource download" in
     // 'src/gui_main.cc'.
     errors = this->dataPtr->sdfRoot.Load(filePath);
-  }
-  else if (!_config.SdfString().empty())
-  {
-    ignmsg << "Loading SDF string.\n";
-    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
   }
   else
   {

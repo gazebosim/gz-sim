@@ -81,6 +81,12 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
 
+  /// \brief Update period calculated from <odom__publish_frequency>.
+  public: std::chrono::steady_clock::duration odomPubPeriod{0};
+
+  /// \brief Last sim time odom was published.
+  public: std::chrono::steady_clock::duration lastOdomPubTime{0};
+
   /// \brief Diff drive odometry.
   public: math::DiffDriveOdometry odom;
 
@@ -138,6 +144,14 @@ void DiffDrive::Configure(const Entity &_entity,
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
       this->dataPtr->wheelRadius).first;
 
+  double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
+  if (odomFreq > 0)
+  {
+    std::chrono::duration<double> odomPer{1 / odomFreq};
+    this->dataPtr->odomPubPeriod =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
+  }
+
   // Setup odometry.
   this->dataPtr->odom.SetWheelParams(this->dataPtr->wheelSeparation,
       this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
@@ -151,10 +165,8 @@ void DiffDrive::Configure(const Entity &_entity,
 
   std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/odometry"};
-  transport::AdvertiseMessageOptions opts;
-  opts.SetMsgsPerSec(50);
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic, opts);
+      odomTopic);
 
   ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
@@ -165,6 +177,15 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::PreUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // If the joints haven't been identified yet, look for them
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
@@ -277,6 +298,15 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 
   this->odom.Update(leftPos->Data()[0], rightPos->Data()[0],
       std::chrono::steady_clock::time_point(_info.simTime));
+
+  // Throttle publishing
+  auto diff = _info.simTime - this->lastOdomPubTime;
+  if (diff > std::chrono::steady_clock::duration::zero() &&
+      diff < this->odomPubPeriod)
+  {
+    return;
+  }
+  this->lastOdomPubTime = _info.simTime;
 
   // Construct the odometry message and publish it.
   msgs::Odometry msg;

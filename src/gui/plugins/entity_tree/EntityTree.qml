@@ -4,6 +4,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
   id: entityTree
@@ -128,6 +129,12 @@ Rectangle {
             id: ma
             anchors.fill: parent
             hoverEnabled: true
+            acceptedButtons: Qt.RightButton
+            onClicked: {
+              var type = EntityTreeModel.EntityType(styleData.index)
+              var scopedName = EntityTreeModel.ScopedName(styleData.index)
+              entityContextMenu.open(scopedName, type)
+            }
           }
         }
       }
@@ -137,5 +144,10 @@ Rectangle {
       role: "entityName"
       width: 300
     }
+  }
+
+  IgnGazebo.EntityContextMenu {
+    id: entityContextMenu
+    anchors.fill: parent
   }
 }

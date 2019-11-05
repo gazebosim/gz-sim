@@ -21,6 +21,7 @@
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
+#include <ignition/msgs/actor.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
@@ -33,6 +34,7 @@
 
 #include <ignition/common/Console.hh>
 
+#include <sdf/Actor.hh>
 #include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
@@ -53,6 +55,7 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 
@@ -116,7 +119,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     auto meshMsg = out.mutable_mesh();
 
     msgs::Set(meshMsg->mutable_scale(), meshSdf->Scale());
-    meshMsg->set_filename(meshSdf->Uri());
+    meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
@@ -266,6 +269,87 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
+  }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
+{
+  msgs::Actor out;
+  out.mutable_entity()->set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.Pose());
+  out.set_skin_filename(_in.SkinFilename());
+  out.set_skin_scale(_in.SkinScale());
+  for (unsigned int i = 0; i < _in.AnimationCount(); ++i)
+  {
+    auto newAnim = out.add_animations();
+    auto anim = _in.AnimationByIndex(i);
+    newAnim->set_name(anim->Name());
+    newAnim->set_filename(anim->Filename());
+    newAnim->set_scale(anim->Scale());
+    newAnim->set_interpolate_x(anim->InterpolateX());
+  }
+  out.set_script_loop(_in.ScriptLoop());
+  out.set_script_delay_start(_in.ScriptDelayStart());
+  out.set_script_auto_start(_in.ScriptAutoStart());
+  for (unsigned int i = 0; i < _in.TrajectoryCount(); ++i)
+  {
+    auto newTraj = out.add_trajectories();
+    auto traj = _in.TrajectoryByIndex(i);
+    newTraj->set_id(traj->Id());
+    newTraj->set_type(traj->Type());
+    newTraj->set_tension(traj->Tension());
+    for (unsigned int j = 0; j < traj->WaypointCount(); ++j)
+    {
+      auto newPoint = newTraj->add_waypoints();
+      auto point = traj->WaypointByIndex(j);
+      newPoint->set_time(point->Time());
+      msgs::Set(newPoint->mutable_pose(), point->Pose());
+    }
+  }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
+{
+  sdf::Actor out;
+  out.SetName(_in.entity().name());
+  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetSkinFilename(_in.skin_filename());
+  out.SetSkinScale(_in.skin_scale());
+  for (int i = 0; i < _in.animations_size(); ++i)
+  {
+    const auto &anim = _in.animations(i);
+    auto newAnim = new sdf::Animation();
+    newAnim->SetName(anim.name());
+    newAnim->SetFilename(anim.filename());
+    newAnim->SetScale(anim.scale());
+    newAnim->SetInterpolateX(anim.interpolate_x());
+    out.AddAnimation(*newAnim);
+  }
+  out.SetScriptLoop(_in.script_loop());
+  out.SetScriptDelayStart(_in.script_delay_start());
+  out.SetScriptAutoStart(_in.script_auto_start());
+  for (int i = 0; i < _in.trajectories_size(); ++i)
+  {
+    const auto &traj = _in.trajectories(i);
+    auto newTraj = new sdf::Trajectory();
+    newTraj->SetId(traj.id());
+    newTraj->SetType(traj.type());
+    newTraj->SetTension(traj.tension());
+    for (int j = 0; j < traj.waypoints_size(); ++j)
+    {
+      const auto &point = traj.waypoints(j);
+      auto newPoint = new sdf::Waypoint();
+      newPoint->SetTime(point.time());
+      newPoint->SetPose(msgs::Convert(point.pose()));
+      newTraj->AddWaypoint(*newPoint);
+    }
+    out.AddTrajectory(*newTraj);
   }
   return out;
 }
