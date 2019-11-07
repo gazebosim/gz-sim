@@ -21,7 +21,7 @@ RUN apt-get update \
     libignition-tools-dev \
     libignition-transport7-dev \
     libignition-gui2-dev \
-    libignition-msgs4-dev \
+    libignition-msgs5-dev \
     libignition-sensors2-dev \
     libsdformat8-dev
 

@@ -231,11 +231,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
       pbrMsg->set_normal_map(workflow->NormalMap());
       pbrMsg->set_ambient_occlusion_map(workflow->AmbientOcclusionMap());
       pbrMsg->set_environment_map(workflow->EnvironmentMap());
-      // Hack: store emissive_map in <script> field since ign-msgs4 does not
-      // have this field yet. This should be ok since <script> is not used when
-      // material is PBR.
-      // todo(anyone) switch to use set_emissive_map in ign-msgs5
-      out.mutable_script()->set_name(workflow->EmissiveMap());
+      pbrMsg->set_emissive_map(workflow->EmissiveMap());
     }
   }
   return out;
@@ -272,11 +268,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetSpecularMap(pbrMsg.specular_map());
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
-    // todo(anyone) Hack: emissive map is packed in script name
-    // use emissive_map() in ign-msgs5, i.e.
-    // workflow.SetEmissiveMap(pbrMsg.emissive_map());
-    if (_in.has_script())
-      workflow.SetEmissiveMap(_in.script().name());
+    workflow.SetEmissiveMap(pbrMsg.emissive_map());
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
   }

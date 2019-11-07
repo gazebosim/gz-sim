@@ -46,8 +46,8 @@ set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs4 REQUIRED VERSION 4.7)
-set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
+ign_find_package(ignition-msgs5 REQUIRED VERSION 5.0)
+set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
@@ -124,7 +124,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs4_INCLUDE_DIRS})
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs5_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
