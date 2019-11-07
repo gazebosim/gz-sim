@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 3.0.0
 
+1. Add Marker Manager
+    * [Pull Request 442](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/442)
+
 1. Move function definitions to their correct locations in EntityComponentManager
     * [Pull Request 380](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/380)
 
