@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1.  Update SceneBroadcaster to publish state msg for world with only static models
+    * [Pull Request 450](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/450)
+
 1.  Add log video recorder
     * [Pull Request 441](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/441)
 
