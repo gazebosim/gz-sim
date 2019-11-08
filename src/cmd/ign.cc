@@ -21,6 +21,7 @@
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
@@ -176,6 +177,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
   // add import path so we can load custom modules
   app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
+  // Set default config file for Gazebo
+  std::string defaultConfig;
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", "gui.config");
+  app.SetDefaultConfigPath(defaultConfig);
+
   // Customize window
   auto mainWin = app.findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
@@ -304,16 +312,40 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
     mainWin->configChanged();
   }
 
-  // If no runners have been started, load default config file
   if (runners.empty())
   {
-    // TODO(louise) Check if there's a default config file under
+    ignerr << "Failed to start a GUI runner." << std::endl;
+    return -1;
+  }
+
+  // If no plugins have been added, load default config file
+  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  if (plugins.empty())
+  {
+    // Check if there's a default config file under
     // ~/.ignition/gazebo and use that. If there isn't, copy
     // the installed file there first.
+    if (!ignition::common::exists(defaultConfig))
+    {
+      auto installedConfig = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+        return -1;
+      }
+      else
+      {
+        ignmsg << "Copied installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+      }
+    }
+
     // Also set ~/.ignition/gazebo/gui.config as the default path
-    auto configPath = ignition::common::joinPaths(
-        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-    if (!app.LoadConfig(configPath))
+    if (!app.LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << _guiConfig << "]."
              << std::endl;
