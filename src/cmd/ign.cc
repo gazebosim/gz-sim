@@ -351,12 +351,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
              << std::endl;
       return -1;
     }
-
-    // Use the first world name with the config file
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
-    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
-    runners.push_back(runner);
   }
 
   // Run main window.
