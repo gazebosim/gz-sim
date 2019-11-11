@@ -194,10 +194,12 @@ void MarkerManagerPrivate::Update()
     for (auto it = mit->second.cbegin();
          it != mit->second.cend(); ++it)
     {
+      if (it->second->GeometryCount() == 0u)
+        continue;
+
       ignition::rendering::MarkerPtr markerPtr =
             std::dynamic_pointer_cast<ignition::rendering::Marker>
-            (it->second->GeometryByIndex(0));
-
+            (it->second->GeometryByIndex(0u));
       if (markerPtr != nullptr)
       {
         if (markerPtr->Lifetime().count() != 0 &&
@@ -225,7 +227,7 @@ void MarkerManagerPrivate::SetSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  simTime = _time;
+  this->simTime = _time;
 }
 
 /////////////////////////////////////////////////
@@ -289,6 +291,9 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
   rendering::MaterialPtr materialPtr = MsgToMaterial(_msg);
   _markerPtr->SetMaterial(materialPtr, true /* clone */);
 
+  // clean up material after clone
+  this->scene->DestroyMaterial(materialPtr);
+
   // Assume the presence of points means we clear old ones
   if (_msg.point().size() > 0)
   {
@@ -296,10 +301,10 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
   }
 
   math::Color color(
-      _msg.material().ambient().r(),
-      _msg.material().ambient().g(),
-      _msg.material().ambient().b(),
-      _msg.material().ambient().a());
+      _msg.material().diffuse().r(),
+      _msg.material().diffuse().g(),
+      _msg.material().diffuse().b(),
+      _msg.material().diffuse().a());
 
   // Set Marker Points
   for (int i = 0; i < _msg.point().size(); ++i)
@@ -413,21 +418,24 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
     if (nsIter != this->visuals.end() &&
         visualIter != nsIter->second.end())
     {
-      // TODO(anyone): Update so that multiple markers can
-      //               be attached to one visual
-      ignition::rendering::MarkerPtr markerPtr =
-            std::dynamic_pointer_cast<ignition::rendering::Marker>
-            (visualIter->second->GeometryByIndex(0));
+      if (visualIter->second->GeometryCount() > 0u)
+      {
+        // TODO(anyone): Update so that multiple markers can
+        //               be attached to one visual
+        ignition::rendering::MarkerPtr markerPtr =
+              std::dynamic_pointer_cast<ignition::rendering::Marker>
+              (visualIter->second->GeometryByIndex(0));
 
-      visualIter->second->RemoveGeometryByIndex(0);
+        visualIter->second->RemoveGeometryByIndex(0);
 
-      // Set the visual values from the Marker Message
-      this->SetVisual(_msg, visualIter->second);
+        // Set the visual values from the Marker Message
+        this->SetVisual(_msg, visualIter->second);
 
-      // Set the marker values from the Marker Message
-      this->SetMarker(_msg, markerPtr);
+        // Set the marker values from the Marker Message
+        this->SetMarker(_msg, markerPtr);
 
-      visualIter->second->AddGeometry(markerPtr);
+        visualIter->second->AddGeometry(markerPtr);
+      }
     }
     // Otherwise create a new marker
     else
