@@ -21,18 +21,21 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
 
+/// \def IGN_RTOD(d)
 /// \brief Macro that converts radians to degrees
-/// \param[in] radians
+/// \param[in] r radians
 /// \return degrees
 #define IGN_RTOD(r) ((r) * 180 / IGN_PI)
 
+/// \def IGN_DTOR(d)
 /// \brief Converts degrees to radians
-/// \param[in] degrees
+/// \param[in] d degrees
 /// \return radians
 #define IGN_DTOR(d) ((d) * IGN_PI / 180)
 
+/// \def IGN_NORMALIZE(a)
 /// \brief Macro that normalizes an angle in the range -Pi to Pi
-/// \param[in] angle
+/// \param[in] a angle
 /// \return the angle, in range
 #define IGN_NORMALIZE(a) (atan2(sin(a), cos(a)))
 
@@ -44,54 +47,94 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Angle Angle.hh ignition/math/Angle.hh
-    /// \brief An angle and related functions.
+    /// \brief The Angle class is used to simplify and clarify the use of
+    /// radians and degrees measurements. A default constructed Angle instance
+    /// has a value of zero radians/degrees.
+    ///
+    /// Unless otherwise specified, the Angle class assumes units are in
+    /// radians. An example of this are the stream insertion (<<) and
+    /// extraction (>>) operators.
+    ///
+    /// ## Example
+    ///
+    /// \snippet examples/angle_example.cc complete
     class IGNITION_MATH_VISIBLE Angle
     {
-      /// \brief math::Angle(0)
+      /// \brief An angle with a value of zero.
+      /// Equivalent to math::Angle(0).
       public: static const Angle Zero;
 
-      /// \brief math::Angle(IGN_PI)
+      /// \brief An angle with a value of Pi.
+      /// Equivalent to math::Angle(IGN_PI).
       public: static const Angle Pi;
 
-      /// \brief math::Angle(IGN_PI * 0.5)
+      /// \brief An angle with a value of Pi * 0.5.
+      /// Equivalent to math::Angle(IGN_PI * 0.5).
       public: static const Angle HalfPi;
 
-      /// \brief math::Angle(IGN_PI * 2)
+      /// \brief An angle with a value of Pi * 2.
+      /// Equivalent to math::Angle(IGN_PI * 2).
       public: static const Angle TwoPi;
 
-      /// \brief Constructor
+      /// \brief Default constructor that initializes an Angle to zero
+      /// radians/degrees.
       public: Angle();
 
-      /// \brief Conversion Constructor
-      /// \param[in] _radian Radians
+      /// \brief Conversion constructor that initializes an Angle to the
+      /// specified radians. This constructor supports implicit conversion
+      /// of a double to an Angle. For example:
+      ///
+      /// \code
+      /// Angle a = 3.14;
+      /// \endcode
+      //
+      /// \param[in] _radian The radians used to initialize this Angle.
       // cppcheck-suppress noExplicitConstructor
       public: Angle(const double _radian);
 
-      /// \brief Copy constructor
+      /// \brief Copy constructor that initializes this Angle to the value
+      /// contained in the _angle parameter.
       /// \param[in] _angle Angle to copy
       public: Angle(const Angle &_angle);
 
       /// \brief Destructor
       public: virtual ~Angle();
 
-      /// \brief Set the value from an angle in radians
-      /// \param[in] _radian Radian value
+      /// \brief Set the value from an angle in radians.
+      /// \param[in] _radian Radian value.
+      /// \sa SetRadian(double)
       public: void Radian(double _radian);
+
+      /// \brief Set the value from an angle in radians.
+      /// \param[in] _radian Radian value.
+      public: void SetRadian(double _radian);
 
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
+      /// \sa SetDegree(double)
       public: void Degree(double _degree);
 
-      /// \brief Get the angle in radians
-      /// \return double containing the angle's radian value
+      /// \brief Set the value from an angle in degrees
+      /// \param[in] _degree Degree value
+      public: void SetDegree(double _degree);
+
+      /// \brief Get the angle in radians.
+      /// \return Double containing the angle's radian value.
       public: double Radian() const;
 
-      /// \brief Get the angle in degrees
-      /// \return double containing the angle's degree value
+      /// \brief Get the angle in degrees.
+      /// \return Double containing the angle's degree value.
       public: double Degree() const;
 
-      /// \brief Normalize the angle in the range -Pi to Pi
+      /// \brief Normalize the angle in the range -Pi to Pi. This
+      /// modifies the value contained in this Angle instance.
+      /// \sa Normalized()
       public: void Normalize();
+
+      /// \brief Return the normalized angle in the range -Pi to Pi. This
+      /// does not modify the value contained in this Angle instance.
+      /// \return The normalized value of this Angle.
+      public: Angle Normalized() const;
 
       /// \brief Return the angle's radian value
       /// \return double containing the angle's radian value
@@ -104,80 +147,80 @@ namespace ignition
                 return value;
               }
 
-      /// \brief Substraction, result = this - _angle
-      /// \param[in] _angle Angle for substraction
-      /// \return the new angle
+      /// \brief Subtraction operator, result = this - _angle.
+      /// \param[in] _angle Angle for subtraction.
+      /// \return The new angle.
       public: Angle operator-(const Angle &_angle) const;
 
-      /// \brief Addition operator, result = this + _angle
-      /// \param[in] _angle Angle for addition
-      /// \return the new angle
+      /// \brief Addition operator, result = this + _angle.
+      /// \param[in] _angle Angle for addition.
+      /// \return The new angle.
       public: Angle operator+(const Angle &_angle) const;
 
-      /// \brief Multiplication operator, result = this * _angle
-      /// \param[in] _angle Angle for multiplication
-      /// \return the new angle
+      /// \brief Multiplication operator, result = this * _angle.
+      /// \param[in] _angle Angle for multiplication.
+      /// \return The new angle
       public: Angle operator*(const Angle &_angle) const;
 
-      /// \brief Division, result = this / _angle
-      /// \param[in] _angle Angle for division
-      /// \return the new angle
+      /// \brief Division operator, result = this / _angle.
+      /// \param[in] _angle Angle for division.
+      /// \return The new angle.
       public: Angle operator/(const Angle &_angle) const;
 
-      /// \brief Subtraction set, this = this - _angle
-      /// \param[in] _angle Angle for subtraction
-      /// \return angle
+      /// \brief Subtraction set operator, this = this - _angle.
+      /// \param[in] _angle Angle for subtraction.
+      /// \return The new angle.
       public: Angle operator-=(const Angle &_angle);
 
-      /// \brief Addition set, this = this + _angle
-      /// \param[in] _angle Angle for addition
-      /// \return angle
+      /// \brief Addition set operator, this = this + _angle.
+      /// \param[in] _angle Angle for addition.
+      /// \return The new angle.
       public: Angle operator+=(const Angle &_angle);
 
-      /// \brief Multiplication set, this = this * _angle
-      /// \param[in] _angle Angle for multiplication
-      /// \return angle
+      /// \brief Multiplication set operator, this = this * _angle.
+      /// \param[in] _angle Angle for multiplication.
+      /// \return The new angle.
       public: Angle operator*=(const Angle &_angle);
 
-      /// \brief Division set, this = this / _angle
-      /// \param[in] _angle Angle for division
-      /// \return angle
+      /// \brief Division set operator, this = this / _angle.
+      /// \param[in] _angle Angle for division.
+      /// \return The new angle.
       public: Angle operator/=(const Angle &_angle);
 
-      /// \brief Equality operator, result = this == _angle
-      /// \param[in] _angle Angle to check for equality
-      /// \return true if this == _angle
+      /// \brief Equality operator, result = this == _angle.
+      /// \param[in] _angle Angle to check for equality.
+      /// \return True if this == _angle.
       public: bool operator==(const Angle &_angle) const;
 
-      /// \brief Inequality
-      /// \param[in] _angle Angle to check for inequality
-      /// \return true if this != _angle
+      /// \brief Inequality operator
+      /// \param[in] _angle Angle to check for inequality.
+      /// \return True if this != _angle.
       public: bool operator!=(const Angle &_angle) const;
 
-      /// \brief Less than operator
-      /// \param[in] _angle Angle to check
-      /// \return true if this < _angle
+      /// \brief Less than operator.
+      /// \param[in] _angle Angle to check.
+      /// \return True if this < _angle.
       public: bool operator<(const Angle &_angle) const;
 
-      /// \brief Less or equal operator
-      /// \param[in] _angle Angle to check
-      /// \return true if this <= _angle
+      /// \brief Less than or equal operator.
+      /// \param[in] _angle Angle to check.
+      /// \return True if this <= _angle.
       public: bool operator<=(const Angle &_angle) const;
 
-      /// \brief Greater than operator
-      /// \param[in] _angle Angle to check
-      /// \return true if this > _angle
+      /// \brief Greater than operator.
+      /// \param[in] _angle Angle to check.
+      /// \return True if this > _angle.
       public: bool operator>(const Angle &_angle) const;
 
-      /// \brief Greater or equal operator
-      /// \param[in] _angle Angle to check
-      /// \return true if this >= _angle
+      /// \brief Greater than or equal operator.
+      /// \param[in] _angle Angle to check.
+      /// \return True if this >= _angle.
       public: bool operator>=(const Angle &_angle) const;
 
-      /// \brief Stream insertion operator. Outputs in degrees
-      /// \param[in] _out output stream
-      /// \param[in] _a angle to output
-      /// \return The output stream
+      /// \brief Stream insertion operator. Outputs in radians.
+      /// \param[in] _out Output stream.
+      /// \param[in] _a Angle to output.
+      /// \return The output stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const ignition::math::Angle &_a)
       {
@@ -185,10 +228,10 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Stream extraction operator. Assumes input is in radians
-      /// \param in input stream
-      /// \param pt angle to read value into
-      /// \return The input stream
+      /// \brief Stream extraction operator. Assumes input is in radians.
+      /// \param[in,out] _in Input stream.
+      /// \param[out] _a Angle to read value into.
+      /// \return The input stream.
       public: friend std::istream &operator>>(std::istream &_in,
                                               ignition::math::Angle &_a)
       {
@@ -199,7 +242,7 @@ namespace ignition
       }
 
       /// The angle in radians
-      private: double value;
+      private: double value{0};
     };
     }
   }

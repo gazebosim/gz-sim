@@ -480,6 +480,31 @@ namespace ignition
       return _x;
     }
 
+    /// \brief Round a number up to the nearest multiple. For example, if
+    /// the input number is 12 and the multiple is 10, the result is 20.
+    /// If the input number is negative, then the nearest multiple will be
+    /// greater than or equal to the input number. For example, if the input
+    /// number is -9 and the multiple is 2 then the output is -8.
+    /// \param[in] _num Input number to round up.
+    /// \param[in] _multiple The multiple. If the multiple is <= zero, then
+    /// the input number is returned.
+    /// \return The nearest multiple of _multiple that is greater than
+    /// or equal to _num.
+    inline int roundUpMultiple(int _num, int _multiple)
+    {
+      if (_multiple == 0)
+        return _num;
+
+      int remainder = std::abs(_num) % _multiple;
+      if (remainder == 0)
+        return _num;
+
+      if (_num < 0)
+        return -(std::abs(_num) - remainder);
+      else
+        return _num + _multiple - remainder;
+    }
+
     /// \brief parse string into an integer
     /// \param[in] _input the string
     /// \return an integer, 0 or 0 and a message in the error stream

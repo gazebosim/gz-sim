@@ -154,6 +154,7 @@ namespace ignition
       /// point of this line and the closest point in the provided line.
       /// \param[in] _line Line to compare against this.
       /// \param[out] _result The shortest line between _line and this.
+      /// \param[in] _epsilon Error tolerance.
       /// \return True if a solution was found. False if a solution is not
       /// possible.
       public: bool Distance(const Line3<T> &_line, Line3<T> &_result,

@@ -205,6 +205,7 @@ namespace graph
     /// \brief Add a new edge to the graph.
     /// \param[in] _vertices The set of Ids of the two vertices.
     /// \param[in] _data User data.
+    /// \param[in] _weight Edge weight.
     /// \return Reference to the new edge created or NullEdge if the
     /// edge was not created (e.g. incorrect vertices).
     public: EdgeType &AddEdge(const VertexId_P &_vertices,
@@ -684,7 +685,7 @@ namespace graph
     /// description language.
     /// \param[out] _out The output stream.
     /// \param[in] _g Graph to write to the stream.
-    /// \ref https://en.wikipedia.org/wiki/DOT_(graph_description_language).
+    /// \sa https://en.wikipedia.org/wiki/DOT_(graph_description_language).
     public: template<typename VV, typename EE, typename EEdgeType>
     friend std::ostream &operator<<(std::ostream &_out,
                                     const Graph<VV, EE, EEdgeType> &_g);
