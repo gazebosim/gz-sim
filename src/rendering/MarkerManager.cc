@@ -331,30 +331,30 @@ ignition::rendering::MarkerType MarkerManagerPrivate::MsgToType(
   switch (marker)
   {
     case ignition::msgs::Marker::BOX:
-      return ignition::rendering::MarkerType::BOX;
+      return ignition::rendering::MarkerType::MT_BOX;
     case ignition::msgs::Marker::CYLINDER:
-      return ignition::rendering::MarkerType::CYLINDER;
+      return ignition::rendering::MarkerType::MT_CYLINDER;
     case ignition::msgs::Marker::LINE_STRIP:
-      return ignition::rendering::MarkerType::LINE_STRIP;
+      return ignition::rendering::MarkerType::MT_LINE_STRIP;
     case ignition::msgs::Marker::LINE_LIST:
-      return ignition::rendering::MarkerType::LINE_LIST;
+      return ignition::rendering::MarkerType::MT_LINE_LIST;
     case ignition::msgs::Marker::POINTS:
-      return ignition::rendering::MarkerType::POINTS;
+      return ignition::rendering::MarkerType::MT_POINTS;
     case ignition::msgs::Marker::SPHERE:
-      return ignition::rendering::MarkerType::SPHERE;
+      return ignition::rendering::MarkerType::MT_SPHERE;
     case ignition::msgs::Marker::TEXT:
-      return ignition::rendering::MarkerType::TEXT;
+      return ignition::rendering::MarkerType::MT_TEXT;
     case ignition::msgs::Marker::TRIANGLE_FAN:
-      return ignition::rendering::MarkerType::TRIANGLE_FAN;
+      return ignition::rendering::MarkerType::MT_TRIANGLE_FAN;
     case ignition::msgs::Marker::TRIANGLE_LIST:
-      return ignition::rendering::MarkerType::TRIANGLE_LIST;
+      return ignition::rendering::MarkerType::MT_TRIANGLE_LIST;
     case ignition::msgs::Marker::TRIANGLE_STRIP:
-      return ignition::rendering::MarkerType::TRIANGLE_STRIP;
+      return ignition::rendering::MarkerType::MT_TRIANGLE_STRIP;
     default:
       ignerr << "Unable to create marker of type[" << _msg.type() << "]\n";
       break;
   }
-  return ignition::rendering::MarkerType::NONE;
+  return ignition::rendering::MarkerType::MT_NONE;
 }
 
 /////////////////////////////////////////////////
