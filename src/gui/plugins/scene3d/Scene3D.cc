@@ -1334,6 +1334,24 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnDropped(const QString &_drop)
+{
+  msgs::EntityFactory req;
+  req.set_sdf_filename(_drop.toStdString());
+
+  // TODO make non-blocking
+  // FIXME SDF parser not finding Fuel URLs
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/empty/create"};
+
+  transport::Node node;
+  node.Request(service, req, timeout, res, result);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
