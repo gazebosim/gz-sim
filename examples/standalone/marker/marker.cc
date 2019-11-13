@@ -95,7 +95,7 @@ int main(int _argc, char **_argv)
                     ignition::math::Pose3d(2, 0, .5, 0, 0, 0));
   node.Request("/marker", markerMsg);
 
-  std::cout << "Change the green box to a cylinder\n";
+  std::cout << "Changing the green box to a cylinder\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
   node.Request("/marker", markerMsg);
@@ -111,22 +111,6 @@ int main(int _argc, char **_argv)
       ignition::math::Vector3d(0.0, 1.0, 1.0));
   ignition::msgs::Set(markerMsg.add_point(),
       ignition::math::Vector3d(2, 0, 0.5));
-  node.Request("/marker", markerMsg);
-
-  std::cout << "Adding 100 points inside the square\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
-  markerMsg.set_id(4);
-  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  markerMsg.set_type(ignition::msgs::Marker::POINTS);
-  markerMsg.clear_point();
-  for (int i = 0; i < 100; ++i)
-  {
-    ignition::msgs::Set(markerMsg.add_point(),
-        ignition::math::Vector3d(
-          ignition::math::Rand::DblUniform(-0.49, 0.49),
-          ignition::math::Rand::DblUniform(-0.49, 0.49),
-          0.05));
-  }
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding a square around the origin\n";
