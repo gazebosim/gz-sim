@@ -191,7 +191,7 @@
       <static>true</static>
       <pose>3 0 0.5 0 0 0</pose>
       <link name="sphere_link">
-        <collision name="box_collision">
+        <collision name="sphere_collision">
           <geometry>
             <sphere>
               <radius>0.125</radius>
