@@ -212,7 +212,7 @@ int main(int _argc, char **_argv)
 
   node.Request("/marker", markerMsg);
 
-  std::cout << "Delete all the markers\n";
+  std::cout << "Deleting all the markers\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
   node.Request("/marker", markerMsg);
