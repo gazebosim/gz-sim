@@ -259,9 +259,6 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     // material->SetTransparency(_visual.Transparency());
     if (material)
     {
-      // cast shadows
-      material->SetCastShadows(_visual.CastShadows());
-
       geom->SetMaterial(material);
       // todo(anyone) SetMaterial function clones the input material.
       // but does not take ownership of it so we need to destroy it here.

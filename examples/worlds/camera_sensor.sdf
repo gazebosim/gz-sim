@@ -187,33 +187,6 @@
       </link>
     </model>
 
-    <model name="sphere">
-      <static>true</static>
-      <pose>3 0 0.5 0 0 0</pose>
-      <link name="sphere_link">
-        <collision name="box_collision">
-          <geometry>
-            <sphere>
-              <radius>0.125</radius>
-            </sphere>
-          </geometry>
-        </collision>
-        <visual name="sphere_visual">
-          <geometry>
-            <sphere>
-              <radius>0.125</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <specular>0 1 0 1</specular>
-          </material>
-          <cast_shadows>false</cast_shadows>
-        </visual>
-      </link>
-    </model>
-
     <model name="camera">
       <pose>4 0 1.0 0 0.0 3.14</pose>
       <link name="link">
