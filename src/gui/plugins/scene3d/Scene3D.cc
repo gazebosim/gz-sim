@@ -1343,8 +1343,10 @@ void Scene3D::OnDropped(const QString &_drop)
       ignerr << "Error creating dropped entity." << std::endl;
   };
 
+  // TODO(anyone) set pose according to mouse position
   msgs::EntityFactory req;
   req.set_sdf_filename(_drop.toStdString());
+  req.set_allow_renaming(true);
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
