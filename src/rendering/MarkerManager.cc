@@ -392,14 +392,32 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
 {
   // Get the namespace, if it exists. Otherwise, use the global namespace
   std::string ns;
-  ns = _msg.ns();
+  if (_msg.ns().empty()) {
+    ns = _msg.ns();
+  }
 
   // Get the namespace that the marker belongs to
   auto nsIter = this->visuals.find(ns);
 
   // If an id is given
   size_t id;
-  id = _msg.id();
+  if (_msg.id() != 0)
+  {
+    id = _msg.id();
+  }
+  // Otherwise generate unique id
+  else
+  {
+    id = ignition::math::Rand::IntUniform(0, ignition::math::MAX_I32);
+
+    // Make sure it's unique if namespace is given
+    if (nsIter != this->visuals.end())
+    {
+      while (nsIter->second.find(id) != nsIter->second.end())
+        id = ignition::math::Rand::IntUniform(ignition::math::MIN_UI32,
+                                              ignition::math::MAX_UI32);
+    }
+  }
 
   // Get visual for this namespace and id
   std::map<uint64_t, rendering::VisualPtr>::iterator visualIter;
