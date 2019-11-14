@@ -4,7 +4,7 @@
 
 ### Ignition Gazebo 3.0.0
 
-1. Parse material emissive map
+1. Parse material emissive map, bump to msgs5 and transport8
     * [Pull Request 447](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/447)
 
 1. Move function definitions to their correct locations in EntityComponentManager
