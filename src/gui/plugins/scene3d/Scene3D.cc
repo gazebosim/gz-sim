@@ -1336,6 +1336,12 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 /////////////////////////////////////////////////
 void Scene3D::OnDropped(const QString &_drop)
 {
+  if (_drop.toStdString().empty())
+  {
+    ignwarn << "Dropped empty entity URI." << std::endl;
+    return;
+  }
+
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &_res, const bool _result)
   {
