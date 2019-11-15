@@ -59,4 +59,12 @@ Rectangle {
     anchors.left: renderWindow.achors.left
     text: renderWindow.message
   }
+
+  DropArea {
+    anchors.fill: renderWindow
+
+    onDropped: {
+      GzScene3D.OnDropped(drop.text)
+    }
+  }
 }
