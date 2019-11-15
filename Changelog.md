@@ -2,15 +2,41 @@
 
 ### Ignition Gazebo 3.X.X
 
+### Ignition Gazebo 3.0.0
+
+1. Move function definitions to their correct locations in EntityComponentManager
+    * [Pull Request 380](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/380)
+
 1. Depend on ign-rendering3, ign-gui3, ign-sensors3
-   * [Pull Request 411](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/411)
+    * [Pull Request 411](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/411)
+
+1. Rendering and Animating Actors
+    * [Pull Request 414](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/414)
+
 
 ## Ignition Gazebo 2.x
 
 ### Ignition Gazebo 2.X.X
 
+1.  Add log video recorder
+    * [Pull Request 441](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/441)
+
+### Ignition Gazebo 2.11.0 (2019-10-23)
+
+1.  Handle Relative URIs
+    * [Pull Request 433](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/433)
+
+1.  Avoid using invalid/unsupported joints
+    * [Pull Request 438](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/438)
+
+1.  Add mutex to protect views from potential concurrent access
+    * [Pull Request 435](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/435)
+
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
+
+1.  Improve steering behavior of example tracked vehicle
+    * [Pull Request 432](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/432)
 
 1.  Rewind / reset and seek
     * [Pull Request 429](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/429)
