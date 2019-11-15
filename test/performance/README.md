@@ -10,12 +10,13 @@ From the build directory, run `make PERFORMANCE_sdf_runner` to build the executo
 
 ### Parameters
 
-* `-v <level>` Control the verbosity of output 0-4
-* `-z <rate>` Update rate in Hz (Default is 1000)
-* `--iterations` Number of iterations to run the simulation
-* `-f` SDF File to execute.
+Arguments are parsed in order:
 
-Example: `./PERFORMANCE_sdf_runner -z 100000 -f cubes.sdf`
+1. SDF File to execute.
+1. Number of iterations to run the simulation
+1. Update rate in Hz (Default is 1000)
+
+Example: `./PERFORMANCE_sdf_runner cubes.sdf 5000 10000`
 
 ## Analyzing the output
 
