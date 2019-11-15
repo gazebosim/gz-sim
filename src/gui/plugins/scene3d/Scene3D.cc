@@ -1334,6 +1334,31 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnDropped(const QString &_drop)
+{
+  if (_drop.toStdString().empty())
+  {
+    ignwarn << "Dropped empty entity URI." << std::endl;
+    return;
+  }
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    if (!_result || !_res.data())
+      ignerr << "Error creating dropped entity." << std::endl;
+  };
+
+  // TODO(anyone) set pose according to mouse position
+  msgs::EntityFactory req;
+  req.set_sdf_filename(_drop.toStdString());
+  req.set_allow_renaming(true);
+
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
