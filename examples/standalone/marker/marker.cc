@@ -41,6 +41,10 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
   markerMsg.mutable_material()->mutable_ambient()->set_b(1);
   markerMsg.mutable_material()->mutable_ambient()->set_a(1);
+  markerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_g(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_b(1);
+  markerMsg.mutable_material()->mutable_diffuse()->set_a(1);
   markerMsg.mutable_lifetime()->set_sec(2);
   markerMsg.mutable_lifetime()->set_nsec(0);
   ignition::msgs::Set(markerMsg.mutable_scale(),
@@ -78,6 +82,9 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_ambient()->set_r(1);
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
   markerMsg.mutable_material()->mutable_ambient()->set_b(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_r(1);
+  markerMsg.mutable_material()->mutable_diffuse()->set_g(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_b(0);
   ignition::common::Time::Sleep(ignition::common::Time(4));
   node.Request("/marker", markerMsg);
 
@@ -85,6 +92,9 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_ambient()->set_r(0);
   markerMsg.mutable_material()->mutable_ambient()->set_g(1);
   markerMsg.mutable_material()->mutable_ambient()->set_b(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_g(1);
+  markerMsg.mutable_material()->mutable_diffuse()->set_b(0);
   ignition::common::Time::Sleep(ignition::common::Time(4));
   markerMsg.set_id(1);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
