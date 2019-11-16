@@ -92,7 +92,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-fuel_tools${IGN_FUEL_TOOLS_VER}::ignition-fuel_tools${IGN_FUEL_TOOLS_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-  sdformat8::sdformat8
+  sdformat${SDFORMAT_VER}::sdformat${SDFORMAT_VER}
   protobuf::libprotobuf
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader

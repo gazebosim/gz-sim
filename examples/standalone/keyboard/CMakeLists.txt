@@ -4,8 +4,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(ignition-transport8 QUIET REQUIRED OPTIONAL_COMPONENTS log)
   set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
-  find_package(sdformat8 REQUIRED)
-  set(SDF_VER ${sdformat8_VERSION_MAJOR})
+  find_package(sdformat9 REQUIRED)
+  set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
   find_package(ignition-msgs5 REQUIRED)
   set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
