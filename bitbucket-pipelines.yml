@@ -25,7 +25,7 @@ pipelines:
               libignition-plugin-dev
               libignition-physics-dev
               libignition-tools-dev
-              libsdformat8-dev
+              libsdformat9-dev
               # libignition-gui3-dev
               # libignition-msgs5-dev
               # libignition-rendering3-dev
@@ -77,7 +77,7 @@ pipelines:
                 libignition-plugin-dev
                 libignition-physics-dev
                 libignition-tools-dev
-                libsdformat8-dev
+                libsdformat9-dev
             # libignition-gui3-dev
             # libignition-msgs5-dev
             # libignition-rendering3-dev

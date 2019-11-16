@@ -512,7 +512,7 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
-  out.set_use_parent_model_frame(_in.UseParentModelFrame());
+  out.set_xyz_expressed_in(_in.XyzExpressedIn());
   out.set_damping(_in.Damping());
   out.set_friction(_in.Friction());
   out.set_limit_lower(_in.Lower());
@@ -541,7 +541,7 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
   out.SetXyz(msgs::Convert(_in.xyz()));
-  out.SetUseParentModelFrame(_in.use_parent_model_frame());
+  out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
   out.SetFriction(_in.friction());
   out.SetLower(_in.limit_lower());
