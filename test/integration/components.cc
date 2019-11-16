@@ -469,7 +469,7 @@ TEST_F(ComponentsTest, JointAxis)
 {
   auto data1 = sdf::JointAxis();
   data1.SetXyz(math::Vector3d(1, 2, 3));
-  data1.SetUseParentModelFrame(true);
+  data1.SetXyzExpressedIn("__model__");
   data1.SetDamping(0.1);
   data1.SetFriction(0.2);
   data1.SetLower(0.3);
@@ -501,7 +501,7 @@ TEST_F(ComponentsTest, JointAxis)
   EXPECT_DOUBLE_EQ(0.4, comp3.Data().Upper());
   EXPECT_DOUBLE_EQ(0.5, comp3.Data().Effort());
   EXPECT_DOUBLE_EQ(0.6, comp3.Data().MaxVelocity());
-  EXPECT_TRUE(comp3.Data().UseParentModelFrame());
+  EXPECT_EQ(comp3.Data().XyzExpressedIn(), "__model__");
 }
 
 /////////////////////////////////////////////////

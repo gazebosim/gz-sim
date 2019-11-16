@@ -48,7 +48,7 @@ TEST(Conversions, Light)
   light.SetName("test_convert_light");
   light.SetType(sdf::LightType::DIRECTIONAL);
   light.SetPose({3, 2, 1, 0, IGN_PI, 0});
-  light.SetPoseFrame("world");
+  light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetDiffuse(ignition::math::Color(0.4f, 0.5f, 0.6f, 1.0));
   light.SetSpecular(ignition::math::Color(0.8f, 0.9f, 0.1f, 1.0));
@@ -88,7 +88,7 @@ TEST(Conversions, Light)
   EXPECT_EQ(sdf::LightType::DIRECTIONAL, newLight.Type());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0), newLight.Pose());
   /// \todo(anyone) add pose frame fields in ign-msgs?
-  // EXPECT_EQ("world", newLight.PoseFrame());
+  // EXPECT_EQ("world", newLight.PoseRelativeTo());
   EXPECT_TRUE(newLight.CastShadows());
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1.0f), newLight.Diffuse());
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1.0f), newLight.Specular());
@@ -406,7 +406,7 @@ TEST(Conversions, JointAxis)
 {
   sdf::JointAxis jointAxis;
   jointAxis.SetXyz(math::Vector3d(1, 2, 3));
-  jointAxis.SetUseParentModelFrame(true);
+  jointAxis.SetXyzExpressedIn("__model__");
   jointAxis.SetDamping(0.1);
   jointAxis.SetFriction(0.2);
   jointAxis.SetLower(0.3);
@@ -422,7 +422,7 @@ TEST(Conversions, JointAxis)
   EXPECT_DOUBLE_EQ(0.4, axisMsg.limit_upper());
   EXPECT_DOUBLE_EQ(0.5, axisMsg.limit_effort());
   EXPECT_DOUBLE_EQ(0.6, axisMsg.limit_velocity());
-  EXPECT_TRUE(axisMsg.use_parent_model_frame());
+  EXPECT_EQ(axisMsg.xyz_expressed_in(), "__model__");
 
   auto newJointAxis = convert<sdf::JointAxis>(axisMsg);
   EXPECT_EQ(math::Vector3d(1, 2, 3), newJointAxis.Xyz());
@@ -432,7 +432,7 @@ TEST(Conversions, JointAxis)
   EXPECT_DOUBLE_EQ(0.4, newJointAxis.Upper());
   EXPECT_DOUBLE_EQ(0.5, newJointAxis.Effort());
   EXPECT_DOUBLE_EQ(0.6, newJointAxis.MaxVelocity());
-  EXPECT_TRUE(newJointAxis.UseParentModelFrame());
+  EXPECT_EQ(newJointAxis.XyzExpressedIn(), "__model__");
 }
 
 /////////////////////////////////////////////////
