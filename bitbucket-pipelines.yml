@@ -33,8 +33,10 @@ pipelines:
               # libignition-sensors2-dev
           # METHOD 2: Build from source
           # Build dependencies from source using a given branch
+          - docker/scripts/build_ign.sh ignitionrobotics ign-msgs default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-transport default
           - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-gui msgs5_transport8
           - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
           # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
