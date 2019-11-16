@@ -461,7 +461,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
 
-        const sdf::Collision& collision = _collElement->Data();
+        // Make a copy of the collision DOM so we can set its pose which has
+        // been resolved and is now expressed w.r.t the parent link of the
+        // collision.
+        sdf::Collision collision = _collElement->Data();
+        collision.SetPose(_pose->Data());
 
         ShapePtrType collisionPtrPhys;
         if (_geom->Data().Type() == sdf::GeometryType::MESH)

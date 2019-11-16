@@ -33,7 +33,7 @@ endif()
 #============================================================================
 
 ign_find_package(sdformat9 REQUIRED VERSION 9.0)
-set(SDFORMAT_VER ${sdformat9_VERSION_MAJOR})
+set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
