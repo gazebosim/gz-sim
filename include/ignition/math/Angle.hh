@@ -97,6 +97,9 @@ namespace ignition
       /// \param[in] _angle Angle to copy
       public: Angle(const Angle &_angle);
 
+      /// \brief Assignment operator
+      public: constexpr Angle& operator=(const Angle&) = default;
+
       /// \brief Destructor
       public: virtual ~Angle();
 
