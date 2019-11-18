@@ -85,7 +85,7 @@ COMMANDS = { 'gazebo' =>
   "                              arguments for level 3.                     \n"\
   "\n"\
   "  --gui-config [arg]          Ignition GUI configuration file to load.   \n"\
-  "                              If no config is given, the configuration on\n"\
+  "                              If no config is given, the configuration in\n"\
   "                              the SDF file is used. And if that's not    \n"\
   "                              provided, the default installed config is  \n"\
   "                              used.                                      \n"\
