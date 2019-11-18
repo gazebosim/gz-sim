@@ -46,7 +46,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED VERSION 5.0)
+ign_find_package(ignition-msgs5 REQUIRED)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
