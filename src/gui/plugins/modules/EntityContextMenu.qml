@@ -25,6 +25,11 @@ Item {
       text: "Follow"
       onTriggered: context.OnRequest("follow", context.entity)
     }
+    MenuItem {
+      id: removeMenu
+      text: "Remove"
+      onTriggered: context.OnRemove("remove", context.entity, context.type)
+    }
   }
 
   function open(_entity, _type) {
@@ -34,6 +39,7 @@ Item {
     context.type = _type
     moveToMenu.enabled = false
     followMenu.enabled = false
+    removeMenu.enabled = false
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -42,6 +48,7 @@ Item {
     {
       moveToMenu.enabled = true
       followMenu.enabled = true
+      removeMenu.enabled = true
     }
 
     menu.open()
