@@ -22,17 +22,19 @@ pipelines:
               libignition-common3-dev
               libignition-fuel-tools3-dev
               libignition-math6-eigen3-dev
-              libignition-msgs4-dev
               libignition-plugin-dev
               libignition-physics-dev
               libignition-tools-dev
-              libignition-transport7-dev
               libsdformat8-dev
-              # libignition-gui2-dev
-              # libignition-rendering2-dev
-              # libignition-sensors2-dev
+              # libignition-gui3-dev
+              # libignition-msgs5-dev
+              # libignition-rendering3-dev
+              # libignition-sensors3-dev
+              # libignition-transport8-dev
           # METHOD 2: Build from source
           # Build dependencies from source using a given branch
+          - docker/scripts/build_ign.sh ignitionrobotics ign-msgs default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-transport default
           - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
           - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
           - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
@@ -71,19 +73,23 @@ pipelines:
                 libignition-cmake2-dev
                 libignition-common3-dev
                 libignition-fuel-tools3-dev
-                libignition-gui2-dev
                 libignition-math6-eigen3-dev
-                libignition-msgs4-dev
                 libignition-plugin-dev
                 libignition-physics-dev
-                libignition-rendering2-dev
-                libignition-sensors2-dev
                 libignition-tools-dev
-                libignition-transport7-dev
                 libsdformat8-dev
+            # libignition-gui3-dev
+            # libignition-msgs5-dev
+            # libignition-rendering3-dev
+            # libignition-sensors3-dev
+            # libignition-transport8-dev
             # Build some Ignition libraries from source.
             # Build ign-rendering from source using the default branch
-            # - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+            - docker/scripts/build_ign.sh ignitionrobotics ign-msgs default
+            - docker/scripts/build_ign.sh ignitionrobotics ign-transport default
+            - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+            - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
+            - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
             # Build Ignition Gazebo
             - mkdir build
             - cd build
