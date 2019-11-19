@@ -31,6 +31,7 @@
 #include <ignition/msgs/world_stats.pb.h>
 
 #include <chrono>
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Inertial.hh>

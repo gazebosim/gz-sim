@@ -66,25 +66,31 @@ msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
 
   if (_in == "light") {
     return msgs::Entity_Type_LIGHT;
-  } 
-  else if (_in == "model") {
+  }
+  else if (_in == "model")
+  {
     return msgs::Entity_Type_MODEL;
-  } 
-  else if (_in == "link") {
+  }
+  else if (_in == "link")
+  {
     return msgs::Entity_Type_LINK;
-  } 
-  else if (_in == "visual") {
+  }
+  else if (_in == "visual")
+  {
     return msgs::Entity_Type_VISUAL;
-  } 
-  else if (_in == "collision") {
+  }
+  else if (_in == "collision")
+  {
     return msgs::Entity_Type_COLLISION;
-  } 
-  else if (_in == "sensor") {
+  }
+  else if (_in == "sensor")
+  {
     return msgs::Entity_Type_SENSOR;
-  } 
-  else if (_in == "joint") {
+  }
+  else if (_in == "joint")
+  {
     return msgs::Entity_Type_JOINT;
-  } 
+  }
 
   return out;
 }
