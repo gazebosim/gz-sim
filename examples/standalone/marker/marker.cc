@@ -53,16 +53,21 @@ int main(int _argc, char **_argv)
   // The rest of this function adds different shapes and/or modifies shapes.
   // Read the terminal statements to figure out what each node.Request
   // call accomplishes.
-  std::cout << "Spawning a sphere at the origin with lifetime 2s\n";
+  std::cout << "Spawning a blue sphere with lifetime 2s\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
-                      ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
+                      ignition::math::Pose3d(2, 2, 0, 0, 0, 0));
   node.Request("/marker", markerMsg);
   std::cout << "Sleeping for 2 seconds\n";
   ignition::common::Time::Sleep(ignition::common::Time(2));
 
-  std::cout << "Spawning a sphere at the origin with no lifetime\n";
+  std::cout << "Spawning a black sphere at the origin with no lifetime\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
+  markerMsg.set_id(1);
+  ignition::msgs::Set(markerMsg.mutable_pose(),
+                      ignition::math::Pose3d::Zero);
+  markerMsg.mutable_material()->mutable_ambient()->set_b(0);
+  markerMsg.mutable_material()->mutable_diffuse()->set_b(0);
   markerMsg.mutable_lifetime()->set_sec(0);
   node.Request("/marker", markerMsg);
 
@@ -96,7 +101,7 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_diffuse()->set_g(1);
   markerMsg.mutable_material()->mutable_diffuse()->set_b(0);
   ignition::common::Time::Sleep(ignition::common::Time(4));
-  markerMsg.set_id(1);
+  markerMsg.set_id(2);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::BOX);
   ignition::msgs::Set(markerMsg.mutable_scale(),
@@ -112,7 +117,7 @@ int main(int _argc, char **_argv)
 
   std::cout << "Connecting the sphere and cylinder with a line\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
-  markerMsg.set_id(2);
+  markerMsg.set_id(3);
   ignition::msgs::Set(markerMsg.mutable_pose(),
                     ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
@@ -125,7 +130,7 @@ int main(int _argc, char **_argv)
 
   std::cout << "Adding a square around the origin\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
-  markerMsg.set_id(3);
+  markerMsg.set_id(4);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::LINE_STRIP);
   ignition::msgs::Set(markerMsg.mutable_point(0),
@@ -142,7 +147,7 @@ int main(int _argc, char **_argv)
 
   std::cout << "Adding 100 points inside the square\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
-  markerMsg.set_id(4);
+  markerMsg.set_id(5);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::POINTS);
   markerMsg.clear_point();
