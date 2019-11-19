@@ -78,7 +78,8 @@ EntityContextMenu::EntityContextMenu()
 EntityContextMenu::~EntityContextMenu() = default;
 
 /////////////////////////////////////////////////
-void EntityContextMenu::OnRemove(const QString &_request, const QString &_data, const QString &_type)
+void EntityContextMenu::OnRemove(const QString &_request,
+  const QString &_data, const QString &_type)
 {
   if (this->dataPtr->worldName.empty())
   {
@@ -101,7 +102,8 @@ void EntityContextMenu::OnRemove(const QString &_request, const QString &_data, 
       this->dataPtr->worldName = worldNameVariant.toString().toStdString();
     }
 
-    this->dataPtr->removeService = "/world/" + this->dataPtr->worldName + "/remove";
+    this->dataPtr->removeService =
+      "/world/" + this->dataPtr->worldName + "/remove";
   }
 
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
