@@ -172,6 +172,33 @@
       <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Rescue Randy</uri>
     </include>
 
+    <!-- Tube Light -->
+    <include>
+      <static>true</static>
+      <name>Tube Light</name>
+      <pose>1.5 0 3 0 0.78 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tube Light</uri>
+    </include>
+
+    <light type="spot" name="tube_light">
+      <cast_shadows>false</cast_shadows>
+      <pose>1.48 0 2.96 0 0.78 0</pose>
+      <attenuation>
+        <range>50</range>
+        <linear>0</linear>
+        <constant>0.5</constant>
+        <quadratic>0.0055</quadratic>
+      </attenuation>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <spot>
+        <inner_angle>1</inner_angle>
+        <outer_angle>1.1</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+      <direction>1.0 0.0 0.0</direction>
+    </light>
+
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
