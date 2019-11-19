@@ -251,9 +251,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
   {
     if (!app.LoadConfig(_guiConfig))
     {
-      ignerr << "Failed to load config file[" << _guiConfig << "]."
-             << std::endl;
-      return -1;
+      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+              << std::endl;
     }
 
     // Use the first world name with the config file
