@@ -7,6 +7,9 @@
 1. Add Marker Manager
     * [Pull Request 442](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/442)
 
+1. Parse material emissive map, bump to msgs5 and transport8
+    * [Pull Request 447](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/447)
+
 1. Move function definitions to their correct locations in EntityComponentManager
     * [Pull Request 380](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/380)
 
