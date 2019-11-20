@@ -43,6 +43,13 @@ Angle::Angle(const Angle &_angle)
 }
 
 //////////////////////////////////////////////////
+Angle& Angle::operator=(const Angle &_angle)
+{
+  this->value = _angle.value;
+  return *this;
+}
+
+//////////////////////////////////////////////////
 Angle::~Angle()
 {
 }
