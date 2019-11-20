@@ -37,24 +37,6 @@ Angle::Angle(const double _radian)
 }
 
 //////////////////////////////////////////////////
-Angle::Angle(const Angle &_angle)
-{
-  this->value = _angle.value;
-}
-
-//////////////////////////////////////////////////
-Angle& Angle::operator=(const Angle &_angle)
-{
-  this->value = _angle.value;
-  return *this;
-}
-
-//////////////////////////////////////////////////
-Angle::~Angle()
-{
-}
-
-//////////////////////////////////////////////////
 void Angle::Radian(double _radian)
 {
   this->value = _radian;
