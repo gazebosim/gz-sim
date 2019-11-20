@@ -144,6 +144,18 @@ TEST(Conversions, Gui)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, Entity)
+{
+  std::string model = "model";
+  auto entity_type = convert<msgs::Entity_Type>(model);
+  EXPECT_EQ(msgs::Entity_Type_MODEL, entity_type);
+
+  std::string empty = "";
+  auto entity_type2 = convert<msgs::Entity_Type>(empty);
+  EXPECT_EQ(msgs::Entity_Type_NONE, entity_type2);
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Time)
 {
   std::chrono::steady_clock::duration duration{2ms};
