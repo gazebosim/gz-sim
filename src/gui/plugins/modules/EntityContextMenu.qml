@@ -28,7 +28,7 @@ Item {
     MenuItem {
       id: removeMenu
       text: "Remove"
-      onTriggered: context.OnRemove("remove", context.entity, context.type)
+      onTriggered: context.OnRemove(context.entity, context.type)
     }
   }
 

@@ -78,7 +78,7 @@ EntityContextMenu::EntityContextMenu()
 EntityContextMenu::~EntityContextMenu() = default;
 
 /////////////////////////////////////////////////
-void EntityContextMenu::OnRemove(const QString &_request,
+void EntityContextMenu::OnRemove(
   const QString &_data, const QString &_type)
 {
   if (this->dataPtr->worldName.empty())
@@ -107,25 +107,17 @@ void EntityContextMenu::OnRemove(const QString &_request,
   }
 
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      [](const ignition::msgs::Boolean &_rep, const bool _result)
   {
-    if (!_result)
-      ignerr << "Error sending move to request" << std::endl;
+    if (!_result || !_rep.data())
+      ignerr << "Error sending remove request" << std::endl;
   };
 
-  std::string request = _request.toStdString();
-  if (request == "remove")
-  {
-    ignition::msgs::Entity req;
-    req.set_name(_data.toStdString());
-    req.set_type(convert<msgs::Entity_Type>(_type.toStdString()));
+  ignition::msgs::Entity req;
+  req.set_name(_data.toStdString());
+  req.set_type(convert<msgs::Entity_Type>(_type.toStdString()));
 
-    this->dataPtr->node.Request(this->dataPtr->removeService, req, cb);
-  }
-  else
-  {
-    ignwarn << "Unknown request [" << request << "]" << std::endl;
-  }
+  this->dataPtr->node.Request(this->dataPtr->removeService, req, cb);
 }
 
 /////////////////////////////////////////////////
