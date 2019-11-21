@@ -17,6 +17,9 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
+#include <memory>
+#include <vector>
+
 #include <sdf/Element.hh>
 #include <sdf/Root.hh>
 
@@ -110,7 +113,6 @@ namespace systems
 
     /// \brief Mutex to protect pending commands
     private: std::mutex pendingCmdsMutex;
-
   };
   }
 }

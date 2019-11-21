@@ -15,11 +15,11 @@
  *
  */
 
+#include <ignition/msgs/empty.pb.h>
+
 #include <iterator>
 
 #include <ignition/common/Profiler.hh>
-
-#include <ignition/msgs/empty.pb.h>
 
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
