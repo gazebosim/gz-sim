@@ -85,6 +85,7 @@ class Relay
   private: SystemLoader loader;
   private: MockSystem *mockSystem;
 };
+
 /////////////////////////////////////////////////
 // The test checks breadcrumbs are deployed at the correct pose
 TEST_F(BreadcrumbsTest, DeployAtOffset)
@@ -114,7 +115,7 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
   {
     // Start moving the vehicle
     // After 1000 iterations, stop the vehicle, spawn a breadcrumb
-    // Check that the pose of the breadcrumb
+    // Check the pose of the breadcrumb
     if (_info.iterations == iterTestStart)
     {
       msgs::Twist msg;
@@ -142,11 +143,12 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
       ASSERT_NE(poseVehicle , nullptr);
 
       EXPECT_GT(poseVehicle->Data().Pos().X(), 0.4);
-      // The first breadcrumb 
-      Entity B1 = _ecm.EntityByComponents(components::Model(),
+
+      // The first breadcrumb
+      Entity b1 = _ecm.EntityByComponents(components::Model(),
                                           components::Name("B1_0"));
-      ASSERT_NE(B1, kNullEntity);
-      auto poseB1 = _ecm.Component<components::Pose>(B1);
+      ASSERT_NE(b1, kNullEntity);
+      auto poseB1 = _ecm.Component<components::Pose>(b1);
 
       ASSERT_NE(poseB1, nullptr);
 
@@ -223,9 +225,8 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
   server.Run(true, iterTestStart + 5001, false);
 }
 
-
 /////////////////////////////////////////////////
-// The test checks that including models from fuel works. Also checks custom 
+// The test checks that including models from fuel works. Also checks custom
 // topic
 TEST_F(BreadcrumbsTest, FuelDeploy)
 {

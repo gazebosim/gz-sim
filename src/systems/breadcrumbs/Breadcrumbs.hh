@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/math/Pose3.hh>
 
-#include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -37,14 +37,14 @@ namespace systems
 {
   /// \brief A system for creating Breadcrumbs in the form of models that can
   /// get deployed/spawned at the location of the model to which this system is
-  /// attached. Each breadcrumb is a complete sdf::Model. When deployed, the 
-  /// pose of the breadcrumb model is offset from the containing model by the 
-  /// pose specified in the <pose> element of the breadcrumb model. A name is 
-  /// generated for the breadcrumb by appending the current count of deployments 
-  /// to the name specified in the breadcrumb <model> element. The model 
-  /// specified in the <breadcrumb> parameter serves as a template for deploying 
-  /// multiple breadcrumbs of the same type. Including models from Fuel is 
-  /// accomplished by creating a <model> that includes the Fuel model using the 
+  /// attached. Each breadcrumb is a complete sdf::Model. When deployed, the
+  /// pose of the breadcrumb model is offset from the containing model by the
+  /// pose specified in the <pose> element of the breadcrumb model. A name is
+  /// generated for the breadcrumb by appending the current count of deployments
+  /// to the name specified in the breadcrumb <model> element. The model
+  /// specified in the <breadcrumb> parameter serves as a template for deploying
+  /// multiple breadcrumbs of the same type. Including models from Fuel is
+  /// accomplished by creating a <model> that includes the Fuel model using the
   /// <include> tag. See the example in examples/worlds/breadcrumbs.sdf.
   ///
   /// System Paramters
@@ -57,7 +57,7 @@ namespace systems
   /// deployed. Once this many are deployed, publishing on the deploy topic will
   /// have no effect. If a negative number is set, the maximun deployment will
   /// be unbounded.
-  /// `<breadcrumb>`: This is the model used as a template for deploying 
+  /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
   class IGNITION_GAZEBO_VISIBLE Breadcrumbs
       : public System,
@@ -105,7 +105,7 @@ namespace systems
     /// \brief sdf::Root of the model to be deployed
     private: sdf::Root modelRoot;
 
-    /// \brief pending commands
+    /// \brief Pending commands
     private: std::vector<bool> pendingCmds;
 
     /// \brief Mutex to protect pending commands

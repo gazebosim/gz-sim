@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,8 @@
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
 
-#include "ignition/gazebo/EventManager.hh"
-
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
 
 #include "Breadcrumbs.hh"
 
@@ -61,8 +56,8 @@ void Breadcrumbs::Configure(const Entity &_entity,
   }
 
   auto sdfElem = breadcrumb->GetElementImpl("sdf");
-  // We can't load the model directly because it won't go through the SDF 
-  // validation process, so we first convert to text, append <sdf> tags and 
+  // We can't load the model directly because it won't go through the SDF
+  // validation process, so we first convert to text, append <sdf> tags and
   // call Root::LoadSdfString
   sdf::Errors errors = this->modelRoot.LoadSdfString(sdfElem->ToString(""));
   if (!errors.empty())
