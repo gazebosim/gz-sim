@@ -257,7 +257,7 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
   {
     // Start moving the vehicle
     // Every 500 iterations, deploy
-    // After 5000 iterations, check the number of breadcrumbs deployed
+    // After 3500 iterations, check the number of breadcrumbs deployed
     if ((_info.iterations + iterTestStart + 1) % 500 == 0)
     {
       if (deployCount < maxDeployments)

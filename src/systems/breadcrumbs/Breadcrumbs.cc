@@ -57,8 +57,8 @@ void Breadcrumbs::Configure(const Entity &_entity,
 
   auto sdfElem = breadcrumb->GetElementImpl("sdf");
   // We can't load the model directly because it won't go through the SDF
-  // validation process, so we first convert to text, append <sdf> tags and
-  // call Root::LoadSdfString
+  // validation process, so we first convert to text and call
+  // Root::LoadSdfString
   sdf::Errors errors = this->modelRoot.LoadSdfString(sdfElem->ToString(""));
   if (!errors.empty())
   {
@@ -113,12 +113,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
     }
 
     auto poseComp = _ecm.Component<components::Pose>(this->model.Entity());
-    if (!poseComp)
-    {
-      ignerr << "Pose component missing for model "
-             << this->model.Name(_ecm) << "[" << this->model.Entity() << "]"
-             << std::endl;
-    }
+
     for (std::size_t i = 0; i < cmds.size(); ++i)
     {
       if (this->maxDeployments < 0 ||
@@ -133,6 +128,12 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
         Entity entity = this->creator->CreateEntities(&modelToSpawn);
         this->creator->SetParent(entity, this->worldEntity);
         ++this->numDeployments;
+      }
+      else
+      {
+        ignmsg << "Asked to deploy " << this->modelRoot.ModelByIndex(0)->Name()
+               << " but the maximum number of deployments has reached the "
+               << "limit of " << this->maxDeployments << std::endl;
       }
     }
   }
