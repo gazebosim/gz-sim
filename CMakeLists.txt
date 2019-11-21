@@ -32,7 +32,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED VERSION 8.4)
+ign_find_package(sdformat9 REQUIRED)
 
 #--------------------------------------
 # Find ignition-plugin
@@ -56,9 +56,9 @@ ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events av)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-fuel_tools3
-ign_find_package(ignition-fuel_tools3 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
+# Find ignition-fuel_tools
+ign_find_package(ignition-fuel_tools4 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
@@ -74,15 +74,15 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics1
+ign_find_package(ignition-physics2
   COMPONENTS
     mesh
     sdf
     dartsim
     dartsim-plugin
   REQUIRED
-  VERSION 1.4)
-set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
+)
+set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
