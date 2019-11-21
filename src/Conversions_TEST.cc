@@ -147,12 +147,12 @@ TEST(Conversions, Gui)
 TEST(Conversions, Entity)
 {
   std::string model = "model";
-  auto entity_type = convert<msgs::Entity_Type>(model);
-  EXPECT_EQ(msgs::Entity_Type_MODEL, entity_type);
+  auto entityType = convert<msgs::Entity_Type>(model);
+  EXPECT_EQ(msgs::Entity_Type_MODEL, entityType);
 
   std::string empty = "";
-  auto entity_type2 = convert<msgs::Entity_Type>(empty);
-  EXPECT_EQ(msgs::Entity_Type_NONE, entity_type2);
+  auto entityType2 = convert<msgs::Entity_Type>(empty);
+  EXPECT_EQ(msgs::Entity_Type_NONE, entityType2);
 }
 
 /////////////////////////////////////////////////

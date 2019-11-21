@@ -448,8 +448,8 @@ namespace ignition
     template<>
     sdf::Collision convert(const msgs::Collision &_in);
 
-    /// \brief Generic conversion from a string message to another type.
-    /// \param[in] _in string message.
+    /// \brief Generic conversion from a string to another type.
+    /// \param[in] _in string.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
