@@ -84,6 +84,12 @@ COMMANDS = { 'gazebo' =>
   "                              The default verbosity is 1, use -v without \n"\
   "                              arguments for level 3.                     \n"\
   "\n"\
+  "  --gui-config [arg]          Ignition GUI configuration file to load.   \n"\
+  "                              If no config is given, the configuration in\n"\
+  "                              the SDF file is used. And if that's not    \n"\
+  "                              provided, the default installed config is  \n"\
+  "                              used.                                      \n"\
+  "\n"\
   "  --version                   Print Gazebo version information.          \n"\
   "\n"\
   "  -z [arg]                    Update rate in Hertz.                      \n"\
@@ -149,7 +155,8 @@ class Cmd
       'playback' => '',
       'run' => 0,
       'server' => 0,
-      'verbose' => '1'
+      'verbose' => '1',
+      'gui_config' => ''
     }
 
     usage = COMMANDS[args[0]]
@@ -197,6 +204,9 @@ class Cmd
       end
       opts.on('-v [verbose]', '--verbose [verbose]', String) do |v|
         options['verbose'] = v || '3'
+      end
+      opts.on('--gui-config [arg]', String) do |c|
+        options['gui_config'] = c
       end
       opts.on('--version') do
         options['version'] = '1'
@@ -304,7 +314,7 @@ class Cmd
                                const char *, const char *)'
 
       # Import the runGui function
-      Importer.extern 'int runGui()'
+      Importer.extern 'int runGui(const char *)'
 
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
@@ -322,7 +332,7 @@ class Cmd
         guiPid = Process.fork do
           ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
-          Importer.runGui()
+          Importer.runGui(options['gui_config'])
         end
 
         Signal.trap("INT") {
@@ -350,7 +360,7 @@ class Cmd
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'
-        Importer.runGui
+        Importer.runGui(options['gui_config'])
       end
     rescue
       puts "Library error: Problem running [#{options['command']}]() "\
