@@ -38,6 +38,7 @@
 #include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -443,18 +444,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -578,18 +583,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);

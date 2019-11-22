@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Parse visual cast shadows and add CastShadows component
+    * [Pull Request 453](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/453)
+
 1.  Update SceneBroadcaster to publish state msg for world with only static models
     * [Pull Request 450](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/450)
 

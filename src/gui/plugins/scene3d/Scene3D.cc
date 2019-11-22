@@ -1274,7 +1274,6 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
          << this->dataPtr->followService << "]" << std::endl;
 }
 
-
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
