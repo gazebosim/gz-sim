@@ -246,6 +246,7 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    ShowGrid(this->dataPtr->scene);
     // only one scene so break
     break;
   }
@@ -862,6 +863,34 @@ void RenderUtil::SetBackgroundColor(const math::Color &_color)
 void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 {
   this->dataPtr->ambientLight  = _ambient;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ShowGrid(rendering::ScenePtr _scene)
+{
+  rendering::VisualPtr root = _scene->RootVisual();
+
+  // create gray material
+  rendering::MaterialPtr gray = _scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
+
+  // create grid visual
+  rendering::VisualPtr visual = _scene->CreateVisual();
+  rendering::GridPtr grid = _scene->CreateGrid();
+  if (!grid)
+  {
+    ignwarn << "Grid is not implemented." << std::endl;
+    return;
+  }
+  grid->SetCellCount(20);
+  grid->SetCellLength(1);
+  grid->SetVerticalCellCount(0);
+  visual->AddGeometry(grid);
+  visual->SetLocalPosition(3, 0, 0.0);
+  visual->SetMaterial(gray);
+  root->AddChild(visual);
 }
 
 /////////////////////////////////////////////////
