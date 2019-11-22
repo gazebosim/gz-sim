@@ -153,7 +153,7 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
       ASSERT_NE(poseB1, nullptr);
 
       auto poseDiff = poseVehicle->Data().Inverse() * poseB1->Data();
-      EXPECT_NEAR(poseDiff.Pos().X(), -1.2, 1e-3);
+      EXPECT_NEAR(poseDiff.Pos().X(), -1.2, 1e-2);
     }
   });
 
