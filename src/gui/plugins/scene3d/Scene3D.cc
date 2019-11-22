@@ -53,6 +53,8 @@
 
 #include "Scene3D.hh"
 
+Q_DECLARE_METATYPE(std::string)
+
 namespace ignition
 {
 namespace gazebo
@@ -274,6 +276,60 @@ void IgnRenderer::Render()
   // view control
   this->HandleMouseEvent();
 
+  // Follow
+  {
+    IGN_PROFILE("IgnRenderer::Render Follow");
+    if (!this->dataPtr->moveToTarget.empty())
+      return;
+    rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
+    if (!this->dataPtr->followTarget.empty())
+    {
+      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      rendering::NodePtr target = scene->NodeByName(
+          this->dataPtr->followTarget);
+      if (target)
+      {
+        if (!followTarget || target != followTarget)
+        {
+          this->dataPtr->camera->SetFollowTarget(target,
+              this->dataPtr->followOffset,
+              this->dataPtr->followWorldFrame);
+          this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
+
+          this->dataPtr->camera->SetTrackTarget(target);
+          // found target, no need to wait anymore
+          this->dataPtr->followTargetWait = false;
+        }
+        else if (this->dataPtr->followOffsetDirty)
+        {
+          math::Vector3d offset =
+              this->dataPtr->camera->WorldPosition() - target->WorldPosition();
+          if (!this->dataPtr->followWorldFrame)
+          {
+            offset = target->WorldRotation().RotateVectorReverse(offset);
+          }
+          this->dataPtr->camera->SetFollowOffset(offset);
+          this->dataPtr->followOffsetDirty = false;
+        }
+      }
+      else if (!this->dataPtr->followTargetWait)
+      {
+        ignerr << "Unable to follow target. Target: '"
+               << this->dataPtr->followTarget << "' not found" << std::endl;
+        this->dataPtr->followTarget.clear();
+        this->dataPtr->camera->SetFollowTarget(nullptr);
+        this->dataPtr->camera->SetTrackTarget(nullptr);
+        emit FollowTargetChanged(std::string(), false);
+      }
+    }
+    else if (followTarget)
+    {
+      this->dataPtr->camera->SetFollowTarget(nullptr);
+      this->dataPtr->camera->SetTrackTarget(nullptr);
+    }
+  }
+
+
   // update and render to texture
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
@@ -347,53 +403,6 @@ void IgnRenderer::Render()
     }
   }
 
-  // Follow
-  {
-    IGN_PROFILE("IgnRenderer::Render Follow");
-    if (!this->dataPtr->moveToTarget.empty())
-      return;
-    rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
-    if (!this->dataPtr->followTarget.empty())
-    {
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
-      rendering::NodePtr target = scene->NodeByName(
-          this->dataPtr->followTarget);
-      if (target)
-      {
-        if (!followTarget || target != followTarget)
-        {
-          this->dataPtr->camera->SetFollowTarget(target,
-              this->dataPtr->followOffset,
-              this->dataPtr->followWorldFrame);
-          this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
-
-          this->dataPtr->camera->SetTrackTarget(target);
-        }
-        else if (this->dataPtr->followOffsetDirty)
-        {
-          math::Vector3d offset =
-              this->dataPtr->camera->WorldPosition() - target->WorldPosition();
-          if (!this->dataPtr->followWorldFrame)
-          {
-            offset = target->WorldRotation().RotateVectorReverse(offset);
-          }
-          this->dataPtr->camera->SetFollowOffset(offset);
-          this->dataPtr->followOffsetDirty = false;
-        }
-      }
-      else if (!this->dataPtr->followTargetWait)
-      {
-        ignerr << "Unable to follow target. Target: '"
-               << this->dataPtr->followTarget << "' not found" << std::endl;
-        this->dataPtr->followTarget.clear();
-      }
-    }
-    else if (followTarget)
-    {
-      this->dataPtr->camera->SetFollowTarget(nullptr);
-      this->dataPtr->camera->SetTrackTarget(nullptr);
-    }
-  }
 }
 
 /////////////////////////////////////////////////
@@ -868,6 +877,7 @@ math::Vector3d IgnRenderer::ScreenToScene(
 RenderThread::RenderThread()
 {
   RenderWindowItemPrivate::threads << this;
+  qRegisterMetaType<std::string>();
 }
 
 /////////////////////////////////////////////////
@@ -1007,6 +1017,10 @@ void RenderWindowItem::Ready()
   this->connect(&this->dataPtr->renderThread->ignRenderer,
       &IgnRenderer::ContextMenuRequested,
       this, &RenderWindowItem::OnContextMenuRequested, Qt::QueuedConnection);
+
+  this->connect(&this->dataPtr->renderThread->ignRenderer,
+      &IgnRenderer::FollowTargetChanged,
+      this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
 
