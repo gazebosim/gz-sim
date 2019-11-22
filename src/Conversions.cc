@@ -61,6 +61,21 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 template<>
+math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
+{
+  math::Pose3d out(_in.position().x(),
+                   _in.position().y(),
+                   _in.position().z(),
+                   _in.orientation().w(),
+                   _in.orientation().x(),
+                   _in.orientation().y(),
+                   _in.orientation().z());
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
