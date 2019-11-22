@@ -92,6 +92,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
+    /// \brief Show grid view in the scene
+    /// \param[in] _scene Pointer to the scene object
+    public: void ShowGrid(rendering::ScenePtr scene);
+
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
