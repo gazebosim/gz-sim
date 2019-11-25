@@ -33,6 +33,7 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
@@ -246,7 +247,8 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
-    ShowGrid(this->dataPtr->scene);
+    if (scene.Grid())
+      ShowGrid(this->dataPtr->scene);
     // only one scene so break
     break;
   }
@@ -849,6 +851,7 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+    ShowGrid(this->dataPtr->scene);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
 }
@@ -878,16 +881,16 @@ void RenderUtil::ShowGrid(rendering::ScenePtr _scene)
 
   // create grid visual
   rendering::VisualPtr visual = _scene->CreateVisual();
-  rendering::GridPtr grid = _scene->CreateGrid();
-  if (!grid)
+  rendering::GridPtr gridGeom = _scene->CreateGrid();
+  if (!gridGeom)
   {
-    ignwarn << "Grid is not implemented." << std::endl;
+    ignwarn << "Grid is not implemented in ogre2." << std::endl;
     return;
   }
-  grid->SetCellCount(20);
-  grid->SetCellLength(1);
-  grid->SetVerticalCellCount(0);
-  visual->AddGeometry(grid);
+  gridGeom->SetCellCount(20);
+  gridGeom->SetCellLength(1);
+  gridGeom->SetVerticalCellCount(0);
+  visual->AddGeometry(gridGeom);
   visual->SetLocalPosition(3, 0, 0.0);
   visual->SetMaterial(gray);
   root->AddChild(visual);
