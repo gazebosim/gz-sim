@@ -63,7 +63,6 @@ sudo apt-get install -y \
 
 # ign-gazebo dependencies
 sudo apt-get install -y \
-  libgflags-dev \
   qml-module-qtqml-models2
 
 sudo apt-get clean

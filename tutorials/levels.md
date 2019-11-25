@@ -233,7 +233,7 @@ successfuly added.
 1. Run the `levels_no_performer.sdf` world in a terminal.
 
 ```
-ign-gazebo -f levels_no_performers.sdf -v 4 --levels
+ign gazebo levels_no_performers.sdf -v 4 --levels
 ```
 
 2. In another terminal call the add performer service.

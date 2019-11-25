@@ -16,7 +16,6 @@ add_executable(
 
 target_link_libraries(
   PERFORMANCE_sdf_runner
-    gflags
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
     ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
