@@ -15,8 +15,6 @@
  *
  */
 
-#include <gflags/gflags.h>
-
 #include <array>
 
 #include <ignition/msgs.hh>
@@ -32,56 +30,42 @@
 using namespace ignition;
 using namespace gazebo;
 
-DEFINE_int32(verbose, 1, "");
-DEFINE_int32(v, 1, "");
-DEFINE_double(z, -1, "Update rate in Hertz.");
-DEFINE_uint64(iterations, 10000, "Number of iterations to execute.");
-DEFINE_string(f, "", "Load an SDF file on start.");
-
-//////////////////////////////////////////////////
-static bool VerbosityValidator(const char */*_flagname*/, int _value)
-{
-  return _value >= 0 && _value <= 4;
-}
-
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)
 {
-  // Register validators
-  gflags::RegisterFlagValidator(&FLAGS_verbose, &VerbosityValidator);
-  gflags::RegisterFlagValidator(&FLAGS_v, &VerbosityValidator);
+  ignition::common::Console::SetVerbosity(4);
 
-  // Parse command line
-  gflags::AllowCommandLineReparsing();
-  gflags::ParseCommandLineNonHelpFlags(&_argc, &_argv, true);
-
-  // Hold info as we parse it
-  gflags::CommandLineFlagInfo info;
-
-  // Verbosity
-  gflags::GetCommandLineFlagInfo("verbose", &info);
-  if (info.is_default)
+  std::string sdfFile{""};
+  if (_argc >= 2)
   {
-    gflags::GetCommandLineFlagInfo("v", &info);
-    if (!info.is_default)
-      FLAGS_verbose = FLAGS_v;
-    else
-      FLAGS_verbose = 1;
+    sdfFile = _argv[1];
   }
+  igndbg << "SDF file: " << sdfFile << std::endl;
 
-  // Set verbosity
-  ignition::common::Console::SetVerbosity(FLAGS_verbose);
+  unsigned int iterations{10000};
+  if (_argc >= 3)
+  {
+    iterations = atoi(_argv[2]);
+  }
+  igndbg << "Iterations: " << iterations << std::endl;
+
+  double updateRate{-1};
+  if (_argc >= 4)
+  {
+    updateRate = atoi(_argv[3]);
+  }
+  igndbg << "Update rate: " << updateRate << std::endl;
 
   ignition::gazebo::ServerConfig serverConfig;
-  if (!serverConfig.SetSdfFile(FLAGS_f))
+  if (!serverConfig.SetSdfFile(sdfFile))
   {
-    ignerr << "Failed to set SDF file [" << FLAGS_f << "]" << std::endl;
+    ignerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
     return -1;
   }
 
   // Set the update rate.
-  if (FLAGS_z > 0.0)
-    serverConfig.SetUpdateRate(FLAGS_z);
+  if (updateRate > 0.0)
+    serverConfig.SetUpdateRate(updateRate);
 
   // Create the Gazebo server
   ignition::gazebo::Server server(serverConfig);
@@ -89,7 +73,7 @@ int main(int _argc, char** _argv)
   ignition::transport::Node node;
 
   std::vector<ignition::msgs::Clock> msgs;
-  msgs.reserve(FLAGS_iterations);
+  msgs.reserve(iterations);
 
   std::function<void(const ignition::msgs::Clock&)> cb =
     [&](const ignition::msgs::Clock &_msg)
@@ -103,7 +87,7 @@ int main(int _argc, char** _argv)
     [&](const ignition::msgs::WorldStatistics &_msg)
     {
       double nIters = _msg.iterations();
-      nIters = nIters / FLAGS_iterations * 100;
+      nIters = nIters / iterations * 100;
       if (nIters >= progress)
       {
         std::cout << "Simulation Progress: " << nIters << "%" << std::endl;
@@ -115,13 +99,13 @@ int main(int _argc, char** _argv)
   node.Subscribe("/stats", cb2);
 
   // Run the server
-  server.Run(true, FLAGS_iterations, false);
+  server.Run(true, iterations, false);
 
   std::ofstream ofs("data.csv", std::ofstream::out);
 
-  ofs << "# Filename: " << FLAGS_f << std::endl;
-  ofs << "# Iterations: " << FLAGS_iterations << std::endl;
-  ofs << "# Rate: " << FLAGS_z << std::endl;
+  ofs << "# Filename: " << sdfFile << std::endl;
+  ofs << "# Iterations: " << iterations << std::endl;
+  ofs << "# Rate: " << updateRate << std::endl;
   ofs << "# Real s, Real ns, sim s, sim ns" << std::endl;
 
   for (auto &msg : msgs)
