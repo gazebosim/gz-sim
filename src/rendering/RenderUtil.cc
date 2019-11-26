@@ -85,7 +85,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
 
   /// \brief Name of rendering engine
-  public: std::string engineName = "ogre2";
+  public: std::string engineName = "ogre";
 
   /// \brief Name of scene
   public: std::string sceneName = "scene";
@@ -98,6 +98,9 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Ambient color
   public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
+
+  /// /brief Enable grid
+  public: bool gridView = true;
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
@@ -247,9 +250,6 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
-    ignwarn << "Please enable/disable <grid> in sdf file."
-      << " It will be required in versions later than blueprint." 
-        << std::endl;
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     // only one scene so break
@@ -854,10 +854,8 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
-    ignwarn << "Please enable/disable <grid> in sdf file."
-      << " It will be required in versions later than blueprint." 
-        << std::endl;
-    if (!this->dataPtr->enableSensors)
+    this->SetGridView(this->dataPtr->gridView);
+    if (this->dataPtr->gridView && !this->dataPtr->enableSensors)
       this->ShowGrid();
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
@@ -873,6 +871,12 @@ void RenderUtil::SetBackgroundColor(const math::Color &_color)
 void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 {
   this->dataPtr->ambientLight  = _ambient;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetGridView(const bool &_enabled)
+{
+  this->dataPtr->gridView  = _enabled;
 }
 
 /////////////////////////////////////////////////
@@ -901,7 +905,7 @@ void RenderUtil::ShowGrid()
   gridGeom->SetCellLength(1);
   gridGeom->SetVerticalCellCount(0);
   visual->AddGeometry(gridGeom);
-  visual->SetLocalPosition(0, 0, 0.015);
+  visual->SetLocalPosition(0, 0, 3);
   visual->SetMaterial(gray);
   root->AddChild(visual);
 }

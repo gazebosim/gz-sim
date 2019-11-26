@@ -1173,6 +1173,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       this->dataPtr->renderUtil->SetBackgroundColor(bgColor);
     }
 
+    if (auto elem = _pluginElem->FirstChildElement("grid"))
+    {
+      bool enabled;
+      std::istringstream(elem->GetText()) >> std::boolalpha >> enabled;
+      this->dataPtr->renderUtil->SetGridView(enabled);
+    }
+
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
     {
       math::Pose3d pose;
