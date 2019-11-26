@@ -48,6 +48,10 @@ Item {
     {
       moveToMenu.enabled = true
       followMenu.enabled = true
+    }
+
+    if (context.type == "model" || context.type == "light")
+    {
       removeMenu.enabled = true
     }
 
