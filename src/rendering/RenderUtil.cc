@@ -247,8 +247,11 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
-    if (scene.Grid())
-      ShowGrid(this->dataPtr->scene);
+    ignwarn << "Please enable/disable <grid> in sdf file."
+      << " It will be required in versions later than blueprint." 
+        << std::endl;
+    if (scene.Grid() && !this->dataPtr->enableSensors)
+      this->ShowGrid();
     // only one scene so break
     break;
   }
@@ -851,7 +854,11 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
-    ShowGrid(this->dataPtr->scene);
+    ignwarn << "Please enable/disable <grid> in sdf file."
+      << " It will be required in versions later than blueprint." 
+        << std::endl;
+    if (!this->dataPtr->enableSensors)
+      this->ShowGrid();
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
 }
@@ -869,29 +876,32 @@ void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::ShowGrid(rendering::ScenePtr _scene)
+void RenderUtil::ShowGrid()
 {
-  rendering::VisualPtr root = _scene->RootVisual();
+  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
 
   // create gray material
-  rendering::MaterialPtr gray = _scene->CreateMaterial();
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
   gray->SetAmbient(0.7, 0.7, 0.7);
   gray->SetDiffuse(0.7, 0.7, 0.7);
   gray->SetSpecular(0.7, 0.7, 0.7);
 
   // create grid visual
-  rendering::VisualPtr visual = _scene->CreateVisual();
-  rendering::GridPtr gridGeom = _scene->CreateGrid();
+  rendering::VisualPtr visual = this->dataPtr->scene->CreateVisual();
+  rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
   if (!gridGeom)
   {
-    ignwarn << "Grid is not implemented in ogre2." << std::endl;
+    ignwarn << "Failed to create grid for scene [" 
+      << this->dataPtr->scene->Name() << "] on engine [" 
+        << this->dataPtr->scene->Engine()->Name() << "]" 
+          << std::endl;
     return;
   }
   gridGeom->SetCellCount(20);
   gridGeom->SetCellLength(1);
   gridGeom->SetVerticalCellCount(0);
   visual->AddGeometry(gridGeom);
-  visual->SetLocalPosition(3, 0, 0.0);
+  visual->SetLocalPosition(0, 0, 0.015);
   visual->SetMaterial(gray);
   root->AddChild(visual);
 }

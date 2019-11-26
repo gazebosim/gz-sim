@@ -94,7 +94,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Show grid view in the scene
     /// \param[in] _scene Pointer to the scene object
-    public: void ShowGrid(rendering::ScenePtr scene);
+    public: void ShowGrid();
 
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
