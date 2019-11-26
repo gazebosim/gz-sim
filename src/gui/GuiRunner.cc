@@ -31,6 +31,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
+  this->setProperty("worldName", QString::fromStdString(_worldName));
   this->stateTopic = "/world/" + _worldName + "/state";
 
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
