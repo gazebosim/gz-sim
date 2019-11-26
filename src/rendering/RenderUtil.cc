@@ -905,7 +905,7 @@ void RenderUtil::ShowGrid()
   gridGeom->SetCellLength(1);
   gridGeom->SetVerticalCellCount(0);
   visual->AddGeometry(gridGeom);
-  visual->SetLocalPosition(0, 0, 3);
+  visual->SetLocalPosition(0, 0, 0.15);
   visual->SetMaterial(gray);
   root->AddChild(visual);
 }
