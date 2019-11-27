@@ -263,6 +263,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
     runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
         &ignition::gazebo::GuiRunner::OnPluginAdded);
     runners.push_back(runner);
+    runner->setParent(ignition::gui::App());
   }
   // GUI configuration from SDF (request to server)
   else
@@ -306,6 +307,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
       auto runner = new ignition::gazebo::GuiRunner(worldName);
       runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
           &ignition::gazebo::GuiRunner::OnPluginAdded);
+      runner->setParent(ignition::gui::App());
       runners.push_back(runner);
     }
     mainWin->configChanged();
