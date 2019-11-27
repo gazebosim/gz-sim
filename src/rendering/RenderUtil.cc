@@ -99,9 +99,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Ambient color
   public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
 
-  /// /brief Enable grid
-  public: bool gridView = true;
-
   /// \brief Scene manager
   public: SceneManager sceneManager;
 
@@ -854,9 +851,6 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
-    this->SetGridView(this->dataPtr->gridView);
-    if (this->dataPtr->gridView && !this->dataPtr->enableSensors)
-      this->ShowGrid();
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
 }
@@ -871,12 +865,6 @@ void RenderUtil::SetBackgroundColor(const math::Color &_color)
 void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 {
   this->dataPtr->ambientLight  = _ambient;
-}
-
-/////////////////////////////////////////////////
-void RenderUtil::SetGridView(const bool &_enabled)
-{
-  this->dataPtr->gridView  = _enabled;
 }
 
 /////////////////////////////////////////////////
@@ -905,7 +893,7 @@ void RenderUtil::ShowGrid()
   gridGeom->SetCellLength(1);
   gridGeom->SetVerticalCellCount(0);
   visual->AddGeometry(gridGeom);
-  visual->SetLocalPosition(0, 0, 0.15);
+  visual->SetLocalPosition(0, 0, 0.015);
   visual->SetMaterial(gray);
   root->AddChild(visual);
 }
