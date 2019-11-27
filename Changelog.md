@@ -8,6 +8,12 @@
 1. Updating documentation.
     * Angle: [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/325)
 
+1. GraphAlgorithms: add ToUndirected(DirectedGraph) that copies to an UndirectedGraph.
+    * [Pull request 332](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/332)
+
+1. Doxygen fixes for graph classes
+    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/331)
+
 ## Ignition Math 6.4.0
 
 1. Added a function that rounds up a number to the nearest multiple of
@@ -48,6 +54,14 @@
 ## Ignition Math 5.x
 
 ### Ignition Math 5.x.x
+
+### Ignition Math 5.1.0 (2019-09-11)
+
+1. GraphAlgorithms: add ToUndirected(DirectedGraph) that copies to an UndirectedGraph.
+    * [Pull request 332](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/332)
+
+1. Doxygen fixes for graph classes
+    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/331)
 
 1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
     * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/312)
