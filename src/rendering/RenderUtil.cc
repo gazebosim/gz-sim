@@ -85,7 +85,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
 
   /// \brief Name of rendering engine
-  public: std::string engineName = "ogre";
+  public: std::string engineName = "ogre2";
 
   /// \brief Name of scene
   public: std::string sceneName = "scene";
