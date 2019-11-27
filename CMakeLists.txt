@@ -47,7 +47,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED VERSION 5.0)
+ign_find_package(ignition-msgs5 REQUIRED)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
@@ -105,12 +105,6 @@ set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 # Find ignition-rendering
 ign_find_package(ignition-rendering3 REQUIRED)
 set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
-
-#--------------------------------------
-# Find gflags
-ign_find_package(gflags
-    REQUIRED
-    PKGCONFIG gflags)
 
 #--------------------------------------
 # Find ignition-math

@@ -91,6 +91,22 @@ namespace ignition
     template<>
     msgs::Geometry convert(const sdf::Geometry &_in);
 
+    /// \brief Generic conversion from a msgs Pose to another type.
+    /// \param[in] _in msgs Pose
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Pose &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion for msgs Pose to math Pose
+    /// \param[in] _in msgs Pose
+    /// \return math Pose.
+    template<>
+    math::Pose3d convert(const msgs::Pose &_in);
+
     /// \brief Generic conversion from a geometry message to another type.
     /// \param[in] _in Geometry message.
     /// \return Conversion result.

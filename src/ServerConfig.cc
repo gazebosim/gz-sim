@@ -214,7 +214,6 @@ class ignition::gazebo::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
-            useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
             logPlaybackPath(_cfg->logPlaybackPath),
@@ -235,9 +234,6 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Use the level system
   public: bool useLevels{false};
-
-  /// \brief Use the distributed simulation system
-  public: bool useDistributed{false};
 
   /// \brief Use the logging system to record states
   public: bool useLogRecord{false};
@@ -379,15 +375,7 @@ bool ServerConfig::UseDistributedSimulation() const
 {
   // We just check that network role is not empty.
   // src/network/NetworkConfig.cc checks if this value is valid.
-  // \todo(nkoenig) Remove the "|| this->dataPtr->useDistributed"
-  // in ign-gazebo3.
-  return !this->dataPtr->networkRole.empty() || this->dataPtr->useDistributed;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetUseDistributedSimulation(const bool _distributed)
-{
-  this->dataPtr->useDistributed = _distributed;
+  return !this->dataPtr->networkRole.empty();
 }
 
 /////////////////////////////////////////////////
