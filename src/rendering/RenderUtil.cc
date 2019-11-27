@@ -883,9 +883,9 @@ void RenderUtil::ShowGrid()
   rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
   if (!gridGeom)
   {
-    ignwarn << "Failed to create grid for scene [" 
-      << this->dataPtr->scene->Name() << "] on engine [" 
-        << this->dataPtr->scene->Engine()->Name() << "]" 
+    ignwarn << "Failed to create grid for scene ["
+      << this->dataPtr->scene->Name() << "] on engine ["
+        << this->dataPtr->scene->Engine()->Name() << "]"
           << std::endl;
     return;
   }
