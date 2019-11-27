@@ -92,6 +92,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
+    /// \brief Set grid enable
+    /// \param[in] _enabled enable grid using parsed sdf value
+    public: void SetGridView(const bool &_enabled);
+
     /// \brief Show grid view in the scene
     /// \param[in] _scene Pointer to the scene object
     public: void ShowGrid();
