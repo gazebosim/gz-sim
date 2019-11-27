@@ -5,7 +5,7 @@
 1. Fix crash when removing an entity being followed
     * [Pull Request 465](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/465)
 
-### Ignition Gazebo 2.12.0 (2019-11-24)
+### Ignition Gazebo 2.12.0 (2019-11-25)
 
 1. Parse visual cast shadows and add CastShadows component
     * [Pull Request 453](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/453)
