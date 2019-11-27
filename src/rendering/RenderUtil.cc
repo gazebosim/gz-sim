@@ -33,6 +33,7 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
@@ -246,6 +247,8 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    if (scene.Grid() && !this->dataPtr->enableSensors)
+      this->ShowGrid();
     // only one scene so break
     break;
   }
@@ -862,6 +865,37 @@ void RenderUtil::SetBackgroundColor(const math::Color &_color)
 void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 {
   this->dataPtr->ambientLight  = _ambient;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ShowGrid()
+{
+  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
+
+  // create gray material
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
+
+  // create grid visual
+  rendering::VisualPtr visual = this->dataPtr->scene->CreateVisual();
+  rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
+  if (!gridGeom)
+  {
+    ignwarn << "Failed to create grid for scene ["
+      << this->dataPtr->scene->Name() << "] on engine ["
+        << this->dataPtr->scene->Engine()->Name() << "]"
+          << std::endl;
+    return;
+  }
+  gridGeom->SetCellCount(20);
+  gridGeom->SetCellLength(1);
+  gridGeom->SetVerticalCellCount(0);
+  visual->AddGeometry(gridGeom);
+  visual->SetLocalPosition(0, 0, 0.015);
+  visual->SetMaterial(gray);
+  root->AddChild(visual);
 }
 
 /////////////////////////////////////////////////
