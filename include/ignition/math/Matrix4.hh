@@ -225,7 +225,7 @@ namespace ignition
       {
         Quaternion<T> q;
         /// algorithm from Ogre::Quaternion<T> source, which in turn is based on
-        /// Ken Shoemake's article "Quaternion<T> Calculus and Fast Animation".
+        /// Ken Shoemake's article "Quaternion Calculus and Fast Animation".
         T trace = this->data[0][0] + this->data[1][1] + this->data[2][2];
         T root;
         if (trace > 0)
