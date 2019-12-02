@@ -57,7 +57,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _logCompress, const char *_playback, const char *_file);
 
 /// \brief External hook to run simulation GUI.
+/// \param[in] _guiConfig Path to Ignition GUI configuration file.
 /// \return 0 if successful, 1 if not.
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui();
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
 
 #endif

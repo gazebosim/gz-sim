@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
 #include <ignition/msgs/axis.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/inertial.pb.h>
@@ -30,6 +31,7 @@
 #include <ignition/msgs/world_stats.pb.h>
 
 #include <chrono>
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Inertial.hh>
@@ -445,6 +447,22 @@ namespace ignition
     /// \return SDF collision.
     template<>
     sdf::Collision convert(const msgs::Collision &_in);
+
+    /// \brief Generic conversion from a string to another type.
+    /// \param[in] _in string.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const std::string &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a string to an Entity_Type msg.
+    /// \param[in] _in string message.
+    /// \return Entity_Type.
+    template<>
+    msgs::Entity_Type convert(const std::string &_in);
     }
   }
 }

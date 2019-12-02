@@ -104,6 +104,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
 
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
+
   /// \brief Flag for backward compatibility with log files recorded in older
   /// plugin versions that did not record resources. False for older log files.
   public: bool doReplaceResourceURIs{true};
@@ -175,10 +178,12 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void LogPlayback::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
+    EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
   this->dataPtr->logPath = _sdf->Get<std::string>("path");
+
+  this->dataPtr->eventManager = &_eventMgr;
 
   // Prepend working directory if path is relative
   if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
