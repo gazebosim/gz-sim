@@ -1158,9 +1158,9 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     if (auto elem = _pluginElem->FirstChildElement("ambient_light"))
     {
       ignwarn << "ambient_light in 3D scene <plugin>"
-        << " will be deprecated in Dome."
-          << " Set ambient_light in <scene> instead."
-            << std::endl;
+              << " will be deprecated in Dome."
+              << " Set ambient_light in <scene> instead."
+              << std::endl;
       math::Color ambient;
       std::stringstream colorStr;
       colorStr << std::string(elem->GetText());
@@ -1171,9 +1171,9 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     if (auto elem = _pluginElem->FirstChildElement("background_color"))
     {
       ignwarn << "background_color in 3D scene <plugin>"
-        << " will be deprecated in Dome."
-          << " Set background_color in <scene> instead."
-            << std::endl;
+              << " will be deprecated in Dome."
+              << " Set background_color in <scene> instead."
+              << std::endl;
       math::Color bgColor;
       std::stringstream colorStr;
       colorStr << std::string(elem->GetText());
