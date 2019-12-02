@@ -276,6 +276,60 @@ void IgnRenderer::Render()
   // view control
   this->HandleMouseEvent();
 
+
+  // reset follow mode if target node got removed
+  if (!this->dataPtr->followTarget.empty())
+  {
+    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
+    if (!target && !this->dataPtr->followTargetWait)
+    {
+      this->dataPtr->camera->SetFollowTarget(nullptr);
+      this->dataPtr->camera->SetTrackTarget(nullptr);
+      this->dataPtr->followTarget.clear();
+      emit FollowTargetChanged(std::string(), false);
+    }
+  }
+
+  // update and render to texture
+  {
+    IGN_PROFILE("IgnRenderer::Render Update camera");
+    this->dataPtr->camera->Update();
+  }
+
+  // Move To
+  {
+    IGN_PROFILE("IgnRenderer::Render MoveTo");
+    if (!this->dataPtr->moveToTarget.empty())
+    {
+      if (this->dataPtr->moveToHelper.Idle())
+      {
+        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+        rendering::NodePtr target = scene->NodeByName(
+            this->dataPtr->moveToTarget);
+        if (target)
+        {
+          this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera, target, 0.5,
+              std::bind(&IgnRenderer::OnMoveToComplete, this));
+          this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
+        }
+        else
+        {
+          ignerr << "Unable to move to target. Target: '"
+                 << this->dataPtr->moveToTarget << "' not found" << std::endl;
+          this->dataPtr->moveToTarget.clear();
+        }
+      }
+      else
+      {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
+        this->dataPtr->moveToHelper.AddTime(dt.count());
+        this->dataPtr->prevMoveToTime = now;
+      }
+    }
+  }
+
   // Follow
   {
     IGN_PROFILE("IgnRenderer::Render Follow");
@@ -317,9 +371,6 @@ void IgnRenderer::Render()
         ignerr << "Unable to follow target. Target: '"
                << this->dataPtr->followTarget << "' not found" << std::endl;
         this->dataPtr->followTarget.clear();
-        this->dataPtr->camera->SetFollowTarget(nullptr);
-        this->dataPtr->camera->SetTrackTarget(nullptr);
-        emit FollowTargetChanged(std::string(), false);
       }
     }
     else if (followTarget)
@@ -327,13 +378,6 @@ void IgnRenderer::Render()
       this->dataPtr->camera->SetFollowTarget(nullptr);
       this->dataPtr->camera->SetTrackTarget(nullptr);
     }
-  }
-
-
-  // update and render to texture
-  {
-    IGN_PROFILE("IgnRenderer::Render Update camera");
-    this->dataPtr->camera->Update();
   }
 
   // record video is requested
@@ -367,39 +411,6 @@ void IgnRenderer::Render()
     else if (this->dataPtr->videoEncoder.IsEncoding())
     {
       this->dataPtr->videoEncoder.Stop();
-    }
-  }
-
-  // Move To
-  {
-    IGN_PROFILE("IgnRenderer::Render MoveTo");
-    if (!this->dataPtr->moveToTarget.empty())
-    {
-      if (this->dataPtr->moveToHelper.Idle())
-      {
-        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
-        rendering::NodePtr target = scene->NodeByName(
-            this->dataPtr->moveToTarget);
-        if (target)
-        {
-          this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera, target, 0.5,
-              std::bind(&IgnRenderer::OnMoveToComplete, this));
-          this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
-        }
-        else
-        {
-          ignerr << "Unable to move to target. Target: '"
-                 << this->dataPtr->moveToTarget << "' not found" << std::endl;
-          this->dataPtr->moveToTarget.clear();
-        }
-      }
-      else
-      {
-        auto now = std::chrono::system_clock::now();
-        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
-        this->dataPtr->moveToHelper.AddTime(dt.count());
-        this->dataPtr->prevMoveToTime = now;
-      }
     }
   }
 }
