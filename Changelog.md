@@ -5,6 +5,9 @@
 1. Fix crash when removing an entity being followed
     * [Pull Request 465](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/465)
 
+1. Add option to right click and remove nodes
+    * [Pull Request 458](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/458)
+
 ### Ignition Gazebo 2.12.0 (2019-11-25)
 
 1. Parse visual cast shadows and add CastShadows component
