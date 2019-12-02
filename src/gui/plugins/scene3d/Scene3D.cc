@@ -276,7 +276,6 @@ void IgnRenderer::Render()
   // view control
   this->HandleMouseEvent();
 
-
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
   {
@@ -295,6 +294,40 @@ void IgnRenderer::Render()
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
+  }
+
+  // record video is requested
+  {
+    IGN_PROFILE("IgnRenderer::Render Record Video");
+    if (this->dataPtr->recordVideo)
+    {
+      unsigned int width = this->dataPtr->camera->ImageWidth();
+      unsigned int height = this->dataPtr->camera->ImageHeight();
+
+      if (this->dataPtr->cameraImage.Width() != width ||
+          this->dataPtr->cameraImage.Height() != height)
+      {
+        this->dataPtr->cameraImage = this->dataPtr->camera->CreateImage();
+      }
+
+      // Video recorder is on. Add more frames to it
+      if (this->dataPtr->videoEncoder.IsEncoding())
+      {
+        this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
+        this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
+      }
+      // Video recorder is idle. Start recording.
+      else
+      {
+        this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
+            this->dataPtr->recordVideoSavePath, width, height);
+      }
+    }
+    else if (this->dataPtr->videoEncoder.IsEncoding())
+    {
+      this->dataPtr->videoEncoder.Stop();
+    }
   }
 
   // Move To
@@ -377,40 +410,6 @@ void IgnRenderer::Render()
     {
       this->dataPtr->camera->SetFollowTarget(nullptr);
       this->dataPtr->camera->SetTrackTarget(nullptr);
-    }
-  }
-
-  // record video is requested
-  {
-    IGN_PROFILE("IgnRenderer::Render Record Video");
-    if (this->dataPtr->recordVideo)
-    {
-      unsigned int width = this->dataPtr->camera->ImageWidth();
-      unsigned int height = this->dataPtr->camera->ImageHeight();
-
-      if (this->dataPtr->cameraImage.Width() != width ||
-          this->dataPtr->cameraImage.Height() != height)
-      {
-        this->dataPtr->cameraImage = this->dataPtr->camera->CreateImage();
-      }
-
-      // Video recorder is on. Add more frames to it
-      if (this->dataPtr->videoEncoder.IsEncoding())
-      {
-        this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
-        this->dataPtr->videoEncoder.AddFrame(
-            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
-      }
-      // Video recorder is idle. Start recording.
-      else
-      {
-        this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
-            this->dataPtr->recordVideoSavePath, width, height);
-      }
-    }
-    else if (this->dataPtr->videoEncoder.IsEncoding())
-    {
-      this->dataPtr->videoEncoder.Stop();
     }
   }
 }
