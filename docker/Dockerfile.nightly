@@ -13,14 +13,14 @@ RUN apt-get update \
  && apt-get install -y \
     libignition-cmake2-dev \
     libignition-common3-dev \
-    libignition-fuel-tools3-dev \
+    libignition-fuel-tools4-dev \
     libignition-math6-eigen3-dev \
     libignition-plugin-dev \
-    libignition-physics-dev \
+    libignition-physics2-dev \
     libignition-rendering3-dev \
     libignition-tools-dev \
     libignition-transport8-dev \
-    libignition-gui2-dev \
+    libignition-gui3-dev \
     libignition-msgs5-dev \
     libignition-sensors3-dev \
     libsdformat9-dev
