@@ -398,7 +398,7 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
     }
 
     // Prepend log path to file path
-    std::string pathPrepended = filePrefix + common::joinPaths(this->logPath,
+    std::string pathPrepended = common::joinPaths(this->logPath,
       pathNoPrefix);
 
     // For backward compatibility. If prepended record path does not exist,
@@ -410,7 +410,7 @@ std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
     }
     else
     {
-      return pathPrepended;
+      return filePrefix + pathPrepended;
     }
   }
   else
