@@ -503,12 +503,12 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     name = parent->Name() +  "::" + name;
 
   rendering::MeshDescriptor descriptor;
-  descriptor.meshName = _actor.SkinFilename();
+  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
   common::MeshManager *meshManager = common::MeshManager::Instance();
   descriptor.mesh = meshManager->Load(descriptor.meshName);
   if (nullptr == descriptor.mesh)
   {
-    ignerr << "Actor skin mesh [" << _actor.SkinFilename() << "] not found."
+    ignerr << "Actor skin mesh [" << descriptor.meshName << "] not found."
            << std::endl;
     return rendering::VisualPtr();
   }
@@ -516,7 +516,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
   if (nullptr == meshSkel)
   {
-    ignerr << "Mesh skeleton in [" << _actor.SkinFilename() << "] not found."
+    ignerr << "Mesh skeleton in [" << descriptor.meshName << "] not found."
            << std::endl;
     return rendering::VisualPtr();
   }
@@ -524,7 +524,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
   if (nullptr == actorMesh)
   {
-    ignerr << "Actor skin file [" << _actor.SkinFilename() << "] not found."
+    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
            << std::endl;
     return rendering::VisualPtr();
   }
@@ -544,7 +544,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
   {
     std::string animName = _actor.AnimationByIndex(i)->Name();
-    std::string animFilename = _actor.AnimationByIndex(i)->Filename();
+    std::string animFilename = asFullPath(
+        _actor.AnimationByIndex(i)->Filename(),
+        _actor.AnimationByIndex(i)->FilePath());
     double animScale = _actor.AnimationByIndex(i)->Scale();
 
     std::string extension = animFilename.substr(animFilename.rfind('.') + 1,

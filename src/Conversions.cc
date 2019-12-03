@@ -297,14 +297,14 @@ msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
   msgs::Actor out;
   out.mutable_entity()->set_name(_in.Name());
   msgs::Set(out.mutable_pose(), _in.Pose());
-  out.set_skin_filename(_in.SkinFilename());
+  out.set_skin_filename(asFullPath(_in.SkinFilename(), _in.FilePath()));
   out.set_skin_scale(_in.SkinScale());
   for (unsigned int i = 0; i < _in.AnimationCount(); ++i)
   {
     auto newAnim = out.add_animations();
     auto anim = _in.AnimationByIndex(i);
     newAnim->set_name(anim->Name());
-    newAnim->set_filename(anim->Filename());
+    newAnim->set_filename(asFullPath(anim->Filename(), anim->FilePath()));
     newAnim->set_scale(anim->Scale());
     newAnim->set_interpolate_x(anim->InterpolateX());
   }
