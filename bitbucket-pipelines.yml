@@ -20,10 +20,10 @@ pipelines:
           - apt-get install -y
               libignition-cmake2-dev
               libignition-common3-dev
-              libignition-fuel-tools3-dev
               libignition-math6-eigen3-dev
               libignition-plugin-dev
               libignition-tools-dev
+              # libignition-fuel-tools3-dev
               # libignition-physics2-dev
               # libsdformat9-dev
               # libignition-gui3-dev
@@ -40,6 +40,7 @@ pipelines:
           - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
           - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
           - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
           # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
@@ -74,10 +75,10 @@ pipelines:
             - apt-get install -y
                 libignition-cmake2-dev
                 libignition-common3-dev
-                libignition-fuel-tools3-dev
                 libignition-math6-eigen3-dev
                 libignition-plugin-dev
                 libignition-tools-dev
+            # libignition-fuel-tools4-dev
             # libignition-physics2-dev
             # libsdformat9-dev
             # libignition-gui3-dev
@@ -94,6 +95,7 @@ pipelines:
             - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
             - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
             - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
+            - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
             # Build Ignition Gazebo
             - mkdir build
             - cd build
