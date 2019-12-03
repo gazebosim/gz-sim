@@ -59,7 +59,7 @@ sudo apt-get install -y \
 
 # SDFormat dependencies
 sudo apt-get install -y \
-  libxml2-dev
+  libtinyxml-dev libxml2-dev
 
 # ign-gazebo dependencies
 sudo apt-get install -y \
