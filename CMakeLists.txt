@@ -32,7 +32,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat9 REQUIRED VERSION 9.0)
+ign_find_package(sdformat9 REQUIRED)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
@@ -57,9 +57,9 @@ ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events av)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-fuel_tools3
-ign_find_package(ignition-fuel_tools3 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
+# Find ignition-fuel_tools
+ign_find_package(ignition-fuel_tools4 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
@@ -82,7 +82,7 @@ ign_find_package(ignition-physics2
     dartsim
     dartsim-plugin
   REQUIRED
-  VERSION 2.0)
+)
 set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
 
 #--------------------------------------
