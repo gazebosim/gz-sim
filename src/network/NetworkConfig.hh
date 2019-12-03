@@ -36,16 +36,6 @@ namespace ignition
     ///
     /// NetworkConfig can either be created programatically, or populated from
     /// environment variables set before the execution of the Gazebo server.
-    ///
-    /// Environment Variables (to be deprecated in version 2):
-    /// * IGN_GAZEBO_NETWORK_ROLE - Sets the role that the current Networked
-    ///   runner will use in the distributed simulation environment.
-    ///   * PRIMARY - Primary executor, dispatches work to other runners.
-    ///   * SECONDARY - Secondary executor, receives work from primary.
-    ///   * READONLY - Can be used to view state of entities and components.
-    /// * IGN_GAZEBO_NETWORK_SECONDARIES - (PRIMARY only) - Expected number of
-    ///   secondaries expected to join the distributed simulation environment.
-    ///   Simulation will not run without the expected number of secondaries.
     class IGNITION_GAZEBO_VISIBLE NetworkConfig
     {
       /// \brief Populate a new NetworkConfig object based on
@@ -56,10 +46,6 @@ namespace ignition
       /// \return A NetworkConfig object based on the provided values.
       public: static NetworkConfig FromValues(const std::string &_role,
                                               unsigned int _secondaries = 0);
-
-      /// \brief Populate a new NetworkConfig object based on
-      /// environment variables.
-      public: static NetworkConfig FromEnv();
 
       /// \brief Role of this network participant
       public: NetworkRole role { NetworkRole::None };
