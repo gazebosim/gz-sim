@@ -25,7 +25,7 @@ pipelines:
               libignition-plugin-dev
               libignition-physics-dev
               libignition-tools-dev
-              libsdformat8-dev
+              # libsdformat9-dev
               # libignition-gui3-dev
               # libignition-msgs5-dev
               # libignition-rendering3-dev
@@ -33,6 +33,7 @@ pipelines:
               # libignition-transport8-dev
           # METHOD 2: Build from source
           # Build dependencies from source using a given branch
+          - docker/scripts/build_ign.sh osrf sdformat default
           - docker/scripts/build_ign.sh ignitionrobotics ign-msgs default
           - docker/scripts/build_ign.sh ignitionrobotics ign-transport default
           - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
@@ -77,7 +78,7 @@ pipelines:
                 libignition-plugin-dev
                 libignition-physics-dev
                 libignition-tools-dev
-                libsdformat8-dev
+            # libsdformat9-dev
             # libignition-gui3-dev
             # libignition-msgs5-dev
             # libignition-rendering3-dev
@@ -85,6 +86,7 @@ pipelines:
             # libignition-transport8-dev
             # Build some Ignition libraries from source.
             # Build ign-rendering from source using the default branch
+            - docker/scripts/build_ign.sh osrf sdformat default
             - docker/scripts/build_ign.sh ignitionrobotics ign-msgs default
             - docker/scripts/build_ign.sh ignitionrobotics ign-transport default
             - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
