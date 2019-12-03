@@ -61,6 +61,10 @@ sudo apt-get install -y \
 sudo apt-get install -y \
   libtinyxml-dev libxml2-dev
 
+# ign-fuel_tools dependencies
+sudo apt-get install -y \
+  libcurl4-openssl-dev libjsoncpp-dev libzip-dev curl libyaml-dev
+
 # ign-gazebo dependencies
 sudo apt-get install -y \
   qml-module-qtqml-models2
