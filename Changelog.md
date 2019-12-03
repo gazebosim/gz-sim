@@ -19,6 +19,8 @@
 1. Rendering and Animating Actors
     * [Pull Request 414](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/414)
 
+1. Enable grid view from sdf file
+    * [Pull Request 466](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/466)
 
 ## Ignition Gazebo 2.x
 
