@@ -59,6 +59,7 @@
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 #include "ignition/gazebo/Util.hh"
 
@@ -106,6 +107,9 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
+
+  /// \brief Marker manager
+  public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine{nullptr};
@@ -203,6 +207,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   if (_info.dt != std::chrono::steady_clock::duration::zero())
     this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
+  this->dataPtr->markerManager.SetSimTime(_info.simTime);
 }
 
 //////////////////////////////////////////////////
@@ -250,6 +255,8 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
+
+  this->dataPtr->markerManager.Update();
 
   std::vector<std::tuple<Entity, sdf::Sensor, Entity>> newSensors;
   if (this->dataPtr->enableSensors)
@@ -339,7 +346,7 @@ void RenderUtil::Update()
       for (const auto &sensor : newSensors)
       {
          Entity entity = std::get<0>(sensor);
-         sdf::Sensor dataSdf = std::get<1>(sensor);
+         const sdf::Sensor &dataSdf = std::get<1>(sensor);
          Entity parent = std::get<2>(sensor);
 
          // two sensors with the same name cause conflicts. We'll need to use
@@ -920,6 +927,7 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
+  this->dataPtr->markerManager.Init(this->dataPtr->scene);
 }
 
 /////////////////////////////////////////////////
@@ -977,6 +985,12 @@ void RenderUtil::SetEnableSensors(bool _enable,
 SceneManager &RenderUtil::SceneManager()
 {
   return this->dataPtr->sceneManager;
+}
+
+/////////////////////////////////////////////////
+MarkerManager &RenderUtil::MarkerManager()
+{
+  return this->dataPtr->markerManager;
 }
 
 /////////////////////////////////////////////////

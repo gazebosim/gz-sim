@@ -38,22 +38,6 @@ namespace components
                                   serializers::VectorDoubleSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointVelocity", JointVelocity)
-
-  /// \brief Velocity of a joint's second axis in SI units (rad/s for revolute,
-  /// m/s for prismatic).
-  /// \deprecated Use JointVelocity.
-  using JointVelocity2 IGN_DEPRECATED(2) =
-  Component<double, class JointVelocity2Tag>;
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointVelocity2", JointVelocity2)
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#endif
-
 }
 }
 }

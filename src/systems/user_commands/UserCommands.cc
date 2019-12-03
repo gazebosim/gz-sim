@@ -477,15 +477,21 @@ bool CreateCommand::Execute()
   Entity entity{kNullEntity};
   if (isModel)
   {
-    entity = this->iface->creator->CreateEntities(root.ModelByIndex(0));
+    auto model = *root.ModelByIndex(0);
+    model.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&model);
   }
   else if (isLight)
   {
-    entity = this->iface->creator->CreateEntities(root.LightByIndex(0));
+    auto light = root.LightByIndex(0);
+    light->SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(light);
   }
   else if (isActor)
   {
-    entity = this->iface->creator->CreateEntities(root.ActorByIndex(0));
+    auto actor = *root.ActorByIndex(0);
+    actor.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&actor);
   }
 
   this->iface->creator->SetParent(entity, this->iface->worldEntity);
@@ -496,10 +502,6 @@ bool CreateCommand::Execute()
     auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
     *poseComp = components::Pose(msgs::Convert(createMsg->pose()));
   }
-
-  // Update name
-  auto nameComp = this->iface->ecm->Component<components::Name>(entity);
-  *nameComp = components::Name(desiredName);
 
   igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
          << std::endl;

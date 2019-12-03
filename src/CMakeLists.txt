@@ -126,51 +126,6 @@ ign_build_tests(TYPE UNIT
     ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
 
-# Create the gazebo executable
-ign_add_executable(ign-gazebo-exec main.cc)
-set_property(TARGET ign-gazebo-exec PROPERTY OUTPUT_NAME ign-gazebo)
-target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
-  gflags
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-)
-
-# Create the server executable
-ign_add_executable(ign-gazebo-server server_main.cc)
-set_property(TARGET ign-gazebo-server PROPERTY OUTPUT_NAME ign-gazebo-server)
-target_link_libraries(ign-gazebo-server PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
-  gflags
-  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-)
-
-# Create the gui executable
-ign_add_executable(ign-gazebo-gui gui_main.cc)
-set_property(TARGET ign-gazebo-gui PROPERTY OUTPUT_NAME ign-gazebo-gui)
-target_link_libraries(ign-gazebo-gui PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
-  gflags
-  ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
-  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
-  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-  ${Qt5Core_LIBRARIES}
-  ${Qt5Widgets_LIBRARIES}
-)
-
-# Switch to ign_install_executable when it is fixed (https://bitbucket.org/ignitionrobotics/ign-cmake/issues/29)
-set_target_properties(ign-gazebo-exec
-  PROPERTIES VERSION ${PROJECT_VERSION_FULL})
-install (TARGETS ign-gazebo-exec DESTINATION ${IGN_BIN_INSTALL_DIR})
-
-set_target_properties(ign-gazebo-server
-  PROPERTIES VERSION ${PROJECT_VERSION_FULL})
-install (TARGETS ign-gazebo-server DESTINATION ${IGN_BIN_INSTALL_DIR})
-
-set_target_properties(ign-gazebo-gui
-  PROPERTIES VERSION ${PROJECT_VERSION_FULL})
-install (TARGETS ign-gazebo-gui DESTINATION ${IGN_BIN_INSTALL_DIR})
-
 if(NOT WIN32)
   add_subdirectory(cmd)
 endif()
