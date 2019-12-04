@@ -926,6 +926,8 @@ void RenderUtil::Init()
     igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
     this->dataPtr->scene =
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
+    this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
+    this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   this->dataPtr->markerManager.Init(this->dataPtr->scene);
