@@ -45,8 +45,6 @@
         <engine>ogre</engine>
         <scene>scene</scene>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <!-- test deprecation cycle -->
-        <ambient>0.4 0.4 0.4</ambient>
       </plugin>
 
       <!-- World control -->

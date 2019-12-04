@@ -12,6 +12,12 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+
+    <scene>
+      <ambient_light>0.4 0.4 0.4</ambient_light>
+      <background_color>0.8 0.8 0.8</background_color>
+    </scene>
+
     <gui fullscreen="0">
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
