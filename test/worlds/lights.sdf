@@ -14,6 +14,25 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <!-- Test Start: grid view and deprecation cycle -->
+    <scene>
+      <ambient>0.4 0.4 0.4</ambient>
+      <background>0.8 0.8 0.8</background>
+      <grid>true</grid>
+    </scene>
+
+    <gui fullscreen="0">
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <ambient>0.4 0.4 0.4</ambient>
+        <background>0.8 0.8 0.8</background>
+      </plugin>
+    </gui>
+    <!-- Test end -->
+
     <light type="directional" name="directional">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
