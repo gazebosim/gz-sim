@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 find_package(ignition-transport8 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
-find_package(sdformat8 REQUIRED)
-set(SDF_VER ${sdformat8_VERSION_MAJOR})
+find_package(sdformat9 REQUIRED)
+set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 add_executable(joy_to_twist joy_to_twist.cc)
 target_link_libraries(joy_to_twist
