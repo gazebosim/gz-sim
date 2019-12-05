@@ -86,7 +86,7 @@ TEST_F(ComponentsTest, Actor)
 {
   sdf::Actor data1;
   data1.SetName("abc");
-  data1.SetPose({3, 2, 1, 0, 0, 0});
+  data1.SetRawPose({3, 2, 1, 0, 0, 0});
   data1.SetSkinFilename("def");
 
   sdf::Actor data2;
@@ -106,7 +106,7 @@ TEST_F(ComponentsTest, Actor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ("def", comp3.Data().SkinFilename());
-  EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().Pose());
+  EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -115,7 +115,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   sdf::Sensor data1;
   data1.SetName("abc");
   data1.SetType(sdf::SensorType::AIR_PRESSURE);
-  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::AirPressure airPressure1;
   data1.SetAirPressureSensor(airPressure1);
@@ -143,7 +143,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -380,7 +380,7 @@ TEST_F(ComponentsTest, Imu)
   data1.SetType(sdf::SensorType::IMU);
   data1.SetUpdateRate(100);
   data1.SetTopic("imu_data");
-  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Imu imu1;
   data1.SetImuSensor(imu1);
@@ -411,7 +411,7 @@ TEST_F(ComponentsTest, Imu)
   EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
   EXPECT_EQ("imu_data", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(100, comp3.Data().UpdateRate());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -469,7 +469,7 @@ TEST_F(ComponentsTest, JointAxis)
 {
   auto data1 = sdf::JointAxis();
   data1.SetXyz(math::Vector3d(1, 2, 3));
-  data1.SetUseParentModelFrame(true);
+  data1.SetXyzExpressedIn("__model__");
   data1.SetDamping(0.1);
   data1.SetFriction(0.2);
   data1.SetLower(0.3);
@@ -501,7 +501,7 @@ TEST_F(ComponentsTest, JointAxis)
   EXPECT_DOUBLE_EQ(0.4, comp3.Data().Upper());
   EXPECT_DOUBLE_EQ(0.5, comp3.Data().Effort());
   EXPECT_DOUBLE_EQ(0.6, comp3.Data().MaxVelocity());
-  EXPECT_TRUE(comp3.Data().UseParentModelFrame());
+  EXPECT_EQ(comp3.Data().XyzExpressedIn(), "__model__");
 }
 
 /////////////////////////////////////////////////
@@ -653,7 +653,7 @@ TEST_F(ComponentsTest, Light)
   auto data1 = sdf::Light();
   data1.SetType(sdf::LightType::POINT);
   data1.SetName("light_test");
-  data1.SetPose(math::Pose3d(1, 2, 4, 0, 0, IGN_PI));
+  data1.SetRawPose(math::Pose3d(1, 2, 4, 0, 0, IGN_PI));
   data1.SetDiffuse(math::Color(1, 0, 0, 1));
   data1.SetSpecular(math::Color(0, 1, 0, 1));
   data1.SetCastShadows(true);
@@ -683,7 +683,7 @@ TEST_F(ComponentsTest, Light)
   comp3.Deserialize(istr);
   EXPECT_EQ(sdf::LightType::POINT, comp3.Data().Type());
   EXPECT_EQ("light_test", comp3.Data().Name());
-  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().Pose());
+  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().RawPose());
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());
@@ -781,7 +781,7 @@ TEST_F(ComponentsTest, Magnetometer)
   data1.SetType(sdf::SensorType::MAGNETOMETER);
   data1.SetUpdateRate(12.4);
   data1.SetTopic("grape");
-  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Magnetometer mag1;
   data1.SetMagnetometerSensor(mag1);
@@ -811,7 +811,7 @@ TEST_F(ComponentsTest, Magnetometer)
   EXPECT_EQ(sdf::SensorType::MAGNETOMETER, comp3.Data().Type());
   EXPECT_EQ("grape", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(12.4, comp3.Data().UpdateRate());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////

@@ -80,7 +80,7 @@ msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
   out.set_name(_in.Name());
-  msgs::Set(out.mutable_pose(), _in.Pose());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
   out.mutable_geometry()->CopyFrom(convert<msgs::Geometry>(*_in.Geom()));
 
   return out;
@@ -92,7 +92,7 @@ sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 {
   sdf::Collision out;
   out.SetName(_in.name());
-  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetRawPose(msgs::Convert(_in.pose()));
   out.SetGeom(convert<sdf::Geometry>(_in.geometry()));
   return out;
 }
@@ -296,7 +296,7 @@ msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
   out.mutable_entity()->set_name(_in.Name());
-  msgs::Set(out.mutable_pose(), _in.Pose());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
   out.set_skin_filename(asFullPath(_in.SkinFilename(), _in.FilePath()));
   out.set_skin_scale(_in.SkinScale());
   for (unsigned int i = 0; i < _in.AnimationCount(); ++i)
@@ -335,7 +335,7 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
   out.SetName(_in.entity().name());
-  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetRawPose(msgs::Convert(_in.pose()));
   out.SetSkinFilename(_in.skin_filename());
   out.SetSkinScale(_in.skin_scale());
   for (int i = 0; i < _in.animations_size(); ++i)
@@ -377,7 +377,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 {
   msgs::Light out;
   out.set_name(_in.Name());
-  msgs::Set(out.mutable_pose(), _in.Pose());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
   out.set_attenuation_constant(_in.ConstantAttenuationFactor());
@@ -404,7 +404,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
 {
   sdf::Light out;
   out.SetName(_in.name());
-  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetRawPose(msgs::Convert(_in.pose()));
   out.SetDiffuse(msgs::Convert(_in.diffuse()));
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetConstantAttenuationFactor(_in.attenuation_constant());
@@ -527,7 +527,15 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
   out.set_use_parent_model_frame(_in.UseParentModelFrame());
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
+  out.set_xyz_expressed_in(_in.XyzExpressedIn());
   out.set_damping(_in.Damping());
   out.set_friction(_in.Friction());
   out.set_limit_lower(_in.Lower());
@@ -556,7 +564,15 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
   out.SetXyz(msgs::Convert(_in.xyz()));
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
   out.SetUseParentModelFrame(_in.use_parent_model_frame());
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
+  out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
   out.SetFriction(_in.friction());
   out.SetLower(_in.limit_lower());
@@ -684,7 +700,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
   out.set_type(_in.TypeStr());
   out.set_update_rate(_in.UpdateRate());
   out.set_topic(_in.Topic());
-  msgs::Set(out.mutable_pose(), _in.Pose());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
 
   if (_in.Type() == sdf::SensorType::MAGNETOMETER)
   {
@@ -901,7 +917,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
   out.SetUpdateRate(_in.update_rate());
   out.SetTopic(_in.topic());
-  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetRawPose(msgs::Convert(_in.pose()));
   if (out.Type() == sdf::SensorType::MAGNETOMETER)
   {
     sdf::Magnetometer sensor;
