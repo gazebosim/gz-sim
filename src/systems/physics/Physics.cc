@@ -111,7 +111,7 @@ namespace components = ignition::gazebo::components;
 // Private data class.
 class ignition::gazebo::systems::PhysicsPrivate
 {
-  public: using MinimumFeatureList = ignition::physics::FeatureList<
+  public: struct MinimumFeatureList : ignition::physics::FeatureList<
           // FreeGroup
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
@@ -133,7 +133,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
-          >;
+          > {  };
 
 
   public: using EnginePtrType = ignition::physics::EnginePtr<
@@ -368,7 +368,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         sdf::Model model;
         model.SetName(_name->Data());
-        model.SetPose(_pose->Data());
+        model.SetRawPose(_pose->Data());
 
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
@@ -413,7 +413,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         sdf::Link link;
         link.SetName(_name->Data());
-        link.SetPose(_pose->Data());
+        link.SetRawPose(_pose->Data());
 
         // get link inertial
         auto inertial = _ecm.Component<components::Inertial>(_entity);
@@ -465,7 +465,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         // been resolved and is now expressed w.r.t the parent link of the
         // collision.
         sdf::Collision collision = _collElement->Data();
-        collision.SetPose(_pose->Data());
+        collision.SetRawPose(_pose->Data());
 
         ShapePtrType collisionPtrPhys;
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
@@ -541,7 +541,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
-        joint.SetPose(_pose->Data());
+        joint.SetRawPose(_pose->Data());
         joint.SetThreadPitch(_threadPitch->Data());
 
         joint.SetParentLinkName(_parentLinkName->Data());
@@ -550,6 +550,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
+        // Since we're making copies of the joint axes that were created using
+        // `Model::Load`, frame semantics should work for resolving their xyz
+        // axis
         if (jointAxis)
           joint.SetAxis(0, jointAxis->Data());
         if (jointAxis2)

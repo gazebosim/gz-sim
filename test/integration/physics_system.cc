@@ -172,7 +172,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   // TODO(addisu): Get dt from simulation
   const double dt = 0.001;
   const double grav = world->Gravity().Z();
-  const double zInit = model->Pose().Pos().Z();
+  const double zInit = model->RawPose().Pos().Z();
   // The sphere should have fallen for (iters * dt) seconds.
   const double zExpected = zInit + 0.5 * grav * pow(iters * dt, 2);
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-4);
@@ -188,7 +188,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   // The box surface is at 0 so the z position of the sphere is the same as its
   // radius. The position of the model will be offset by the first links pose
   const double zStopped =
-      sphere->Radius() - model->LinkByIndex(0)->Pose().Pos().Z();
+      sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
 }
 
@@ -221,7 +221,7 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
 
   std::unordered_map<std::string, ignition::math::Pose3d> expectedLinPoses;
   for (auto &linkName : linksToCheck)
-    expectedLinPoses[linkName] = model->LinkByName(linkName)->Pose();
+    expectedLinPoses[linkName] = model->LinkByName(linkName)->RawPose();
   ASSERT_EQ(3u, expectedLinPoses.size());
 
   // Create a system that records the poses of the links after physics
@@ -334,7 +334,7 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
   const double link2Length = getCylinderLength("link2");
   // divide by 2.0 because the position is the center of the link.
   const double expMinDist = link1Length - link2Length/2.0;
-  auto link2InitialPos = model->LinkByName("link2")->Pose().Pos();
+  auto link2InitialPos = model->LinkByName("link2")->RawPose().Pos();
   // we ignore the x axis to simplify distance comparisons
   link2InitialPos.X() = 0;
   const double expMaxDist = link2InitialPos.Length();
