@@ -527,6 +527,14 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+  out.set_use_parent_model_frame(_in.UseParentModelFrame());
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
   out.set_xyz_expressed_in(_in.XyzExpressedIn());
   out.set_damping(_in.Damping());
   out.set_friction(_in.Friction());
@@ -556,6 +564,14 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
   out.SetXyz(msgs::Convert(_in.xyz()));
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+  out.SetUseParentModelFrame(_in.use_parent_model_frame());
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
   out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
   out.SetFriction(_in.friction());
