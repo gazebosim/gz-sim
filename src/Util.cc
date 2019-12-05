@@ -16,7 +16,11 @@
 */
 
 #ifndef __APPLE__
-#include <filesystem>
+ #if __GNUC__ < 8
+    #include <experimental/filesystem>
+  #else
+    #include <filesystem>
+  #endif
 #endif
 #include <ignition/common/Filesystem.hh>
 
@@ -173,8 +177,13 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   }
 #else
   // Not a relative path, return unmodified
+  #if __GNUC__ < 8
+    using namespace std::experimental::filesystem;
+  #else
+    using namespace std::filesystem;
+  #endif
   if (_uri.find("://") != std::string::npos ||
-      !std::filesystem::path(_uri).is_relative())
+      !path(_uri).is_relative())
   {
     return _uri;
   }
