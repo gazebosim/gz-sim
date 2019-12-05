@@ -287,6 +287,9 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
     return;
   }
 
+  if (this->leftJoints.empty() || this->rightJoints.empty())
+    return;
+
   // Get the first joint positions for the left and right side.
   auto leftPos = _ecm.Component<components::JointPosition>(this->leftJoints[0]);
   auto rightPos = _ecm.Component<components::JointPosition>(
