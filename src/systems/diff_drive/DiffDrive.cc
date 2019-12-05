@@ -187,14 +187,23 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   }
 
   // If the joints haven't been identified yet, look for them
+  static std::set<std::string> warnedModels;
+  auto modelName = this->dataPtr->model.Name(_ecm);
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
   {
+    bool warned{false};
     for (const std::string &name : this->dataPtr->leftJointNames)
     {
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
         this->dataPtr->leftJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find left joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
     }
 
     for (const std::string &name : this->dataPtr->rightJointNames)
@@ -202,11 +211,28 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
         this->dataPtr->rightJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find right joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
+    }
+    if (warned)
+    {
+      warnedModels.insert(modelName);
     }
   }
 
   if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty())
     return;
+
+  if (warnedModels.find(modelName) != warnedModels.end())
+  {
+    ignmsg << "Found joints for model [" << modelName
+           << "], plugin will start working." << std::endl;
+    warnedModels.erase(modelName);
+  }
 
   // Nothing left to do if paused.
   if (_info.paused)
