@@ -4,6 +4,15 @@
 
 ### Ignition Gazebo 3.0.0
 
+1. Support for sdformat frame semantics
+    * [Pull Request 456](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/456)
+
+1. Support for relative path URIs for actors
+    * [Pull Request 444](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/444)
+
+1. Add rechargeable battery model
+    * [Pull Request 457](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/457)
+
 1. Add Marker Manager
     * [Pull Request 442](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/442)
 
