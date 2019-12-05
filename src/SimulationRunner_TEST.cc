@@ -496,8 +496,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
       EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
-          _light->Data().Pose());
-      EXPECT_EQ("", _light->Data().PoseFrame());
+          _light->Data().RawPose());
+      EXPECT_EQ("", _light->Data().PoseRelativeTo());
       EXPECT_TRUE(_light->Data().CastShadows());
       EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
           _light->Data().Diffuse());
@@ -694,8 +694,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
-            _light->Data().Pose());
-        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+            _light->Data().RawPose());
+        EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
         EXPECT_EQ(ignition::math::Color(0.0f, 0.0f, 1.0f, 1),
             _light->Data().Diffuse());
@@ -716,8 +716,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
-            _light->Data().Pose());
-        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+            _light->Data().RawPose());
+        EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_TRUE(_light->Data().CastShadows());
         EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
             _light->Data().Diffuse());
@@ -740,8 +740,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
-            _light->Data().Pose());
-        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+            _light->Data().RawPose());
+        EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
         EXPECT_EQ(ignition::math::Color(1.0f, 0.0f, 0.0f, 1),
             _light->Data().Diffuse());
@@ -762,8 +762,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
-            _light->Data().Pose());
-        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+            _light->Data().RawPose());
+        EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
         EXPECT_EQ(ignition::math::Color(0.0f, 1.0f, 0.0f, 1),
             _light->Data().Diffuse());
@@ -861,7 +861,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
 
     // Even if the pose element isn't explicitly set in the sdf, a default one
     // is created during parsing, so it's safe to compare here.
-    EXPECT_EQ(_joint->Pose(), _pose->Data());
+    EXPECT_EQ(_joint->RawPose(), _pose->Data());
 
     if (_checkAxis)
       testAxis(_joint->Name(), _joint->Axis(0), _axis);

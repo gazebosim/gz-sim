@@ -78,6 +78,21 @@ class ignition::gazebo::SdfEntityCreatorPrivate
 using namespace ignition;
 using namespace gazebo;
 
+/////////////////////////////////////////////////
+/// \brief Resolve the pose of an SDF DOM object with respect to its relative_to
+/// frame. If that fails, return the raw pose
+static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
+{
+  math::Pose3d pose;
+  ::sdf::Errors errors = _semPose.Resolve(pose);
+  if (!errors.empty())
+  {
+    pose = _semPose.RawPose();
+  }
+
+  return pose;
+}
+
 //////////////////////////////////////////////////
 SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager)
@@ -186,7 +201,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   // Components
   this->dataPtr->ecm->CreateComponent(modelEntity, components::Model());
   this->dataPtr->ecm->CreateComponent(modelEntity,
-      components::Pose(_model->Pose()));
+      components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
   this->dataPtr->ecm->CreateComponent(modelEntity,
@@ -205,7 +220,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
-    if (linkIndex == 0)
+    if ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
+        (link == _model->CanonicalLink()))
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
@@ -254,7 +270,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   // Components
   this->dataPtr->ecm->CreateComponent(actorEntity, components::Actor(*_actor));
   this->dataPtr->ecm->CreateComponent(actorEntity,
-      components::Pose(_actor->Pose()));
+      components::Pose(_actor->RawPose()));
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
@@ -272,7 +288,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
   // Components
   this->dataPtr->ecm->CreateComponent(lightEntity, components::Light(*_light));
   this->dataPtr->ecm->CreateComponent(lightEntity,
-      components::Pose(_light->Pose()));
+      components::Pose(ResolveSdfPose(_light->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(lightEntity,
       components::Name(_light->Name()));
 
@@ -289,8 +305,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 
   // Components
   this->dataPtr->ecm->CreateComponent(linkEntity, components::Link());
+
   this->dataPtr->ecm->CreateComponent(linkEntity,
-      components::Pose(_link->Pose()));
+      components::Pose(ResolveSdfPose(_link->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(linkEntity,
       components::Name(_link->Name()));
   this->dataPtr->ecm->CreateComponent(linkEntity,
@@ -372,7 +389,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   }
 
   this->dataPtr->ecm->CreateComponent(jointEntity,
-      components::Pose(_joint->Pose()));
+      components::Pose(ResolveSdfPose(_joint->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(jointEntity ,
       components::Name(_joint->Name()));
   this->dataPtr->ecm->CreateComponent(jointEntity ,
@@ -396,7 +413,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   // Components
   this->dataPtr->ecm->CreateComponent(visualEntity, components::Visual());
   this->dataPtr->ecm->CreateComponent(visualEntity,
-      components::Pose(_visual->Pose()));
+      components::Pose(ResolveSdfPose(_visual->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Name(_visual->Name()));
 
@@ -428,7 +445,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
   this->dataPtr->ecm->CreateComponent(collisionEntity,
       components::Collision());
   this->dataPtr->ecm->CreateComponent(collisionEntity,
-      components::Pose(_collision->Pose()));
+      components::Pose(ResolveSdfPose(_collision->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(collisionEntity,
       components::Name(_collision->Name()));
 
@@ -456,7 +473,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   this->dataPtr->ecm->CreateComponent(sensorEntity,
       components::Sensor());
   this->dataPtr->ecm->CreateComponent(sensorEntity,
-      components::Pose(_sensor->Pose()));
+      components::Pose(ResolveSdfPose(_sensor->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(sensorEntity,
       components::Name(_sensor->Name()));
 
