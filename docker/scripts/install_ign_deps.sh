@@ -59,7 +59,20 @@ sudo apt-get install -y \
 
 # SDFormat dependencies
 sudo apt-get install -y \
-  libxml2-dev
+  libtinyxml-dev libxml2-dev
+
+# ign-fuel_tools dependencies
+sudo apt-get install -y \
+  libcurl4-openssl-dev libjsoncpp-dev libzip-dev curl libyaml-dev
+
+# ign-physics dependencies
+sudo apt-get install -y \
+  libeigen3-dev \
+  dart6-data \
+  libdart6-collision-ode-dev \
+  libdart6-dev \
+  libdart6-utils-urdf-dev \
+  libbenchmark-dev
 
 # ign-gazebo dependencies
 sudo apt-get install -y \
