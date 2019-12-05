@@ -124,5 +124,74 @@
         <child>link2</child>
       </joint>
     </model>
+
+    <model name="nondefault_canonical" canonical_link="link1">
+      <!-- random pose -->
+      <pose>-2.15195357 -1.43940727 0.61459533  0.1970569  -0.73194673 0.09871452</pose>
+      <link name="base_link">
+        <!-- random pose -->
+        <pose>0.71229333 -1.05448166 1.62442587  0.45922601  0.47291648  0.25646825</pose>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="base_collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="link1">
+        <pose>0.8880941  -0.1920708  0.81992352 -0.81596066  0.95599217 -0.42638954</pose>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="j0" type="fixed">
+        <parent>base_link</parent>
+        <child>link1</child>
+      </joint>
+      <link name="link2">
+        <pose>1.2961371  -0.53306886  1.35475164 -0.69270376 -0.7006309  -1.06392685</pose>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="j1" type="fixed">
+        <parent>link1</parent>
+        <child>link2</child>
+      </joint>
+    </model>
   </world>
 </sdf>
