@@ -206,8 +206,6 @@ TEST_F(SdfFrameSemanticsTest, LinkRelativeTo)
   EXPECT_EQ(expWorldPose, this->GetWorldPose(link2));
 }
 
-#if 0
-// Enable this when we have joint frame semantics in ign-physics
 TEST_F(SdfFrameSemanticsTest, JointRelativeTo)
 {
   const std::string modelSdf = R"sdf(
@@ -264,10 +262,11 @@ TEST_F(SdfFrameSemanticsTest, JointRelativeTo)
 
   // Expect the pose of J2 relative to model to be the same as L2 (non default
   // behavior due to "relative_to='L2'")
-  EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
-  EXPECT_EQ(expWorldPose, this->GetWorldPose(joint2));
+  // TODO(anyone) Enable the following expectations when a joint's WorldPose
+  // can be computed by ign-physics.
+  // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
+  // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint2));
 }
-#endif
 
 TEST_F(SdfFrameSemanticsTest, VisualCollisionRelativeTo)
 {
@@ -379,7 +378,6 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithLinks)
   EXPECT_EQ(link2ExpRelativePose, this->GetPose(link2));
 }
 
-#if 0
 TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithJoints)
 {
   const std::string modelSdf = R"sdf(
@@ -419,9 +417,10 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithJoints)
 
   // Expect the pose of J1 relative to model to be the same as F1 in world
   ignition::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
-  EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
+  // TODO(anyone) Enable the following expectation when a joint's WorldPose
+  // can be computed by ign-physics.
+  // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
 }
-#endif
 
 TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithVisualAndCollision)
 {
