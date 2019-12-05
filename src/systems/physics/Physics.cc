@@ -203,6 +203,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
 
+  /// \brief Reverse of entityLinkMap. This is used for finding the Entity
+  /// associated with a physics Link
+  public: std::unordered_map<LinkPtrType, Entity> linkEntityMap;
+
   /// \brief A map between collision entity ids in the ECM to Shape Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, ShapePtrType> entityCollisionMap;
@@ -424,6 +428,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
         this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
+        this->linkEntityMap.insert(std::make_pair(linkPtrPhys, _entity));
 
         return true;
       });
@@ -612,6 +617,13 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
                 this->entityCollisionMap.erase(collIt);
               }
             }
+            // First erase the entry associated with this link from the
+            // linkEntityMap which is the reverse of entityLinkMap
+            auto linkPhysIt = this->entityLinkMap.find(childLink);
+            if (linkPhysIt != this->entityLinkMap.end())
+            {
+              this->linkEntityMap.erase(linkPhysIt->second);
+            }
             this->entityLinkMap.erase(childLink);
           }
 
@@ -736,25 +748,26 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
-        // Get canonical link offset
-        auto canonicalLink = _ecm.ChildrenByComponents(_entity,
-            components::CanonicalLink());
-        if (canonicalLink.empty())
-          return true;
-
-        auto canonicalPoseComp =
-            _ecm.Component<components::Pose>(canonicalLink[0]);
-        if (nullptr == canonicalPoseComp)
-          return true;
+        // The canonical link as specified by sdformat is different from the
+        // canonical link of the FreeGroup object
 
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelIt->second->FindFreeGroup();
-        if (freeGroup)
-        {
-          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
-              canonicalPoseComp->Data()));
-        }
+        if (!freeGroup)
+          return true;
+
+        // Get canonical link offset
+        auto linkEntityIt =
+            this->linkEntityMap.find(freeGroup->CanonicalLink());
+        if (linkEntityIt == this->linkEntityMap.end())
+          return true;
+
+        auto canonicalPoseComp =
+            _ecm.Component<components::Pose>(linkEntityIt->second);
+
+        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+                                canonicalPoseComp->Data()));
 
         // Process pose commands for static models here, as one-time changes
         const components::Static *staticComp =
