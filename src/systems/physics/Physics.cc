@@ -111,7 +111,7 @@ namespace components = ignition::gazebo::components;
 // Private data class.
 class ignition::gazebo::systems::PhysicsPrivate
 {
-  public: using MinimumFeatureList = ignition::physics::FeatureList<
+  public: struct MinimumFeatureList : ignition::physics::FeatureList<
           // FreeGroup
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
@@ -133,7 +133,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
-          >;
+          >{};
 
 
   public: using EnginePtrType = ignition::physics::EnginePtr<
