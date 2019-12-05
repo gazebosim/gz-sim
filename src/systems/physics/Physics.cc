@@ -133,7 +133,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
-          > {  };
+          >{};
 
 
   public: using EnginePtrType = ignition::physics::EnginePtr<
