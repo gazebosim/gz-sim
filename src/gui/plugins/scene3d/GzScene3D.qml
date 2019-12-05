@@ -55,8 +55,14 @@ Rectangle {
 
   // todo(anyone) replace this with snackbar notifications
   Text {
-    anchors.top: renderWindow.achors.top
-    anchors.left: renderWindow.achors.left
     text: renderWindow.message
+  }
+
+  DropArea {
+    anchors.fill: renderWindow
+
+    onDropped: {
+      GzScene3D.OnDropped(drop.text)
+    }
   }
 }
