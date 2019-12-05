@@ -254,7 +254,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
-    if (linkIndex == 0)
+    if ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
+        (link == _model->CanonicalLink()))
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
@@ -303,7 +304,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   // Components
   this->dataPtr->ecm->CreateComponent(actorEntity, components::Actor(*_actor));
   this->dataPtr->ecm->CreateComponent(actorEntity,
-      components::Pose(_actor->Pose()));
+      components::Pose(_actor->RawPose()));
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
