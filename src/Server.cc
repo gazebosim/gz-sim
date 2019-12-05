@@ -75,6 +75,10 @@ struct DefaultWorld
       "<sdf version='1.6'>"
         "<world name='default'>") +
           DefaultPlugins(_config) +
+          "<scene>"
+          "  <ambient_light>0.4 0.4 0.4</ambient_light>"
+          "  <background_color>0.8 0.8 0.8</background_color>"
+          "</scene>"
           "<gui fullscreen='0'>"
           "  <plugin filename='GzScene3D' name='3D View'>"
           "    <ignition-gui>"
@@ -84,8 +88,6 @@ struct DefaultWorld
           "    </ignition-gui>"
           "    <engine>ogre2</engine>"
           "    <scene>scene</scene>"
-          "    <ambient_light>0.4 0.4 0.4</ambient_light>"
-          "    <background_color>0.8 0.8 0.8</background_color>"
           "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
           "  </plugin>"
           "  <plugin filename='WorldControl' name='World control'>"
