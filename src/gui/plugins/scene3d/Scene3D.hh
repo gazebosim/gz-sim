@@ -87,6 +87,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
 
+    /// \brief Callback when receives a drop event.
+    /// \param[in] _drop Dropped string.
+    public slots: void OnDropped(const QString &_drop);
+
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
     /// \param[in] _res Response data
