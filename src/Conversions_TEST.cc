@@ -47,7 +47,7 @@ TEST(Conversions, Light)
   sdf::Light light;
   light.SetName("test_convert_light");
   light.SetType(sdf::LightType::DIRECTIONAL);
-  light.SetPose({3, 2, 1, 0, IGN_PI, 0});
+  light.SetRawPose({3, 2, 1, 0, IGN_PI, 0});
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetDiffuse(ignition::math::Color(0.4f, 0.5f, 0.6f, 1.0));
@@ -86,7 +86,7 @@ TEST(Conversions, Light)
   auto newLight = convert<sdf::Light>(lightMsg);
   EXPECT_EQ("test_convert_light", newLight.Name());
   EXPECT_EQ(sdf::LightType::DIRECTIONAL, newLight.Type());
-  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0), newLight.Pose());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0), newLight.RawPose());
   /// \todo(anyone) add pose frame fields in ign-msgs?
   // EXPECT_EQ("world", newLight.PoseRelativeTo());
   EXPECT_TRUE(newLight.CastShadows());
@@ -486,7 +486,7 @@ TEST(CONVERSIONS, MagnetometerSensor)
   sensor.SetType(sdf::SensorType::MAGNETOMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -505,7 +505,7 @@ TEST(CONVERSIONS, MagnetometerSensor)
   EXPECT_EQ(sensor.TypeStr(), msg.type());
   EXPECT_DOUBLE_EQ(sensor.UpdateRate(), msg.update_rate());
   EXPECT_EQ(sensor.Topic(), msg.topic());
-  EXPECT_EQ(sensor.Pose(), msgs::Convert(msg.pose()));
+  EXPECT_EQ(sensor.RawPose(), msgs::Convert(msg.pose()));
 
   ASSERT_TRUE(msg.has_magnetometer());
 
@@ -526,7 +526,7 @@ TEST(CONVERSIONS, AltimeterSensor)
   sensor.SetType(sdf::SensorType::ALTIMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -545,7 +545,7 @@ TEST(CONVERSIONS, AltimeterSensor)
   EXPECT_EQ(sensor.TypeStr(), msg.type());
   EXPECT_DOUBLE_EQ(sensor.UpdateRate(), msg.update_rate());
   EXPECT_EQ(sensor.Topic(), msg.topic());
-  EXPECT_EQ(sensor.Pose(), msgs::Convert(msg.pose()));
+  EXPECT_EQ(sensor.RawPose(), msgs::Convert(msg.pose()));
 
   ASSERT_TRUE(msg.has_altimeter());
 
@@ -615,7 +615,7 @@ TEST(Conversions, Actor)
 
   sdf::Actor actor;
   actor.SetName("test_convert_actor");
-  actor.SetPose({3, 2, 1, 0, 0, 0});
+  actor.SetRawPose({3, 2, 1, 0, 0, 0});
   actor.SetSkinFilename("walk.dae");
   actor.SetSkinScale(2.0);
   actor.SetScriptLoop(true);
@@ -654,7 +654,7 @@ TEST(Conversions, Actor)
 
   auto newActor = convert<sdf::Actor>(actorMsg);
   EXPECT_EQ("test_convert_actor", newActor.Name());
-  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), newActor.Pose());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), newActor.RawPose());
   EXPECT_EQ("walk.dae", newActor.SkinFilename());
   EXPECT_FLOAT_EQ(2.0, newActor.SkinScale());
   EXPECT_TRUE(newActor.ScriptLoop());

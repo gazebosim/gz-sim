@@ -469,7 +469,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Model model;
           model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
+          model.SetRawPose(_pose->Data());
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
@@ -486,7 +486,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Link link;
           link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
+          link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
           return true;
@@ -504,7 +504,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
+          visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
 
           // Optional components
@@ -615,7 +615,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Model model;
           model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
+          model.SetRawPose(_pose->Data());
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
@@ -632,7 +632,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Link link;
           link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
+          link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
           return true;
@@ -650,7 +650,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
+          visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
 
           // Optional components
