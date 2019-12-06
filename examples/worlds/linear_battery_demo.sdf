@@ -174,7 +174,7 @@
             <ambient>0.5 1.0 0.5 1</ambient>
             <diffuse>0.5 1.0 0.5 1</diffuse>
             <specular>0.5 1.0 0.5 1</specular>
-            <emissive>0.5 0.5 1.0 1</emissive>
+            <emissive>0.5 1.0 0.5 1</emissive>
           </material>
         </visual>
         <collision name='collision'>
