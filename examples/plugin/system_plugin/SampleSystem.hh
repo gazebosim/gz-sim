@@ -25,9 +25,9 @@ namespace sample_system
   /// \brief Sample system that implemente the ISystemPostUpdate system
   /// plugin interface.
   class SampleSystem:
-    // This is class a system.
+    // This class is a system.
     public ignition::gazebo::System,
-    // This is class also implements the ISystemPostUpdate interface.
+    // This class also implements the ISystemPostUpdate interface.
     public ignition::gazebo::ISystemPostUpdate
   {
     public: SampleSystem();
@@ -39,9 +39,9 @@ namespace sample_system
   };
 
   class SampleSystem2:
-    // This is class a system.
+    // This class is a system.
     public ignition::gazebo::System,
-    // This is class also implements the ISystemPreUpdate, ISystemUpdate,
+    // This class also implements the ISystemPreUpdate, ISystemUpdate,
     // and ISystemPostUpdate interfaces.
     public ignition::gazebo::ISystemPreUpdate,
     public ignition::gazebo::ISystemUpdate,
