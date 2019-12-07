@@ -44,10 +44,6 @@ methods from the inherited interfaces.
 
 \snippet examples/plugin/system_plugin/SampleSystem.hh header
 
-## Implement Source
-
-Implement the system class as normal
-
 ## Register Plugin
 
 If the library will only contain one plugin:
@@ -59,21 +55,32 @@ above, and then for each successive implementation use:
 
 \snippet examples/plugin/system_plugin/SampleSystem2.cc registerSampleSystem2
 
+## Implement Source
+
+Implement the system class as usual, for example:
+
+\snippet examples/plugin/system_plugin/SampleSystem.cc implementSampleSystem
+
 ## Setup the build
 
 In your `CMakeLists.txt` add the following
 
 ```
-set(IGN_PLUGIN_VER 0)
-ign_find_package(ignition-plugin0 REQUIRED COMPONENTS register)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-# Add sources for each plugin to be registered.
-add_library(SampleSystem SampleSystem.cc SampleSystem2.cc)
+find_package(ignition-cmake2 REQUIRED)
+
+project(SampleSystem)
+
+find_package(ignition-plugin1 REQUIRED COMPONENTS register)
+set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
+
+find_package(ignition-gazebo3 REQUIRED)
+add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-)
+  PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+  PRIVATE ignition-gazebo3::ignition-gazebo3)
 ```
 
 ## Loading your plugin
