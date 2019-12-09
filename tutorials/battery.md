@@ -43,7 +43,9 @@ This has been added to a demo world, which can be run using:
 ign gazebo -v 4 -r linear_battery_demo.sdf
 ```
 
-The blue vehicle on the left has a battery, while the one on the right does not. With `<start_on_motion>` set to `false`, the battery starts draining when the sdf file is loaded; if set to `true`, the battery only starts draining when the vehicle starts moving. When the battery state of charge drains below the `<soc_threshold>`, the battery automatically starts recharging. Unless `<enable_recharge>` is set to `false`, the corresponding vehicle will not stop moving.
+The blue vehicle on the left has a battery, while the one on the right does not.
+With `<start_on_motion>` set to `false`, the battery starts draining when the sdf file is loaded; if set to `true`, the battery only starts draining when the vehicle starts moving.
+When the battery state of charge drains below the `<soc_threshold>`, the battery automatically starts recharging. Unless `<enable_recharge>` is set to `false`, the corresponding vehicle will not stop moving.
 
 To control the vehicles with keyboard, run
 
