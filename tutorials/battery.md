@@ -48,7 +48,7 @@ cmake .. && make
 ./keyboard ../keyboard.sdf
 ```
 
-See more about the usage of the keyboard plugin in `examples/standalone/keyboard/README.md`.
+One vehicle can be moved using arrow keys and the other using WASD keys. See more about the usage of the keyboard plugin in `examples/standalone/keyboard/README.md`.
 
 
 ## Known Issues
