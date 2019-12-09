@@ -16,7 +16,8 @@
   Listen to battery state of charge:
       ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
 
-  The blue vehicle should stop when it runs out of battery.
+  The blue vehicle should stop when it runs out of battery with recharge set to false.
+  The blue vehicle will not stop if recharge is set to true.
 
 -->
 <sdf version="1.6">
@@ -513,7 +514,7 @@
         <capacity>2.5 </capacity>
         <resistance>0.07</resistance>
         <smooth_current_tau>2.0</smooth_current_tau>
-        <enable_recharge>true</enable_recharge>
+        <enable_recharge>false</enable_recharge>
         <!-- charging I = c / t, discharging I = P / V, 
           charging I should be > discharging I -->
         <charging_time>3.0</charging_time>

@@ -25,7 +25,7 @@ A linear consumption battery plugin has been implemented. The battery can be add
         <capacity>2.5 </capacity>
         <resistance>0.07</resistance>
         <smooth_current_tau>2.0</smooth_current_tau>
-        <enable_recharge>true</enable_recharge>
+        <enable_recharge>false</enable_recharge>
         <charging_time>3.0</charging_time>
         <soc_threshold>0.51</soc_threshold>
         <!-- Consumer-specific -->
@@ -45,7 +45,8 @@ ign gazebo -v 4 -r linear_battery_demo.sdf
 
 The blue vehicle on the left has a battery, while the one on the right does not.
 With `<start_on_motion>` set to `false`, the battery starts draining when the sdf file is loaded; if set to `true`, the battery only starts draining when the vehicle starts moving.
-When the battery state of charge drains below the `<soc_threshold>`, the battery automatically starts recharging. Unless `<enable_recharge>` is set to `false`, the corresponding vehicle will not stop moving.
+When the battery state of charge drains below the `<soc_threshold>`, the battery automatically starts recharging if <enable_recharge> is set to true. 
+The blue vehicle on the left will eventually stop after running out of power with <enable_recharge> disabled (set to `false`).
 
 To control the vehicles with keyboard, run
 
