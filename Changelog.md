@@ -2,7 +2,7 @@
 
 ### Ignition Gazebo 3.X.X
 
-### Ignition Gazebo 3.0.0
+### Ignition Gazebo 3.0.0 (2019-12-10)
 
 1. Remove <emissive> sdf element from visuals that do not emit light in the example worlds
     * [Pull Request 478](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/478)
