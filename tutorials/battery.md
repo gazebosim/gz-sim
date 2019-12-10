@@ -34,7 +34,6 @@ A linear consumption battery plugin has been implemented. The battery can be add
 This has been added to a demo world, which can be run using:
 
 ```
-cd ign-gazebo/examples/worlds
 ign gazebo -v 4 -r linear_battery_demo.sdf
 ```
 
@@ -43,14 +42,15 @@ The blue vehicle on the left has a battery, while the one on the right does not.
 To control the vehicles with keyboard, run
 
 ```
-cd ign-gazebo/examples/standalone/keyboard/build
+cd ign-gazebo/examples/standalone/keyboard
+mkdir build && cd build
+cmake .. && make
 ./keyboard ../keyboard.sdf
 ```
 
-See more about the usage of the keyboard plugin in `examples/standalone/keyboard/README.md`.
+One vehicle can be moved using arrow keys and the other using WASD keys. See more about the usage of the keyboard plugin in `examples/standalone/keyboard/README.md`.
 
 
 ## Known Issues
 
 * The rate of consumption should be affected by torque. For example, going uphill should consume more power than going downhill.
-

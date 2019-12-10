@@ -2,8 +2,8 @@
 <!--
   Log record demo.
 
-  Running this world will record log files to /tmp/log. If that directory
-  already exists, it will record to /tmp/log(1) and so on.
+  Running this world will record log files to /tmp/log. It will overwrite that
+  directory if it already exists.
 
   You can playback running the log_playback.sdf file.
 
