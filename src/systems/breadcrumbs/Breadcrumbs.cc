@@ -24,6 +24,9 @@
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
 
+#include <sdf/Geometry.hh>
+
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -77,6 +80,31 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->maxDeployments =
       _sdf->Get<int>("max_deployments", this->maxDeployments).first;
 
+  this->isPerformer = _sdf->Get<bool>("is_performer", this->isPerformer).first;
+
+  if (this->isPerformer)
+  {
+    if (_sdf->HasElement("performer_volume"))
+    {
+      auto vol = _sdf->GetElementImpl("performer_volume");
+      sdf::Geometry geom;
+      geom.Load(vol->GetElementImpl("geometry"));
+      if (nullptr != geom.BoxShape())
+      {
+        this->performerGeometry = std::move(geom);
+      }
+      else
+      {
+        ignerr << "Geometry specified in <performer_volume> is invalid\n";
+        return;
+      }
+    }
+    else
+    {
+      ignerr << "<is_performer> is set to true, but <performer_volume> could "
+                "not be found\n";
+    }
+  }
   // Subscribe to commands
   std::string topic{"/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
                     this->modelRoot.ModelByIndex(0)->Name() + "/deploy"};
@@ -127,6 +155,25 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
                << modelToSpawn.Pose() << std::endl;
         Entity entity = this->creator->CreateEntities(&modelToSpawn);
         this->creator->SetParent(entity, this->worldEntity);
+
+        if (this->isPerformer)
+        {
+          auto worldName =
+              _ecm.Component<components::Name>(this->worldEntity)->Data();
+          msgs::StringMsg req;
+          req.set_data(modelToSpawn.Name());
+          msgs::Boolean rep;
+          bool result;
+          this->node.Request("/world/" + worldName + "/level/set_performer",
+                             req, 2000, rep, result);
+
+          // When using the set_performer service, the performer gets a default
+          // geometry for its bounding volume. To update the geometry, we make a
+          // list of performer breadcrumbs and process them as we detect that
+          // they have become performers
+          this->pendingGeometryUpdate.insert(entity);
+        }
+
         ++this->numDeployments;
       }
       else
@@ -136,6 +183,9 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
                << "limit of " << this->maxDeployments << std::endl;
       }
     }
+
+    // TODO(addisu) Process pending geometry updates
+
   }
 }
 
