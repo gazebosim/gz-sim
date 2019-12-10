@@ -562,6 +562,57 @@
         </sdf>
        </breadcrumb>
       </plugin>
+      <!-- Breadcrumb with large performer volume -->
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+       <max_deployments>3</max_deployments>
+       <is_performer>true</is_performer>
+       <performer_volume>
+         <geometry>
+           <box>
+             <size>100 100 2</size>
+           </box>
+         </geometry>
+       </performer_volume>
+       <breadcrumb>
+         <sdf version="1.6">
+          <model name="B1_perf_large_volume">
+            <pose>-1.2 0 0 0 0 0</pose>
+            <link name='body'>
+              <inertial>
+                <mass>0.6</mass>
+                <inertia>
+                  <ixx>0.017</ixx>
+                  <ixy>0</ixy>
+                  <ixz>0</ixz>
+                  <iyy>0.017</iyy>
+                  <iyz>0</iyz>
+                  <izz>0.009</izz>
+                </inertia>
+              </inertial>
+              <visual name='visual'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+                <material>
+                  <ambient>0.0 1.0 0.0 1</ambient>
+                  <diffuse>0.0 1.0 0.0 1</diffuse>
+                  <specular>0.5 0.5 0.5 1</specular>
+                </material>
+              </visual>
+              <collision name='collision'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+              </collision>
+            </link>
+          </model>
+        </sdf>
+       </breadcrumb>
+      </plugin>
     </model>
     <plugin name="ignition::gazebo" filename="dummy">
       <performer name="perf1">

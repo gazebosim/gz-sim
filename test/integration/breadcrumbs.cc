@@ -373,3 +373,70 @@ TEST_F(BreadcrumbsTest, Performer)
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, nIters, false);
 }
+
+/////////////////////////////////////////////////
+// Test that the volume of the performer is set when deploying a performer
+// breadcrumb
+TEST_F(BreadcrumbsTest, PerformerSetVolume)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/breadcrumbs.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetUseLevels(true);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  Relay testSystem;
+  transport::Node node;
+  auto deploy = node.Advertise<msgs::Empty>(
+      "/model/vehicle_blue/breadcrumbs/B1_perf_large_volume/deploy");
+
+  const std::size_t iterTestStart = 1000;
+  const std::size_t nIters = iterTestStart + 2000;
+
+  std::optional<math::Pose3d> initialPose;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                             const gazebo::EntityComponentManager &_ecm)
+  {
+    // Deploy a performer breadcrumb on a tile that's on the default a level, and check
+    // that it causes tile_1 to be loaded since the performer's volume is large
+    // enough to overlap with tile_1.
+
+    // Set pose to tile_2 , check if tile_1 is still loaded
+    if (_info.iterations == iterTestStart)
+    {
+      msgs::Pose req;
+      req.set_name("vehicle_blue");
+      req.mutable_position()->set_x(30);
+      msgs::Boolean rep;
+      bool result;
+      node.Request("/world/breadcrumbs/set_pose", req, 2000, rep, result);
+      EXPECT_TRUE(result);
+    }
+    else if (_info.iterations == iterTestStart + 500)
+    {
+      // Check that tile_1 is unloaded
+      Entity tileEntity = _ecm.EntityByComponents(components::Model(),
+                                                  components::Name("tile_1"));
+      EXPECT_EQ(kNullEntity, tileEntity);
+
+      deploy.Publish(msgs::Empty());
+    }
+    else if (_info.iterations == nIters)
+    {
+      Entity tileEntity = _ecm.EntityByComponents(components::Model(),
+                                                  components::Name("tile_1"));
+      EXPECT_NE(kNullEntity, tileEntity);
+    }
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, nIters, false);
+}
