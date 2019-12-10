@@ -4,6 +4,10 @@
 
 ### Ignition Gazebo 3.0.0
 
+1. Remove <emissive> sdf element from visuals that do not emit light in the example worlds
+    * [Pull Request 478](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/478)
+    * [Pull Request 480](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/480)
+
 1. Support for sdformat frame semantics
     * [Pull Request 456](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/456)
 
