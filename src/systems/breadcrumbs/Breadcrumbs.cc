@@ -26,7 +26,10 @@
 
 #include <sdf/Geometry.hh>
 
+#include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -184,8 +187,36 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
       }
     }
 
-    // TODO(addisu) Process pending geometry updates
+    std::set<Entity> processedEntities;
+    for (const auto &e : this->pendingGeometryUpdate) {
+      Entity perf = _ecm.EntityByComponents(components::Performer(),
+                                            components::ParentEntity(e));
+      if (perf == kNullEntity)
+      {
+        continue;
+      }
 
+      auto geomComp = _ecm.Component<components::Geometry>(perf);
+      if (geomComp)
+      {
+        geomComp->SetData(
+            *this->performerGeometry,
+            [](const sdf::Geometry &, const sdf::Geometry &) -> bool
+            {
+              // We'll assume that the data is changed.
+              return true;
+            });
+        _ecm.SetChanged(e, geomComp->TypeId());
+
+        processedEntities.insert(e);
+      }
+    }
+
+    // Remove processed entities from the pending list
+    for (const auto &e : processedEntities)
+    {
+      this->pendingGeometryUpdate.erase(e);
+    }
   }
 }
 
