@@ -56,7 +56,7 @@ Listen to battery state of charge:
 ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
 ```
 
-With `<start_on_motion>` set to `true`, the battery only starts draining when the vehicle starts moving; if set to `false`, the battery starts draining when the sdf file is loaded.
+With `<start_on_motion>` set to `true`, the battery only starts draining when the vehicle starts moving; if set to `false`, the battery starts draining when the simulation is running.
 The blue vehicle on the left has a battery without recharge, while the green one on the right has a battery with recharge.
 The blue vehicle on the left with <enable_recharge> set to false will eventually stop after running out of power.
 The green vehicle on the right with <enable_recharge> set to true will recharge when the battery state of charge drains below the `<soc_threshold>`.
