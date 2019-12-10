@@ -30,23 +30,36 @@ A linear consumption battery plugin has been implemented. The battery can be add
         <soc_threshold>0.51</soc_threshold>
         <!-- Consumer-specific -->
         <power_load>2.1</power_load>
-        <start_on_motion>false</start_on_motion>
+        <start_on_motion>true</start_on_motion>
       </plugin>
   ...
 </model>
 ```
 `<power_load>` is a consumer-specific parameter. You can set this to a high value to see what happens when the battery drains. All others are properties of the battery.
 
-This has been added to a demo world, which can be run using:
+It's recommended to run this demo at a high RTF, so it's faster to observe the battery drain:
 
 ```
-ign gazebo -v 4 -r linear_battery_demo.sdf
+ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
 ```
 
-The blue vehicle on the left has a battery, while the one on the right does not.
-With `<start_on_motion>` set to `false`, the battery starts draining when the sdf file is loaded; if set to `true`, the battery only starts draining when the vehicle starts moving.
-When the battery state of charge drains below the `<soc_threshold>`, the battery automatically starts recharging if <enable_recharge> is set to true. 
-The blue vehicle on the left will eventually stop after running out of power with <enable_recharge> disabled (set to `false`).
+Move both vehicles:
+
+```
+ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+```
+
+Listen to battery state of charge:
+
+```
+ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
+```
+
+With `<start_on_motion>` set to `true`, the battery only starts draining when the vehicle starts moving; if set to `false`, the battery starts draining when the sdf file is loaded.
+The blue vehicle on the left has a battery without recharge, while the green one on the right has a battery with recharge.
+The blue vehicle on the left with <enable_recharge> set to false will eventually stop after running out of power.
+The green vehicle on the right with <enable_recharge> set to true will recharge when the battery state of charge drains below the `<soc_threshold>`.
 
 To control the vehicles with keyboard, run
 
