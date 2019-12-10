@@ -4,6 +4,19 @@
 
 ### Ignition Gazebo 3.0.0
 
+1. Remove <emissive> sdf element from visuals that do not emit light in the example worlds
+    * [Pull Request 478](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/478)
+    * [Pull Request 480](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/480)
+
+1. Support for sdformat frame semantics
+    * [Pull Request 456](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/456)
+
+1. Support for relative path URIs for actors
+    * [Pull Request 444](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/444)
+
+1. Add rechargeable battery model
+    * [Pull Request 457](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/457)
+
 1. Add Marker Manager
     * [Pull Request 442](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/442)
 
@@ -26,8 +39,29 @@
 
 ### Ignition Gazebo 2.X.X
 
-1.  Add log video recorder
+1. Parse visual cast shadows and add CastShadows component
+    * [Pull Request 453](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/453)
+
+1. Update SceneBroadcaster to publish state msg for world with only static models
+    * [Pull Request 450](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/450)
+
+1. Add log video recorder
     * [Pull Request 441](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/441)
+
+1. Rechargeable battery model
+    * [Pull Request 455](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/455)
+
+1. Add Breadcrumbs system
+    * [Pull Request 459](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/459)
+
+1. Drag models from Fuel
+    * [Pull Request 454](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/454)
+
+1. Improvements to GUI configuration
+    * [Pull Request 451](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/451)
+
+1. Prevent crash when attempting to load more than one render engine per process
+    * [Pull Request 463](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/463)
 
 ### Ignition Gazebo 2.11.0 (2019-10-23)
 

@@ -20,6 +20,7 @@
 #include <ignition/msgs/wrench.pb.h>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -38,7 +39,8 @@ namespace components
   /// ignored. Instead, the force is applied at the link origin.
   /// The wrench uses SI units (N for force and N⋅m for torque).
   using ExternalWorldWrenchCmd =
-      Component<msgs::Wrench, class ExternalWorldWrenchCmdTag>;
+      Component<msgs::Wrench, class ExternalWorldWrenchCmdTag,
+      serializers::MsgSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ExternalWorldWrenchCmd",
                                 ExternalWorldWrenchCmd)
 }

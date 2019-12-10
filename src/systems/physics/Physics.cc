@@ -203,6 +203,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
 
+  /// \brief Reverse of entityLinkMap. This is used for finding the Entity
+  /// associated with a physics Link
+  public: std::unordered_map<LinkPtrType, Entity> linkEntityMap;
+
   /// \brief A map between collision entity ids in the ECM to Shape Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, ShapePtrType> entityCollisionMap;
@@ -368,7 +372,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         sdf::Model model;
         model.SetName(_name->Data());
-        model.SetPose(_pose->Data());
+        model.SetRawPose(_pose->Data());
 
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
@@ -413,7 +417,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         sdf::Link link;
         link.SetName(_name->Data());
-        link.SetPose(_pose->Data());
+        link.SetRawPose(_pose->Data());
 
         // get link inertial
         auto inertial = _ecm.Component<components::Inertial>(_entity);
@@ -424,6 +428,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
         this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
+        this->linkEntityMap.insert(std::make_pair(linkPtrPhys, _entity));
 
         return true;
       });
@@ -461,7 +466,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
 
-        const sdf::Collision& collision = _collElement->Data();
+        // Make a copy of the collision DOM so we can set its pose which has
+        // been resolved and is now expressed w.r.t the parent link of the
+        // collision.
+        sdf::Collision collision = _collElement->Data();
+        collision.SetRawPose(_pose->Data());
+        collision.SetPoseRelativeTo("");
 
         ShapePtrType collisionPtrPhys;
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
@@ -537,7 +547,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
-        joint.SetPose(_pose->Data());
+        joint.SetRawPose(_pose->Data());
         joint.SetThreadPitch(_threadPitch->Data());
 
         joint.SetParentLinkName(_parentLinkName->Data());
@@ -546,6 +556,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
+        // Since we're making copies of the joint axes that were created using
+        // `Model::Load`, frame semantics should work for resolving their xyz
+        // axis
         if (jointAxis)
           joint.SetAxis(0, jointAxis->Data());
         if (jointAxis2)
@@ -604,6 +617,13 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
                 this->collisionEntityMap.erase(collIt->second);
                 this->entityCollisionMap.erase(collIt);
               }
+            }
+            // First erase the entry associated with this link from the
+            // linkEntityMap which is the reverse of entityLinkMap
+            auto linkPhysIt = this->entityLinkMap.find(childLink);
+            if (linkPhysIt != this->entityLinkMap.end())
+            {
+              this->linkEntityMap.erase(linkPhysIt->second);
             }
             this->entityLinkMap.erase(childLink);
           }
@@ -668,8 +688,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             ignwarn << "There is a mismatch in the degrees of freedom between "
                     << "Joint [" << _name->Data() << "(Entity=" << _entity
                     << ")] and its JointForceCmd component. The joint has "
-                    << force->Data().size() << " while the component has "
-                    << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                    << jointIt->second->GetDegreesOfFreedom() << " while the "
+                    << " component has " << force->Data().size() << ".\n";
           }
           std::size_t nDofs = std::min(force->Data().size(),
                                        jointIt->second->GetDegreesOfFreedom());
@@ -689,8 +709,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               ignwarn << "There is a mismatch in the degrees of freedom between"
                       << " Joint [" << _name->Data() << "(Entity=" << _entity
                       << ")] and its JointVelocityCmd component. The joint has "
-                      << velCmd->Data().size() << " while the component has "
-                      << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                      << jointIt->second->GetDegreesOfFreedom() << " while the "
+                      << " component has " << velCmd->Data().size() << ".\n";
             }
             std::size_t nDofs = std::min(velCmd->Data().size(),
                 jointIt->second->GetDegreesOfFreedom());
@@ -729,25 +749,26 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
-        // Get canonical link offset
-        auto canonicalLink = _ecm.ChildrenByComponents(_entity,
-            components::CanonicalLink());
-        if (canonicalLink.empty())
-          return true;
-
-        auto canonicalPoseComp =
-            _ecm.Component<components::Pose>(canonicalLink[0]);
-        if (nullptr == canonicalPoseComp)
-          return true;
+        // The canonical link as specified by sdformat is different from the
+        // canonical link of the FreeGroup object
 
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelIt->second->FindFreeGroup();
-        if (freeGroup)
-        {
-          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
-              canonicalPoseComp->Data()));
-        }
+        if (!freeGroup)
+          return true;
+
+        // Get canonical link offset
+        auto linkEntityIt =
+            this->linkEntityMap.find(freeGroup->CanonicalLink());
+        if (linkEntityIt == this->linkEntityMap.end())
+          return true;
+
+        auto canonicalPoseComp =
+            _ecm.Component<components::Pose>(linkEntityIt->second);
+
+        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+                                canonicalPoseComp->Data()));
 
         // Process pose commands for static models here, as one-time changes
         const components::Static *staticComp =

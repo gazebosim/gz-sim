@@ -5,6 +5,7 @@ set(tests
   altimeter_system.cc
   apply_joint_force_system.cc
   battery_plugin.cc
+  breadcrumbs.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
@@ -26,6 +27,7 @@ set(tests
   play_pause.cc
   pose_publisher_system.cc
   scene_broadcaster_system.cc
+  sdf_frame_semantics.cc
   sdf_include.cc
   touch_plugin.cc
   user_commands.cc

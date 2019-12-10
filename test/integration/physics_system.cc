@@ -172,7 +172,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   // TODO(addisu): Get dt from simulation
   const double dt = 0.001;
   const double grav = world->Gravity().Z();
-  const double zInit = model->Pose().Pos().Z();
+  const double zInit = model->RawPose().Pos().Z();
   // The sphere should have fallen for (iters * dt) seconds.
   const double zExpected = zInit + 0.5 * grav * pow(iters * dt, 2);
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-4);
@@ -188,7 +188,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   // The box surface is at 0 so the z position of the sphere is the same as its
   // radius. The position of the model will be offset by the first links pose
   const double zStopped =
-      sphere->Radius() - model->LinkByIndex(0)->Pose().Pos().Z();
+      sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
 }
 
@@ -221,7 +221,7 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
 
   std::unordered_map<std::string, ignition::math::Pose3d> expectedLinPoses;
   for (auto &linkName : linksToCheck)
-    expectedLinPoses[linkName] = model->LinkByName(linkName)->Pose();
+    expectedLinPoses[linkName] = model->LinkByName(linkName)->RawPose();
   ASSERT_EQ(3u, expectedLinPoses.size());
 
   // Create a system that records the poses of the links after physics
@@ -263,6 +263,61 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
     // fixed joints
     EXPECT_EQ(expectedLinPoses[link], postUpLinkPoses[link]) << link;
   }
+}
+
+/////////////////////////////////////////////////
+// Same as the CanonicalLink test, but with a non-default canonical link
+TEST_F(PhysicsSystemFixture, NonDefaultCanonicalLink)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/nondefault_canonical.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  const std::string modelName{"nondefault_canonical"};
+
+  // Create a system that records the pose of the model.
+  Relay testSystem;
+
+  std::vector<ignition::math::Pose3d> modelPoses;
+  testSystem.OnPostUpdate(
+    [&modelName, &modelPoses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (_name->Data() == modelName)
+          {
+            modelPoses.push_back(_pose->Data());
+          }
+          return true;
+        });
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  std::size_t nIters{2000};
+  server.Run(true, nIters, false);
+
+  EXPECT_EQ(nIters, modelPoses.size());
+
+  // The model is attached to link2 (it's canonical link) so it will fall during
+  // simulation. The new Z position of the model is an offset of -2 in the Z
+  // direction from the center of link2.
+  EXPECT_NEAR(-(2.0 - 0.2), modelPoses.back().Pos().Z(), 1e-2);
 }
 
 /////////////////////////////////////////////////
@@ -334,7 +389,7 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
   const double link2Length = getCylinderLength("link2");
   // divide by 2.0 because the position is the center of the link.
   const double expMinDist = link1Length - link2Length/2.0;
-  auto link2InitialPos = model->LinkByName("link2")->Pose().Pos();
+  auto link2InitialPos = model->LinkByName("link2")->RawPose().Pos();
   // we ignore the x axis to simplify distance comparisons
   link2InitialPos.X() = 0;
   const double expMaxDist = link2InitialPos.Length();

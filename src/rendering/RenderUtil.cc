@@ -42,6 +42,7 @@
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -472,7 +473,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Model model;
           model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
+          model.SetRawPose(_pose->Data());
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
@@ -489,7 +490,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Link link;
           link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
+          link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
           return true;
@@ -497,18 +498,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
+          visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -618,7 +623,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Model model;
           model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
+          model.SetRawPose(_pose->Data());
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
@@ -635,7 +640,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Link link;
           link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
+          link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
           return true;
@@ -643,18 +648,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
+          visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -943,6 +952,37 @@ void RenderUtil::SetBackgroundColor(const math::Color &_color)
 void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 {
   this->dataPtr->ambientLight  = _ambient;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ShowGrid()
+{
+  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
+
+  // create gray material
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
+
+  // create grid visual
+  rendering::VisualPtr visual = this->dataPtr->scene->CreateVisual();
+  rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
+  if (!gridGeom)
+  {
+    ignwarn << "Failed to create grid for scene ["
+      << this->dataPtr->scene->Name() << "] on engine ["
+        << this->dataPtr->scene->Engine()->Name() << "]"
+          << std::endl;
+    return;
+  }
+  gridGeom->SetCellCount(20);
+  gridGeom->SetCellLength(1);
+  gridGeom->SetVerticalCellCount(0);
+  visual->AddGeometry(gridGeom);
+  visual->SetLocalPosition(0, 0, 0.015);
+  visual->SetMaterial(gray);
+  root->AddChild(visual);
 }
 
 /////////////////////////////////////////////////

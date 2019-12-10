@@ -143,7 +143,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
-  modelVis->SetLocalPose(_model.Pose());
+  modelVis->SetLocalPose(_model.RawPose());
   this->dataPtr->visuals[_id] = modelVis;
 
   if (parent)
@@ -183,7 +183,7 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
-  linkVis->SetLocalPose(_link.Pose());
+  linkVis->SetLocalPose(_link.RawPose());
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
@@ -224,7 +224,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
-  visualVis->SetLocalPose(_visual.Pose());
+  visualVis->SetLocalPose(_visual.RawPose());
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
@@ -240,7 +240,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     if (localPose != math::Pose3d::Zero)
     {
       geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetLocalPose(_visual.Pose() * localPose);
+      geomVis->SetLocalPose(_visual.RawPose() * localPose);
       visualVis = geomVis;
     }
 
@@ -274,6 +274,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     // material->SetTransparency(_visual.Transparency());
     if (material)
     {
+      // cast shadows
+      material->SetCastShadows(_visual.CastShadows());
+
       geom->SetMaterial(material);
       // todo(anyone) SetMaterial function clones the input material.
       // but does not take ownership of it so we need to destroy it here.
@@ -534,7 +537,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
-  actorVisual->SetLocalPose(_actor.Pose());
+  actorVisual->SetLocalPose(_actor.RawPose());
   actorVisual->AddGeometry(actorMesh);
 
   this->dataPtr->visuals[_id] = actorVisual;
@@ -731,7 +734,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       return light;
   }
 
-  light->SetLocalPose(_light.Pose());
+  light->SetLocalPose(_light.RawPose());
   light->SetDiffuseColor(_light.Diffuse());
   light->SetSpecularColor(_light.Specular());
 
