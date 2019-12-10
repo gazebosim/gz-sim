@@ -15,7 +15,7 @@
     <plugin
       filename="libignition-gazebo-sensors-system.so"
       name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre2</render_engine>
+      <render_engine>ogre</render_engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
@@ -29,6 +29,7 @@
     <scene>
       <ambient>1.0 1.0 1.0</ambient>
       <background>0.8 0.8 0.8</background>
+      <grid>true</grid>
     </scene>
 
     <gui fullscreen="0">
@@ -41,8 +42,10 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre2</engine>
+        <engine>ogre</engine>
         <scene>scene</scene>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
@@ -121,23 +124,17 @@
       <link name="link">
         <collision name="collision">
           <geometry>
-            <!--plane>
+            <plane>
               <normal>0 0 1</normal>
-            </plane-->
-            <box>
-              <size>20 20 0.1</size>
-            </box>
+            </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <!--plane>
+            <plane>
               <normal>0 0 1</normal>
               <size>100 100</size>
-            </plane-->
-            <box>
-              <size>20 20 0.1</size>
-            </box>
+            </plane>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
@@ -181,6 +178,33 @@
             <diffuse>1 0 0 1</diffuse>
             <specular>1 0 0 1</specular>
           </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere">
+      <static>true</static>
+      <pose>3 0 0.5 0 0 0</pose>
+      <link name="sphere_link">
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere>
+              <radius>0.125</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>0.125</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+          <cast_shadows>false</cast_shadows>
         </visual>
       </link>
     </model>

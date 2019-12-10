@@ -39,11 +39,6 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
-    <scene>
-      <ambient>0.4 0.4 0.4</ambient>
-      <background>0.8 0.8 0.8</background>
-    </scene>
-
   <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -56,6 +51,8 @@
 
         <engine>ogre</engine>
         <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
         <service>/world/levels/scene/info</service>
         <pose_topic>/world/levels/pose/info</pose_topic>
@@ -157,7 +154,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -3952,7 +3948,6 @@
           <ambient>1.0 0.5 0.5 1</ambient>
           <diffuse>1.0 0.5 0.5 1</diffuse>
           <specular>1.0 0.5 0.5 1</specular>
-          <emissive>1.0 0.5 0.5 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -3987,7 +3982,6 @@
           <ambient>0.2 0.2 0.2 1</ambient>
           <diffuse>0.2 0.2 0.2 1</diffuse>
           <specular>0.2 0.2 0.2 1</specular>
-          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -4022,7 +4016,6 @@
           <ambient>0.2 0.2 0.2 1</ambient>
           <diffuse>0.2 0.2 0.2 1</diffuse>
           <specular>0.2 0.2 0.2 1</specular>
-          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -4057,7 +4050,6 @@
           <ambient>0.2 0.2 0.2 1</ambient>
           <diffuse>0.2 0.2 0.2 1</diffuse>
           <specular>0.2 0.2 0.2 1</specular>
-          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -4134,7 +4126,6 @@
           <ambient>0.5 0.5 1.0 1</ambient>
           <diffuse>0.5 0.5 1.0 1</diffuse>
           <specular>0.5 0.5 1.0 1</specular>
-          <emissive>0.5 0.5 1.0 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -4169,7 +4160,6 @@
           <ambient>0.2 0.2 0.2 1</ambient>
           <diffuse>0.2 0.2 0.2 1</diffuse>
           <specular>0.2 0.2 0.2 1</specular>
-          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -4204,7 +4194,6 @@
           <ambient>0.2 0.2 0.2 1</ambient>
           <diffuse>0.2 0.2 0.2 1</diffuse>
           <specular>0.2 0.2 0.2 1</specular>
-          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -4239,7 +4228,6 @@
           <ambient>0.2 0.2 0.2 1</ambient>
           <diffuse>0.2 0.2 0.2 1</diffuse>
           <specular>0.2 0.2 0.2 1</specular>
-          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
       <collision name='collision'>

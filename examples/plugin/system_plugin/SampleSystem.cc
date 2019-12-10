@@ -9,6 +9,7 @@ IGNITION_ADD_PLUGIN(
     ignition::gazebo::System,
     sample_system::SampleSystem::ISystemPostUpdate)
 //! [registerSampleSystem]
+//! [implementSampleSystem]
 using namespace sample_system;
 
 SampleSystem::SampleSystem()
@@ -24,3 +25,4 @@ void SampleSystem::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   ignmsg << "SampleSystem::PostUpdate" << std::endl;
 }
+//! [implementSampleSystem]

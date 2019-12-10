@@ -2,8 +2,8 @@
 <!--
   Log record demo.
 
-  Running this world will record log files to /tmp/log. If that directory
-  already exists, it will record to /tmp/log(1) and so on.
+  Running this world will record log files to /tmp/log. It will overwrite that
+  directory if it already exists.
 
   You can playback running the log_playback.sdf file.
 
@@ -27,11 +27,6 @@
       <path>/tmp/log</path>
     </plugin>
 
-    <scene>
-      <ambient>0.4 0.4 0.4</ambient>
-      <background>0.8 0.8 0.8</background>
-    </scene>
-
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -44,6 +39,8 @@
 
         <engine>ogre2</engine>
         <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 

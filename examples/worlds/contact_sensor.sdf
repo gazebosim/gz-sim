@@ -27,8 +27,7 @@ Run the following to print out contacts,
     </plugin>
 
     <scene>
-      <ambient>0.4 0.4 0.4</ambient>
-      <background>0.8 0.8 0.8</background>
+      <grid>false</grid>
     </scene>
 
     <gui fullscreen="0">
@@ -43,6 +42,8 @@ Run the following to print out contacts,
 
         <engine>ogre</engine>
         <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 

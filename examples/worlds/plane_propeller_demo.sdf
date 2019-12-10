@@ -24,12 +24,6 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
-    <scene>
-      <ambient>0.4 0.4 0.4</ambient>
-      <background>0.8 0.8 0.8</background>
-    </scene>
-
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -42,6 +36,8 @@
 
         <engine>ogre2</engine>
         <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>20 0 3 0 0.0 3.14</camera_pose>
       </plugin>
 
@@ -130,7 +126,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
