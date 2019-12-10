@@ -207,6 +207,35 @@ For help, and command line options use:
 ign gazebo -h
 ```
 
+## Known issue of command line tools
+
+In the event that the installation is a mix of Debian and from source, command
+line tools from `ign-tools` may not work correctly.
+
+A workaround for a single package is to define the environment variable
+`IGN_CONFIG_PATH` to point to the location of the Ignition library installation,
+where the YAML file for the package is found, such as
+```
+export IGN_CONFIG_PATH=/usr/local/share/ignition
+```
+
+However, that environment variable only takes a single path, which means if the
+installations from source are in different locations, only one can be specified.
+
+Another workaround for working with multiple Ignition libraries on the command
+line is using symbolic links to each library's YAML file.
+```
+mkdir ~/.ignition/tools/configs -p
+cd ~/.ignition/tools/configs/
+ln -s /usr/local/share/ignition/fuel4.yaml .
+ln -s /usr/local/share/ignition/transport7.yaml .
+ln -s /usr/local/share/ignition/transportlog7.yaml .
+...
+export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
+```
+
+This issue is tracked [here](https://bitbucket.org/ignitionrobotics/ign-tools/issues/8/too-strict-looking-for-config-paths).
+
 # Documentation
 
 API documentation and tutorials can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
