@@ -190,11 +190,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Keep latest mouse event
     public: common::MouseEvent mouseEvent;
 
+    /// \brief Key event
+    public: common::KeyEvent keyEvent;
+
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
 
     //// \brief List of threads
     public: static QList<QThread *> threads;
+
+    /// \brief Text key.
+    public: std::string keyText;
+
+    /// \brief Key modifiers.
+    public: Qt::KeyboardModifiers keyModifiers;
   };
 
   /// \brief Private data class for Scene3D
@@ -1453,6 +1462,12 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
   if (!event.Dragging())
     return;
 
+  if (this->dataPtr->keyEvent.Control())
+  {
+    ignwarn << "Drag + ctrl\n";
+  } else {
+    ignwarn << "Regular drag\n";
+  }
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
 
@@ -1475,8 +1490,47 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 }
 
 ////////////////////////////////////////////////
+void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+{
+  this->dataPtr->keyText = _e->text().toStdString();
+  this->dataPtr->keyModifiers = _e->modifiers();
+
+  this->dataPtr->keyEvent.SetKey(_e->key());
+  this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
+
+  this->dataPtr->keyEvent.SetControl(
+    (this->dataPtr->keyModifiers & Qt::ControlModifier) ? true : false);
+  this->dataPtr->keyEvent.SetShift(
+    (this->dataPtr->keyModifiers & Qt::ShiftModifier) ? true : false);
+  this->dataPtr->keyEvent.SetAlt(
+    (this->dataPtr->keyModifiers & Qt::AltModifier) ? true : false);
+
+  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
+  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
+  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+}
+
+////////////////////////////////////////////////
 void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 {
+  this->dataPtr->keyModifiers = _e->modifiers();
+
+  this->dataPtr->keyEvent.SetControl(
+    (this->dataPtr->keyModifiers & Qt::ControlModifier)
+    && (_e->key() != Qt::Key_Control) ? true : false);
+  this->dataPtr->keyEvent.SetShift(
+    (this->dataPtr->keyModifiers & Qt::ShiftModifier)
+    && (_e->key() != Qt::Key_Shift) ? true : false);
+  this->dataPtr->keyEvent.SetAlt(
+    (this->dataPtr->keyModifiers & Qt::AltModifier)
+    && (_e->key() != Qt::Key_Alt) ? true : false);
+
+  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
+  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
+  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+
+  this->dataPtr->keyText = "";
+
   if (_e->key() == Qt::Key_Escape)
   {
     if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
