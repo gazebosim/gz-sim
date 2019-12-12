@@ -32,6 +32,7 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/common/MouseEvent.hh>
+#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -361,6 +362,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
+
+    // Documentation inherited
+    protected: void keyPressEvent(QKeyEvent *_e) override;
 
     // Documentation inherited
     protected: void keyReleaseEvent(QKeyEvent *_e) override;
