@@ -189,9 +189,9 @@ ToolBar {
     //  background: Ripple {
     //    implicitWidth: 48
     //    implicitHeight: 48
-    // 
+
     //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
-    // 
+
     //    x: (parent.width - width) / 2
     //    y: (parent.height - height) / 2
     //    clip: !square
