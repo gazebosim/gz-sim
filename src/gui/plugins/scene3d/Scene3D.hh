@@ -207,6 +207,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
+    /// \brief Handle key press event for snapping
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    public: void HandleKeyRelease(QKeyEvent *_e);
+
+    public: ignition::math::Vector3d SnapPoint(ignition::math::Vector3d &_point);
+
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
 
