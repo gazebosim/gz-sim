@@ -5,6 +5,7 @@ set(tests
   altimeter_system.cc
   apply_joint_force_system.cc
   battery_plugin.cc
+  breadcrumbs.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc

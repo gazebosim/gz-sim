@@ -2,11 +2,29 @@
 
 ### Ignition Gazebo 2.X.X
 
-1.  Update SceneBroadcaster to publish state msg for world with only static models
+1. Parse visual cast shadows and add CastShadows component
+    * [Pull Request 453](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/453)
+
+1. Update SceneBroadcaster to publish state msg for world with only static models
     * [Pull Request 450](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/450)
 
-1.  Add log video recorder
+1. Add log video recorder
     * [Pull Request 441](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/441)
+
+1. Rechargeable battery model
+    * [Pull Request 455](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/455)
+
+1. Add Breadcrumbs system
+    * [Pull Request 459](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/459)
+
+1. Drag models from Fuel
+    * [Pull Request 454](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/454)
+
+1. Improvements to GUI configuration
+    * [Pull Request 451](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/451)
+
+1. Prevent crash when attempting to load more than one render engine per process
+    * [Pull Request 463](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/463)
 
 ### Ignition Gazebo 2.11.0 (2019-10-23)
 
