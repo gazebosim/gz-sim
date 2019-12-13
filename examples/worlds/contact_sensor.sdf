@@ -26,6 +26,10 @@ Run the following to print out contacts,
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <scene>
+      <grid>false</grid>
+    </scene>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->

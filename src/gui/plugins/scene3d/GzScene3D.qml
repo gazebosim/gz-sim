@@ -55,8 +55,6 @@ Rectangle {
 
   // todo(anyone) replace this with snackbar notifications
   Text {
-    anchors.top: renderWindow.achors.top
-    anchors.left: renderWindow.achors.left
     text: renderWindow.message
   }
 

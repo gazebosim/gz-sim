@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
@@ -370,6 +371,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::Pose(_visual->Pose()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Name(_visual->Name()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::CastShadows(_visual->CastShadows()));
 
   if (_visual->Geom())
   {

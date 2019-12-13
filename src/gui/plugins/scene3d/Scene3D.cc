@@ -1108,6 +1108,16 @@ void TextureNode::PrepareNode()
 RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   : QQuickItem(_parent), dataPtr(new RenderWindowItemPrivate)
 {
+  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
+  // this plugin twice, so shortcut here. Ideally this would be caught at
+  // Ignition Rendering.
+  static bool done{false};
+  if (done)
+  {
+    return;
+  }
+  done = true;
+
   this->setAcceptedMouseButtons(Qt::AllButtons);
   this->setFlag(ItemHasContents);
   this->dataPtr->renderThread = new RenderThread();
@@ -1239,6 +1249,18 @@ Scene3D::~Scene3D() = default;
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
+  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
+  // this plugin twice, so shortcut here. Ideally this would be caught at
+  // Ignition Rendering.
+  static bool done{false};
+  if (done)
+  {
+    ignerr << "Only one Scene3D is supported per process at the moment."
+           << std::endl;
+    return;
+  }
+  done = true;
+
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
@@ -1383,11 +1405,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
          << this->dataPtr->followService << "]" << std::endl;
 }
 
-
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  if (nullptr == this->dataPtr->renderUtil)
+    return;
+
   IGN_PROFILE("Scene3D::Update");
   if (this->dataPtr->worldName.empty())
   {
