@@ -33,10 +33,11 @@ ToolBar {
     id: group
   }
 
-  Shortcut {
-    sequence: "S"
-    onActivated: sPressed()
-  }
+  // TODO(anyone) enable scale button when support is added in ign-physics
+  // Shortcut {
+  //   sequence: "S"
+  //   onActivated: sPressed()
+  // }
 
   Shortcut {
     sequence: "T"

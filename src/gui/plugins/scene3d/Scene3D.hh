@@ -213,7 +213,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle key release event for snapping
     public: void HandleKeyRelease(QKeyEvent *_e);
 
-    public: ignition::math::Vector3d SnapPoint(ignition::math::Vector3d &_point);
+    /// \brief Snaps a point at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _point Input point.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    /// \return Snapped 3D point.
+    public: ignition::math::Vector3d SnapPoint(
+                ignition::math::Vector3d &_point,
+                double _interval = 1.0, double _sensitivity = 0.4) const;
+
+    /// \brief Snaps a value at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _coord Input coordinate point.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    /// \return Snapped coordinate point.
+    private: double SnapValue(double _coord, double _interval, double _sensitivity) const;
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();

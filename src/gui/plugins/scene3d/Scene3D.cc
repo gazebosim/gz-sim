@@ -191,6 +191,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Key modifiers.
     public: Qt::KeyboardModifiers keyModifiers;
+
+    /// \brief The starting world pose of a clicked visual.
+    public: ignition::math::Vector3d startWorldPos = math::Vector3d(0, 0, 0);
+
+    /// \brief Flag to keep track of world pose setting.
+    public: bool isStartWorldPosSet = false;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -494,59 +500,39 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 
   this->dataPtr->keyText = "";
 }
-/*
-double SnapValue(double value, double interval, double sensitivity)
+
+/////////////////////////////////////////////////
+double IgnRenderer::SnapValue(double _coord, double _interval, double _sensitivity) const
 {
-  double snap = interval * sensitivity;
-  double rem = fmod(value, interval);
-  double minInterval = value - rem;
+  double snap = _interval * _sensitivity;
+  double rem = fmod(_coord, _interval);
+  double minInterval = _coord - rem;
 
   if (rem < 0)
   {
-    minInterval -= interval;
+    minInterval -= _interval;
   }
 
-  double maxInterval = minInterval + interval;
+  double maxInterval = minInterval + _interval;
 
-  if (value < (minInterval + snap))
+  if (_coord < (minInterval + snap))
   {
-    value = minInterval - value;
+    _coord = minInterval;
   }
-  else if (value > (maxInterval - snap))
+  else if (_coord > (maxInterval - snap))
   {
-    value = maxInterval - value;
+    _coord = maxInterval;
   }
 
-  return value;
+  return _coord;
 }
 
 /////////////////////////////////////////////////
-ignition::math::Vector3d IgnRenderer::SnapPoint(ignition::math::Vector3d &_point){
-
-  double interval = 1.0;
-  double sensitivity = 0.3;
-
-  ignition::math::Vector3d point;
-  
-  point.X() = SnapValue(_point.X(), interval, sensitivity);
-  point.Y() = SnapValue(_point.Y(), interval, sensitivity);
-  point.Z() = SnapValue(_point.Z(), interval, sensitivity);
-
-
-
-  return point;
-}
-*/
-
-/////////////////////////////////////////////////
-ignition::math::Vector3d IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point)
+ignition::math::Vector3d IgnRenderer::SnapPoint(ignition::math::Vector3d &_point, double _interval, double _sensitivity) const
 {
-  double _interval = 1.0;
-  double _sensitivity = 0.3;
-  if (_interval < 0)
+  if (_interval <= 0)
   {
-    ignerr << "Interval distance must be greater than or equal to 0"
+    ignerr << "Interval distance must be greater than 0"
         << std::endl;
     return ignition::math::Vector3d::Zero;
   }
@@ -557,32 +543,15 @@ ignition::math::Vector3d IgnRenderer::SnapPoint(
     return ignition::math::Vector3d::Zero;
   }
 
-  ignition::math::Vector3d point = _point;
-  double snap = _interval * _sensitivity;
-
-  double remainder = fmod(point.X(), _interval);
-  int sign = remainder >= 0 ? 1 : -1;
-  if (fabs(remainder) < snap)
-      point.X() -= remainder;
-  else if (fabs(remainder) > (_interval - snap))
-      point.X() = point.X() - remainder + _interval * sign;
-
-  remainder = fmod(point.Y(), _interval);
-  sign = remainder >= 0 ? 1 : -1;
-  if (fabs(remainder) < snap)
-      point.Y() -= remainder;
-  else if (fabs(remainder) > (_interval - snap))
-      point.Y() = point.Y() - remainder + _interval * sign;
-
-  remainder = fmod(point.Z(), _interval);
-  sign = remainder >= 0 ? 1 : -1;
-  if (fabs(remainder) < snap)
-      point.Z() -= remainder;
-  else if (fabs(remainder) > (_interval - snap))
-      point.Z() = point.Z() - remainder + _interval * sign;
+  ignition::math::Vector3d point;
+  
+  point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
+  point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
+  point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
 
   return point;
 }
+
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
@@ -623,6 +592,7 @@ void IgnRenderer::HandleMouseTransformControl()
   if (!this->dataPtr->mouseDirty)
     return;
 
+
   // handle transform control
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT)
   {
@@ -651,6 +621,7 @@ void IgnRenderer::HandleMouseTransformControl()
     }
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
+      this->dataPtr->isStartWorldPosSet = false;
       if (this->dataPtr->transformControl.Active())
       {
         if (this->dataPtr->transformControl.Node())
@@ -734,26 +705,19 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      if (!this->dataPtr->isStartWorldPosSet)
+      {
+        this->dataPtr->isStartWorldPosSet = true;
+        this->dataPtr->startWorldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+      }
       ignition::math::Vector3d worldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
-      ignwarn << "World pos " << worldPos << "\n";
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
-      ignwarn << "Distance before " << distance << "\n";
       if (this->dataPtr->keyEvent.Control())
       {
-        ignition::math::Vector3d relativePos = worldPos - distance;
-        distance = SnapPoint(distance);
-        //distance += axis * (SnapPoint(relativePos) - worldPos);
-        //distance -= worldPos;
-        ignwarn << "Distance after " << distance << "\n";
-        /*
-        if (snapPos != (relativePos)) {
-          distance += snapPos;
-          ignwarn << "offset values1: " << distance << "\n";
-          distance *= axis;
-          ignwarn << "offset values2: " << distance << "\n";
-        }
-        */
+        ignition::math::Vector3d relativePos = this->dataPtr->startWorldPos + distance;
+        distance = SnapPoint(relativePos) - this->dataPtr->startWorldPos;
+        distance *= axis;
       }
       this->dataPtr->transformControl.Translate(distance);
     }
