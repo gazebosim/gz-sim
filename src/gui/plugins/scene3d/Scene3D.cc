@@ -102,6 +102,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
+    /// \brief Key event
+    public: common::KeyEvent keyEvent;
+
     /// \brief Mouse move distance since last event.
     public: math::Vector2d drag;
 
@@ -182,6 +185,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
+
+    /// \brief Text key.
+    public: std::string keyText;
+
+    /// \brief Key modifiers.
+    public: Qt::KeyboardModifiers keyModifiers;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -190,20 +199,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Keep latest mouse event
     public: common::MouseEvent mouseEvent;
 
-    /// \brief Key event
-    public: common::KeyEvent keyEvent;
-
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
 
     //// \brief List of threads
     public: static QList<QThread *> threads;
-
-    /// \brief Text key.
-    public: std::string keyText;
-
-    /// \brief Key modifiers.
-    public: Qt::KeyboardModifiers keyModifiers;
   };
 
   /// \brief Private data class for Scene3D
@@ -451,6 +451,138 @@ void IgnRenderer::HandleMouseContextMenu()
   }
 }
 
+void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->keyText = _e->text().toStdString();
+  this->dataPtr->keyModifiers = _e->modifiers();
+
+  this->dataPtr->keyEvent.SetKey(_e->key());
+  this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
+
+  this->dataPtr->keyEvent.SetControl(
+    (this->dataPtr->keyModifiers & Qt::ControlModifier) ? true : false);
+  this->dataPtr->keyEvent.SetShift(
+    (this->dataPtr->keyModifiers & Qt::ShiftModifier) ? true : false);
+  this->dataPtr->keyEvent.SetAlt(
+    (this->dataPtr->keyModifiers & Qt::AltModifier) ? true : false);
+
+  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
+  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
+  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+}
+
+////////////////////////////////////////////////
+void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->keyModifiers = _e->modifiers();
+
+  this->dataPtr->keyEvent.SetControl(
+    (this->dataPtr->keyModifiers & Qt::ControlModifier)
+    && (_e->key() != Qt::Key_Control) ? true : false);
+  this->dataPtr->keyEvent.SetShift(
+    (this->dataPtr->keyModifiers & Qt::ShiftModifier)
+    && (_e->key() != Qt::Key_Shift) ? true : false);
+  this->dataPtr->keyEvent.SetAlt(
+    (this->dataPtr->keyModifiers & Qt::AltModifier)
+    && (_e->key() != Qt::Key_Alt) ? true : false);
+
+  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
+  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
+  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+
+  this->dataPtr->keyText = "";
+}
+/*
+double SnapValue(double value, double interval, double sensitivity)
+{
+  double snap = interval * sensitivity;
+  double rem = fmod(value, interval);
+  double minInterval = value - rem;
+
+  if (rem < 0)
+  {
+    minInterval -= interval;
+  }
+
+  double maxInterval = minInterval + interval;
+
+  if (value < (minInterval + snap))
+  {
+    value = minInterval - value;
+  }
+  else if (value > (maxInterval - snap))
+  {
+    value = maxInterval - value;
+  }
+
+  return value;
+}
+
+/////////////////////////////////////////////////
+ignition::math::Vector3d IgnRenderer::SnapPoint(ignition::math::Vector3d &_point){
+
+  double interval = 1.0;
+  double sensitivity = 0.3;
+
+  ignition::math::Vector3d point;
+  
+  point.X() = SnapValue(_point.X(), interval, sensitivity);
+  point.Y() = SnapValue(_point.Y(), interval, sensitivity);
+  point.Z() = SnapValue(_point.Z(), interval, sensitivity);
+
+
+
+  return point;
+}
+*/
+
+/////////////////////////////////////////////////
+ignition::math::Vector3d IgnRenderer::SnapPoint(
+    ignition::math::Vector3d &_point)
+{
+  double _interval = 1.0;
+  double _sensitivity = 0.3;
+  if (_interval < 0)
+  {
+    ignerr << "Interval distance must be greater than or equal to 0"
+        << std::endl;
+    return ignition::math::Vector3d::Zero;
+  }
+
+  if (_sensitivity < 0 || _sensitivity > 1.0)
+  {
+    ignerr << "Sensitivity must be between 0 and 1" << std::endl;
+    return ignition::math::Vector3d::Zero;
+  }
+
+  ignition::math::Vector3d point = _point;
+  double snap = _interval * _sensitivity;
+
+  double remainder = fmod(point.X(), _interval);
+  int sign = remainder >= 0 ? 1 : -1;
+  if (fabs(remainder) < snap)
+      point.X() -= remainder;
+  else if (fabs(remainder) > (_interval - snap))
+      point.X() = point.X() - remainder + _interval * sign;
+
+  remainder = fmod(point.Y(), _interval);
+  sign = remainder >= 0 ? 1 : -1;
+  if (fabs(remainder) < snap)
+      point.Y() -= remainder;
+  else if (fabs(remainder) > (_interval - snap))
+      point.Y() = point.Y() - remainder + _interval * sign;
+
+  remainder = fmod(point.Z(), _interval);
+  sign = remainder >= 0 ? 1 : -1;
+  if (fabs(remainder) < snap)
+      point.Z() -= remainder;
+  else if (fabs(remainder) > (_interval - snap))
+      point.Z() = point.Z() - remainder + _interval * sign;
+
+  return point;
+}
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
@@ -476,11 +608,10 @@ void IgnRenderer::HandleMouseTransformControl()
   }
   else
   {
-    // TODO(anyone) make key events work
     // shift indicates world space transformation
-    // this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
-    //     rendering::TransformSpace::TS_WORLD :
-    //     rendering::TransformSpace::TS_LOCAL;
+    this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
+        rendering::TransformSpace::TS_WORLD :
+        rendering::TransformSpace::TS_LOCAL;
     this->dataPtr->transformControl.SetTransformSpace(
         this->dataPtr->transformSpace);
   }
@@ -603,8 +734,27 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      ignition::math::Vector3d worldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+      ignwarn << "World pos " << worldPos << "\n";
       math::Vector3d distance =
-          this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
+        this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
+      ignwarn << "Distance before " << distance << "\n";
+      if (this->dataPtr->keyEvent.Control())
+      {
+        ignition::math::Vector3d relativePos = worldPos - distance;
+        distance = SnapPoint(distance);
+        //distance += axis * (SnapPoint(relativePos) - worldPos);
+        //distance -= worldPos;
+        ignwarn << "Distance after " << distance << "\n";
+        /*
+        if (snapPos != (relativePos)) {
+          distance += snapPos;
+          ignwarn << "offset values1: " << distance << "\n";
+          distance *= axis;
+          ignwarn << "offset values2: " << distance << "\n";
+        }
+        */
+      }
       this->dataPtr->transformControl.Translate(distance);
     }
     else if (this->dataPtr->transformControl.Mode() ==
@@ -1462,12 +1612,6 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
   if (!event.Dragging())
     return;
 
-  if (this->dataPtr->keyEvent.Control())
-  {
-    ignwarn << "Drag + ctrl\n";
-  } else {
-    ignwarn << "Regular drag\n";
-  }
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
 
@@ -1492,44 +1636,13 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
 {
-  this->dataPtr->keyText = _e->text().toStdString();
-  this->dataPtr->keyModifiers = _e->modifiers();
-
-  this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
-
-  this->dataPtr->keyEvent.SetControl(
-    (this->dataPtr->keyModifiers & Qt::ControlModifier) ? true : false);
-  this->dataPtr->keyEvent.SetShift(
-    (this->dataPtr->keyModifiers & Qt::ShiftModifier) ? true : false);
-  this->dataPtr->keyEvent.SetAlt(
-    (this->dataPtr->keyModifiers & Qt::AltModifier) ? true : false);
-
-  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
-  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
-  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+  this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
 }
 
 ////////////////////////////////////////////////
 void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 {
-  this->dataPtr->keyModifiers = _e->modifiers();
-
-  this->dataPtr->keyEvent.SetControl(
-    (this->dataPtr->keyModifiers & Qt::ControlModifier)
-    && (_e->key() != Qt::Key_Control) ? true : false);
-  this->dataPtr->keyEvent.SetShift(
-    (this->dataPtr->keyModifiers & Qt::ShiftModifier)
-    && (_e->key() != Qt::Key_Shift) ? true : false);
-  this->dataPtr->keyEvent.SetAlt(
-    (this->dataPtr->keyModifiers & Qt::AltModifier)
-    && (_e->key() != Qt::Key_Alt) ? true : false);
-
-  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
-  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
-  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
-
-  this->dataPtr->keyText = "";
+  this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
 
   if (_e->key() == Qt::Key_Escape)
   {
