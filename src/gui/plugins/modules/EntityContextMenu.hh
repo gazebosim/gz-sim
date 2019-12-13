@@ -56,6 +56,13 @@ namespace gazebo
     /// \brief Callback when a context menu item is invoked
     /// \param[in] _request Request type
     /// \param[in] _data Request data
+    /// \param[in] _type Entity type
+    public: Q_INVOKABLE void OnRemove(
+        const QString &_data, const QString &_type);
+
+    /// \brief Callback when a context menu item is invoked
+    /// \param[in] _request Request type
+    /// \param[in] _data Request data
     public: Q_INVOKABLE void OnRequest(const QString &_request,
         const QString &_data);
 
