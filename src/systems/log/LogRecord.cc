@@ -49,6 +49,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo::systems;
@@ -413,7 +414,8 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
     const sdf::Geometry &geoSdf = _geoComp->Data();
     if (geoSdf.Type() == sdf::GeometryType::MESH)
     {
-      std::string meshUri = geoSdf.MeshShape()->Uri();
+      std::string meshUri = gazebo::asFullPath(geoSdf.MeshShape()->Uri(),
+        geoSdf.MeshShape()->FilePath());
       if (!meshUri.empty())
       {
         addModelResource(meshUri);
@@ -518,7 +520,10 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
     {
       // strip prefix
       fileName = file.substr(prefix.size());
+    }
 
+    if (fileName[0] == '/')
+    {
       // search in gazebo path
       srcPath = common::findFile(fileName);
       if (!srcPath.empty())
