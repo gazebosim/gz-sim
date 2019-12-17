@@ -142,7 +142,7 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
     // GUI will not receive the state information. The result is jumpy
     // playback.
     //
-    // \todo(anyone) I don't this using OneTimeChange is necessarily bad, but
+    // \todo(anyone) I don't think using OneTimeChange is necessarily bad, but
     // it would be nice if other systems could know that log playback is
     // active/enabled. Then a system could make decisions on how to process
     // information.
