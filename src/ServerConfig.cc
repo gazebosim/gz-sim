@@ -250,7 +250,7 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
 
-  /// TODO(anyone) Remove this in Ignition-D
+  /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
   /// \brief Whether log record path is specified from command line
   public: bool logRecordPathFromCmdLine{false};
 

@@ -227,10 +227,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordResources(_recordResources);
 
-    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
-    {
-    }
-    else
+    if (!(_recordPath != nullptr && std::strlen(_recordPath) > 0))
     {
       ignmsg << "Recording states to default path\n";
     }

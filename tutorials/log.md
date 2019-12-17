@@ -33,7 +33,8 @@ Recording can be specified in the SDF, under `<world>` tag:
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
       <!-- Optional, directories to write recorded files. If unspecified,
-             will record to default. -->
+             will record to default. Will be deprecated in future versions
+             of Ignition. Recommended way is to specify from command line. -->
       <path>/tmp/log</path>
     </plugin>
     ...
