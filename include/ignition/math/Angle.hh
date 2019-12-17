@@ -92,14 +92,6 @@ namespace ignition
       // cppcheck-suppress noExplicitConstructor
       public: Angle(const double _radian);
 
-      /// \brief Copy constructor that initializes this Angle to the value
-      /// contained in the _angle parameter.
-      /// \param[in] _angle Angle to copy
-      public: Angle(const Angle &_angle);
-
-      /// \brief Destructor
-      public: virtual ~Angle();
-
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.
       /// \sa SetRadian(double)
