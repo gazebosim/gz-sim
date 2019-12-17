@@ -416,9 +416,14 @@ You can also use the velocity controller and command linear velocity and yaw ang
         <angularRateGain>0.7 0.7 0.7</angularRateGain>
         <maximumLinearAcceleration>1 1 2</maximumLinearAcceleration>
         <linearVelocityNoiseMean>0 0 0</linearVelocityNoiseMean>
+        <!-- linearVelocityNoiseStdDev based on error values reported in the paper Shen et. al., -->
+        <!-- Vision-Based State Estimation and Trajectory Control Towards High-Speed Flight with a Quadrotor -->
+        <!-- http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.490.7958&rep=rep1&type=pdf -->
         <linearVelocityNoiseStdDev>0.1105 0.1261 0.0947</linearVelocityNoiseStdDev>
         <angularVelocityNoiseMean>0 0 0</angularVelocityNoiseMean>
-        <angularVelocityNoiseStdDev>0.0 0.0 0.1</angularVelocityNoiseStdDev>
+        <!-- angularVelocityNoiseStdDev values based on ADIS16448's Rate Noise Density with a sample  -->
+        <!-- time of 0.004 ms. -->
+        <angularVelocityNoiseStdDev>0.004 0.004 0.004</angularVelocityNoiseStdDev>
 
         <rotorConfiguration>
           <rotor>
