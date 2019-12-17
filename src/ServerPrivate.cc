@@ -226,6 +226,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
                 //   Always overwrite SDF.
                 // Otherwise, record path is same as the default timestamp log
                 //   path. Take the path in SDF <path>.
+                // Deprecated.
                 else
                 {
                   ignwarn << "--record-path is not specified on command line. "
@@ -243,8 +244,10 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
                   cmpPath = std::string(recordPath);
                   if (!std::string(1, cmpPath.back()).compare(
                     ignition::common::separator("")))
+                  {
                     // Remove the separator at end of path
                     cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+                  }
                   cmpPath += ".zip";
                 }
               }
