@@ -72,7 +72,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (this->comLinkName.empty())
   {
-    ignerr << "found an empty linkName parameter. Failed to initialize.\n";
+    ignerr << "found an empty comLinkName parameter. Failed to initialize.\n";
     return;
   }
 
@@ -195,6 +195,32 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   else
   {
     controllerParameters.maxLinearAcceleration.setConstant(
+        std::numeric_limits<double>::max());
+  }
+
+  if (sdfClone->HasElement("maximumLinearVelocity"))
+  {
+    this->maximumLinearVelocity =
+        sdfClone->Get<math::Vector3d>("maximumLinearVelocity").Abs();
+  }
+  else
+  {
+    this->maximumLinearVelocity.Set(
+        std::numeric_limits<double>::max(),
+        std::numeric_limits<double>::max(),
+        std::numeric_limits<double>::max());
+  }
+
+  if (sdfClone->HasElement("maximumAngularVelocity"))
+  {
+    this->maximumAngularVelocity =
+        sdfClone->Get<math::Vector3d>("maximumAngularVelocity").Abs();
+  }
+  else
+  {
+    this->maximumAngularVelocity.Set(
+        std::numeric_limits<double>::max(),
+        std::numeric_limits<double>::max(),
         std::numeric_limits<double>::max());
   }
 
@@ -324,10 +350,17 @@ void MulticopterVelocityControl::PreUpdate(
       return;
     }
 
-    cmdVel.linear =
-        math::eigen3::convert(msgs::Convert(this->cmdVelMsg->linear()));
-    cmdVel.angular =
-        math::eigen3::convert(msgs::Convert(this->cmdVelMsg->angular()));
+    // Clip with max linear velocity
+    math::Vector3d linear = msgs::Convert(this->cmdVelMsg->linear());
+    linear.Min(this->maximumLinearVelocity);
+    linear.Max(-this->maximumLinearVelocity);
+
+    math::Vector3d angular = msgs::Convert(this->cmdVelMsg->angular());
+    angular.Min(this->maximumAngularVelocity);
+    angular.Max(-this->maximumAngularVelocity);
+
+    cmdVel.linear = math::eigen3::convert(linear);
+    cmdVel.angular = math::eigen3::convert(angular);
   }
 
   std::optional<FrameData> frameData =
