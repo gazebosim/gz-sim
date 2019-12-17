@@ -53,6 +53,8 @@
 
 #include "Scene3D.hh"
 
+Q_DECLARE_METATYPE(std::string)
+
 namespace ignition
 {
 namespace gazebo
@@ -289,6 +291,20 @@ void IgnRenderer::Render()
   // view control
   this->HandleMouseEvent();
 
+  // reset follow mode if target node got removed
+  if (!this->dataPtr->followTarget.empty())
+  {
+    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
+    if (!target && !this->dataPtr->followTargetWait)
+    {
+      this->dataPtr->camera->SetFollowTarget(nullptr);
+      this->dataPtr->camera->SetTrackTarget(nullptr);
+      this->dataPtr->followTarget.clear();
+      emit FollowTargetChanged(std::string(), false);
+    }
+  }
+
   // update and render to texture
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
@@ -383,6 +399,8 @@ void IgnRenderer::Render()
           this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
 
           this->dataPtr->camera->SetTrackTarget(target);
+          // found target, no need to wait anymore
+          this->dataPtr->followTargetWait = false;
         }
         else if (this->dataPtr->followOffsetDirty)
         {
@@ -991,6 +1009,7 @@ math::Vector3d IgnRenderer::ScreenToScene(
 RenderThread::RenderThread()
 {
   RenderWindowItemPrivate::threads << this;
+  qRegisterMetaType<std::string>();
 }
 
 /////////////////////////////////////////////////
@@ -1140,6 +1159,10 @@ void RenderWindowItem::Ready()
   this->connect(&this->dataPtr->renderThread->ignRenderer,
       &IgnRenderer::ContextMenuRequested,
       this, &RenderWindowItem::OnContextMenuRequested, Qt::QueuedConnection);
+
+  this->connect(&this->dataPtr->renderThread->ignRenderer,
+      &IgnRenderer::FollowTargetChanged,
+      this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
 

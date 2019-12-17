@@ -260,6 +260,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
 
+    /// \brief When fired, the follow target changed. May not be fired for
+    /// every target change.
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    signals: void FollowTargetChanged(const std::string &_target,
+        bool _waitForTarget);
+
     /// \brief Render texture id
     public: GLuint textureId = 0u;
 
@@ -356,7 +363,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _waitForTarget True to continuously look for the target
     /// to follow. A typical use case is follow a target that is not present
     /// on startup but spawned later into simulation
-    public: void SetFollowTarget(const std::string &_target,
+    public Q_SLOTS: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
 
     /// \brief Set the p gain for the camera follow movement
