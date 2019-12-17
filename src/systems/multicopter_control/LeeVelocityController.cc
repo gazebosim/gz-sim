@@ -70,18 +70,18 @@ bool LeeVelocityController::InitializeParameters()
       this->controllerParameters.angularRateGain.transpose() *
       this->vehicleParameters.inertia.inverse();
 
-  Eigen::Matrix4d I;
-  I.setZero();
-  I.block<3, 3>(0, 0) = this->vehicleParameters.inertia;
-  I(3, 3) = 1;
+  Eigen::Matrix4d moi;
+  moi.setZero();
+  moi.block<3, 3>(0, 0) = this->vehicleParameters.inertia;
+  moi(3, 3) = 1;
 
   this->angularAccToRotorVelocities.resize(
       this->vehicleParameters.rotorConfiguration.size(), 4);
   // Calculate the pseude-inverse A^{ \dagger} and then multiply by the inertia
   // matrix I. A^{ \dagger} = A^T*(A*A^T)^{-1}
-  const auto &A = *allocationMatrix;
+  const auto &aMat = *allocationMatrix;
   this->angularAccToRotorVelocities =
-      A.transpose() * (A * A.transpose()).inverse() * I;
+      aMat.transpose() * (aMat * aMat.transpose()).inverse() * moi;
 
   return true;
 }
@@ -138,10 +138,10 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAngularAcc(
     const FrameData &_frameData, const EigenTwist &_cmdVel,
     const Eigen::Vector3d &_acceleration) const
 {
-  const Eigen::Matrix3d& R = _frameData.pose.linear();
+  const Eigen::Matrix3d& rot = _frameData.pose.linear();
 
   // Get the desired rotation matrix.
-  Eigen::Vector3d b1Des = R.col(0);
+  Eigen::Vector3d b1Des = rot.col(0);
 
   Eigen::Vector3d b3Des;
   b3Des = -_acceleration / _acceleration.norm();
@@ -153,11 +153,11 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAngularAcc(
   if (b1Des.cross(b3Des).squaredNorm() < tol)
   {
     // acceleration and b1 are parallel. Choose a different vector
-    b1Des = R.col(1);
+    b1Des = rot.col(1);
 
     if (b1Des.cross(b3Des).squaredNorm() < tol)
     {
-      b1Des = R.col(2);
+      b1Des = rot.col(2);
     }
   }
 
@@ -165,14 +165,14 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAngularAcc(
   b2Des = b3Des.cross(b1Des);
   b2Des.normalize();
 
-  Eigen::Matrix3d Rdes;
-  Rdes.col(0) = b2Des.cross(b3Des);
-  Rdes.col(1) = b2Des;
-  Rdes.col(2) = b3Des;
+  Eigen::Matrix3d rotDes;
+  rotDes.col(0) = b2Des.cross(b3Des);
+  rotDes.col(1) = b2Des;
+  rotDes.col(2) = b3Des;
 
   // Angle error according to lee et al.
   Eigen::Matrix3d angleErrorMatrix =
-      0.5 * (Rdes.transpose() * R - R.transpose() * Rdes);
+      0.5 * (rotDes.transpose() * rot - rot.transpose() * rotDes);
   Eigen::Vector3d angleError = vectorFromSkewMatrix(angleErrorMatrix);
 
   Eigen::Vector3d angularRateDes(Eigen::Vector3d::Zero());
@@ -182,8 +182,8 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAngularAcc(
   // e_omega = omega - R.T * R_d * omega_des
   // The code in the RotorS implementation has
   // e_omega = omega - R_d.T * R * omega_des
-  Eigen::Vector3d angularRateError =
-      _frameData.angularVelocityBody - R.transpose() * Rdes * angularRateDes;
+  Eigen::Vector3d angularRateError = _frameData.angularVelocityBody -
+                                     rot.transpose() * rotDes * angularRateDes;
 
   // The following MOI terms are computed in the paper, but the RotorS
   // implementation ignores them. They don't appear to much much of a
@@ -194,7 +194,7 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAngularAcc(
   // Eigen::Vector3d moiTerm = omega.cross(moi * omega);
 
   // Eigen::Vector3d moiTerm2 = moi * (skewMatrixFromVector(omega) *
-  //                                   R.transpose() * Rdes * angularRateDes);
+  //                            rot.transpose() * rotDes * angularRateDes);
 
   // std::cout << moiTerm2.transpose() << std::endl;
   // return -1 * angleError.cwiseProduct(this->normalizedAttitudeGain) -

@@ -72,7 +72,7 @@ namespace multicopter_control
   /// \returns nullopt if the rotor configuration results in uncontrollable
   /// system. Otherwise, returns the computed matrix.
   std::optional<Eigen::Matrix4Xd> calculateAllocationMatrix(
-      const RotorConfiguration &rotorConfiguration);
+      const RotorConfiguration &_rotorConfiguration);
 
   /// \brief Creates components necessary for obtaining the frame data of the
   /// given link

@@ -163,7 +163,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
     }
     rotor.direction = elem->Get<int>("direction");
 
-    out.push_back(std::move(rotor));
+    out.push_back(rotor);
   }
 
   return out;

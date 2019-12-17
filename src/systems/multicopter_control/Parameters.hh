@@ -36,14 +36,25 @@ namespace multicopter_control
   /// \brief A struct that holds various properties of a rotor
   struct Rotor
   {
+    /// \brief The angle formed on the xy plane by the vector going from the
+    /// the center of mass to the rotor. The angle is measured from the +x axis
+    /// of the body frame.
     // cppcheck-suppress unusedStructMember
     double angle;
+    /// \brief The length of the vector going from the center of mass to the
+    /// rotor.
     // cppcheck-suppress unusedStructMember
     double armLength;
+    /// \brief A constant that multiplies with the square of the rotor's
+    /// velocity to compute its thrust.
     // cppcheck-suppress unusedStructMember
     double forceConstant;
+    /// \brief A constant the multiplies with the rotor's thrust to compute its
+    /// moment.
     // cppcheck-suppress unusedStructMember
     double momentConstant;
+    /// \brief Direction of rotation of the rotor. +1 is counterclockwise and -1
+    /// is clockwise.
     // cppcheck-suppress unusedStructMember
     int direction;
   };
@@ -56,10 +67,15 @@ namespace multicopter_control
   /// not a parameter unique to the vehicle
   struct VehicleParameters
   {
+    /// \brief Total mass of the vehicle
     // cppcheck-suppress unusedStructMember
     double mass;
+    /// \brief Moment of inertia matrix of the vehicle
     Eigen::Matrix3d inertia;
+    /// \brief Gravity vector
     Eigen::Vector3d gravity;
+    /// \brief A collection of Rotor objects that specifiy various properties of
+    /// the rotors in the vehicle
     RotorConfiguration rotorConfiguration;
   };
 
