@@ -171,11 +171,11 @@ namespace systems
     /// \brief Callback for twist messages
     /// The controller waits for the first twist message before publishing any
     /// rotor velocities.
-    /// \param[in] _msg twist message
+    /// \param[in] _msg Twist message
     private: void OnTwist(const msgs::Twist &_msg);
 
     /// \brief Callback for enable messages
-    /// \param[in] _msg callback message. If false, the controller sends a zero
+    /// \param[in] _msg Callback message. If false, the controller sends a zero
     /// rotor velocity command once and gets disabled. If the vehicle is in the
     /// air, disabling the controller will cause it to fall. If true, the
     /// controller becomes enabled and waits for a twist message.

@@ -62,8 +62,8 @@ namespace multicopter_control
   /// \brief A collection of Rotor objects
   using RotorConfiguration = std::vector<Rotor>;
 
-  /// \brief A struct that holds properoties of the vehicle such as mass,
-  /// inertia and rotor configuration. Gravity is also included even though its
+  /// \brief A struct that holds properties of the vehicle such as mass,
+  /// inertia and rotor configuration. Gravity is also included even though it's
   /// not a parameter unique to the vehicle
   struct VehicleParameters
   {

@@ -76,7 +76,6 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
     return;
   }
 
-
   // Get the link entity
   this->comLinkEntity = this->model.LinkByName(_ecm, this->comLinkName);
 
@@ -141,8 +140,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
 
   // Get the world acceleration (defined in world frame)
-  auto gravityComp =
-      _ecm.Component<components::Gravity>(worldEntity);
+  auto gravityComp = _ecm.Component<components::Gravity>(worldEntity);
 
   if (nullptr == gravityComp)
   {
