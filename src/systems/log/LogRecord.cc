@@ -404,8 +404,6 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
     }
   };
 
-  igndbg << "LogModelResources()" << std::endl;
-
   // Loop through geometries in world
   _ecm.EachNew<components::Geometry>(
       [&](const Entity &/*_entity*/,
@@ -420,7 +418,6 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
       {
         addModelResource(meshUri);
       }
-      igndbg << meshUri << std::endl;
     }
 
     return true;
@@ -437,7 +434,6 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
     {
       addModelResource(matUri);
     }
-    igndbg << matUri << std::endl;
 
     return true;
   });
@@ -551,9 +547,6 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 
         size_t srcMeshIdx = srcPath.find("/meshes/");
         srcPath = srcPath.substr(0, srcMeshIdx);
-
-        igndbg << "source: " << srcPath << std::endl;
-        igndbg << "dest: " << destPath << std::endl;
 
         if (!common::createDirectories(destPath) ||
             !common::copyDirectory(srcPath, destPath))
