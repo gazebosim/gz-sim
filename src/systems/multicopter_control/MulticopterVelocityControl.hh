@@ -107,6 +107,12 @@ namespace systems
   /// maxLinearAcceleration (x, y, z): Maximum limit on linear acceleration.
   /// The default value is DBL_MAX.
   ///
+  /// maximumLinearVelocity (x, y, z): Maximum commanded linear velocity. The
+  /// default value is DBL_MAX.
+
+  /// maximumAngularVelocity (roll, pitch, yaw): Maximum commanded angular
+  /// velocity. The default value is DBL_MAX.
+  ///
   /// linearVelocityNoiseMean (x, y, z): Mean of Gaussian noise on linear
   /// velocity values obtained from simulation. The default value is (0, 0, 0).
   ///
@@ -221,6 +227,12 @@ namespace systems
     /// that the controller will try to maintain. A command of zeros must be
     /// given to stop the vehicle.
     private: std::optional<msgs::Twist> cmdVelMsg;
+
+    /// \brief Maximum commanded linear velocity
+    private: math::Vector3d maximumLinearVelocity;
+
+    /// \brief Maximum commanded angular velocity
+    private: math::Vector3d maximumAngularVelocity;
 
     /// \brief Mutex for cmdVelMsg
     private: std::mutex cmdVelMsgMutex;
