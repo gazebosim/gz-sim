@@ -42,13 +42,13 @@ namespace multicopter_control
     Eigen::Vector3d velocityGain;
     Eigen::Vector3d attitudeGain;
     Eigen::Vector3d angularRateGain;
-    Eigen::Vector3d maxLinearAcceleration{1, 1, 1};
+    Eigen::Vector3d maxLinearAcceleration;
   };
 
   /// This controller is inspired by the LeePositionController from RotorS
   /// https://github.com/ethz-asl/rotors_simulator/blob/master/rotors_control/include/rotors_control/lee_position_controller.h
   /// The controller can be used to command linear velocity and yaw angle
-  /// velocity.
+  /// velocity expressed in the body frame.
   class LeeVelocityController
   {
     /// \brief Factory function to create LeeVelocityController objects
