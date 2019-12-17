@@ -117,15 +117,18 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
         if (recordMsg)
         {
-          ignmsg << "Log path already exists on disk! Existing files will be "
+          ignwarn << "Log path already exists on disk! Existing files will be "
             << "overwritten." << std::endl;
           ignmsg << "Removing existing path [" << recordPathMod << "]\n";
         }
 
         if (cmpMsg)
         {
-          ignwarn << "Compressed log path already exists on disk! Existing "
-            << "files will be overwritten." << std::endl;
+          if (_logCompress > 0)
+          {
+            ignwarn << "Compressed log path already exists on disk! Existing "
+              << "files will be overwritten." << std::endl;
+          }
           ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
         }
       }
