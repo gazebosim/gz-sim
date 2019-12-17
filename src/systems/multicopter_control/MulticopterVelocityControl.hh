@@ -147,7 +147,7 @@ namespace systems
   ///      and -1 is clockwise.
   ///
   /// # Examples
-  /// See examples/worlds/quadcopter_velocity_control.sdf for a demonstration.
+  /// See examples/worlds/quadcopter.sdf for a demonstration.
   ///
   class IGNITION_GAZEBO_VISIBLE MulticopterVelocityControl
       : public System,
