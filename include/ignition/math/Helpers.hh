@@ -36,140 +36,6 @@
 template <typename T>
 constexpr T IGN_MASSMATRIX3_DEFAULT_TOLERANCE = T(10);
 
-/// \brief Double maximum value. This value will be similar to 1.79769e+308
-/// \deprecated Use static const value instead.
-#define IGN_DBL_MAX ignition::math::DPRCT_MAX_D
-
-/// \brief Double min value. This value will be similar to 2.22507e-308
-/// \deprecated Use static const value instead.
-#define IGN_DBL_MIN ignition::math::DPRCT_MIN_D
-
-/// \brief Double low value, equivalent to -IGN_DBL_MAX
-/// \deprecated Use static const value instead.
-#define IGN_DBL_LOW ignition::math::DPRCT_LOW_D
-
-/// \brief Double positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_DBL_INF ignition::math::DPRCT_INF_D
-
-/// \brief Float maximum value. This value will be similar to 3.40282e+38
-/// \deprecated Use static const value instead.
-#define IGN_FLT_MAX ignition::math::DPRCT_MAX_F
-
-/// \brief Float minimum value. This value will be similar to 1.17549e-38
-/// \deprecated Use static const value instead.
-#define IGN_FLT_MIN ignition::math::DPRCT_MIN_F
-
-/// \brief Float lowest value, equivalent to -IGN_FLT_MAX
-/// \deprecated Use static const value instead.
-#define IGN_FLT_LOW ignition::math::DPRCT_LOW_F
-
-/// \brief Float positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_FLT_INF ignition::math::DPRCT_INF_F
-
-/// \brief 16bit unsigned integer maximum value
-/// \deprecated Use static const value instead.
-#define IGN_UINT16_MAX ignition::math::DPRCT_MAX_UI16
-
-/// \brief 16bit unsigned integer minimum value
-/// \deprecated Use static const value instead.
-#define IGN_UINT16_MIN ignition::math::DPRCT_MIN_UI16
-
-/// \brief 16bit unsigned integer lowest value. This is equivalent to
-/// IGN_UINT16_MIN, and is defined here for completeness.
-/// \deprecated Use static const value instead.
-#define IGN_UINT16_LOW ignition::math::DPRCT_LOW_UI16
-
-/// \brief 16-bit unsigned integer positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_UINT16_INF ignition::math::DPRCT_INF_UI16
-
-/// \brief 16bit integer maximum value
-/// \deprecated Use static const value instead.
-#define IGN_INT16_MAX ignition::math::DPRCT_MAX_I16
-
-/// \brief 16bit integer minimum value
-/// \deprecated Use static const value instead.
-#define IGN_INT16_MIN ignition::math::DPRCT_MIN_I16
-
-/// \brief 16bit integer lowest value. This is equivalent to IGN_INT16_MIN,
-/// and is defined here for completeness.
-/// \deprecated Use static const value instead.
-#define IGN_INT16_LOW ignition::math::DPRCT_LOW_I16
-
-/// \brief 16-bit integer positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_INT16_INF ignition::math::DPRCT_INF_I16
-
-/// \brief 32bit unsigned integer maximum value
-/// \deprecated Use static const value instead.
-#define IGN_UINT32_MAX ignition::math::DPRCT_MAX_UI32
-
-/// \brief 32bit unsigned integer minimum value
-/// \deprecated Use static const value instead.
-#define IGN_UINT32_MIN ignition::math::DPRCT_MIN_UI32
-
-/// \brief 32bit unsigned integer lowest value. This is equivalent to
-/// IGN_UINT32_MIN, and is defined here for completeness.
-/// \deprecated Use static const value instead.
-#define IGN_UINT32_LOW ignition::math::DPRCT_LOW_UI32
-
-/// \brief 32-bit unsigned integer positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_UINT32_INF ignition::math::DPRCT_INF_UI32
-
-/// \brief 32bit integer maximum value
-/// \deprecated Use static const value instead.
-#define IGN_INT32_MAX ignition::math::DPRCT_MAX_I32
-
-/// \brief 32bit integer minimum value
-/// \deprecated Use static const value instead.
-#define IGN_INT32_MIN ignition::math::DPRCT_MIN_I32
-
-/// \brief 32bit integer minimum value. This is equivalent to IGN_INT32_MIN,
-/// and is defined here for completeness.
-/// \deprecated Use static const value instead.
-#define IGN_INT32_LOW ignition::math::DPRCT_LOW_I32
-
-/// \brief 32-bit integer positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_INT32_INF ignition::math::DPRCT_INF_I32
-
-/// \brief 64bit unsigned integer maximum value
-/// \deprecated Use static const value instead.
-#define IGN_UINT64_MAX ignition::math::DPRCT_MAX_UI64
-
-/// \brief 64bit unsigned integer minimum value
-/// \deprecated Use static const value instead.
-#define IGN_UINT64_MIN ignition::math::DPRCT_MIN_UI64
-
-/// \brief 64bit unsigned integer lowest value. This is equivalent to
-/// IGN_UINT64_MIN, and is defined here for completeness.
-/// \deprecated Use static const value instead.
-#define IGN_UINT64_LOW ignition::math::DPRCT_LOW_UI64
-
-/// \brief 64-bit unsigned integer positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_UINT64_INF ignition::math::DPRCT_INF_UI64
-
-/// \brief 64bit integer maximum value
-/// \deprecated Use static const value instead.
-#define IGN_INT64_MAX ignition::math::DPRCT_MAX_I64
-
-/// \brief 64bit integer minimum value
-/// \deprecated Use static const value instead.
-#define IGN_INT64_MIN ignition::math::DPRCT_MIN_I64
-
-/// \brief 64bit integer lowest value. This is equivalent to IGN_INT64_MIN,
-/// and is defined here for completeness.
-/// \deprecated Use static const value instead.
-#define IGN_INT64_LOW ignition::math::DPRCT_LOW_I64
-
-/// \brief 64-bit integer positive infinite value
-/// \deprecated Use static const value instead.
-#define IGN_INT64_INF ignition::math::DPRCT_INF_I64
-
 /// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
 /// This was put here for Windows support.
 #ifdef M_PI
@@ -361,44 +227,13 @@ namespace ignition
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
 
-    // variables created to deprecate macros in this file
-    static const double IGN_DEPRECATED(3) DPRCT_MAX_D = MAX_D;
-    static const double IGN_DEPRECATED(3) DPRCT_MIN_D = MIN_D;
-    static const double IGN_DEPRECATED(3) DPRCT_LOW_D = LOW_D;
-    static const double IGN_DEPRECATED(3) DPRCT_INF_D = INF_D;
-    static const float IGN_DEPRECATED(3) DPRCT_MAX_F = MAX_F;
-    static const float IGN_DEPRECATED(3) DPRCT_MIN_F = MIN_F;
-    static const float IGN_DEPRECATED(3) DPRCT_LOW_F = LOW_F;
-    static const float IGN_DEPRECATED(3) DPRCT_INF_F = INF_F;
-    static const uint16_t IGN_DEPRECATED(3) DPRCT_MAX_UI16 = MAX_UI16;
-    static const uint16_t IGN_DEPRECATED(3) DPRCT_MIN_UI16 = MIN_UI16;
-    static const uint16_t IGN_DEPRECATED(3) DPRCT_LOW_UI16 = LOW_UI16;
-    static const uint16_t IGN_DEPRECATED(3) DPRCT_INF_UI16 = INF_UI16;
-    static const int16_t IGN_DEPRECATED(3) DPRCT_MAX_I16 = MAX_I16;
-    static const int16_t IGN_DEPRECATED(3) DPRCT_MIN_I16 = MIN_I16;
-    static const int16_t IGN_DEPRECATED(3) DPRCT_LOW_I16 = LOW_I16;
-    static const int16_t IGN_DEPRECATED(3) DPRCT_INF_I16 = INF_I16;
-    static const uint32_t IGN_DEPRECATED(3) DPRCT_MAX_UI32 = MAX_UI32;
-    static const uint32_t IGN_DEPRECATED(3) DPRCT_MIN_UI32 = MIN_UI32;
-    static const uint32_t IGN_DEPRECATED(3) DPRCT_LOW_UI32 = LOW_UI32;
-    static const uint32_t IGN_DEPRECATED(3) DPRCT_INF_UI32 = INF_UI32;
-    static const int32_t IGN_DEPRECATED(3) DPRCT_MAX_I32 = MAX_I32;
-    static const int32_t IGN_DEPRECATED(3) DPRCT_MIN_I32 = MIN_I32;
-    static const int32_t IGN_DEPRECATED(3) DPRCT_LOW_I32 = LOW_I32;
-    static const int32_t IGN_DEPRECATED(3) DPRCT_INF_I32 = INF_I32;
-    static const uint64_t IGN_DEPRECATED(3) DPRCT_MAX_UI64 = MAX_UI64;
-    static const uint64_t IGN_DEPRECATED(3) DPRCT_MIN_UI64 = MIN_UI64;
-    static const uint64_t IGN_DEPRECATED(3) DPRCT_LOW_UI64 = LOW_UI64;
-    static const uint64_t IGN_DEPRECATED(3) DPRCT_INF_UI64 = INF_UI64;
-    static const int64_t IGN_DEPRECATED(3) DPRCT_MAX_I64 = MAX_I64;
-    static const int64_t IGN_DEPRECATED(3) DPRCT_MIN_I64 = MIN_I64;
-    static const int64_t IGN_DEPRECATED(3) DPRCT_LOW_I64 = LOW_I64;
-    static const int64_t IGN_DEPRECATED(3) DPRCT_INF_I64 = INF_I64;
-
-    /// \brief Simple clamping function
-    /// \param[in] _v value
-    /// \param[in] _min minimum
-    /// \param[in] _max maximum
+    /// \brief Simple clamping function that constrains a value to
+    /// a range defined by a min and max value. This function is equivalent to
+    /// std::max(std::min(value, max), min).
+    /// \param[in] _v Value to clamp
+    /// \param[in] _min Minimum allowed value.
+    /// \param[in] _max Maximum allowed value.
+    /// \return The value _v clamped to the range defined by _min and _max.
     template<typename T>
     inline T clamp(T _v, T _min, T _max)
     {
