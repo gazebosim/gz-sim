@@ -242,6 +242,8 @@ std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
 
   if (!poseComp)
   {
+    ignerr << "WorldPose component not found on link entity " << _link
+           << std::endl;
     return std::nullopt;
   }
 
