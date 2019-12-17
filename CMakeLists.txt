@@ -113,6 +113,10 @@ ign_find_package(gflags
     PKGCONFIG gflags)
 
 #--------------------------------------
+# Find Eigen
+ign_find_package(EIGEN3 REQUIRED)
+
+#--------------------------------------
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.2)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
