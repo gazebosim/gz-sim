@@ -71,8 +71,10 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
   if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
+  {
     // Remove the separator at end of path
     cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+  }
   cmpPath += ".zip";
 
   // Initialize console log
@@ -84,8 +86,10 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     cmpPath = std::string(recordPathMod);
     if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
       "")))
+    {
       // Remove the separator at end of path
       cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+    }
     cmpPath += ".zip";
 
     // Check if path or compressed file with same prefix exists
@@ -131,14 +135,18 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         // Remove the separator at end of path
         if (!std::string(1, recordPathMod.back()).compare(
           ignition::common::separator("")))
+        {
           recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
+        }
         recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
 
         cmpPath = std::string(recordPathMod);
         // Remove the separator at end of path
         if (!std::string(1, cmpPath.back()).compare(
           ignition::common::separator("")))
+        {
           cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+        }
         cmpPath += ".zip";
 
         // If compressed file exists, rename again
@@ -183,7 +191,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
-
 
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
