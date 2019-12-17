@@ -88,7 +88,7 @@ namespace systems
   /// That is, the origin of the center of mass may not be on this link, but
   /// this link and the center of mass frame have a fixed transform. Almost
   /// always this should be the base_link of the vehicle. This is a required
-  /// paraameter.
+  /// parameter.
   ///
   /// velocityGain (x, y, z): Proportional gain on linear velocity.
   /// attitudeGain (roll, pitch, yaw): Proportional gain on attitude. This
