@@ -15,9 +15,10 @@
  *
  */
 
-
 #include <ignition/msgs/actuators.pb.h>
 #include <ignition/msgs/twist.pb.h>
+
+#include <limits>
 
 #include <ignition/common/Profiler.hh>
 
@@ -160,7 +161,8 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify velocityGain.\n";
+    ignerr << "Please specify velocityGain for MulticopterVelocityControl.\n";
+    return;
   }
 
   if (sdfClone->HasElement("attitudeGain"))
@@ -170,7 +172,8 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify attitudeGain.\n";
+    ignerr << "Please specify attitudeGain for MulticopterVelocityControl.\n";
+    return;
   }
 
   if (sdfClone->HasElement("angularRateGain"))
@@ -180,13 +183,19 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify angularRateGain.\n";
+    ignerr << "Please specify angularRateGain MulticopterVelocityControl.\n";
+    return;
   }
 
   if (sdfClone->HasElement("maximumLinearAcceleration"))
   {
     controllerParameters.maxLinearAcceleration = math::eigen3::convert(
         sdfClone->Get<math::Vector3d>("maximumLinearAcceleration"));
+  }
+  else
+  {
+    controllerParameters.maxLinearAcceleration.setConstant(
+        std::numeric_limits<double>::max());
   }
 
   this->velocityController = LeeVelocityController::MakeController(
@@ -231,6 +240,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   else
   {
     ignerr << "Please specify a robotNamespace.\n";
+    return;
   }
 
   sdfClone->Get<std::string>("commandSubTopic",
