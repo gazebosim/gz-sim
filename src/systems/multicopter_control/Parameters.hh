@@ -36,10 +36,15 @@ namespace multicopter_control
   /// \brief A struct that holds various properties of a rotor
   struct Rotor
   {
+    // cppcheck-suppress unusedStructMember
     double angle;
+    // cppcheck-suppress unusedStructMember
     double armLength;
+    // cppcheck-suppress unusedStructMember
     double forceConstant;
+    // cppcheck-suppress unusedStructMember
     double momentConstant;
+    // cppcheck-suppress unusedStructMember
     int direction;
   };
 
@@ -51,6 +56,7 @@ namespace multicopter_control
   /// not a parameter unique to the vehicle
   struct VehicleParameters
   {
+    // cppcheck-suppress unusedStructMember
     double mass;
     Eigen::Matrix3d inertia;
     Eigen::Vector3d gravity;
