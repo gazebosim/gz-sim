@@ -15,8 +15,6 @@
  *
  */
 
-
-
 #include "LeeVelocityController.hh"
 
 namespace ignition
@@ -113,7 +111,7 @@ void LeeVelocityController::CalculateRotorVelocities(
   _rotorVelocities = _rotorVelocities.cwiseSqrt();
 }
 
-
+//////////////////////////////////////////////////
 Eigen::Vector3d LeeVelocityController::ComputeDesiredAcceleration(
                  const FrameData &_frameData, const EigenTwist &_cmdVel) const
 {
@@ -131,6 +129,7 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAcceleration(
   return accelCommand + this->vehicleParameters.gravity;
 }
 
+//////////////////////////////////////////////////
 // Implementation from the T. Lee et al. paper
 // Control of complex maneuvers for a quadrotor UAV using geometric methods on
 // SE(3)
@@ -186,7 +185,7 @@ Eigen::Vector3d LeeVelocityController::ComputeDesiredAngularAcc(
                                      rot.transpose() * rotDes * angularRateDes;
 
   // The following MOI terms are computed in the paper, but the RotorS
-  // implementation ignores them. They don't appear to much much of a
+  // implementation ignores them. They don't appear to make much of a
   // difference.
   // Eigen::Matrix3d moi = this->vehicleParameters.inertia;
   // const Eigen::Vector3d &omega = _frameData.angularVelocityBody;

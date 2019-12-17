@@ -77,13 +77,13 @@ namespace multicopter_control
   /// \brief Creates components necessary for obtaining the frame data of the
   /// given link
   /// \param[in] _ecm Mutable reference to the entity component manager
-  /// \param[in] _comLink Link on which the components will be created.
+  /// \param[in] _link Link on which the components will be created.
   void createFrameDataComponents(EntityComponentManager &_ecm,
                                  const Entity &_link);
 
   /// \brief Retrieves the frame data of the given link and applies noise
   /// \param[in] _ecm Imutable reference to the entity component manager
-  /// \param[in] _comLink Link on which the components will be created.
+  /// \param[in] _link Link on which the components will be created.
   /// \param[in] _noise Noise parameters
   std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
                                         const Entity &_link,

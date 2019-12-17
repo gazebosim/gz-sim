@@ -87,12 +87,13 @@ namespace multicopter_control
                  const Eigen::Vector3d &_acceleration) const;
 
     /// \brief Initialize controller parameters
+    /// \return True if successful.
     private: bool InitializeParameters();
 
     /// \brief Velocity controller parameters
     private: LeeVelocityControllerParameters controllerParameters;
 
-    /// \brief Inertial of the whole vehicle
+    /// \brief Parameters of the whole vehicle
     private: VehicleParameters vehicleParameters;
 
     /// \brief Attitude gain normalized by the inverse of the inertia matrix
