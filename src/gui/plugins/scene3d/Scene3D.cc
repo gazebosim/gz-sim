@@ -195,7 +195,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: Qt::KeyboardModifiers keyModifiers;
 
     /// \brief The starting world pose of a clicked visual.
-    public: ignition::math::Vector3d startWorldPos = math::Vector3d(0, 0, 0);
+    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
     /// \brief Flag to keep track of world pose setting.
     public: bool isStartWorldPosSet = false;
@@ -475,6 +475,7 @@ void IgnRenderer::HandleMouseContextMenu()
   }
 }
 
+////////////////////////////////////////////////
 void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -729,8 +730,10 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->startWorldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
       }
       ignition::math::Vector3d worldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+      ignwarn << "World position " << worldPos << "\n";
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
+      ignwarn << "Distance after " << distance << "\n";
       if (this->dataPtr->keyEvent.Control())
       {
         ignition::math::Vector3d relativePos = this->dataPtr->startWorldPos + distance;
@@ -744,6 +747,10 @@ void IgnRenderer::HandleMouseTransformControl()
     {
       math::Quaterniond rotation =
           this->dataPtr->transformControl.RotationFrom2d(axis, start, end);
+      ignition::math::Quaterniond worldRot = this->dataPtr->renderUtil.SelectedEntity()->WorldRotation();
+      ignwarn << "Local rotation " << rotation.Euler() << "\n";
+      ignwarn << "World rotation " << worldRot.Euler() << "\n";
+
       this->dataPtr->transformControl.Rotate(rotation);
     }
     else if (this->dataPtr->transformControl.Mode() ==
