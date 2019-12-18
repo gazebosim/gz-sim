@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.X (201X-XX-XX)
 
+1. Add Multicopter velocity controller
+    * [Pull Request 487](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/487)
+
 1. Fix crash when removing an entity being followed
     * [Pull Request 465](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/465)
 
