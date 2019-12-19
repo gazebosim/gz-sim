@@ -233,7 +233,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
     /// percentage of the interval.
     /// \return Snapped coordinate point.
-    private: double SnapValue(double _coord, double _interval, double _sensitivity) const;
+    private: double SnapValue(
+                 double _coord, double _interval, double _sensitivity) const;
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();

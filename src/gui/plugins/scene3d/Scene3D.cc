@@ -479,10 +479,11 @@ void IgnRenderer::HandleMouseContextMenu()
 void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->keyText = _e->text().toStdString();
   this->dataPtr->keyModifiers = _e->modifiers();
 
-  this->dataPtr->keyEvent.SetKey(_e->key());
+  if (!_e->isAutoRepeat())
+    this->dataPtr->keyEvent.SetKey(_e->key());
+
   this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
 
   this->dataPtr->keyEvent.SetControl(
@@ -517,11 +518,15 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
 
+  if (!_e->isAutoRepeat())
+    this->dataPtr->keyEvent.SetKey(0);
+
   this->dataPtr->keyText = "";
 }
 
 /////////////////////////////////////////////////
-double IgnRenderer::SnapValue(double _coord, double _interval, double _sensitivity) const
+double IgnRenderer::SnapValue(
+    double _coord, double _interval, double _sensitivity) const
 {
   double snap = _interval * _sensitivity;
   double rem = fmod(_coord, _interval);
@@ -547,7 +552,9 @@ double IgnRenderer::SnapValue(double _coord, double _interval, double _sensitivi
 }
 
 /////////////////////////////////////////////////
-ignition::math::Vector3d IgnRenderer::SnapPoint(ignition::math::Vector3d &_point, double _interval, double _sensitivity) const
+ignition::math::Vector3d IgnRenderer::SnapPoint(
+    ignition::math::Vector3d &_point, double _interval, double _sensitivity)
+    const
 {
   if (_interval <= 0)
   {
@@ -563,7 +570,7 @@ ignition::math::Vector3d IgnRenderer::SnapPoint(ignition::math::Vector3d &_point
   }
 
   ignition::math::Vector3d point;
-  
+
   point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
   point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
   point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
@@ -720,6 +727,13 @@ void IgnRenderer::HandleMouseTransformControl()
     // get the current active axis
     math::Vector3d axis = this->dataPtr->transformControl.ActiveAxis();
 
+    if (this->dataPtr->keyEvent.Key() == Qt::Key_X)
+      axis = math::Vector3d(1, 0, 0);
+    else if (this->dataPtr->keyEvent.Key() == Qt::Key_Y)
+      axis = math::Vector3d(0, 1, 0);
+    else if (this->dataPtr->keyEvent.Key() == Qt::Key_Z)
+      axis = math::Vector3d(0, 0, 1);
+
     // compute 3d transformation from 2d mouse movement
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
@@ -727,16 +741,17 @@ void IgnRenderer::HandleMouseTransformControl()
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
-        this->dataPtr->startWorldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+        this->dataPtr->startWorldPos =
+          this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
       }
-      ignition::math::Vector3d worldPos = this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
-      ignwarn << "World position " << worldPos << "\n";
+      ignition::math::Vector3d worldPos =
+        this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
-      ignwarn << "Distance after " << distance << "\n";
       if (this->dataPtr->keyEvent.Control())
       {
-        ignition::math::Vector3d relativePos = this->dataPtr->startWorldPos + distance;
+        ignition::math::Vector3d relativePos =
+          this->dataPtr->startWorldPos + distance;
         distance = SnapPoint(relativePos) - this->dataPtr->startWorldPos;
         distance *= axis;
       }
@@ -747,10 +762,12 @@ void IgnRenderer::HandleMouseTransformControl()
     {
       math::Quaterniond rotation =
           this->dataPtr->transformControl.RotationFrom2d(axis, start, end);
-      ignition::math::Quaterniond worldRot = this->dataPtr->renderUtil.SelectedEntity()->WorldRotation();
-      ignwarn << "Local rotation " << rotation.Euler() << "\n";
-      ignwarn << "World rotation " << worldRot.Euler() << "\n";
-
+      if (this->dataPtr->keyEvent.Control())
+      {
+        ignition::math::Vector3d current_rot = rotation.Euler();
+        ignition::math::Vector3d new_rot = SnapPoint(current_rot, IGN_PI/4);
+        rotation = ignition::math::Quaterniond::EulerToQuaternion(new_rot);
+      }
       this->dataPtr->transformControl.Rotate(rotation);
     }
     else if (this->dataPtr->transformControl.Mode() ==
@@ -759,6 +776,10 @@ void IgnRenderer::HandleMouseTransformControl()
       // note: scaling is limited to local space
       math::Vector3d scale =
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
+      if (this->dataPtr->keyEvent.Control())
+      {
+        scale = SnapPoint(scale, 0.5);
+      }
       this->dataPtr->transformControl.Scale(scale);
     }
     this->dataPtr->drag = 0;
