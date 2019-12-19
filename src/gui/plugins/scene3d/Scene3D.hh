@@ -221,8 +221,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
     /// percentage of the interval.
     /// \return Snapped 3D point.
-    public: ignition::math::Vector3d SnapPoint(
-                ignition::math::Vector3d &_point,
+    public: math::Vector3d SnapPoint(
+                math::Vector3d &_point,
                 double _interval = 1.0, double _sensitivity = 0.4) const;
 
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
@@ -235,6 +235,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Snapped coordinate point.
     private: double SnapValue(
                  double _coord, double _interval, double _sensitivity) const;
+
+    private: math::Vector3d GetXYZConstraint(math::Vector3d &axis);
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();

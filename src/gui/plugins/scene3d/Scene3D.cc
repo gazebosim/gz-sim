@@ -552,7 +552,7 @@ double IgnRenderer::SnapValue(
 }
 
 /////////////////////////////////////////////////
-ignition::math::Vector3d IgnRenderer::SnapPoint(
+math::Vector3d IgnRenderer::SnapPoint(
     ignition::math::Vector3d &_point, double _interval, double _sensitivity)
     const
 {
@@ -560,22 +560,40 @@ ignition::math::Vector3d IgnRenderer::SnapPoint(
   {
     ignerr << "Interval distance must be greater than 0"
         << std::endl;
-    return ignition::math::Vector3d::Zero;
+    return math::Vector3d::Zero;
   }
 
   if (_sensitivity < 0 || _sensitivity > 1.0)
   {
     ignerr << "Sensitivity must be between 0 and 1" << std::endl;
-    return ignition::math::Vector3d::Zero;
+    return math::Vector3d::Zero;
   }
 
-  ignition::math::Vector3d point;
+  math::Vector3d point;
 
   point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
   point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
   point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
 
   return point;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &axis)
+{
+  if (this->dataPtr->keyEvent.Key() == Qt::Key_X)
+  {
+    axis = math::Vector3d(1, 0, 0);
+  }
+  else if (this->dataPtr->keyEvent.Key() == Qt::Key_Y)
+  {
+    axis = math::Vector3d(0, 1, 0);
+  }
+  else if (this->dataPtr->keyEvent.Key() == Qt::Key_Z)
+  {
+    axis = math::Vector3d(0, 0, 1);
+  }
+  return axis;
 }
 
 /////////////////////////////////////////////////
@@ -617,7 +635,6 @@ void IgnRenderer::HandleMouseTransformControl()
   // check for mouse events
   if (!this->dataPtr->mouseDirty)
     return;
-
 
   // handle transform control
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT)
@@ -727,17 +744,11 @@ void IgnRenderer::HandleMouseTransformControl()
     // get the current active axis
     math::Vector3d axis = this->dataPtr->transformControl.ActiveAxis();
 
-    if (this->dataPtr->keyEvent.Key() == Qt::Key_X)
-      axis = math::Vector3d(1, 0, 0);
-    else if (this->dataPtr->keyEvent.Key() == Qt::Key_Y)
-      axis = math::Vector3d(0, 1, 0);
-    else if (this->dataPtr->keyEvent.Key() == Qt::Key_Z)
-      axis = math::Vector3d(0, 0, 1);
-
     // compute 3d transformation from 2d mouse movement
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      axis = GetXYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
@@ -750,7 +761,7 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        ignition::math::Vector3d relativePos =
+        math::Vector3d relativePos =
           this->dataPtr->startWorldPos + distance;
         distance = SnapPoint(relativePos) - this->dataPtr->startWorldPos;
         distance *= axis;
@@ -762,17 +773,19 @@ void IgnRenderer::HandleMouseTransformControl()
     {
       math::Quaterniond rotation =
           this->dataPtr->transformControl.RotationFrom2d(axis, start, end);
+
       if (this->dataPtr->keyEvent.Control())
       {
-        ignition::math::Vector3d current_rot = rotation.Euler();
-        ignition::math::Vector3d new_rot = SnapPoint(current_rot, IGN_PI/4);
-        rotation = ignition::math::Quaterniond::EulerToQuaternion(new_rot);
+        math::Vector3d current_rot = rotation.Euler();
+        math::Vector3d new_rot = SnapPoint(current_rot, IGN_PI/4);
+        rotation = math::Quaterniond::EulerToQuaternion(new_rot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
     }
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
+      axis = GetXYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
