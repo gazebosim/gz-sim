@@ -10,22 +10,22 @@ ToolBar {
   Layout.minimumHeight: 100
 
   // TODO(anyone) enable scale button when support is added in ign-physics
-  // function setScaleTrue() {
+  // function activateScale() {
   //   scale.checked = true;
   //   TransformControl.OnMode("scale");
   // } 
  
-  function setTranslateTrue() {
+  function activateTranslate() {
     translate.checked = true;
     TransformControl.OnMode("translate");
   }
 
-  function setRotateTrue() {
+  function activateRotate() {
     rotate.checked = true;
     TransformControl.OnMode("rotate");
   }
   
-  function setSelectTrue() {
+  function activateSelect() {
     select.checked = true;
     TransformControl.OnMode("select");
   }
@@ -41,22 +41,22 @@ ToolBar {
   // TODO(anyone) enable scale button when support is added in ign-physics
   // Shortcut {
   //   sequence: "S"
-  //   onActivated: setScaleTrue()
+  //   onActivated: activateScale()
   // }
 
   Shortcut {
     sequence: "T"
-    onActivated: setTranslateTrue()
+    onActivated: activateTranslate()
   }
 
   Shortcut {
     sequence: "R"
-    onActivated: setRotateTrue()
+    onActivated: activateRotate()
   }
   
   Shortcut {
     sequence: "Esc"
-    onActivated: setSelectTrue()
+    onActivated: activateSelect()
   }
 
   RowLayout {
