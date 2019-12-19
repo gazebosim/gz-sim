@@ -51,11 +51,18 @@ TODO
 
 ### Rendering engines
 
-TODO
+Ignition Rendering uses a plugin architecture and its render engines are built as
+plugins that are loaded at run time through Ignition Plugin. The render engine
+plugin shared libraries can be found in the `<install_prefix>/lib` directory and
+the resources used by these engines are located in the `<install_prefix>/share`
+directory.
 
 ### Sensors
 
-TODO
+Each unique type of sensor Ignition Sensors is a plugin. When a particular
+sensor type is requested, the relevant plugin is loaded by Ignition Plugin and a
+sensor object is instantiated from it. Simlar to Ignition Rendering, the sensor
+plugin shared libraries are installed to the `<install_prefix>/lib` directory.
 
 ## Models, lights, actors
 
