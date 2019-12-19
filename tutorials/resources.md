@@ -59,7 +59,7 @@ directory.
 
 ### Sensors
 
-Each unique type of sensor Ignition Sensors is a plugin. When a particular
+Each unique type of sensor in Ignition Sensors is a plugin. When a particular
 sensor type is requested, the relevant plugin is loaded by Ignition Plugin and a
 sensor object is instantiated from it. Simlar to Ignition Rendering, the sensor
 plugin shared libraries are installed to the `<install_prefix>/lib` directory.
