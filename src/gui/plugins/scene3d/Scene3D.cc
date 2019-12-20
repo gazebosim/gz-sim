@@ -199,6 +199,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Flag to keep track of world pose setting.
     public: bool isStartWorldPosSet = false;
+
+    /// \brief Flag to keep track of if we are currently translating
+    /// using buttons x, y, or z
+    public: bool areButtonTranslating = false;
+
+    /// \brief Where the mouse left off on when an x, y, or z was pressed - used
+    /// to continue translating smoothly when switching axes through keybinding
+    public: math::Vector2i newMousePressPos = math::Vector2i::Zero;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -478,50 +486,74 @@ void IgnRenderer::HandleMouseContextMenu()
 ////////////////////////////////////////////////
 void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
 {
+  if (_e->isAutoRepeat())
+    return;
+
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->keyModifiers = _e->modifiers();
 
-  if (!_e->isAutoRepeat())
-    this->dataPtr->keyEvent.SetKey(_e->key());
-
+  this->dataPtr->keyEvent.SetKey(_e->key());
   this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
 
   this->dataPtr->keyEvent.SetControl(
-    (this->dataPtr->keyModifiers & Qt::ControlModifier) ? true : false);
+    (this->dataPtr->keyModifiers & Qt::ControlModifier));
   this->dataPtr->keyEvent.SetShift(
-    (this->dataPtr->keyModifiers & Qt::ShiftModifier) ? true : false);
+    (this->dataPtr->keyModifiers & Qt::ShiftModifier));
   this->dataPtr->keyEvent.SetAlt(
-    (this->dataPtr->keyModifiers & Qt::AltModifier) ? true : false);
+    (this->dataPtr->keyModifiers & Qt::AltModifier));
 
   this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
   this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+
+  // Update the object and mouse to be placed at the current position
+  // only for x, y, and z key presses
+  if (_e->key() == Qt::Key_X ||
+      _e->key() == Qt::Key_Y ||
+      _e->key() == Qt::Key_Z)
+  {
+    this->dataPtr->transformControl.Start();
+    this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->areButtonTranslating = true;
+  }
 }
 
 ////////////////////////////////////////////////
 void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 {
+  if (_e->isAutoRepeat())
+    return;
+
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->keyModifiers = _e->modifiers();
 
+  this->dataPtr->keyEvent.SetKey(0);
+  this->dataPtr->keyText = "";
+
   this->dataPtr->keyEvent.SetControl(
     (this->dataPtr->keyModifiers & Qt::ControlModifier)
-    && (_e->key() != Qt::Key_Control) ? true : false);
+    && (_e->key() != Qt::Key_Control));
   this->dataPtr->keyEvent.SetShift(
     (this->dataPtr->keyModifiers & Qt::ShiftModifier)
-    && (_e->key() != Qt::Key_Shift) ? true : false);
+    && (_e->key() != Qt::Key_Shift));
   this->dataPtr->keyEvent.SetAlt(
     (this->dataPtr->keyModifiers & Qt::AltModifier)
-    && (_e->key() != Qt::Key_Alt) ? true : false);
+    && (_e->key() != Qt::Key_Alt));
 
   this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
   this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
 
-  if (!_e->isAutoRepeat())
-    this->dataPtr->keyEvent.SetKey(0);
-
-  this->dataPtr->keyText = "";
+  // Update the object and mouse to be placed at the current position
+  // only for x, y, and z key presses
+  if (_e->key() == Qt::Key_X ||
+      _e->key() == Qt::Key_Y ||
+      _e->key() == Qt::Key_Z)
+  {
+    this->dataPtr->transformControl.Start();
+    this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->areButtonTranslating = true;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -665,6 +697,7 @@ void IgnRenderer::HandleMouseTransformControl()
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
       this->dataPtr->isStartWorldPosSet = false;
+      this->dataPtr->areButtonTranslating = false;
       if (this->dataPtr->transformControl.Active())
       {
         if (this->dataPtr->transformControl.Node())
@@ -730,9 +763,15 @@ void IgnRenderer::HandleMouseTransformControl()
     auto imageWidth = static_cast<double>(this->dataPtr->camera->ImageWidth());
     auto imageHeight = static_cast<double>(
         this->dataPtr->camera->ImageHeight());
-    double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() /
+    double nx = 2.0 *
+      (this->dataPtr->areButtonTranslating ?
+       this->dataPtr->newMousePressPos.X() :
+       this->dataPtr->mouseEvent.PressPos().X()) /
       imageWidth - 1.0;
-    double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.PressPos().Y() /
+    double ny = 1.0 - 2.0 *
+      (this->dataPtr->areButtonTranslating ?
+       this->dataPtr->newMousePressPos.Y() :
+       this->dataPtr->mouseEvent.PressPos().Y()) /
       imageHeight;
     double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() /
       imageWidth - 1.0;
