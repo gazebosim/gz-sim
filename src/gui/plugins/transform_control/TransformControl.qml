@@ -96,9 +96,6 @@ ToolBar {
       onClicked: {
         TransformControl.OnMode("select")
       }
-      function update() {
-        select.checked = true;
-      }
     }
     ToolButton{
       id: translate
@@ -134,9 +131,6 @@ ToolBar {
       }
       onClicked: {
         TransformControl.OnMode("translate")
-      }
-      function update() {
-        translate.checked = true;
       }
     }
     ToolButton {
@@ -175,9 +169,6 @@ ToolBar {
       onClicked: {
         TransformControl.OnMode("rotate")
       }
-      function update() {
-        rotate.checked = true;
-      }
     }
     // TODO(anyone) enable scale button when support is added in ign-physics
     // ToolButton {
@@ -215,9 +206,6 @@ ToolBar {
     //  }
     //   onClicked: {
     //     TransformControl.OnMode("scale")
-    //   }
-    //   function update() {
-    //     scale.checked = true;
     //   }
     // }
   }
