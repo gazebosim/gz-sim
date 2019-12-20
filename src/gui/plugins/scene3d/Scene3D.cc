@@ -492,6 +492,7 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->keyModifiers = _e->modifiers();
 
+  this->dataPtr->keyEvent.SetKey(_e->key());
   this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
 
   this->dataPtr->keyEvent.SetControl(
@@ -506,10 +507,15 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
 
   // Update the object and mouse to be placed at the current position
-  this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->transformControl.Start();
-  this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
-  this->dataPtr->areButtonTranslating = true;
+  // only for x, y, and z key presses
+  if (_e->key() == Qt::Key_X ||
+      _e->key() == Qt::Key_Y ||
+      _e->key() == Qt::Key_Z)
+  {
+    this->dataPtr->transformControl.Start();
+    this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->areButtonTranslating = true;
+  }
 }
 
 ////////////////////////////////////////////////
@@ -520,6 +526,9 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->keyModifiers = _e->modifiers();
+
+  this->dataPtr->keyEvent.SetKey(0);
+  this->dataPtr->keyText = "";
 
   this->dataPtr->keyEvent.SetControl(
     (this->dataPtr->keyModifiers & Qt::ControlModifier)
@@ -536,12 +545,15 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
 
   // Update the object and mouse to be placed at the current position
-  this->dataPtr->keyEvent.SetKey(0);
-  this->dataPtr->transformControl.Start();
-  this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
-  this->dataPtr->areButtonTranslating = true;
-
-  this->dataPtr->keyText = "";
+  // only for x, y, and z key presses
+  if (_e->key() == Qt::Key_X ||
+      _e->key() == Qt::Key_Y ||
+      _e->key() == Qt::Key_Z)
+  {
+    this->dataPtr->transformControl.Start();
+    this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->areButtonTranslating = true;
+  }
 }
 
 /////////////////////////////////////////////////
