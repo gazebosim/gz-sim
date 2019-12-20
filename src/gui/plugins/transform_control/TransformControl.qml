@@ -96,9 +96,6 @@ ToolBar {
       onClicked: {
         TransformControl.OnMode("select")
       }
-      function update() {
-        select.checked = true;
-      }
     }
     ToolButton{
       id: translate
@@ -135,9 +132,6 @@ ToolBar {
       onClicked: {
         TransformControl.OnMode("translate")
       }
-      function update() {
-        translate.checked = true;
-      }
     }
     ToolButton {
       id: rotate
@@ -155,6 +149,43 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
+      MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: {
+          if (mouse.button === Qt.LeftButton) {
+            rotate.checked = true;
+            TransformControl.OnMode("rotate")
+          }
+          if (mouse.button === Qt.RightButton) {
+            snapRotateMenu.open()
+          }
+        }
+        Menu {
+          id: snapRotateMenu
+          Text {
+            id: roll
+            text: qsTr("R:")
+          }
+          TextField {
+            placeholderText: qsTr("Roll")
+          }
+          Text {
+            id: pitch
+            text: qsTr("P:")
+          }
+          TextField {
+            placeholderText: qsTr("Pitch")
+          }
+          Text {
+            id: yaw
+            text: qsTr("Y:")
+          }
+          TextField {
+            placeholderText: qsTr("Yaw")
+          }
+        }
+      }
       // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
@@ -171,12 +202,6 @@ ToolBar {
         anchor: rotate
         active: rotate.enabled && (rotate.down || rotate.visualFocus || rotate.hovered || rotate.checked)
         color: rotate.Material.rippleColor
-      }
-      onClicked: {
-        TransformControl.OnMode("rotate")
-      }
-      function update() {
-        rotate.checked = true;
       }
     }
     // TODO(anyone) enable scale button when support is added in ign-physics
@@ -215,9 +240,6 @@ ToolBar {
     //  }
     //   onClicked: {
     //     TransformControl.OnMode("scale")
-    //   }
-    //   function update() {
-    //     scale.checked = true;
     //   }
     // }
   }
