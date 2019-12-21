@@ -165,24 +165,51 @@ ToolBar {
           id: snapRotateMenu
           Text {
             id: roll
-            text: qsTr("R:")
+            text: qsTr("R (0-90) :")
           }
           TextField {
-            placeholderText: qsTr("Roll")
+            id: rollEntry
+            placeholderText: qsTr("Degrees")
+            validator: DoubleValidator {
+              bottom: 0
+              top: 90
+              decimals: 10
+            }
+            onAccepted: {
+              TransformControl.OnNewSnapRotation(rollEntry.text, pitchEntry.text, yawEntry.text)
+            }
           }
           Text {
             id: pitch
-            text: qsTr("P:")
+            text: qsTr("P (0-90) :")
           }
           TextField {
-            placeholderText: qsTr("Pitch")
+            id: pitchEntry
+            placeholderText: qsTr("Degrees")
+            validator: DoubleValidator {
+              bottom: 0
+              top: 90
+              decimals: 10
+            }
+            onAccepted: {
+              TransformControl.OnNewSnapRotation(rollEntry.text, pitchEntry.text, yawEntry.text)
+            }
           }
           Text {
             id: yaw
-            text: qsTr("Y:")
+            text: qsTr("Y (0-90) :")
           }
           TextField {
-            placeholderText: qsTr("Yaw")
+            id: yawEntry
+            placeholderText: qsTr("Degrees")
+            validator: DoubleValidator {
+              bottom: 0
+              top: 90
+              decimals: 10
+            }
+            onAccepted: {
+              TransformControl.OnNewSnapRotation(rollEntry.text, pitchEntry.text, yawEntry.text)
+            }
           }
         }
       }

@@ -21,19 +21,20 @@
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
+#include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
 {
 namespace gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class TransformControlPrivate;
 
-  /// \brief TODO
   /// \brief Provides buttons for translation, rotation, and scale
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive transform mode requests.
-  class TransformControl : public ignition::gui::Plugin
+  class TransformControl : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -46,6 +47,13 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    // Documentation inherited
+    public: void Configure(EntityComponentManager &_ecm, EventManager &_eventMgr) override;
+
+    public slots: void OnNewSnapTranslation(double x);
+    
+    public slots: void OnNewSnapRotation(double x, double y, double z);
+
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);
@@ -54,6 +62,7 @@ namespace gazebo
     /// \brief Pointer to private data.
     private: std::unique_ptr<TransformControlPrivate> dataPtr;
   };
+}
 }
 }
 

@@ -245,6 +245,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Follow service
     public: std::string followService;
+
+    public: EventManager* eventMgr;
   };
 }
 }
@@ -1348,6 +1350,10 @@ Scene3D::Scene3D()
 
 /////////////////////////////////////////////////
 Scene3D::~Scene3D() = default;
+
+void Scene3D::Configure(EntityComponentManager &_ecm, EventManager &_eventMgr) {
+  this->dataPtr->eventMgr = &_eventMgr;
+}
 
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)

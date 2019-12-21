@@ -21,6 +21,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/EventManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gui/Plugin.hh>
 
@@ -53,6 +54,8 @@ namespace gazebo
     /// and write entities and their components.
     public: virtual void Update(const UpdateInfo &/*_info*/,
                                 EntityComponentManager &/*_ecm*/){}
+
+    public: virtual void Configure(EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/){}
   };
 }
 }

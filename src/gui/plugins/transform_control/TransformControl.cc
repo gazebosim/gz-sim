@@ -32,6 +32,7 @@
 
 namespace ignition::gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class TransformControlPrivate
   {
     /// \brief Ignition communication node.
@@ -42,7 +43,10 @@ namespace ignition::gazebo
 
     /// \brief Transform control service name
     public: std::string service;
+
+    public: EventManager* eventMgr;
   };
+}
 }
 
 using namespace ignition;
@@ -50,12 +54,13 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
+  : GuiSystem(), dataPtr(new TransformControlPrivate)
 {
 }
 
 /////////////////////////////////////////////////
 TransformControl::~TransformControl() = default;
+
 /////////////////////////////////////////////////
 void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
@@ -64,6 +69,24 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 
   // For transform requests
   this->dataPtr->service = "/gui/transform_mode";
+}
+void TransformControl::Configure(EntityComponentManager &_ecm, EventManager &_eventMgr)
+{
+  this->dataPtr->eventMgr = &_eventMgr;
+}
+
+void TransformControl::OnNewSnapTranslation(double x)
+{
+  /*
+  math::Vector3d &_snap;
+  this->dataPtr->eventMgr->Emit<>();
+  */
+}
+
+void TransformControl::OnNewSnapRotation(double x, double y, double z)
+{
+  math::Vector3d snap(x, y, z);
+  this->dataPtr->eventMgr->Emit<events::SnapRotateConfig>(snap);
 }
 
 /////////////////////////////////////////////////

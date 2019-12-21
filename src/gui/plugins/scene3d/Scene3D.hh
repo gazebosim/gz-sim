@@ -84,6 +84,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    public: void Configure(EntityComponentManager &_ecm, EventManager &_eventMgr) override;
+
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
