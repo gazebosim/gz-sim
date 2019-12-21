@@ -217,7 +217,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void HandleKeyRelease(QKeyEvent *_e);
 
     public: void SetXYZSnap(const math::Vector3d &_xyzSnap);
-    
+
     public: void SetRPYSnap(const math::Vector3d &_rpySnap);
 
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
@@ -392,9 +392,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
-    
+
     public: void SetXYZSnap(const math::Vector3d &_xyzSnap);
-    
+
     public: void SetRPYSnap(const math::Vector3d &_rpySnap);
 
     /// \brief Slot called when thread is ready to be started

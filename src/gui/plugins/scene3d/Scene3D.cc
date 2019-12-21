@@ -813,7 +813,8 @@ void IgnRenderer::HandleMouseTransformControl()
         if (snapVals.Z() <= 1e-4) {
           snapVals.Z() = 1;
         }
-        distance = SnapPoint(relativePos, snapVals) - this->dataPtr->startWorldPos;
+        distance =
+          SnapPoint(relativePos, snapVals) - this->dataPtr->startWorldPos;
         distance *= axis;
       }
       this->dataPtr->transformControl.Translate(distance);
@@ -865,7 +866,7 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d snapVals(0.5,0.5,0.5);
+        math::Vector3d snapVals(0.5, 0.5, 0.5);
         scale = SnapPoint(scale, snapVals);
       }
       this->dataPtr->transformControl.Scale(scale);
@@ -1600,7 +1601,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
 
-  //Standard event processing
+  // Standard event processing
   return QObject::eventFilter(_obj, _event);
 }
 

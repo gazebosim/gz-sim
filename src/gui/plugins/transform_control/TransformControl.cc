@@ -69,10 +69,14 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->service = "/gui/transform_mode";
 }
 
-void TransformControl::OnSnapUpdate(double _x, double _y, double _z, double _roll, double _pitch, double _yaw)
+void TransformControl::OnSnapUpdate(
+    double _x, double _y, double _z,
+    double _roll, double _pitch, double _yaw)
 {
-  auto event = new gui::events::SnapIntervals(math::Vector3d(_x, _y, _z), math::Vector3d(_roll, _pitch, _yaw));
-  ignition::gui::App()->sendEvent(ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
+  auto event = new gui::events::SnapIntervals(
+      math::Vector3d(_x, _y, _z), math::Vector3d(_roll, _pitch, _yaw));
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
 }
 
 /////////////////////////////////////////////////

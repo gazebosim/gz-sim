@@ -33,7 +33,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace events
 {
   static const QEvent::Type SnapEvent = QEvent::Type(1000);
-  
+
   class SnapIntervals : public QEvent
   {
     public: SnapIntervals(math::Vector3d _xyz, math::Vector3d _rpy)
