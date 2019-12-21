@@ -92,6 +92,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _drop Dropped string.
     public slots: void OnDropped(const QString &_drop);
 
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
     /// \param[in] _res Response data
@@ -213,6 +216,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle key release event for snapping
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    public: void SetXYZSnap(const math::Vector3d &_xyzSnap);
+    
+    public: void SetRPYSnap(const math::Vector3d &_rpySnap);
+
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point.
@@ -223,7 +230,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Snapped 3D point.
     public: math::Vector3d SnapPoint(
                 math::Vector3d &_point,
-                double _interval = 1.0, double _sensitivity = 0.4) const;
+                math::Vector3d &_snapVals, double _sensitivity = 0.4);
 
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
@@ -385,6 +392,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
+    
+    public: void SetXYZSnap(const math::Vector3d &_xyzSnap);
+    
+    public: void SetRPYSnap(const math::Vector3d &_rpySnap);
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();

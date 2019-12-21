@@ -45,9 +45,11 @@
 
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
@@ -585,10 +587,9 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 math::Vector3d IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, double _interval, double _sensitivity)
-    const
+    math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
 {
-  if (_interval <= 0)
+  if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
     ignerr << "Interval distance must be greater than 0"
         << std::endl;
@@ -603,9 +604,9 @@ math::Vector3d IgnRenderer::SnapPoint(
 
   math::Vector3d point;
 
-  point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
-  point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
-  point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
+  point.X() = this->SnapValue(_point.X(), _snapVals.X(), _sensitivity);
+  point.Y() = this->SnapValue(_point.Y(), _snapVals.Y(), _sensitivity);
+  point.Z() = this->SnapValue(_point.Z(), _snapVals.Z(), _sensitivity);
 
   return point;
 }
@@ -802,7 +803,17 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         math::Vector3d relativePos =
           this->dataPtr->startWorldPos + distance;
-        distance = SnapPoint(relativePos) - this->dataPtr->startWorldPos;
+        math::Vector3d snapVals = this->dataPtr->transformControl.XYZSnap();
+        if (snapVals.X() <= 1e-4) {
+          snapVals.X() = 1;
+        }
+        if (snapVals.Y() <= 1e-4) {
+          snapVals.Y() = 1;
+        }
+        if (snapVals.Z() <= 1e-4) {
+          snapVals.Z() = 1;
+        }
+        distance = SnapPoint(relativePos, snapVals) - this->dataPtr->startWorldPos;
         distance *= axis;
       }
       this->dataPtr->transformControl.Translate(distance);
@@ -816,7 +827,31 @@ void IgnRenderer::HandleMouseTransformControl()
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d current_rot = rotation.Euler();
-        math::Vector3d new_rot = SnapPoint(current_rot, IGN_PI/4);
+        math::Vector3d snapVals = this->dataPtr->transformControl.RPYSnap();
+
+        if (snapVals.X() <= 1e-4) {
+          snapVals.X() = IGN_PI/4;
+        }
+        else
+        {
+          snapVals.X() = snapVals.X() * IGN_PI / 180.0;
+        }
+        if (snapVals.Y() <= 1e-4) {
+          snapVals.Y() = IGN_PI/4;
+        }
+        else
+        {
+          snapVals.Y() = snapVals.Y() * IGN_PI / 180.0;
+        }
+        if (snapVals.Z() <= 1e-4) {
+          snapVals.Z() = IGN_PI/4;
+        }
+        else
+        {
+          snapVals.Z() = snapVals.Z() * IGN_PI / 180.0;
+        }
+
+        math::Vector3d new_rot = SnapPoint(current_rot, snapVals);
         rotation = math::Quaterniond::EulerToQuaternion(new_rot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
@@ -830,7 +865,8 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        scale = SnapPoint(scale, 0.5);
+        math::Vector3d snapVals(0.5,0.5,0.5);
+        scale = SnapPoint(scale, snapVals);
       }
       this->dataPtr->transformControl.Scale(scale);
     }
@@ -958,6 +994,18 @@ void IgnRenderer::Destroy()
 
     // TODO(anyone) If that was the last scene, terminate engine?
   }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyzSnap)
+{
+  this->dataPtr->transformControl.SetXYZSnap(_xyzSnap);
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpySnap)
+{
+  this->dataPtr->transformControl.SetRPYSnap(_rpySnap);
 }
 
 /////////////////////////////////////////////////
@@ -1506,6 +1554,9 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       &Scene3D::OnFollow, this);
   ignmsg << "Follow service on ["
          << this->dataPtr->followService << "]" << std::endl;
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -1533,6 +1584,24 @@ void Scene3D::Update(const UpdateInfo &_info,
   }
 
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::SnapEvent)
+  {
+    auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
+    if (snapEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetXYZSnap(snapEvent->XYZ());
+      renderWindow->SetRPYSnap(snapEvent->RPY());
+    }
+  }
+
+  //Standard event processing
+  return QObject::eventFilter(_obj, _event);
 }
 
 /////////////////////////////////////////////////
@@ -1609,6 +1678,18 @@ void Scene3D::OnDropped(const QString &_drop)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyzSnap)
+{
+  this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyzSnap);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRPYSnap(const math::Vector3d &_rpySnap)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRPYSnap(_rpySnap);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
@@ -1673,7 +1754,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
   this->forceActiveFocus();
 
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
@@ -1685,7 +1766,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
@@ -1697,7 +1778,7 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   if (!event.Dragging())
