@@ -21,6 +21,7 @@
 
 #include <unordered_map>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Element.hh>
@@ -153,6 +154,7 @@ void ContactSensor::Publish()
 //////////////////////////////////////////////////
 void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ContactPrivate::CreateSensors");
   _ecm.EachNew<components::ContactSensor>(
       [&](const Entity &_entity,
           const components::ContactSensor *_contact) -> bool
@@ -211,6 +213,7 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
                                    const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ContactPrivate::UpdateSensors");
   for (const auto &item : this->entitySensorMap)
   {
     for (const Entity &entity : item.second->collisionEntities)
@@ -231,6 +234,7 @@ void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
 void ContactPrivate::RemoveSensors(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ContactPrivate::RemoveSensors");
   _ecm.EachRemoved<components::ContactSensor>(
     [&](const Entity &_entity,
         const components::ContactSensor *)->bool
@@ -256,6 +260,7 @@ Contact::Contact() : System(), dataPtr(std::make_unique<ContactPrivate>())
 //////////////////////////////////////////////////
 void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Contact::PreUpdate");
   this->dataPtr->CreateSensors(_ecm);
 }
 
@@ -263,6 +268,16 @@ void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 void Contact::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Contact::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   if (!_info.paused)
   {
     this->dataPtr->UpdateSensors(_info, _ecm);

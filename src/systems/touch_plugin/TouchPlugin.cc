@@ -19,6 +19,7 @@
 #include <optional>
 #include <vector>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -225,6 +226,16 @@ TouchPlugin::TouchPlugin()
 void TouchPluginPrivate::Update(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("TouchPluginPrivate::Update");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   {
     std::lock_guard<std::mutex> lock(this->serviceMutex);
     if (!this->enabled)
@@ -353,6 +364,7 @@ void TouchPlugin::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("TouchPlugin::PreUpdate");
   if (!this->dataPtr->initialized)
   {
     // We call Load here instead of Configure because we can't be guaranteed
@@ -381,6 +393,7 @@ void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 void TouchPlugin::PostUpdate(const UpdateInfo &_info,
                              const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("TouchPlugin::PostUpdate");
   if (this->dataPtr->validConfig)
   {
     this->dataPtr->Update(_info, _ecm);

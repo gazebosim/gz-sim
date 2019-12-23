@@ -1,4 +1,7 @@
 <?xml version="1.0" ?>
+<!--
+  This demo shows various types of lights, including lights attached to links.
+-->
 <sdf version="1.6">
   <world name="lights">
     <physics name="1ms" type="ode">
@@ -18,10 +21,16 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <scene>
+      <ambient>0.4 0.4 0.4</ambient>
+      <background>0.8 0.8 0.8</background>
+      <grid>true</grid>
+    </scene>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -38,10 +47,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/lights/scene/info</service>
-        <pose_topic>/world/lights/pose/info</pose_topic>
-        <scene_topic>/world/lights/scene/info</scene_topic>
-        <deletion_topic>/world/lights/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -136,18 +141,19 @@
 
     <model name="ground_plane">
       <static>true</static>
+      <pose>0 0 0 0 0.02 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <plane>
-              <normal>0.02 0.0 1</normal>
+              <normal>0.0 0.0 1</normal>
             </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <plane>
-              <normal>0.02 0.0 1</normal>
+              <normal>0.0 0.0 1</normal>
               <size>100 100</size>
             </plane>
           </geometry>

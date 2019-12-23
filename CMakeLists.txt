@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.0.0)
+project(ignition-gazebo2 VERSION 2.13.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -14,7 +14,7 @@ find_package(ignition-cmake2 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project()
 
 #============================================================================
 # Set project-specific options
@@ -32,7 +32,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED)
+ign_find_package(sdformat8 REQUIRED VERSION 8.4)
 
 #--------------------------------------
 # Find ignition-plugin
@@ -46,13 +46,13 @@ set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs4 REQUIRED)
+ign_find_package(ignition-msgs4 REQUIRED VERSION 4.7)
 set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events)
+ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events av)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
@@ -81,7 +81,7 @@ ign_find_package(ignition-physics1
     dartsim
     dartsim-plugin
   REQUIRED
-  VERSION 1.1)
+  VERSION 1.4)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
@@ -97,6 +97,7 @@ ign_find_package(ignition-sensors2 REQUIRED
     logical_camera
     magnetometer
     depth_camera
+  VERSION 2.5
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
@@ -110,6 +111,10 @@ set(IGN_RENDERING_VER ${ignition-rendering2_VERSION_MAJOR})
 ign_find_package(gflags
     REQUIRED
     PKGCONFIG gflags)
+
+#--------------------------------------
+# Find Eigen
+ign_find_package(EIGEN3 REQUIRED)
 
 #--------------------------------------
 # Find ignition-math

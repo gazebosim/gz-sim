@@ -27,15 +27,19 @@
 #include <sdf/SDFImpl.hh>
 #include <sdf/Visual.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -46,6 +50,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -53,6 +58,8 @@
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
+
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -65,11 +72,13 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Create rendering entities
   /// \param[in] _ecm The entity-component manager
-  public: void CreateRenderingEntities(const EntityComponentManager &_ecm);
+  public: void CreateRenderingEntities(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
 
   /// \brief Remove rendering entities
   /// \param[in] _ecm The entity-component manager
-  public: void RemoveRenderingEntities(const EntityComponentManager &_ecm);
+  public: void RemoveRenderingEntities(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
 
   /// \brief Update rendering entities
   /// \param[in] _ecm The entity-component manager
@@ -107,8 +116,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<sdf::Scene> newScenes;
 
   /// \brief New models to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Model, Entity>> newModels;
+  /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
+  public: std::vector<std::tuple<Entity, sdf::Model, Entity, uint64_t>>
+      newModels;
 
   /// \brief New links to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
@@ -127,8 +137,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
-  /// \brief Ids of entities to be removed
-  public: std::set<Entity> removeEntities;
+  /// \brief Map of ids of entites to be removed and sim iteration when the
+  /// remove request is received
+  public: std::map<Entity, uint64_t> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
   public: std::map<Entity, math::Pose3d> entityPoses;
@@ -141,13 +152,16 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
-  /// The function returns the id of the rendering senosr created.
+  /// The function returns the id of the rendering sensor created.
   public: std::function<
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
   /// \brief Entity currently being selected.
-  public: rendering::NodePtr selectedEntity;
+  public: rendering::NodePtr selectedEntity{nullptr};
+
+  /// \brief Whether the transform gizmo is being dragged.
+  public: bool transformActive{false};
 };
 
 //////////////////////////////////////////////////
@@ -168,16 +182,33 @@ rendering::ScenePtr RenderUtil::Scene() const
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-  this->dataPtr->CreateRenderingEntities(_ecm);
-  if (!_info.paused)
+  this->dataPtr->CreateRenderingEntities(_ecm, _info);
+  if (_info.dt != std::chrono::steady_clock::duration::zero())
     this->dataPtr->UpdateRenderingEntities(_ecm);
-  this->dataPtr->RemoveRenderingEntities(_ecm);
+  this->dataPtr->RemoveRenderingEntities(_ecm, _info);
+}
+
+//////////////////////////////////////////////////
+int RenderUtil::PendingSensors() const
+{
+  if (!this->dataPtr->initialized)
+    return -1;
+
+  if (!this->dataPtr->scene)
+    return -1;
+
+  this->dataPtr->updateMutex.lock();
+  int nSensors = this->dataPtr->newSensors.size();
+  this->dataPtr->updateMutex.unlock();
+  return nSensors;
 }
 
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
+  IGN_PROFILE("RenderUtil::Update");
   if (!this->dataPtr->initialized)
     return;
 
@@ -216,213 +247,431 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    if (scene.Grid() && !this->dataPtr->enableSensors)
+      this->ShowGrid();
     // only one scene so break
     break;
   }
 
-  // create new entities
-  for (auto &model : newModels)
+  // remove existing entities
+  // \todo(anyone) Remove sensors
   {
-    sdf::Model m = std::get<1>(model);
-    this->dataPtr->sceneManager.CreateModel(
-        std::get<0>(model), std::get<1>(model), std::get<2>(model));
-  }
-
-  for (auto &link : newLinks)
-  {
-    this->dataPtr->sceneManager.CreateLink(
-        std::get<0>(link), std::get<1>(link), std::get<2>(link));
-  }
-
-  for (auto &visual : newVisuals)
-  {
-    this->dataPtr->sceneManager.CreateVisual(
-        std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
-  }
-
-  for (auto &light : newLights)
-  {
-    this->dataPtr->sceneManager.CreateLight(
-        std::get<0>(light), std::get<1>(light), std::get<2>(light));
-  }
-
-  if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
-  {
-    for (auto &sensor : newSensors)
+    IGN_PROFILE("RenderUtil::Update Remove");
+    for (auto &entity : removeEntities)
     {
-       Entity entity = std::get<0>(sensor);
-       sdf::Sensor dataSdf = std::get<1>(sensor);
-       Entity parent = std::get<2>(sensor);
-
-       // two sensors with the same name cause conflicts. We'll need to use
-       // scoped names
-       // TODO(anyone) do this in ign-sensors?
-       auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-       if (!parentNode)
-       {
-         ignerr << "Failed to create sensor for entity [" << entity
-                << "]. Parent not found." << std::endl;
-         continue;
-       }
-
-       std::string scopedName = parentNode->Name() + "::" + dataSdf.Name();
-       dataSdf.SetName(scopedName);
-
-       std::string sensorName =
-           this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
-       // Add to the system's scene manager
-       if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
-       {
-         ignerr << "Failed to create sensor [" << scopedName << "]"
-                << std::endl;
-       }
+      if (this->dataPtr->selectedEntity &&
+          this->dataPtr->sceneManager.NodeById(entity.first) ==
+          this->dataPtr->selectedEntity)
+      {
+        this->dataPtr->selectedEntity.reset();
+      }
+      this->dataPtr->sceneManager.RemoveEntity(entity.first);
     }
   }
 
-  // remove existing entities
-  // \todo(anyone) Remove sensors
-  for (auto &entity : removeEntities)
+  // create new entities
   {
-    this->dataPtr->sceneManager.RemoveEntity(entity);
+    IGN_PROFILE("RenderUtil::Update Create");
+    for (auto &model : newModels)
+    {
+      uint64_t iteration = std::get<3>(model);
+      Entity entityId = std::get<0>(model);
+      // since entites to be created and removed are queued, we need
+      // to check their creation timestamp to make sure we do not create a new
+      // entity when there is also a remove request with a more recent
+      // timestamp
+      // \todo(anyone) add test to check scene entities are properly added
+      // and removed.
+      auto removeIt = removeEntities.find(entityId);
+      if (removeIt != removeEntities.end())
+      {
+        uint64_t removeIteration = removeIt->second;
+        if (iteration < removeIteration)
+          continue;
+      }
+      this->dataPtr->sceneManager.CreateModel(
+          entityId, std::get<1>(model), std::get<2>(model));
+    }
+
+    for (auto &link : newLinks)
+    {
+      this->dataPtr->sceneManager.CreateLink(
+          std::get<0>(link), std::get<1>(link), std::get<2>(link));
+    }
+
+    for (auto &visual : newVisuals)
+    {
+      this->dataPtr->sceneManager.CreateVisual(
+          std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
+    }
+
+    for (auto &light : newLights)
+    {
+      this->dataPtr->sceneManager.CreateLight(
+          std::get<0>(light), std::get<1>(light), std::get<2>(light));
+    }
+
+    if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
+    {
+      for (auto &sensor : newSensors)
+      {
+         Entity entity = std::get<0>(sensor);
+         sdf::Sensor dataSdf = std::get<1>(sensor);
+         Entity parent = std::get<2>(sensor);
+
+         // two sensors with the same name cause conflicts. We'll need to use
+         // scoped names
+         // TODO(anyone) do this in ign-sensors?
+         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
+         if (!parentNode)
+         {
+           ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                  << "] for entity [" << entity
+                  << "]. Parent not found with ID[" << parent << "]."
+                  << std::endl;
+           continue;
+         }
+
+         std::string sensorName =
+             this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
+         // Add to the system's scene manager
+         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
+         {
+           ignerr << "Failed to create sensor [" << sensorName << "]"
+                  << std::endl;
+         }
+      }
+    }
   }
 
   // update entities' pose
-  for (auto &pose : entityPoses)
   {
-    auto node = this->dataPtr->sceneManager.NodeById(pose.first);
-    if (node && node != this->dataPtr->selectedEntity &&
-        node->Parent() != this->dataPtr->selectedEntity)
+    IGN_PROFILE("RenderUtil::Update Poses");
+    for (auto &pose : entityPoses)
+    {
+      auto node = this->dataPtr->sceneManager.NodeById(pose.first);
+      if (!node)
+        continue;
+
+      // TODO(anyone) Check top level visual instead of parent
+      if (this->dataPtr->transformActive &&
+          (node == this->dataPtr->selectedEntity ||
+          node->Parent() == this->dataPtr->selectedEntity))
+      {
+        continue;
+      }
+
       node->SetLocalPose(pose.second);
+    }
   }
 }
 
 //////////////////////////////////////////////////
 void RenderUtilPrivate::CreateRenderingEntities(
-    const EntityComponentManager &_ecm)
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
-  // Get all the new worlds
-  // TODO(anyone) Only one scene is supported for now
-  // extend the sensor system to support mutliple scenes in the future
-  _ecm.EachNew<components::World, components::Scene>(
-      [&](const Entity & _entity,
-        const components::World *,
-        const components::Scene *_scene)->bool
-      {
-        this->sceneManager.SetWorldId(_entity);
-        const sdf::Scene &sceneSdf = _scene->Data();
-        this->newScenes.push_back(sceneSdf);
-        return true;
-      });
-
-
-  _ecm.EachNew<components::Model, components::Name, components::Pose,
-            components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Model *,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
-      {
-        sdf::Model model;
-        model.SetName(_name->Data());
-        model.SetPose(_pose->Data());
-        this->newModels.push_back(
-            std::make_tuple(_entity, model, _parent->Data()));
-        return true;
-      });
-
-  _ecm.EachNew<components::Link, components::Name, components::Pose,
-            components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Link *,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
-      {
-        sdf::Link link;
-        link.SetName(_name->Data());
-        link.SetPose(_pose->Data());
-        this->newLinks.push_back(
-            std::make_tuple(_entity, link, _parent->Data()));
-        return true;
-      });
-
-  // visuals
-  _ecm.EachNew<components::Visual, components::Name, components::Pose,
-            components::Geometry, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Visual *,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::Geometry *_geom,
-          const components::ParentEntity *_parent)->bool
-      {
-        sdf::Visual visual;
-        visual.SetName(_name->Data());
-        visual.SetPose(_pose->Data());
-        visual.SetGeom(_geom->Data());
-
-        // Optional components
-        auto material = _ecm.Component<components::Material>(_entity);
-        if (material != nullptr)
-        {
-          visual.SetMaterial(material->Data());
-        }
-
-        this->newVisuals.push_back(
-            std::make_tuple(_entity, visual, _parent->Data()));
-        return true;
-      });
-
-  // lights
-  _ecm.EachNew<components::Light, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Light *_light,
-          const components::ParentEntity *_parent) -> bool
-      {
-        this->newLights.push_back(
-            std::make_tuple(_entity, _light->Data(), _parent->Data()));
-        return true;
-      });
-
-  if (this->enableSensors)
+  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
+  auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
+                                    Entity _parent,
+                                    const std::string &_topicSuffix)
   {
-    // Create cameras
-    _ecm.EachNew<components::Camera, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Camera *_camera,
-          const components::ParentEntity *_parent)->bool
+    sdf::Sensor sdfDataCopy(_sdfData);
+    std::string sensorScopedName =
+        removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+    sdfDataCopy.SetName(sensorScopedName);
+    // check topic
+    if (sdfDataCopy.Topic().empty())
+    {
+      sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
+    }
+    this->newSensors.push_back(
+        std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
+  };
+
+  const std::string cameraSuffix{"/image"};
+  const std::string depthCameraSuffix{"/depth_image"};
+  const std::string rgbdCameraSuffix{""};
+  const std::string gpuLidarSuffix{"/scan"};
+
+  // Treat all pre-existent entities as new at startup
+  // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
+  if (!this->initialized)
+  {
+    // Get all the new worlds
+    // TODO(anyone) Only one scene is supported for now
+    // extend the sensor system to support mutliple scenes in the future
+    _ecm.Each<components::World, components::Scene>(
+        [&](const Entity & _entity,
+          const components::World *,
+          const components::Scene *_scene)->bool
         {
-          this->newSensors.push_back(
-              std::make_tuple(_entity, _camera->Data(),
-              _parent->Data()));
+          this->sceneManager.SetWorldId(_entity);
+          const sdf::Scene &sceneSdf = _scene->Data();
+          this->newScenes.push_back(sceneSdf);
           return true;
         });
 
-    // Create depth cameras
-    _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::DepthCamera *_depthCamera,
-          const components::ParentEntity *_parent)->bool
+
+    _ecm.Each<components::Model, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Model *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
         {
-          this->newSensors.push_back(
-              std::make_tuple(_entity, _depthCamera->Data(),
-              _parent->Data()));
+          sdf::Model model;
+          model.SetName(_name->Data());
+          model.SetPose(_pose->Data());
+          this->newModels.push_back(
+              std::make_tuple(_entity, model, _parent->Data(),
+              _info.iterations));
           return true;
         });
 
-
-    // Create gpu lidar
-    _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::GpuLidar *_gpuLidar,
-          const components::ParentEntity *_parent)->bool
+    _ecm.Each<components::Link, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Link *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
         {
-          this->newSensors.push_back(
-              std::make_tuple(_entity, _gpuLidar->Data(),
-               _parent->Data()));
+          sdf::Link link;
+          link.SetName(_name->Data());
+          link.SetPose(_pose->Data());
+          this->newLinks.push_back(
+              std::make_tuple(_entity, link, _parent->Data()));
           return true;
         });
+
+    // visuals
+    _ecm.Each<components::Visual, components::Name, components::Pose,
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Visual visual;
+          visual.SetName(_name->Data());
+          visual.SetPose(_pose->Data());
+          visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
+
+          // Optional components
+          auto material = _ecm.Component<components::Material>(_entity);
+          if (material != nullptr)
+          {
+            visual.SetMaterial(material->Data());
+          }
+
+          this->newVisuals.push_back(
+              std::make_tuple(_entity, visual, _parent->Data()));
+          return true;
+        });
+
+    // lights
+    _ecm.Each<components::Light, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Light *_light,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newLights.push_back(
+              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.Each<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _camera->Data(), _parent->Data(),
+                         cameraSuffix);
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.Each<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
+                         depthCameraSuffix);
+            return true;
+          });
+
+      // Create rgbd cameras
+      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::RgbdCamera *_rgbdCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
+                         rgbdCameraSuffix);
+            return true;
+          });
+
+      // Create gpu lidar
+      _ecm.Each<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
+                         gpuLidarSuffix);
+            return true;
+          });
+    }
+    this->initialized = true;
+  }
+  else
+  {
+    // Get all the new worlds
+    // TODO(anyone) Only one scene is supported for now
+    // extend the sensor system to support mutliple scenes in the future
+    _ecm.EachNew<components::World, components::Scene>(
+        [&](const Entity & _entity,
+          const components::World *,
+          const components::Scene *_scene)->bool
+        {
+          this->sceneManager.SetWorldId(_entity);
+          const sdf::Scene &sceneSdf = _scene->Data();
+          this->newScenes.push_back(sceneSdf);
+          return true;
+        });
+
+    _ecm.EachNew<components::Model, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Model *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Model model;
+          model.SetName(_name->Data());
+          model.SetPose(_pose->Data());
+          this->newModels.push_back(
+              std::make_tuple(_entity, model, _parent->Data(),
+              _info.iterations));
+          return true;
+        });
+
+    _ecm.EachNew<components::Link, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Link *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Link link;
+          link.SetName(_name->Data());
+          link.SetPose(_pose->Data());
+          this->newLinks.push_back(
+              std::make_tuple(_entity, link, _parent->Data()));
+          return true;
+        });
+
+    // visuals
+    _ecm.EachNew<components::Visual, components::Name, components::Pose,
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Visual visual;
+          visual.SetName(_name->Data());
+          visual.SetPose(_pose->Data());
+          visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
+
+          // Optional components
+          auto material = _ecm.Component<components::Material>(_entity);
+          if (material != nullptr)
+          {
+            visual.SetMaterial(material->Data());
+          }
+
+          this->newVisuals.push_back(
+              std::make_tuple(_entity, visual, _parent->Data()));
+          return true;
+        });
+
+    // lights
+    _ecm.EachNew<components::Light, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Light *_light,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newLights.push_back(
+              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.EachNew<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _camera->Data(), _parent->Data(),
+                         cameraSuffix);
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
+                         depthCameraSuffix);
+            return true;
+          });
+
+      // Create RGBD cameras
+      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::RgbdCamera *_rgbdCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
+                         rgbdCameraSuffix);
+            return true;
+          });
+
+      // Create gpu lidar
+      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
+                         gpuLidarSuffix);
+            return true;
+          });
+    }
   }
 }
 
@@ -430,6 +679,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
 void RenderUtilPrivate::UpdateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtilPrivate::UpdateRenderingEntities");
   _ecm.Each<components::Model, components::Pose>(
       [&](const Entity &_entity,
         const components::Model *,
@@ -488,6 +738,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
+  // Update RGBD cameras
+  _ecm.Each<components::RgbdCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::RgbdCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
   // Update gpu_lidar
   _ecm.Each<components::GpuLidar, components::Pose>(
       [&](const Entity &_entity,
@@ -501,19 +761,20 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 
 //////////////////////////////////////////////////
 void RenderUtilPrivate::RemoveRenderingEntities(
-    const EntityComponentManager &_ecm)
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
+  IGN_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
   _ecm.EachRemoved<components::Link>(
       [&](const Entity &_entity, const components::Link *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -521,7 +782,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Visual>(
       [&](const Entity &_entity, const components::Visual *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -529,7 +790,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -537,7 +798,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Camera>(
     [&](const Entity &_entity, const components::Camera *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -545,7 +806,15 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::DepthCamera>(
     [&](const Entity &_entity, const components::DepthCamera *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // rgbd cameras
+  _ecm.EachRemoved<components::RgbdCamera>(
+    [&](const Entity &_entity, const components::RgbdCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 
@@ -553,7 +822,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::GpuLidar>(
     [&](const Entity &_entity, const components::GpuLidar *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities[_entity] = _info.iterations;
         return true;
       });
 }
@@ -584,7 +853,6 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
-  this->dataPtr->initialized = true;
 }
 
 /////////////////////////////////////////////////
@@ -597,6 +865,37 @@ void RenderUtil::SetBackgroundColor(const math::Color &_color)
 void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 {
   this->dataPtr->ambientLight  = _ambient;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ShowGrid()
+{
+  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
+
+  // create gray material
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
+
+  // create grid visual
+  rendering::VisualPtr visual = this->dataPtr->scene->CreateVisual();
+  rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
+  if (!gridGeom)
+  {
+    ignwarn << "Failed to create grid for scene ["
+      << this->dataPtr->scene->Name() << "] on engine ["
+        << this->dataPtr->scene->Engine()->Name() << "]"
+          << std::endl;
+    return;
+  }
+  gridGeom->SetCellCount(20);
+  gridGeom->SetCellLength(1);
+  gridGeom->SetVerticalCellCount(0);
+  visual->AddGeometry(gridGeom);
+  visual->SetLocalPosition(0, 0, 0.015);
+  visual->SetMaterial(gray);
+  root->AddChild(visual);
 }
 
 /////////////////////////////////////////////////
@@ -635,7 +934,7 @@ void RenderUtil::SetEnableSensors(bool _enable,
     _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
-  this->dataPtr->createSensorCb = _createSensorCb;
+  this->dataPtr->createSensorCb = std::move(_createSensorCb);
 }
 
 /////////////////////////////////////////////////
@@ -647,5 +946,17 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  this->dataPtr->selectedEntity = _node;
+  this->dataPtr->selectedEntity = std::move(_node);
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr RenderUtil::SelectedEntity() const
+{
+  return this->dataPtr->selectedEntity;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetTransformActive(bool _active)
+{
+  this->dataPtr->transformActive = _active;
 }

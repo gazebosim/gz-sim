@@ -10,6 +10,10 @@
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-imu-system.so"
+      name="ignition::gazebo::systems::Imu">
+    </plugin>
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -176,6 +180,10 @@
             </cylinder>
           </geometry>
         </collision>
+        <sensor name="imu_sensor" type="imu">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+        </sensor>
       </link>
       <!-- lower link, length 1, IC ~-120 degrees more -->
       <link name="lower_link">
@@ -252,6 +260,7 @@
         filename="libignition-gazebo-pose-publisher-system.so"
         name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
+        <publish_sensor_pose>true</publish_sensor_pose>
         <publish_collision_pose>false</publish_collision_pose>
         <publish_visual_pose>false</publish_visual_pose>
         <publish_nested_model_pose>false</publish_nested_model_pose>
@@ -259,6 +268,20 @@
 
     </model>
 
+    <model name="test_update_freq">
+      <link name="link1"/>
+      <plugin
+        filename="libignition-gazebo-pose-publisher-system.so"
+        name="ignition::gazebo::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_sensor_pose>false</publish_sensor_pose>
+        <publish_collision_pose>false</publish_collision_pose>
+        <publish_visual_pose>false</publish_visual_pose>
+        <publish_nested_model_pose>false</publish_nested_model_pose>
+        <update_frequency>100</update_frequency>
+      </plugin>
+
+    </model>
   </world>
 </sdf>
 

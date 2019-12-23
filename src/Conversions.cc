@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
@@ -53,8 +54,69 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
+
+//////////////////////////////////////////////////
+template<>
+msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
+{
+  msgs::Entity_Type out = msgs::Entity_Type_NONE;
+
+  if (_in == "light") {
+    return msgs::Entity_Type_LIGHT;
+  }
+  else if (_in == "model")
+  {
+    return msgs::Entity_Type_MODEL;
+  }
+  else if (_in == "link")
+  {
+    return msgs::Entity_Type_LINK;
+  }
+  else if (_in == "visual")
+  {
+    return msgs::Entity_Type_VISUAL;
+  }
+  else if (_in == "collision")
+  {
+    return msgs::Entity_Type_COLLISION;
+  }
+  else if (_in == "sensor")
+  {
+    return msgs::Entity_Type_SENSOR;
+  }
+  else if (_in == "joint")
+  {
+    return msgs::Entity_Type_JOINT;
+  }
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
+{
+  msgs::Collision out;
+  out.set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.Pose());
+  out.mutable_geometry()->CopyFrom(convert<msgs::Geometry>(*_in.Geom()));
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
+{
+  sdf::Collision out;
+  out.SetName(_in.name());
+  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetGeom(convert<sdf::Geometry>(_in.geometry()));
+  return out;
+}
 
 //////////////////////////////////////////////////
 template<>
@@ -93,7 +155,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     auto meshMsg = out.mutable_mesh();
 
     msgs::Set(meshMsg->mutable_scale(), meshSdf->Scale());
-    meshMsg->set_filename(meshSdf->Uri());
+    meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
@@ -223,7 +285,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
 
   if (_in.has_pbr())
   {
-    msgs::Material_PBR pbrMsg = _in.pbr();
+    const auto &pbrMsg = _in.pbr();
     sdf::Pbr pbr;
     sdf::PbrWorkflow workflow;
     if (pbrMsg.type() == msgs::Material_PBR_WorkflowType_METAL)
@@ -473,6 +535,26 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
 }
 
 //////////////////////////////////////////////////
+void ignition::gazebo::set(msgs::Time *_msg,
+    const std::chrono::steady_clock::duration &_in)
+{
+  auto secNsec = ignition::math::durationToSecNsec(_in);
+  _msg->set_sec(secNsec.first);
+  _msg->set_nsec(secNsec.second);
+}
+
+//////////////////////////////////////////////////
+void ignition::gazebo::set(msgs::WorldStatistics *_msg,
+    const gazebo::UpdateInfo &_in)
+{
+  set(_msg->mutable_sim_time(), _in.simTime);
+  set(_msg->mutable_real_time(), _in.realTime);
+  set(_msg->mutable_step_size(), _in.dt);
+  _msg->set_iterations(_in.iterations);
+  _msg->set_paused(_in.paused);
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 {
   switch (_sdf.Type())
@@ -570,7 +652,8 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
   }
   else if (_in.Type() == sdf::SensorType::CAMERA ||
-           _in.Type() == sdf::SensorType::DEPTH_CAMERA)
+           _in.Type() == sdf::SensorType::DEPTH_CAMERA ||
+           _in.Type() == sdf::SensorType::RGBD_CAMERA)
   {
     if (_in.CameraSensor())
     {
@@ -787,7 +870,8 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     out.SetMagnetometerSensor(sensor);
   }
   else if (out.Type() == sdf::SensorType::CAMERA ||
-           out.Type() == sdf::SensorType::DEPTH_CAMERA)
+           out.Type() == sdf::SensorType::DEPTH_CAMERA ||
+           out.Type() == sdf::SensorType::RGBD_CAMERA)
   {
     sdf::Camera sensor;
 
@@ -987,11 +1071,7 @@ template<>
 msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
-  out.set_iterations(_in.iterations);
-  out.set_paused(_in.paused);
-  out.mutable_sim_time()->CopyFrom(convert<msgs::Time>(_in.simTime));
-  out.mutable_real_time()->CopyFrom(convert<msgs::Time>(_in.realTime));
-  out.mutable_step_size()->CopyFrom(convert<msgs::Time>(_in.dt));
+  set(&out, _in);
   return out;
 }
 

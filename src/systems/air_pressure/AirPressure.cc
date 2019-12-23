@@ -18,6 +18,8 @@
 
 #include <ignition/plugin/Register.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
@@ -75,6 +77,7 @@ AirPressure::~AirPressure() = default;
 void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("AirPressure::PreUpdate");
   this->dataPtr->CreateAirPressureEntities(_ecm);
 }
 
@@ -83,6 +86,16 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
                              const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
+  IGN_PROFILE("AirPressure::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   if (!_info.paused)
   {
     this->dataPtr->UpdateAirPressures(_ecm);
@@ -102,6 +115,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
   // Create air pressure sensors
   _ecm.EachNew<components::AirPressureSensor, components::ParentEntity>(
     [&](const Entity &_entity,
@@ -109,7 +123,8 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         sdf::Sensor data = _airPressure->Data();
         data.SetName(sensorScopedName);
         // check topic
@@ -142,6 +157,7 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("AirPressurePrivate::UpdateAirPressures");
   _ecm.Each<components::AirPressureSensor, components::WorldPose>(
     [&](const Entity &_entity,
         const components::AirPressureSensor *,
@@ -167,6 +183,7 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 void AirPressurePrivate::RemoveAirPressureEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("AirPressurePrivate::RemoveAirPressureEntities");
   _ecm.EachRemoved<components::AirPressureSensor>(
     [&](const Entity &_entity,
         const components::AirPressureSensor *)->bool

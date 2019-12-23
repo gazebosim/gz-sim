@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -100,6 +101,20 @@ void poseCb(const msgs::Pose &_msg)
   mutex.unlock();
 }
 
+std::string addDelimiter(const std::vector<std::string> &_name,
+                         const std::string &_delim)
+{
+  if (_name.empty())
+    return "";
+
+  std::string out = _name.front();
+  for (auto it = _name.begin() + 1; it != _name.end(); ++it)
+  {
+    out += _delim + *it;
+  }
+  return out;
+}
+
 /////////////////////////////////////////////////
 TEST_F(PosePublisherTest, PublishCmd)
 {
@@ -115,21 +130,35 @@ TEST_F(PosePublisherTest, PublishCmd)
   // Create a system that records the model's link poses
   Relay testSystem;
 
+  // The delimiter is hard coded in PosePublisher. If it changes there, it needs
+  // to be changed here as well
+  const std::string delim = "::";
   // entity names
-  std::string modelName = "double_pendulum_with_base";
+  std::string modelName  = "double_pendulum_with_base";
+  std::string scopedModelName  = modelName;
   std::string baseName = "base";
+  std::string scopedBaseName = addDelimiter({scopedModelName, baseName}, delim);
   std::string lowerLinkName = "lower_link";
+  std::string scopedLowerLinkName =
+      addDelimiter({scopedModelName, lowerLinkName}, delim);
   std::string upperLinkName = "upper_link";
+  std::string scopedUpperLinkName =
+      addDelimiter({scopedModelName, upperLinkName}, delim);
+  std::string sensorName = "imu_sensor";
+  std::string scopedSensorName =
+      addDelimiter({scopedUpperLinkName, sensorName}, delim);
 
   // Test system for recording entity poses
   std::list<math::Pose3d> poses;
   std::list<math::Pose3d> basePoses;
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
+  std::list<math::Pose3d> sensorPoses;
   std::list<common::Time> timestamps;
   testSystem.OnPostUpdate(
-      [&modelName, &baseName, &lowerLinkName, &upperLinkName,
-      &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &timestamps](
+      [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
+      &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
+      &timestamps](
       const gazebo::UpdateInfo &_info,
       const gazebo::EntityComponentManager &_ecm)
     {
@@ -166,6 +195,16 @@ TEST_F(PosePublisherTest, PublishCmd)
       ASSERT_NE(nullptr, upperLinkPoseComp);
       upperLinkPoses.push_back(upperLinkPoseComp->Data());
 
+      // get sensor pose
+      auto sensors = _ecm.ChildrenByComponents(upperLink, components::Sensor(),
+                                              components::Name(sensorName));
+      ASSERT_FALSE(sensors.empty());
+      auto sensor = sensors.front();
+      EXPECT_NE(kNullEntity, sensor);
+      auto sensorPoseComp = _ecm.Component<components::Pose>(sensor);
+      ASSERT_NE(nullptr, sensorPoseComp);
+      sensorPoses.push_back(sensorPoseComp->Data());
+
       // timestamps
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
@@ -188,6 +227,7 @@ TEST_F(PosePublisherTest, PublishCmd)
   EXPECT_EQ(iters, basePoses.size());
   EXPECT_EQ(iters, lowerLinkPoses.size());
   EXPECT_EQ(iters, upperLinkPoses.size());
+  EXPECT_EQ(iters, sensorPoses.size());
   EXPECT_EQ(iters, timestamps.size());
 
   // Wait for all message to be received
@@ -197,8 +237,9 @@ TEST_F(PosePublisherTest, PublishCmd)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     mutex.lock();
-    received = (poseMsgs.size() ==
-        (basePoses.size() + lowerLinkPoses.size() + upperLinkPoses.size()));
+    received =
+        (poseMsgs.size() == (basePoses.size() + lowerLinkPoses.size() +
+                             upperLinkPoses.size() + sensorPoses.size()));
     mutex.unlock();
 
     if (received)
@@ -208,6 +249,7 @@ TEST_F(PosePublisherTest, PublishCmd)
 
   int tCounter = 0;
   int numLinks = 3;
+  int numSensors = 1;
   mutex.lock();
 
   // sort the pose msgs according to timestamp
@@ -232,7 +274,13 @@ TEST_F(PosePublisherTest, PublishCmd)
     EXPECT_EQ(1, msg.header().data(1).value_size());
 
     std::string frame = msg.header().data(0).value(0);
-    EXPECT_EQ(modelName, frame);
+    if (msg.name() == scopedSensorName)
+    {
+      // Handle the sensor as a special case
+      EXPECT_EQ(scopedUpperLinkName, frame);
+    }
+    else
+      EXPECT_EQ(scopedModelName, frame);
 
     std::string childFrame = msg.header().data(1).value(0);
     EXPECT_EQ(childFrame, msg.name());
@@ -243,26 +291,31 @@ TEST_F(PosePublisherTest, PublishCmd)
     // assume msgs arrive in order and there is a pose msg for every link
     // so we only remove a timestamp from list after checking against all links
     // for that iteration
-    if (++tCounter % numLinks == 0)
+    if (++tCounter % (numLinks + numSensors) == 0)
       timestamps.pop_front();
 
     // verify pose
     math::Pose3d expectedPose;
     auto p = msgs::Convert(msg);
-    if (msg.name() == baseName)
+    if (msg.name() == scopedBaseName)
     {
       expectedPose = basePoses.front();
       basePoses.pop_front();
     }
-    else if (msg.name() == lowerLinkName)
+    else if (msg.name() == scopedLowerLinkName)
     {
       expectedPose = lowerLinkPoses.front();
       lowerLinkPoses.pop_front();
     }
-    else if (msg.name() == upperLinkName)
+    else if (msg.name() == scopedUpperLinkName)
     {
       expectedPose = upperLinkPoses.front();
       upperLinkPoses.pop_front();
+    }
+    else if (msg.name() == scopedSensorName)
+    {
+      expectedPose = sensorPoses.front();
+      sensorPoses.pop_front();
     }
     else
     {
@@ -271,4 +324,69 @@ TEST_F(PosePublisherTest, PublishCmd)
     EXPECT_EQ(expectedPose, p);
   }
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest, UpdateFrequency)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/pose_publisher.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that records the model's link poses
+  Relay testSystem;
+
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    poseMsgs.clear();
+  }
+
+  // subscribe to the pose publisher
+  transport::Node node;
+  node.Subscribe(std::string("/model/test_update_freq/pose"), &poseCb);
+
+  // Run server
+  unsigned int iters = 1000u;
+  server.Run(true, iters, false);
+
+  std::size_t nExpMessages = 100;
+  // Wait for 100 messages to be received
+  bool received = false;
+  for (int sleep = 0; sleep < 300; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      received = (poseMsgs.size() >= nExpMessages);
+    }
+
+    if (received)
+      break;
+  }
+
+  ASSERT_TRUE(received);
+
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    // Calculate average frequency. The calculation is not very precise because
+    // we only collect a small sample size but it should be enough to tell the
+    // difference between 100 Hz and 1000 Hz
+    std::chrono::duration<double> firstStamp =
+        std::chrono::seconds(poseMsgs.front().header().stamp().sec()) +
+        std::chrono::nanoseconds(poseMsgs.front().header().stamp().nsec());
+    std::chrono::duration<double> lastStamp =
+        std::chrono::seconds(poseMsgs.back().header().stamp().sec()) +
+        std::chrono::nanoseconds(poseMsgs.back().header().stamp().nsec());
+
+    double diff = (lastStamp - firstStamp).count();
+    ASSERT_GT(diff, 0);
+    double freq = poseMsgs.size()/diff;
+    EXPECT_NEAR(100.0, freq, 10.0);
+  }
 }

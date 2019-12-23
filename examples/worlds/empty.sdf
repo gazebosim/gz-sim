@@ -30,7 +30,7 @@ ign service -s /world/empty/remove \
 --reqtype ignition.msgs.Entity \
 --reptype ignition.msgs.Boolean \
 --timeout 300 \
---req 'name: "spawned_model" type: MODEL'
+--req 'name: "new_name" type: MODEL'
 
   Try inserting a light:
 
@@ -77,7 +77,7 @@ ign service -s /world/empty/remove \
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -89,10 +89,6 @@ ign service -s /world/empty/remove \
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/empty/scene/info</service>
-        <pose_topic>/world/empty/pose/info</pose_topic>
-        <scene_topic>/world/empty/scene/info</scene_topic>
-        <deletion_topic>/world/empty/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -147,9 +143,6 @@ ign service -s /world/empty/remove \
 
       <!-- Entity tree -->
       <plugin filename="EntityTree" name="Entity tree">
-        <ignition-gui>
-          <title>Entity tree</title>
-        </ignition-gui>
       </plugin>
 
     </gui>

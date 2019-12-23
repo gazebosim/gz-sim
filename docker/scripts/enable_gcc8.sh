@@ -12,6 +12,6 @@ g++ -v
 gcov -v
 
 # lcov
-git clone https://github.com/linux-test-project/lcov.git
+git clone https://github.com/linux-test-project/lcov.git -b v1.14
 cd lcov
 sudo make install

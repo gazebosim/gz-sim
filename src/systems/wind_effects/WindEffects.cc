@@ -22,6 +22,7 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -314,6 +315,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
 void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
                                             EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
   double period = std::chrono::duration<double>(_info.dt).count();
   double simTime = std::chrono::duration<double>(_info.simTime).count();
   double kMag = period / this->characteristicTimeForWindRise;
@@ -394,6 +396,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
                                         EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("WindEffectsPrivate::ApplyWindForce");
   auto windVel =
       _ecm.Component<components::WorldLinearVelocity>(this->windEntity);
   if (!windVel)
@@ -523,6 +526,16 @@ void WindEffects::Configure(const Entity &_entity,
 void WindEffects::PreUpdate(const UpdateInfo &_info,
                             EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("WindEffects::PreUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Process commands
   this->dataPtr->ProcessCommandQueue(_ecm);
 

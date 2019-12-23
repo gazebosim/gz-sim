@@ -79,7 +79,7 @@ void JointStatePublisher::Configure(
 }
 
 //////////////////////////////////////////////////
-void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
+void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
   // Create the model state publisher. This can't be done in ::Configure
@@ -89,7 +89,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     std::string worldName;
 
     // Get the parent entity, which is the world.
-    const components::ParentEntity *parentEntity =
+    const auto *parentEntity =
       _ecm.Component<components::ParentEntity>(this->model.Entity());
     if (parentEntity)
     {
@@ -110,13 +110,15 @@ void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
 
   // Create the message
   msgs::Model msg;
+  msg.mutable_header()->mutable_stamp()->CopyFrom(
+      convert<msgs::Time>(_info.simTime));
 
   // Set the name and ID.
   msg.set_name(this->model.Name(_ecm));
   msg.set_id(this->model.Entity());
 
   // Set the model pose
-  const components::Pose *pose = _ecm.Component<components::Pose>(
+  const auto *pose = _ecm.Component<components::Pose>(
       this->model.Entity());
   if (pose)
     msgs::Set(msg.mutable_pose(), pose->Data());
@@ -137,7 +139,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       msgs::Set(jointMsg->mutable_pose(), pose->Data());
 
     // Set the joint position
-    const components::JointPosition *jointPositions  =
+    const auto *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
     if (jointPositions)
     {
@@ -153,7 +155,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     }
 
     // Set the joint velocity
-    const components::JointVelocity *jointVelocity  =
+    const auto *jointVelocity  =
       _ecm.Component<components::JointVelocity>(joint);
     if (jointVelocity)
     {
@@ -169,7 +171,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     }
 
     // Set the joint force
-    const components::JointForce *jointForce  =
+    const auto *jointForce  =
       _ecm.Component<components::JointForce>(joint);
     if (jointForce)
     {

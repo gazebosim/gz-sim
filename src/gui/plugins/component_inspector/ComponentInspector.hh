@@ -38,7 +38,7 @@ namespace gazebo
     public: explicit TreeModel();
 
     /// \brief Destructor
-    public: virtual ~TreeModel() = default;
+    public: ~TreeModel() override = default;
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
@@ -76,15 +76,13 @@ namespace gazebo
     public: ComponentInspector();
 
     /// \brief Destructor
-    public: virtual ~ComponentInspector();
+    public: ~ComponentInspector() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation inherited
-    public: virtual void Update(const UpdateInfo &,
-                                EntityComponentManager &) override;
+    public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
     /// \internal
     /// \brief Pointer to private data.

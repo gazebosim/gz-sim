@@ -7,6 +7,13 @@
     ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
 
     ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
+
+  Listen to odometry:
+
+    ign topic -e -t /model/vehicle_blue/odometry
+
+    ign topic -e -t /model/vehicle_green/odometry
+
 -->
 <sdf version="1.6">
   <world name="diff_drive">
@@ -31,7 +38,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -43,10 +50,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/diff_drive/scene/info</service>
-        <pose_topic>/world/diff_drive/pose/info</pose_topic>
-        <scene_topic>/world/diff_drive/scene/info</scene_topic>
-        <deletion_topic>/world/diff_drive/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -316,6 +319,7 @@
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
+        <odom_publish_frequency>1</odom_publish_frequency>
       </plugin>
 
     </model>

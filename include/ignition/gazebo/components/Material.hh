@@ -34,14 +34,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
-  using MaterialSerialzer =
+  using MaterialSerializer =
       serializers::ComponentToMsgSerializer<sdf::Material, msgs::Material>;
 }
 namespace components
 {
   /// \brief This component holds an entity's material.
   using Material = Component<sdf::Material, class MaterialTag,
-                             serializers::MaterialSerialzer>;
+                             serializers::MaterialSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Material", Material)
 }
 }

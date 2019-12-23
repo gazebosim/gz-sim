@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
@@ -52,6 +53,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -67,6 +69,10 @@ class ignition::gazebo::SdfEntityCreatorPrivate
 
   /// \brief Pointer to event manager. We don't assume ownership.
   public: EventManager *eventManager{nullptr};
+
+  /// \brief Keep track of new sensors being added, so we load their plugins
+  /// only after we have their scoped name.
+  public: std::map<Entity, sdf::ElementPtr> newSensors;
 };
 
 using namespace ignition;
@@ -217,6 +223,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(modelEntity,
       _model->Element());
 
+  // Load sensor plugins after model, so we get scoped name.
+  for (const auto &[entity, element] : this->dataPtr->newSensors)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newSensors.clear();
+
   return modelEntity;
 }
 
@@ -358,6 +371,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::Pose(_visual->Pose()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Name(_visual->Name()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::CastShadows(_visual->CastShadows()));
 
   if (_visual->Geom())
   {
@@ -398,7 +413,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
   }
 
   this->dataPtr->ecm->CreateComponent(collisionEntity,
-      components::CollisionElement(_collision->Element()));
+      components::CollisionElement(*_collision));
 
   return collisionEntity;
 }
@@ -441,6 +456,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::DepthCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::RGBD_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::RgbdCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {
@@ -509,6 +529,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
             << "] not supported yet." << std::endl;
   }
+
+  // Keep track of sensors so we can load their plugins after loading the entire
+  // model and having its full scoped name.
+  this->dataPtr->newSensors[sensorEntity] = _sensor->Element();
 
   return sensorEntity;
 }

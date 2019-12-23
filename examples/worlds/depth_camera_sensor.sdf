@@ -1,10 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Note: For now, this file must be loaded from ign-gazebo's root folder so the
-  mesh's relative path is correct.
-
-  You can visualize depth_camera messages using:
-    ign topic -e -t /depth_camera
+  Demo world with a widget displaying images coming from a depth camera sensor.
 -->
 <sdf version="1.6">
   <world name="depth_camera_sensor">
@@ -29,7 +25,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -41,8 +37,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/depth_camera_sensor/scene/info</service>
-        <pose_topic>/world/depth_camera_sensor/pose/info</pose_topic>
       </plugin>
 
       <!-- World control -->
@@ -92,6 +86,12 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/depth_camera_sensor/stats</topic>
+      </plugin>
+
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+          <property key="state" type="string">docked</property>
+        </ignition-gui>
       </plugin>
     </gui>
 
@@ -224,41 +224,12 @@
       <static>true</static>
     </model>
 
-    <model name="duck1">
+    <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
-      <link name="duck_link">
-        <inertial>
-          <inertia>
-            <ixx>3.92</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3.92</iyy>
-            <iyz>0</iyz>
-            <izz>3.92</izz>
-          </inertia>
-          <mass>39</mass>
-        </inertial>
-        <collision name="duck_collision">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </collision>
-
-        <visual name="duck_visual">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-      </link>
-    </model>
+      <uri>
+      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Barrel
+      </uri>
+    </include>
 
   </world>
 </sdf>

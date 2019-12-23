@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -59,6 +60,9 @@ TreeModel::TreeModel() : QStandardItemModel()
 /////////////////////////////////////////////////
 void TreeModel::AddComponent(long _typeId, const QString &_typeName)
 {
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("TreeModel::AddComponent");
+
   if (this->items.find(_typeName) != this->items.end())
     return;
 
@@ -81,16 +85,21 @@ void TreeModel::AddPose(
     double _pitch,
     double _yaw)
 {
+  IGN_PROFILE("TreeModel::AddPose");
+
+  auto typeName =
+      components::Factory::Instance()->Name(components::Pose::typeId);
+
   auto poseItem =
-      this->items.find(QString::fromStdString(components::Pose::typeName));
+      this->items.find(QString::fromStdString(typeName));
   if (poseItem == this->items.end())
   {
-    ignerr << "No pose item, something went wrong." << std::endl;
+    ignerr << "Internal error, missing component ["
+           << typeName << "]" << std::endl;
     return;
   }
 
-  auto itemName = QString::fromStdString(
-      components::Pose::typeName + "_component");
+  auto itemName = QString::fromStdString(typeName + "_component");
 
   auto itemIt = this->items.find(itemName);
 
@@ -139,9 +148,7 @@ ComponentInspector::ComponentInspector()
 }
 
 /////////////////////////////////////////////////
-ComponentInspector::~ComponentInspector()
-{
-}
+ComponentInspector::~ComponentInspector() = default;
 
 /////////////////////////////////////////////////
 void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
@@ -156,6 +163,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 //////////////////////////////////////////////////
 void ComponentInspector::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ComponentInspector::Update");
+
   auto components = _ecm.ComponentTypes(this->dataPtr->entity);
 
   // List all components

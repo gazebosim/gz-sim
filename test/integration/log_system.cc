@@ -18,7 +18,9 @@
 #include <gtest/gtest.h>
 #include <ignition/msgs/pose_v.pb.h>
 
+#include <algorithm>
 #include <climits>
+#include <numeric>
 #include <string>
 
 #include <ignition/common/Console.hh>
@@ -34,13 +36,58 @@
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
+
+#include "plugins/MockSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
+class Relay
+{
+  public: Relay()
+  {
+    auto plugin = loader.LoadPlugin("libMockSystem.so",
+                                    "ignition::gazebo::MockSystem", nullptr);
+    EXPECT_TRUE(plugin.has_value());
+
+    this->systemPtr = plugin.value();
+
+    this->mockSystem =
+        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
+    EXPECT_NE(nullptr, this->mockSystem);
+  }
+
+  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
+  {
+    this->mockSystem->preUpdateCallback = std::move(_cb);
+    return *this;
+  }
+
+  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
+  {
+    this->mockSystem->updateCallback = std::move(_cb);
+    return *this;
+  }
+
+  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
+  {
+    this->mockSystem->postUpdateCallback = std::move(_cb);
+    return *this;
+  }
+
+  public: SystemPluginPtr systemPtr;
+
+  private: SystemLoader loader;
+  private: MockSystem *mockSystem;
+};
+
+//////////////////////////////////////////////////
 class LogSystemTest : public ::testing::Test
 {
   // Documentation inherited
@@ -52,14 +99,15 @@ class LogSystemTest : public ::testing::Test
   }
 
   // Create a temporary directory in build path for recorded data
-  public: void CreateCacheDir()
+  public: void CreateLogsDir()
   {
     // Configure to use binary path as cache
-    if (common::exists(this->cacheDir))
+    if (common::exists(this->logsDir))
     {
-      common::removeAll(this->cacheDir);
+      common::removeAll(this->logsDir);
     }
-    common::createDirectories(this->cacheDir);
+    common::createDirectories(this->logsDir);
+    common::createDirectories(this->logPlaybackDir);
   }
 
   // Change path of recorded log file in SDF string loaded from file
@@ -99,84 +147,122 @@ class LogSystemTest : public ::testing::Test
   }
 
   // Temporary directory in binary build path for recorded data
-  public: std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
-      "test_cache");
+  public: std::string logsDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
+      "test_logs");
+
+  /// \brief Path to recorded log file
+  public: std::string logDir = common::joinPaths(logsDir, "test_logs_record");
+
+  /// \brief Path to log file for playback
+  public: std::string logPlaybackDir =
+      common::joinPaths(logsDir, "test_logs_playback");
 };
 
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, RecordAndPlayback)
 {
-  // Run a world and record to a log file
+  // Create temp directory to store log
+  this->CreateLogsDir();
 
-  this->CreateCacheDir();
-  std::string logDest = common::joinPaths(this->cacheDir, "log");
+  // Record
+  {
+    // World with moving entities
+    const auto recordSdfPath = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "log_record_dbl_pendulum.sdf");
 
-  ServerConfig recordServerConfig;
-  recordServerConfig.SetResourceCache(this->cacheDir);
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
 
-  const auto recordSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_record_dbl_pendulum.sdf");
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    Server recordServer(recordServerConfig);
 
-  // Change log path in SDF to build directory
-  sdf::Root recordSdfRoot;
-  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord", logDest);
-
-  // Pass changed SDF to server
-  recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-
-  // Start server
-  Server recordServer(recordServerConfig);
-  // Run for a few seconds to record different poses
-  recordServer.Run(true, 1000, false);
+    // Run for a few seconds to record different poses
+    recordServer.Run(true, 1000, false);
+  }
 
   // Verify file is created
-  EXPECT_TRUE(common::exists(common::joinPaths(logDest, "state.tlog")));
+  auto logFile = common::joinPaths(this->logDir, "state.tlog");
+  EXPECT_TRUE(common::exists(logFile));
 
-
-  // Run a world, load recorded log file, and check recorded poses are same
-  //   as poses in live physics
+  // move the log file to the playback directory
+  auto logPlaybackFile = common::joinPaths(this->logPlaybackDir, "state.tlog");
+  common::moveFile(logFile, logPlaybackFile);
+  EXPECT_TRUE(common::exists(logPlaybackFile));
 
   // World file to load
   const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_playback.sdf");
+
   // Change log path in world SDF to build directory
   sdf::Root playSdfRoot;
-  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",  logDest);
-  const sdf::World * sdfWorld = playSdfRoot.WorldByIndex(0);
-  // Playback pose topic
-  std::string poseTopic = "/world/" +
-    sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
+  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
+      this->logPlaybackDir);
+  ASSERT_EQ(1u, playSdfRoot.WorldCount());
 
+  const auto sdfWorld = playSdfRoot.WorldByIndex(0);
+  EXPECT_EQ("default", sdfWorld->Name());
 
   // Load log file recorded above
-  std::string logName = common::joinPaths(logDest, "state.tlog");
-  EXPECT_TRUE(common::exists(logName));
   transport::log::Log log;
-  log.Open(logName);
+  log.Open(logPlaybackFile);
 
-  // Original world file recorded by CreateLogFile test above
-  const auto logSdfName = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_record_dbl_pendulum.sdf");
-  EXPECT_TRUE(common::exists(logSdfName));
-  sdf::Root logSdfRoot;
-  EXPECT_EQ(logSdfRoot.Load(logSdfName).size(), 0lu);
-  EXPECT_GT(logSdfRoot.WorldCount(), 0lu);
-  const sdf::World * logSdfWorld = logSdfRoot.WorldByIndex(0);
-  // Recorded pose topic
-  std::string logPoseTopic = "/world/" +
-    logSdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
+  // Check it has SDF message
+  auto batch = log.QueryMessages(transport::log::TopicPattern(
+      std::regex(".*/sdf")));
+  auto recordedIter = batch.begin();
+  EXPECT_NE(batch.end(), recordedIter);
 
-  ServerConfig playServerConfig;
-  playServerConfig.SetResourceCache(this->cacheDir);
+  EXPECT_EQ("ignition.msgs.StringMsg", recordedIter->Type());
+  EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
+
+  msgs::StringMsg sdfMsg;
+  sdfMsg.ParseFromString(recordedIter->Data());
+  EXPECT_FALSE(sdfMsg.data().empty());
+  EXPECT_EQ(batch.end(), ++recordedIter);
+
+  // Check initial state message
+  batch = log.QueryMessages(transport::log::TopicPattern(
+      std::regex(".*/changed_state")));
+  recordedIter = batch.begin();
+  EXPECT_NE(batch.end(), recordedIter);
+
+  EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+  EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
+
+  msgs::SerializedStateMap stateMsg;
+  stateMsg.ParseFromString(recordedIter->Data());
+  EXPECT_EQ(28, stateMsg.entities_size());
+  EXPECT_EQ(batch.end(), ++recordedIter);
 
   // Pass changed SDF to server
+  ServerConfig playServerConfig;
   playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
 
-  int nDiffs = 0;
-  int nTotal = 0;
+  // Keep track of total number of pose comparisons
+  int nTotal{0};
 
-  // Set start time for the batch to load in initial iteration
-  auto begin = std::chrono::nanoseconds(0);
+  // Check poses
+  batch = log.QueryMessages(transport::log::TopicPattern(
+      std::regex(".*/dynamic_pose/info")));
+  recordedIter = batch.begin();
+  EXPECT_NE(batch.end(), recordedIter);
+  EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
+
+  // First pose at 1ms time, both from log clock and header
+  EXPECT_EQ(1000000, recordedIter->TimeReceived().count());
+
+  msgs::Pose_V recordedMsg;
+  recordedMsg.ParseFromString(recordedIter->Data());
+  ASSERT_TRUE(recordedMsg.has_header());
+  ASSERT_TRUE(recordedMsg.header().has_stamp());
+  EXPECT_EQ(0, recordedMsg.header().stamp().sec());
+  EXPECT_EQ(1000000, recordedMsg.header().stamp().nsec());
 
   // Start server
   Server playServer(playServerConfig);
@@ -184,101 +270,210 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Callback function for entities played back
   // Compare current pose being played back with the pose with the closest
   //   timestamp in the recorded file.
-  auto msgCb = [&](const msgs::Pose_V &_msg) -> void
+  std::function<void(const msgs::Pose_V &)> msgCb =
+      [&](const msgs::Pose_V &_playedMsg) -> void
   {
-    playServer.SetPaused(true);
-
-    // Filter recorded topics with current sim time
-    std::chrono::nanoseconds end =
-      std::chrono::seconds(_msg.header().stamp().sec()) +
-      std::chrono::nanoseconds(_msg.header().stamp().nsec());
-
-    auto beginQT = transport::log::QualifiedTime(begin);
-    auto endQT = transport::log::QualifiedTime(end);
-    auto timeRange = transport::log::QualifiedTimeRange(beginQT, endQT);
-    transport::log::TopicList topicList(logPoseTopic, timeRange);
-
-    transport::log::Batch batch = log.QueryMessages(topicList);
-    transport::log::MsgIter iter = batch.begin();
-    // If no messages
-    if (iter == batch.end())
-    {
-      playServer.SetPaused(false);
+    // Playback continues even after the log file is over
+    if (batch.end() == recordedIter)
       return;
-    }
 
-    msgs::Pose_V posevMsg;
-    posevMsg.ParseFromString(iter->Data());
+    ASSERT_TRUE(_playedMsg.has_header());
+    ASSERT_TRUE(_playedMsg.header().has_stamp());
+    EXPECT_EQ(0, _playedMsg.header().stamp().sec());
 
-    // Maps entity to recorded pose
-    // Key: entity. Value: pose
-    std::map <Entity, msgs::Pose> idToPose;
+    // Get next recorded message
+    EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
+    recordedMsg.ParseFromString(recordedIter->Data());
+
+    ASSERT_TRUE(recordedMsg.has_header());
+    ASSERT_TRUE(recordedMsg.header().has_stamp());
+    EXPECT_EQ(0, recordedMsg.header().stamp().sec());
+
+    // Log clock timestamp matches message timestamp
+    EXPECT_EQ(recordedMsg.header().stamp().nsec(),
+        recordedIter->TimeReceived().count());
+
+    // Dynamic poses are throttled according to real time during playback,
+    // so we can't guarantee the exact timestamp as recorded.
+    EXPECT_NEAR(_playedMsg.header().stamp().nsec(),
+        recordedMsg.header().stamp().nsec(), 100000000);
+
     // Loop through all recorded poses, update map
-    for (int i = 0; i < posevMsg.pose_size(); ++i)
+    std::map<std::string, msgs::Pose> entityRecordedPose;
+    for (int i = 0; i < recordedMsg.pose_size(); ++i)
     {
-      msgs::Pose pose = posevMsg.pose(i);
-      idToPose.insert_or_assign(pose.id(), pose);
+      entityRecordedPose[recordedMsg.pose(i).name()] = recordedMsg.pose(i);
     }
 
-    // Loop through all links and compare played poses to recorded ones
-    for (int i = 0; i < _msg.pose_size(); ++i)
+    // Has 4 dynamic entities
+    EXPECT_EQ(4, _playedMsg.pose().size());
+    EXPECT_EQ(4u, entityRecordedPose.size());
+
+    // Loop through all entities and compare played poses to recorded ones
+    for (int i = 0; i < _playedMsg.pose_size(); ++i)
     {
-      math::Pose3d posePlayed = msgs::Convert(_msg.pose(i));
-      math::Pose3d poseRecorded = msgs::Convert(idToPose.at(_msg.pose(i).id()));
+      auto posePlayed = msgs::Convert(_playedMsg.pose(i));
+      auto poseRecorded = msgs::Convert(
+          entityRecordedPose[_playedMsg.pose(i).name()]);
 
-      auto diff = posePlayed - poseRecorded;
+      EXPECT_NEAR(posePlayed.Pos().X(), poseRecorded.Pos().X(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Pos().Y(), poseRecorded.Pos().Y(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Pos().Z(), poseRecorded.Pos().Z(), 0.1)
+          << _playedMsg.pose(i).name();
 
-      EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
-
-      EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
-
-      // Omit comparing W of quaternion, which is 1 for identity
-      if (abs(diff.Pos().X()) > 0.1 ||
-          abs(diff.Pos().Y()) > 0.1 ||
-          abs(diff.Pos().Z()) > 0.1 ||
-          abs(diff.Rot().X()) > 0.1 ||
-          abs(diff.Rot().Y()) > 0.1 ||
-          abs(diff.Rot().Z()) > 0.1)
-      {
-        igndbg << begin.count() << " to " << end.count() << std::endl;
-        // Print difference between timestamps
-        igndbg << posevMsg.header().stamp().sec() * 1000000000 +
-          posevMsg.header().stamp().nsec() << std::endl;
-
-        igndbg << _msg.pose(i).name() << std::endl;
-        igndbg << abs(diff.Pos().X()) << " "
-                  << abs(diff.Pos().Y()) << " "
-                  << abs(diff.Pos().Z()) << " "
-                  << abs(diff.Rot().X()) << " "
-                  << abs(diff.Rot().Y()) << " "
-                  << abs(diff.Rot().Z()) << std::endl;
-        nDiffs++;
-      }
-      nTotal++;
+      EXPECT_NEAR(posePlayed.Rot().Roll(), poseRecorded.Rot().Roll(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Rot().Pitch(), poseRecorded.Rot().Pitch(), 0.1)
+          << _playedMsg.pose(i).name();
+      EXPECT_NEAR(posePlayed.Rot().Yaw(), poseRecorded.Rot().Yaw(), 0.1)
+          << _playedMsg.pose(i).name();
     }
 
-    // Update begin time range for next time step
-    begin = std::chrono::nanoseconds(end);
-
-    playServer.SetPaused(false);
+    ++recordedIter;
+    nTotal++;
   };
 
   // Subscribe to ignition topic and compare to logged poses
   transport::Node node;
-  // Have to create an lvalue here for Node::Subscribe to work.
-  auto callbackFunc = std::function<void(const msgs::Pose_V &)>(msgCb);
-  node.Subscribe(poseTopic, callbackFunc);
+  // TODO(louise) The world name should match the recorded world
+  node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
+  int playbackSteps = 500;
+  int poseHz = 60;
+  int expectedPoseCount = playbackSteps * 1e-3 / (1.0/poseHz);
   // Run for a few seconds to play back different poses
-  playServer.Run(true, 1000, false);
+  playServer.Run(true, playbackSteps, false);
 
-  igndbg << nDiffs << " out of " << nTotal
-    << " poses played back do not match those recorded\n";
+  int sleep = 0;
+  int maxSleep = 16;
+  for (; nTotal < expectedPoseCount && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
 
-  common::removeAll(this->cacheDir);
+  #if !defined (__APPLE__)
+  /// \todo(anyone) there seems to be a race condition that sometimes cause an
+  /// additional messages to be published by the scene broadcaster
+  // 60Hz
+  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
+  #endif
+
+  common::removeAll(this->logsDir);
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogControl)
+{
+  auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "rolling_shapes_log");
+
+  ServerConfig config;
+  config.SetLogPlaybackPath(logPath);
+
+  Server server(config);
+
+  Relay testSystem;
+  math::Pose3d spherePose;
+  bool sphereFound{false};
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Pose, components::Name>(
+            [&](const Entity &,
+                const components::Pose *_pose,
+                const components::Name *_name)->bool
+            {
+              if (_name->Data() == "sphere")
+              {
+                sphereFound = true;
+                spherePose = _pose->Data();
+                return false;
+              }
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
+
+  EXPECT_TRUE(sphereFound);
+  sphereFound = false;
+
+  math::Pose3d initialSpherePose(0, 1.5, 0.5, 0, 0, 0);
+  EXPECT_EQ(initialSpherePose, spherePose);
+  auto latestSpherePose = spherePose;
+
+  transport::Node node;
+
+  // Seek forward (downhill)
+  std::vector<int> secs(9);
+  std::iota(std::begin(secs), std::end(secs), 1);
+
+  msgs::LogPlaybackControl req;
+  msgs::Boolean res;
+  bool result{false};
+  unsigned int timeout = 1000;
+  std::string service{"/world/default/playback/control"};
+  for (auto i : secs)
+  {
+    req.mutable_seek()->set_sec(i);
+
+    EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+
+    // Run 2 iterations because control messages are processed in the end of an
+    // update cycle
+    server.Run(true, 2, false);
+
+    EXPECT_TRUE(sphereFound);
+    sphereFound = false;
+
+    EXPECT_GT(latestSpherePose.Pos().Z(), spherePose.Pos().Z())
+        << "Seconds: [" << i << "]";
+
+    latestSpherePose = spherePose;
+  }
+
+  // Rewind
+  req.Clear();
+  req.set_rewind(true);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 2, false);
+
+  EXPECT_TRUE(sphereFound);
+  sphereFound = false;
+
+  EXPECT_EQ(initialSpherePose, spherePose);
+
+  latestSpherePose = math::Pose3d(0, 0, -100, 0, 0, 0);
+
+  // Seek backwards (uphill)
+  req.Clear();
+  std::reverse(std::begin(secs), std::end(secs));
+  for (auto i : secs)
+  {
+    req.mutable_seek()->set_sec(i);
+
+    EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+
+    server.Run(true, 2, false);
+
+    EXPECT_TRUE(sphereFound);
+    sphereFound = false;
+
+    EXPECT_LT(latestSpherePose.Pos().Z(), spherePose.Pos().Z())
+        << "Seconds: [" << i << "]";
+
+    latestSpherePose = spherePose;
+  }
 }

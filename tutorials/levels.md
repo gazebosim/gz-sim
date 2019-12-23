@@ -187,6 +187,8 @@ Example snippet:
 
 ### <performer>
 
+\note See Runtime performers, the next section, for information about specifying performers without using the SDF `<performer>` tag.
+
 The `<performer>` tag contains a reference to the performer entity (most likely
 a model). The `<ref>` tag designates the name of the performer entity. It is
 a required tag and there can only be one inside a `<performer>`. Multiple
@@ -210,6 +212,34 @@ Example snippet:
     </box>
   </geometry>
 </performer>
+```
+
+### Runtime performers
+
+Performers can be specified at runtime using an Igntion Transport service.
+This functionality can be used when a performer is not known at load time. For
+example, you may need to start simulation with an empty world and spawn
+models (performers) into simulation at a later time.
+
+The name of the add performer service is
+`/world/<world_name>/level/set_performer`. Make sure to replace
+`<world_name>` with the name of simulated world. The service request is an
+ignition:msgs::StringMsg message, and the response is an
+ignition::msgs::Boolean message. The response is true when the peformer was
+successfuly added.
+
+#### Example
+
+1. Run the `levels_no_performer.sdf` world in a terminal.
+
+```
+ign-gazebo -f levels_no_performers.sdf -v 4 --levels
+```
+
+2. In another terminal call the add performer service.
+
+```
+ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
 ```
 
 ### Example

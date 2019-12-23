@@ -44,6 +44,8 @@ sudo apt-get install -y \
 
 # ign-rendering dependencies
 sudo apt-get install -y \
+  libogre-1.9-dev \
+  libogre-2.1-dev \
   libglew-dev \
   libfreeimage-dev \
   freeglut3-dev \

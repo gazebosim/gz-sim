@@ -1,6 +1,5 @@
 add_subdirectory(rendering)
 add_subdirectory(gui)
-add_subdirectory(cmd)
 add_subdirectory(systems)
 add_subdirectory(msgs)
 
@@ -39,8 +38,8 @@ target_link_libraries(${ign_lib_target}
     ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
 )
 
-
 set (sources
+  Barrier.cc
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
@@ -62,6 +61,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Barrier_TEST.cc
   Component_TEST.cc
   ComponentFactory_TEST.cc
   Conversions_TEST.cc
@@ -97,6 +97,10 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+if (NOT APPLE)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PRIVATE stdc++fs)
+endif()
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
@@ -166,3 +170,8 @@ install (TARGETS ign-gazebo-server DESTINATION ${IGN_BIN_INSTALL_DIR})
 set_target_properties(ign-gazebo-gui
   PROPERTIES VERSION ${PROJECT_VERSION_FULL})
 install (TARGETS ign-gazebo-gui DESTINATION ${IGN_BIN_INSTALL_DIR})
+
+if(NOT WIN32)
+  add_subdirectory(cmd)
+endif()
+

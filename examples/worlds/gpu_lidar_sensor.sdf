@@ -1,9 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Note: For now, this file must be loaded from ign-gazebo's root folder so the
-  mesh's relative path is correct.
-
-  You can visualize lidar messages using:
+  You can echo lidar messages using:
     ign topic -e -t /lidar
 -->
 <sdf version="1.6">
@@ -29,7 +26,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -41,8 +38,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/gpu_lidar_sensor/scene/info</service>
-        <pose_topic>/world/gpu_lidar_sensor/pose/info</pose_topic>
       </plugin>
 
       <!-- World control -->
@@ -92,17 +87,6 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/gpu_lidar_sensor/stats</topic>
-      </plugin>
-
-      <plugin filename="ImageDisplay" name="Image Display">
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
-      </plugin>
-      <plugin filename="ImageDisplay" name="Image Display 2">
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
       </plugin>
     </gui>
 
@@ -189,7 +173,7 @@
       </link>
     </model>
 
-    <model name="camera_with_lidar">
+    <model name="model_with_lidar">
       <pose>4 0 0.5 0 0.0 3.14</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
@@ -216,10 +200,10 @@
           </geometry>
         </visual>
 
-        <sensor name='gpu_lidar' type='gpu_lidar'>"
+        <sensor name='gpu_lidar' type='gpu_lidar'>
           <topic>lidar</topic>
-          <updateRate>10</updateRate>
-          <ray>
+          <update_rate>10</update_rate>
+          <lidar>
             <scan>
               <horizontal>
                 <samples>640</samples>
@@ -228,10 +212,10 @@
                 <max_angle>1.396263</max_angle>
               </horizontal>
               <vertical>
-                <samples>1</samples>
-                <resolution>0.01</resolution>
-                <min_angle>0</min_angle>
-                <max_angle>0</max_angle>
+                <samples>16</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.261799</min_angle>
+                <max_angle>0.261799</max_angle>
               </vertical>
             </scan>
             <range>
@@ -239,7 +223,7 @@
               <max>10.0</max>
               <resolution>0.01</resolution>
             </range>
-          </ray>
+          </lidar>
           <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
         </sensor>
@@ -248,41 +232,12 @@
       <static>true</static>
     </model>
 
-    <model name="duck1">
-      <pose>0 1 3 0.0 0.0 1.57</pose>
-      <link name="duck_link">
-        <inertial>
-          <inertia>
-            <ixx>3.92</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3.92</iyy>
-            <iyz>0</iyz>
-            <izz>3.92</izz>
-          </inertia>
-          <mass>39</mass>
-        </inertial>
-        <collision name="duck_collision">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </collision>
-
-        <visual name="duck_visual">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-      </link>
-    </model>
+    <include>
+      <pose>0 0 0 0 0 1.57</pose>
+      <uri>
+      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Playground
+      </uri>
+    </include>
 
   </world>
 </sdf>

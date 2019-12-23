@@ -70,6 +70,7 @@ class LinkComponentRecorder
   /// \param[in] _createComp Whether to create the component on the link. This
   /// is useful if other systems are expected to populate the component but they
   /// require the component to be created first.
+  // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress passedByValue
   public: LinkComponentRecorder(std::string _linkName, bool _createComp = false)
       : linkName(std::move(_linkName))
@@ -140,6 +141,7 @@ class LinkComponentRecorder
 template <typename T>
 class BlockingPublisher
 {
+  // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress passedByValue
   public: BlockingPublisher(std::string _topic,
                     std::chrono::milliseconds _timeOut)
@@ -220,6 +222,7 @@ TEST_F(WindEffectsTest, WindEnabledInLink)
   EXPECT_TRUE(linkWindMode.values.back().Data());
 }
 
+
 ////////////////////////////////////////////////
 TEST_F(WindEffectsTest , WindForce)
 {
@@ -248,9 +251,11 @@ TEST_F(WindEffectsTest , WindForce)
   ASSERT_EQ(nIters, linkAccelerations.values.size());
 
   double lastAccelMagnitude = linkAccelerations.values[0].Data().Length();
-  for (std::size_t i = 1; i < nIters; ++i) {
+  for (std::size_t i = 1; i < nIters; ++i)
+  {
     double accelMagnitude = linkAccelerations.values[i].Data().Length();
-    EXPECT_GT(lastAccelMagnitude - accelMagnitude, 1e-6);
+    // std::cout << linkAccelerations.values[i].Data() << std::endl;
+    EXPECT_LT(1e-6, lastAccelMagnitude - accelMagnitude);
     lastAccelMagnitude = accelMagnitude;
   }
 }

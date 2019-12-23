@@ -144,6 +144,18 @@ TEST(Conversions, Gui)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, Entity)
+{
+  std::string model = "model";
+  auto entityType = convert<msgs::Entity_Type>(model);
+  EXPECT_EQ(msgs::Entity_Type_MODEL, entityType);
+
+  std::string empty = "";
+  auto entityType2 = convert<msgs::Entity_Type>(empty);
+  EXPECT_EQ(msgs::Entity_Type_NONE, entityType2);
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Time)
 {
   std::chrono::steady_clock::duration duration{2ms};
@@ -196,7 +208,7 @@ TEST(Conversions, Material)
   EXPECT_TRUE(materialMsg.lighting());
 
   EXPECT_TRUE(materialMsg.has_pbr());
-  msgs::Material_PBR pbrMsg = materialMsg.pbr();
+  const auto &pbrMsg = materialMsg.pbr();
   EXPECT_EQ(msgs::Material_PBR_WorkflowType_METAL, pbrMsg.type());
   EXPECT_EQ("albedo_map.png", pbrMsg.albedo_map());
   EXPECT_EQ("normal_map.png", pbrMsg.normal_map());
@@ -557,6 +569,17 @@ TEST(Conversions, UpdateInfo)
   EXPECT_EQ(456000000, statsMsg.step_size().nsec());
   EXPECT_EQ(1234u, statsMsg.iterations());
   EXPECT_TRUE(statsMsg.paused());
+
+  msgs::WorldStatistics statsMsg2;
+  set(&statsMsg2, info);
+  EXPECT_EQ(1, statsMsg2.sim_time().sec());
+  EXPECT_EQ(234000000, statsMsg2.sim_time().nsec());
+  EXPECT_EQ(2, statsMsg2.real_time().sec());
+  EXPECT_EQ(345000000, statsMsg2.real_time().nsec());
+  EXPECT_EQ(3, statsMsg2.step_size().sec());
+  EXPECT_EQ(456000000, statsMsg2.step_size().nsec());
+  EXPECT_EQ(1234u, statsMsg2.iterations());
+  EXPECT_TRUE(statsMsg2.paused());
 
   auto newInfo = convert<UpdateInfo>(statsMsg);
   EXPECT_EQ(1234000000, newInfo.simTime.count());

@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <ignition/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -33,7 +33,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive transform mode requests.
-  class TransformControl : public ignition::gazebo::GuiSystem
+  class TransformControl : public ignition::gui::Plugin
   {
     Q_OBJECT
 
@@ -41,17 +41,13 @@ namespace gazebo
     public: TransformControl();
 
     /// \brief Destructor
-    public: virtual ~TransformControl();
+    public: ~TransformControl() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
-
-    // Documentation inherited
-    public: virtual void Update(const UpdateInfo &,
-                                EntityComponentManager &) override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     /// \brief Callback in Qt thread when mode changes.
+    /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);
 
     /// \internal

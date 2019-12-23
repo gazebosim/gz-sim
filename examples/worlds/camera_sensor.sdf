@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Note: For now, this file must be loaded from ign-gazebo's root folder so the
-  mesh's relative path is correct.
+  Demo world with a widget displaying images coming from a camera sensor.
 -->
 <sdf version="1.6">
   <world name="camera_sensor">
@@ -16,7 +15,7 @@
     <plugin
       filename="libignition-gazebo-sensors-system.so"
       name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre2</render_engine>
+      <render_engine>ogre</render_engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
@@ -30,27 +29,24 @@
     <scene>
       <ambient>1.0 1.0 1.0</ambient>
       <background>0.8 0.8 0.8</background>
+      <grid>true</grid>
     </scene>
 
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre2</engine>
+        <engine>ogre</engine>
         <scene>scene</scene>
         <ambient_light>1.0 1.0 1.0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/camera_sensor/scene/info</service>
-        <pose_topic>/world/camera_sensor/pose/info</pose_topic>
-        <scene_topic>/world/camera_sensor/scene/info</scene_topic>
-        <deletion_topic>/world/camera_sensor/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -128,23 +124,17 @@
       <link name="link">
         <collision name="collision">
           <geometry>
-            <!--plane>
+            <plane>
               <normal>0 0 1</normal>
-            </plane-->
-            <box>
-              <size>20 20 0.1</size>
-            </box>
+            </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <!--plane>
+            <plane>
               <normal>0 0 1</normal>
               <size>100 100</size>
-            </plane-->
-            <box>
-              <size>20 20 0.1</size>
-            </box>
+            </plane>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
@@ -188,6 +178,33 @@
             <diffuse>1 0 0 1</diffuse>
             <specular>1 0 0 1</specular>
           </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere">
+      <static>true</static>
+      <pose>3 0 0.5 0 0 0</pose>
+      <link name="sphere_link">
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere>
+              <radius>0.125</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>0.125</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+          <cast_shadows>false</cast_shadows>
         </visual>
       </link>
     </model>
@@ -238,41 +255,12 @@
       </link>
     </model>
 
-    <model name="duck1">
+    <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
-      <link name="duck_link">
-        <inertial>
-          <inertia>
-            <ixx>3.92</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3.92</iyy>
-            <iyz>0</iyz>
-            <izz>3.92</izz>
-          </inertia>
-          <mass>39</mass>
-        </inertial>
-        <collision name="duck_collision">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </collision>
-
-        <visual name="duck_visual">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-      </link>
-    </model>
+      <uri>
+      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Cone
+      </uri>
+    </include>
 
   </world>
 </sdf>

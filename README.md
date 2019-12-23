@@ -122,7 +122,7 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo-dev
+    sudo apt-get install libignition-gazebo2-dev
     ```
 
 ## Source Install
@@ -140,7 +140,7 @@ for dependency installation instructions for each supported operating system.
 1. Install third-party libraries:
 
     ```
-    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev
+    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libbenchmark-dev libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev
     ```
 
 2. Install required Ignition libraries:
@@ -162,7 +162,7 @@ for dependency installation instructions for each supported operating system.
     ```
 
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering-dev libignition-tools-dev libignition-transport6-dev libignition-gui-dev libignition-msgs3-dev libsdformat8-dev
+    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering2-dev libignition-tools-dev libignition-transport7-dev libignition-gui2-dev libignition-msgs4-dev libsdformat8-dev
     ```
 
 ### Building from source
@@ -180,7 +180,7 @@ for dependency installation instructions for each supported operating system.
 1. Clone the repository.
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo -b ign-gazebo2
     ```
 
 2. Configure and  build.

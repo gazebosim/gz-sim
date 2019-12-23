@@ -29,7 +29,7 @@ require 'optparse'
 require 'erb'
 
 # Constants.
-LIBRARY_NAME = '@IGN_LIBRARY_NAME@'
+LIBRARY_NAME = '@library_location@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 
 COMMON_OPTIONS =
@@ -67,10 +67,15 @@ COMMANDS = { 'gazebo' =>
   "\n"\
   "  -r                          Run simulation on start.                   \n"\
   "\n"\
-  "  --record                 Use logging system to record states.          \n"\
+  "  --record                    Use logging system to record states and    \n"\
+  "                              console messages to the default location,  \n"\
+  "                              in ~/.ignition/gazebo/log.                 \n"\
   "\n"\
   "  --record-path [arg]         Custom path to put recorded files. Argument\n"\
-  "                              is path to record states.                  \n"\
+  "                              is path to record states and console       \n"\
+  "                              messages. Specifying this argument will    \n"\
+  "                              enable console logging to a console.log    \n"\
+  "                              file in the specified path.                \n"\
   "\n"\
   "  -s                          Run only the server (headless mode). This  \n"\
   "                              overrides -g, if it is also present.       \n"\
@@ -78,6 +83,12 @@ COMMANDS = { 'gazebo' =>
   "  -v [ --verbose ] [arg]      Adjust the level of console output (0~4).  \n"\
   "                              The default verbosity is 1, use -v without \n"\
   "                              arguments for level 3.                     \n"\
+  "\n"\
+  "  --gui-config [arg]          Ignition GUI configuration file to load.   \n"\
+  "                              If no config is given, the configuration in\n"\
+  "                              the SDF file is used. And if that's not    \n"\
+  "                              provided, the default installed config is  \n"\
+  "                              used.                                      \n"\
   "\n"\
   "  --version                   Print Gazebo version information.          \n"\
   "\n"\
@@ -132,6 +143,7 @@ class Cmd
   #
   def parse(args)
     options = {
+      'file' => '',
       'gui' => 0,
       'hz' => -1,
       'iterations' => 0,
@@ -143,7 +155,8 @@ class Cmd
       'playback' => '',
       'run' => 0,
       'server' => 0,
-      'verbose' => '1'
+      'verbose' => '1',
+      'gui_config' => ''
     }
 
     usage = COMMANDS[args[0]]
@@ -192,6 +205,9 @@ class Cmd
       opts.on('-v [verbose]', '--verbose [verbose]', String) do |v|
         options['verbose'] = v || '3'
       end
+      opts.on('--gui-config [arg]', String) do |c|
+        options['gui_config'] = c
+      end
       opts.on('--version') do
         options['version'] = '1'
       end
@@ -202,7 +218,7 @@ class Cmd
 
     # SDF file as positional argument
     filename = args.pop
-    if filename and filename != 'gazebo' and not options.key?('file')
+    if filename and filename != 'gazebo'
       options['file'] = filename
     end
 
@@ -214,14 +230,21 @@ class Cmd
   def execute(args)
     options = parse(args)
 
-    # Read the plugin that handles the command.
-    plugin = LIBRARY_NAME
+    if LIBRARY_NAME[0] == '/'
+      # If the first character is a slash, we'll assume that we've been given an
+      # absolute path to the library. This is only used during test mode.
+      plugin = LIBRARY_NAME
+    else
+      # We're assuming that the library path is relative to the current
+      # location of this script.
+      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
+    end
     conf_version = LIBRARY_VERSION
 
     begin
       Importer.dlload plugin
-    rescue DLError
-      puts "Library error: [#{plugin}] not found."
+    rescue DLError => e
+      puts "Library error for [#{plugin}]: #{e.to_s}"
       exit(-1)
     end
 
@@ -259,7 +282,7 @@ class Cmd
       end
 
       parsed = ''
-      if options.key?('file')
+      if options['file'] != ''
         # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
@@ -288,26 +311,28 @@ class Cmd
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
-                               const char *)'
+                               const char *, const char *)'
 
       # Import the runGui function
-      Importer.extern 'int runGui()'
+      Importer.extern 'int runGui(const char *)'
 
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
 
         serverPid = Process.fork do
+          ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['recordPath'], options['playback'])
+            options['record-path'], options['playback'], options['file'])
         end
 
         guiPid = Process.fork do
+          ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
-          Importer.runGui()
+          Importer.runGui(options['gui_config'])
         end
 
         Signal.trap("INT") {
@@ -327,17 +352,19 @@ class Cmd
 
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1
+        ENV['RMT_PORT'] = '1500'
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['recordPath'], options['playback'])
+            options['recordPath'], options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
-        Importer.runGui
+        ENV['RMT_PORT'] = '1501'
+        Importer.runGui(options['gui_config'])
       end
     rescue
       puts "Library error: Problem running [#{options['command']}]() "\
-        "from @IGN_LIBRARY_NAME@."
+        "from #{plugin}."
     # begin
     end
   # execute

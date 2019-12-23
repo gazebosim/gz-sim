@@ -15,8 +15,12 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_RENDERWINDOW_HH_
-#define IGNITION_GAZEBO_RENDERWINDOW_HH_
+#ifndef IGNITION_GAZEBO_GUI_SCENE3D_HH_
+#define IGNITION_GAZEBO_GUI_SCENE3D_HH_
+
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/video_record.pb.h>
 
 #include <string>
 #include <memory>
@@ -27,11 +31,7 @@
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/boolean.pb.h>
-
 #include <ignition/common/MouseEvent.hh>
-#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -67,6 +67,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///                          (0.3, 0.3, 0.3, 1.0)
   /// * \<camera_pose\> : Optional starting pose for the camera, defaults to
   ///                     (0, 0, 5, 0, 0, 0)
+  /// * \<camera_follow\> :
+  ///     * \<p_gain\>    : Camera follow movement p gain.
+  ///     * \<target\>    : Target to follow.
   class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
@@ -75,21 +78,45 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: Scene3D();
 
     /// \brief Destructor
-    public: virtual ~Scene3D();
+    public: ~Scene3D() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
+
+    /// \brief Callback when receives a drop event.
+    /// \param[in] _drop Dropped string.
+    public slots: void OnDropped(const QString &_drop);
 
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
     /// \param[in] _res Response data
     /// \return True if the request is received
     private: bool OnTransformMode(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for a record video request
+    /// \param[in] _msg Request message to enable/disable video recording.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnRecordVideo(const msgs::VideoRecord &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for a move to request
+    /// \param[in] _msg Request message to set the target to move to.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnMoveTo(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
+    /// \brief Callback for a follow request
+    /// \param[in] _msg Request message to set the target to follow.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
     /// \internal
@@ -103,13 +130,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// with QtQuick's opengl render operations. The main Render function will
   /// render to an offscreen texture and notify via signal and slots when it's
   /// ready to be displayed.
-  class IgnRenderer
+  class IgnRenderer : public QObject
   {
+    Q_OBJECT
+
     ///  \brief Constructor
     public: IgnRenderer();
 
     ///  \brief Destructor
-    public: ~IgnRenderer();
+    public: ~IgnRenderer() override;
 
     ///  \brief Main render function
     public: void Render();
@@ -127,18 +156,61 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
 
+    /// \brief Set whether to record video
+    /// \param[in] _record True to start video recording, false to stop.
+    /// \param[in] _format Video encoding format: "mp4", "ogv"
+    /// \param[in] _savePath Path to save the recorded video.
+    public: void SetRecordVideo(bool _record, const std::string &_format,
+        const std::string &_savePath);
+
+    /// \brief Move the user camera to move to the speficied target
+    /// \param[in] _target Target to move the camera to
+    public: void SetMoveTo(const std::string &_target);
+
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is when following a target that is not
+    ///  present on startup but spawned later into simulation
+    public: void SetFollowTarget(const std::string &_target,
+        bool _waitForTarget = false);
+
+    /// \brief Set the p gain for the camera follow movement
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowPGain(double _gain);
+
+    /// \brief True to set the camera to follow the target in world frame,
+    /// false to follow in target's local frame
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowWorldFrame(bool _worldFrame);
+
+    /// \brief Set the camera follow offset position
+    /// \param[in] _offset Camera follow offset position.
+    public: void SetFollowOffset(const math::Vector3d &_offset);
+
+    /// \brief Get the target which the user camera is following
+    /// \return Target being followed
+    public: std::string FollowTarget() const;
+
+    /// \brief Get whether the camera is following the entity in world frame.
+    /// \return True if follow mode is in world frame, false if local frame
+    public: bool FollowWorldFrame() const;
+
+    /// \brief Get the camera follow offset position
+    /// \return Camera follow offset position.
+    public: math::Vector3d FollowOffset() const;
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
-    /// \brief New key event triggered
-    /// \param[in] _e New key event
-    public: void NewKeyEvent(const common::KeyEvent &_e);
-
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
+
+    /// \brief Handle mouse event for context menu
+    private: void HandleMouseContextMenu();
 
     /// \brief Handle mouse event for view control
     private: void HandleMouseViewControl();
@@ -152,6 +224,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return 3D coordinates of a point in the 3D scene.
     private: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
+
+    /// \brief Callback when a move to animation is complete
+    private: void OnMoveToComplete();
+
+    /// \brief Signal fired when context menu event is triggered
+    signals: void ContextMenuRequested(QString _entity);
+
+    /// \brief When fired, the follow target changed. May not be fired for
+    /// every target change.
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    signals: void FollowTargetChanged(const std::string &_target,
+        bool _waitForTarget);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -220,7 +305,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: explicit RenderWindowItem(QQuickItem *_parent = nullptr);
 
     /// \brief Destructor
-    public: virtual ~RenderWindowItem();
+    public: ~RenderWindowItem() override;
 
     /// \brief Set the renderer
     public: class RenderUtil *RenderUtil() const;
@@ -233,6 +318,38 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
 
+    /// \brief Set whether to record video
+    /// \param[in] _record True to start video recording, false to stop.
+    /// \param[in] _format Video encoding format: "mp4", "ogv"
+    /// \param[in] _savePath Path to save the recorded video.
+    public: void SetRecordVideo(bool _record, const std::string &_format,
+        const std::string &_savePath);
+
+    /// \brief Move the user camera to move to the speficied target
+    /// \param[in] _target Target to move the camera to
+    public: void SetMoveTo(const std::string &_target);
+
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is follow a target that is not present
+    /// on startup but spawned later into simulation
+    public Q_SLOTS: void SetFollowTarget(const std::string &_target,
+        bool _waitForTarget = false);
+
+    /// \brief Set the p gain for the camera follow movement
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowPGain(double _gain);
+
+    /// \brief True to set the camera to follow the target in world frame,
+    /// false to follow in target's local frame
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowWorldFrame(bool _worldFrame);
+
+    /// \brief Set the camera follow offset position
+    /// \param[in] _offset Camera follow offset position.
+    public: void SetFollowOffset(const math::Vector3d &_offset);
+
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
@@ -241,22 +358,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public Q_SLOTS: void Ready();
 
     // Documentation inherited
-    protected: virtual void mousePressEvent(QMouseEvent *_e) override;
+    protected: void mousePressEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void mouseReleaseEvent(QMouseEvent *_e) override;
+    protected: void mouseReleaseEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void mouseMoveEvent(QMouseEvent *_e) override;
+    protected: void mouseMoveEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void wheelEvent(QWheelEvent *_e) override;
+    protected: void wheelEvent(QWheelEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: virtual void keyReleaseEvent(QKeyEvent *_e) override;
+    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
@@ -266,6 +380,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Updated node.
     private: QSGNode *updatePaintNode(QSGNode *_oldNode,
         QQuickItem::UpdatePaintNodeData *_data) override;
+
+    /// \brief Signal fired to open context menu
+    /// Note that the function name needs to start with lowercase in order for
+    /// the connection to work on the QML side
+    /// \param[in] _entity Scoped name of entity.
+    signals: void openContextMenu(QString _entity); // NOLINT
+
+    /// \brief Qt callback when context menu request is received
+    /// \param[in] _entity Scoped name of entity.
+    public slots: void OnContextMenuRequested(QString _entity);
 
     /// \internal
     /// \brief Pointer to private data.
