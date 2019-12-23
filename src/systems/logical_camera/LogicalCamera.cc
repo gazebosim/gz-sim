@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/logical_camera_image.pb.h>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -79,6 +80,7 @@ LogicalCamera::~LogicalCamera() = default;
 void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogicalCamera::PreUpdate");
   this->dataPtr->CreateLogicalCameraEntities(_ecm);
 }
 
@@ -86,6 +88,16 @@ void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
 void LogicalCamera::PostUpdate(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogicalCamera::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {
@@ -107,6 +119,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
 void LogicalCameraPrivate::CreateLogicalCameraEntities(
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
   // Create logicalCameras
   _ecm.EachNew<components::LogicalCamera, components::ParentEntity>(
     [&](const Entity &_entity,
@@ -114,7 +127,8 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         auto data = _logicalCamera->Data()->Clone();
         data->GetAttribute("name")->Set(sensorScopedName);
         // check topic
@@ -146,6 +160,7 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
 void LogicalCameraPrivate::UpdateLogicalCameras(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogicalCameraPrivate::UpdateLogicalCameras");
   std::map<std::string, math::Pose3d> modelPoses;
 
   _ecm.Each<components::Model, components::Name, components::Pose>(
@@ -187,6 +202,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
 void LogicalCameraPrivate::RemoveLogicalCameraEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LogicalCameraPrivate::RemoveLogicalCameraEntities");
   _ecm.EachRemoved<components::LogicalCamera>(
     [&](const Entity &_entity,
         const components::LogicalCamera *)->bool

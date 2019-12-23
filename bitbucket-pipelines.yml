@@ -5,119 +5,37 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt -y install wget lsb-release gnupg sudo
-          # Install base dependencies
-          - docker/scripts/install_common_deps.sh
-          - docker/scripts/install_ign_deps.sh
-          - docker/scripts/enable_gcc8.sh
+          - apt -y install wget lsb-release gnupg sudo curl
           # Enable relevant package repositories
           - docker/scripts/enable_ign_stable.sh
           - docker/scripts/enable_ign_prerelease.sh
-          - docker/scripts/enable_ign_nightly.sh
-          - sudo apt-get update
-          # Dependency: Ignition packages
-          - apt-get -y install
-            libignition-cmake2-dev
-            libignition-common3-dev
-            libignition-fuel-tools3-dev
-            libignition-gui2-dev
-            libignition-math6-eigen3-dev
-            libignition-msgs4-dev
-            libignition-plugin-dev
-            libignition-physics-dev
-            libignition-rendering2-dev
-            libignition-sensors2-dev
-            libignition-tools-dev
-            libignition-transport7-dev
-            libsdformat8-dev
-          # SDFormat (uncomment if a specific branch is needed)
-          # - apt install -y
-          #   libxml2-utils
-          # - hg clone http://bitbucket.org/osrf/sdformat -b gz11
-          # - cd sdformat
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false
-          # - make -j4 install
-          # - cd ../..
-          # Ignition msgs (uncomment if a specific branch is needed)
-          # - apt install -y
-          #   libprotobuf-dev protobuf-compiler libprotoc-dev
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
-          # - cd ign-msgs
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false
-          # - make -j4 install
-          # - cd ../..
-          # Ignition cmake (uncomment if a specific branch is needed)
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
-          # - cd ign-cmake
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false
-          # - make -j4 install
-          # - cd ../..
-          # Ignition rendering (uncomment if a specific branch is needed)
-          # - apt-get -y install
-          #   libogre-1.9-dev libogre-2.1-dev libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
-          # - cd ign-rendering
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          # - make -j4 install
-          # - cd ../..
-          # Ignition sensors (uncomment if a specific branch is needed)
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
-          # - cd ign-sensors
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          # - make -j4 install
-          # - cd ../..
-          # Ignition fuel-tools (uncomment if a specific branch is needed)
-          # - apt install -y
-          #   libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b default
-          # - cd ign-fuel-tools
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false
-          # - make -j4 install
-          # - cd ../..
-          # Ignition gui (uncomment if a specific branch is needed)
-          # - apt install -y
-          #   qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
-          #   qtdeclarative5-dev
-          #   qtquickcontrols2-5-dev
-          #   qml-module-qtquick2
-          #   qml-module-qtquick-controls
-          #   qml-module-qtquick-controls2
-          #   qml-module-qtquick-dialogs
-          #   qml-module-qtquick-layouts
-          #   qml-module-qt-labs-folderlistmodel
-          #   qml-module-qt-labs-settings
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
-          # - cd ign-gui
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false
-          # - make -j4 install
-          # - cd ../..
-          # Ignition Physics (uncomment if a specific branch is needed)
-          # - apt-get -y install
-          #   libdart6-dev
-          #   libdart6-collision-ode-dev
-          #   libdart6-utils-urdf-dev
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-physics -b default
-          # - cd ign-physics
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          # - make install
-          # - cd ../..
-          # Ignition Gazebo
+          # Install base dependencies
+          - docker/scripts/install_common_deps.sh
+          - docker/scripts/enable_gcc8.sh
+          - docker/scripts/install_ign_deps.sh
+          # There are two methods to install ignition/osrf dependencies.
+          # The first method uses debians and the second builds dependencies
+          # from source. For each dependency, please use only one method.
+          # METHOD 1: Install the following debians
+          - apt-get install -y
+              libignition-cmake2-dev
+              libignition-common3-dev
+              libignition-fuel-tools3-dev
+              libignition-gui2-dev
+              libignition-math6-eigen3-dev
+              libignition-msgs4-dev
+              libignition-plugin-dev
+              libignition-physics-dev
+              libignition-rendering2-dev
+              libignition-sensors2-dev
+              libignition-tools-dev
+              libignition-transport7-dev
+              libsdformat8-dev
+          # METHOD 2: Build from source
+          # Build ign-rendering from source using the default branch
+          # - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+          #
+          # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
           - cd build
@@ -126,8 +44,48 @@ pipelines:
           - export IGN_CONFIG_PATH=/usr/local/share/ignition
           # run codecheck before tests so flaky tests don't obscure codecheck failures
           - make codecheck
-          - make test ARGS="-VV"
+          - export CTEST_OUTPUT_ON_FAILURE=1
+          - make test
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout -X gcov
-          # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
+  custom:
+    benchmark:
+      - step:
+          script:
+            - apt-get update
+            - apt -y install wget lsb-release gnupg sudo curl
+            # Enable relevant package repositories
+            - docker/scripts/enable_ign_stable.sh
+            # Install base dependencies
+            - docker/scripts/install_common_deps.sh
+            - docker/scripts/enable_gcc8.sh
+            - docker/scripts/install_ign_deps.sh
+            # There are two methods to install ignition/osrf dependencies.
+            # The first method uses debians and the second builds dependencies
+            # from source. For each dependency, please use only one method.
+            # METHOD 1: Install the following debians
+            - apt-get install -y
+                libignition-cmake2-dev
+                libignition-common3-dev
+                libignition-fuel-tools3-dev
+                libignition-gui2-dev
+                libignition-math6-eigen3-dev
+                libignition-msgs4-dev
+                libignition-plugin-dev
+                libignition-physics-dev
+                libignition-rendering2-dev
+                libignition-sensors2-dev
+                libignition-tools-dev
+                libignition-transport7-dev
+                libsdformat8-dev
+            # Build some Ignition libraries from source.
+            # Build ign-rendering from source using the default branch
+            # - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+            # Build Ignition Gazebo
+            - mkdir build
+            - cd build
+            - cmake ..
+            - make -j4 install
+            - ./bin/BENCHMARK_each --benchmark_out_format=json --benchmark_out=each.json
+            - ../docker/scripts/upload_json_benchmark.sh each.json

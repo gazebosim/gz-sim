@@ -2,8 +2,10 @@
 <!--
   Log record demo.
 
-  Running this world will record log files to /tmp/log. You can playback
-  running the log_playback.sdf file.
+  Running this world will record log files to /tmp/log. If that directory
+  already exists, it will record to /tmp/log(1) and so on.
+
+  You can playback running the log_playback.sdf file.
 -->
 <sdf version="1.6">
   <world name="log_pendulum">
@@ -35,7 +37,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -47,10 +49,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/log_pendulum/scene/info</service>
-        <pose_topic>/world/log_pendulum/pose/info</pose_topic>
-        <scene_topic>/world/log_pendulum/scene/info</scene_topic>
-        <deletion_topic>/world/log_pendulum/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->

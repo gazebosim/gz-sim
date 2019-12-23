@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
 #include <ignition/msgs/axis.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/inertial.pb.h>
@@ -30,9 +31,11 @@
 #include <ignition/msgs/world_stats.pb.h>
 
 #include <chrono>
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Inertial.hh>
+#include <sdf/Collision.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/JointAxis.hh>
@@ -57,6 +60,19 @@ namespace ignition
     /// \param[out] _msg SensorNoise message to set.
     /// \param[in] _sdf SDF Noise object.
     void set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
+
+    /// \brief Helper function that sets a mutable msgs::WorldStatistics object
+    /// to the values contained in a gazebo::UpdateInfo  object.
+    /// \param[out] _msg WorldStatistics message to set.
+    /// \param[in] _in UpdateInfo object.
+    void set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
+
+    /// \brief Helper function that sets a mutable msgs::Time object
+    /// to the values contained in a std::chrono::steady_clock::duration
+    /// object.
+    /// \param[out] _msg Time message to set.
+    /// \param[in] _in Chrono duration object.
+    void set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
 
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
@@ -397,6 +413,56 @@ namespace ignition
     /// \return World statistics message.
     template<>
     msgs::WorldStatistics convert(const UpdateInfo &_in);
+
+    /// \brief Generic conversion from an SDF collision to another type.
+    /// \param[in] _in SDF collision.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Collision &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF collision to a collision
+    /// message.
+    /// \param[in] _in SDF collision.
+    /// \return Collision message.
+    template<>
+    msgs::Collision convert(const sdf::Collision &_in);
+
+    /// \brief Generic conversion from a collision message to another type.
+    /// \param[in] _in Collision message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Collision &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a collision message to a collision
+    /// SDF object.
+    /// \param[in] _in Collision message.
+    /// \return SDF collision.
+    template<>
+    sdf::Collision convert(const msgs::Collision &_in);
+
+    /// \brief Generic conversion from a string to another type.
+    /// \param[in] _in string.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const std::string &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a string to an Entity_Type msg.
+    /// \param[in] _in string message.
+    /// \return Entity_Type.
+    template<>
+    msgs::Entity_Type convert(const std::string &_in);
     }
   }
 }

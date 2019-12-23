@@ -39,7 +39,8 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE LogRecord:
     public System,
     public ISystemConfigure,
-    public ISystemUpdate
+    public ISystemPreUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: explicit LogRecord();
@@ -54,8 +55,12 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     /// Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) final;
+    public: void PreUpdate(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm) final;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<LogRecordPrivate> dataPtr;

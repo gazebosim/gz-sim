@@ -60,6 +60,22 @@ namespace ignition
       bool paused{true};
     };
 
+    /// \brief Possible states for a component.
+    enum class ComponentState
+    {
+      /// \brief Component value has not changed.
+      NoChange = 0,
+
+      /// \brief Component value has changed, and is changing periodically.
+      /// This indicates to systems that it is ok to drop a few samples.
+      PeriodicChange = 1,
+
+      /// \brief Component value has suffered a one-time change.
+      /// This indicates to systems that this change must be processed and
+      /// can't be dropped.
+      OneTimeChange = 2
+    };
+
     /// \brief A unique identifier for a component instance. The uniqueness
     /// of a ComponentId is scoped to the component's type.
     /// \sa ComponentKey.

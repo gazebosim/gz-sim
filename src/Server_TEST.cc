@@ -20,6 +20,7 @@
 #include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Entity.hh"
@@ -168,6 +169,45 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestModelSystem", rep.data());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigSensorPlugin)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/air_pressure.sdf");
+
+  sdf::ElementPtr sdf(new sdf::Element);
+  sdf->SetName("plugin");
+  sdf->AddAttribute("name", "string",
+      "ignition::gazebo::TestSensorSystem", true);
+  sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
+
+  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor",
+      "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
+      sdf});
+
+  gazebo::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run the server
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_FALSE(*server.Paused());
+
+  // The TestSensorSystem should have created a service. Call the service to
+  // make sure the TestSensorSystem was successfully loaded.
+  transport::Node node;
+  msgs::StringMsg rep;
+  bool result;
+  bool executed = node.Request("/test/service/sensor", 5000, rep, result);
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_EQ("TestSensorSystem", rep.data());
 }
 
 /////////////////////////////////////////////////
@@ -500,6 +540,17 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(1u, mockSystem->updateCallCount);
   EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, Seed)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  EXPECT_EQ(0u, serverConfig.Seed());
+  unsigned int mySeed = 12345u;
+  serverConfig.SetSeed(mySeed);
+  EXPECT_EQ(mySeed, serverConfig.Seed());
+  EXPECT_EQ(mySeed, ignition::math::Rand::Seed());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

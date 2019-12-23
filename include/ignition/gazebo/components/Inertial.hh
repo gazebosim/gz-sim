@@ -33,7 +33,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
-  using InertialSerialzer =
+  using InertialSerializer =
       serializers::ComponentToMsgSerializer<math::Inertiald, msgs::Inertial>;
 }
 
@@ -41,7 +41,7 @@ namespace components
 {
   /// \brief This component holds an entity's inertial.
   using Inertial = Component<math::Inertiald, class InertialTag,
-                             serializers::InertialSerialzer>;
+                             serializers::InertialSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Inertial", Inertial)
 }
 }

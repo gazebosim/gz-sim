@@ -35,7 +35,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
-  using LightSerialzer =
+  using LightSerializer =
       serializers::ComponentToMsgSerializer<sdf::Light, msgs::Light>;
 }
 
@@ -45,7 +45,7 @@ namespace components
   /// information on lights, see [SDF's Light
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   using Light =
-      Component<sdf::Light, class LightTag, serializers::LightSerialzer>;
+      Component<sdf::Light, class LightTag, serializers::LightSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
 }
 }

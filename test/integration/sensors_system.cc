@@ -17,9 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+#include <vector>
+
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
+
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
@@ -39,6 +44,7 @@ using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
+//////////////////////////////////////////////////
 class SensorsFixture : public ::testing::Test
 {
   protected: void SetUp() override
@@ -62,6 +68,35 @@ class SensorsFixture : public ::testing::Test
 
   private: gazebo::SystemLoader sm;
 };
+
+//////////////////////////////////////////////////
+void testDefaultTopics()
+{
+  // TODO(anyone) This should be a new test, but running multiple tests with
+  // sensors is not currently working
+  std::string prefix{"/world/camera_sensor/model/default_topics/"};
+  std::vector<std::string> topics{
+      prefix + "link/camera_link/sensor/camera/image",
+      prefix + "link/camera_link/sensor/camera/camera_info",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
+      prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image"
+  };
+
+  std::vector<transport::MessagePublisher> publishers;
+  transport::Node node;
+
+  for (const std::string &topic : topics)
+  {
+    bool result = node.TopicInfo(topic, publishers);
+
+    EXPECT_TRUE(result) << "Could not get topic info for " << topic;
+    EXPECT_EQ(1u, publishers.size());
+    publishers.clear();
+  }
+}
 
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
@@ -94,42 +129,49 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   server.Run(true, 10, false);
   ASSERT_NE(nullptr, ecm);
 
+  testDefaultTopics();
+
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
   gazebo::EventManager dummyEventMgr;
   gazebo::SdfEntityCreator creator(*ecm, dummyEventMgr);
 
+  unsigned int runs = 100;
+  unsigned int runIterations = 2;
+  for (unsigned int i = 0; i < runs; ++i)
   {
-    auto modelEntity = ecm->EntityByComponents(
-        components::Model(), components::Name(sdfModel->Name()));
-    EXPECT_NE(gazebo::kNullEntity, modelEntity);
+    {
+      auto modelEntity = ecm->EntityByComponents(
+          components::Model(), components::Name(sdfModel->Name()));
+      EXPECT_NE(gazebo::kNullEntity, modelEntity);
 
-    // Remove the first model in the world
-    creator.RequestRemoveEntity(modelEntity, true);
-  }
+      // Remove the first model in the world
+      creator.RequestRemoveEntity(modelEntity, true);
+    }
 
-  server.Run(true, 10, false);
+    server.Run(true, runIterations, false);
 
-  {
-    auto modelEntity = ecm->EntityByComponents(components::Model(),
-        components::Name(sdfModel->Name()));
+    {
+      auto modelEntity = ecm->EntityByComponents(components::Model(),
+          components::Name(sdfModel->Name()));
 
-    // Since the model is removed, we should get a null entity
-    EXPECT_EQ(gazebo::kNullEntity, modelEntity);
-  }
+      // Since the model is removed, we should get a null entity
+      EXPECT_EQ(gazebo::kNullEntity, modelEntity);
+    }
 
-  // Create the model again
-  auto newModelEntity = creator.CreateEntities(sdfModel);
-  creator.SetParent(newModelEntity,
-                    ecm->EntityByComponents(components::World()));
+    // Create the model again
+    auto newModelEntity = creator.CreateEntities(sdfModel);
+    creator.SetParent(newModelEntity,
+                      ecm->EntityByComponents(components::World()));
 
-  // This would throw if entities that have not been properly removed from the
-  // scene manager in the Sensor system
-  EXPECT_NO_THROW(server.Run(true, 10, false));
+    // This would throw if entities that have not been properly removed from the
+    // scene manager in the Sensor system
+    EXPECT_NO_THROW(server.Run(true, runIterations, false));
 
-  {
-    auto modelEntity = ecm->EntityByComponents(components::Model(),
-        components::Name(sdfModel->Name()));
-    EXPECT_NE(gazebo::kNullEntity, modelEntity);
+    {
+      auto modelEntity = ecm->EntityByComponents(components::Model(),
+          components::Name(sdfModel->Name()));
+      EXPECT_NE(gazebo::kNullEntity, modelEntity);
+    }
   }
 }

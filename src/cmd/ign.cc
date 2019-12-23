@@ -21,6 +21,7 @@
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
@@ -58,12 +59,22 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    const char *_playback)
+    const char *_playback, const char *_file)
 {
+  ignition::gazebo::ServerConfig serverConfig;
+
+  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  {
+    ignLogInit(_recordPath, "server_console.log");
+  }
+  else
+  {
+    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+  }
+
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
-  ignition::gazebo::ServerConfig serverConfig;
 
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -74,6 +85,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
+  serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
@@ -140,7 +152,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -162,17 +174,19 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   ignition::gui::Application app(argc, argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  // Load configuration file
-  auto configPath = ignition::common::joinPaths(
-      IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+  // add import path so we can load custom modules
+  app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  if (!app.LoadConfig(configPath))
-  {
-    return -1;
-  }
+  // Set default config file for Gazebo
+  std::string defaultConfig;
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", "gui.config");
+  app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
+  auto mainWin = app.findChild<ignition::gui::MainWindow *>();
+  auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
   // Let QML files use TmpIface' functions and properties
@@ -213,7 +227,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   // resolved when this while loop can be removed.
   while (!sigKilled && !executed)
   {
-    igndbg << "Requesting list of world names. The server may be busy "
+    igndbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
@@ -227,50 +241,117 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
       ignerr << "Failed to get world names." << std::endl;
   }
 
-  if (!executed || !result)
-    return -1;
+  if (!executed || !result || worldsMsg.data().empty())
+    return false;
 
-  // TODO(anyone) Parallelize this if multiple worlds becomes an important use
-  // case.
   std::vector<ignition::gazebo::GuiRunner *> runners;
-  for (int w = 0; w < worldsMsg.data_size(); ++w)
+
+  // Configuration file from command line
+  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
   {
-    auto worldName = worldsMsg.data(w);
-
-    // Request GUI info for each world
-    result = false;
-    service = std::string("/world/" + worldName + "/gui/info");
-
-    igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
-
-    // Request and block
-    ignition::msgs::GUI res;
-    executed = node.Request(service, timeout, res, result);
-
-    if (!executed)
-      ignerr << "Service call timed out for [" << service << "]" << std::endl;
-    else if (!result)
-      ignerr << "Service call failed for [" << service << "]" << std::endl;
-
-    for (int p = 0; p < res.plugin_size(); ++p)
+    if (!app.LoadConfig(_guiConfig))
     {
-      const auto &plugin = res.plugin(p);
-      const auto &fileName = plugin.filename();
-      std::string pluginStr = "<plugin filename='" + fileName + "'>" +
-          plugin.innerxml() + "</plugin>";
-
-      tinyxml2::XMLDocument pluginDoc;
-      pluginDoc.Parse(pluginStr.c_str());
-
-      ignition::gui::App()->LoadPlugin(fileName,
-          pluginDoc.FirstChildElement("plugin"));
+      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+              << std::endl;
     }
 
-    // GUI runner
-    auto runner = new ignition::gazebo::GuiRunner(worldName);
+    // Use the first world name with the config file
+    // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
+    // which makes it complicated to mix configurations across worlds.
+    // We could have a way to use world-agnostic topics like Gazebo-classic's ~
+    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
     runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-      &ignition::gazebo::GuiRunner::OnPluginAdded);
+        &ignition::gazebo::GuiRunner::OnPluginAdded);
     runners.push_back(runner);
+    runner->setParent(ignition::gui::App());
+  }
+  // GUI configuration from SDF (request to server)
+  else
+  {
+    // TODO(anyone) Parallelize this if multiple worlds becomes an important use
+    // case.
+    for (int w = 0; w < worldsMsg.data_size(); ++w)
+    {
+      const auto &worldName = worldsMsg.data(w);
+
+      // Request GUI info for each world
+      result = false;
+      service = std::string("/world/" + worldName + "/gui/info");
+
+      igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
+
+      // Request and block
+      ignition::msgs::GUI res;
+      executed = node.Request(service, timeout, res, result);
+
+      if (!executed)
+        ignerr << "Service call timed out for [" << service << "]" << std::endl;
+      else if (!result)
+        ignerr << "Service call failed for [" << service << "]" << std::endl;
+
+      for (int p = 0; p < res.plugin_size(); ++p)
+      {
+        const auto &plugin = res.plugin(p);
+        const auto &fileName = plugin.filename();
+        std::string pluginStr = "<plugin filename='" + fileName + "'>" +
+            plugin.innerxml() + "</plugin>";
+
+        tinyxml2::XMLDocument pluginDoc;
+        pluginDoc.Parse(pluginStr.c_str());
+
+        app.LoadPlugin(fileName,
+            pluginDoc.FirstChildElement("plugin"));
+      }
+
+      // GUI runner
+      auto runner = new ignition::gazebo::GuiRunner(worldName);
+      runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+          &ignition::gazebo::GuiRunner::OnPluginAdded);
+      runner->setParent(ignition::gui::App());
+      runners.push_back(runner);
+    }
+    mainWin->configChanged();
+  }
+
+  if (runners.empty())
+  {
+    ignerr << "Failed to start a GUI runner." << std::endl;
+    return -1;
+  }
+
+  // If no plugins have been added, load default config file
+  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  if (plugins.empty())
+  {
+    // Check if there's a default config file under
+    // ~/.ignition/gazebo and use that. If there isn't, copy
+    // the installed file there first.
+    if (!ignition::common::exists(defaultConfig))
+    {
+      auto installedConfig = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+        return -1;
+      }
+      else
+      {
+        ignmsg << "Copied installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+      }
+    }
+
+    // Also set ~/.ignition/gazebo/gui.config as the default path
+    if (!app.LoadConfig(defaultConfig))
+    {
+      ignerr << "Failed to load config file[" << _guiConfig << "]."
+             << std::endl;
+      return -1;
+    }
   }
 
   // Run main window.

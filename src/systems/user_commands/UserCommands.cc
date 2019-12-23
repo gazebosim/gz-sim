@@ -24,9 +24,10 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
+
+#include "ignition/common/Profiler.hh"
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -77,7 +78,7 @@ class UserCommandBase
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   /// \brief Destructor.
-  public: virtual ~UserCommandBase() = default;
+  public: virtual ~UserCommandBase();
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -128,6 +129,17 @@ class PoseCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
+
+  /// \brief Pose3d equality comparison function.
+  public: std::function<bool(const math::Pose3d &, const math::Pose3d &)>
+          pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
+                     {
+                       return _a.Pos().Equal(_b.Pos(), 1e-6) &&
+                         math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
+                         math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
+                         math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
+                         math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+                     }};
 };
 }
 }
@@ -156,10 +168,9 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[in] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully removed.
+  /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
-  public: bool PoseService(const msgs::Pose &_req,
-      msgs::Boolean &_res);
+  public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -196,7 +207,8 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->iface->creator =
       std::make_unique<SdfEntityCreator>(_ecm, _eventManager);
 
-  auto worldName = _ecm.Component<components::Name>(_entity)->Data();
+  const components::Name *constCmp = _ecm.Component<components::Name>(_entity);
+  const std::string &worldName = constCmp->Data();
 
   // Create service
   std::string createService{"/world/" + worldName + "/create"};
@@ -224,14 +236,22 @@ void UserCommands::Configure(const Entity &_entity,
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->pendingMutex);
-  if (this->dataPtr->pendingCmds.empty())
-    return;
+  IGN_PROFILE("UserCommands::PreUpdate");
+  // make a copy the cmds so execution does not block receiving other
+  // incoming cmds
+  std::vector<std::unique_ptr<UserCommandBase>> cmds;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->pendingMutex);
+    if (this->dataPtr->pendingCmds.empty())
+      return;
+    cmds = std::move(this->dataPtr->pendingCmds);
+    this->dataPtr->pendingCmds.clear();
+  }
 
   // TODO(louise) Record current world state for undo
 
   // Execute pending commands
-  for (auto &cmd : this->dataPtr->pendingCmds)
+  for (auto &cmd : cmds)
   {
     // Execute
     if (!cmd->Execute())
@@ -243,8 +263,6 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
   }
 
   // TODO(louise) Clear redo list
-
-  this->dataPtr->pendingCmds.clear();
 }
 
 //////////////////////////////////////////////////
@@ -309,6 +327,14 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
 {
+}
+
+//////////////////////////////////////////////////
+UserCommandBase::~UserCommandBase()
+{
+  if (this->msg != nullptr)
+    delete this->msg;
+  this->msg = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -572,14 +598,15 @@ bool PoseCommand::Execute()
   // Check the name of the entity being spawned
   std::string entityName = poseMsg->name();
   Entity entity = kNullEntity;
-  if (!entityName.empty())
+  // TODO(anyone) Update pose message to use Entity, with default ID null
+  if (poseMsg->id() != kNullEntity && poseMsg->id() != 0)
+  {
+    entity = poseMsg->id();
+  }
+  else if (!entityName.empty())
   {
     entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
       components::ParentEntity(this->iface->worldEntity));
-  }
-  else if (poseMsg->id() > 0)
-  {
-    entity = poseMsg->id();
   }
 
   if (!this->iface->ecm->HasEntity(entity))
@@ -589,7 +616,8 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  auto poseCmdComp = this->iface->ecm->Component<components::WorldPoseCmd>(entity);
+  auto poseCmdComp =
+    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
   if (!poseCmdComp)
   {
     this->iface->ecm->CreateComponent(
@@ -597,7 +625,12 @@ bool PoseCommand::Execute()
   }
   else
   {
-    poseCmdComp->Data() = msgs::Convert(*poseMsg);
+    /// \todo(anyone) Moving an object is not captured in a log file.
+    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+        state);
   }
 
   return true;

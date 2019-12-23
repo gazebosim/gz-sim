@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -212,6 +213,7 @@ LiftDrag::LiftDrag()
 //////////////////////////////////////////////////
 void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LiftDragPrivate::Update");
   // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
@@ -488,6 +490,16 @@ void LiftDrag::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("LiftDrag::PreUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   if (!this->dataPtr->initialized)
   {
     // We call Load here instead of Configure because we can't be guaranteed

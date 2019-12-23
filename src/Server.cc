@@ -75,64 +75,6 @@ struct DefaultWorld
       "<sdf version='1.6'>"
         "<world name='default'>") +
           DefaultPlugins(_config) +
-          "<gui fullscreen='0'>"
-          "  <plugin filename='Scene3D' name='3D View'>"
-          "    <ignition-gui>"
-          "      <title>3D View</title>"
-          "      <property type='bool' key='showTitleBar'>false</property>"
-          "      <property type='string' key='state'>docked</property>"
-          "    </ignition-gui>"
-          "    <engine>ogre</engine>"
-          "    <scene>scene</scene>"
-          "    <ambient_light>0.4 0.4 0.4</ambient_light>"
-          "    <background_color>0.8 0.8 0.8</background_color>"
-          "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
-          "    <service>/world/default/scene/info</service>"
-          "    <pose_topic>/world/default/pose/info</pose_topic>"
-          "    <scene_topic>/world/default/scene/info</scene_topic>"
-          "    <deletion_topic>/world/default/scene/deletion</deletion_topic>"
-          "  </plugin>"
-          "  <plugin filename='WorldControl' name='World control'>"
-          "    <ignition-gui>"
-          "      <title>World control</title>"
-          "      <property type='bool' key='showTitleBar'>false</property>"
-          "      <property type='bool' key='resizable'>false</property>"
-          "      <property type='double' key='height'>72</property>"
-          "      <property type='double' key='width'>121</property>"
-          "      <property type='double' key='z'>1</property>"
-          "      <property type='string' key='state'>floating</property>"
-          "      <anchors target='3D View'>"
-          "        <line own='left' target='left'/>"
-          "        <line own='bottom' target='bottom'/>"
-          "      </anchors>"
-          "    </ignition-gui>"
-          "    <play_pause>true</play_pause>"
-          "    <step>true</step>"
-          "    <start_paused>true</start_paused>"
-          "    <service>/world/default/control</service>"
-          "    <stats_topic>/world/default/stats</stats_topic>"
-          "  </plugin>"
-          "  <plugin filename='WorldStats' name='World stats'>"
-          "    <ignition-gui>"
-          "      <title>World stats</title>"
-          "      <property type='bool' key='showTitleBar'>false</property>"
-          "      <property type='bool' key='resizable'>false</property>"
-          "      <property type='double' key='height'>110</property>"
-          "      <property type='double' key='width'>290</property>"
-          "      <property type='double' key='z'>1</property>"
-          "      <property type='string' key='state'>floating</property>"
-          "      <anchors target='3D View'>"
-          "        <line own='right' target='right'/>"
-          "        <line own='bottom' target='bottom'/>"
-          "      </anchors>"
-          "    </ignition-gui>"
-          "    <sim_time>true</sim_time>"
-          "    <real_time>true</real_time>"
-          "    <real_time_factor>true</real_time_factor>"
-          "    <iterations>true</iterations>"
-          "    <topic>/world/default/stats</topic>"
-          "  </plugin>"
-          "</gui>"
         "</world>"
       "</sdf>";
 
@@ -158,8 +100,22 @@ Server::Server(const ServerConfig &_config)
 
   sdf::Errors errors;
 
-  // Load a world if specified.
-  if (!_config.SdfFile().empty())
+  // Load a world if specified. Check SDF string first, then SDF file
+  if (!_config.SdfString().empty())
+  {
+    std::string msg = "Loading SDF string. ";
+    if (_config.SdfFile().empty())
+    {
+      msg += "File path not available.\n";
+    }
+    else
+    {
+      msg += "File path [" + _config.SdfFile() + "].\n";
+    }
+    ignmsg <<  msg;
+    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+  }
+  else if (!_config.SdfFile().empty())
   {
     common::SystemPaths systemPaths;
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
@@ -173,11 +129,6 @@ Server::Server(const ServerConfig &_config)
     // a black screen (search for "Async resource download" in
     // 'src/gui_main.cc'.
     errors = this->dataPtr->sdfRoot.Load(filePath);
-  }
-  else if (!_config.SdfString().empty())
-  {
-    ignmsg << "Loading SDF string.\n";
-    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
   }
   else
   {

@@ -15,7 +15,6 @@
  *
  */
 
-#include <sdf/Geometry.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
@@ -66,6 +65,10 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
 
   this->ReadLevelPerformerInfo();
   this->CreatePerformers();
+
+  std::string service = "/world/";
+  service += this->runner->sdfWorld->Name() + "/level/set_performer";
+  this->node.Advertise(service, &LevelManager::OnSetPerformer, this);
 }
 
 /////////////////////////////////////////////////
@@ -154,45 +157,131 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
   if (_sdf == nullptr)
     return;
 
-  igndbg << "Reading performer info\n";
-  for (auto performer = _sdf->GetElement("performer"); performer;
-       performer = performer->GetNextElement("performer"))
+  if (_sdf->HasElement("performer"))
   {
-    auto name = performer->Get<std::string>("name");
-
-    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
-    // We use the ref to create a parent entity component later on
-    std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
-    if (this->performerMap.find(ref) == this->performerMap.end())
+    igndbg << "Reading performer info\n";
+    for (auto performer = _sdf->GetElement("performer"); performer;
+        performer = performer->GetNextElement("performer"))
     {
-      this->performerMap[ref] = performerEntity;
-    }
-    else
-    {
-      auto performer2 = this->runner->entityCompMgr.Component<components::Name>(
-          this->performerMap[ref]);
+      auto name = performer->Get<std::string>("name");
 
-      ignerr << "Found multiple performers (" << name << " and "
-             << performer2->Data() << ") referring to the same entity\n";
-    }
+      Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+      // We use the ref to create a parent entity component later on
+      std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
+      if (this->performerMap.find(ref) == this->performerMap.end())
+      {
+        this->performerMap[ref] = performerEntity;
+      }
+      else
+      {
+        auto performer2 =
+          this->runner->entityCompMgr.Component<components::Name>(
+              this->performerMap[ref]);
 
-    sdf::Geometry geometry;
-    geometry.Load(performer->GetElement("geometry"));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Performer());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerLevels());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Name(name));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Geometry(geometry));
+        ignerr << "Found multiple performers (" << name << " and "
+          << performer2->Data() << ") referring to the same entity\n";
+      }
+
+      sdf::Geometry geometry;
+      geometry.Load(performer->GetElement("geometry"));
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::Performer());
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::PerformerLevels());
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::Name(name));
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::Geometry(geometry));
+
+      ignmsg << "Created performer [" << performerEntity << " / " << name << "]"
+             << std::endl;
+    }
   }
 
   if (this->useLevels && performerMap.empty())
   {
-    ignwarn << "Asked to use levels but no <performer>s were found - levels "
-               "will not work.\n";
+    igndbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
+      << "the /world/<world_name>/level/set_performer service to specify "
+      << "performers.\n";
   }
+}
+
+/////////////////////////////////////////////////
+bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
+                                  msgs::Boolean &_rep)
+{
+  // \todo(nkoenig) This implementation store the request to be processed in
+  // the update cycle. This approach is thread-safe, but is unable to
+  // provide the caller with feedback because
+  // entityCompMgr.EntityByComponents() is not thread safe. It would better
+  // to have long running service calls in ign-transport so that this
+  // function could get information out of the EntityComponent mangager
+  // in a thread-safe manner and return information back to the caller.
+  //
+  // The commented out section at the end of this function was
+  // the original implementation.
+
+  std::string name = _req.data();
+  _rep.set_data(false);
+  if (!name.empty())
+  {
+    sdf::Geometry geom;
+    geom.SetType(sdf::GeometryType::BOX);
+    sdf::Box boxShape;
+
+    // \todo(anyone) Use the bounding box instead of a hardcoded box.
+    boxShape.SetSize({2, 2, 2});
+
+    geom.SetBoxShape(boxShape);
+    _rep.set_data(true);
+
+    std::lock_guard<std::mutex> lock(this->performerToAddMutex);
+    this->performersToAdd.push_back(std::make_pair(name, geom));
+  }
+  else
+  {
+    ignerr << "Empty performer name. Performer will not be created\n";
+  }
+
+  return true;
+
+  // Orignial implementation
+  //
+  // _rep.set_data(false);
+  // std::string name = _req.data();
+
+  // // Find the model entity
+  // Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
+  //     components::Name(name));
+  // if (modelEntity == kNullEntity)
+  // {
+  //   ignerr << "Unable to find model with name[" << name << "]. "
+  //     << "Performer not created\n";
+  //   return true;
+  // }
+
+  // // Check to see if the performer has already been set.
+  // if (this->performerMap.find(name) == this->performerMap.end())
+  // {
+  //   sdf::Geometry geom;
+  //   geom.SetType(sdf::GeometryType::BOX);
+  //   sdf::Box boxShape;
+
+  //   // \todo(anyone) Use the bounding box instead of a hardcoded box.
+  //   boxShape.SetSize({2, 2, 2});
+
+  //   geom.SetBoxShape(boxShape);
+  //   this->performersToAdd.push_back(std::make_pair(name, geom));
+  //   _rep.set_data(true);
+  // }
+  // else
+  // {
+  //   ignwarn << "Performer with name[" << name << "] "
+  //     << "has already been set.\n";
+  // }
+
+  // // The response succeeded.
+  // return true;
 }
 
 /////////////////////////////////////////////////
@@ -355,6 +444,20 @@ void LevelManager::UpdateLevelsState()
   std::vector<Entity> levelsToUnload;
 
   {
+    std::lock_guard<std::mutex> lock(this->performerToAddMutex);
+    auto iter = this->performersToAdd.begin();
+    while (iter != this->performersToAdd.end())
+    {
+      int result = this->CreatePerformerEntity(iter->first, iter->second);
+      // Create the performer entity
+      if (result >= 0)
+        iter = this->performersToAdd.erase(iter);
+      else
+        ++iter;
+    }
+  }
+
+  {
     IGN_PROFILE("DefaultLevel");
     // Handle default level
     this->runner->entityCompMgr.Each<components::DefaultLevel>(
@@ -369,60 +472,69 @@ void LevelManager::UpdateLevelsState()
         });
   }
 
-  this->runner->entityCompMgr.Each<
-         components::Performer,
-         components::PerformerLevels,
-         components::Geometry,
-         components::ParentEntity>(
-      [&](const Entity &_perfEntity,
-          components::Performer *,
-          components::PerformerLevels *_perfLevels,
-          components::Geometry *_geometry,
-          components::ParentEntity *_parent) -> bool
-      {
-        IGN_PROFILE("EachPerformer");
+  // If levels are not being used, we only process the default level.
+  if (this->useLevels)
+  {
+    this->runner->entityCompMgr.Each<
+      components::Performer,
+      components::PerformerLevels,
+      components::Geometry,
+      components::ParentEntity>(
+          [&](const Entity &_perfEntity,
+            components::Performer *,
+            components::PerformerLevels *_perfLevels,
+            components::Geometry *_geometry,
+            components::ParentEntity *_parent) -> bool
+          {
+          IGN_PROFILE("EachPerformer");
 
-        auto pose = this->runner->entityCompMgr.Component<components::Pose>(
-            _parent->Data());
+          auto pose = this->runner->entityCompMgr.Component<components::Pose>(
+              _parent->Data());
 
-        // We assume the geometry contains a box.
-        auto perfBox = _geometry->Data().BoxShape();
-        if (nullptr == perfBox)
-        {
+          // We assume the geometry contains a box.
+          auto perfBox = _geometry->Data().BoxShape();
+          if (nullptr == perfBox)
+          {
           ignerr << "Internal error: geometry of performer [" << _perfEntity
-                 << "] missing box." << std::endl;
+          << "] missing box." << std::endl;
           return true;
-        }
+          }
 
-        math::AxisAlignedBox performerVolume{
-             pose->Data().Pos() - perfBox->Size() / 2,
-             pose->Data().Pos() + perfBox->Size() / 2};
+          math::AxisAlignedBox performerVolume{
+            pose->Data().Pos() - perfBox->Size() / 2,
+              pose->Data().Pos() + perfBox->Size() / 2};
 
-        std::set<Entity> newPerfLevels;
+          std::set<Entity> newPerfLevels;
 
-        // loop through levels and check for intersections
-        // Add all levels with inersections to the levelsToLoad even if they
-        // are currently active.
-        this->runner->entityCompMgr.Each<components::Level, components::Pose,
-                                         components::Geometry,
-                                         components::LevelBuffer >(
-            [&](const Entity &_entity, const components::Level *,
-                const components::Pose *_pose,
-                const components::Geometry *_levelGeometry,
-                const components::LevelBuffer *_levelBuffer) -> bool
-            {
+          // loop through levels and check for intersections
+          // Add all levels with intersections to the levelsToLoad even if they
+          // are currently active.
+          this->runner->entityCompMgr.Each<components::Level, components::Pose,
+            components::Geometry,
+            components::LevelBuffer >(
+                [&](const Entity &_entity, const components::Level *,
+                  const components::Pose *_pose,
+                  const components::Geometry *_levelGeometry,
+                  const components::LevelBuffer *_levelBuffer) -> bool
+                {
                 IGN_PROFILE("CheckPerformerAgainstLevel");
                 // Check if the performer is in this level
                 // assume a box for now
                 auto box = _levelGeometry->Data().BoxShape();
+                if (nullptr == box)
+                {
+                ignerr << "Level [" << _entity
+                << "]'s geometry is not a box." << std::endl;
+                return true;
+                }
                 auto buffer = _levelBuffer->Data();
                 auto center = _pose->Data().Pos();
                 math::AxisAlignedBox region{center - box->Size() / 2,
-                                            center + box->Size() / 2};
+                center + box->Size() / 2};
 
                 math::AxisAlignedBox outerRegion{
-                    center - (box->Size() / 2 + buffer),
-                    center + (box->Size() / 2 + buffer)};
+                  center - (box->Size() / 2 + buffer),
+                         center + (box->Size() / 2 + buffer)};
 
                 if (region.Intersects(performerVolume))
                 {
@@ -446,12 +558,14 @@ void LevelManager::UpdateLevelsState()
                   }
                 }
                 return true;
-              });
+                });
 
-        *_perfLevels = components::PerformerLevels(newPerfLevels);
+          *_perfLevels = components::PerformerLevels(newPerfLevels);
 
-        return true;
-      });
+          return true;
+          });
+  }
+
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());
@@ -466,9 +580,10 @@ void LevelManager::UpdateLevelsState()
   std::set<std::string> entityNamesMarked;
   for (const auto &toLoad : levelsToLoad)
   {
-    auto entityNames = this->runner->entityCompMgr
-                           .Component<components::LevelEntityNames>(toLoad)
-                           ->Data();
+    const components::LevelEntityNames *lvlEntNames =
+      this->runner->entityCompMgr.Component<components::LevelEntityNames>(
+          toLoad);
+    const auto &entityNames = lvlEntNames->Data();
     for (const auto &name : entityNames)
     {
       entityNamesMarked.insert(name);
@@ -537,6 +652,7 @@ void LevelManager::UpdateLevelsState()
   auto pendingEnd = this->activeLevels.end();
   for (const auto &toUnload : levelsToUnload)
   {
+    ignmsg << "Unloaded level [" << toUnload << "]" << std::endl;
     pendingEnd = std::remove(this->activeLevels.begin(), pendingEnd, toUnload);
   }
   // Erase from vector
@@ -622,4 +738,45 @@ bool LevelManager::IsLevelActive(const Entity _entity) const
 {
   return std::find(this->activeLevels.begin(), this->activeLevels.end(),
                    _entity) != this->activeLevels.end();
+}
+
+/////////////////////////////////////////////////
+int LevelManager::CreatePerformerEntity(const std::string &_name,
+    const sdf::Geometry &_geom)
+{
+  // Find the model entity
+  Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
+      components::Name(_name));
+  if (modelEntity == kNullEntity)
+  {
+    ignwarn << "Attempting to set performer with name ["
+      << _name << "] "
+      << ", but the entity could not be found. Another attempt will be made "
+      << "in the next iteration.\n";
+    return -1;
+  }
+
+  if (!this->runner->entityCompMgr.ChildrenByComponents(modelEntity,
+        components::Performer()).empty())
+  {
+    ignwarn << "Attempting to set performer with name ["
+      << _name << "], but the entity already has a performer.\n";
+    return 1;
+  }
+
+  Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+  this->performerMap[_name] = performerEntity;
+
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::Performer());
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::PerformerLevels());
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::Name("perf_" + _name));
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::Geometry(_geom));
+
+  // Make the model a parent of this performer
+  this->entityCreator->SetParent(this->performerMap[_name], modelEntity);
+  return 0;
 }

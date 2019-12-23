@@ -14,6 +14,9 @@
  * limitations under the License.
  *
 */
+#include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
+#include <ignition/math/Rand.hh>
 #include "ignition/gazebo/ServerConfig.hh"
 
 using namespace ignition;
@@ -184,7 +187,25 @@ void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
 class ignition::gazebo::ServerConfigPrivate
 {
   /// \brief Default constructor.
-  public: ServerConfigPrivate() = default;
+  public: ServerConfigPrivate()
+  {
+    std::string home;
+    common::env(IGN_HOMEDIR, home);
+
+    this->timestamp = IGN_SYSTEM_TIME();
+
+    // Set a default log record path
+    this->logRecordPath = common::joinPaths(home,
+        ".ignition", "gazebo", "log", common::timeToIso(this->timestamp));
+
+    // If directory already exists, do not overwrite. This could potentially
+    // happen if multiple simulation instances are started in rapid
+    // succession.
+    if (common::exists(this->logRecordPath))
+    {
+      this->logRecordPath = common::uniqueDirectoryPath(this->logRecordPath);
+    }
+  }
 
   /// \brief Copy constructor.
   /// \param[in] _cfg Configuration to copy.
@@ -200,7 +221,8 @@ class ignition::gazebo::ServerConfigPrivate
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
-            networkSecondaries(_cfg->networkSecondaries) { }
+            networkSecondaries(_cfg->networkSecondaries),
+            seed(_cfg->seed) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -238,6 +260,12 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief The number of network secondaries.
   public: unsigned int networkSecondaries = 0;
+
+  /// \brief The given random seed.
+  public: unsigned int seed = 0;
+
+  /// \brief Timestamp that marks when this ServerConfig was created.
+  public: std::chrono::time_point<std::chrono::system_clock> timestamp;
 };
 
 //////////////////////////////////////////////////
@@ -399,6 +427,19 @@ void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 }
 
 /////////////////////////////////////////////////
+unsigned int ServerConfig::Seed() const
+{
+  return this->dataPtr->seed;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetSeed(unsigned int _seed)
+{
+  this->dataPtr->seed = _seed;
+  ignition::math::Rand::Seed(_seed);
+}
+
+/////////////////////////////////////////////////
 const std::string &ServerConfig::ResourceCache() const
 {
   return this->dataPtr->resourceCache;
@@ -427,4 +468,11 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &_cfg)
 {
   this->dataPtr = std::make_unique<ServerConfigPrivate>(_cfg.dataPtr);
   return *this;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::time_point<std::chrono::system_clock> &
+ServerConfig::Timestamp() const
+{
+  return this->dataPtr->timestamp;
 }

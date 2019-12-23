@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -86,12 +87,20 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
 };
 
 std::vector<msgs::Clock> clockMsgs;
+std::vector<msgs::Clock> rootClockMsgs;
 
 /////////////////////////////////////////////////
 void clockCb(const msgs::Clock &_msg)
 {
   clockMsgs.push_back(_msg);
 }
+
+/////////////////////////////////////////////////
+void rootClockCb(const msgs::Clock &_msg)
+{
+  rootClockMsgs.push_back(_msg);
+}
+
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, CreateEntities)
@@ -929,6 +938,7 @@ TEST_P(SimulationRunnerTest, Time)
 
   transport::Node node;
   node.Subscribe("/world/default/clock", &clockCb);
+  node.Subscribe("/clock", &rootClockCb);
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
@@ -955,6 +965,10 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
+  int sleep = 0;
+  while (clockMsgs.size() < 100 && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   // Verify info published to /clock topic
   auto simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
   EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
@@ -971,6 +985,10 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
+
+  sleep = 0;
+  while (clockMsgs.size() < 200 && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   // Verify info published to /clock topic
   simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
@@ -1006,10 +1024,28 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
+  sleep = 0;
+  while (clockMsgs.size() < 300 && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   // Verify info published to /clock topic
   simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
   EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
   EXPECT_EQ(clockMsgs.back().mutable_sim()->nsec(), simTime.second);
+
+  sleep = 0;
+  while (clockMsgs.size() != rootClockMsgs.size() && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+  // verify root clock
+  EXPECT_EQ(clockMsgs.size(), rootClockMsgs.size());
+  for (unsigned int i = 0; i < clockMsgs.size(); ++i)
+  {
+    EXPECT_EQ(clockMsgs[i].mutable_sim()->sec(),
+        rootClockMsgs[i].mutable_sim()->sec());
+    EXPECT_EQ(clockMsgs[i].mutable_sim()->nsec(),
+        rootClockMsgs[i].mutable_sim()->nsec());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1050,6 +1086,18 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
       });
   EXPECT_NE(kNullEntity, modelId);
 
+  // Get sensor entity
+  Entity sensorId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Sensor>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Sensor *_sensor)->bool
+      {
+        EXPECT_NE(nullptr, _sensor);
+        sensorId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, sensorId);
+
   // Check component registered by world plugin
   std::string worldComponentName{"WorldPluginComponent"};
   auto worldComponentId = ignition::common::hash64(worldComponentName);
@@ -1066,6 +1114,14 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
       modelComponentId));
 
+  // Check component registered by sensor plugin
+  std::string sensorComponentName{"SensorPluginComponent"};
+  auto sensorComponentId = ignition::common::hash64(sensorComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
+      sensorComponentId));
+
   // Clang re-registers components between tests. If we don't unregister them
   // beforehand, the new plugin tries to create a storage type from a previous
   // plugin, causing a crash.
@@ -1075,6 +1131,7 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   #if defined (__clang__)
     components::Factory::Instance()->Unregister(worldComponentId);
     components::Factory::Instance()->Unregister(modelComponentId);
+    components::Factory::Instance()->Unregister(sensorComponentId);
   #endif
 }
 
@@ -1199,10 +1256,13 @@ TEST_P(SimulationRunnerTest, GuiInfo)
 
   auto plugin = res.plugin(0);
   EXPECT_EQ("3D View", plugin.name());
-  EXPECT_EQ("Scene3D", plugin.filename());
+  EXPECT_EQ("GzScene3D", plugin.filename());
   EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
   EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
-  EXPECT_NE(plugin.innerxml().find("<pose_topic>"), std::string::npos);
+  EXPECT_EQ(plugin.innerxml().find("<service>"), std::string::npos);
+  EXPECT_EQ(plugin.innerxml().find("<pose_topic>"), std::string::npos);
+  EXPECT_EQ(plugin.innerxml().find("<scene_topic>"), std::string::npos);
+  EXPECT_EQ(plugin.innerxml().find("<deletion_topic>"), std::string::npos);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

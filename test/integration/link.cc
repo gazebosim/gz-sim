@@ -267,3 +267,91 @@ TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
       comWorldRot * linkMassMatrix.Moi() * comWorldRot.Transposed();
   EXPECT_EQ(expMoi, *link.WorldInertiaMatrix(ecm));
 }
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, LinkKineticEnergy)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SdfEntityCreator creator(ecm, eventMgr);
+
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, components::Link());
+
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+
+  ASSERT_TRUE(link.Valid(ecm));
+
+  // Before we add components, pose functions should return nullopt
+  EXPECT_EQ(std::nullopt, link.WorldKineticEnergy(ecm));
+
+  math::MassMatrix3d linkMassMatrix(2.0, {2.0, 1.5, 1.0}, {0.0, 0.0, 0.0});
+  math::Pose3d linkComPose;
+  linkComPose.Set(0.2, 0.0, 0.0, IGN_PI_2, 0, 0);
+  math::Inertiald linkInertial{linkMassMatrix, linkComPose};
+
+  math::Pose3d linkWorldPose;
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, 0.0, IGN_PI_2);
+
+  // initially zero velocity
+  math::Vector3d linkWorldAngularVelocity;
+  math::Vector3d linkWorldLinearVelocity;
+
+  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+  ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
+  ecm.CreateComponent(eLink,
+      components::WorldAngularVelocity(linkWorldAngularVelocity));
+  ecm.CreateComponent(eLink,
+      components::WorldLinearVelocity(linkWorldLinearVelocity));
+
+  // initially zero velocity
+  EXPECT_DOUBLE_EQ(0.0, *link.WorldKineticEnergy(ecm));
+
+  // update velocity and expect different kinetic energy
+  const auto angularVel =
+      ecm.Component<components::WorldAngularVelocity>(eLink);
+
+  // the link and inertial rotations do the following:
+  // xyz in world frame <-> zxy in inertial frame
+  // the inertial pose is along y axis in world frame
+
+  // T: kinetic energy
+  // m: mass
+  // w: world angular velocity
+
+  // w = [1, 0, 0]
+  // T = 0.5 * (Izz + m * cx^2)
+  // T = 0.5 * (1 + 2 * 0.2^2)
+  // T = 0.54
+  *angularVel = components::WorldAngularVelocity({math::Vector3d(1, 0, 0)});
+  EXPECT_DOUBLE_EQ(0.54, *link.WorldKineticEnergy(ecm));
+
+  // w = [0, 1, 0]
+  // T = 0.5 * Ixx
+  // T = 0.5 * 2.0
+  // T = 1.0
+  *angularVel = components::WorldAngularVelocity({math::Vector3d(0, 1, 0)});
+  EXPECT_DOUBLE_EQ(1.0, *link.WorldKineticEnergy(ecm));
+
+  // w = [0, 0, 1]
+  // T = 0.5 * (Iyy + m * cx^2)
+  // T = 0.5 * (1.5 + 2 * 0.2^2)
+  // T = 0.79
+  *angularVel = components::WorldAngularVelocity({math::Vector3d(0, 0, 1)});
+  EXPECT_DOUBLE_EQ(0.79, *link.WorldKineticEnergy(ecm));
+
+  // reset angular velocity to zeros
+  *angularVel = components::WorldAngularVelocity({math::Vector3d(0, 0, 0)});
+  EXPECT_DOUBLE_EQ(0.0, *link.WorldKineticEnergy(ecm));
+
+  // set linear velocity
+  const auto linearVel =
+      ecm.Component<components::WorldLinearVelocity>(eLink);
+
+  *linearVel = components::WorldLinearVelocity({math::Vector3d(1, 0, 0)});
+  EXPECT_DOUBLE_EQ(1.0, *link.WorldKineticEnergy(ecm));
+
+  *linearVel = components::WorldLinearVelocity({math::Vector3d(10, 0, 0)});
+  EXPECT_DOUBLE_EQ(100.0, *link.WorldKineticEnergy(ecm));
+}

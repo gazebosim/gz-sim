@@ -19,6 +19,8 @@
 
 #include <sdf/Element.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
@@ -79,6 +81,7 @@ Imu::~Imu() = default;
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Imu::PreUpdate");
   this->dataPtr->CreateImuEntities(_ecm);
 }
 
@@ -86,6 +89,16 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
 void Imu::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Imu::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {
@@ -106,6 +119,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity
   if (kNullEntity == this->worldEntity)
     this->worldEntity = _ecm.EntityByComponents(components::World());
@@ -130,7 +144,8 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         sdf::Sensor data = _imu->Data();
         data.SetName(sensorScopedName);
         // check topic
@@ -166,6 +181,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ImuPrivate::Update(const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ImuPrivate::Update");
   _ecm.Each<components::Imu,
             components::WorldPose,
             components::AngularVelocity,
@@ -202,6 +218,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
 void ImuPrivate::RemoveImuEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("ImuPrivate::RemoveImuEntities");
   _ecm.EachRemoved<components::Imu>(
     [&](const Entity &_entity,
         const components::Imu *)->bool

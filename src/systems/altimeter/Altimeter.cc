@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/altimeter.pb.h>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -78,6 +79,7 @@ Altimeter::~Altimeter() = default;
 void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Altimeter::PreUpdate");
   this->dataPtr->CreateAltimeterEntities(_ecm);
 }
 
@@ -85,6 +87,16 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
 void Altimeter::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Altimeter::PostUpdate");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {
@@ -105,6 +117,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Altimeter::CreateAltimeterEntities");
   // Create altimeters
   _ecm.EachNew<components::Altimeter, components::ParentEntity>(
     [&](const Entity &_entity,
@@ -112,7 +125,8 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         sdf::Sensor data = _altimeter->Data();
         data.SetName(sensorScopedName);
         // check topic
@@ -146,6 +160,7 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Altimeter::UpdateAltimeters");
   _ecm.Each<components::Altimeter, components::WorldPose,
             components::WorldLinearVelocity>(
     [&](const Entity &_entity,
@@ -175,6 +190,7 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 void AltimeterPrivate::RemoveAltimeterEntities(
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Altimeter::RemoveAltimeterEntities");
   _ecm.EachRemoved<components::Altimeter>(
     [&](const Entity &_entity,
         const components::Altimeter *)->bool

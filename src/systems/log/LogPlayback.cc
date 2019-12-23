@@ -28,6 +28,7 @@
 #include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
@@ -50,25 +51,33 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Start log playback.
   /// \param[in] _logPath Path of recorded state to playback.
-  /// \param[in] _worldEntity The world entity this plugin is attached to.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  /// \param[in] _eventMgr The EventManager of the given simulation
-  /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(const std::string &_logPath,
-      const Entity &_worldEntity, EntityComponentManager &_ecm,
-      EventManager &_eventMgr);
+  public: bool Start(const std::string &_logPath, EntityComponentManager &_ecm);
 
-  /// \brief Reads the next message in log file and updates the ECM
+  /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
-  public: void ParseNext(EntityComponentManager &_ecm);
+  /// \param[in] _msg Message containing pose updates.
+  public: void Parse(EntityComponentManager &_ecm, const msgs::Pose_V &_msg);
+
+  /// \brief Updates the ECM according to the given message.
+  /// \param[in] _ecm Mutable ECM.
+  /// \param[in] _msg Message containing state updates.
+  public: void Parse(EntityComponentManager &_ecm,
+      const msgs::SerializedState &_msg);
+
+  /// \brief Updates the ECM according to the given message.
+  /// \param[in] _ecm Mutable ECM.
+  /// \param[in] _msg Message containing state updates.
+  public: void Parse(EntityComponentManager &_ecm,
+      const msgs::SerializedStateMap &_msg);
 
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
-  /// \brief Iterator to go through messages in Batch
-  public: transport::log::MsgIter iter;
+  /// \brief
+  public: std::unique_ptr<transport::log::Log> log;
 
   /// \brief Indicator of whether any playback instance has ever been started
   public: static bool started;
@@ -78,6 +87,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
+
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -92,29 +104,16 @@ LogPlayback::LogPlayback()
 LogPlayback::~LogPlayback() = default;
 
 //////////////////////////////////////////////////
-void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
+void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
+    const msgs::Pose_V &_msg)
 {
-  if (this->iter->Type() != "ignition.msgs.Pose_V")
-  {
-    ignwarn << "Logged message types other than Pose_V are currently not "
-      << "supported. Message of type [" << this->iter->Type()
-      << "] will not be played.\n";
-    return;
-  }
-
-  // Protobuf message
-  msgs::Pose_V posevMsg;
-
-  // Convert binary bytes in string into a ign-msgs msg
-  posevMsg.ParseFromString(this->iter->Data());
-
   // Maps entity to pose recorded
   // Key: entity. Value: pose
   std::map <Entity, msgs::Pose> idToPose;
 
-  for (int i = 0; i < posevMsg.pose_size(); ++i)
+  for (int i = 0; i < _msg.pose_size(); ++i)
   {
-    msgs::Pose pose = posevMsg.pose(i);
+    msgs::Pose pose = _msg.pose(i);
 
     // Update entity pose in map
     idToPose.insert_or_assign(pose.id(), pose);
@@ -130,27 +129,58 @@ void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
-
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
+
+    // The ComponentState::OneTimeChange argument forces the
+    // SceneBroadcaster system to publish a message. This parameter used to
+    // be ComponentState::PeriodicChange. The problem with PeriodicChange is
+    // that state updates could be missed by the SceneBroadscaster, which
+    // publishes at 60Hz using the wall clock. If a 60Hz tick
+    // doesn't fall on the same update cycle as this state change then the
+    // GUI will not receive the state information. The result is jumpy
+    // playback.
+    //
+    // \todo(anyone) I don't think using OneTimeChange is necessarily bad, but
+    // it would be nice if other systems could know that log playback is
+    // active/enabled. Then a system could make decisions on how to process
+    // information.
+    _ecm.SetChanged(_entity, components::Pose::typeId,
+        ComponentState::OneTimeChange);
 
     return true;
   });
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Configure(const Entity &_worldEntity,
+void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
+    const msgs::SerializedStateMap &_msg)
+{
+  _ecm.SetState(_msg);
+}
+
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
+    const msgs::SerializedState &_msg)
+{
+  _ecm.SetState(_msg);
+}
+
+//////////////////////////////////////////////////
+void LogPlayback::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
 
+  this->dataPtr->eventManager = &_eventMgr;
+
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(logPath, _worldEntity, _ecm, _eventMgr);
+    this->dataPtr->Start(logPath, _ecm);
   }
   else
   {
@@ -161,8 +191,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
 //////////////////////////////////////////////////
 bool LogPlaybackPrivate::Start(const std::string &_logPath,
-  const Entity &_worldEntity, EntityComponentManager &_ecm,
-  EventManager &_eventMgr)
+                               EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -194,111 +223,40 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   }
 
   // Call Log.hh directly to load a .tlog file
-  auto log = std::make_unique<transport::log::Log>();
-  if (!log->Open(dbPath))
+  this->log = std::make_unique<transport::log::Log>();
+  if (!this->log->Open(dbPath))
   {
     ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
-  // Find SDF string in .tlog file
-  transport::log::TopicList sdfOpts("/" + common::basename(_logPath) + "/sdf");
-  transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
-  transport::log::MsgIter sdfIter = sdfBatch.begin();
-  if (sdfIter == sdfBatch.end())
-  {
-    ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
-    return false;
-  }
+  // Access all messages in .tlog file
+  this->batch = this->log->QueryMessages();
+  auto iter = this->batch.begin();
 
-  // Parse SDF message
-  msgs::StringMsg sdfMsg;
-  sdfMsg.ParseFromString(sdfIter->Data());
-
-  // Load recorded SDF file
-  sdf::Root root;
-  if (root.LoadSdfString(sdfMsg.data()).size() != 0 || root.WorldCount() <= 0)
-  {
-    ignerr << "Error loading SDF string logged in file [" << dbPath << "]"
-      << std::endl;
-    return false;
-  }
-  const sdf::World *sdfWorld = root.WorldByIndex(0);
-
-  std::vector <sdf::ElementPtr> pluginsRm;
-
-  // Look for LogRecord plugin in the SDF and remove it, so that playback
-  //   is not re-recorded.
-  // Remove Physics plugin, so that it does not clash with recorded poses.
-  // TODO(anyone) Cherry-picking plugins to remove doesn't scale well,
-  // handle this better once we're logging the initial world state in the DB
-  // file.
-  if (sdfWorld->Element()->HasElement("plugin"))
-  {
-    sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
-
-    // If never found, nothing to remove
-    while (pluginElt != nullptr)
-    {
-      if (pluginElt->HasAttribute("name"))
-      {
-        if ((pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
-          != std::string::npos) ||
-          (pluginElt->GetAttribute("name")->GetAsString().find("Physics")
-          != std::string::npos))
-        {
-          // Flag for removal.
-          // Do not actually remove plugin from parent while looping through
-          //   children of this parent. Else cannot access next element.
-          pluginsRm.push_back(pluginElt);
-        }
-      }
-
-      // Go to next plugin
-      pluginElt = pluginElt->GetNextElement("plugin");
-    }
-  }
-
-  // Remove the marked plugins
-  for (auto &it : pluginsRm)
-  {
-    it->RemoveFromParent();
-    igndbg << "Removed " << it->GetAttribute("name")->GetAsString()
-      << " plugin from loaded SDF\n";
-  }
-
-  // Create all Entities in SDF <world> tag
-  ignition::gazebo::SdfEntityCreator creator =
-    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
-
-  // Models
-  for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
-      ++modelIndex)
-  {
-    auto model = sdfWorld->ModelByIndex(modelIndex);
-    auto modelEntity = creator.CreateEntities(model);
-
-    creator.SetParent(modelEntity, _worldEntity);
-  }
-
-  // Lights
-  for (uint64_t lightIndex = 0; lightIndex < sdfWorld->LightCount();
-      ++lightIndex)
-  {
-    auto light = sdfWorld->LightByIndex(lightIndex);
-    auto lightEntity = creator.CreateEntities(light);
-
-    creator.SetParent(lightEntity, _worldEntity);
-  }
-
-  // Access messages in .tlog file
-  transport::log::TopicList opts("/world/" +
-    sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
-  this->batch = log->QueryMessages(opts);
-  this->iter = this->batch.begin();
-
-  if (this->iter == this->batch.end())
+  if (iter == this->batch.end())
   {
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+  }
+
+  // Look for the first SerializedState message and use it to set the initial
+  // state of the world. Messages received before this are ignored.
+  for (; iter != this->batch.end(); ++iter)
+  {
+    auto msgType = iter->Type();
+    if (msgType == "ignition.msgs.SerializedState")
+    {
+      msgs::SerializedState msg;
+      msg.ParseFromString(iter->Data());
+      this->Parse(_ecm, msg);
+      break;
+    }
+    else if (msgType == "ignition.msgs.SerializedStateMap")
+    {
+      msgs::SerializedStateMap msg;
+      msg.ParseFromString(iter->Data());
+      this->Parse(_ecm, msg);
+      break;
+    }
   }
 
   this->instStarted = true;
@@ -309,46 +267,83 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 //////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  if (_info.paused)
+  IGN_PROFILE("LogPlayback::Update");
+  if (_info.dt == std::chrono::steady_clock::duration::zero())
     return;
 
   if (!this->dataPtr->instStarted)
     return;
 
-  // TODO(anyone) Support rewind
-  // Sanity check. If playing reached the end, done.
-  if (this->dataPtr->iter == this->dataPtr->batch.end())
+  // Get all messages from this timestep
+  // TODO(anyone) Jumping forward can be expensive for long jumps. For now,
+  // just playing every single step so we don't miss insertions and deletions.
+  auto startTime = _info.simTime - _info.dt;
+  auto endTime = _info.simTime;
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    // Print only once
-    if (!this->dataPtr->printedEnd)
-    {
-      ignmsg << "Finished playing all recorded data\n";
-      this->dataPtr->printedEnd = true;
-    }
-    return;
+    // If jumping backwards, check 1 second before
+    startTime = endTime - std::chrono::seconds(1);
   }
 
-  // If timestamp since start of program has exceeded next logged timestamp,
-  //   play the joint positions at next logged timestamp.
+  this->dataPtr->batch = this->dataPtr->log->QueryMessages(
+      transport::log::AllTopics({startTime, endTime}));
 
-  // Get timestamp in logged data
-  // TODO(anyone) Avoid calling ParseFromString twice for the same message
-  msgs::Pose_V posevMsg;
-  posevMsg.ParseFromString(this->dataPtr->iter->Data());
+  msgs::Pose_V queuedPose;
 
-  auto msgTime = convert<std::chrono::steady_clock::duration>(
-      posevMsg.header().stamp());
-  if (_info.simTime >= msgTime)
+  auto iter = this->dataPtr->batch.begin();
+  while (iter != this->dataPtr->batch.end())
   {
-    // Parse pose and move link
-    this->dataPtr->ParseNext(_ecm);
+    auto msgType = iter->Type();
 
-    // Advance one entry in batch for next Update() iteration
-    // Process one log entry per Update() step.
-    // TODO(anyone) Support multiple msgs per update, in case playback has a
-    // lower frequency than record - using transport::log::TimeRangeOption
-    // should help.
-    ++(this->dataPtr->iter);
+    // Only set the last pose of a sequence of poses.
+    if (msgType != "ignition.msgs.Pose_V" && queuedPose.pose_size() > 0)
+    {
+      this->dataPtr->Parse(_ecm, queuedPose);
+      queuedPose.Clear();
+    }
+
+    if (msgType == "ignition.msgs.Pose_V")
+    {
+      // Queue poses to be set later
+      queuedPose.ParseFromString(iter->Data());
+    }
+    else if (msgType == "ignition.msgs.SerializedState")
+    {
+      msgs::SerializedState msg;
+      msg.ParseFromString(iter->Data());
+      this->dataPtr->Parse(_ecm, msg);
+    }
+    else if (msgType == "ignition.msgs.SerializedStateMap")
+    {
+      msgs::SerializedStateMap msg;
+      msg.ParseFromString(iter->Data());
+      this->dataPtr->Parse(_ecm, msg);
+    }
+    else if (msgType == "ignition.msgs.StringMsg")
+    {
+      // Do nothing, we assume this is the SDF string
+    }
+    else
+    {
+      ignwarn << "Trying to playback unsupported message type ["
+              << msgType << "]" << std::endl;
+    }
+    ++iter;
+  }
+
+  if (queuedPose.pose_size() > 0)
+  {
+    this->dataPtr->Parse(_ecm, queuedPose);
+  }
+
+  // pause playback if end of log is reached
+  if (_info.simTime >= this->dataPtr->log->EndTime())
+  {
+    ignmsg << "End of log file reached. Time: " <<
+      std::chrono::duration_cast<std::chrono::seconds>(
+      this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
+
+    this->dataPtr->eventManager->Emit<events::Pause>(true);
   }
 }
 

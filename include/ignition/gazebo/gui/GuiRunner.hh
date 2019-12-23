@@ -43,7 +43,7 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   public: explicit GuiRunner(const std::string &_worldName);
 
   /// \brief Destructor
-  public: ~GuiRunner();
+  public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
@@ -55,12 +55,12 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \brief Callback for the state service.
   /// \param[in] _res Response containing new state.
   /// \param[in] _result True if successful.
-  private: void OnStateService(const msgs::SerializedStep &_res,
+  private: void OnStateService(const msgs::SerializedStepMap &_res,
       const bool _result);
 
   /// \brief Callback when a new state is received from the server.
   /// \param[in] _msg New state message.
-  private: void OnState(const msgs::SerializedStep &_msg);
+  private: void OnState(const msgs::SerializedStepMap &_msg);
 
   /// \brief Entity-component manager.
   private: gazebo::EntityComponentManager ecm;

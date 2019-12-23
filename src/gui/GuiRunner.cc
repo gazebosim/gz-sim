@@ -16,6 +16,7 @@
 */
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 
 // Include all components so they have first-class support
@@ -30,6 +31,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
+  this->setProperty("worldName", QString::fromStdString(_worldName));
   this->stateTopic = "/world/" + _worldName + "/state";
 
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
@@ -42,9 +44,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner()
-{
-}
+GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
@@ -67,7 +67,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnStateService(const msgs::SerializedStep &_res,
+void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
     const bool _result)
 {
   if (!_result)
@@ -80,8 +80,11 @@ void GuiRunner::OnStateService(const msgs::SerializedStep &_res,
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnState(const msgs::SerializedStep &_msg)
+void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
+  IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
+  IGN_PROFILE("GuiRunner::Update");
+
   this->ecm.SetState(_msg.state());
 
   // Update all plugins

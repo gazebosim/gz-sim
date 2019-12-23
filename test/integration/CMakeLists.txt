@@ -5,6 +5,7 @@ set(tests
   altimeter_system.cc
   apply_joint_force_system.cc
   battery_plugin.cc
+  breadcrumbs.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
@@ -16,6 +17,7 @@ set(tests
   joint_controller_system.cc
   lift_drag_system.cc
   level_manager.cc
+  level_manager_runtime_performers.cc
   link.cc
   logical_camera_system.cc
   magnetometer_system.cc
@@ -36,6 +38,7 @@ set(tests
 set(tests_needing_display
   depth_camera.cc
   gpu_lidar.cc
+  rgbd_camera.cc
   sensors_system.cc
 )
 

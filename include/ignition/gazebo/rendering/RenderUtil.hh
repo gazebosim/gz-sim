@@ -50,6 +50,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Initialize the renderer. Must be called in the rendering thread.
     public: void Init();
 
+    /// \brief Count of pending sensors. Must be called in the rendering thread.
+    /// \return Number of sensors to be added on the next `Update` call
+    ///
+    /// In the case that RenderUtil has not been initialized, this method
+    /// will return -1.
+    public: int PendingSensors() const;
+
     /// \brief Main update function. Must be called in the rendering thread.
     public: void Update();
 
@@ -85,6 +92,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
+    /// \brief Show grid view in the scene
+    /// \param[in] _scene Pointer to the scene object
+    public: void ShowGrid();
+
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
@@ -102,9 +113,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();
 
-    /// \brief Set the entity beinging selected
+    /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(rendering::NodePtr _node);
+
+    /// \brief Get the entity being selected
+    /// \return Node representing the selected entity
+    public: rendering::NodePtr SelectedEntity() const;
+
+    /// \brief Set whether the transform controls are currently being dragged.
+    /// \param[in] _active True if active.
+    public: void SetTransformActive(bool _active);
 
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;

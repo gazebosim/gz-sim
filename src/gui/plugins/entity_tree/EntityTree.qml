@@ -4,6 +4,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
   id: entityTree
@@ -50,21 +51,25 @@ Rectangle {
     }
 
     style: TreeViewStyle {
+      indentation: itemHeight * 0.75
+
       headerDelegate: Rectangle {
         visible: false
       }
 
       branchDelegate: Rectangle {
         height: itemHeight
-        width: itemHeight*0.5
+        width: itemHeight * 0.75
         color: "transparent"
-        Text {
-          font.pointSize: 18
-          font.family: "Roboto"
+        Image {
+          id: icon
+          sourceSize.height: itemHeight * 0.4
+          sourceSize.width: itemHeight * 0.4
+          fillMode: Image.Pad
           anchors.verticalCenter: parent.verticalCenter
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: styleData.isExpanded ? "\uFF0D" : "\uFF0B"
-          color: Material.theme == Material.Light ? "black" : "white"
+          anchors.right: parent.right
+          source: styleData.isExpanded ?
+              "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
       }
 
@@ -124,6 +129,12 @@ Rectangle {
             id: ma
             anchors.fill: parent
             hoverEnabled: true
+            acceptedButtons: Qt.RightButton
+            onClicked: {
+              var type = EntityTreeModel.EntityType(styleData.index)
+              var scopedName = EntityTreeModel.ScopedName(styleData.index)
+              entityContextMenu.open(scopedName, type)
+            }
           }
         }
       }
@@ -133,5 +144,10 @@ Rectangle {
       role: "entityName"
       width: 300
     }
+  }
+
+  IgnGazebo.EntityContextMenu {
+    id: entityContextMenu
+    anchors.fill: parent
   }
 }

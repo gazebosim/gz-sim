@@ -21,15 +21,18 @@
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 #include "network/NetworkManagerPrimary.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 using StringSet = std::unordered_set<std::string>;
+
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
@@ -162,7 +165,14 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   this->node = std::make_unique<transport::Node>(opts);
 
+  // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("playback/control",
+      &SimulationRunner::OnPlaybackControl, this);
+
+  ignmsg << "Serving world controls on [" << opts.NameSpace()
+         << "/control] and [" << opts.NameSpace() << "/playback/control]"
+         << std::endl;
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
@@ -182,12 +192,59 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() = default;
+SimulationRunner::~SimulationRunner()
+{
+  this->StopWorkerThreads();
+}
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
 {
   IGN_PROFILE("SimulationRunner::UpdateCurrentInfo");
+
+  // Rewind
+  if (this->requestedRewind)
+  {
+    igndbg << "Rewinding simulation back to time zero." << std::endl;
+    this->realTimes.clear();
+    this->simTimes.clear();
+    this->realTimeFactor = 0;
+
+    this->currentInfo.dt = -this->currentInfo.simTime;
+    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.iterations = 0;
+    this->realTimeWatch.Reset();
+    if (!this->currentInfo.paused)
+      this->realTimeWatch.Start();
+
+    this->requestedRewind = false;
+
+    return;
+  }
+
+  // Seek
+  if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
+  {
+    igndbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
+        this->requestedSeek).count() << "s." << std::endl;
+
+    this->realTimes.clear();
+    this->simTimes.clear();
+    this->realTimeFactor = 0;
+
+    this->currentInfo.dt = this->requestedSeek - this->currentInfo.simTime;
+    this->currentInfo.simTime = this->requestedSeek;
+    this->currentInfo.iterations = 0;
+
+    this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
+
+    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+
+    return;
+  }
+
+  // Regular time flow
 
   // Store the real time and sim time only if not paused.
   if (this->realTimeWatch.Running())
@@ -268,6 +325,9 @@ void SimulationRunner::PublishStats()
   // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
 
+  if (this->rootStatsPub.Valid())
+    this->rootStatsPub.Publish(msg);
+
   // Create and publish the clock message. The clock message is not
   // throttled.
   ignition::msgs::Clock clockMsg;
@@ -279,6 +339,10 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_system()->set_nsec(
       IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
   this->clockPub.Publish(clockMsg);
+
+  // Only publish to root topic if no others are.
+  if (this->rootClockPub.Valid())
+    this->rootClockPub.Publish(clockMsg);
 }
 
 /////////////////////////////////////////////////
@@ -309,11 +373,59 @@ void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
 void SimulationRunner::ProcessSystemQueue()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  auto pending = this->pendingSystems.size();
+
+  if (pending > 0)
+  {
+    // If additional systems are to be added, stop the existing threads.
+    this->StopWorkerThreads();
+  }
+
   for (const auto &system : this->pendingSystems)
   {
     this->AddSystemToRunner(system);
   }
+
   this->pendingSystems.clear();
+
+  // If additional systems were added, recreate the worker threads.
+  if (pending > 0)
+  {
+    igndbg << "Creating PostUpdate worker threads: "
+      << this->systemsPostupdate.size() + 1 << std::endl;
+
+    this->postUpdateStartBarrier =
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+    this->postUpdateStopBarrier =
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+
+    this->postUpdateThreadsRunning = true;
+    int id = 0;
+
+    for (auto &system : this->systemsPostupdate)
+    {
+      igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+
+      this->postUpdateThreads.push_back(std::thread([&, id]()
+      {
+        std::stringstream ss;
+        ss << "PostUpdateThread: " << id;
+        IGN_PROFILE_THREAD_NAME(ss.str().c_str());
+        while (this->postUpdateThreadsRunning)
+        {
+          this->postUpdateStartBarrier->Wait();
+          if (this->postUpdateThreadsRunning)
+          {
+            system->PostUpdate(this->currentInfo, this->entityCompMgr);
+          }
+          this->postUpdateStopBarrier->Wait();
+        }
+        igndbg << "Exiting postupdate worker thread ("
+          << id << ")" << std::endl;
+      }));
+      id++;
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -340,8 +452,13 @@ void SimulationRunner::UpdateSystems()
 
   {
     IGN_PROFILE("PostUpdate");
-    for (auto& system : this->systemsPostupdate)
-      system->PostUpdate(this->currentInfo, this->entityCompMgr);
+    // If no systems implementing PostUpdate have been added, then
+    // the barriers will be uninitialized, so guard against that condition.
+    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    {
+      this->postUpdateStartBarrier->Wait();
+      this->postUpdateStopBarrier->Wait();
+    }
   }
 }
 
@@ -356,6 +473,25 @@ void SimulationRunner::OnStop()
 {
   this->stopReceived = true;
   this->running = false;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::StopWorkerThreads()
+{
+  this->postUpdateThreadsRunning = false;
+  if (this->postUpdateStartBarrier)
+  {
+    this->postUpdateStartBarrier->Cancel();
+  }
+  if (this->postUpdateStopBarrier)
+  {
+    this->postUpdateStopBarrier->Cancel();
+  }
+  for (auto &thread : this->postUpdateThreads)
+  {
+    thread.join();
+  }
+  this->postUpdateThreads.clear();
 }
 
 /////////////////////////////////////////////////
@@ -408,15 +544,74 @@ bool SimulationRunner::Run(const uint64_t _iterations)
         "stats", advertOpts);
   }
 
+  if (!this->rootStatsPub.Valid())
+  {
+    // Check for the existence of other publishers on `/stats`
+    std::vector<ignition::transport::MessagePublisher> publishers;
+    this->node->TopicInfo("/stats", publishers);
+
+    if (!publishers.empty())
+    {
+      ignwarn << "Found additional publishers on /stats," <<
+                 " using namespaced stats topic only" << std::endl;
+      igndbg << "Publishers [Address, Message Type]:\n";
+
+      /// List the publishers
+      for (auto & pub : publishers)
+      {
+        igndbg << "  " << pub.Addr() << ", "
+          << pub.MsgTypeName() << std::endl;
+      }
+    }
+    else
+    {
+      ignmsg << "Found no publishers on /stats, adding root stats topic"
+             << std::endl;
+      this->rootStatsPub = this->node->Advertise<msgs::WorldStatistics>(
+          "/stats");
+    }
+  }
+
   // Create the clock publisher.
   if (!this->clockPub.Valid())
     this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
 
+  // Create the global clock publisher.
+  if (!this->rootClockPub.Valid())
+  {
+    // Check for the existence of other publishers on `/clock`
+    std::vector<ignition::transport::MessagePublisher> publishers;
+    this->node->TopicInfo("/clock", publishers);
+
+    if (!publishers.empty())
+    {
+      ignwarn << "Found additional publishers on /clock," <<
+                 " using namespaced clock topic only" << std::endl;
+      igndbg << "Publishers [Address, Message Type]:\n";
+
+      /// List the publishers
+      for (auto & pub : publishers)
+      {
+        igndbg << "  " << pub.Addr() << ", "
+          << pub.MsgTypeName() << std::endl;
+      }
+    }
+    else
+    {
+      ignmsg << "Found no publishers on /clock, adding root clock topic"
+             << std::endl;
+      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>(
+          "/clock");
+    }
+  }
+
+  // Keep number of iterations requested by caller
+  uint64_t processedIterations{0};
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (uint64_t startingIterations = this->currentInfo.iterations;
-       this->running && (_iterations == 0 ||
-         this->currentInfo.iterations < _iterations + startingIterations);)
+  while (this->running && (_iterations == 0 ||
+       processedIterations < _iterations))
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
     // Compute the time to sleep in order to match, as closely as possible,
@@ -448,6 +643,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update time information. This will update the iteration count, RTF,
     // and other values.
     this->UpdateCurrentInfo();
+    if (!this->currentInfo.paused)
+    {
+      processedIterations++;
+    }
 
     // If network, wait for network step, otherwise do our own step
     if (this->networkMgr)
@@ -463,6 +662,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   }
 
   this->running = false;
+
   return true;
 }
 
@@ -506,6 +706,10 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
+
+  // Each network manager takes care of marking its components as unchanged
+  if (!this->networkMgr)
+    this->entityCompMgr.SetAllComponentsUnchanged();
 }
 
 //////////////////////////////////////////////////
@@ -568,6 +772,22 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     {
       entity = this->entityCompMgr.EntityByComponents(
           components::Name(plugin.EntityName()), components::World());
+    }
+    else if ("sensor" == plugin.EntityType())
+    {
+      // TODO(louise) Use scoped names for models and worlds too
+      auto sensors = this->entityCompMgr.EntitiesByComponents(
+          components::Sensor());
+
+      for (auto sensor : sensors)
+      {
+        if (scopedName(sensor, this->entityCompMgr, "::", false) ==
+            plugin.EntityName())
+        {
+          entity = sensor;
+          break;
+        }
+      }
     }
     else
     {
@@ -676,7 +896,60 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
-  this->worldControlMsgs.push_back(_req);
+
+  WorldControl control;
+  control.pause = _req.pause();
+
+  if (_req.multi_step() != 0)
+    control.multiStep = _req.multi_step();
+  else if (_req.step())
+    control.multiStep = 1;
+
+  if (_req.has_reset())
+  {
+    control.rewind = _req.reset().all() || _req.reset().time_only();
+
+    if (_req.reset().model_only())
+    {
+      ignwarn << "Model only reset is not supported." << std::endl;
+    }
+  }
+
+  if (_req.seed() != 0)
+  {
+    ignwarn << "Changing seed is not supported." << std::endl;
+  }
+
+  this->worldControls.push_back(control);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
+    msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+
+  WorldControl control;
+  control.pause = _req.pause();
+  control.multiStep = _req.multi_step();
+  control.rewind = _req.rewind();
+
+  if (_req.has_seek())
+  {
+    control.seek = std::chrono::seconds(_req.seek().sec()) +
+                   std::chrono::nanoseconds(_req.seek().nsec());
+  }
+
+  if (_req.forward())
+  {
+    ignwarn << "Log forwarding is not supported, use seek." << std::endl;
+  }
+
+  this->worldControls.push_back(control);
+
   _res.set_data(true);
   return true;
 }
@@ -693,21 +966,30 @@ void SimulationRunner::ProcessMessages()
 void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
-  for (const msgs::WorldControl &msg : this->worldControlMsgs)
+  for (const auto &control : this->worldControls)
   {
     // Play / pause
-    this->SetPaused(msg.pause());
+    this->SetPaused(control.pause);
 
     // Step, only if we are paused.
-    if (this->Paused() && msg.multi_step() > 0)
+    if (this->Paused() && control.multiStep > 0)
     {
-      this->pendingSimIterations += msg.multi_step();
+      this->pendingSimIterations += control.multiStep;
       // Unpause so that stepping can occur.
       this->SetPaused(false);
     }
+
+    // Rewind / reset
+    this->requestedRewind = control.rewind;
+
+    // Seek
+    if (control.seek >= std::chrono::steady_clock::duration::zero())
+    {
+      this->requestedSeek = control.seek;
+    }
   }
 
-  this->worldControlMsgs.clear();
+  this->worldControls.clear();
 }
 
 /////////////////////////////////////////////////

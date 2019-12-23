@@ -1,4 +1,8 @@
 <?xml version="1.0" ?>
+<!--
+  Check that model and link poses are being correctly parsed.
+  Both red boxes should overlap.
+-->
 <sdf version="1.6">
   <world name="shapes">
     <physics name="1ms" type="ode">
@@ -21,7 +25,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -38,10 +42,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/shapes/scene/info</service>
-        <pose_topic>/world/shapes/pose/info</pose_topic>
-        <scene_topic>/world/shapes/scene/info</scene_topic>
-        <deletion_topic>/world/shapes/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -130,7 +130,7 @@
 
     <model name="box_model_transform">
       <static>true</static>
-      <pose>0 0 1.5 0 0.78539816339 0</pose>
+      <pose>0 0 3.5 0 0.78539816339 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -167,6 +167,7 @@
     </model>
 
     <model name="box_link_transform">
+      <pose>0 0 2 0 0 0</pose>
       <static>true</static>
       <link name="box_link">
         <pose>0 0 1.5 0 0.78539816339 0</pose>

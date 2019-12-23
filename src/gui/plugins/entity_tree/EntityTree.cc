@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -97,6 +98,8 @@ TreeModel::TreeModel() : QStandardItemModel()
 void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
     unsigned int _parentEntity, const QString &_type)
 {
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("TreeModel::AddEntity");
   QStandardItem *parentItem{nullptr};
 
   // Root
@@ -149,6 +152,7 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 /////////////////////////////////////////////////
 void TreeModel::RemoveEntity(unsigned int _entity)
 {
+  IGN_PROFILE("TreeModel::RemoveEntity");
   QStandardItem *item{nullptr};
   auto itemIt = this->entityItems.find(_entity);
   if (itemIt != this->entityItems.end())
@@ -156,7 +160,7 @@ void TreeModel::RemoveEntity(unsigned int _entity)
     item = itemIt->second;
   }
 
-  if (nullptr == item || nullptr == item->parent())
+  if (nullptr == item)
   {
     return;
   }
@@ -177,7 +181,46 @@ void TreeModel::RemoveEntity(unsigned int _entity)
   removeChildren(item);
 
   // Remove from the view
-  item->parent()->removeRow(item->row());
+  if (nullptr == item->parent())
+    this->removeRow(item->row());
+  else
+    item->parent()->removeRow(item->row());
+}
+
+/////////////////////////////////////////////////
+QString TreeModel::EntityType(const QModelIndex &_index) const
+{
+  QString type;
+  QStandardItem *item = this->itemFromIndex(_index);
+  if (!item)
+    return type;
+
+  QVariant typeVar  = item->data(this->roleNames().key("type"));
+  if (!typeVar.isValid())
+    return type;
+
+  return typeVar.toString();
+}
+
+/////////////////////////////////////////////////
+QString TreeModel::ScopedName(const QModelIndex &_index) const
+{
+  QString scopedName;
+  QModelIndex idx = _index;
+  while (idx.isValid())
+  {
+    QVariant v = idx.data();
+    if (v.isValid())
+    {
+      QString str = v.toString();
+      if (!str.isEmpty())
+      {
+        scopedName = scopedName.isEmpty() ? str : str + "::" + scopedName;
+      }
+    }
+    idx = idx.parent();
+  }
+  return scopedName;
 }
 
 /////////////////////////////////////////////////
@@ -199,20 +242,19 @@ EntityTree::EntityTree()
 }
 
 /////////////////////////////////////////////////
-EntityTree::~EntityTree()
-{
-}
+EntityTree::~EntityTree() = default;
 
 /////////////////////////////////////////////////
 void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "EntityTree";
+    this->title = "Entity tree";
 }
 
 //////////////////////////////////////////////////
 void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("EntityTree::Update");
   // Treat all pre-existent entities as new at startup
   if (!this->dataPtr->initialized)
   {
@@ -264,11 +306,20 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
           const components::Name *_name,
           const components::ParentEntity *_parentEntity)->bool
     {
+      auto parentEntity = _parentEntity->Data();
+
+      // World children are top-level
+      if (this->dataPtr->worldEntity != kNullEntity &&
+          parentEntity == this->dataPtr->worldEntity)
+      {
+        parentEntity = kNullEntity;
+      }
+
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, _parentEntity->Data()),
+          Q_ARG(unsigned int, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });

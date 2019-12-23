@@ -25,6 +25,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -33,6 +34,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
@@ -70,7 +72,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStep &_res);
+  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -122,11 +124,23 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: static void RemoveFromGraph(const Entity _entity,
                                       SceneGraphType &_graph);
 
+  /// \brief Create and send out pose updates.
+  /// \param[in] _info The update information
+  /// \param[in] _manager The entity component manager
+  public: void PoseUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_manager);
+
   /// \brief Transport node.
   public: std::unique_ptr<transport::Node> node{nullptr};
 
   /// \brief Pose publisher.
   public: transport::Node::Publisher posePub;
+
+  /// \brief Dynamic pose publisher, for non-static model poses
+  public: transport::Node::Publisher dyPosePub;
+
+  /// \brief Rate at which to publish dynamic poses
+  public: int dyPoseHertz{60};
 
   /// \brief Scene publisher
   public: transport::Node::Publisher scenePub;
@@ -163,11 +177,18 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::condition_variable stateCv;
 
   /// \brief Filled on demand for the state service.
-  public: msgs::SerializedStep stepMsg;
+  public: msgs::SerializedStepMap stepMsg;
 
   /// \brief Last time the state was published.
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
+
+  /// \brief Period to publish state, defaults to 60 Hz.
+  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
+      statePublishPeriod{std::chrono::milliseconds(1000/60)};
+
+  /// \brief Flag used to indicate if the state service was called.
+  public: bool stateServiceRequest{false};
 };
 
 //////////////////////////////////////////////////
@@ -178,11 +199,11 @@ SceneBroadcaster::SceneBroadcaster()
 
 //////////////////////////////////////////////////
 void SceneBroadcaster::Configure(
-    const Entity &_entity, const std::shared_ptr<const sdf::Element> &,
+    const Entity &_entity, const std::shared_ptr<const sdf::Element> & _sdf,
     EntityComponentManager &_ecm, EventManager &)
 {
   // World
-  auto name = _ecm.Component<components::Name>(_entity);
+  const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
     ignerr << "World with id: " << _entity
@@ -192,6 +213,9 @@ void SceneBroadcaster::Configure(
 
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->worldName = name->Data();
+
+  auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
+  this->dataPtr->dyPoseHertz = readHertz.first;
 
   // Add to graph
   {
@@ -206,49 +230,167 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
+
   // Update scene graph with added entities before populating pose message
-  this->dataPtr->SceneGraphAddEntities(_manager);
+  if (_manager.HasNewEntities())
+    this->dataPtr->SceneGraphAddEntities(_manager);
 
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
 
-  msgs::Pose_V poseMsg;
+  // Create and send pose update if transport connections exist.
+  if (this->dataPtr->dyPosePub.HasConnections() ||
+      this->dataPtr->posePub.HasConnections())
+  {
+    this->dataPtr->PoseUpdate(_info, _manager);
+  }
 
-  // Set the time stamp in the header
-  poseMsg.mutable_header()->mutable_stamp()->CopyFrom(
-     convert<msgs::Time>(_info.simTime));
+  // call SceneGraphRemoveEntities at the end of this update cycle so that
+  // removed entities are removed from the scene graph for the next update cycle
+  this->dataPtr->SceneGraphRemoveEntities(_manager);
 
-    // Models
-  _manager.Each<components::Model, components::Name, components::Pose>(
+  // Publish state only if there are subscribers and
+  // * throttle rate to 60 Hz
+  // * also publish off-rate if there are change events:
+  //     * new / erased entities
+  //     * components with one-time changes
+  //     * jump back in time
+  // Throttle here instead of using transport::AdvertiseMessageOptions so that
+  // we can skip the ECM serialization
+  bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
+  auto now = std::chrono::system_clock::now();
+  bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
+        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
+        jumpBackInTime;
+  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod;
+  auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
+       (changeEvent || itsPubTime);
+
+  if (this->dataPtr->stateServiceRequest || shouldPublish)
+  {
+    this->dataPtr->stepMsg.Clear();
+
+    set(this->dataPtr->stepMsg.mutable_stats(), _info);
+
+    // Publish full state if there are change events
+    if (changeEvent || this->dataPtr->stateServiceRequest)
+    {
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
+    }
+    // Otherwise publish just selected components
+    else
+    {
+      IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+          {}, {components::Pose::typeId});
+    }
+
+    // Full state on demand
+    if (this->dataPtr->stateServiceRequest)
+    {
+      this->dataPtr->stateServiceRequest = false;
+      this->dataPtr->stateCv.notify_all();
+    }
+
+    // Poses periodically + change events
+    // TODO(louise) Send changed state periodically instead, once it reflects
+    // changed components
+    if (shouldPublish)
+    {
+      IGN_PROFILE("SceneBroadcast::PoseUpdate Publish State");
+      this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
+      this->dataPtr->lastStatePubTime = now;
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_manager)
+{
+  IGN_PROFILE("SceneBroadcast::PoseUpdate");
+
+  msgs::Pose_V poseMsg, dyPoseMsg;
+  bool dyPoseConnections = this->dyPosePub.HasConnections();
+  bool poseConnections = this->posePub.HasConnections();
+
+  // Models
+  _manager.Each<components::Model, components::Name, components::Pose,
+                components::Static>(
       [&](const Entity &_entity, const components::Model *,
           const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
+          const components::Pose *_poseComp,
+          const components::Static *_staticComp) -> bool
       {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
+        if (poseConnections)
+        {
+          // Add to pose msg
+          auto pose = poseMsg.add_pose();
+          msgs::Set(pose, _poseComp->Data());
+          pose->set_name(_nameComp->Data());
+          pose->set_id(_entity);
+        }
 
+        if (dyPoseConnections && !_staticComp->Data())
+        {
+          // Add to dynamic pose msg
+          auto dyPose = dyPoseMsg.add_pose();
+          msgs::Set(dyPose, _poseComp->Data());
+          dyPose->set_name(_nameComp->Data());
+          dyPose->set_id(_entity);
+        }
         return true;
       });
 
   // Links
-  _manager.Each<components::Link, components::Name, components::Pose>(
+  _manager.Each<components::Link, components::Name, components::Pose,
+                components::ParentEntity>(
       [&](const Entity &_entity, const components::Link *,
           const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
+          const components::Pose *_poseComp,
+          const components::ParentEntity *_parentComp) -> bool
       {
         // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
+        if (poseConnections)
+        {
+          auto pose = poseMsg.add_pose();
+          msgs::Set(pose, _poseComp->Data());
+          pose->set_name(_nameComp->Data());
+          pose->set_id(_entity);
+        }
+
+        // Check whether parent model is static
+        auto staticComp = _manager.Component<components::Static>(
+          _parentComp->Data());
+        if (dyPoseConnections && !staticComp->Data())
+        {
+          // Add to dynamic pose msg
+          auto dyPose = dyPoseMsg.add_pose();
+          msgs::Set(dyPose, _poseComp->Data());
+          dyPose->set_name(_nameComp->Data());
+          dyPose->set_id(_entity);
+        }
+
         return true;
       });
 
+  if (dyPoseConnections)
+  {
+    // Set the time stamp in the header
+    dyPoseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+        convert<msgs::Time>(_info.simTime));
+
+    this->dyPosePub.Publish(dyPoseMsg);
+  }
+
   // Visuals
-  _manager.Each<components::Visual, components::Name, components::Pose>(
+  if (poseConnections)
+  {
+    poseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+        convert<msgs::Time>(_info.simTime));
+
+    _manager.Each<components::Visual, components::Name, components::Pose>(
       [&](const Entity &_entity, const components::Visual *,
           const components::Name *_nameComp,
           const components::Pose *_poseComp) -> bool
@@ -261,57 +403,21 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
         return true;
       });
 
-  // Lights
-  _manager.Each<components::Light, components::Name, components::Pose>(
-      [&](const Entity &_entity, const components::Light *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
+    // Lights
+    _manager.Each<components::Light, components::Name, components::Pose>(
+        [&](const Entity &_entity, const components::Light *,
+            const components::Name *_nameComp,
+            const components::Pose *_poseComp) -> bool
+        {
+          // Add to pose msg
+          auto pose = poseMsg.add_pose();
+          msgs::Set(pose, _poseComp->Data());
+          pose->set_name(_nameComp->Data());
+          pose->set_id(_entity);
+          return true;
+        });
 
-  this->dataPtr->posePub.Publish(poseMsg);
-
-  // call SceneGraphRemoveEntities at the end of this update cycle so that
-  // removed entities are removed from the scene graph for the next update cycle
-  this->dataPtr->SceneGraphRemoveEntities(_manager);
-
-  // Whether the state service has been requested
-  auto shouldServe = !this->dataPtr->stepMsg.has_state();
-
-  // Publish state only if there are subscribers, and throttle rate to 60 Hz.
-  // Throttle here instead of using transport::AdvertiseMessageOptions so that
-  // we can skip the ECM serialization
-  auto now = std::chrono::system_clock::now();
-  auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (now - this->dataPtr->lastStatePubTime >
-       std::chrono::milliseconds(1000/60));
-  if (shouldServe || shouldPublish)
-  {
-    msgs::SerializedStep stepMsg;
-    stepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
-    stepMsg.mutable_state()->CopyFrom(_manager.State());
-
-    // Full state on demand
-    if (shouldServe)
-    {
-      this->dataPtr->stepMsg = stepMsg;
-      this->dataPtr->stateCv.notify_all();
-    }
-
-    // Full state periodically
-    // TODO(louise) Send changed state periodically instead, once it reflects
-    // changed components
-    if (shouldPublish)
-    {
-      this->dataPtr->statePub.Publish(stepMsg);
-      this->dataPtr->lastStatePubTime = now;
-    }
+    this->posePub.Publish(poseMsg);
   }
 }
 
@@ -370,20 +476,32 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{"/world/" + _worldName + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStep>(stateTopic);
+      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
 
   // Pose info publisher
-  std::string topic{"pose/info"};
+  std::string poseTopic{"pose/info"};
 
-  transport::AdvertiseMessageOptions advertOpts;
-  advertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node->Advertise<msgs::Pose_V>(topic, advertOpts);
+  transport::AdvertiseMessageOptions poseAdvertOpts;
+  poseAdvertOpts.SetMsgsPerSec(60);
+  this->posePub = this->node->Advertise<msgs::Pose_V>(poseTopic,
+      poseAdvertOpts);
 
-  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/" << topic
-         << "]" << std::endl;
+  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
+         << poseTopic << "]" << std::endl;
+
+  // Dynamic pose info publisher
+  std::string dyPoseTopic{"dynamic_pose/info"};
+
+  transport::AdvertiseMessageOptions dyPoseAdvertOpts;
+  dyPoseAdvertOpts.SetMsgsPerSec(this->dyPoseHertz);
+  this->dyPosePub = this->node->Advertise<msgs::Pose_V>(dyPoseTopic,
+      dyPoseAdvertOpts);
+
+  ignmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
+         << dyPoseTopic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -406,16 +524,16 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStep &_res)
+    ignition::msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
   // Lock and wait for an iteration to be run and fill the state
   std::unique_lock<std::mutex> lock(this->stateMutex);
-  this->stepMsg.Clear();
+  this->stateServiceRequest = true;
   auto success = this->stateCv.wait_for(lock, 5s, [&]
   {
-    return this->stepMsg.has_state();
+    return this->stepMsg.has_state() && !this->stateServiceRequest;
   });
 
   if (success)
@@ -507,10 +625,13 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   // Visuals
   _manager.EachNew<components::Visual, components::Name,
-                   components::ParentEntity, components::Pose>(
+                   components::ParentEntity,
+                   components::CastShadows,
+                   components::Pose>(
       [&](const Entity &_entity, const components::Visual *,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
+          const components::CastShadows *_castShadowsComp,
           const components::Pose *_poseComp) -> bool
       {
         auto visualMsg = std::make_shared<msgs::Visual>();
@@ -518,6 +639,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         visualMsg->set_parent_id(_parentComp->Data());
         visualMsg->set_name(_nameComp->Data());
         visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+        visualMsg->set_cast_shadows(_castShadowsComp->Data());
 
         // Geometry is optional
         auto geometryComp = _manager.Component<components::Geometry>(_entity);

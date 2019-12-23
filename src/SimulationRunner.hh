@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/log_playback_control.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -49,6 +50,7 @@
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
+#include "Barrier.hh"
 
 using namespace std::chrono_literals;
 
@@ -60,6 +62,29 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+
+    /// \brief Helper struct to control world time. It's used to hold
+    /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
+    struct WorldControl
+    {
+      /// \brief True to pause simulation.
+      // cppcheck-suppress unusedStructMember
+      bool pause{false};
+
+      /// \biref Run a given number of simulation iterations.
+      // cppcheck-suppress unusedStructMember
+      uint64_t multiStep{0u};
+
+      /// \brief Reset simulation back to time zero. Rewinding resets sim time,
+      /// real time and iterations.
+      // cppcheck-suppress unusedStructMember
+      bool rewind{false};
+
+      /// \brief Sim time to jump to. A negative value means don't seek.
+      /// Seeking changes sim time but doesn't affect real time.
+      /// It also resets iterations back to zero.
+      std::chrono::steady_clock::duration seek{-1};
+    };
 
     /// \brief Class to hold systems internally
     class SystemInternal
@@ -115,6 +140,9 @@ namespace ignition
 
       /// \brief Internal method for handling stop event (to prevent recursion)
       private: void OnStop();
+
+      /// \brief Stop and join all post update worker threads
+      private: void StopWorkerThreads();
 
       /// \brief Run the simulationrunner.
       /// \param[in] _iterations Number of iterations.
@@ -262,6 +290,16 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief World control service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnPlaybackControl(const msgs::LogPlaybackControl &_req,
+                                            msgs::Boolean &_res);
+
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
       /// \return True if successful.
@@ -357,8 +395,14 @@ namespace ignition
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
 
+      /// \brief Clock publisher for the root `/stats` topic.
+      private: ignition::transport::Node::Publisher rootStatsPub;
+
       /// \brief Clock publisher.
       private: ignition::transport::Node::Publisher clockPub;
+
+      /// \brief Clock publisher for the root `/clock` topic.
+      private: ignition::transport::Node::Publisher rootClockPub;
 
       /// \brief Name of world being simulated.
       private: std::string worldName;
@@ -389,11 +433,18 @@ namespace ignition
       /// executed yet.
       private: unsigned int pendingSimIterations{0};
 
+      /// \brief True if user requested to rewind simulation.
+      private: bool requestedRewind{false};
+
+      /// \brief If user asks to seek to a specific sim time, this holds the
+      /// time.s A negative value means there's no request from the user.
+      private: std::chrono::steady_clock::duration requestedSeek{-1};
+
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
 
       /// \brief Buffer of world control messages.
-      private: std::list<msgs::WorldControl> worldControlMsgs;
+      private: std::list<WorldControl> worldControls;
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
@@ -403,6 +454,18 @@ namespace ignition
 
       /// \brief Copy of the server configuration.
       public: ServerConfig serverConfig;
+
+      /// \brief Collection of threads running system PostUpdates
+      private: std::vector<std::thread> postUpdateThreads;
+
+      /// \brief Flag to indicate running status of PostUpdate threads
+      private: std::atomic<bool> postUpdateThreadsRunning{false};
+
+      /// \brief Barrier to signal beginning of PostUpdate thread execution
+      private: std::unique_ptr<Barrier> postUpdateStartBarrier;
+
+      /// \brief Barrier to signal end of PostUpdate thread execution
+      private: std::unique_ptr<Barrier> postUpdateStopBarrier;
 
       friend class LevelManager;
     };
