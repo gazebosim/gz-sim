@@ -14,6 +14,9 @@ A custom path can be specified for recorded files through the `--record-path` fl
 
 `ign gazebo -v 4 -r --record-path ./foo pose_publisher.sdf `
 
+Other options for recording:
+
+`--overwrite`: If the record path already exists, overwrite it.
 
 ## Record by specifying plugin in SDF
 
@@ -26,7 +29,8 @@ Recording can be specified in the SDF, under `<world>` tag:
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
       <!-- Optional, directories to write recorded files. If unspecified,
-             will record to default. -->
+             will record to default. Will be deprecated in future versions
+             of Ignition. Recommended way is to specify from command line. -->
       <path>/tmp/log</path>
     </plugin>
     ...

@@ -21,15 +21,12 @@
 
 #include <string>
 
-#include <ignition/msgs/Utility.hh>
-
-#include <ignition/math/Pose3.hh>
-
-#include <ignition/plugin/RegisterMore.hh>
-
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/math/Pose3.hh>
+#include <ignition/msgs/Utility.hh>
+#include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
@@ -54,7 +51,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(const std::string &_logPath, EntityComponentManager &_ecm);
+  public: bool Start(EntityComponentManager &_ecm);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -76,11 +73,14 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
-  /// \brief
+  /// \brief Pointer to ign-transport Log
   public: std::unique_ptr<transport::log::Log> log;
 
   /// \brief Indicator of whether any playback instance has ever been started
   public: static bool started;
+
+  /// \brief Directory in which to place log file
+  public: std::string logPath{""};
 
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
@@ -129,6 +129,7 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
+
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
@@ -173,14 +174,22 @@ void LogPlayback::Configure(const Entity &,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  auto logPath = _sdf->Get<std::string>("path");
+  this->dataPtr->logPath = _sdf->Get<std::string>("path");
 
   this->dataPtr->eventManager = &_eventMgr;
+
+  // Prepend working directory if path is relative
+  if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
+      != 0)
+  {
+    this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
+      this->dataPtr->logPath);
+  }
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(logPath, _ecm);
+    this->dataPtr->Start(_ecm);
   }
   else
   {
@@ -190,8 +199,7 @@ void LogPlayback::Configure(const Entity &,
 }
 
 //////////////////////////////////////////////////
-bool LogPlaybackPrivate::Start(const std::string &_logPath,
-                               EntityComponentManager &_ecm)
+bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -200,20 +208,21 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     return true;
   }
 
-  if (_logPath.empty())
+  if (this->logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
     return false;
   }
 
-  if (!common::isDirectory(_logPath))
+  if (!common::isDirectory(this->logPath))
   {
-    ignerr << "Specified log path [" << _logPath << "] must be a directory.\n";
+    ignerr << "Specified log path [" << this->logPath
+           << "] must be a directory.\n";
     return false;
   }
 
   // Append file name
-  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   ignmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
@@ -334,16 +343,6 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (queuedPose.pose_size() > 0)
   {
     this->dataPtr->Parse(_ecm, queuedPose);
-  }
-
-  // pause playback if end of log is reached
-  if (_info.simTime >= this->dataPtr->log->EndTime())
-  {
-    ignmsg << "End of log file reached. Time: " <<
-      std::chrono::duration_cast<std::chrono::seconds>(
-      this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
-
-    this->dataPtr->eventManager->Emit<events::Pause>(true);
   }
 }
 
