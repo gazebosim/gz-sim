@@ -154,8 +154,21 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
 
+    // The ComponentState::OneTimeChange argument forces the
+    // SceneBroadcaster system to publish a message. This parameter used to
+    // be ComponentState::PeriodicChange. The problem with PeriodicChange is
+    // that state updates could be missed by the SceneBroadscaster, which
+    // publishes at 60Hz using the wall clock. If a 60Hz tick
+    // doesn't fall on the same update cycle as this state change then the
+    // GUI will not receive the state information. The result is jumpy
+    // playback.
+    //
+    // \todo(anyone) I don't think using OneTimeChange is necessarily bad, but
+    // it would be nice if other systems could know that log playback is
+    // active/enabled. Then a system could make decisions on how to process
+    // information.
     _ecm.SetChanged(_entity, components::Pose::typeId,
-        ComponentState::PeriodicChange);
+        ComponentState::OneTimeChange);
 
     return true;
   });
