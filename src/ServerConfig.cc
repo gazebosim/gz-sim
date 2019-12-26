@@ -217,7 +217,9 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
+            logRecordPathFromCmdLine(_cfg->logRecordPathFromCmdLine),
             logPlaybackPath(_cfg->logPlaybackPath),
+            logRecordOverwrite(_cfg->logRecordOverwrite),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -245,8 +247,15 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
 
+  /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
+  /// \brief Whether log record path is specified from command line
+  public: bool logRecordPathFromCmdLine{false};
+
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
+
+  /// \brief When recording, overwrite existing log files
+  public: bool logRecordOverwrite{false};
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -415,6 +424,18 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
+bool ServerConfig::LogRecordPathFromCmdLine() const
+{
+  return this->dataPtr->logRecordPathFromCmdLine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordPathFromCmdLine(bool _fromCmdLine)
+{
+  this->dataPtr->logRecordPathFromCmdLine = _fromCmdLine;
+}
+
+/////////////////////////////////////////////////
 const std::string ServerConfig::LogPlaybackPath() const
 {
   return this->dataPtr->logPlaybackPath;
@@ -424,6 +445,18 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::LogRecordOverwrite() const
+{
+  return this->dataPtr->logRecordOverwrite;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
+{
+  this->dataPtr->logRecordOverwrite = _overwrite;
 }
 
 /////////////////////////////////////////////////

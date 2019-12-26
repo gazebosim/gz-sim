@@ -250,6 +250,14 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
+      /// \brief Get whether record path came from command line
+      /// \return Whether record path came from command line
+      public: bool LogRecordPathFromCmdLine() const;
+
+      /// \brief Set whether record path came from command line
+      /// \param[in] _fromCmdLine Whether record path came from command line
+      public: void SetLogRecordPathFromCmdLine(bool _fromCmdLine);
+
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
       public: const std::string LogPlaybackPath() const;
@@ -257,6 +265,14 @@ namespace ignition
       /// \brief Set path to recorded states to play back
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
+
+      /// \brief Get whether to overwrite existing log files
+      /// \return True if may overwrite.
+      public: bool LogRecordOverwrite() const;
+
+      /// \brief Set whether to overwrite existing log files
+      /// \param[in] _overwrite Value to set
+      public: void SetLogRecordOverwrite(bool _overwrite);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
