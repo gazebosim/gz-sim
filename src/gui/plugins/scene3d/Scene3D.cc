@@ -45,10 +45,12 @@
 
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "Scene3D.hh"
@@ -577,6 +579,24 @@ void IgnRenderer::HandleMouseTransformControl()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
+            auto topEntity =
+                this->dataPtr->renderUtil.SceneManager().VisualEntity(topVis);
+
+            if (topEntity == kNullEntity)
+            {
+              ignerr << "Failed to find entity for visual [" << topVis->Name()
+                     << "]" << std::endl;
+              return;
+            }
+
+            // TODO(louise) Do this even when not in transform mode
+            // Notify other widgets
+            auto event = new gui::events::EntitiesSelected({topEntity});
+            ignition::gui::App()->sendEvent(
+                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+                event);
+
+            // Attach control
             this->dataPtr->transformControl.Attach(topVis);
             this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
@@ -1470,7 +1490,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
   this->forceActiveFocus();
 
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
@@ -1482,7 +1502,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
@@ -1494,7 +1514,7 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   if (!event.Dragging())
