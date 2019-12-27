@@ -16,7 +16,7 @@ A custom path can be specified for recorded files through the `--record-path` fl
 
 Other options for recording:
 
-`--overwrite`: If the record path already exists, overwrite it.
+`--log-overwrite`: If the record path already exists, overwrite it.
 
 ## Record by specifying plugin in SDF
 
