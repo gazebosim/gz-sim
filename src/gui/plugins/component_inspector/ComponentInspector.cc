@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,17 @@
 */
 
 #include <iostream>
+#include <regex>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
 
@@ -53,6 +45,19 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
+std::string shortName(const std::string &_typeName)
+{
+  // Remove namespaces
+  auto name = _typeName.substr(_typeName.rfind('.')+1);
+
+  // Split CamelCase
+  std::regex reg("(\\B[A-Z])");
+  name = std::regex_replace(name, reg, " $1");
+
+  return name;
+}
+
+/////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
 {
 }
@@ -68,7 +73,8 @@ void TreeModel::AddComponent(long _typeId, const QString &_typeName)
 
   // New component item
   auto item = new QStandardItem(_typeName);
-  item->setData(_typeName, this->roleNames().key("typeName"));
+  item->setData(QString::fromStdString(shortName(
+      _typeName.toStdString())), this->roleNames().key("typeName"));
   item->setData(QString::number(_typeId),
       this->roleNames().key("typeId"));
 
@@ -143,7 +149,7 @@ ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
   // Connect model
-  gui::App()->Engine()->rootContext()->setContextProperty(
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "ComponentInspectorModel", &this->dataPtr->treeModel);
 }
 
@@ -156,19 +162,21 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Component inspector";
 
-  // Get entity from XML
-  this->dataPtr->entity = 12;
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
-void ComponentInspector::Update(const UpdateInfo &, EntityComponentManager &_ecm)
+void ComponentInspector::Update(const UpdateInfo &,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ComponentInspector::Update");
 
-  auto components = _ecm.ComponentTypes(this->dataPtr->entity);
+  auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
   // List all components
-  for (const auto &typeId : components)
+  // TODO(louise) Remove components that are no longer present
+  for (const auto &typeId : componentTypes)
   {
     auto name = components::Factory::Instance()->Name(typeId);
 
@@ -191,6 +199,36 @@ void ComponentInspector::Update(const UpdateInfo &, EntityComponentManager &_ecm
         Q_ARG(double, poseComp->Data().Rot().Pitch()),
         Q_ARG(double, poseComp->Data().Rot().Yaw()));
   }
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  {
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && !selectedEvent->Data().empty())
+    {
+      this->SetEntity(*selectedEvent->Data().begin());
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+int ComponentInspector::Entity() const
+{
+  return this->dataPtr->entity;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetEntity(const int &_entity)
+{
+  this->dataPtr->entity = _entity;
+  this->EntityChanged();
 }
 
 // Register this plugin

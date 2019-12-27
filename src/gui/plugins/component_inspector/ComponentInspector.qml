@@ -37,9 +37,26 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
+  Label {
+    id: entityLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text: 'Entity: ' + ComponentInspector.entity
+    font.pointSize: 13
+    padding: 3
+    background: Rectangle {
+      color: even
+    }
+  }
+
   TreeView {
     id: tree
-    anchors.fill: parent
+    frameVisible: false
+    anchors.top: entityLabel.bottom
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
     model: ComponentInspectorModel
 
     // Hacky: the sibling of listView is the background(Rectangle) of TreeView

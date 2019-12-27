@@ -72,6 +72,14 @@ namespace gazebo
   {
     Q_OBJECT
 
+    /// \brief Entity
+    Q_PROPERTY(
+      int entity
+      READ Entity
+      WRITE SetEntity
+      NOTIFY EntityChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -83,6 +91,22 @@ namespace gazebo
 
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+    /// \brief Get the message type as a string, for example
+    /// 'ignition.msgs.StringMsg'
+    /// \return Message type
+    public: Q_INVOKABLE int Entity() const;
+
+    /// \brief Set the message type from a string, for example
+    /// 'ignition.msgs.StringMsg'
+    /// \param[in] _entity Message type
+    public: Q_INVOKABLE void SetEntity(const int &_entity);
+
+    /// \brief Notify that message type has changed
+    signals: void EntityChanged();
 
     /// \internal
     /// \brief Pointer to private data.
