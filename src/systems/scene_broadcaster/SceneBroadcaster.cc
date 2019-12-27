@@ -25,6 +25,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -241,6 +242,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
+
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
@@ -261,13 +263,17 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
-  // * also publish off-rate if there are change events (new / erased entities,
-  // or components with one-time changes)
+  // * also publish off-rate if there are change events:
+  //     * new / erased entities
+  //     * components with one-time changes
+  //     * jump back in time
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
+  bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges();
+        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
+        jumpBackInTime;
   bool itsPubTime = now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
@@ -302,7 +308,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Poses periodically + change events
     // TODO(louise) Send changed state periodically instead, once it reflects
     // changed components
-    if (shouldPublish && !this->dataPtr->stepMsg.state().entities().empty())
+    if (shouldPublish)
     {
       IGN_PROFILE("SceneBroadcast::PoseUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
@@ -643,10 +649,13 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   // Visuals
   _manager.EachNew<components::Visual, components::Name,
-                   components::ParentEntity, components::Pose>(
+                   components::ParentEntity,
+                   components::CastShadows,
+                   components::Pose>(
       [&](const Entity &_entity, const components::Visual *,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
+          const components::CastShadows *_castShadowsComp,
           const components::Pose *_poseComp) -> bool
       {
         auto visualMsg = std::make_shared<msgs::Visual>();
@@ -654,6 +663,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         visualMsg->set_parent_id(_parentComp->Data());
         visualMsg->set_name(_nameComp->Data());
         visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+        visualMsg->set_cast_shadows(_castShadowsComp->Data());
 
         // Geometry is optional
         auto geometryComp = _manager.Component<components::Geometry>(_entity);

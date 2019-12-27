@@ -1,0 +1,5 @@
+module IgnGazebo
+
+plugin EntityContextMenu
+
+EntityContextMenu 1.0 qrc:/IgnGazebo/EntityContextMenu.qml

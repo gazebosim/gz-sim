@@ -34,7 +34,10 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
+    <plugin
+      filename="libignition-gazebo-imu-system.so"
+      name="ignition::gazebo::systems::Imu">
+    </plugin>
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -149,7 +152,7 @@
       <link name='base_link'>
           <pose frame=''>0 0 0 0 -0 0</pose>
           <inertial>
-              <pose frame=''>-0.122 0 0.118 1.5708 -0 0</pose>
+              <pose frame=''>-0.122 0 0.118 1.5707963267948966 -0 0</pose>
               <mass>13.14</mass>
               <inertia>
                   <ixx>0.10019</ixx>
@@ -184,6 +187,11 @@
           <self_collide>0</self_collide>
           <gravity>1</gravity>
           <kinematic>0</kinematic>
+
+          <sensor name="imu_sensor" type="imu">
+            <always_on>1</always_on>
+            <update_rate>1000</update_rate>
+          </sensor>
       </link>
 
       <link name='left_track'>
@@ -200,38 +208,17 @@
               </inertia>
           </inertial>
           <collision name='left_track_collision'>
-              <pose frame=''>0 0 0.01855 1.5708 -0 1.5708</pose>
+              <pose frame=''>0 0 0.01855 1.5707963267948966  -0 1.5707963267948966</pose>
               <geometry>
                   <box>
                       <size>0.009728 0.018094 0.05</size>
                   </box>
               </geometry>
-              <surface>
-                  <friction>
-                      <ode>
-                          <mu>0.5</mu>
-                          <mu2>3.19858</mu2>
-                      </ode>
-                  </friction>
-                  <contact>
-                      <collide_bitmask>0</collide_bitmask>
-                  </contact>
-              </surface>
           </collision>
       </link>
-      <joint name='left_track_j' type='revolute'>
+      <joint name='left_track_j' type='fixed'>
           <child>left_track</child>
           <parent>base_link</parent>
-          <axis>
-              <xyz>0 1 0</xyz>
-              <limit>
-                  <lower>0</lower>
-                  <upper>0</upper>
-                  <effort>0</effort>
-                  <velocity>4</velocity>
-              </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
-          </axis>
       </joint>
       <link name='left_track_wheel1'>
           <pose frame=''>0.25 0.1985 0.01855 0 -0 0</pose>
@@ -247,7 +234,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel1_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -259,12 +246,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel1_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -282,7 +272,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel2'>
@@ -299,7 +288,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel2_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -311,12 +300,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel2_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -334,7 +326,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel3'>
@@ -351,7 +342,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel3_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -363,12 +354,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel3_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -386,7 +380,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel4'>
@@ -403,7 +396,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel4_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -415,12 +408,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel4_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -438,7 +434,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel5'>
@@ -455,7 +450,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel5_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -467,12 +462,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel5_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -490,7 +488,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel6'>
@@ -507,7 +504,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel6_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -519,12 +516,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel6_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -545,7 +545,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel7'>
@@ -562,7 +561,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel7_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -574,12 +573,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel7_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -597,7 +599,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel8'>
@@ -614,7 +615,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel8_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -626,12 +627,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel8_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -649,7 +653,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
 
@@ -667,38 +670,17 @@
               </inertia>
           </inertial>
           <collision name='right_track_collision'>
-              <pose frame=''>0 0 0.01855 1.5708 -0 1.5708</pose>
+              <pose frame=''>0 0 0.01855 1.5707963267948966  -0 1.5707963267948966</pose>
               <geometry>
                   <box>
                       <size>0.009728 0.018094 0.05</size>
                   </box>
               </geometry>
-              <surface>
-                  <friction>
-                      <ode>
-                          <mu>0.5</mu>
-                          <mu2>3.19858</mu2>
-                      </ode>
-                  </friction>
-                  <contact>
-                      <collide_bitmask>0</collide_bitmask>
-                  </contact>
-              </surface>
           </collision>
       </link>
-      <joint name='right_track_j' type='revolute'>
+      <joint name='right_track_j' type='fixed'>
           <child>right_track</child>
           <parent>base_link</parent>
-          <axis>
-              <xyz>0 1 0</xyz>
-              <limit>
-                  <lower>0</lower>
-                  <upper>0</upper>
-                  <effort>0</effort>
-                  <velocity>4</velocity>
-              </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
-          </axis>
       </joint>
 
       <link name='right_track_wheel1'>
@@ -715,7 +697,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel1_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -727,12 +709,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel1_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -750,7 +735,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel2'>
@@ -767,7 +751,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel2_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -779,12 +763,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel2_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -802,7 +789,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel3'>
@@ -819,7 +805,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel3_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -831,12 +817,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel3_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -854,7 +843,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel4'>
@@ -871,7 +859,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel4_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -883,12 +871,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel4_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -906,7 +897,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel5'>
@@ -923,7 +913,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel5_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -935,12 +925,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel5_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -958,7 +951,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel6'>
@@ -975,7 +967,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel6_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -987,12 +979,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel6_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1010,7 +1005,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel7'>
@@ -1027,7 +1021,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel7_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1039,12 +1033,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel7_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1062,7 +1059,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel8'>
@@ -1079,7 +1075,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel8_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1091,12 +1087,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel8_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1114,7 +1113,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
 
@@ -1137,18 +1135,18 @@
         <right_joint>right_track_wheel7_j</right_joint>
         <left_joint>left_track_wheel8_j</left_joint>
         <right_joint>right_track_wheel8_j</right_joint>
-        <wheel_separation>0.397</wheel_separation>
+        <wheel_separation>0.493</wheel_separation>
         <wheel_radius>0.09047</wheel_radius>
       </plugin>
 
     </model>
 
     <model name="vehicle_green">
-      <pose frame=''>0 -2 0.071917 0 0 0</pose>
+      <pose frame=''>0 -2 0.071917 0 0 1.5707963267948966</pose>
       <link name='base_link'>
           <pose frame=''>0 0 0 0 -0 0</pose>
           <inertial>
-              <pose frame=''>-0.122 0 0.118 1.5708 -0 0</pose>
+              <pose frame=''>-0.122 0 0.118 1.5707963267948966  -0 0</pose>
               <mass>13.14</mass>
               <inertia>
                   <ixx>0.10019</ixx>
@@ -1183,6 +1181,10 @@
           <self_collide>0</self_collide>
           <gravity>1</gravity>
           <kinematic>0</kinematic>
+          <sensor name="imu_sensor" type="imu">
+            <always_on>1</always_on>
+            <update_rate>1000</update_rate>
+          </sensor>
       </link>
 
       <link name='left_track'>
@@ -1199,7 +1201,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_collision'>
-              <pose frame=''>0 0 0.01855 1.5708 -0 1.5708</pose>
+              <pose frame=''>0 0 0.01855 1.5707963267948966 -0 1.5707963267948966</pose>
               <geometry>
                   <box>
                       <size>0.009728 0.018094 0.05</size>
@@ -1210,6 +1212,9 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
                   <contact>
@@ -1218,19 +1223,9 @@
               </surface>
           </collision>
       </link>
-      <joint name='left_track_j' type='revolute'>
+      <joint name='left_track_j' type='fixed'>
           <child>left_track</child>
           <parent>base_link</parent>
-          <axis>
-              <xyz>0 1 0</xyz>
-              <limit>
-                  <lower>0</lower>
-                  <upper>0</upper>
-                  <effort>0</effort>
-                  <velocity>4</velocity>
-              </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
-          </axis>
       </joint>
       <link name='left_track_wheel1'>
           <pose frame=''>0.25 0.1985 0.01855 0 -0 0</pose>
@@ -1246,7 +1241,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel1_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1258,12 +1253,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel1_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1281,7 +1279,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel2'>
@@ -1298,7 +1295,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel2_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1310,12 +1307,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel2_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1333,7 +1333,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel3'>
@@ -1350,7 +1349,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel3_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1362,12 +1361,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel3_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1385,7 +1387,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel4'>
@@ -1402,7 +1403,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel4_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1414,12 +1415,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel4_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1437,7 +1441,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel5'>
@@ -1454,7 +1457,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel5_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1466,12 +1469,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel5_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1489,7 +1495,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel6'>
@@ -1506,7 +1511,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel6_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1518,12 +1523,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel6_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1544,7 +1552,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel7'>
@@ -1561,7 +1568,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel7_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1573,12 +1580,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel7_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1596,7 +1606,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='left_track_wheel8'>
@@ -1613,7 +1622,7 @@
               </inertia>
           </inertial>
           <collision name='left_track_wheel8_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1625,12 +1634,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='left_track_wheel8_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1648,7 +1660,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
 
@@ -1666,7 +1677,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_collision'>
-              <pose frame=''>0 0 0.01855 1.5708 -0 1.5708</pose>
+              <pose frame=''>0 0 0.01855 1.5707963267948966 -0 1.5707963267948966</pose>
               <geometry>
                   <box>
                       <size>0.009728 0.018094 0.05</size>
@@ -1677,6 +1688,9 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
                   <contact>
@@ -1685,19 +1699,9 @@
               </surface>
           </collision>
       </link>
-      <joint name='right_track_j' type='revolute'>
+      <joint name='right_track_j' type='fixed'>
           <child>right_track</child>
           <parent>base_link</parent>
-          <axis>
-              <xyz>0 1 0</xyz>
-              <limit>
-                  <lower>0</lower>
-                  <upper>0</upper>
-                  <effort>0</effort>
-                  <velocity>4</velocity>
-              </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
-          </axis>
       </joint>
 
       <link name='right_track_wheel1'>
@@ -1714,7 +1718,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel1_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1726,12 +1730,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel1_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1749,7 +1756,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel2'>
@@ -1766,7 +1772,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel2_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1778,12 +1784,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel2_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1801,7 +1810,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel3'>
@@ -1818,7 +1826,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel3_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1830,12 +1838,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel3_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1853,7 +1864,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel4'>
@@ -1870,7 +1880,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel4_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1882,12 +1892,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel4_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1905,7 +1918,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel5'>
@@ -1922,7 +1934,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel5_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1934,12 +1946,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel5_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1957,7 +1972,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel6'>
@@ -1974,7 +1988,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel6_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -1986,12 +2000,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel6_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -2009,7 +2026,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel7'>
@@ -2026,7 +2042,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel7_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -2038,12 +2054,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel7_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -2061,7 +2080,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
       <link name='right_track_wheel8'>
@@ -2078,7 +2096,7 @@
               </inertia>
           </inertial>
           <collision name='right_track_wheel8_collision'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -2090,12 +2108,15 @@
                       <ode>
                           <mu>0.5</mu>
                           <mu2>3.19858</mu2>
+                          <fdir1>0 0 1</fdir1>
+                          <slip1>0</slip1>
+                          <slip2>0</slip2>
                       </ode>
                   </friction>
               </surface>
           </collision>
           <visual name='right_track_wheel8_visual'>
-              <pose frame=''>0 0 0 1.5708 -0 0</pose>
+              <pose frame=''>0 0 0 1.5707963267948966 -0 0</pose>
               <geometry>
                   <cylinder>
                       <length>0.09728</length>
@@ -2113,7 +2134,6 @@
                   <lower>-1e+16</lower>
                   <upper>1e+16</upper>
               </limit>
-              <use_parent_model_frame>1</use_parent_model_frame>
           </axis>
       </joint>
 
@@ -2136,7 +2156,7 @@
         <right_joint>right_track_wheel7_j</right_joint>
         <left_joint>left_track_wheel8_j</left_joint>
         <right_joint>right_track_wheel8_j</right_joint>
-        <wheel_separation>0.397</wheel_separation>
+        <wheel_separation>0.493</wheel_separation>
         <wheel_radius>0.09047</wheel_radius>
       </plugin>
 

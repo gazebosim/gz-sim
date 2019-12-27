@@ -79,7 +79,7 @@ void JointStatePublisher::Configure(
 }
 
 //////////////////////////////////////////////////
-void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
+void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
   // Create the model state publisher. This can't be done in ::Configure
@@ -110,6 +110,8 @@ void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
 
   // Create the message
   msgs::Model msg;
+  msg.mutable_header()->mutable_stamp()->CopyFrom(
+      convert<msgs::Time>(_info.simTime));
 
   // Set the name and ID.
   msg.set_name(this->model.Name(_ecm));
