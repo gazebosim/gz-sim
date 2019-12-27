@@ -243,6 +243,10 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               else
               {
                 overwriteSdf = true;
+
+                // If no <path> specified in SDF, use default
+                //if (recordPath.empty())
+                //  recordPath = ignLogDirectory();
               }
 
               if (overwriteSdf)

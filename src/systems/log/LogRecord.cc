@@ -24,6 +24,7 @@
 #include <fstream>
 #include <ctime>
 
+#include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>
@@ -53,6 +54,9 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \return True if any recorder has been started successfully.
   public: bool Start(const std::string &_logPath = std::string(""));
 
+  /// \brief Default directory to record to
+  public: static std::string DefaultRecordPath();
+
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
   /// in the future.
@@ -75,7 +79,7 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: std::unique_ptr<transport::NetworkClock> clock;
 
   /// \brief Name of this world
-  public: std::string worldName;
+  public: std::string worldName{""};
 
   /// \brief SDF of this plugin
   public: std::shared_ptr<const sdf::Element> sdf{nullptr};
@@ -97,6 +101,20 @@ class ignition::gazebo::systems::LogRecordPrivate
 };
 
 bool LogRecordPrivate::started{false};
+
+//////////////////////////////////////////////////
+std::string LogRecordPrivate::DefaultRecordPath()
+{
+  std::string home;
+  common::env(IGN_HOMEDIR, home);
+
+  std::string timestamp = common::systemTimeISO();
+
+  std::string path = common::joinPaths(home,
+    ".ignition", "gazebo", "log", timestamp);
+
+  return path;
+}
 
 //////////////////////////////////////////////////
 LogRecord::LogRecord()
@@ -130,12 +148,20 @@ void LogRecord::Configure(const Entity &_entity,
   if (!LogRecordPrivate::started)
   {
     auto logPath = _sdf->Get<std::string>("path");
-    // Prepend working directory if path is relative
-    if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
-        != 0)
+    // Path is initialized by server if record is set from command line options.
+    //   Otherwise, path is loaded from SDF. If a path is not specified in
+    //   SDF, initialize to default here.
+    if (logPath.empty())
     {
-      this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
-        this->dataPtr->logPath);
+      ignLogInit(this->dataPtr->DefaultRecordPath(), "server_console.log");
+      logPath = ignLogDirectory();
+    }
+    // If path is relative, prepend working directory
+    // Assumes path is already canonical
+    else if (logPath.compare(ignition::common::absPath(logPath)) != 0)
+    {
+      logPath = ignition::common::joinPaths(common::cwd(),
+        logPath);
     }
 
     this->dataPtr->Start(logPath);
@@ -157,12 +183,12 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
       << "Will not start another.\n";
     return true;
   }
-  LogRecordPrivate::started = true;
 
   this->logPath = _logPath;
 
   // The ServerConfig takes care of specifying a default log record path.
-  // This if statement should never be reached.
+  // This if-statement is reached if the record plugin is only specified in
+  //   SDF, and a <path> is not specified.
   if (this->logPath.empty() ||
       (common::exists(this->logPath) && !common::isDirectory(this->logPath)))
   {
@@ -170,6 +196,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
       << "Recording will not take place." << std::endl;
     return false;
   }
+
+  LogRecordPrivate::started = true;
 
   // Create log directory
   if (!common::exists(this->logPath))
@@ -235,6 +263,9 @@ void LogRecord::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &)
 {
   IGN_PROFILE("LogRecord::PreUpdate");
+  // Safe guard to prevent seg faults if recorder could not be started
+  if (!this->dataPtr->instStarted)
+    return;
   this->dataPtr->clock->SetTime(_info.simTime);
 }
 
@@ -243,6 +274,10 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogRecord::PostUpdate");
+
+  // Safe guard to prevent seg faults if recorder could not be started
+  if (!this->dataPtr->instStarted)
+    return;
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())

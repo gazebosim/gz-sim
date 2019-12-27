@@ -68,66 +68,83 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   std::string recordPathMod = serverConfig.LogRecordPath();
 
   // Initialize console log
-  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
   {
-    recordPathMod = std::string(_recordPath);
-
-    // Check if path or compressed file with same prefix exists
-    if (ignition::common::exists(recordPathMod))
+    if (_playback != nullptr && std::strlen(_playback) > 0)
     {
-      // Overwrite if flag specified
-      if (_logOverwrite > 0)
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
+    }
+
+    serverConfig.SetUseLogRecord(true);
+
+    // If a record path is specified
+    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+    {
+      recordPathMod = std::string(_recordPath);
+ 
+      // Check if path or compressed file with same prefix exists
+      if (ignition::common::exists(recordPathMod))
       {
-        bool recordMsg = false;
-        // Remove files before initializing console log files on top of them
-        if (ignition::common::exists(recordPathMod))
+        // Overwrite if flag specified
+        if (_logOverwrite > 0)
         {
-          recordMsg = true;
-          ignition::common::removeAll(recordPathMod);
+          bool recordMsg = false;
+          // Remove files before initializing console log files on top of them
+          if (ignition::common::exists(recordPathMod))
+          {
+            recordMsg = true;
+            ignition::common::removeAll(recordPathMod);
+          }
+ 
+          // Create log file before printing any messages so they can be logged
+          ignLogInit(recordPathMod, "server_console.log");
+ 
+          if (recordMsg)
+          {
+            ignwarn << "Log path already exists on disk! Existing files will be "
+              << "overwritten." << std::endl;
+            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+          }
         }
-
-        // Create log file before printing any messages so they can be logged
-        ignLogInit(recordPathMod, "server_console.log");
-
-        if (recordMsg)
+        // Otherwise rename to unique path
+        else
         {
-          ignwarn << "Log path already exists on disk! Existing files will be "
-            << "overwritten." << std::endl;
-          ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+          // Remove the separator at end of path
+          if (!std::string(1, recordPathMod.back()).compare(
+            ignition::common::separator("")))
+          {
+            recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
+          }
+          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+ 
+          ignLogInit(recordPathMod, "server_console.log");
+          ignwarn << "Log path already exists on disk! "
+            << "Recording instead to [" << recordPathMod << "]" << std::endl;
         }
       }
-      // Otherwise rename to unique path
       else
       {
-        // Remove the separator at end of path
-        if (!std::string(1, recordPathMod.back()).compare(
-          ignition::common::separator("")))
-        {
-          recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
-        }
-        recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
-
         ignLogInit(recordPathMod, "server_console.log");
-        ignwarn << "Log path already exists on disk! "
-          << "Recording instead to [" << recordPathMod << "]" << std::endl;
       }
+      // TODO(anyone) In Ignition-D, to be moved to outside and after this
+      //   if-else statement, after all ignLogInit() calls have been finalized,
+      //   so that <path> in SDF will always be ignored in favor of logging both
+      //   console logs and LogRecord recordings to common::ignLogDirectory().
+      //   In Blueprint and Citadel, LogRecord will record to <path> if no
+      //   --record-path is specified on command line.
+      serverConfig.SetLogRecordPath(recordPathMod);
+      serverConfig.SetLogRecordPathFromCmdLine(true);
     }
+    // Empty record path specified. Use default.
     else
     {
+      ignmsg << "Recording states to default path\n";
+
       ignLogInit(recordPathMod, "server_console.log");
+      recordPathMod = ignLogDirectory();
+      serverConfig.SetLogRecordPath(recordPathMod);
     }
-    // TODO(anyone) In Ignition-D, to be moved to outside and after this
-    //   if-else statement, after all ignLogInit() calls have been finalized,
-    //   so that <path> in SDF will always be ignored in favor of logging both
-    //   console logs and LogRecord recordings to common::ignLogDirectory().
-    //   In Blueprint and Citadel, LogRecord will record to <path> if no
-    //   --record-path is specified on command line.
-    serverConfig.SetLogRecordPath(recordPathMod);
-    serverConfig.SetLogRecordPathFromCmdLine(true);
-  }
-  else
-  {
-    ignLogInit(recordPathMod, "server_console.log");
   }
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
@@ -161,22 +178,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
-  }
-
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
-  {
-    if (_playback != nullptr && std::strlen(_playback) > 0)
-    {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
-      return -1;
-    }
-
-    serverConfig.SetUseLogRecord(true);
-
-    if (!(_recordPath != nullptr && std::strlen(_recordPath) > 0))
-    {
-      ignmsg << "Recording states to default path\n";
-    }
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
