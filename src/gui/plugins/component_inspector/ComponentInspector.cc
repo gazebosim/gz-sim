@@ -75,9 +75,11 @@ void TreeModel::AddComponent(long _typeId, const QString &_typeName)
   // New component item
   auto item = new QStandardItem(_typeName);
   item->setData(QString::fromStdString(shortName(
-      _typeName.toStdString())), this->roleNames().key("typeName"));
+      _typeName.toStdString())), this->roleNames().key("shortName"));
+  item->setData(_typeName, this->roleNames().key("typeName"));
   item->setData(QString::number(_typeId),
       this->roleNames().key("typeId"));
+  item->setData("true", this->roleNames().key("isType"));
 
   this->invisibleRootItem()->appendRow(item);
   this->items[_typeName] = item;
@@ -115,6 +117,8 @@ void TreeModel::AddName(const QString &_name)
     nameItem->second->appendRow(item);
   }
 
+  item->setData(QString::fromStdString(typeName),
+      this->roleNames().key("typeName"));
   item->setData(_name, this->roleNames().key("name"));
 
   this->items[itemName] = item;
@@ -159,6 +163,8 @@ void TreeModel::AddPose(
     poseItem->second->appendRow(item);
   }
 
+  item->setData(QString::fromStdString(typeName),
+      this->roleNames().key("typeName"));
   item->setData(QString::number(_x), this->roleNames().key("x"));
   item->setData(QString::number(_y), this->roleNames().key("y"));
   item->setData(QString::number(_z), this->roleNames().key("z"));
@@ -180,7 +186,9 @@ QHash<int, QByteArray> TreeModel::roleNames() const
           std::pair(105, "roll"),
           std::pair(106, "pitch"),
           std::pair(107, "yaw"),
-          std::pair(108, "name")};
+          std::pair(108, "name"),
+          std::pair(109, "isType"),
+          std::pair(110, "shortName")};
 }
 
 /////////////////////////////////////////////////
