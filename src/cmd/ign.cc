@@ -82,7 +82,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
     {
       recordPathMod = std::string(_recordPath);
- 
+
       // Check if path or compressed file with same prefix exists
       if (ignition::common::exists(recordPathMod))
       {
@@ -96,14 +96,14 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
             recordMsg = true;
             ignition::common::removeAll(recordPathMod);
           }
- 
+
           // Create log file before printing any messages so they can be logged
           ignLogInit(recordPathMod, "server_console.log");
- 
+
           if (recordMsg)
           {
-            ignwarn << "Log path already exists on disk! Existing files will be "
-              << "overwritten." << std::endl;
+            ignwarn << "Log path already exists on disk! Existing files will "
+              << "be overwritten." << std::endl;
             ignmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
         }
@@ -117,7 +117,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
             recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
           }
           recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
- 
+
           ignLogInit(recordPathMod, "server_console.log");
           ignwarn << "Log path already exists on disk! "
             << "Recording instead to [" << recordPathMod << "]" << std::endl;
