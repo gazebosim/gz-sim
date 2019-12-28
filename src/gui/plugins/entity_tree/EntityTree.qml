@@ -133,7 +133,12 @@ Rectangle {
             onClicked: {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
-              entityContextMenu.open(scopedName, type)
+              entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
+            }
+
+            IgnGazebo.EntityContextMenu {
+              id: entityContextMenu
+              anchors.fill: parent
             }
           }
         }
@@ -144,10 +149,5 @@ Rectangle {
       role: "entityName"
       width: 300
     }
-  }
-
-  IgnGazebo.EntityContextMenu {
-    id: entityContextMenu
-    anchors.fill: parent
   }
 }
