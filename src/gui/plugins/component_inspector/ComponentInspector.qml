@@ -37,23 +37,14 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
-  function textFromModel(_model) {
+  function delegateQml(_model) {
     if (_model === null)
       return ''
 
-    if (_model.typeName !== undefined)
-      return _model.typeName
+    if (_model.isType == 'true')
+      return 'TypeHeader.qml'
 
-    if (_model.name !== undefined)
-      return _model.name
-
-    if (_model.x !== undefined)
-      return (_model.x + " " +
-              _model.y + " " +
-              _model.z + " " +
-              _model.roll + " " +
-              _model.pitch + " " +
-              _model.yaw)
+    return _model.typeName + '.qml'
   }
 
   Label {
@@ -115,39 +106,8 @@ Rectangle {
         color: (styleData.row % 2 == 0) ? even : odd
       }
 
-      itemDelegate: Rectangle {
-        id: itemDel
-        color: (styleData.row % 2 == 0) ? even : odd
-        height: itemHeight
-
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          leftPadding: 2
-          text: textFromModel(model)
-          color: Material.theme == Material.Light ? "black" : "white"
-          font.pointSize: 12
-
-          ToolTip {
-            visible: ma.containsMouse
-            delay: tooltipDelay
-            text: model === null || model.typeId === undefined ?
-                "Type Id: ?" : "Type Id: " + model.typeId
-            y: itemDel.z - 30
-            enter: null
-            exit: null
-          }
-          MouseArea {
-            id: ma
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.RightButton
-            onClicked: {
-              var type = EntityTreeModel.EntityType(styleData.index)
-              var scopedName = EntityTreeModel.ScopedName(styleData.index)
-              entityContextMenu.open(scopedName, type)
-            }
-          }
-        }
+      itemDelegate: Loader {
+        source: delegateQml(model)
       }
     }
 
@@ -155,10 +115,5 @@ Rectangle {
       role: "typeName"
       width: 300
     }
-  }
-
-  IgnGazebo.EntityContextMenu {
-    id: entityContextMenu
-    anchors.fill: parent
   }
 }
