@@ -24,6 +24,7 @@
 #include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -80,6 +81,43 @@ void TreeModel::AddComponent(long _typeId, const QString &_typeName)
 
   this->invisibleRootItem()->appendRow(item);
   this->items[_typeName] = item;
+}
+
+/////////////////////////////////////////////////
+void TreeModel::AddName(const QString &_name)
+{
+  IGN_PROFILE("TreeModel::AddName");
+
+  auto typeName =
+      components::Factory::Instance()->Name(components::Name::typeId);
+
+  auto nameItem = this->items.find(QString::fromStdString(typeName));
+  if (nameItem == this->items.end())
+  {
+    ignerr << "Internal error, missing component ["
+           << typeName << "]" << std::endl;
+    return;
+  }
+
+  auto itemName = QString::fromStdString(typeName + "_component");
+
+  auto itemIt = this->items.find(itemName);
+
+  // New component item
+  QStandardItem *item{nullptr};
+  if (itemIt != this->items.end())
+  {
+    item = itemIt->second;
+  }
+  else
+  {
+    item = new QStandardItem(itemName);
+    nameItem->second->appendRow(item);
+  }
+
+  item->setData(_name, this->roleNames().key("name"));
+
+  this->items[itemName] = item;
 }
 
 /////////////////////////////////////////////////
@@ -141,7 +179,8 @@ QHash<int, QByteArray> TreeModel::roleNames() const
           std::pair(104, "z"),
           std::pair(105, "roll"),
           std::pair(106, "pitch"),
-          std::pair(107, "yaw")};
+          std::pair(107, "yaw"),
+          std::pair(108, "name")};
 }
 
 /////////////////////////////////////////////////
@@ -187,6 +226,14 @@ void ComponentInspector::Update(const UpdateInfo &,
   }
 
   // Handle known components
+  auto nameComp = _ecm.Component<components::Name>(this->dataPtr->entity);
+  if (nameComp)
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddName",
+        Qt::QueuedConnection,
+        Q_ARG(QString, QString::fromStdString(nameComp->Data())));
+  }
+
   auto poseComp = _ecm.Component<components::Pose>(this->dataPtr->entity);
   if (poseComp)
   {
