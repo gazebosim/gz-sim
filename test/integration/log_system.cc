@@ -110,6 +110,11 @@ class LogSystemTest : public ::testing::Test
     common::createDirectories(this->logPlaybackDir);
   }
 
+  public: void RemoveLogsDir()
+  {
+    common::removeAll(this->logsDir);
+  }
+
   // Change path of recorded log file in SDF string loaded from file
   public: void ChangeLogPath(sdf::Root &_sdfRoot, const std::string &_sdfPath,
      const std::string &_pluginName, const std::string &_logDest)
@@ -135,8 +140,13 @@ class LogSystemTest : public ::testing::Test
           }
           else
           {
-            sdf::ElementPtr pathElt = pluginElt->AddElement("path");
-            pathElt->Set(_logDest);
+            sdf::ElementPtr pathElt = std::make_shared<sdf::Element>();
+            pathElt->SetName("path");
+            pluginElt->AddElementDescription(pathElt);
+            pathElt = pluginElt->GetElement("path");
+            pathElt->AddValue("string", "", false, "");
+            pathElt->Set<std::string>(_logDest);
+
           }
         }
       }
@@ -157,6 +167,73 @@ class LogSystemTest : public ::testing::Test
   public: std::string logPlaybackDir =
       common::joinPaths(logsDir, "test_logs_playback");
 };
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogDefaults)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_dbl_pendulum.sdf");
+
+  // No path specified on command line and in SDF, should use default path.
+  {
+    // Change log path in SDF to empty
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        " ");
+
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // Set record path to empty
+    recordServerConfig.SetLogRecordPath("");
+
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 1000, false);
+
+    EXPECT_FALSE(ignLogDirectory().empty());
+    // This should be $HOME/.ignition/..., default path set in LogRecord.cc
+    std::string home;
+    common::env(IGN_HOMEDIR, home);
+    EXPECT_TRUE(ignLogDirectory().compare(0, home.length(), home) == 0);
+    EXPECT_TRUE(common::exists(ignLogDirectory()));
+  }
+
+  // Different paths specified on cmmand line and in SDF, should use the path
+  //   from command line.
+  {
+    // Change log path in SDF
+    sdf::Root recordSdfRoot;
+    const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        sdfPath);
+
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // This tells server to call AddRecordPlugin() where the logic happens
+    recordServerConfig.SetUseLogRecord(true);
+
+    // Mock command line arg. Set record path to something different from in SDF
+    const std::string cliPath = common::joinPaths(this->logsDir, "cliPath");
+    recordServerConfig.SetLogRecordPath(cliPath);
+    recordServerConfig.SetLogRecordPathFromCmdLine(true);
+
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 1000, false);
+
+    EXPECT_TRUE(common::exists(cliPath));
+    EXPECT_FALSE(common::exists(sdfPath));
+  }
+}
 
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, RecordAndPlayback)
@@ -361,7 +438,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
   #endif
 
-  common::removeAll(this->logsDir);
+  this->RemoveLogsDir();
 }
 
 /////////////////////////////////////////////////
@@ -476,4 +553,101 @@ TEST_F(LogSystemTest, LogControl)
 
     latestSpherePose = spherePose;
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogOverwrite)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_dbl_pendulum.sdf");
+
+  // Path exists, no command line --log-overwrite, should overwrite
+  {
+    {
+      // Change log path in SDF to build directory
+      sdf::Root recordSdfRoot;
+      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+          this->logDir);
+     
+      // Pass changed SDF to server
+      ServerConfig recordServerConfig;
+      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+     
+      // Run for a few seconds to record different poses
+      Server recordServer(recordServerConfig);
+      recordServer.Run(true, 1000, false);
+    }
+
+    // Test path exists
+    const std::string firstRecordPath = ignLogDirectory();
+    EXPECT_TRUE(common::exists(firstRecordPath));
+
+    {
+      // Change log path in SDF to build directory
+      sdf::Root recordSdfRoot;
+      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+          this->logDir);
+    
+      // Pass changed SDF to server
+      ServerConfig recordServerConfig;
+      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    
+      // Run for a few seconds to record different poses
+      Server recordServer(recordServerConfig);
+      recordServer.Run(true, 1000, false);
+    }
+    
+    // Test record path is same as the first.
+    EXPECT_TRUE(ignLogDirectory().compare(firstRecordPath) == 0);
+  }
+
+  // Path exists, command line --log-overwrite, should overwrite
+  {
+    {
+      // Change log path in SDF to build directory
+      sdf::Root recordSdfRoot;
+      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+          this->logDir);
+     
+      // Pass changed SDF to server
+      ServerConfig recordServerConfig;
+      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+     
+      // Run for a few seconds to record different poses
+      Server recordServer(recordServerConfig);
+      recordServer.Run(true, 1000, false);
+    }
+
+    // Test path exists
+    const std::string firstRecordPath = ignLogDirectory();
+    EXPECT_TRUE(common::exists(firstRecordPath));
+
+    {
+      // Change log path in SDF to build directory
+      sdf::Root recordSdfRoot;
+      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+          this->logDir);
+    
+      // Pass changed SDF to server
+      ServerConfig recordServerConfig;
+      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    
+      // Set overwrite flag
+      recordServerConfig.SetLogRecordOverwrite(true);
+    
+      // Run for a few seconds to record different poses
+      Server recordServer(recordServerConfig);
+      recordServer.Run(true, 1000, false);
+    }
+    
+    // Test record path is same as the first.
+    EXPECT_TRUE(ignLogDirectory().compare(firstRecordPath) == 0);
+  }
+
+  this->RemoveLogsDir();
 }
