@@ -146,7 +146,6 @@ class LogSystemTest : public ::testing::Test
             pathElt = pluginElt->GetElement("path");
             pathElt->AddValue("string", "", false, "");
             pathElt->Set<std::string>(_logDest);
-
           }
         }
       }
@@ -201,7 +200,7 @@ TEST_F(LogSystemTest, LogDefaults)
     // This should be $HOME/.ignition/..., default path set in LogRecord.cc
     std::string home;
     common::env(IGN_HOMEDIR, home);
-    EXPECT_TRUE(ignLogDirectory().compare(0, home.length(), home) == 0);
+    EXPECT_EQ(ignLogDirectory().compare(0, home.length(), home), 0);
     EXPECT_TRUE(common::exists(ignLogDirectory()));
   }
 
@@ -573,11 +572,11 @@ TEST_F(LogSystemTest, LogOverwrite)
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
           this->logDir);
-     
+
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-     
+
       // Run for a few seconds to record different poses
       Server recordServer(recordServerConfig);
       recordServer.Run(true, 1000, false);
@@ -592,18 +591,18 @@ TEST_F(LogSystemTest, LogOverwrite)
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
           this->logDir);
-    
+
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-    
+
       // Run for a few seconds to record different poses
       Server recordServer(recordServerConfig);
       recordServer.Run(true, 1000, false);
     }
-    
+
     // Test record path is same as the first.
-    EXPECT_TRUE(ignLogDirectory().compare(firstRecordPath) == 0);
+    EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
   }
 
   // Path exists, command line --log-overwrite, should overwrite
@@ -613,11 +612,11 @@ TEST_F(LogSystemTest, LogOverwrite)
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
           this->logDir);
-     
+
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-     
+
       // Run for a few seconds to record different poses
       Server recordServer(recordServerConfig);
       recordServer.Run(true, 1000, false);
@@ -632,21 +631,21 @@ TEST_F(LogSystemTest, LogOverwrite)
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
           this->logDir);
-    
+
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-    
+
       // Set overwrite flag
       recordServerConfig.SetLogRecordOverwrite(true);
-    
+
       // Run for a few seconds to record different poses
       Server recordServer(recordServerConfig);
       recordServer.Run(true, 1000, false);
     }
-    
+
     // Test record path is same as the first.
-    EXPECT_TRUE(ignLogDirectory().compare(firstRecordPath) == 0);
+    EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
   }
 
   this->RemoveLogsDir();
