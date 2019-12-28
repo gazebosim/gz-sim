@@ -60,6 +60,8 @@ namespace gazebo
         double _pitch,
         double _yaw);
 
+    public slots: void AddName(const QString &_name);
+
     /// \brief Keep track of items in the tree
     private: std::map<QString, QStandardItem *> items;
   };

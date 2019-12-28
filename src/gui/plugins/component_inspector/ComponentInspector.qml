@@ -37,6 +37,25 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
+  function textFromModel(_model) {
+    if (_model === null)
+      return ''
+
+    if (_model.typeName !== undefined)
+      return _model.typeName
+
+    if (_model.name !== undefined)
+      return _model.name
+
+    if (_model.x !== undefined)
+      return (_model.x + " " +
+              _model.y + " " +
+              _model.z + " " +
+              _model.roll + " " +
+              _model.pitch + " " +
+              _model.yaw)
+  }
+
   Label {
     id: entityLabel
     anchors.top: parent.top
@@ -104,15 +123,7 @@ Rectangle {
         Text {
           anchors.verticalCenter: parent.verticalCenter
           leftPadding: 2
-          text: (model === null) ? "" :
-                (model.typeName !== undefined) ? model.typeName :
-                (model.x !== undefined) ?
-                  (model.x + " " +
-                  model.y + " " +
-                  model.z + " " +
-                  model.roll + " " +
-                  model.pitch + " " +
-                  model.yaw) : ""
+          text: textFromModel(model)
           color: Material.theme == Material.Light ? "black" : "white"
           font.pointSize: 12
 
