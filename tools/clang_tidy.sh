@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -xe
+shopt -s globstar
 
 mkdir -p build_tidy
 cd build_tidy
@@ -15,11 +16,12 @@ make ignition-gazebo_private_msgs
 
 cd ..
 
-run-clang-tidy-6.0.py \
+clang-tidy-6.0 \
   -p=`pwd`/build_tidy \
   -header-filter="`pwd`/(include|src)/*" \
-  -j 6 \
   -quiet \
-  "`pwd`/src/*" \
-  "`pwd`/test/(benchmark|integration|performance|plugins|regression)/*" \
-  "`pwd`/examples/*"
+  -warnings-as-errors=* \
+  `pwd`/src/*.cc \
+  `pwd`/src/**/*.cc \
+  `pwd`/test/{benchmark,integration,performance,plugins}/*.cc \
+  `pwd`/examples/**/*.cc
