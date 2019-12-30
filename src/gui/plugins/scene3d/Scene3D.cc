@@ -191,9 +191,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Text key.
     public: std::string keyText;
 
-    /// \brief Key modifiers.
-    public: Qt::KeyboardModifiers keyModifiers;
-
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
@@ -490,21 +487,21 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
     return;
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->keyModifiers = _e->modifiers();
 
   this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->keyEvent.SetText(this->dataPtr->keyText);
+  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
 
   this->dataPtr->keyEvent.SetControl(
-    (this->dataPtr->keyModifiers & Qt::ControlModifier));
+    (_e->modifiers() & Qt::ControlModifier));
   this->dataPtr->keyEvent.SetShift(
-    (this->dataPtr->keyModifiers & Qt::ShiftModifier));
+    (_e->modifiers() & Qt::ShiftModifier));
   this->dataPtr->keyEvent.SetAlt(
-    (this->dataPtr->keyModifiers & Qt::AltModifier));
+    (_e->modifiers() & Qt::AltModifier));
 
   this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
   this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+  this->dataPtr->keyEvent.SetType(common::KeyEvent::PRESS);
 
   // Update the object and mouse to be placed at the current position
   // only for x, y, and z key presses
@@ -525,24 +522,24 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
     return;
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->keyModifiers = _e->modifiers();
 
   this->dataPtr->keyEvent.SetKey(0);
   this->dataPtr->keyText = "";
 
   this->dataPtr->keyEvent.SetControl(
-    (this->dataPtr->keyModifiers & Qt::ControlModifier)
+    (_e->modifiers() & Qt::ControlModifier)
     && (_e->key() != Qt::Key_Control));
   this->dataPtr->keyEvent.SetShift(
-    (this->dataPtr->keyModifiers & Qt::ShiftModifier)
+    (_e->modifiers() & Qt::ShiftModifier)
     && (_e->key() != Qt::Key_Shift));
   this->dataPtr->keyEvent.SetAlt(
-    (this->dataPtr->keyModifiers & Qt::AltModifier)
+    (_e->modifiers() & Qt::AltModifier)
     && (_e->key() != Qt::Key_Alt));
 
   this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
   this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
   this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+  this->dataPtr->keyEvent.SetType(common::KeyEvent::RELEASE);
 
   // Update the object and mouse to be placed at the current position
   // only for x, y, and z key presses
