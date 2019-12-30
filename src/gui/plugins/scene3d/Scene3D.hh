@@ -210,15 +210,23 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
-    /// \brief Handle key press event for snapping
+    /// \brief Handle key press event for snapping.
     public: void HandleKeyPress(QKeyEvent *_e);
 
-    /// \brief Handle key release event for snapping
+    /// \brief Handle key release event for snapping.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief Set the XYZ snap values.
+    /// \param[in] _xyz The XYZ snap values
     public: void SetXYZSnap(const math::Vector3d &_xyzSnap);
 
-    public: void SetRPYSnap(const math::Vector3d &_rpySnap);
+    /// \brief Set the RPY snap values.
+    /// \param[in] _rpy The RPY snap values
+    public: void SetRPYSnap(const math::Vector3d &_rpy);
+
+    /// \brief Set the scale snap values.
+    /// \param[in] _scale The scale snap values
+    public: void SetScaleSnap(const math::Vector3d &_scale);
 
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
@@ -393,9 +401,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
 
-    public: void SetXYZSnap(const math::Vector3d &_xyzSnap);
+    /// \brief Set the XYZ snap values from the user input.
+    /// \param[in] _xyz The XYZ snap values
+    public: void SetXYZSnap(const math::Vector3d &_xyz);
 
-    public: void SetRPYSnap(const math::Vector3d &_rpySnap);
+    /// \brief Set the RPY snap values from the user input.
+    /// \param[in] _rpy The RPY snap values
+    public: void SetRPYSnap(const math::Vector3d &_rpy);
+
+    /// \brief Set the scale snap values from the user input.
+    /// \param[in] _scale The scale snap values
+    public: void SetScaleSnap(const math::Vector3d &_scale);
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();

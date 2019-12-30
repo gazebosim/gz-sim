@@ -804,15 +804,14 @@ void IgnRenderer::HandleMouseTransformControl()
         math::Vector3d relativePos =
           this->dataPtr->startWorldPos + distance;
         math::Vector3d snapVals = this->dataPtr->transformControl.XYZSnap();
-        if (snapVals.X() <= 1e-4) {
+
+        if (snapVals.X() <= 1e-4)
           snapVals.X() = 1;
-        }
-        if (snapVals.Y() <= 1e-4) {
+        if (snapVals.Y() <= 1e-4)
           snapVals.Y() = 1;
-        }
-        if (snapVals.Z() <= 1e-4) {
+        if (snapVals.Z() <= 1e-4)
           snapVals.Z() = 1;
-        }
+
         distance =
           SnapPoint(relativePos, snapVals) - this->dataPtr->startWorldPos;
         distance *= axis;
@@ -866,7 +865,13 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d snapVals(0.5, 0.5, 0.5);
+        math::Vector3d snapVals = this->dataPtr->transformControl.ScaleSnap();
+        if (snapVals.X() <= 1e-4)
+          snapVals.X() = 0.1;
+        if (snapVals.Y() <= 1e-4)
+          snapVals.Y() = 0.1;
+        if (snapVals.Z() <= 1e-4)
+          snapVals.Z() = 0.1;
         scale = SnapPoint(scale, snapVals);
       }
       this->dataPtr->transformControl.Scale(scale);
@@ -998,15 +1003,21 @@ void IgnRenderer::Destroy()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyzSnap)
+void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyz)
 {
-  this->dataPtr->transformControl.SetXYZSnap(_xyzSnap);
+  this->dataPtr->transformControl.SetXYZSnap(_xyz);
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpySnap)
+void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpy)
 {
-  this->dataPtr->transformControl.SetRPYSnap(_rpySnap);
+  this->dataPtr->transformControl.SetRPYSnap(_rpy);
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetScaleSnap(const math::Vector3d &_scale)
+{
+  this->dataPtr->transformControl.SetScaleSnap(_scale);
 }
 
 /////////////////////////////////////////////////
@@ -1598,6 +1609,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
       renderWindow->SetXYZSnap(snapEvent->XYZ());
       renderWindow->SetRPYSnap(snapEvent->RPY());
+      renderWindow->SetScaleSnap(snapEvent->Scale());
     }
   }
 
@@ -1679,15 +1691,21 @@ void Scene3D::OnDropped(const QString &_drop)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyzSnap)
+void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
-  this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyzSnap);
+  this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::SetRPYSnap(const math::Vector3d &_rpySnap)
+void RenderWindowItem::SetRPYSnap(const math::Vector3d &_rpy)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRPYSnap(_rpySnap);
+  this->dataPtr->renderThread->ignRenderer.SetRPYSnap(_rpy);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
+{
+  this->dataPtr->renderThread->ignRenderer.SetScaleSnap(_scale);
 }
 
 /////////////////////////////////////////////////
