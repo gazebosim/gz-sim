@@ -138,8 +138,12 @@ ToolBar {
               top: 100
               decimals: 10
             }
-            onAccepted: {
-              TransformControl.OnSnapUpdate(xEntry.text, yEntry.text, zEntry.text, rollEntry.text, pitchEntry.text, yawEntry.text)
+            onEditingFinished: {
+              TransformControl.OnSnapUpdate(
+                xEntry.text, yEntry.text, zEntry.text,
+                rollEntry.text, pitchEntry.text, yawEntry.text,
+                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+              )
             }
           }
           Text {
@@ -154,8 +158,12 @@ ToolBar {
               top: 100
               decimals: 10
             }
-            onAccepted: {
-              TransformControl.OnSnapUpdate(xEntry.text, yEntry.text, zEntry.text, rollEntry.text, pitchEntry.text, yawEntry.text)
+            onEditingFinished: {
+              TransformControl.OnSnapUpdate(
+                xEntry.text, yEntry.text, zEntry.text,
+                rollEntry.text, pitchEntry.text, yawEntry.text,
+                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+              )
             }
           }
           Text {
@@ -170,8 +178,12 @@ ToolBar {
               top: 100
               decimals: 10
             }
-            onAccepted: {
-              TransformControl.OnSnapUpdate(xEntry.text, yEntry.text, zEntry.text, rollEntry.text, pitchEntry.text, yawEntry.text)
+            onEditingFinished: {
+              TransformControl.OnSnapUpdate(
+                xEntry.text, yEntry.text, zEntry.text,
+                rollEntry.text, pitchEntry.text, yawEntry.text,
+                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+              )
             }
           }
         }
@@ -236,8 +248,12 @@ ToolBar {
               top: 90
               decimals: 10
             }
-            onAccepted: {
-              TransformControl.OnSnapUpdate(xEntry.text, yEntry.text, zEntry.text, rollEntry.text, pitchEntry.text, yawEntry.text)
+            onEditingFinished: {
+              TransformControl.OnSnapUpdate(
+                xEntry.text, yEntry.text, zEntry.text,
+                rollEntry.text, pitchEntry.text, yawEntry.text,
+                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+              )
             }
           }
           Text {
@@ -252,8 +268,12 @@ ToolBar {
               top: 90
               decimals: 10
             }
-            onAccepted: {
-              TransformControl.OnSnapUpdate(xEntry.text, yEntry.text, zEntry.text, rollEntry.text, pitchEntry.text, yawEntry.text)
+            onEditingFinished: {
+              TransformControl.OnSnapUpdate(
+                xEntry.text, yEntry.text, zEntry.text,
+                rollEntry.text, pitchEntry.text, yawEntry.text,
+                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+              )
             }
           }
           Text {
@@ -268,8 +288,12 @@ ToolBar {
               top: 90
               decimals: 10
             }
-            onAccepted: {
-              TransformControl.OnSnapUpdate(xEntry.text, yEntry.text, zEntry.text, rollEntry.text, pitchEntry.text, yawEntry.text)
+            onEditingFinished: {
+              TransformControl.OnSnapUpdate(
+                xEntry.text, yEntry.text, zEntry.text,
+                rollEntry.text, pitchEntry.text, yawEntry.text,
+                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+              )
             }
           }
         }
@@ -292,6 +316,15 @@ ToolBar {
         color: rotate.Material.rippleColor
       }
     }
+    Text {
+      id: xScaleEntry
+    }
+    Text {
+      id: yScaleEntry
+    }
+    Text {
+      id: zScaleEntry
+    }
     // TODO(anyone) enable scale button when support is added in ign-physics
     // ToolButton {
     //   id: scale
@@ -309,13 +342,89 @@ ToolBar {
     //     sourceSize.width: 24;
     //     sourceSize.height: 24;
     //   }
+    //   MouseArea {
+    //     anchors.fill: parent
+    //     acceptedButtons: Qt.LeftButton | Qt.RightButton
+    //     onClicked: {
+    //       if (mouse.button === Qt.LeftButton) {
+    //         scale.checked = true;
+    //         TransformControl.OnMode("scale")
+    //       }
+    //       if (mouse.button === Qt.RightButton) {
+    //         snapScaleMenu.open()
+    //       }
+    //     }
+    //     Menu {
+    //       id: snapScaleMenu
+    //       Text {
+    //         id: xScale
+    //         text: qsTr("X (0-5) :")
+    //       }
+    //       TextField {
+    //         id: xScaleEntry
+    //         placeholderText: qsTr("Size")
+    //         validator: DoubleValidator {
+    //           bottom: 0
+    //           top: 5
+    //           decimals: 10
+    //         }
+    //        onEditingFinished: {
+    //           TransformControl.OnSnapUpdate(
+    //             xEntry.text, yEntry.text, zEntry.text,
+    //             rollEntry.text, pitchEntry.text, yawEntry.text,
+    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+    //           )
+    //         }
+    //       }
+    //       Text {
+    //         id: yScale
+    //         text: qsTr("Y (0-5) :")
+    //       }
+    //       TextField {
+    //         id: yScaleEntry
+    //         placeholderText: qsTr("Size")
+    //         validator: DoubleValidator {
+    //           bottom: 0
+    //           top: 5
+    //           decimals: 10
+    //         }
+    //        onEditingFinished: {
+    //           TransformControl.OnSnapUpdate(
+    //             xEntry.text, yEntry.text, zEntry.text,
+    //             rollEntry.text, pitchEntry.text, yawEntry.text,
+    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+    //           )
+    //         }
+    //       }
+    //       Text {
+    //         id: zScale
+    //         text: qsTr("Z (0-5) :")
+    //       }
+    //       TextField {
+    //         id: zScaleEntry
+    //         placeholderText: qsTr("Size")
+    //         validator: DoubleValidator {
+    //           bottom: 0
+    //           top: 5
+    //           decimals: 10
+    //         }
+    //        onEditingFinished: {
+    //           TransformControl.OnSnapUpdate(
+    //             xEntry.text, yEntry.text, zEntry.text,
+    //             rollEntry.text, pitchEntry.text, yawEntry.text,
+    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
+    //           )
+    //         }
+    //       }
+    //     }
+    //   }
     //  // Almost an exact copy from upstream, adding `checked`
     //  background: Ripple {
     //    implicitWidth: 48
     //    implicitHeight: 48
-
+    // 
     //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
-
+    // 
     //    x: (parent.width - width) / 2
     //    y: (parent.height - height) / 2
     //    clip: !square
@@ -326,9 +435,6 @@ ToolBar {
     //    active: scale.enabled && (scale.down || scale.visualFocus || scale.hovered || scale.checked)
     //    color: scale.Material.rippleColor
     //  }
-    //   onClicked: {
-    //     TransformControl.OnMode("scale")
-    //   }
     // }
   }
 }

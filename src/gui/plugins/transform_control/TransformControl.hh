@@ -48,7 +48,8 @@ namespace gazebo
 
     public slots: void OnSnapUpdate(
         double _x, double _y, double _z,
-        double _roll, double _pitch, double _yaw);
+        double _roll, double _pitch, double _yaw,
+        double _scaleX, double _scaleY, double _scaleZ);
 
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
