@@ -46,6 +46,7 @@ DEFINE_bool(distributed, false, "Use distributed simulation.");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
 DEFINE_bool(log_overwrite, false, "When logging, overwrite existing files");
+DEFINE_bool(log_compress, false, "When logging, compress final log files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 
 //////////////////////////////////////////////////
@@ -102,6 +103,8 @@ void help()
   << " custom path to put recorded files. Argument is path to recorded states."
   << std::endl
   << "  --log-overwrite        When recording, overwrite existing log files."
+  << std::endl
+  << "  --log-compress         When recording, compress final log files."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
   << " Arg is path to recorded states."

@@ -18,6 +18,8 @@ Other options for recording:
 
 `--log-overwrite`: If the record path already exists, overwrite it.
 
+`--log-compress`: Compress the recorded file.
+
 ## Record by specifying plugin in SDF
 
 Recording can be specified in the SDF, under `<world>` tag:
