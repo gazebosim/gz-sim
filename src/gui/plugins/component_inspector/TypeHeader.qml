@@ -6,9 +6,10 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 Rectangle {
-  id: itemDel
-  color: (styleData.row % 2 == 0) ? even : odd
-  height: itemHeight
+  id: typeHeader
+  height: headerText.height
+  width: headerText.width
+  color: "transparent"
 
   function tooltipText(_model) {
     if (model === null)
@@ -25,17 +26,17 @@ Rectangle {
   }
 
   Text {
-    anchors.verticalCenter: parent.verticalCenter
-    leftPadding: 2
+    id: headerText
     text: model && model.shortName ? model.shortName : ''
     color: Material.theme == Material.Light ? "black" : "white"
     font.pointSize: 12
+    leftPadding: 10
 
     ToolTip {
       visible: ma.containsMouse
       delay: tooltipDelay
       text: tooltipText(model)
-      y: itemDel.z - 30
+      y: typeHeader.z - 30
       enter: null
       exit: null
     }

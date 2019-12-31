@@ -93,35 +93,31 @@ void TreeModel::AddName(const QString &_name)
   auto typeName =
       components::Factory::Instance()->Name(components::Name::typeId);
 
-  auto nameItem = this->items.find(QString::fromStdString(typeName));
-  if (nameItem == this->items.end())
-  {
-    ignerr << "Internal error, missing component ["
-           << typeName << "]" << std::endl;
-    return;
-  }
+  auto itemIt = this->items.find(QString::fromStdString(typeName));
 
-  auto itemName = QString::fromStdString(typeName + "_component");
-
-  auto itemIt = this->items.find(itemName);
-
-  // New component item
   QStandardItem *item{nullptr};
-  if (itemIt != this->items.end())
+  if (itemIt == this->items.end())
   {
-    item = itemIt->second;
+    item = new QStandardItem(QString::fromStdString(typeName));
+    item->setData(
+        QString::fromStdString(shortName(typeName)),
+        this->roleNames().key("shortName"));
+    item->setData(
+        QString::fromStdString(typeName),
+        this->roleNames().key("typeName"));
+    item->setData(
+        QString::number(components::Pose::typeId),
+        this->roleNames().key("typeId"));
+
+    this->invisibleRootItem()->appendRow(item);
+    this->items[QString::fromStdString(typeName)] = item;
   }
   else
   {
-    item = new QStandardItem(itemName);
-    nameItem->second->appendRow(item);
+    item = itemIt->second;
   }
 
-  item->setData(QString::fromStdString(typeName),
-      this->roleNames().key("typeName"));
   item->setData(_name, this->roleNames().key("name"));
-
-  this->items[itemName] = item;
 }
 
 /////////////////////////////////////////////////
@@ -138,41 +134,36 @@ void TreeModel::AddPose(
   auto typeName =
       components::Factory::Instance()->Name(components::Pose::typeId);
 
-  auto poseItem =
-      this->items.find(QString::fromStdString(typeName));
-  if (poseItem == this->items.end())
-  {
-    ignerr << "Internal error, missing component ["
-           << typeName << "]" << std::endl;
-    return;
-  }
+  auto itemIt = this->items.find(QString::fromStdString(typeName));
 
-  auto itemName = QString::fromStdString(typeName + "_component");
-
-  auto itemIt = this->items.find(itemName);
-
-  // New component item
   QStandardItem *item{nullptr};
-  if (itemIt != this->items.end())
+  if (itemIt == this->items.end())
   {
-    item = itemIt->second;
+    item = new QStandardItem(QString::fromStdString(typeName));
+    item->setData(
+        QString::fromStdString(shortName(typeName)),
+        this->roleNames().key("shortName"));
+    item->setData(
+        QString::fromStdString(typeName),
+        this->roleNames().key("typeName"));
+    item->setData(
+        QString::number(components::Pose::typeId),
+        this->roleNames().key("typeId"));
+
+    this->invisibleRootItem()->appendRow(item);
+    this->items[QString::fromStdString(typeName)] = item;
   }
   else
   {
-    item = new QStandardItem(itemName);
-    poseItem->second->appendRow(item);
+    item = itemIt->second;
   }
 
-  item->setData(QString::fromStdString(typeName),
-      this->roleNames().key("typeName"));
   item->setData(QString::number(_x), this->roleNames().key("x"));
   item->setData(QString::number(_y), this->roleNames().key("y"));
   item->setData(QString::number(_z), this->roleNames().key("z"));
   item->setData(QString::number(_roll), this->roleNames().key("roll"));
   item->setData(QString::number(_pitch), this->roleNames().key("pitch"));
   item->setData(QString::number(_yaw), this->roleNames().key("yaw"));
-
-  this->items[itemName] = item;
 }
 
 /////////////////////////////////////////////////
@@ -225,35 +216,42 @@ void ComponentInspector::Update(const UpdateInfo &,
   // TODO(louise) Remove components that are no longer present
   for (const auto &typeId : componentTypes)
   {
-    auto name = components::Factory::Instance()->Name(typeId);
+    if (typeId == components::Pose::typeId)
+    {
+      auto poseComp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (poseComp)
+      {
+        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddPose",
+            Qt::QueuedConnection,
+            Q_ARG(double, poseComp->Data().Pos().X()),
+            Q_ARG(double, poseComp->Data().Pos().Y()),
+            Q_ARG(double, poseComp->Data().Pos().Z()),
+            Q_ARG(double, poseComp->Data().Rot().Roll()),
+            Q_ARG(double, poseComp->Data().Rot().Pitch()),
+            Q_ARG(double, poseComp->Data().Rot().Yaw()));
+      }
+    }
+    else if (typeId == components::Name::typeId)
+    {
+      auto nameComp = _ecm.Component<components::Name>(this->dataPtr->entity);
+      if (nameComp)
+      {
+        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddName",
+            Qt::QueuedConnection,
+            Q_ARG(QString, QString::fromStdString(nameComp->Data())));
+      }
+    }
+    else
+    {
+      auto name = components::Factory::Instance()->Name(typeId);
 
-    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponent",
-        Qt::QueuedConnection,
-        Q_ARG(long, typeId),
-        Q_ARG(QString, QString::fromStdString(name)));
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponent",
+          Qt::QueuedConnection,
+          Q_ARG(long, typeId),
+          Q_ARG(QString, QString::fromStdString(name)));
+    }
   }
 
-  // Handle known components
-  auto nameComp = _ecm.Component<components::Name>(this->dataPtr->entity);
-  if (nameComp)
-  {
-    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddName",
-        Qt::QueuedConnection,
-        Q_ARG(QString, QString::fromStdString(nameComp->Data())));
-  }
-
-  auto poseComp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-  if (poseComp)
-  {
-    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddPose",
-        Qt::QueuedConnection,
-        Q_ARG(double, poseComp->Data().Pos().X()),
-        Q_ARG(double, poseComp->Data().Pos().Y()),
-        Q_ARG(double, poseComp->Data().Pos().Z()),
-        Q_ARG(double, poseComp->Data().Rot().Roll()),
-        Q_ARG(double, poseComp->Data().Rot().Pitch()),
-        Q_ARG(double, poseComp->Data().Rot().Yaw()));
-  }
 }
 
 /////////////////////////////////////////////////

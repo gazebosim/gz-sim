@@ -4,24 +4,32 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import "qrc:/ComponentInspector"
 
 Rectangle {
-  id: itemDel
-  color: (styleData.row % 2 == 0) ? even : odd
-  height: itemHeight
+  id: nameComponent
+  height: header.height
+  width: componentInspector.width
+  color: "transparent"
 
   function textFromModel(_model) {
     if (_model && _model.name !== undefined)
       return _model.name
 
-    return ''
+    return 'N/A'
   }
 
-  Text {
-    anchors.verticalCenter: parent.verticalCenter
-    leftPadding: 2
-    text: textFromModel(model)
-    color: Material.theme == Material.Light ? "black" : "white"
-    font.pointSize: 12
+  Row {
+    spacing: nameComponent.width - header.width - content.width - 20
+    TypeHeader {
+      id: header
+    }
+
+    Text {
+      id: content
+      text: textFromModel(model)
+      color: Material.theme == Material.Light ? "black" : "white"
+      font.pointSize: 12
+    }
   }
 }
