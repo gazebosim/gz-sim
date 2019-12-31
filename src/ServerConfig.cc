@@ -220,6 +220,8 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordPathFromCmdLine(_cfg->logRecordPathFromCmdLine),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordOverwrite(_cfg->logRecordOverwrite),
+            logRecordCompress(_cfg->logRecordCompress),
+            logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -256,6 +258,12 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief When recording, overwrite existing log files
   public: bool logRecordOverwrite{false};
+
+  /// \brief When recording, compress final log files
+  public: bool logRecordCompress{false};
+
+  /// \brief Path to compress log files to
+  public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -457,6 +465,30 @@ bool ServerConfig::LogRecordOverwrite() const
 void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
 {
   this->dataPtr->logRecordOverwrite = _overwrite;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::LogRecordCompress() const
+{
+  return this->dataPtr->logRecordCompress;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompress(bool _compress)
+{
+  this->dataPtr->logRecordCompress = _compress;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::LogRecordCompressPath() const
+{
+  return this->dataPtr->logRecordCompressPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompressPath(const std::string &_path)
+{
+  this->dataPtr->logRecordCompressPath = _path;
 }
 
 /////////////////////////////////////////////////

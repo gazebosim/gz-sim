@@ -24,6 +24,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/fuel_tools/Zip.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/RegisterMore.hh>
@@ -46,6 +47,9 @@ using namespace systems;
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
+  /// \brief Extract model resource files and state file from compression.
+  public: bool ExtractStateAndResources();
+
   /// \brief Start log playback.
   /// \param[in] _logPath Path of recorded state to playback.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
@@ -186,6 +190,17 @@ void LogPlayback::Configure(const Entity &,
       this->dataPtr->logPath);
   }
 
+  // If path is a file, assume it is a compressed file
+  // (Otherwise assume it is a directory containing recorded files.)
+  if (common::isFile(this->dataPtr->logPath))
+  {
+    if (!this->dataPtr->ExtractStateAndResources())
+    {
+      ignerr << "Cannot play back files.\n";
+      return;
+    }
+  }
+
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
@@ -211,13 +226,6 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   if (this->logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
-    return false;
-  }
-
-  if (!common::isDirectory(this->logPath))
-  {
-    ignerr << "Specified log path [" << this->logPath
-           << "] must be a directory.\n";
     return false;
   }
 
@@ -271,6 +279,29 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   this->instStarted = true;
   LogPlaybackPrivate::started = true;
   return true;
+}
+
+//////////////////////////////////////////////////
+bool LogPlaybackPrivate::ExtractStateAndResources()
+{
+  std::string cmpDest = common::parentPath(this->logPath);
+
+  if (fuel_tools::Zip::Extract(this->logPath, cmpDest))
+  {
+    ignmsg << "Extracted recording to [" << cmpDest << "]" << std::endl;
+
+    // Replace value in variable with the directory of extracted files
+    // Assume directory has same name as compressed file, without extension
+    size_t sepIdx = this->logPath.find_last_of('.');
+    // Remove extension
+    this->logPath = this->logPath.substr(0, sepIdx);
+    return true;
+  }
+  else
+  {
+    ignerr << "Failed to extract recording to [" << cmpDest << "]" << std::endl;
+    return false;
+  }
 }
 
 //////////////////////////////////////////////////

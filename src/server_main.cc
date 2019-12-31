@@ -43,6 +43,7 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
 DEFINE_bool(log_overwrite, false, "When recording, overwrite existing files");
+DEFINE_bool(log_compress, false, "When recording, compress final log files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 DEFINE_uint32(seed, 0, "Start with a given random number seed");
 
@@ -102,6 +103,8 @@ void help()
   << " Argument is path to recorded states."
   << std::endl
   << "  --log-overwrite        When recording, overwrite existing log files."
+  << std::endl
+  << "  --log-compress         When recording, compress final log files."
   << std::endl
   << "  --seed arg             Start with a given random number seed."
   << " Arg is the random seed (unsigned int)."
@@ -257,7 +260,6 @@ int main(int _argc, char **_argv)
 
     if (!FLAGS_record_path.empty())
     {
-      // TODO(mabelmzhang) Test --record-path with absolutep and relative paths
       serverConfig.SetLogRecordPath(ignition::common::joinPaths(
         ignition::common::cwd(), FLAGS_record_path));
     }
@@ -270,6 +272,11 @@ int main(int _argc, char **_argv)
   if (FLAGS_log_overwrite)
   {
     serverConfig.SetLogRecordOverwrite(FLAGS_log_overwrite);
+  }
+
+  if (FLAGS_log_compress)
+  {
+    serverConfig.SetLogRecordCompress(FLAGS_log_compress);
   }
 
   if (!FLAGS_playback.empty())

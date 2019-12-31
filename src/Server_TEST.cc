@@ -65,6 +65,8 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_FALSE(serverConfig.LogRecordPathFromCmdLine());
   EXPECT_TRUE(serverConfig.LogPlaybackPath().empty());
   EXPECT_FALSE(serverConfig.LogRecordOverwrite());
+  EXPECT_FALSE(serverConfig.LogRecordCompress());
+  EXPECT_TRUE(serverConfig.LogRecordCompressPath().empty());
   EXPECT_EQ(0u, serverConfig.Seed());
   EXPECT_EQ(123ms, serverConfig.UpdatePeriod().value_or(123ms));
   EXPECT_TRUE(serverConfig.ResourceCache().empty());
@@ -274,11 +276,14 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
+  auto compressedFile = logPath + ".zip";
 
   igndbg << "Log path [" << logPath << "]" << std::endl;
 
   common::removeAll(logPath);
+  common::removeAll(compressedFile);
   EXPECT_FALSE(common::exists(logFile));
+  EXPECT_FALSE(common::exists(compressedFile));
 
   {
     gazebo::ServerConfig serverConfig;
@@ -292,6 +297,38 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
   }
 
   EXPECT_TRUE(common::exists(logFile));
+  EXPECT_FALSE(common::exists(compressedFile));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigLogRecordCompress)
+{
+  auto logPath = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logFile = common::joinPaths(logPath, "state.tlog");
+  auto compressedFile = logPath + ".zip";
+
+  igndbg << "Log path [" << logPath << "]" << std::endl;
+
+  common::removeAll(logPath);
+  common::removeAll(compressedFile);
+  EXPECT_FALSE(common::exists(logFile));
+  EXPECT_FALSE(common::exists(compressedFile));
+
+  {
+    gazebo::ServerConfig serverConfig;
+    serverConfig.SetUseLogRecord(true);
+    serverConfig.SetLogRecordCompress(true);
+    serverConfig.SetLogRecordPath(logPath);
+
+    gazebo::Server server(serverConfig);
+    EXPECT_EQ(0u, *server.IterationCount());
+    EXPECT_EQ(3u, *server.EntityCount());
+    EXPECT_EQ(4u, *server.SystemCount());
+  }
+
+  EXPECT_FALSE(common::exists(logFile));
+  EXPECT_TRUE(common::exists(compressedFile));
 }
 
 /////////////////////////////////////////////////

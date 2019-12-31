@@ -250,11 +250,13 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
-      /// \brief Get whether record path came from command line
+      /// \brief Get whether record path came from command line. This is only
+      /// for the record path, not the compression path.
       /// \return Whether record path came from command line
       public: bool LogRecordPathFromCmdLine() const;
 
-      /// \brief Set whether record path came from command line
+      /// \brief Set whether record path came from command line. This is only
+      /// for the record path, not the compression path.
       /// \param[in] _fromCmdLine Whether record path came from command line
       public: void SetLogRecordPathFromCmdLine(bool _fromCmdLine);
 
@@ -273,6 +275,22 @@ namespace ignition
       /// \brief Set whether to overwrite existing log files
       /// \param[in] _overwrite Value to set
       public: void SetLogRecordOverwrite(bool _overwrite);
+
+      /// \brief Get whether to compress log files
+      /// \return True if should compress.
+      public: bool LogRecordCompress() const;
+
+      /// \brief Set whether to compress log files
+      /// \param[in] _compress Value to set
+      public: void SetLogRecordCompress(bool _compress);
+
+      /// \brief Get file path to compress log files to
+      /// \return File path to compress log files to
+      public: std::string LogRecordCompressPath() const;
+
+      /// \brief Set file path to compress log files to
+      /// \param[in] _path File path to compress log files to
+      public: void SetLogRecordCompressPath(const std::string &_path);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.

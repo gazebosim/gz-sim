@@ -25,6 +25,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/fuel_tools/Zip.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/Log.hh>
@@ -107,7 +108,26 @@ class LogSystemTest : public ::testing::Test
       common::removeAll(this->logsDir);
     }
     common::createDirectories(this->logsDir);
-    common::createDirectories(this->logPlaybackDir);
+  }
+
+  // Append extension to the end of a path, removing the separator at
+  //   the end of the path if necessary.
+  // \param[in] _path Path to append extension to. May have separator at
+  //   the end.
+  // \param[in] _ext Extension including dot "." to be appended
+  public: std::string AppendExtension(const std::string &_path,
+    const std::string &_ext)
+  {
+    std::string result = _path;
+
+    // Remove the separator at end of path
+    if (!std::string(1, _path.back()).compare(common::separator("")))
+    {
+      result = _path.substr(0, _path.length() - 1);
+    }
+    result += _ext;
+
+    return result;
   }
 
   public: void RemoveLogsDir()
@@ -160,11 +180,8 @@ class LogSystemTest : public ::testing::Test
       "test_logs");
 
   /// \brief Path to recorded log file
-  public: std::string logDir = common::joinPaths(logsDir, "test_logs_record");
-
-  /// \brief Path to log file for playback
-  public: std::string logPlaybackDir =
-      common::joinPaths(logsDir, "test_logs_playback");
+  public: std::string recordDir = common::joinPaths(logsDir,
+      "test_logs_record");
 };
 
 /////////////////////////////////////////////////
@@ -192,9 +209,9 @@ TEST_F(LogSystemTest, LogDefaults)
     // Set record path to empty
     recordServerConfig.SetLogRecordPath("");
 
-    // Run for a few seconds to record different poses
+    // Run server
     Server recordServer(recordServerConfig);
-    recordServer.Run(true, 1000, false);
+    recordServer.Run(true, 200, false);
 
     EXPECT_FALSE(ignLogDirectory().empty());
     // This should be $HOME/.ignition/..., default path set in LogRecord.cc
@@ -217,7 +234,8 @@ TEST_F(LogSystemTest, LogDefaults)
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
-    // This tells server to call AddRecordPlugin() where the logic happens
+    // This tells server to call AddRecordPlugin() where flags are passed to
+    //   recorder.
     recordServerConfig.SetUseLogRecord(true);
 
     // Mock command line arg. Set record path to something different from in SDF
@@ -225,9 +243,9 @@ TEST_F(LogSystemTest, LogDefaults)
     recordServerConfig.SetLogRecordPath(cliPath);
     recordServerConfig.SetLogRecordPathFromCmdLine(true);
 
-    // Run for a few seconds to record different poses
+    // Run server
     Server recordServer(recordServerConfig);
-    recordServer.Run(true, 1000, false);
+    recordServer.Run(true, 200, false);
 
     EXPECT_TRUE(common::exists(cliPath));
     EXPECT_FALSE(common::exists(sdfPath));
@@ -244,13 +262,13 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   {
     // World with moving entities
     const auto recordSdfPath = common::joinPaths(
-      std::string(PROJECT_SOURCE_PATH), "test", "worlds",
-      "log_record_dbl_pendulum.sdf");
+        std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+        "log_record_dbl_pendulum.sdf");
 
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
     this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        this->logDir);
+        this->recordDir);
     EXPECT_EQ(1u, recordSdfRoot.WorldCount());
 
     // Pass changed SDF to server
@@ -263,22 +281,27 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   }
 
   // Verify file is created
-  auto logFile = common::joinPaths(this->logDir, "state.tlog");
+  auto logFile = common::joinPaths(this->recordDir, "state.tlog");
   EXPECT_TRUE(common::exists(logFile));
 
-  // move the log file to the playback directory
-  auto logPlaybackFile = common::joinPaths(this->logPlaybackDir, "state.tlog");
+  // Create playback directory
+  std::string logPlaybackDir = common::joinPaths(this->logsDir,
+      "test_logs_playback");
+  common::createDirectories(logPlaybackDir);
+
+  // Move recorded file to playback directory
+  auto logPlaybackFile = common::joinPaths(logPlaybackDir, "state.tlog");
   common::moveFile(logFile, logPlaybackFile);
   EXPECT_TRUE(common::exists(logPlaybackFile));
 
   // World file to load
   const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_playback.sdf");
+      "test", "worlds", "log_playback.sdf");
 
   // Change log path in world SDF to build directory
   sdf::Root playSdfRoot;
   this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
-      this->logPlaybackDir);
+      logPlaybackDir);
   ASSERT_EQ(1u, playSdfRoot.WorldCount());
 
   const auto sdfWorld = playSdfRoot.WorldByIndex(0);
@@ -571,15 +594,15 @@ TEST_F(LogSystemTest, LogOverwrite)
       // Change log path in SDF to build directory
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+          this->recordDir);
 
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
-      // Run for a few seconds to record different poses
+      // Run server
       Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
+      recordServer.Run(true, 100, false);
     }
 
     // Test path exists
@@ -590,15 +613,15 @@ TEST_F(LogSystemTest, LogOverwrite)
       // Change log path in SDF to build directory
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+          this->recordDir);
 
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
-      // Run for a few seconds to record different poses
+      // Run server
       Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
+      recordServer.Run(true, 100, false);
     }
 
     // Test record path is same as the first.
@@ -611,15 +634,15 @@ TEST_F(LogSystemTest, LogOverwrite)
       // Change log path in SDF to build directory
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+          this->recordDir);
 
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
       recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
-      // Run for a few seconds to record different poses
+      // Run server
       Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
+      recordServer.Run(true, 100, false);
     }
 
     // Test path exists
@@ -630,7 +653,7 @@ TEST_F(LogSystemTest, LogOverwrite)
       // Change log path in SDF to build directory
       sdf::Root recordSdfRoot;
       this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+          this->recordDir);
 
       // Pass changed SDF to server
       ServerConfig recordServerConfig;
@@ -639,14 +662,142 @@ TEST_F(LogSystemTest, LogOverwrite)
       // Set overwrite flag
       recordServerConfig.SetLogRecordOverwrite(true);
 
-      // Run for a few seconds to record different poses
+      // Run server
       Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
+      recordServer.Run(true, 100, false);
     }
 
     // Test record path is same as the first.
     EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
   }
+
+  this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogCompress)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // Define paths
+  const std::string recordPath = this->recordDir;
+  const std::string defaultCmpPath = this->AppendExtension(recordPath,
+      ".zip");
+
+  // Record and compress to default path
+  {
+    // World to record
+    const auto recordSdfPath = common::joinPaths(
+        std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+        "log_record_dbl_pendulum.sdf");
+
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        recordPath);
+
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // Set compress flag
+    recordServerConfig.SetLogRecordCompress(true);
+
+    // This tells server to call AddRecordPlugin() where flags are passed to
+    //   recorder.
+    recordServerConfig.SetUseLogRecord(true);
+
+    // Run server
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
+  }
+
+  // Test compressed to default directory
+  EXPECT_TRUE(common::exists(defaultCmpPath));
+
+  std::string customCmpPath = this->AppendExtension(this->recordDir,
+      "_custom.zip");
+
+  // Record and compress to custom path
+  {
+    // World to record
+    const auto recordSdfPath = common::joinPaths(
+        std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+        "log_record_dbl_pendulum.sdf");
+
+    // Get SDF root
+    sdf::Root recordSdfRoot;
+    recordSdfRoot.Load(recordSdfPath);
+
+    // Pass SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // Set compress flag
+    recordServerConfig.SetLogRecordCompress(true);
+
+    // Set compress path
+    recordServerConfig.SetLogRecordCompressPath(customCmpPath);
+
+    // Set record path
+    recordServerConfig.SetLogRecordPath(this->recordDir);
+    recordServerConfig.SetLogRecordPathFromCmdLine(true);
+
+    // This tells server to call AddRecordPlugin() where flags are passed to
+    //   recorder.
+    recordServerConfig.SetUseLogRecord(true);
+
+    // Run server for enough time to record a few poses for playback
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 500, false);
+  }
+
+  // Test compressed file exists
+  EXPECT_TRUE(common::exists(customCmpPath));
+
+  // Create new directory for playback tests
+  std::string logPlaybackDir = common::joinPaths(this->logsDir,
+      "test_logs_playback");
+  common::createDirectories(logPlaybackDir);
+
+  // Move recorded file to playback directory
+  // Prefix the zip by the name of the original recorded folder. Playback will
+  // extract and assume subdirectory to take on the name of the zip file
+  // without extension.
+  auto newCmpPath = common::joinPaths(logPlaybackDir,
+    common::basename(defaultCmpPath));
+  common::moveFile(customCmpPath, newCmpPath);
+  EXPECT_TRUE(common::exists(newCmpPath));
+
+  // Play back
+  {
+    // World with playback plugin
+    const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "log_playback.sdf");
+
+    // Change log path in world SDF to build directory
+    sdf::Root playSdfRoot;
+    this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
+        newCmpPath);
+
+    // Pass changed SDF to server
+    ServerConfig playServerConfig;
+    playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
+
+    // Run server
+    Server playServer(playServerConfig);
+    playServer.Run(true, 100, false);
+  }
+
+  // Remove compressed recorded file. Then the directory should still contain
+  // the decompressed files and not be empty
+  EXPECT_TRUE(common::removeFile(newCmpPath));
+
+  // Test that the parent path still contains other files - therefore non-empty
+  // and cannot be removed.
+  std::string decompPath = common::parentPath(newCmpPath);
+  EXPECT_FALSE(common::removeDirectory(decompPath));
 
   this->RemoveLogsDir();
 }
