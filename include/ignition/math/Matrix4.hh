@@ -225,7 +225,7 @@ namespace ignition
       {
         Quaternion<T> q;
         /// algorithm from Ogre::Quaternion<T> source, which in turn is based on
-        /// Ken Shoemake's article "Quaternion<T> Calculus and Fast Animation".
+        /// Ken Shoemake's article "Quaternion Calculus and Fast Animation".
         T trace = this->data[0][0] + this->data[1][1] + this->data[2][2];
         T root;
         if (trace > 0)
@@ -576,7 +576,7 @@ namespace ignition
 
       /// \brief Multiplication assignment operator. This matrix will
       /// become equal to this * _m2.
-      /// \param _mat Incoming matrix.
+      /// \param[in] _m2 Incoming matrix.
       /// \return This matrix * _mat.
       public: Matrix4<T> operator*=(const Matrix4<T> &_m2)
       {
@@ -585,7 +585,7 @@ namespace ignition
       }
 
       /// \brief Multiplication operator
-      /// \param _mat Incoming matrix
+      /// \param[in] _m2 Incoming matrix
       /// \return This matrix * _mat
       public: Matrix4<T> operator*(const Matrix4<T> &_m2) const
       {
@@ -781,8 +781,8 @@ namespace ignition
       }
 
       /// \brief Stream extraction operator
-      /// \param _in input stream
-      /// \param _pt Matrix4<T> to read values into
+      /// \param[in,out] _in input stream
+      /// \param[out] _m Matrix4<T> to read values into
       /// \return the stream
       public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix4<T> &_m)

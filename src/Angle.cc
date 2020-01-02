@@ -79,6 +79,12 @@ void Angle::Normalize()
 }
 
 //////////////////////////////////////////////////
+Angle Angle::Normalized() const
+{
+  return atan2(sin(this->value), cos(this->value));
+}
+
+//////////////////////////////////////////////////
 Angle Angle::operator-(const Angle &angle) const
 {
   return Angle(this->value - angle.value);

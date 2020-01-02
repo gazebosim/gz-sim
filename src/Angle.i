@@ -39,6 +39,7 @@ namespace ignition
       public: double Radian() const;
       public: double Degree() const;
       public: void Normalize();
+      public: Angle Normalized() const;
       public: inline double operator*() const;
       public: Angle operator-(const Angle &_angle) const;
       public: Angle operator+(const Angle &_angle) const;
