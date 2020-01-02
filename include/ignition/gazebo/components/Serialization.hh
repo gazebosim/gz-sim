@@ -129,6 +129,32 @@ namespace serializers
       return _in;
     }
   };
+
+  /// \brief Serializer for components that hold protobuf messages.
+  class MsgSerializer
+  {
+    /// \brief Serialization
+    /// \param[in] _out Output stream.
+    /// \param[in] _msg Message to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+        const google::protobuf::Message &_msg)
+    {
+      _msg.SerializeToOstream(&_out);
+      return _out;
+    }
+
+    /// \brief Deserialization
+    /// \param[in] _in Input stream.
+    /// \param[in] _vec Message to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+        google::protobuf::Message &_msg)
+    {
+      _msg.ParseFromIstream(&_in);
+      return _in;
+    }
+  };
 }
 }
 }
