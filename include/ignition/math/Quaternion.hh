@@ -37,7 +37,7 @@ namespace ignition
     /// orientations. Four scalar values, [w,x,y,z], are used represent
     /// orientations and rotations.
     ///
-    /// The follow two type definitions are provided:
+    /// The following two type definitions are provided:
     ///
     /// * \ref Quaternionf
     /// * \ref Quaterniond
@@ -302,10 +302,10 @@ namespace ignition
       }
 
       /// \brief Set the quaternion from an axis and angle
-      /// \param[in] _x X axis
-      /// \param[in] _y Y axis
-      /// \param[in] _z Z axis
-      /// \param[in] _a Angle in radians
+      /// \param[in] _ax X axis
+      /// \param[in] _ay Y axis
+      /// \param[in] _az Z axis
+      /// \param[in] _aa Angle in radians
       /// \deprecated Use SetFromAxisAngle(T, T, T, T)
       public: void IGN_DEPRECATED(7) Axis(T _ax, T _ay, T _az, T _aa)
       {
@@ -313,10 +313,10 @@ namespace ignition
       }
 
       /// \brief Set the quaternion from an axis and angle.
-      /// \param[in] _x X axis
-      /// \param[in] _y Y axis
-      /// \param[in] _z Z axis
-      /// \param[in] _a Angle in radians
+      /// \param[in] _ax X axis
+      /// \param[in] _ay Y axis
+      /// \param[in] _az Z axis
+      /// \param[in] _aa Angle in radians
       public: void SetFromAxisAngle(T _ax, T _ay, T _az, T _aa)
       {
         T l;
@@ -361,7 +361,7 @@ namespace ignition
       }
 
       /// \brief Set this quaternion from 4 floating numbers
-      /// \param[in] _u u
+      /// \param[in] _w w
       /// \param[in] _x x
       /// \param[in] _y y
       /// \param[in] _z z
@@ -796,9 +796,9 @@ namespace ignition
       /// \brief Multiplication set operator.
       /// \param[in] _qt Quaternion<T> for multiplication.
       /// \return This quaternion multiplied by the parameter.
-      public: Quaternion<T> operator*=(const Quaternion<T> &qt)
+      public: Quaternion<T> operator*=(const Quaternion<T> &_qt)
       {
-        *this = *this * qt;
+        *this = *this * _qt;
         return *this;
       }
 
@@ -828,6 +828,19 @@ namespace ignition
                equal(this->qy, _qt.qy, static_cast<T>(0.001)) &&
                equal(this->qz, _qt.qz, static_cast<T>(0.001)) &&
                equal(this->qw, _qt.qw, static_cast<T>(0.001));
+      }
+
+      /// \brief Equality comparison test with a tolerance parameter.
+      /// The tolerance is used with the ignition::math::equal function for
+      /// each component of the quaternions.
+      /// \param[in] _qt Quaternion<T> for comparison.
+      /// \return True if each component of both quaternions are equal.
+      public: bool Equal(const Quaternion<T> &_qt, const T &_tol) const
+      {
+        return equal<T>(this->qx, _qt.qx, _tol) &&
+               equal<T>(this->qy, _qt.qy, _tol) &&
+               equal<T>(this->qz, _qt.qz, _tol) &&
+               equal<T>(this->qw, _qt.qw, _tol);
       }
 
       /// \brief Not equal to operator.
@@ -979,7 +992,7 @@ namespace ignition
 
       /// \brief Spherical quadratic interpolation
       /// given the ends and an interpolation parameter between 0 and 1.
-      /// \param[in] _ft the interpolation parameter.
+      /// \param[in] _fT the interpolation parameter.
       /// \param[in] _rkP The beginning quaternion.
       /// \param[in] _rkA First intermediate quaternion.
       /// \param[in] _rkB Second intermediate quaternion.
@@ -1000,7 +1013,7 @@ namespace ignition
 
       /// \brief Spherical linear interpolation between 2 quaternions,
       /// given the ends and an interpolation parameter between 0 and 1.
-      /// \param[in] _ft The interpolation parameter.
+      /// \param[in] _fT The interpolation parameter.
       /// \param[in] _rkP The beginning quaternion.
       /// \param[in] _rkQ The end quaternion.
       /// \param[in] _shortestPath When true, the rotation may be inverted to

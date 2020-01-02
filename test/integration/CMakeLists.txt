@@ -1,9 +1,6 @@
 set(TEST_TYPE "INTEGRATION")
 
-set(tests
-)
-
-link_directories(${PROJECT_BINARY_DIR}/test)
+ign_get_sources(tests)
 
 # Test symbols having the right name on linux only
 if (UNIX AND NOT APPLE)
@@ -13,3 +10,12 @@ if (UNIX AND NOT APPLE)
 endif()
 
 ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
+
+if(TARGET INTEGRATION_ExamplesBuild_TEST)
+  add_dependencies(INTEGRATION_ExamplesBuild_TEST FAKE_INSTALL)
+
+  set(_env_vars)
+  list(APPEND _env_vars "CMAKE_PREFIX_PATH=${FAKE_INSTALL_PREFIX}:$ENV{CMAKE_PREFIX_PATH}")
+  set_tests_properties(INTEGRATION_ExamplesBuild_TEST PROPERTIES
+    ENVIRONMENT "${_env_vars}")
+endif()

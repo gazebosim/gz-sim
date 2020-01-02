@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 set(IGN_MATH_VER 7)
 find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 
+add_executable(angle_example angle_example.cc)
+target_link_libraries(angle_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(graph_example graph_example.cc)
 target_link_libraries(graph_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 

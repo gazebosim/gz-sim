@@ -37,24 +37,25 @@ Angle::Angle(const double _radian)
 }
 
 //////////////////////////////////////////////////
-Angle::Angle(const Angle &_angle)
-{
-  this->value = _angle.value;
-}
-
-//////////////////////////////////////////////////
-Angle::~Angle()
-{
-}
-
-//////////////////////////////////////////////////
 void Angle::Radian(double _radian)
 {
   this->value = _radian;
 }
 
 //////////////////////////////////////////////////
+void Angle::SetRadian(double _radian)
+{
+  this->value = _radian;
+}
+
+//////////////////////////////////////////////////
 void Angle::Degree(double _degree)
+{
+  this->value = _degree * IGN_PI / 180.0;
+}
+
+//////////////////////////////////////////////////
+void Angle::SetDegree(double _degree)
 {
   this->value = _degree * IGN_PI / 180.0;
 }
@@ -75,6 +76,12 @@ double Angle::Degree() const
 void Angle::Normalize()
 {
   this->value = atan2(sin(this->value), cos(this->value));
+}
+
+//////////////////////////////////////////////////
+Angle Angle::Normalized() const
+{
+  return atan2(sin(this->value), cos(this->value));
 }
 
 //////////////////////////////////////////////////

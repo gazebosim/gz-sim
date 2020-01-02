@@ -626,7 +626,7 @@ namespace ignition
       /// \brief Stream extraction operator. This operator requires 9 space
       /// separated scalar values, such as "1 2 3 4 5 6 7 8 9".
       /// \param [in, out] _in Input stream.
-      /// \param [out] _pt Matrix3 to read values into.
+      /// \param [out] _m Matrix3 to read values into.
       /// \return The stream.
       public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix3<T> &_m)

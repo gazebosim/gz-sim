@@ -75,6 +75,7 @@ namespace ignition
       public: ignition::math::Vector3<T> operator*(
                   const ignition::math::Vector3<T> &_v) const;
       public: bool operator==(const Quaternion<T> &_qt) const;
+      public: bool Equal(const Quaternion<T> &_qt, const T &_tol) const;
       public: Quaternion<T> operator-() const;
       public: inline ignition::math::Vector3<T> RotateVector(
                   const ignition::math::Vector3<T> &_vec) const;
