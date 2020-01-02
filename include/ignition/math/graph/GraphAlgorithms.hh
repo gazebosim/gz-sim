@@ -37,7 +37,7 @@ namespace math
 inline namespace IGNITION_MATH_VERSION_NAMESPACE {
 namespace graph
 {
-  /// \def CostInfo.
+  /// \typedef CostInfo.
   /// \brief Used in Dijkstra. For a given source vertex, this pair represents
   /// the cost (first element) to reach a destination vertex (second element).
   using CostInfo = std::pair<double, VertexId>;
@@ -282,7 +282,7 @@ namespace graph
   /// A connected component of an undirected graph is a subgraph in which any
   /// two vertices are connected to each other by paths, and which is connected
   /// to no additional vertices in the supergraph.
-  /// \ref https://en.wikipedia.org/wiki/Connected_component_(graph_theory)
+  /// \sa https://en.wikipedia.org/wiki/Connected_component_(graph_theory)
   /// \param[in] _graph A graph.
   /// \return A vector of graphs. Each element of the graph is a component
   /// (subgraph) of the original graph.

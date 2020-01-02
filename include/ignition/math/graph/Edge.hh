@@ -35,7 +35,7 @@ namespace math
 inline namespace IGNITION_MATH_VERSION_NAMESPACE {
 namespace graph
 {
-  /// \def EdgeId.
+  /// \typedef EdgeId.
   /// \brief The unique Id for an edge.
   using EdgeId = uint64_t;
 
@@ -161,7 +161,7 @@ namespace graph
     /// (v1) and the head end (v2): (v1)->(v2). The operation e2.To(v1)
     /// returns kNullId. The operation e2.To(v2) returns v1.
     ///
-    /// \param[in] _from Destination vertex.
+    /// \param[in] _to Destination vertex.
     /// \return The other vertex of the edge that can reach "_to"
     /// vertex or kNullId otherwise.
     public: virtual VertexId To(const VertexId &_to) const = 0;
@@ -244,7 +244,7 @@ namespace graph
     /// description language.
     /// \param[out] _out The output stream.
     /// \param[in] _e Edge to write to the stream.
-    /// \ref https://en.wikipedia.org/wiki/DOT_(graph_description_language).
+    /// \sa https://en.wikipedia.org/wiki/DOT_(graph_description_language).
     public: friend std::ostream &operator<<(std::ostream &_out,
                                             const UndirectedEdge<E> &_e)
     {
@@ -320,7 +320,7 @@ namespace graph
     /// description language.
     /// \param[out] _out The output stream.
     /// \param[in] _e Edge to write to the stream.
-    /// \ref https://en.wikipedia.org/wiki/DOT_(graph_description_language).
+    /// \sa https://en.wikipedia.org/wiki/DOT_(graph_description_language).
     public: friend std::ostream &operator<<(std::ostream &_out,
                                             const DirectedEdge<E> &_e)
     {
