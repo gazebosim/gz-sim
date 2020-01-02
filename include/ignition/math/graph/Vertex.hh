@@ -36,7 +36,7 @@ namespace math
 inline namespace IGNITION_MATH_VERSION_NAMESPACE {
 namespace graph
 {
-  /// \def VertexId.
+  /// \typedef VertexId.
   /// \brief The unique Id of each vertex.
   using VertexId = uint64_t;
 
@@ -115,7 +115,7 @@ namespace graph
     /// description language.
     /// \param[out] _out The output stream.
     /// \param[in] _v Vertex to write to the stream.
-    /// \ref https://en.wikipedia.org/wiki/DOT_(graph_description_language).
+    /// \sa https://en.wikipedia.org/wiki/DOT_(graph_description_language).
     public: friend std::ostream &operator<<(std::ostream &_out,
                                             const Vertex<V> &_v)
     {
