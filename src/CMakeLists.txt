@@ -23,6 +23,7 @@ if (SWIG_FOUND)
   set(swig_files
     ruby
     Angle
+    Temperature
     Vector2
     Vector3)
 endif()
