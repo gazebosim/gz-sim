@@ -13,6 +13,16 @@ Rectangle {
    */
   property bool gammaCorrect: false
 
+  /**
+   * Get mouse position on 3D widget
+   */
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
+    hoverEnabled: true
+    acceptedButtons: Qt.NoButton
+  }
+
   RenderWindow {
     id: renderWindow
     objectName: "renderWindow"
@@ -25,7 +35,8 @@ Rectangle {
 
     Connections {
       target: renderWindow
-      onOpenContextMenu: entityContextMenu.open(_entity, "model");
+      onOpenContextMenu: entityContextMenu.open(_entity, "model",
+          mouseArea.mouseX, mouseArea.mouseY);
     }
   }
 
