@@ -60,7 +60,7 @@ namespace ignition
       {}
 
       /// \brief Copy constructor.
-      /// \param[in] _massMatrix MassMatrix3 element to copy
+      /// \param[in] _m MassMatrix3 element to copy
       public: MassMatrix3(const MassMatrix3<T> &_m)
       : mass(_m.Mass()), Ixxyyzz(_m.DiagonalMoments()),
         Ixyxzyz(_m.OffDiagonalMoments())
@@ -243,7 +243,7 @@ namespace ignition
       /// \brief Sets Moments of Inertia (MOI) from a Matrix3.
       /// Symmetric component of input matrix is used by averaging
       /// off-axis terms.
-      /// \param[in] Moments of Inertia as a Matrix3
+      /// \param[in] _moi Moments of Inertia as a Matrix3
       /// \return True if the MassMatrix3 is valid.
       public: bool SetMoi(const Matrix3<T> &_moi)
       {

@@ -227,10 +227,13 @@ namespace ignition
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
 
-    /// \brief Simple clamping function
-    /// \param[in] _v value
-    /// \param[in] _min minimum
-    /// \param[in] _max maximum
+    /// \brief Simple clamping function that constrains a value to
+    /// a range defined by a min and max value. This function is equivalent to
+    /// std::max(std::min(value, max), min).
+    /// \param[in] _v Value to clamp
+    /// \param[in] _min Minimum allowed value.
+    /// \param[in] _max Maximum allowed value.
+    /// \return The value _v clamped to the range defined by _min and _max.
     template<typename T>
     inline T clamp(T _v, T _min, T _max)
     {
@@ -483,6 +486,31 @@ namespace ignition
       _x = _x << 1;
 
       return _x;
+    }
+
+    /// \brief Round a number up to the nearest multiple. For example, if
+    /// the input number is 12 and the multiple is 10, the result is 20.
+    /// If the input number is negative, then the nearest multiple will be
+    /// greater than or equal to the input number. For example, if the input
+    /// number is -9 and the multiple is 2 then the output is -8.
+    /// \param[in] _num Input number to round up.
+    /// \param[in] _multiple The multiple. If the multiple is <= zero, then
+    /// the input number is returned.
+    /// \return The nearest multiple of _multiple that is greater than
+    /// or equal to _num.
+    inline int roundUpMultiple(int _num, int _multiple)
+    {
+      if (_multiple == 0)
+        return _num;
+
+      int remainder = std::abs(_num) % _multiple;
+      if (remainder == 0)
+        return _num;
+
+      if (_num < 0)
+        return -(std::abs(_num) - remainder);
+      else
+        return _num + _multiple - remainder;
     }
 
     /// \brief Parse string into an integer.
