@@ -240,7 +240,6 @@ You can also use the velocity controller and command linear velocity and yaw ang
         name="ignition::gazebo::systems::MulticopterVelocityControl">
         <robotNamespace>X3</robotNamespace>
         <commandSubTopic>gazebo/command/twist</commandSubTopic>
-        <motorControlPubTopic>gazebo/command/motor_speed</motorControlPubTopic>
         <enableSubTopic>enable</enableSubTopic>
         <comLinkName>X3/base_link</comLinkName>
         <velocityGain>2.7 2.7 2.7</velocityGain>
