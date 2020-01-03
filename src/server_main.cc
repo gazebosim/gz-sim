@@ -258,9 +258,8 @@ int main(int _argc, char **_argv)
 
     if (!FLAGS_record_path.empty())
     {
-      // TODO(mabelmzhang) Test --record-path with absolute and relative paths
-      serverConfig.SetLogRecordPath(ignition::common::joinPaths(
-        ignition::common::cwd(), FLAGS_record_path));
+      serverConfig.SetLogRecordPath(ignition::common::absPath(
+        FLAGS_record_path));
     }
     else
     {
@@ -284,19 +283,8 @@ int main(int _argc, char **_argv)
     else
     {
       ignmsg << "Playing back states" << FLAGS_playback << std::endl;
-      // Assumes the path is already canonical
-      std::string playbackStr = std::string(FLAGS_playback);
-      // Absolute path
-      if (playbackStr.compare(ignition::common::absPath(playbackStr)) == 0)
-      {
-        serverConfig.SetLogPlaybackPath(FLAGS_playback);
-      }
-      // Relative path
-      else
-      {
-        serverConfig.SetLogPlaybackPath(ignition::common::joinPaths(
-          ignition::common::cwd(), FLAGS_playback));
-      }
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        FLAGS_playback));
     }
   }
 
