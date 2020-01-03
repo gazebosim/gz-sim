@@ -158,10 +158,9 @@ void LogRecord::Configure(const Entity &_entity,
     }
     // If path is relative, prepend working directory
     // Assumes path is already canonical
-    else if (logPath.compare(ignition::common::absPath(logPath)) != 0)
+    else if (logPath.compare(common::absPath(logPath)) != 0)
     {
-      logPath = ignition::common::joinPaths(common::cwd(),
-        logPath);
+      logPath = common::absPath(logPath);
     }
 
     this->dataPtr->Start(logPath);

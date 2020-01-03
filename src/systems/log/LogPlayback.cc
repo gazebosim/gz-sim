@@ -179,12 +179,7 @@ void LogPlayback::Configure(const Entity &,
   this->dataPtr->eventManager = &_eventMgr;
 
   // Prepend working directory if path is relative
-  if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
-      != 0)
-  {
-    this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
-      this->dataPtr->logPath);
-  }
+  this->dataPtr->logPath = common::absPath(this->dataPtr->logPath);
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
