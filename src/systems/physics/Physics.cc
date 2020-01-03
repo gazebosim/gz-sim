@@ -676,9 +676,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             ignwarn << "There is a mismatch in the degrees of freedom "
                     << "between Joint [" << _name->Data() << "(Entity="
                     << _entity << ")] and its JointVelocityReset "
-                    << "component. The joint has " << jointVelocity.size()
+                    << "component. The joint has "
+                    << jointIt->second->GetDegreesOfFreedom()
                     << " while the component has "
-                    << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                    << jointVelocity.size() << ".\n";
             }
 
             std::size_t nDofs = std::min(
@@ -699,9 +700,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             ignwarn << "There is a mismatch in the degrees of freedom "
                     << "between Joint [" << _name->Data() << "(Entity="
                     << _entity << ")] and its JointPositionyReset "
-                    << "component. The joint has " << jointPosition.size()
+                    << "component. The joint has "
+                    << jointIt->second->GetDegreesOfFreedom()
                     << " while the component has "
-                    << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                    << jointPosition.size() << ".\n";
             }
             std::size_t nDofs = std::min(
                 jointPosition.size(), jointIt->second->GetDegreesOfFreedom());
@@ -756,9 +758,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                           << " between Joint [" << _name->Data()
                           << "(Entity=" << _entity<< ")] and its "
                           << "JointVelocityCmd component. The joint has "
-                          << velocityCmd.size()
+                          << jointIt->second->GetDegreesOfFreedom()
                           << " while the component has "
-                          << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                          << velocityCmd.size() << ".\n";
                   }
 
                   std::size_t nDofs = std::min(
