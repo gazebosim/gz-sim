@@ -64,8 +64,8 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \param[in] _dir Path of a directory
   /// \param[in] _ext Extension to append, starting with "."
   /// \return Path with extension appended to the end.
-  public: std::string AppendExtension(const std::string & _dir,
-    const std::string & _ext);
+  public: std::string AppendExtension(const std::string &_dir,
+    const std::string &_ext);
 
   /// \brief Get whether to compress log files at the end.
   /// \return True if compress log files.
@@ -204,10 +204,9 @@ void LogRecord::Configure(const Entity &_entity,
     }
     // If path is relative, prepend working directory
     // Assumes path is already canonical
-    else if (logPath.compare(ignition::common::absPath(logPath)) != 0)
+    else if (logPath.compare(common::absPath(logPath)) != 0)
     {
-      logPath = ignition::common::joinPaths(common::cwd(),
-        logPath);
+      logPath = common::absPath(logPath);
     }
 
     this->dataPtr->Start(logPath, this->dataPtr->cmpPath);

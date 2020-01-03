@@ -183,12 +183,7 @@ void LogPlayback::Configure(const Entity &,
   this->dataPtr->eventManager = &_eventMgr;
 
   // Prepend working directory if path is relative
-  if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
-      != 0)
-  {
-    this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
-      this->dataPtr->logPath);
-  }
+  this->dataPtr->logPath = common::absPath(this->dataPtr->logPath);
 
   // If path is a file, assume it is a compressed file
   // (Otherwise assume it is a directory containing recorded files.)

@@ -49,6 +49,22 @@
 using namespace ignition;
 using namespace gazebo;
 
+static const std::string kBinPath(PROJECT_BINARY_PATH);
+
+#ifdef __APPLE__
+static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
+"-f ";
+static const std::string kIgnCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
+  "/bin/ign-gazebo-server");
+#else
+static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
+" ";
+static const std::string kIgnCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
+  kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
+#endif
+
 class Relay
 {
   public: Relay()
@@ -173,6 +189,32 @@ class LogSystemTest : public ::testing::Test
       // Go to next plugin
       pluginElt = pluginElt->GetNextElement("plugin");
     }
+  }
+
+  // Run the server to record, passing in compress and overwrite flags.
+  // \param[in] _recordSdfRoot SDF Root element of the world to load
+  // \param[in] _compress Whether to specify the compress flag
+  // \param[in] _overwrite Whether to specify the overwrite flag
+  public: void CompressAndOverwrite(sdf::Root &_recordSdfRoot,
+      bool _compress = true, bool _overwrite = true)
+  {
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(_recordSdfRoot.Element()->ToString(""));
+
+    // Set overwrite flag
+    recordServerConfig.SetLogRecordOverwrite(_overwrite);
+
+    // Set compress flag
+    recordServerConfig.SetLogRecordCompress(_compress);
+
+    // This tells server to call AddRecordPlugin() where flags are passed to
+    //   recorder.
+    recordServerConfig.SetUseLogRecord(true);
+
+    // Run server
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
   }
 
   // Temporary directory in binary build path for recorded data
@@ -770,7 +812,7 @@ TEST_F(LogSystemTest, LogCompress)
   common::moveFile(customCmpPath, newCmpPath);
   EXPECT_TRUE(common::exists(newCmpPath));
 
-  // Play back
+  // Play back compressed file
   {
     // World with playback plugin
     const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -798,6 +840,164 @@ TEST_F(LogSystemTest, LogCompress)
   // and cannot be removed.
   std::string decompPath = common::parentPath(newCmpPath);
   EXPECT_FALSE(common::removeDirectory(decompPath));
+
+  this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogCompressOverwrite)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // Define paths
+  const std::string recordPath = this->recordDir;
+  const std::string defaultCmpPath = this->AppendExtension(recordPath,
+      ".zip");
+
+  // World to record
+  const auto recordSdfPath = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "log_record_dbl_pendulum.sdf");
+
+  // Change log path in SDF to build directory
+  sdf::Root recordSdfRoot;
+  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+      recordPath);
+
+  // Compress + overwrite, recorded directory exists, compressed file does not
+  {
+    // Create recording directory so that it exists
+    common::createDirectories(recordPath);
+
+    // Test case pre-condition
+    EXPECT_TRUE(common::exists(recordPath));
+    EXPECT_FALSE(common::exists(defaultCmpPath));
+
+    this->CompressAndOverwrite(recordSdfRoot);
+  }
+
+  EXPECT_TRUE(common::exists(defaultCmpPath));
+  EXPECT_FALSE(common::exists(recordPath));
+
+  // Compress + overwrite, compressed file exists, recorded directory does not
+  {
+    // Test case pre-condition
+    EXPECT_FALSE(common::exists(recordPath));
+    EXPECT_TRUE(common::exists(defaultCmpPath));
+
+    this->CompressAndOverwrite(recordSdfRoot);
+  }
+
+  EXPECT_TRUE(common::exists(defaultCmpPath));
+  EXPECT_FALSE(common::exists(recordPath));
+
+  this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+std::string customExecStr(std::string _cmd)
+{
+  _cmd += " 2>&1";
+  FILE *pipe = popen(_cmd.c_str(), "r");
+
+  if (!pipe)
+    return "ERROR";
+
+  char buffer[128];
+  std::string result = "";
+
+  while (!feof(pipe))
+  {
+    if (fgets(buffer, 128, pipe) != nullptr)
+      result += buffer;
+  }
+
+  pclose(pipe);
+  return result;
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogCompressCmdLine)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // Define paths
+  const std::string recordPath = this->recordDir;
+  const std::string defaultCmpPath = this->AppendExtension(recordPath,
+      ".zip");
+
+  // World to record
+  const auto recordSdfPath = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "log_record_dbl_pendulum.sdf");
+
+  // Change log path in SDF to build directory
+  sdf::Root recordSdfRoot;
+  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+      recordPath);
+
+  // Compress only, both recorded directory and compressed file exist
+  {
+    // Create compressed file
+    this->CompressAndOverwrite(recordSdfRoot);
+
+    // Recreate recording directory so that it exists
+    common::createDirectories(recordPath);
+
+    // Test case pre-condition
+    EXPECT_TRUE(common::exists(recordPath));
+    EXPECT_TRUE(common::exists(defaultCmpPath));
+
+    // Command line triggers ign.cc, which handles creating a unique path if
+    // file already exists, so as to not overwrite
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
+      + "--record-path " + recordPath
+      + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  // Original files should still exist
+  EXPECT_TRUE(common::exists(recordPath));
+  EXPECT_TRUE(common::exists(defaultCmpPath));
+
+  // An automatically renamed file should have been created
+  EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
+  // Automatically renamed directory should have been removed by record plugin
+  EXPECT_FALSE(common::exists(recordPath + "(1)"));
+
+  // Compress only, compressed file exists, auto-renamed compressed file
+  // e.g. *(1) exists, recorded directory does not
+  {
+    // Remove directory if exists
+    common::removeAll(recordPath);
+
+    // Test case pre-condition
+    EXPECT_TRUE(common::exists(defaultCmpPath));
+    EXPECT_FALSE(common::exists(recordPath));
+    EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
+
+    // Command line triggers ign.cc, which handles creating a unique path if
+    // file already exists, so as to not overwrite
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
+      + "--record-path " + recordPath
+      + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  // Original files should stay same as initial condition
+  EXPECT_TRUE(common::exists(defaultCmpPath));
+  EXPECT_FALSE(common::exists(recordPath));
+
+  // An automatically renamed file should have been created
+  EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
 
   this->RemoveLogsDir();
 }
