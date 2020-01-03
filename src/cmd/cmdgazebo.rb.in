@@ -62,11 +62,6 @@ COMMANDS = { 'gazebo' =>
   "                              to join a distributed simulation           \n"\
   "                              environment. (Primary only).               \n"\
   "\n"\
-  "  --playback [arg]            Use logging system to play back states.    \n"\
-  "                              Argument is path to recorded states.       \n"\
-  "\n"\
-  "  -r                          Run simulation on start.                   \n"\
-  "\n"\
   "  --record                    Use logging system to record states and    \n"\
   "                              console messages to the default location,  \n"\
   "                              in ~/.ignition/gazebo/log.                 \n"\
@@ -80,6 +75,11 @@ COMMANDS = { 'gazebo' =>
   "\n"\
   "  --log-overwrite             When recording, overwrite existing files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
+  "\n"\
+  "  --playback [arg]            Use logging system to play back states.    \n"\
+  "                              Argument is path to recorded states.       \n"\
+  "\n"\
+  "  -r                          Run simulation on start.                   \n"\
   "\n"\
   "  -s                          Run only the server (headless mode). This  \n"\
   "                              overrides -g, if it is also present.       \n"\
