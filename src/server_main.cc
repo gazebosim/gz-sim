@@ -42,7 +42,8 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
-DEFINE_bool(log_overwrite, false, "When recording, overwrite files if they exist");
+DEFINE_bool(log_overwrite, false, "When recording, overwrite files if they "
+    "exist");
 DEFINE_string(playback, "", "Use logging system to play back states");
 DEFINE_uint32(seed, 0, "Start with a given random number seed");
 
