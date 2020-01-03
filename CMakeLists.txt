@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.10.0)
+project(ignition-gazebo2 VERSION 2.13.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -32,7 +32,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED)
+ign_find_package(sdformat8 REQUIRED VERSION 8.4)
 
 #--------------------------------------
 # Find ignition-plugin
@@ -111,6 +111,10 @@ set(IGN_RENDERING_VER ${ignition-rendering2_VERSION_MAJOR})
 ign_find_package(gflags
     REQUIRED
     PKGCONFIG gflags)
+
+#--------------------------------------
+# Find Eigen
+ign_find_package(EIGEN3 REQUIRED)
 
 #--------------------------------------
 # Find ignition-math

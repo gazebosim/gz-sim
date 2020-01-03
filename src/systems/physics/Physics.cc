@@ -66,6 +66,8 @@
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Util.hh"
+
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -475,10 +477,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           }
 
           auto &meshManager = *ignition::common::MeshManager::Instance();
-          auto *mesh = meshManager.Load(meshSdf->Uri());
+          auto fullPath = asFullPath(meshSdf->Uri(), meshSdf->FilePath());
+          auto *mesh = meshManager.Load(fullPath);
           if (nullptr == mesh)
           {
-            ignwarn << "Failed to load mesh from [" << meshSdf->Uri()
+            ignwarn << "Failed to load mesh from [" << fullPath
                     << "]." << std::endl;
             return true;
           }
@@ -553,7 +556,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         // Use the parent link's parent model as the model of this joint
         auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
 
-        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        if (jointPtrPhys.Valid())
+        {
+          // Some joints may not be supported, so only add them to the map if
+          // the physics entity is valid
+          this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        }
         return true;
       });
 

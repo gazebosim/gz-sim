@@ -53,6 +53,8 @@
 
 #include "Scene3D.hh"
 
+Q_DECLARE_METATYPE(std::string)
+
 namespace ignition
 {
 namespace gazebo
@@ -154,6 +156,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Follow P gain
     public: double followPGain = 0.01;
+
+    /// \brief True follow the target at an offset that is in world frame,
+    /// false to follow in target's local frame
+    public: bool followWorldFrame = false;
 
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
@@ -270,6 +276,20 @@ void IgnRenderer::Render()
   // view control
   this->HandleMouseEvent();
 
+  // reset follow mode if target node got removed
+  if (!this->dataPtr->followTarget.empty())
+  {
+    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
+    if (!target && !this->dataPtr->followTargetWait)
+    {
+      this->dataPtr->camera->SetFollowTarget(nullptr);
+      this->dataPtr->camera->SetTrackTarget(nullptr);
+      this->dataPtr->followTarget.clear();
+      emit FollowTargetChanged(std::string(), false);
+    }
+  }
+
   // update and render to texture
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
@@ -359,17 +379,22 @@ void IgnRenderer::Render()
         if (!followTarget || target != followTarget)
         {
           this->dataPtr->camera->SetFollowTarget(target,
-              this->dataPtr->followOffset);
+              this->dataPtr->followOffset,
+              this->dataPtr->followWorldFrame);
           this->dataPtr->camera->SetFollowPGain(this->dataPtr->followPGain);
 
           this->dataPtr->camera->SetTrackTarget(target);
+          // found target, no need to wait anymore
+          this->dataPtr->followTargetWait = false;
         }
         else if (this->dataPtr->followOffsetDirty)
         {
           math::Vector3d offset =
               this->dataPtr->camera->WorldPosition() - target->WorldPosition();
-          offset = target->WorldRotation().RotateVectorReverse(
-              offset);
+          if (!this->dataPtr->followWorldFrame)
+          {
+            offset = target->WorldRotation().RotateVectorReverse(offset);
+          }
           this->dataPtr->camera->SetFollowOffset(offset);
           this->dataPtr->followOffsetDirty = false;
         }
@@ -782,6 +807,34 @@ void IgnRenderer::SetFollowPGain(double _gain)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followWorldFrame = _worldFrame;
+}
+
+/////////////////////////////////////////////////
+bool IgnRenderer::FollowWorldFrame() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followWorldFrame;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followOffset = _offset;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::FollowOffset() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->followOffset;
+}
+
+/////////////////////////////////////////////////
 std::string IgnRenderer::FollowTarget() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -833,6 +886,7 @@ math::Vector3d IgnRenderer::ScreenToScene(
 RenderThread::RenderThread()
 {
   RenderWindowItemPrivate::threads << this;
+  qRegisterMetaType<std::string>();
 }
 
 /////////////////////////////////////////////////
@@ -950,6 +1004,16 @@ void TextureNode::PrepareNode()
 RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   : QQuickItem(_parent), dataPtr(new RenderWindowItemPrivate)
 {
+  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
+  // this plugin twice, so shortcut here. Ideally this would be caught at
+  // Ignition Rendering.
+  static bool done{false};
+  if (done)
+  {
+    return;
+  }
+  done = true;
+
   this->setAcceptedMouseButtons(Qt::AllButtons);
   this->setFlag(ItemHasContents);
   this->dataPtr->renderThread = new RenderThread();
@@ -972,6 +1036,10 @@ void RenderWindowItem::Ready()
   this->connect(&this->dataPtr->renderThread->ignRenderer,
       &IgnRenderer::ContextMenuRequested,
       this, &RenderWindowItem::OnContextMenuRequested, Qt::QueuedConnection);
+
+  this->connect(&this->dataPtr->renderThread->ignRenderer,
+      &IgnRenderer::FollowTargetChanged,
+      this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
 
@@ -1081,6 +1149,18 @@ Scene3D::~Scene3D() = default;
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
+  // FIXME(anyone) Ogre 1/2 singletons crash when there's an attempt to load
+  // this plugin twice, so shortcut here. Ideally this would be caught at
+  // Ignition Rendering.
+  static bool done{false};
+  if (done)
+  {
+    ignerr << "Only one Scene3D is supported per process at the moment."
+           << std::endl;
+    return;
+  }
+  done = true;
+
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
@@ -1167,6 +1247,30 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         targetStr << std::string(targetElem->GetText());
         renderWindow->SetFollowTarget(targetStr.str(), true);
       }
+
+      if (auto worldFrameElem = elem->FirstChildElement("world_frame"))
+      {
+        std::string worldFrameStr =
+            common::lowercase(worldFrameElem->GetText());
+        if (worldFrameStr == "true" || worldFrameStr == "1")
+          renderWindow->SetFollowWorldFrame(true);
+        else if (worldFrameStr == "false" || worldFrameStr == "0")
+          renderWindow->SetFollowWorldFrame(false);
+        else
+        {
+          ignerr << "Faild to parse <world_frame> value: " << worldFrameStr
+                 << std::endl;
+        }
+      }
+
+      if (auto offsetElem = elem->FirstChildElement("offset"))
+      {
+        math::Vector3d offset;
+        std::stringstream offsetStr;
+        offsetStr << std::string(offsetElem->GetText());
+        offsetStr >> offset;
+        renderWindow->SetFollowOffset(offset);
+      }
     }
   }
 
@@ -1201,11 +1305,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
          << this->dataPtr->followService << "]" << std::endl;
 }
 
-
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  if (nullptr == this->dataPtr->renderUtil)
+    return;
+
   IGN_PROFILE("Scene3D::Update");
   if (this->dataPtr->worldName.empty())
   {
@@ -1275,6 +1381,31 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnDropped(const QString &_drop)
+{
+  if (_drop.toStdString().empty())
+  {
+    ignwarn << "Dropped empty entity URI." << std::endl;
+    return;
+  }
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    if (!_result || !_res.data())
+      ignerr << "Error creating dropped entity." << std::endl;
+  };
+
+  // TODO(anyone) set pose according to mouse position
+  msgs::EntityFactory req;
+  req.set_sdf_filename(_drop.toStdString());
+  req.set_allow_renaming(true);
+
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
@@ -1308,6 +1439,18 @@ void RenderWindowItem::SetFollowTarget(const std::string &_target,
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowWorldFrame(bool _worldFrame)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowWorldFrame(_worldFrame);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
+{
+  this->dataPtr->renderThread->ignRenderer.SetFollowOffset(_offset);
 }
 
 /////////////////////////////////////////////////
