@@ -745,9 +745,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               if (velReset)
               {
                 ignwarn << "Found both JointVelocityReset and "
-                        << "JointVelocityCmd components " << "for Joint ["
+                        << "JointVelocityCmd components for Joint ["
                         << _name->Data() << "(Entity=" << _entity
-                        << "]). Ignoring JointVelocityReset component."
+                        << "]). Ignoring JointVelocityCmd component."
                         << std::endl;
               }
               else
