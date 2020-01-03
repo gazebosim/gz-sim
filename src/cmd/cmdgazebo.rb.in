@@ -365,7 +365,7 @@ class Cmd
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['recordPath'], options['logOverwrite'],
+            options['record-path'], options['log-overwrite'],
             options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
