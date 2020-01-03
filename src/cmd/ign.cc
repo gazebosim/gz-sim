@@ -139,12 +139,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     // Empty record path specified. Use default.
     else
     {
+      // Create log file before printing any messages so they can be logged
+      ignLogInit(recordPathMod, "server_console.log");
       ignmsg << "Recording states to default path\n";
 
-      ignLogInit(recordPathMod, "server_console.log");
-      recordPathMod = ignLogDirectory();
       serverConfig.SetLogRecordPath(recordPathMod);
     }
+  }
+  else
+  {
+    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
