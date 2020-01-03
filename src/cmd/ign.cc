@@ -141,7 +141,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     {
       // Create log file before printing any messages so they can be logged
       ignLogInit(recordPathMod, "server_console.log");
-      ignmsg << "Recording states to default path\n";
+      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+             << std::endl;
 
       serverConfig.SetLogRecordPath(recordPathMod);
     }
