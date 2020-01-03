@@ -203,7 +203,6 @@ void LogRecord::Configure(const Entity &_entity,
       logPath = ignLogDirectory();
     }
     // If path is relative, prepend working directory
-    // Assumes path is already canonical
     else if (logPath.compare(common::absPath(logPath)) != 0)
     {
       logPath = common::absPath(logPath);
