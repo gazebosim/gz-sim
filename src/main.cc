@@ -45,7 +45,8 @@ DEFINE_bool(levels, false, "Use levels");
 DEFINE_bool(distributed, false, "Use distributed simulation.");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
-DEFINE_bool(log_overwrite, false, "When logging, overwrite files if they exist");
+DEFINE_bool(log_overwrite, false, "When logging, overwrite files if they "
+    "exist");
 DEFINE_bool(log_compress, false, "When logging, compress final log files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 

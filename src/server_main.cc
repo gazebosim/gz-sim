@@ -42,7 +42,8 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
-DEFINE_bool(log_overwrite, false, "When recording, overwrite files if they exist");
+DEFINE_bool(log_overwrite, false, "When recording, overwrite files if they "
+    "exist");
 DEFINE_bool(log_compress, false, "When recording, compress final log files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 DEFINE_uint32(seed, 0, "Start with a given random number seed");
@@ -260,9 +261,8 @@ int main(int _argc, char **_argv)
 
     if (!FLAGS_record_path.empty())
     {
-      // TODO(mabelmzhang) Test --record-path with absolute and relative paths
-      serverConfig.SetLogRecordPath(ignition::common::joinPaths(
-        ignition::common::cwd(), FLAGS_record_path));
+      serverConfig.SetLogRecordPath(ignition::common::absPath(
+        FLAGS_record_path));
     }
     else
     {
@@ -291,19 +291,8 @@ int main(int _argc, char **_argv)
     else
     {
       ignmsg << "Playing back states" << FLAGS_playback << std::endl;
-      // Assumes the path is already canonical
-      std::string playbackStr = std::string(FLAGS_playback);
-      // Absolute path
-      if (playbackStr.compare(ignition::common::absPath(playbackStr)) == 0)
-      {
-        serverConfig.SetLogPlaybackPath(FLAGS_playback);
-      }
-      // Relative path
-      else
-      {
-        serverConfig.SetLogPlaybackPath(ignition::common::joinPaths(
-          ignition::common::cwd(), FLAGS_playback));
-      }
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        FLAGS_playback));
     }
   }
 
