@@ -87,6 +87,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
 
+    /// \brief Callback when receives a drop event.
+    /// \param[in] _drop Dropped string.
+    public slots: void OnDropped(const QString &_drop);
+
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
     /// \param[in] _res Response data
@@ -175,9 +179,26 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
 
+    /// \brief True to set the camera to follow the target in world frame,
+    /// false to follow in target's local frame
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowWorldFrame(bool _worldFrame);
+
+    /// \brief Set the camera follow offset position
+    /// \param[in] _offset Camera follow offset position.
+    public: void SetFollowOffset(const math::Vector3d &_offset);
+
     /// \brief Get the target which the user camera is following
     /// \return Target being followed
     public: std::string FollowTarget() const;
+
+    /// \brief Get whether the camera is following the entity in world frame.
+    /// \return True if follow mode is in world frame, false if local frame
+    public: bool FollowWorldFrame() const;
+
+    /// \brief Get the camera follow offset position
+    /// \return Camera follow offset position.
+    public: math::Vector3d FollowOffset() const;
 
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
@@ -209,6 +230,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
+
+    /// \brief When fired, the follow target changed. May not be fired for
+    /// every target change.
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    signals: void FollowTargetChanged(const std::string &_target,
+        bool _waitForTarget);
 
     /// \brief Render texture id
     public: GLuint textureId = 0u;
@@ -306,12 +334,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _waitForTarget True to continuously look for the target
     /// to follow. A typical use case is follow a target that is not present
     /// on startup but spawned later into simulation
-    public: void SetFollowTarget(const std::string &_target,
+    public Q_SLOTS: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
+
+    /// \brief True to set the camera to follow the target in world frame,
+    /// false to follow in target's local frame
+    /// \param[in] _gain Camera follow p gain.
+    public: void SetFollowWorldFrame(bool _worldFrame);
+
+    /// \brief Set the camera follow offset position
+    /// \param[in] _offset Camera follow offset position.
+    public: void SetFollowOffset(const math::Vector3d &_offset);
 
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.

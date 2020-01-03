@@ -87,6 +87,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
+
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -130,8 +133,21 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
 
+    // The ComponentState::OneTimeChange argument forces the
+    // SceneBroadcaster system to publish a message. This parameter used to
+    // be ComponentState::PeriodicChange. The problem with PeriodicChange is
+    // that state updates could be missed by the SceneBroadscaster, which
+    // publishes at 60Hz using the wall clock. If a 60Hz tick
+    // doesn't fall on the same update cycle as this state change then the
+    // GUI will not receive the state information. The result is jumpy
+    // playback.
+    //
+    // \todo(anyone) I don't think using OneTimeChange is necessarily bad, but
+    // it would be nice if other systems could know that log playback is
+    // active/enabled. Then a system could make decisions on how to process
+    // information.
     _ecm.SetChanged(_entity, components::Pose::typeId,
-        ComponentState::PeriodicChange);
+        ComponentState::OneTimeChange);
 
     return true;
   });
@@ -154,10 +170,12 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void LogPlayback::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &)
+    EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
+
+  this->dataPtr->eventManager = &_eventMgr;
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
@@ -316,6 +334,16 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (queuedPose.pose_size() > 0)
   {
     this->dataPtr->Parse(_ecm, queuedPose);
+  }
+
+  // pause playback if end of log is reached
+  if (_info.simTime >= this->dataPtr->log->EndTime())
+  {
+    ignmsg << "End of log file reached. Time: " <<
+      std::chrono::duration_cast<std::chrono::seconds>(
+      this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
+
+    this->dataPtr->eventManager->Emit<events::Pause>(true);
   }
 }
 

@@ -3,15 +3,6 @@ import QtQuick.Controls 2.0
 import IgnGazebo 1.0 as IgnGazebo
 
 Item {
-  id: content
-
-  MouseArea {
-    id: mouse
-    anchors.fill: content
-    hoverEnabled: true
-    acceptedButtons: Qt.NoButton
-  }
-
   Menu {
     id: menu
     transformOrigin: Menu.TopRight
@@ -25,15 +16,21 @@ Item {
       text: "Follow"
       onTriggered: context.OnRequest("follow", context.entity)
     }
+    MenuItem {
+      id: removeMenu
+      text: "Remove"
+      onTriggered: context.OnRemove(context.entity, context.type)
+    }
   }
 
-  function open(_entity, _type) {
-    menu.x = mouse.mouseX
-    menu.y = mouse.mouseY
+  function open(_entity, _type, _x, _y) {
+    menu.x = _x
+    menu.y = _y
     context.entity = _entity
     context.type = _type
     moveToMenu.enabled = false
     followMenu.enabled = false
+    removeMenu.enabled = false
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -42,6 +39,11 @@ Item {
     {
       moveToMenu.enabled = true
       followMenu.enabled = true
+    }
+
+    if (context.type == "model" || context.type == "light")
+    {
+      removeMenu.enabled = true
     }
 
     menu.open()

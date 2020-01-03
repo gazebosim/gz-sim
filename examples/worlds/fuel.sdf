@@ -129,5 +129,10 @@
       <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
     </include>
 
+    <include>
+      <pose>2 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Gazebo - relative paths</uri>
+    </include>
+
   </world>
 </sdf>

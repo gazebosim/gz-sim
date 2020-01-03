@@ -25,6 +25,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -295,7 +296,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Poses periodically + change events
     // TODO(louise) Send changed state periodically instead, once it reflects
     // changed components
-    if (shouldPublish && !this->dataPtr->stepMsg.state().entities().empty())
+    if (shouldPublish)
     {
       IGN_PROFILE("SceneBroadcast::PoseUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
@@ -624,10 +625,13 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   // Visuals
   _manager.EachNew<components::Visual, components::Name,
-                   components::ParentEntity, components::Pose>(
+                   components::ParentEntity,
+                   components::CastShadows,
+                   components::Pose>(
       [&](const Entity &_entity, const components::Visual *,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
+          const components::CastShadows *_castShadowsComp,
           const components::Pose *_poseComp) -> bool
       {
         auto visualMsg = std::make_shared<msgs::Visual>();
@@ -635,6 +639,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         visualMsg->set_parent_id(_parentComp->Data());
         visualMsg->set_name(_nameComp->Data());
         visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+        visualMsg->set_cast_shadows(_castShadowsComp->Data());
 
         // Geometry is optional
         auto geometryComp = _manager.Component<components::Geometry>(_entity);

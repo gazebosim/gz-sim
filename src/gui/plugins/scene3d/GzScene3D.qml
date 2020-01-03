@@ -13,6 +13,16 @@ Rectangle {
    */
   property bool gammaCorrect: false
 
+  /**
+   * Get mouse position on 3D widget
+   */
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
+    hoverEnabled: true
+    acceptedButtons: Qt.NoButton
+  }
+
   RenderWindow {
     id: renderWindow
     objectName: "renderWindow"
@@ -25,7 +35,8 @@ Rectangle {
 
     Connections {
       target: renderWindow
-      onOpenContextMenu: entityContextMenu.open(_entity, "model");
+      onOpenContextMenu: entityContextMenu.open(_entity, "model",
+          mouseArea.mouseX, mouseArea.mouseY);
     }
   }
 
@@ -55,8 +66,14 @@ Rectangle {
 
   // todo(anyone) replace this with snackbar notifications
   Text {
-    anchors.top: renderWindow.achors.top
-    anchors.left: renderWindow.achors.left
     text: renderWindow.message
+  }
+
+  DropArea {
+    anchors.fill: renderWindow
+
+    onDropped: {
+      GzScene3D.OnDropped(drop.text)
+    }
   }
 }

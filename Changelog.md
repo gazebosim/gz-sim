@@ -1,6 +1,63 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.X.X
+### Ignition Gazebo 2.XX.X (201X-XX-XX)
+
+### Ignition Gazebo 2.13.0 (2019-12-17)
+
+1. Add Multicopter velocity controller
+    * [Pull Request 487](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/487)
+
+1. Fix crash when removing an entity being followed
+    * [Pull Request 465](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/465)
+
+1. Add option to right click and remove nodes
+    * [Pull Request 458](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/458)
+
+1. Fix jumpy log playback
+    * [Pull Request 488](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/488)
+
+1. Remove Scene3d Text anchors
+    * [Pull Request 467](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/467)
+
+1. Show grid using SDF file
+    * [Pull Request 461](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/461)
+
+### Ignition Gazebo 2.12.0 (2019-11-25)
+
+1. Parse visual cast shadows and add CastShadows component
+    * [Pull Request 453](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/453)
+
+1. Update SceneBroadcaster to publish state msg for world with only static models
+    * [Pull Request 450](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/450)
+
+1. Add log video recorder
+    * [Pull Request 441](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/441)
+
+1. Rechargeable battery model
+    * [Pull Request 455](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/455)
+
+1. Add Breadcrumbs system
+    * [Pull Request 459](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/459)
+
+1. Drag models from Fuel
+    * [Pull Request 454](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/454)
+
+1. Improvements to GUI configuration
+    * [Pull Request 451](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/451)
+
+1. Prevent crash when attempting to load more than one render engine per process
+    * [Pull Request 463](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/463)
+
+### Ignition Gazebo 2.11.0 (2019-10-23)
+
+1.  Handle Relative URIs
+    * [Pull Request 433](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/433)
+
+1.  Avoid using invalid/unsupported joints
+    * [Pull Request 438](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/438)
+
+1.  Add mutex to protect views from potential concurrent access
+    * [Pull Request 435](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/435)
 
 1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
     * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
@@ -8,11 +65,15 @@
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
 
+1.  Improve steering behavior of example tracked vehicle
+    * [Pull Request 432](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/432)
+
 1.  Rewind / reset and seek
     * [Pull Request 429](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/429)
 
 1.  Add Follow mode to GUI
     * [Pull Request 430](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/430)
+    * [Pull Request 436](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/436)
 
 ### Ignition Gazebo 2.10.0 (2019-09-08)
 
