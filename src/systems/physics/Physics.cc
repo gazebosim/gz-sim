@@ -687,13 +687,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
-                jointIt->second->SetVelocity(i, jointVelocity[i]);
+              jointIt->second->SetVelocity(i, jointVelocity[i]);
             }
         }
 
         // Reset the position
-        if (posReset) {
-          auto& jointPosition = posReset->Data();
+        if (posReset)
+        {
+          auto &jointPosition = posReset->Data();
 
           if (jointPosition.size() != jointIt->second->GetDegreesOfFreedom())
           {
@@ -1191,8 +1192,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::JointPositionReset>(
       [&](const Entity &_entity, components::JointPositionReset *) -> bool
       {
-          entitiesPositionReset.push_back(_entity);
-          return true;
+        entitiesPositionReset.push_back(_entity);
+        return true;
       });
 
   for (const auto entity: entitiesPositionReset)
@@ -1204,8 +1205,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::JointVelocityReset>(
       [&](const Entity &_entity, components::JointVelocityReset *) -> bool
       {
-          entitiesVelocityReset.push_back(_entity);
-          return true;
+        entitiesVelocityReset.push_back(_entity);
+        return true;
       });
 
   for (const auto entity: entitiesVelocityReset)
