@@ -69,6 +69,9 @@ Recording can be specified in the SDF, under `<world>` tag:
 </world>
 ```
 
+Use of `<path>` results in the console log and state recording being written
+to different locations. Existing paths are overwritten by default. See below.
+
 Currently, it is enforced that only one recording instance is allowed to
 start during a Gazebo run.
 
@@ -81,7 +84,7 @@ The final record path will depend on a few options:
 * If only `--record`, all files are recorded to
   `~/.ignition/gazebo/log/<timestamp>`.
 * If `--record-path` is specified:
-    * If the path doesn't exit, logs are recorded there.
+    * If the path doesn't exist, logs are recorded there.
     * If the path exists:
         * If no `--log-overwrite`, logs are recorded to a new path with a number
           appended, i.e. `/tmp/log(1)`, `/tmp/log(2)`...
