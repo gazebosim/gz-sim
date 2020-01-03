@@ -62,11 +62,6 @@ COMMANDS = { 'gazebo' =>
   "                              to join a distributed simulation           \n"\
   "                              environment. (Primary only).               \n"\
   "\n"\
-  "  --playback [arg]            Use logging system to play back states.    \n"\
-  "                              Argument is path to recorded states.       \n"\
-  "\n"\
-  "  -r                          Run simulation on start.                   \n"\
-  "\n"\
   "  --record                    Use logging system to record states and    \n"\
   "                              console messages to the default location,  \n"\
   "                              in ~/.ignition/gazebo/log.                 \n"\
@@ -83,6 +78,11 @@ COMMANDS = { 'gazebo' =>
   "\n"\
   "  --log-compress              When recording, compress final log files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
+  "\n"\
+  "  --playback [arg]            Use logging system to play back states.    \n"\
+  "                              Argument is path to recorded states.       \n"\
+  "\n"\
+  "  -r                          Run simulation on start.                   \n"\
   "\n"\
   "  -s                          Run only the server (headless mode). This  \n"\
   "                              overrides -g, if it is also present.       \n"\
@@ -373,8 +373,8 @@ class Cmd
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['recordPath'], options['logOverwrite'],
-            options['logCompress'],
+            options['record-path'], options['log-overwrite'],
+            options['log-compress'],
             options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
