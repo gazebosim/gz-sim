@@ -631,25 +631,25 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
       {
         if (_name->Data() == rotatingJointName)
         {
+          auto resetComp =
+              _ecm.Component<components::JointPositionReset>(_entity);
+          auto position = _ecm.Component<components::JointPosition>(_entity);
+
           if (firstRun)
           {
             firstRun = false;
 
-            auto resetComp =
-                _ecm.Component<components::JointPositionReset>(_entity);
+            EXPECT_EQ(nullptr, resetComp);
+            _ecm.CreateComponent(_entity,
+                                 components::JointPositionReset({pos0}));
 
-            if (!resetComp)
-            {
-              _ecm.CreateComponent(_entity,
-                                   components::JointPositionReset({pos0}));
-            }
-
-            auto position = _ecm.Component<components::JointPosition>(_entity);
-
-            if (!position)
-            {
-                _ecm.CreateComponent(_entity, components::JointPosition());
-            }
+            EXPECT_EQ(nullptr, position);
+            _ecm.CreateComponent(_entity, components::JointPosition());
+          }
+          else
+          {
+              EXPECT_EQ(nullptr, resetComp);
+              EXPECT_NE(nullptr, position);
           }
         }
         return true;
@@ -682,10 +682,10 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
     ASSERT_EQ(positions.size(), 2ul);
 
     // First position should be exactly the same
-    ASSERT_NEAR(pos0, positions[0], 1e-4);
+    EXPECT_EQ(pos0, positions[0]);
 
     // Second position should be different, but close
-    ASSERT_NEAR(pos0, positions[1], 0.01);
+    EXPECT_NEAR(pos0, positions[1], 0.01);
 }
 
 /////////////////////////////////////////////////
@@ -724,26 +724,25 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
         {
           if (_name->Data() == rotatingJointName)
           {
+            auto resetComp =
+                _ecm.Component<components::JointVelocityReset>(_entity);
+            auto velocity = _ecm.Component<components::JointVelocity>(_entity);
+
             if (firstRun)
             {
               firstRun = false;
 
-              auto resetComp =
-                  _ecm.Component<components::JointVelocityReset>(_entity);
+              EXPECT_EQ(nullptr, resetComp);
+              _ecm.CreateComponent(_entity,
+                                   components::JointVelocityReset({vel0}));
 
-              if (!resetComp)
-              {
-                _ecm.CreateComponent(_entity,
-                                     components::JointVelocityReset({vel0}));
-              }
-
-              auto velocity =
-                  _ecm.Component<components::JointVelocity>(_entity);
-
-              if (!velocity)
-              {
-                _ecm.CreateComponent(_entity, components::JointVelocity());
-              }
+              EXPECT_EQ(nullptr, velocity);
+              _ecm.CreateComponent(_entity, components::JointVelocity());
+            }
+            else
+            {
+              EXPECT_EQ(nullptr, resetComp);
+              EXPECT_NE(nullptr, velocity);
             }
           }
           return true;
@@ -777,8 +776,10 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   ASSERT_EQ(velocities.size(), 2ul);
 
   // First velocity should be exactly the same
-  ASSERT_NEAR(vel0, velocities[0], 2e-4);
+  // TODO: we should use EXPECT_EQ but for some reason the
+  //       resulting velocity is 2.9999 instead of 3.0
+  EXPECT_NEAR(vel0, velocities[0], 2e-4);
 
   // Second velocity should be different, but close
-  ASSERT_NEAR(vel0, velocities[1], 0.05);
+  EXPECT_NEAR(vel0, velocities[1], 0.05);
 }
