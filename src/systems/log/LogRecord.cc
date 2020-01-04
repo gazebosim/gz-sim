@@ -156,11 +156,6 @@ void LogRecord::Configure(const Entity &_entity,
       ignLogInit(this->dataPtr->DefaultRecordPath(), "server_console.log");
       logPath = ignLogDirectory();
     }
-    // If path is relative, prepend working directory
-    else if (logPath.compare(common::absPath(logPath)) != 0)
-    {
-      logPath = common::absPath(logPath);
-    }
 
     this->dataPtr->Start(logPath);
   }

@@ -216,7 +216,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               if (pluginElem->HasElement("path"))
               {
                 // If record path came from command line, overwrite SDF <path>
-                if (_config.LogRecordPathFromCmdLine())
+                if (_config.LogIgnoreSdfPath())
                 {
                   overwriteSdf = true;
                 }
