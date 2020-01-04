@@ -254,8 +254,9 @@ namespace ignition
       /// \return Whether record path came from command line
       public: bool LogIgnoreSdfPath() const;
 
-      /// \brief Set whether record path came from command line
-      /// \param[in] _fromCmdLine Whether record path came from command line
+      /// \brief Set whether to ignore the path specified in SDF. Path in SDF
+      /// is ignored if a record path is specified on command line
+      /// \param[in] _ignore Whether to ignore the path specified in SDF
       public: void SetLogIgnoreSdfPath(bool _ignore);
 
       /// \brief Get path to recorded states to play back
