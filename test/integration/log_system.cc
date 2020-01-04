@@ -181,10 +181,10 @@ TEST_F(LogSystemTest, LogDefaults)
   // No path specified on command line and in SDF, should use default path.
   {
     // Change environment variable so that test files isn't written to $HOME
-    std::string home_orig;
-    common::env(IGN_HOMEDIR, home_orig);
-    std::string home_fake = common::joinPaths(this->logsDir, "default");
-    EXPECT_EQ(setenv(IGN_HOMEDIR, home_fake.c_str(), 1), 0);
+    std::string homeOrig;
+    common::env(IGN_HOMEDIR, homeOrig);
+    std::string homeFake = common::joinPaths(this->logsDir, "default");
+    EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
 
     // Change log path in SDF to empty
     sdf::Root recordSdfRoot;
@@ -204,11 +204,11 @@ TEST_F(LogSystemTest, LogDefaults)
 
     EXPECT_FALSE(ignLogDirectory().empty());
     // This should be $HOME/.ignition/..., default path set in LogRecord.cc
-    EXPECT_EQ(ignLogDirectory().compare(0, home_fake.length(), home_fake), 0);
+    EXPECT_EQ(ignLogDirectory().compare(0, homeFake.length(), homeFake), 0);
     EXPECT_TRUE(common::exists(ignLogDirectory()));
 
     // Revert environment variable after test is done
-    EXPECT_EQ(setenv(IGN_HOMEDIR, home_orig.c_str(), 1), 0);
+    EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
   }
 
   // Different paths specified on cmmand line and in SDF, should use the path
