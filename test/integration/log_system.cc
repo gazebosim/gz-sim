@@ -180,6 +180,12 @@ TEST_F(LogSystemTest, LogDefaults)
 
   // No path specified on command line and in SDF, should use default path.
   {
+    // Change environment variable so that test files isn't written to $HOME
+    std::string home_orig;
+    common::env(IGN_HOMEDIR, home_orig);
+    std::string home_fake = common::joinPaths(this->logsDir, "default");
+    EXPECT_EQ(setenv(IGN_HOMEDIR, home_fake.c_str(), 1), 0);
+
     // Change log path in SDF to empty
     sdf::Root recordSdfRoot;
     this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
@@ -198,10 +204,14 @@ TEST_F(LogSystemTest, LogDefaults)
 
     EXPECT_FALSE(ignLogDirectory().empty());
     // This should be $HOME/.ignition/..., default path set in LogRecord.cc
-    std::string home;
-    common::env(IGN_HOMEDIR, home);
-    EXPECT_EQ(ignLogDirectory().compare(0, home.length(), home), 0);
+    EXPECT_EQ(ignLogDirectory().compare(0, home_fake.length(), home_fake), 0);
     EXPECT_TRUE(common::exists(ignLogDirectory()));
+
+    // Revert environment variable after test is done
+    EXPECT_EQ(setenv(IGN_HOMEDIR, home_orig.c_str(), 1), 0);
+
+    std::string home_debug;
+    common::env(IGN_HOMEDIR, home_debug);
   }
 
   // Different paths specified on cmmand line and in SDF, should use the path
@@ -223,13 +233,14 @@ TEST_F(LogSystemTest, LogDefaults)
     // Mock command line arg. Set record path to something different from in SDF
     const std::string cliPath = common::joinPaths(this->logsDir, "cliPath");
     recordServerConfig.SetLogRecordPath(cliPath);
-    recordServerConfig.SetLogRecordPathFromCmdLine(true);
+    recordServerConfig.SetLogIgnoreSdfPath(true);
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 1000, false);
 
     EXPECT_TRUE(common::exists(cliPath));
+    EXPECT_TRUE(common::exists(common::joinPaths(cliPath, "state.tlog")));
     EXPECT_FALSE(common::exists(sdfPath));
   }
 }
@@ -565,6 +576,8 @@ TEST_F(LogSystemTest, LogOverwrite)
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
+  ignLogInit(this->logDir, "server_console.log");
+
   // Path exists, no command line --log-overwrite, should overwrite
   {
     {
@@ -601,7 +614,7 @@ TEST_F(LogSystemTest, LogOverwrite)
       recordServer.Run(true, 1000, false);
     }
 
-    // Test record path is same as the first.
+    // Test record path is same as the first
     EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
   }
 

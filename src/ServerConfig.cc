@@ -217,7 +217,7 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
-            logRecordPathFromCmdLine(_cfg->logRecordPathFromCmdLine),
+            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordOverwrite(_cfg->logRecordOverwrite),
             resourceCache(_cfg->resourceCache),
@@ -249,7 +249,7 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
   /// \brief Whether log record path is specified from command line
-  public: bool logRecordPathFromCmdLine{false};
+  public: bool logIgnoreSdfPath{false};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -424,15 +424,15 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogRecordPathFromCmdLine() const
+bool ServerConfig::LogIgnoreSdfPath() const
 {
-  return this->dataPtr->logRecordPathFromCmdLine;
+  return this->dataPtr->logIgnoreSdfPath;
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetLogRecordPathFromCmdLine(bool _fromCmdLine)
+void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
 {
-  this->dataPtr->logRecordPathFromCmdLine = _fromCmdLine;
+  this->dataPtr->logIgnoreSdfPath = _ignore;
 }
 
 /////////////////////////////////////////////////

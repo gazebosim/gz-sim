@@ -102,7 +102,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
           if (recordMsg)
           {
-            ignwarn << "Log path already exists on disk! Existing files will "
+            ignmsg << "Log path already exists on disk! Existing files will "
               << "be overwritten." << std::endl;
             ignmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
@@ -134,7 +134,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       //   In Blueprint and Citadel, LogRecord will record to <path> if no
       //   --record-path is specified on command line.
       serverConfig.SetLogRecordPath(recordPathMod);
-      serverConfig.SetLogRecordPathFromCmdLine(true);
+      serverConfig.SetLogIgnoreSdfPath(true);
     }
     // Empty record path specified. Use default.
     else

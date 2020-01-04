@@ -252,11 +252,11 @@ namespace ignition
 
       /// \brief Get whether record path came from command line
       /// \return Whether record path came from command line
-      public: bool LogRecordPathFromCmdLine() const;
+      public: bool LogIgnoreSdfPath() const;
 
       /// \brief Set whether record path came from command line
       /// \param[in] _fromCmdLine Whether record path came from command line
-      public: void SetLogRecordPathFromCmdLine(bool _fromCmdLine);
+      public: void SetLogIgnoreSdfPath(bool _ignore);
 
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
