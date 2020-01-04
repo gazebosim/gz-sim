@@ -209,9 +209,6 @@ TEST_F(LogSystemTest, LogDefaults)
 
     // Revert environment variable after test is done
     EXPECT_EQ(setenv(IGN_HOMEDIR, home_orig.c_str(), 1), 0);
-
-    std::string home_debug;
-    common::env(IGN_HOMEDIR, home_debug);
   }
 
   // Different paths specified on cmmand line and in SDF, should use the path
