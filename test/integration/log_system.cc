@@ -90,17 +90,17 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// Count the number of files in a directory
+// Count the number of entries in a directory, both files and directories
 #ifndef __APPLE__
-int fileCount(const std::string &_directory)
+int entryCount(const std::string &_directory)
 {
   if (!common::exists(_directory))
     return 0;
 
   auto it = std::filesystem::directory_iterator(_directory);
-  return std::count_if(begin(it), end(it), [](auto &_entry)
+  return std::count_if(begin(it), end(it), [](auto &)
       {
-        return _entry.is_regular_file();
+        return true;
       });
 }
 #endif
@@ -168,6 +168,7 @@ class LogSystemTest : public ::testing::Test
     common::createDirectories(this->logPlaybackDir);
   }
 
+  // Remove the test logs directory
   public: void RemoveLogsDir()
   {
     common::removeAll(this->logsDir);
@@ -235,38 +236,43 @@ TEST_F(LogSystemTest, LogDefaults)
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
+  // Change environment variable so that test files aren't written to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
   // No path specified on command line and in SDF, should use default path.
   {
-    // Change environment variable so that test files isn't written to $HOME
-    std::string homeOrig;
-    common::env(IGN_HOMEDIR, homeOrig);
-    std::string homeFake = common::joinPaths(this->logsDir, "default");
-    EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
-
-    // Change log path in SDF to empty
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        " ");
-
-    // Pass changed SDF to server
+    // Pass SDF file to server
     ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    recordServerConfig.SetSdfFile(recordSdfPath);
 
     // Set record path to empty
+    recordServerConfig.SetUseLogRecord(true);
     recordServerConfig.SetLogRecordPath("");
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 200, false);
-
-    EXPECT_FALSE(ignLogDirectory().empty());
-    // This should be $HOME/.ignition/..., default path set in LogRecord.cc
-    EXPECT_EQ(ignLogDirectory().compare(0, homeFake.length(), homeFake), 0);
-    EXPECT_TRUE(common::exists(ignLogDirectory()));
-
-    // Revert environment variable after test is done
-    EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
   }
+
+  // This should be $HOME/.ignition/..., default path
+  EXPECT_FALSE(ignLogDirectory().empty());
+  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+      "log");
+  EXPECT_EQ(ignLogDirectory().compare(0, logPath.length(), logPath), 0);
+  EXPECT_TRUE(common::exists(ignLogDirectory()));
+  EXPECT_TRUE(common::exists(common::joinPaths(ignLogDirectory(),
+      "server_console.log")));
+  EXPECT_TRUE(common::exists(common::joinPaths(ignLogDirectory(),
+      "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(2, entryCount(ignLogDirectory()));
+#endif
+
+  // Revert environment variable after test is done
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
 
   // Different paths specified on cmmand line and in SDF, should use the path
   //   from command line.
@@ -625,7 +631,8 @@ TEST_F(LogSystemTest, LogOverwrite)
   // Create temp directory to store log
   this->CreateLogsDir();
 #ifndef __APPLE__
-  EXPECT_EQ(0, fileCount(this->logDir));
+  EXPECT_EQ(1, entryCount(this->logsDir));
+  EXPECT_EQ(0, entryCount(this->logDir));
 #endif
 
   // World with moving entities
@@ -663,7 +670,9 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(logPath));
 
 #ifndef __APPLE__
-  EXPECT_EQ(2, fileCount(this->logDir));
+  // Log files were created
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
   std::filesystem::path tlogStdPath = tlogPath;
   auto tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
@@ -692,7 +701,8 @@ TEST_F(LogSystemTest, LogOverwrite)
 
 #ifndef __APPLE__
   // No new files were created
-  EXPECT_EQ(2, fileCount(this->logDir));
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
 
   // Test timestamp is newer
   EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
@@ -702,7 +712,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   // Path exists, using C++ API it will ovewrite
   {
-    // Pass changed SDF to server
+    // Pass SDF file to server
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfFile(recordSdfPath);
     recordServerConfig.SetUseLogRecord(true);
@@ -720,7 +730,8 @@ TEST_F(LogSystemTest, LogOverwrite)
 
 #ifndef __APPLE__
   // No new files were created
-  EXPECT_EQ(2, fileCount(this->logDir));
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
 
   // Test timestamp is newer
   EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
@@ -748,7 +759,8 @@ TEST_F(LogSystemTest, LogOverwrite)
 
 #ifndef __APPLE__
   // No new files were created
-  EXPECT_EQ(2, fileCount(this->logDir));
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
 
   // Test timestamp is newer
   EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
@@ -783,7 +795,9 @@ TEST_F(LogSystemTest, LogOverwrite)
 
 #ifndef __APPLE__
   // New files were created
-  EXPECT_EQ(2, fileCount(this->logDir + "(1)"));
+  EXPECT_EQ(3, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
+  EXPECT_EQ(2, entryCount(this->logDir + "(1)"));
 
   // Old timestamp is same
   EXPECT_EQ(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
