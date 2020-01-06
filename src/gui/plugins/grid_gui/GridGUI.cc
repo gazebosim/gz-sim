@@ -28,11 +28,11 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "TransformControl.hh"
+#include "GridGUI.hh"
 
 namespace ignition::gazebo
 {
-  class TransformControlPrivate
+  class GridGUIPrivate
   {
     /// \brief Ignition communication node.
     public: transport::Node node;
@@ -49,15 +49,15 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TransformControl::TransformControl()
-  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
+GridGUI::GridGUI()
+  : gui::Plugin(), dataPtr(std::make_unique<GridGUIPrivate>())
 {
 }
 
 /////////////////////////////////////////////////
-TransformControl::~TransformControl() = default;
+GridGUI::~GridGUI() = default;
 /////////////////////////////////////////////////
-void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
+void GridGUI::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Transform control";
@@ -67,7 +67,7 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void TransformControl::OnMode(const QString &_mode)
+void GridGUI::OnMode(const QString &_mode)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -82,5 +82,5 @@ void TransformControl::OnMode(const QString &_mode)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TransformControl,
+IGNITION_ADD_PLUGIN(ignition::gazebo::GridGUI,
                     ignition::gui::Plugin)
