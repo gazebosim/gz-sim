@@ -1,6 +1,9 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.1
+import QtQuick.Controls 1.4 as OldCtrl
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
+
 
 Rectangle {
   id: gridconfig
@@ -15,27 +18,135 @@ Rectangle {
     anchors.fill: parent
     anchors.margins: 10
 
-    CheckBox {
-      text: qsTr("Show/Hide")
-      checked: true
+    Row {
+      CheckBox {
+        text: qsTr("Show/Hide Grid")
+        checked: true
+      }
     }
     
-    Label {
-      text: "vertical cell count"
+    Row {
+      Label {
+        text: "Vertical Cell Count"
+      }
+      SpinBox {
+        id: verticalCellCount
+        from: 0
+        to: 100
+      }
+      Label {
+        text: "Horizontal Cell Count"
+      }
+      SpinBox {
+        id: horizontalCellCount
+        from: 0
+        to: 100
+      }
     }
 
-    SpinBox {
-      from: 1
-      to: 50
+    Row {
+      Label {
+        text: "Vertical Cell Length (/m)"
+      }
+
+      DoubleSpinBox {
+        id: verticalCellLength
+      }
+
+      Label {
+        text: "Horizontal Cell Length (/m)"
+      }
+
+      DoubleSpinBox {
+        id: horizontalCellLength
+      }
+    }
+    
+    Row {
+      Column {
+        Label {
+          text: "Cartesian Pose"
+        }
+
+        Label {
+          text: "x (/m)"
+        }
+
+        DoubleSpinBox {
+          id: x
+        }
+
+        Label {
+          text: "y (/m)"
+        }
+
+        DoubleSpinBox {
+          id: y
+        }
+
+        Label {
+          text: "z (/m)"
+        }
+
+        DoubleSpinBox {
+          id: z
+        }
+      }
+      Row {
+        Column {
+          Label {
+            text: "Principal Pose"
+          }
+
+          Label {
+            text: "roll (/rad)"
+          }
+
+          DoubleSpinBox {
+            id: roll
+          }
+
+          Label {
+            text: "pitch (/rad)"
+          }
+
+          DoubleSpinBox {
+            id: pitch
+          }
+
+          Label {
+            text: "yaw (/rad)"
+          }
+
+          DoubleSpinBox {
+            id: yaw
+          }
+        }
+      }
     }
 
-    Label {
-      text: "horizontal cell count"
+    Row {
+      Button {
+        id: color
+        text: qsTr("Select Grid Color")
+        onClicked: model.submit()
+      }
     }
-
-    SpinBox {
-      from: 1
-      to: 50
+   
+    ColorDialog {
+      id: colorDialog
+      title: "Please choose a color"
+      onAccepted: {
+          console.log("You chose: " + colorDialog.color)
+          Qt.quit()
+      }
+      onRejected: {
+          console.log("Canceled")
+          Qt.quit()
+      }
+      Component.onCompleted: visible = true
     }
   }
 }
+
+

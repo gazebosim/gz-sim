@@ -15,10 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_TRANSFORMCONTROL_HH_
-#define IGNITION_GAZEBO_GUI_TRANSFORMCONTROL_HH_
-
-#include <memory>
+#ifndef IGNITION_GAZEBO_GUI_GRIDGUI_HH_
+#define IGNITION_GAZEBO_GUI_GRIDGUI_HH_
 
 #include <ignition/gui/Plugin.hh>
 
@@ -26,22 +24,22 @@ namespace ignition
 {
 namespace gazebo
 {
-  class TransformControlPrivate;
+  class GridGUIPrivate;
 
   /// \brief TODO
   /// \brief Provides buttons for translation, rotation, and scale
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive transform mode requests.
-  class TransformControl : public ignition::gui::Plugin
+  class GridGUI : public ignition::gui::Plugin
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: TransformControl();
+    public: GridGUI();
 
     /// \brief Destructor
-    public: ~TransformControl() override;
+    public: ~GridGUI() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
@@ -52,7 +50,7 @@ namespace gazebo
 
     /// \internal
     /// \brief Pointer to private data.
-    private: std::unique_ptr<TransformControlPrivate> dataPtr;
+    private: std::unique_ptr<GridGUIPrivate> dataPtr;
   };
 }
 }
