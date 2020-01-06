@@ -257,28 +257,42 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
 
   // Check entities have the components
   EXPECT_TRUE(manager.EntityHasComponent(eInt, cIntEInt));
+  EXPECT_EQ(1u, manager.ComponentTypes(eInt).size());
+  EXPECT_EQ(IntComponent::typeId, *manager.ComponentTypes(eInt).begin());
+
   EXPECT_TRUE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
+  EXPECT_EQ(1u, manager.ComponentTypes(eDouble).size());
+  EXPECT_EQ(DoubleComponent::typeId, *manager.ComponentTypes(eDouble).begin());
+
   EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
   EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
+  EXPECT_EQ(2u, manager.ComponentTypes(eIntDouble).size());
+  auto types = manager.ComponentTypes(eIntDouble);
+  EXPECT_NE(types.end(), types.find(IntComponent::typeId));
+  EXPECT_NE(types.end(), types.find(DoubleComponent::typeId));
 
   // Remove component by key
   EXPECT_TRUE(manager.RemoveComponent(eInt, cIntEInt));
   EXPECT_FALSE(manager.EntityHasComponent(eInt, cIntEInt));
+  EXPECT_TRUE(manager.ComponentTypes(eInt).empty());
 
   // Remove component by type id
   auto typeDouble = DoubleComponent::typeId;
 
   EXPECT_TRUE(manager.RemoveComponent(eDouble, typeDouble));
   EXPECT_FALSE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
+  EXPECT_TRUE(manager.ComponentTypes(eDouble).empty());
 
   // Remove component by type
   EXPECT_TRUE(manager.RemoveComponent<IntComponent>(eIntDouble));
   EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
   EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
+  EXPECT_EQ(1u, manager.ComponentTypes(eIntDouble).size());
 
   EXPECT_TRUE(manager.RemoveComponent<DoubleComponent>(eIntDouble));
   EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
   EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
+  EXPECT_EQ(0u, manager.ComponentTypes(eIntDouble).size());
 }
 
 /////////////////////////////////////////////////
