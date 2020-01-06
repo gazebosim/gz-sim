@@ -20,6 +20,9 @@
 
 #include <algorithm>
 #include <climits>
+#ifndef __APPLE__
+#include <filesystem>
+#endif
 #include <numeric>
 #include <string>
 
@@ -47,6 +50,44 @@
 
 using namespace ignition;
 using namespace gazebo;
+
+static const std::string kBinPath(PROJECT_BINARY_PATH);
+
+#ifdef __APPLE__
+static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
+"-f ";
+static const std::string kIgnCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
+  "/bin/ign-gazebo-server");
+#else
+static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
+" ";
+static const std::string kIgnCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
+  kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
+#endif
+
+/////////////////////////////////////////////////
+std::string customExecStr(std::string _cmd)
+{
+  _cmd += " 2>&1";
+  FILE *pipe = popen(_cmd.c_str(), "r");
+
+  if (!pipe)
+    return "ERROR";
+
+  char buffer[128];
+  std::string result = "";
+
+  while (!feof(pipe))
+  {
+    if (fgets(buffer, 128, pipe) != nullptr)
+      result += buffer;
+  }
+
+  pclose(pipe);
+  return result;
+}
 
 class Relay
 {
@@ -200,7 +241,7 @@ TEST_F(LogSystemTest, LogDefaults)
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
-    recordServer.Run(true, 1000, false);
+    recordServer.Run(true, 200, false);
 
     EXPECT_FALSE(ignLogDirectory().empty());
     // This should be $HOME/.ignition/..., default path set in LogRecord.cc
@@ -234,7 +275,7 @@ TEST_F(LogSystemTest, LogDefaults)
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
-    recordServer.Run(true, 1000, false);
+    recordServer.Run(true, 200, false);
 
     EXPECT_TRUE(common::exists(cliPath));
     EXPECT_TRUE(common::exists(common::joinPaths(cliPath, "state.tlog")));
@@ -575,87 +616,133 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   ignLogInit(this->logDir, "server_console.log");
 
-  // Path exists, no command line --log-overwrite, should overwrite
+  // First recording, to create some files
   {
-    {
-      // Change log path in SDF to build directory
-      sdf::Root recordSdfRoot;
-      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
 
-      // Pass changed SDF to server
-      ServerConfig recordServerConfig;
-      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
-      // Run for a few seconds to record different poses
-      Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
-    }
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
+  }
 
-    // Test path exists
-    const std::string firstRecordPath = ignLogDirectory();
-    EXPECT_TRUE(common::exists(firstRecordPath));
+  // Test path exists
+  const std::string firstRecordPath = ignLogDirectory();
+  EXPECT_TRUE(common::exists(firstRecordPath));
+  // Test recorded file exists. (Server console log is elsewhere, in default
+  // timestamped dir.)
+  const std::string tlogPath = common::joinPaths(this->logDir, "state.tlog");
+  EXPECT_TRUE(common::exists(tlogPath));
 
-    {
-      // Change log path in SDF to build directory
-      sdf::Root recordSdfRoot;
-      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+#ifndef __APPLE__
+  std::filesystem::path tlogStdPath = tlogPath;
+  auto tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+#endif
 
-      // Pass changed SDF to server
-      ServerConfig recordServerConfig;
-      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+  // Path exists, no overwrite flag, should overwrite by default behavior in
+  //   LogRecord.cc
+  {
+    // Remove file recorded from first run
+    EXPECT_TRUE(common::removeFile(common::joinPaths(this->logDir,
+        "state.tlog")));
 
-      // Run for a few seconds to record different poses
-      Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
-    }
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
 
     // Test record path is same as the first
     EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
+    EXPECT_TRUE(common::exists(tlogPath));
+
+#ifndef __APPLE__
+    // Test timestamp is newer
+    EXPECT_TRUE(std::filesystem::last_write_time(tlogStdPath) > tlogPrevTime);
+    // Update timestamp for next test
+    tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+#endif
   }
 
-  // Path exists, command line --log-overwrite, should overwrite
+  // Path exists, set C++ API overwrite flag
   {
-    {
-      // Change log path in SDF to build directory
-      sdf::Root recordSdfRoot;
-      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+    // Remove file recorded from previous run
+    EXPECT_TRUE(common::removeFile(common::joinPaths(this->logDir,
+        "state.tlog")));
 
-      // Pass changed SDF to server
-      ServerConfig recordServerConfig;
-      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
 
-      // Run for a few seconds to record different poses
-      Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
-    }
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
-    // Test path exists
-    const std::string firstRecordPath = ignLogDirectory();
-    EXPECT_TRUE(common::exists(firstRecordPath));
+    // Set overwrite flag
+    recordServerConfig.SetLogRecordOverwrite(true);
 
-    {
-      // Change log path in SDF to build directory
-      sdf::Root recordSdfRoot;
-      this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-          this->logDir);
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
 
-      // Pass changed SDF to server
-      ServerConfig recordServerConfig;
-      recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-
-      // Set overwrite flag
-      recordServerConfig.SetLogRecordOverwrite(true);
-
-      // Run for a few seconds to record different poses
-      Server recordServer(recordServerConfig);
-      recordServer.Run(true, 1000, false);
-    }
-
-    // Test record path is same as the first.
+    // Test record path is same as the first
     EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
+    EXPECT_TRUE(common::exists(tlogPath));
+
+#ifndef __APPLE__
+    // Test timestamp is newer
+    EXPECT_TRUE(std::filesystem::last_write_time(tlogStdPath) > tlogPrevTime);
+    // Update timestamp for next test
+    tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+#endif
+  }
+
+  // Path exists, command line --log-overwrite, should overwrite by
+  //   command-line logic in ign.cc
+  {
+    // Remove file recorded from previous run
+    EXPECT_TRUE(common::removeFile(common::joinPaths(this->logDir,
+        "state.tlog")));
+
+    // Command line triggers ign.cc, which handles creating a unique path if
+    // file already exists, so as to not overwrite
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-overwrite "
+      + "--record-path " + this->logDir + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+
+    // Test record path is same as the first
+    EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
+    EXPECT_TRUE(common::exists(tlogPath));
+
+#ifndef __APPLE__
+    // Test timestamp is newer
+    EXPECT_TRUE(std::filesystem::last_write_time(tlogStdPath) > tlogPrevTime);
+    // Update timestamp for next test
+    tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+#endif
+
+    // Server console log should have been re-initialized in ign.cc to
+    // command-line path
+    EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+        "server_console.log")));
   }
 
   this->RemoveLogsDir();
