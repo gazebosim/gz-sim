@@ -41,8 +41,21 @@ namespace plugins
     /// \brief Destructor
     public: ~GridGUI() override;
 
-    // Documentation inherited
+    // Inherit default grid from sdf file
     public: void LoadConfig() override;
+
+    /// \brief Called when a value changes on a widget
+    /// \param[in] _value New value retrieved from GUI
+    private slots: void OnChange(const QVariant &_value);
+
+    /// \brief Callback when Hide box is checked
+    private slots: void OnHide();
+
+    /// \brief Callback when Show box is checked
+    private slots: void OnShow();
+
+    /// \brief Callback to reflect changes made
+    private slots: void Refresh();
 
     /// \internal
     /// \brief Pointer to private data.

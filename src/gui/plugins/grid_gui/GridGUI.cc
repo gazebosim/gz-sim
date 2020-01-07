@@ -92,13 +92,40 @@ GridGUI::~GridGUI()
 /////////////////////////////////////////////////
 void GridGUI::LoadConfig()
 {
-  // Load ptr to current scene
+  // Load pointer of current scene
   this->dataPtr->scene = rendering::RenderUtil::Scene();
   if (!this->dataPtr->scene)
     return;
   // if no grid is enabled, disable the plugin
   if (!rendering::RenderUtil::Grid())
     return;
+
+  // refresh/load widget
+  this->Refresh();
+}
+
+/////////////////////////////////////////////////
+void GridGUI::Refresh()
+{
+
+}
+
+/////////////////////////////////////////////////
+void GridGUI::OnChange(const QVariant &_value)
+{
+  
+}
+
+/////////////////////////////////////////////////
+void GridGUI::OnHide()
+{
+  
+}
+
+/////////////////////////////////////////////////
+void GridGUI::OnShow()
+{
+  
 }
 
 /////////////////////////////////////////////////
