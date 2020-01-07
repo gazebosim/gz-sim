@@ -100,7 +100,20 @@ void GridGUI::LoadConfig()
   if (!rendering::RenderUtil::Grid())
     return;
 
-  // refresh/load widget
+  // load widget
+  if (!error.empty())
+  {
+    // Add message
+    auto msg = new QLabel(QString::fromStdString(error));
+
+    auto mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(msg);
+    mainLayout->setAlignment(msg, Qt::AlignCenter);
+    this->setLayout(mainLayout);
+
+    return;
+  }
+
   this->Refresh();
 }
 
