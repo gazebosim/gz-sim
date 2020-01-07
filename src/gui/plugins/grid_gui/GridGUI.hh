@@ -18,20 +18,20 @@
 #ifndef IGNITION_GAZEBO_GUI_GRIDGUI_HH_
 #define IGNITION_GAZEBO_GUI_GRIDGUI_HH_
 
+#include <memory>
+
+#include <ignition/gui/qt.h>
 #include <ignition/gui/Plugin.hh>
 
 namespace ignition
 {
-namespace gazebo
+namespace gui
+{
+namespace plugins
 {
   class GridGUIPrivate;
 
-  /// \brief TODO
-  /// \brief Provides buttons for translation, rotation, and scale
-  ///
-  /// ## Configuration
-  /// \<service\> : Set the service to receive transform mode requests.
-  class GridGUI : public ignition::gui::Plugin
+  class GridGUI : public Plugin
   {
     Q_OBJECT
 
@@ -42,16 +42,13 @@ namespace gazebo
     public: ~GridGUI() override;
 
     // Documentation inherited
-    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
-
-    /// \brief Callback in Qt thread when mode changes.
-    /// \param[in] _mode New transform mode
-    public slots: void OnMode(const QString &_mode);
+    public: void LoadConfig() override;
 
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<GridGUIPrivate> dataPtr;
   };
+}
 }
 }
 
