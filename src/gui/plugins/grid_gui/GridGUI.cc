@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,73 +14,94 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 
-#include <iostream>
 #include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
-
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include <ignition/common/PluginMacros.hh>
+#include <ignition/math/Color.hh>
+#include <ignition/math/Pose3.hh>
+#include <ignition/rendering.hh>
 
 #include "GridGUI.hh"
 
-namespace ignition::gazebo
+// Default cell count
+static const int DefaultHonCellCount{20};
+
+// Default vertical cell count
+static const int DefaultVerCellCount{1};
+
+// Default cell length
+static const double DefaultCellLength{1.0};
+
+// Default pose
+static const ignition::math::Pose3d DefaultPose{0, 0, 0.015};
+
+// Default color
+static const ignition::math::Color DefaultColor{0.7, 0.7, 0.7, 1.0};
+
+namespace ignition
 {
+namespace gui
+{
+namespace plugins
+{
+  /// \brief Configuration properties for grid
+  struct GridConfig
+  {
+    /// \brief Number of horizontal cells
+    int honCellCount{DefaultHonCellCount};
+
+    /// \brief Number of vertical cells
+    int verCellCount{DefaultVerCellCount};
+
+    /// \brief Cell length for both horizontal and vertical
+    double cellLength{DefaultCellLength};
+
+    /// \brief Grid pose
+    math::Pose3d pose{DefaultPose};
+
+    /// \brief Grid color
+    math::Color color{DefaultColor};
+  }
+
   class GridGUIPrivate
   {
-    /// \brief Ignition communication node.
-    public: transport::Node node;
+    /// \brief Pointer to current scene
+    public: rendering::ScenePtr scene;
 
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
-    /// \brief Transform control service name
-    public: std::string service;
+    /// \brief list of grids currently on the scene
+    public: std::vector<rendering::GridPtr> grids;
   };
+}
+}
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace gui;
+using namespace plugins;
 
 /////////////////////////////////////////////////
-GridGUI::GridGUI()
-  : gui::Plugin(), dataPtr(std::make_unique<GridGUIPrivate>())
+GridGUI::GridGUI() : Plugin(), dataPtr(new GridGUIPrivate)
 {
 }
 
 /////////////////////////////////////////////////
-GridGUI::~GridGUI() = default;
-/////////////////////////////////////////////////
-void GridGUI::LoadConfig(const tinyxml2::XMLElement *)
+GridGUI::~GridGUI()
 {
-  if (this->title.empty())
-    this->title = "Transform control";
-
-  // For transform requests
-  this->dataPtr->service = "/gui/transform_mode";
 }
 
 /////////////////////////////////////////////////
-void GridGUI::OnMode(const QString &_mode)
+void GridGUI::LoadConfig()
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-      ignerr << "Error setting transform mode" << std::endl;
-  };
-
-  ignition::msgs::StringMsg req;
-  req.set_data(_mode.toStdString());
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  // Load ptr to current scene
+  this->dataPtr->scene = rendering::RenderUtil::Scene();
+  if (!this->dataPtr->scene)
+    return;
+  // if no grid is enabled, disable the plugin
+  if (!rendering::RenderUtil::Grid())
+    return;
 }
 
+/////////////////////////////////////////////////
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::GridGUI,
-                    ignition::gui::Plugin)
+IGN_COMMON_REGISTER_SINGLE_PLUGIN(ignition::gui::plugins::GridGUI,
+                                  ignition::gui::Plugin)
