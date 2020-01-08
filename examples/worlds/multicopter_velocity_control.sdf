@@ -81,8 +81,8 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/quadcopter/control</service>
-        <stats_topic>/world/quadcopter/stats</stats_topic>
+        <service>/world/multicopter/control</service>
+        <stats_topic>/world/multicopter/stats</stats_topic>
 
       </plugin>
 
@@ -107,7 +107,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/quadcopter/stats</topic>
+        <topic>/world/multicopter/stats</topic>
 
       </plugin>
 
@@ -465,7 +465,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
             <direction>-1</direction>
           </rotor>
         </rotorConfiguration>
-  </plugin>
+      </plugin>
     </include>
   </world>
 </sdf>
