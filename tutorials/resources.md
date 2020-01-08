@@ -19,7 +19,8 @@ how Ignition finds and loads different types of plugins.
 ### System Plugins
 
 A system plugin is used by Ignition Gazebo, and provides an entry point for
-simulation customization and control. Refer to the \subpage createsystemplugins  tutorial for information about creating your own system plugin.
+simulation customization and control. Refer to the \subpage createsystemplugins
+tutorial for information about creating your own system plugin.
 
 System plugins may be loaded through:
 
@@ -43,13 +44,14 @@ Ignition will look for system plugins on the following paths, in order:
 
 ### Ignition GUI plugins
 
-A GUI plugin defines a Qt widget.
+A GUI plugin defines a widget.
 
 GUI plugins may be loaded through:
 
 * Tags in SDF world files, where `filename` is the shared library:
     * `<world><gui><plugin>`
-* Tags in GUI config files, where `filename` is the shared library:
+* Tags in [GUI config files](https://ignitionrobotics.org/api/gui/3.0/config.html),
+  where `filename` is the shared library:
     * `<plugin>`
 * The plugin menu on the top-right of the screen.
 
@@ -120,4 +122,16 @@ Ignition will look for URIs (path / URL) in the following, in order:
 1. Current running path / absolute path
 2. All paths on the `IGN_FILE_PATH` environment variable (if path is URI,
    scheme is stripped)
+
+### GUI configuration
+
+Ignition Gazebo's
+[GUI configuration](https://ignitionrobotics.org/api/gui/3.0/config.html)
+can come from the following, in order:
+
+1. The command line option `--gui-config <file path>`
+2. Plugins within SDF's `<world><gui>`
+3. `$HOME/.ignition/gazebo/gui.config` (if that file doesn't
+exist, the default `gui.config` file that is installed with Ignition Gazebo
+will be copied to that location)
 
