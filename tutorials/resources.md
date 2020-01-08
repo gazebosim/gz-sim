@@ -44,7 +44,8 @@ Ignition will look for system plugins on the following paths, in order:
 
 ### Ignition GUI plugins
 
-A GUI plugin defines a widget.
+Each [Ignition GUI](https://ignitionrobotics.org/libs/rendering) plugin
+defines a widget.
 
 GUI plugins may be loaded through:
 
@@ -65,22 +66,36 @@ Ignition will look for GUI plugins on the following paths, in order:
 
 ### Physics engines
 
-TODO
+[Ignition Physics](https://ignitionrobotics.org/libs/physics)
+uses a plugin architecture and its physics engines are
+built as plugins that are loaded at run time using
+[Ignition Plugin](https://ignitionrobotics.org/libs/plugin).
+
+At the moment, Ignition Physics will only look for physics engine plugin
+shared libraries installed within its `<install_prefix>/lib` directory.
 
 ### Rendering engines
 
-Ignition Rendering uses a plugin architecture and its render engines are
-built as plugins that are loaded at run time through Ignition Plugin. The
-render engine plugin shared libraries can be found in the
-`<install_prefix>/lib` directory and the resources used by these engines are
-located in the `<install_prefix>/share` directory.
+[Ignition Rendering](https://ignitionrobotics.org/libs/rendering)
+uses a plugin architecture and its render engines are
+built as plugins that are loaded at run time using
+[Ignition Plugin](https://ignitionrobotics.org/libs/plugin).
+
+At the moment, Ignition Rendering will only look for render engine plugin
+shared libraries installed within its `<install_prefix>/lib` directory.
+Likewise, the resources used by these engines are located in Ignition
+Rendering's `<install_prefix>/share` directory.
 
 ### Sensors
 
-Each unique type of sensor in Ignition Sensors is a plugin. When a particular
-sensor type is requested, the relevant plugin is loaded by Ignition Plugin and a
-sensor object is instantiated from it. Similar to Ignition Rendering, the sensor
-plugin shared libraries are installed to the `<install_prefix>/lib` directory.
+Each unique type of sensor in
+[Ignition Sensors](https://ignitionrobotics.org/libs/sensors) is a plugin. When
+a particular sensor type is requested, the relevant plugin is loaded by
+[Ignition Plugin](https://ignitionrobotics.org/libs/plugin) and a
+sensor object is instantiated from it.
+
+At the moment, Ignition Sensors will only look for sensor plugin
+shared libraries installed within its `<install_prefix>/lib` directory.
 
 ## Models, lights, actors
 
