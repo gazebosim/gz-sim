@@ -1,21 +1,35 @@
 \page resources Finding resources
 
-Setting up a simulation always involves loading various kinds of resources from
-different places, such as robot models and plugins. Ignition Gazebo offers a
-few different ways of looking up resources.
+Setting up and running a simulation can involve loading various kinds of
+resources, such as robot models and plugins, from different locations, which
+can include a local filesystem and online servers. Ignition Gazebo offers
+a few different mechanisms for locating required resources.
 
 ## Plugins
 
-### Systems
+A plugin is a shared library that adheres to a specific API and is loaded at
+runtime. Typically, plugins are scoped to perform a narrow set of features.
+For example, the `diff_drive` plugin, provided by Ignition Gazebo, implements
+a differential drive controller for mobile robots.
+
+Ignition relies on plugins for rendering, physics simulation, sensor data
+generation, and many of the capabilities. The following sections describe
+how Ignition finds and loads different types of plugins.
+
+### System Plugins
+
+A system plugin is used by Ignition Gazebo, and provides an entry point for
+simulation customization and control. Refer to the \subpage createsystemplugins  tutorial for information about creating your own system plugin.
 
 System plugins may be loaded through:
 
 * Tags in SDF files, where `filename` is the shared library and
-  `name` is the class to be loaded.
-    * Attached to world: `<world><plugin>`
-    * Attached to model: `<model><plugin>`
-    * Attached to sensor: `<sensor><plugin>`
-* Passing their shared library and class to be loaded through
+  `name` is the class to be loaded. A system plugin can be attached to
+  different entities.
+    * Attached to the **world**: `<world><plugin>`
+    * Attached to a **model**: `<model><plugin>`
+    * Attached to a **sensor**: `<sensor><plugin>`
+* Passing the shared library and class to be loaded through
   [PluginInfo](https://ignitionrobotics.org/api/gazebo/3.0/classignition_1_1gazebo_1_1ServerConfig_1_1PluginInfo.html)
   (within [ServerConfig](https://ignitionrobotics.org/api/gazebo/3.0/classignition_1_1gazebo_1_1ServerConfig.html))
   when instantiating the
@@ -24,10 +38,12 @@ System plugins may be loaded through:
 Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
-1. `$HOME/.ignition/gazebo/plugins`
-1. [Systems that are installed with Ignition Gazebo](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/src/systems/)
+2. `$HOME/.ignition/gazebo/plugins`
+3. [Systems that are installed with Ignition Gazebo](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/src/systems/)
 
 ### Ignition GUI plugins
+
+A GUI plugin defines a Qt widget.
 
 GUI plugins may be loaded through:
 
@@ -40,10 +56,10 @@ GUI plugins may be loaded through:
 Ignition will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
-1. [GUI plugins that are installed with Ignition Gazebo](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/src/systems/)
-1. Other paths added by calling `ignition::gui::App()->AddPluginPath`
-1. `~/.ignition/gui/plugins`
-1. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/3.0/namespaceignition_1_1gui_1_1plugins.html)
+2. [GUI plugins that are installed with Ignition Gazebo](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/src/systems/)
+3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
+4. `~/.ignition/gui/plugins`
+5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/3.0/namespaceignition_1_1gui_1_1plugins.html)
 
 ### Physics engines
 
@@ -51,17 +67,17 @@ TODO
 
 ### Rendering engines
 
-Ignition Rendering uses a plugin architecture and its render engines are built as
-plugins that are loaded at run time through Ignition Plugin. The render engine
-plugin shared libraries can be found in the `<install_prefix>/lib` directory and
-the resources used by these engines are located in the `<install_prefix>/share`
-directory.
+Ignition Rendering uses a plugin architecture and its render engines are
+built as plugins that are loaded at run time through Ignition Plugin. The
+render engine plugin shared libraries can be found in the
+`<install_prefix>/lib` directory and the resources used by these engines are
+located in the `<install_prefix>/share` directory.
 
 ### Sensors
 
 Each unique type of sensor in Ignition Sensors is a plugin. When a particular
 sensor type is requested, the relevant plugin is loaded by Ignition Plugin and a
-sensor object is instantiated from it. Simlar to Ignition Rendering, the sensor
+sensor object is instantiated from it. Similar to Ignition Rendering, the sensor
 plugin shared libraries are installed to the `<install_prefix>/lib` directory.
 
 ## Models, lights, actors
@@ -85,10 +101,10 @@ Ignition will look for URIs (path / URL) in the following, in order:
 
 1. All paths on the `SDF_PATH` environment variable (if path is URI,
    scheme is stripped)
-1. Current running path / absolute path
-1. [Ignition Fuel](https://app.ignitionrobotics.org/fuel/models)
+2. Current running path / absolute path
+3. [Ignition Fuel](https://app.ignitionrobotics.org/fuel/models)
     1. Cache (i.e. `$HOME/.ignition/fuel`)
-    1. Web server
+    2. Web server
 
 ## Meshes
 
@@ -102,6 +118,6 @@ Mesh files may be loaded through:
 Ignition will look for URIs (path / URL) in the following, in order:
 
 1. Current running path / absolute path
-1. All paths on the `IGN_FILE_PATH` environment variable (if path is URI,
+2. All paths on the `IGN_FILE_PATH` environment variable (if path is URI,
    scheme is stripped)
 
