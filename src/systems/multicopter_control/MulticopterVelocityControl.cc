@@ -286,6 +286,14 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
                        this);
   ignmsg << "MulticopterVelocityControl subscribing to Boolean messages on ["
          << enableTopic << "]" << std::endl;
+
+  // Create the Actuators component to take control of rotor speeds
+  this->rotorVelocitiesMsg.mutable_velocity()->Resize(
+      this->rotorVelocities.size(), 0);
+
+  _ecm.CreateComponent(this->model.Entity(),
+                       components::Actuators(this->rotorVelocitiesMsg));
+
   this->initialized = true;
 }
 
