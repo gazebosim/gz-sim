@@ -473,42 +473,47 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 {
   IGN_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
 
-  msgs::Actuators msg;
+  std::optional<msgs::Actuators> msg;
   auto actuatorMsgComp =
       _ecm.Component<components::Actuators>(this->model.Entity());
+
   // Actuators messages can come in from transport or via a component. If a
-  // transport message is available, it takes precedence.
-  if (this->recvdActuatorsMsg.has_value())
-  {
-    std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
-    msg = *this->recvdActuatorsMsg;
-    this->recvdActuatorsMsg.reset();
-  }
-  else if (actuatorMsgComp)
+  // component is available, it takes precedence.
+  if (actuatorMsgComp)
   {
     msg = actuatorMsgComp->Data();
   }
   else
-    return;
-
-  if (this->motorNumber > msg.velocity_size() - 1)
   {
-    ignerr << "You tried to access index " << this->motorNumber
-      << " of the Actuator velocity array which is of size "
-      << msg.velocity_size() << std::endl;
-    return;
+    std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
+    if (this->recvdActuatorsMsg.has_value())
+    {
+      msg = *this->recvdActuatorsMsg;
+      this->recvdActuatorsMsg.reset();
+    }
   }
 
-  if (this->motorType == MotorType::kVelocity)
+  if (msg.has_value())
   {
-    this->refMotorInput = std::min(
-        static_cast<double>(msg.velocity(this->motorNumber)),
-        static_cast<double>(this->maxRotVelocity));
-  }
-  //  else if (this->motorType == MotorType::kPosition)
-  else  // if (this->motorType == MotorType::kForce) {
-  {
-    this->refMotorInput = msg.velocity(this->motorNumber);
+    if (this->motorNumber > msg->velocity_size() - 1)
+    {
+      ignerr << "You tried to access index " << this->motorNumber
+        << " of the Actuator velocity array which is of size "
+        << msg->velocity_size() << std::endl;
+      return;
+    }
+
+    if (this->motorType == MotorType::kVelocity)
+    {
+      this->refMotorInput = std::min(
+          static_cast<double>(msg->velocity(this->motorNumber)),
+          static_cast<double>(this->maxRotVelocity));
+    }
+    //  else if (this->motorType == MotorType::kPosition)
+    else  // if (this->motorType == MotorType::kForce) {
+    {
+      this->refMotorInput = msg->velocity(this->motorNumber);
+    }
   }
 
   switch (this->motorType)
