@@ -22,6 +22,7 @@ set(tests
   logical_camera_system.cc
   magnetometer_system.cc
   model.cc
+  multicopter.cc
   network_handshake.cc
   physics_system.cc
   play_pause.cc
