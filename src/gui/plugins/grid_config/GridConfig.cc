@@ -30,6 +30,24 @@
 
 namespace ignition::gazebo
 {
+  struct GridParam
+  {
+    /// \brief Default horizontal cell count
+    int honCellCount{20};
+
+    /// \brief Default vertical cell count
+    int verCellCount{1};
+
+    /// \brief Default cell length
+    double cellLength{1.0};
+
+    /// \brief Default pose of grid
+    math::Pose3d pose{math::Pose3d::Zero};
+
+    /// \brief Default color of grid - gray
+    math::Color color{math::Color(0.7, 0.7, 0.7, 1.0)};
+  };
+
   class GridConfigPrivate
   {
     /// \brief Parent window
