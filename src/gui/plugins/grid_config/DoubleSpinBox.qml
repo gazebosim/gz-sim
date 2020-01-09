@@ -8,6 +8,7 @@ SpinBox {
     value: 100
     to: 100 * 100
     stepSize: 1
+    editable: true
 
     property int decimals: 2
     property real realValue: value / 100
