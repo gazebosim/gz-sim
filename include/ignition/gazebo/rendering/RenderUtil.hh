@@ -96,10 +96,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _scene Pointer to the scene object
     public: void ShowGrid();
 
-    /// \brief Indicate if grid is enabled
-    /// \return Boolean value of <grid> in sdf file.
-    public: bool Grid();
-
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);

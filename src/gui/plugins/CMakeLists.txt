@@ -34,6 +34,7 @@ function(gz_add_gui_library library_name)
   target_link_libraries(${library_name}
     PUBLIC
       ${PROJECT_LIBRARY_TARGET_NAME}
+      ${IGNITION-RENDERING_LIBRARIES}
       TINYXML2::TINYXML2
       ${gz_add_gui_library_PUBLIC_LINK_LIBS}
     PRIVATE
@@ -83,3 +84,4 @@ add_subdirectory(entity_tree)
 add_subdirectory(scene3d)
 add_subdirectory(transform_control)
 add_subdirectory(video_recorder)
+add_subdirectory(grid_config)
