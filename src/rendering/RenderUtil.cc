@@ -899,15 +899,6 @@ void RenderUtil::ShowGrid()
 }
 
 /////////////////////////////////////////////////
-bool RenderUtil::Grid()
-{
-  auto newScenes = std::move(this->dataPtr->newScenes);
-  auto &scene = newScenes.front();
-  // only one scene so return
-  return scene.Grid();
-}
-
-/////////////////////////////////////////////////
 void RenderUtil::SetEngineName(const std::string &_name)
 {
   this->dataPtr->engineName = _name;
