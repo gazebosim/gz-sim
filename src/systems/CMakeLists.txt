@@ -71,6 +71,7 @@ function(gz_add_system system_name)
 endfunction()
 
 add_subdirectory(air_pressure)
+add_subdirectory(ardusub)
 add_subdirectory(altimeter)
 add_subdirectory(apply_joint_force)
 add_subdirectory(battery_plugin)

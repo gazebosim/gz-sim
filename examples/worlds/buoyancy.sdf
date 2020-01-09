@@ -121,8 +121,6 @@
           </inertia>
         </inertial>
 
-
-
         <visual name='body_visual'>
           <geometry>
             <cylinder>
@@ -296,6 +294,11 @@
         filename="libignition-gazebo-buoyancy-system.so"
         name="ignition::gazebo::systems::Buoyancy">
         <fluid_density>999.1026</fluid_density>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-ardusub-system.so"
+        name="ignition::gazebo::systems::Ardusub">
       </plugin>
 
     </model>
