@@ -2,9 +2,10 @@ import QtQuick 2.9
 import QtQuick.Controls 2.1
 import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
+import "qrc:/qml"
 
 ToolBar {
-  Layout.minimumWidth: 200
+  Layout.minimumWidth: 300
   Layout.minimumHeight: 100
 
   background: Rectangle {
@@ -16,7 +17,7 @@ ToolBar {
       text: qsTr("Show/Hide Grid")
       checked: true
       onClicked: {
-        console.log("Checkbox state: " + checked)
+        GridConfig.OnShow(checked)
       }
     }
 
@@ -31,7 +32,7 @@ ToolBar {
         value: 1
         editable: true
         onValueModified: {
-          console.log("Vertical cell count: " + verticalCellCount.value)
+          GridConfig.gridParam.verCellCount = verticalCellCount.value
         }
       }
     }
@@ -47,7 +48,7 @@ ToolBar {
         value: 20
         editable: true
         onValueModified: {
-          console.log("Horizontal cell count: " + horizontalCellCount.value)
+          GridConfig.gridParam.honCellCount = horizontalCellCount.value
         }
       }
     }
@@ -57,14 +58,18 @@ ToolBar {
         text: "Cell Length (/m): "
       }
 
-      DoubleSpinBox {
+      IgnDoubleSpinBox {
         id: cellLength
         from: 1
         value: 100
         onValueModified: {
-          console.log("Cell length: " + cellLength.realValue)
+          GridConfig.gridParam.cellLength = cellLength.realValue
         }
       }
+    }
+
+    function updatePose() {
+      GridConfig.setPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
     }
 
     RowLayout {
@@ -77,11 +82,11 @@ ToolBar {
           text: "X (/m): "
         }
 
-        DoubleSpinBox {
+        IgnDoubleSpinBox {
           id: x
           value: 0
           onValueModified: {
-            console.log("x: " + x.realValue)
+            
           }
         }
 
@@ -89,24 +94,20 @@ ToolBar {
           text: "Y (/m): "
         }
 
-        DoubleSpinBox {
+        IgnDoubleSpinBox {
           id: y
           value: 0
-          onValueModified: {
-            console.log("y: " + y.realValue)
-          }
+          onValueModified: updatePose()
         }
 
         Label {
           text: "Z (/m): "
         }
 
-        DoubleSpinBox {
+        IgnDoubleSpinBox {
           id: z
           value: 0
-          onValueModified: {
-            console.log("z: " + z.realValue)
-          }
+          onValueModified: updatePose()
         }
       }
 
@@ -119,71 +120,64 @@ ToolBar {
           text: "Roll (/rad): "
         }
 
-        DoubleSpinBox {
+        IgnDoubleSpinBox {
           id: roll
           from: 0
           to: 628*100
           value: 0
-          onValueModified: {
-            console.log("roll: " + roll.realValue)
-          }
+          onValueModified: updatePose()
         }
 
         Label {
           text: "Pitch (/rad): "
         }
 
-        DoubleSpinBox {
+        IgnDoubleSpinBox {
           id: pitch
           from: 0
           to: 628*100
           value: 0
-          onValueModified: {
-            console.log("pitch: " + pitch.realValue)
-          }
+          onValueModified: updatePose()
         }
 
         Label {
           text: "Yaw (/rad): "
         }
 
-        DoubleSpinBox {
+        IgnDoubleSpinBox {
           id: yaw
           from: 0
           to: 628*100
           value: 0
-          onValueModified: {
-            console.log("yaw: " + yaw.realValue)
-          }
+          onValueModified: updatePose()
         }
       }
     }
 
+    function updateColor() {
+      GridConfig.setColor(r.realValue, g.realValue, b.realValue, a.realValue)
+    }
     RowLayout {
       Label {
         text: "R: "
       }
-      DoubleSpinBox {
+      IgnDoubleSpinBox {
         id: r
         from: 0
         to: 100*100
         value: 0
-        onValueModified: {
-          console.log("r: " + r.realValue)
-        }
+        onValueModified: updateColor()
       }
 
       Label {
         text: "G: "
       }
-      DoubleSpinBox {
+      IgnDoubleSpinBox {
         id: g
         from: 0
         to: 100*100
         value: 0
-        onValueModified: {
-          console.log("g: " + g.realValue)
-        }
+        onValueModified: updateColor()
       }
     }
 
@@ -191,27 +185,23 @@ ToolBar {
       Label {
         text: "B: "
       }
-      DoubleSpinBox {
+      IgnDoubleSpinBox {
         id: b
         from: 0
         to: 100*100
         value: 0
-        onValueModified: {
-          console.log("b: " + b.realValue)
-        }
+        onValueModified: updateColor()
       }
 
       Label {
         text: "A: "
       }
-      DoubleSpinBox {
+      IgnDoubleSpinBox {
         id: a
         from: 0
         to: 100*100
         value: 0
-        onValueModified: {
-          console.log("a: " + a.realValue)
-        }
+        onValueModified: updateColor()
       }
     }
 
@@ -225,11 +215,10 @@ ToolBar {
       title: "Please choose a color"
       visible: false
       onAccepted: {
-          console.log("You chose: " + colorDialog.color)
+          updateColor()
           colorDialog.close()
       }
       onRejected: {
-          console.log("Canceled")
           colorDialog.close()
       }
     }

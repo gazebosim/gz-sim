@@ -50,17 +50,17 @@ namespace ignition::gazebo
 
   class GridConfigPrivate
   {
-    /// \brief Parent window
-    public: QQuickWindow *quickWindow;
-
     /// \brief Ptr to singleton engine
     public: rendering::RenderEngine *engine;
 
-    /// \brief default engine name
+    /// \brief Default engine name
     public: std::string engineName{"ogre"};
     
-    /// \brief ptr to grid node
-    public: rendering::GridPtr grid;
+    /// \brief Default grid parameters
+    public: GridParam gridParam;
+
+    // /// \brief ptr to grid node
+    // public: rendering::GridPtr grid;
   };
 }
 
@@ -75,6 +75,7 @@ GridConfig::GridConfig()
 
 /////////////////////////////////////////////////
 GridConfig::~GridConfig() = default;
+
 /////////////////////////////////////////////////
 void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
@@ -106,11 +107,30 @@ void GridConfig::Update()
 }
 
 /////////////////////////////////////////////////
+void GridConfig::setPose(double x, double y, double z,
+                         double roll, double pitch, double yaw)
+{
+  this->dataPtr->gridParam.pose = math::Pose3d(x, y, z, roll, pitch, yaw);
+}
+
+/////////////////////////////////////////////////
+void GridConfig::setColor(double r, double g, double b, double a)
+{
+  this->dataPtr->gridParam.color = math::Color(r, g, b, a);
+}
+
+/////////////////////////////////////////////////
 void GridConfig::OnShow(bool checked)
 {
   // if checked, show grid
-
-  // if not checked, remove grid
+  if (checked)
+  {
+    std::cout << "Grid is enabled" << std::endl;
+  }
+  else
+  {
+    std::cout << "Grid is disabled" << std::endl;
+  }
 }
 
 // Register this plugin
