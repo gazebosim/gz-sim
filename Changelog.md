@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.X (201X-XX-XX)
 
+1. Use Actuator component to communicate between MulticopterVelocityControl and MulticopterMotorModel systems
+    * [Pull Request 498](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/498)
+
 ### Ignition Gazebo 2.13.0 (2019-12-17)
 
 1. Add Multicopter velocity controller
