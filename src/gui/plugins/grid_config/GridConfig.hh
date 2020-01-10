@@ -47,6 +47,11 @@ namespace gazebo
     /// \brief Callback to update grid with new params.
     public slots: void Update();
 
+    public slots: void setPose(double x, double y, double z,
+                               double roll, double pitch, double yaw);
+
+    public slots: void setColor(double r, double g, double b, double a);
+
     /// \brief Callback in Qt thread when checkbox is clicked.
     /// \param[in] checked checkbox state
     public slots: void OnShow(bool checked);
