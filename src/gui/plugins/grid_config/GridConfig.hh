@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include <ignition/rendering.hh>
 #include <ignition/gui/Plugin.hh>
 
 namespace ignition
@@ -41,11 +42,14 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    /// \brief Funtion to search for scene created
+    public slots: void SearchScene();
+
     /// \brief Callback to initiaize scene with default grid.
-    public slots: void Initialize();
+    public slots: void InitGrid(rendering::ScenePtr scene);
 
     /// \brief Callback to update grid with new params.
-    public slots: void Update();
+    public slots: void UpdateCellCount(int c);
 
     public slots: void setPose(double x, double y, double z,
                                double roll, double pitch, double yaw);
