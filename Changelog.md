@@ -2,6 +2,8 @@
 
 ### Ignition Math 7.x.x
 
+### Ignition Math 7.0.0
+
 1. Removed deprecations.
     * [Pull request 320](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/320)
 
