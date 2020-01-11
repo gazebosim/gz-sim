@@ -32,7 +32,8 @@ ToolBar {
         value: 1
         editable: true
         onValueModified: {
-          GridConfig.gridParam.verCellCount = verticalCellCount.value
+          // GridConfig.gridParam.verCellCount = verticalCellCount.value
+          GridConfig.UpdateCellCount(verticalCellCount.value)
         }
       }
     }
@@ -49,6 +50,7 @@ ToolBar {
         editable: true
         onValueModified: {
           GridConfig.gridParam.honCellCount = horizontalCellCount.value
+          // GridConfig.OnUpdate()
         }
       }
     }
@@ -64,6 +66,7 @@ ToolBar {
         value: 100
         onValueModified: {
           GridConfig.gridParam.cellLength = cellLength.realValue
+          // GridConfig.OnUpdate()
         }
       }
     }
@@ -85,9 +88,9 @@ ToolBar {
         IgnDoubleSpinBox {
           id: x
           value: 0
-          onValueModified: {
+          // onValueModified: {
             
-          }
+          // }
         }
 
         Label {
@@ -97,7 +100,7 @@ ToolBar {
         IgnDoubleSpinBox {
           id: y
           value: 0
-          onValueModified: updatePose()
+          // onValueModified: updatePose()
         }
 
         Label {
@@ -107,7 +110,7 @@ ToolBar {
         IgnDoubleSpinBox {
           id: z
           value: 0
-          onValueModified: updatePose()
+          // onValueModified: updatePose()
         }
       }
 
@@ -125,7 +128,7 @@ ToolBar {
           from: 0
           to: 628*100
           value: 0
-          onValueModified: updatePose()
+          // onValueModified: updatePose()
         }
 
         Label {
@@ -137,7 +140,7 @@ ToolBar {
           from: 0
           to: 628*100
           value: 0
-          onValueModified: updatePose()
+          // onValueModified: updatePose()
         }
 
         Label {
@@ -149,7 +152,7 @@ ToolBar {
           from: 0
           to: 628*100
           value: 0
-          onValueModified: updatePose()
+          // onValueModified: updatePose()
         }
       }
     }
@@ -166,7 +169,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        onValueModified: updateColor()
+        // onValueModified: updateColor()
       }
 
       Label {
@@ -177,7 +180,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        onValueModified: updateColor()
+        // onValueModified: updateColor()
       }
     }
 
@@ -190,7 +193,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        onValueModified: updateColor()
+        // onValueModified: updateColor()
       }
 
       Label {
@@ -201,7 +204,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        onValueModified: updateColor()
+        // onValueModified: updateColor()
       }
     }
 

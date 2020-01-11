@@ -22,9 +22,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/rendering.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "GridConfig.hh"
 
@@ -44,8 +42,8 @@ namespace ignition::gazebo
     /// \brief Default pose of grid
     math::Pose3d pose{math::Pose3d::Zero};
 
-    /// \brief Default color of grid - gray
-    math::Color color{math::Color(0.7, 0.7, 0.7, 1.0)};
+    /// \brief Default color of grid - black
+    math::Color color{math::Color::Black};
   };
 
   class GridConfigPrivate
@@ -53,14 +51,16 @@ namespace ignition::gazebo
     /// \brief Ptr to singleton engine
     public: rendering::RenderEngine *engine;
 
-    /// \brief Default engine name
-    public: std::string engineName{"ogre"};
+    public: std::string sceneName{"scene"};
     
     /// \brief Default grid parameters
     public: GridParam gridParam;
 
-    // /// \brief ptr to grid node
-    // public: rendering::GridPtr grid;
+    /// \brief Timer to search for scene
+    public: QTimer *timer;
+
+    /// \brief ptr to grid node
+    public: std::vector<rendering::GridPtr> grids;
   };
 }
 
@@ -79,31 +79,120 @@ GridConfig::~GridConfig() = default;
 /////////////////////////////////////////////////
 void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
+  std::string error{""};
+  // Default engine name when loading from menu dropdown
+  // will crash if instantiated from dropdown and sdf engine is set to ogre2
+  std::string engineName{"ogre"};
+
+  // Get engine name and scene name from sdf file
   if (this->title.empty())
     this->title = "Grid Config";
-  
   if (_pluginElem)
   {
     if (auto elem = _pluginElem->FirstChildElement("engine"))
-      this->dataPtr->engineName = elem->GetText();
+    {
+      engineName = elem->GetText();
+      // std::cout << engineName << std::endl;
+    } 
+    if (auto elem = _pluginElem->FirstChildElement("scene"))
+    {
+      this->dataPtr->sceneName = elem->GetText();
+      // std::cout << this->dataPtr->sceneName << std::endl;
+    }
+  }
+  // get ptr to engine that is being used
+  this->dataPtr->engine = rendering::engine(engineName);
+  if (!this->dataPtr->engine)
+  {
+    error = "Engine "  + engineName
+           + " not found, Grid plugin won't work.";
+    std::cout << error << std::endl;
+    return;
+  }
+
+  // Periodically search for scene, stop if found
+  // this->dataPtr->timer->setInterval(1000);
+  // this->connect(this->dataPtr->timer, SIGNAL(timeout()), this, SLOT(this->SearchScene()));
+  // this->dataPtr->timer->start();
+
+  rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+  if (!scene)
+  {
+    error = "No scene found. Grid plugin won't work.";
+    std::cout << error << std::endl;
+    return;
+  }
+  
+  std::cout << "LoadConfig: " << this->dataPtr->grids.size() << std::endl;
+  for (auto g : this->dataPtr->grids)
+  {
+    if (g)
+      return;
+  }
+  // this->InitGrid(scene);
+}
+
+/////////////////////////////////////////////////
+void GridConfig::SearchScene()
+{
+  if (this->dataPtr->engine->SceneCount() != 0)
+  {
+    std::cout << "found a scene" << std::endl;
   }
 }
 
 /////////////////////////////////////////////////
-void GridConfig::Initialize()
+void GridConfig::InitGrid(rendering::ScenePtr scene)
 {
+  // if gridPtr found, load the existing gridPtr to class
+  rendering::GridPtr grid;
+  for (unsigned int i = 0; i < scene->VisualCount(); ++i)
+  {
+    auto vis = scene->VisualByIndex(i);
+    if (!vis || vis->GeometryCount() == 0)
+      continue;
 
-  // if gridPtr found, load the gridPtr to class
-
+    for (unsigned int j = 0; j < vis->GeometryCount(); ++j)
+    {
+      grid = std::dynamic_pointer_cast<rendering::Grid>(
+                         vis->GeometryByIndex(j));
+      if (grid)
+        break;
+    }
+  }
   // else, init a default grid and load that ptr to class
+  if (!grid)
+  {
+    std::cout << "creating new grid..." << std::endl;
+    auto root = scene->RootVisual();
+    grid = scene->CreateGrid();
+    grid->SetCellCount(this->dataPtr->gridParam.honCellCount);
+    grid->SetVerticalCellCount(this->dataPtr->gridParam.verCellCount);
+    grid->SetCellLength(this->dataPtr->gridParam.cellLength);
+
+    auto visual = scene->CreateVisual();
+    root->AddChild(visual);
+    visual->SetLocalPose(this->dataPtr->gridParam.pose);
+    visual->AddGeometry(grid);
+
+    auto mat = scene->CreateMaterial();
+    mat->SetAmbient(this->dataPtr->gridParam.color);
+    visual->SetMaterial(mat);
+  }
+  this->dataPtr->grids.push_back(grid);
+  std::cout << "InitGrid: " << this->dataPtr->grids.size() << std::endl;
 }
 
 /////////////////////////////////////////////////
-void GridConfig::Update()
+void GridConfig::UpdateCellCount(int c)
 {
-  // update grid based on user input 
-
-  // print to terminal for now
+  std::cout << "Update: " << this->dataPtr->grids.size() << std::endl;
+  for (auto g : this->dataPtr->grids)
+  {
+    std::cout << "Updating vertical cell count" << std::endl;
+    g->SetCellCount(c);
+    break;
+  }
 }
 
 /////////////////////////////////////////////////
