@@ -13,8 +13,8 @@ Rectangle {
   color: "transparent"
 
   function textFromModel(_model) {
-    if (_model && _model.name !== undefined)
-      return _model.name
+    if (_model && _model.data !== undefined && typeof _model.data == 'string')
+      return _model.data
 
     return 'N/A'
   }

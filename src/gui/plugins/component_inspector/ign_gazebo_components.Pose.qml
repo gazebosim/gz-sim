@@ -12,13 +12,13 @@ Rectangle {
   color: "transparent"
 
   function textFromModel(_model) {
-    if (_model &&_model.x)
-      return (_model.x + " " +
-              _model.y + " " +
-              _model.z + " " +
-              _model.roll + " " +
-              _model.pitch + " " +
-              _model.yaw)
+    if (_model &&_model.data && typeof _model.data[0] == 'number')
+      return (_model.data[0] + " " +
+              _model.data[1] + " " +
+              _model.data[2] + " " +
+              _model.data[3] + " " +
+              _model.data[4] + " " +
+              _model.data[5])
 
     return 'N/A'
   }
