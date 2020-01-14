@@ -14,6 +14,8 @@
  * limitations under the License.
  *
  */
+#include <ignition/msgs/wrench.pb.h>
+
 #include <mutex>
 
 #include <ignition/common/Mesh.hh>
@@ -27,7 +29,6 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/msgs/Utility.hh>
-#include <ignition/msgs/wrench.pb.h>
 
 #include <sdf/sdf.hh>
 
