@@ -22,6 +22,7 @@
 
 #include <ignition/rendering.hh>
 #include <ignition/gui/Plugin.hh>
+#include <ignition/math/Color.hh>
 
 namespace ignition
 {
@@ -46,19 +47,33 @@ namespace gazebo
     public slots: void SearchScene();
 
     /// \brief Callback to initiaize scene with default grid.
-    public slots: void InitGrid(rendering::ScenePtr scene);
+    public slots: void InitGrid(rendering::ScenePtr scene, bool reload=false);
+
+    public: rendering::VisualPtr GetVisual();
+
+    public: rendering::MaterialPtr GetMaterial();
+
 
     /// \brief Callback to update grid with new params.
-    public slots: void UpdateCellCount(int c);
+    public slots: void UpdateVerCellCount(int c);
 
-    public slots: void setPose(double x, double y, double z,
+    /// \brief Callback to update grid with new params.
+    public slots: void UpdateHonCellCount(int c);
+
+    public slots: void UpdateCellLength(double l);
+
+    public slots: void SetPose(double x, double y, double z,
                                double roll, double pitch, double yaw);
 
-    public slots: void setColor(double r, double g, double b, double a);
+    public slots: void SetColor(double r, double g, double b, double a);
+
+    public slots: void SetCustomColor(math::Color c);
 
     /// \brief Callback in Qt thread when checkbox is clicked.
     /// \param[in] checked checkbox state
     public slots: void OnShow(bool checked);
+
+    public: void DestroyGrid();
 
     /// \internal
     /// \brief Pointer to private data.
