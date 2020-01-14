@@ -117,7 +117,7 @@ void TreeModel::AddName(const QString &_name)
     item = itemIt->second;
   }
 
-  item->setData(_name, this->roleNames().key("name"));
+  item->setData(_name, this->roleNames().key("data"));
 }
 
 /////////////////////////////////////////////////
@@ -158,12 +158,14 @@ void TreeModel::AddPose(
     item = itemIt->second;
   }
 
-  item->setData(QString::number(_x), this->roleNames().key("x"));
-  item->setData(QString::number(_y), this->roleNames().key("y"));
-  item->setData(QString::number(_z), this->roleNames().key("z"));
-  item->setData(QString::number(_roll), this->roleNames().key("roll"));
-  item->setData(QString::number(_pitch), this->roleNames().key("pitch"));
-  item->setData(QString::number(_yaw), this->roleNames().key("yaw"));
+  item->setData(QList({
+    QVariant(_x),
+    QVariant(_y),
+    QVariant(_z),
+    QVariant(_roll),
+    QVariant(_pitch),
+    QVariant(_yaw)
+  }), this->roleNames().key("data"));
 }
 
 /////////////////////////////////////////////////
@@ -171,15 +173,9 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(100, "typeName"),
           std::pair(101, "typeId"),
-          std::pair(102, "x"),
-          std::pair(103, "y"),
-          std::pair(104, "z"),
-          std::pair(105, "roll"),
-          std::pair(106, "pitch"),
-          std::pair(107, "yaw"),
-          std::pair(108, "name"),
           std::pair(109, "isType"),
-          std::pair(110, "shortName")};
+          std::pair(110, "shortName"),
+          std::pair(111, "data")};
 }
 
 /////////////////////////////////////////////////
