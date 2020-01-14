@@ -22,8 +22,6 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/rendering.hh>
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-
 #include "GridConfig.hh"
 
 namespace ignition::gazebo
@@ -61,6 +59,10 @@ namespace ignition::gazebo
 
     /// \brief ptr to grid node
     public: std::vector<rendering::GridPtr> grids;
+
+    public: std::vector<rendering::VisualPtr> visuals;
+
+    public: std::vector<rendering::MaterialPtr> materials;
   };
 }
 
@@ -100,6 +102,7 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       // std::cout << this->dataPtr->sceneName << std::endl;
     }
   }
+
   // get ptr to engine that is being used
   this->dataPtr->engine = rendering::engine(engineName);
   if (!this->dataPtr->engine)
@@ -109,116 +112,226 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     std::cout << error << std::endl;
     return;
   }
-
-  // Periodically search for scene, stop if found
-  // this->dataPtr->timer->setInterval(1000);
-  // this->connect(this->dataPtr->timer, SIGNAL(timeout()), this, SLOT(this->SearchScene()));
-  // this->dataPtr->timer->start();
-
-  rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
-  if (!scene)
-  {
-    error = "No scene found. Grid plugin won't work.";
-    std::cout << error << std::endl;
-    return;
-  }
   
-  std::cout << "LoadConfig: " << this->dataPtr->grids.size() << std::endl;
-  for (auto g : this->dataPtr->grids)
-  {
-    if (g)
-      return;
-  }
+  // trigger the timer if no scene is created yet
+  this->dataPtr->timer = new QTimer(this);
+  this->dataPtr->timer->setInterval(100);
+  this->connect(this->dataPtr->timer, &QTimer::timeout, this, &GridConfig::SearchScene);
+  this->dataPtr->timer->start();
+
+  // std::cout << "LoadConfig: " << this->dataPtr->grids.size() << std::endl;
+  // for (auto g : this->dataPtr->grids)
+  // {
+  //   if (g)
+  //     return;
+  // }
   // this->InitGrid(scene);
 }
 
 /////////////////////////////////////////////////
 void GridConfig::SearchScene()
 {
+  // search every 1s for sceneptr
+  std::cout << this->dataPtr->engine->SceneCount() <<std::endl;
+  // stop search if there is a scene found
   if (this->dataPtr->engine->SceneCount() != 0)
   {
-    std::cout << "found a scene" << std::endl;
+    if (this->dataPtr->timer != nullptr)
+    {
+      std::cout << "Found scene! Stopping timer..." << std::endl;
+      this->dataPtr->timer->stop();
+      this->disconnect(this->dataPtr->timer, 0, 0, 0);
+      rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+      // Initialize grid ptr is a scene is created
+      if (!scene)
+      {
+        std::cout << "No scene found. Grid plugin won't work." << std::endl;
+        return;
+      }
+      else
+      {
+        this->InitGrid(scene);
+      }
+    }
   }
 }
 
 /////////////////////////////////////////////////
-void GridConfig::InitGrid(rendering::ScenePtr scene)
+void GridConfig::InitGrid(rendering::ScenePtr scene, bool reload)
 {
   // if gridPtr found, load the existing gridPtr to class
   rendering::GridPtr grid;
-  for (unsigned int i = 0; i < scene->VisualCount(); ++i)
+  rendering::VisualPtr vis;
+  rendering::MaterialPtr mat;
+  if (!reload)
   {
-    auto vis = scene->VisualByIndex(i);
-    if (!vis || vis->GeometryCount() == 0)
-      continue;
-
-    for (unsigned int j = 0; j < vis->GeometryCount(); ++j)
+    for (unsigned int i = 0; i < scene->VisualCount(); ++i)
     {
-      grid = std::dynamic_pointer_cast<rendering::Grid>(
-                         vis->GeometryByIndex(j));
-      if (grid)
-        break;
+      vis = scene->VisualByIndex(i);
+      if (!vis || vis->GeometryCount() == 0)
+        continue;
+      mat = vis->Material();
+      for (unsigned int j = 0; j < vis->GeometryCount(); ++j)
+      {
+        // std::cout << "grid count: " << vis->GeometryCount() << std::endl;
+        grid = std::dynamic_pointer_cast<rendering::Grid>(
+                          vis->GeometryByIndex(j));
+        if (grid)
+        {
+          std::cout << "found existing grid" << std::endl;
+          this->dataPtr->grids.push_back(grid);
+          this->dataPtr->visuals.push_back(vis);
+          this->dataPtr->materials.push_back(mat);
+          break;
+        }
+      }
     }
   }
-  // else, init a default grid and load that ptr to class
-  if (!grid)
-  {
-    std::cout << "creating new grid..." << std::endl;
-    auto root = scene->RootVisual();
-    grid = scene->CreateGrid();
-    grid->SetCellCount(this->dataPtr->gridParam.honCellCount);
-    grid->SetVerticalCellCount(this->dataPtr->gridParam.verCellCount);
-    grid->SetCellLength(this->dataPtr->gridParam.cellLength);
+  else{
+    // else, init a default grid and load that ptr to class
+    if (this->dataPtr->grids.size() == 0)
+    {
+      std::cout << "creating new grid..." << std::endl;
+      auto root = scene->RootVisual();
+      grid = scene->CreateGrid();
+      grid->SetCellCount(this->dataPtr->gridParam.honCellCount);
+      grid->SetVerticalCellCount(this->dataPtr->gridParam.verCellCount);
+      grid->SetCellLength(this->dataPtr->gridParam.cellLength);
 
-    auto visual = scene->CreateVisual();
-    root->AddChild(visual);
-    visual->SetLocalPose(this->dataPtr->gridParam.pose);
-    visual->AddGeometry(grid);
+      vis = scene->CreateVisual();
+      root->AddChild(vis);
+      vis->SetLocalPose(this->dataPtr->gridParam.pose);
+      vis->AddGeometry(grid);
 
-    auto mat = scene->CreateMaterial();
-    mat->SetAmbient(this->dataPtr->gridParam.color);
-    visual->SetMaterial(mat);
+      mat = scene->CreateMaterial();
+      mat->SetAmbient(this->dataPtr->gridParam.color);
+      vis->SetMaterial(mat);
+      this->dataPtr->grids.push_back(grid);
+      this->dataPtr->visuals.push_back(vis);
+      this->dataPtr->materials.push_back(mat);
+    }
   }
-  this->dataPtr->grids.push_back(grid);
-  std::cout << "InitGrid: " << this->dataPtr->grids.size() << std::endl;
 }
 
 /////////////////////////////////////////////////
-void GridConfig::UpdateCellCount(int c)
+rendering::VisualPtr GridConfig::GetVisual()
 {
-  std::cout << "Update: " << this->dataPtr->grids.size() << std::endl;
+  return this->dataPtr->visuals.front();
+}
+
+rendering::MaterialPtr GridConfig::GetMaterial()
+{
+  return this->dataPtr->materials.front();
+}
+
+/////////////////////////////////////////////////
+void GridConfig::UpdateVerCellCount(int c)
+{
   for (auto g : this->dataPtr->grids)
   {
     std::cout << "Updating vertical cell count" << std::endl;
+    g->SetVerticalCellCount(c);
+    break;
+  }
+  this->dataPtr->gridParam.verCellCount = c;
+}
+
+/////////////////////////////////////////////////
+void GridConfig::UpdateHonCellCount(int c)
+{
+  for (auto g : this->dataPtr->grids)
+  {
+    std::cout << "Updating horizontal cell count" << std::endl;
     g->SetCellCount(c);
     break;
+  }
+  this->dataPtr->gridParam.honCellCount = c;
+}
+
+/////////////////////////////////////////////////
+void GridConfig::UpdateCellLength(double l)
+{
+  for (auto g : this->dataPtr->grids)
+  {
+    std::cout << "Updating cell length" <<std::endl;
+    g->SetCellLength(l);
+    break;
+  }
+  this->dataPtr->gridParam.cellLength = l;
+}
+
+/////////////////////////////////////////////////
+void GridConfig::SetPose(double x, double y, double z, double roll, double pitch, double yaw)
+{
+  this->dataPtr->gridParam.pose = math::Pose3d(x, y, z, roll, pitch, yaw);
+  auto visual = this->GetVisual();
+  if (visual)
+  {
+    std::cout << "Updating pose" << std::endl;
+    visual->SetLocalPose(this->dataPtr->gridParam.pose);
+  }
+  
+}
+
+/////////////////////////////////////////////////
+void GridConfig::SetColor(double r, double g, double b, double a)
+{
+  this->dataPtr->gridParam.color = math::Color(r, g, b, a);
+  // rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+  // scene->DestroyMaterials();
+  auto visual = this->GetVisual();
+  if (visual)
+  {
+    std::cout << "Updating color" << std::endl;
+    auto mat = this->GetMaterial();
+    mat->SetAmbient(this->dataPtr->gridParam.color);
+    visual->SetMaterial(mat);
   }
 }
 
 /////////////////////////////////////////////////
-void GridConfig::setPose(double x, double y, double z,
-                         double roll, double pitch, double yaw)
+void GridConfig::SetCustomColor(math::Color c)
 {
-  this->dataPtr->gridParam.pose = math::Pose3d(x, y, z, roll, pitch, yaw);
-}
-
-/////////////////////////////////////////////////
-void GridConfig::setColor(double r, double g, double b, double a)
-{
-  this->dataPtr->gridParam.color = math::Color(r, g, b, a);
+  this->dataPtr->gridParam.color = c;
+  // rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+  // scene->DestroyMaterials();
+  auto visual = this->GetVisual();
+  if (visual)
+  {
+    std::cout << "Updating color" << std::endl;
+    auto mat = this->GetMaterial();
+    mat->SetAmbient(this->dataPtr->gridParam.color);
+    visual->SetMaterial(mat);
+  }
 }
 
 /////////////////////////////////////////////////
 void GridConfig::OnShow(bool checked)
 {
+  rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
   // if checked, show grid
   if (checked)
   {
     std::cout << "Grid is enabled" << std::endl;
+    this->InitGrid(scene, checked);
   }
   else
   {
     std::cout << "Grid is disabled" << std::endl;
+    this->DestroyGrid();
+  }
+}
+
+/////////////////////////////////////////////////
+void GridConfig::DestroyGrid()
+{
+  for (auto g : this->dataPtr->grids)
+  {
+    g->Scene()->DestroyVisual(g->Parent());
+    this->dataPtr->grids.erase(std::remove(this->dataPtr->grids.begin(),
+                                            this->dataPtr->grids.end(), g),
+                                            this->dataPtr->grids.end());
+    break;
   }
 }
 

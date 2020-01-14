@@ -31,10 +31,7 @@ ToolBar {
         to: 100
         value: 1
         editable: true
-        onValueModified: {
-          // GridConfig.gridParam.verCellCount = verticalCellCount.value
-          GridConfig.UpdateCellCount(verticalCellCount.value)
-        }
+        onValueModified: GridConfig.UpdateVerCellCount(verticalCellCount.value)
       }
     }
 
@@ -48,10 +45,7 @@ ToolBar {
         to: 100
         value: 20
         editable: true
-        onValueModified: {
-          GridConfig.gridParam.honCellCount = horizontalCellCount.value
-          // GridConfig.OnUpdate()
-        }
+        onValueModified: GridConfig.UpdateHonCellCount(horizontalCellCount.value)
       }
     }
 
@@ -64,15 +58,8 @@ ToolBar {
         id: cellLength
         from: 1
         value: 100
-        onValueModified: {
-          GridConfig.gridParam.cellLength = cellLength.realValue
-          // GridConfig.OnUpdate()
-        }
+        onValueModified: GridConfig.UpdateCellLength(cellLength.realValue)
       }
-    }
-
-    function updatePose() {
-      GridConfig.setPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
     }
 
     RowLayout {
@@ -88,9 +75,7 @@ ToolBar {
         IgnDoubleSpinBox {
           id: x
           value: 0
-          // onValueModified: {
-            
-          // }
+          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
         }
 
         Label {
@@ -100,8 +85,7 @@ ToolBar {
         IgnDoubleSpinBox {
           id: y
           value: 0
-          // onValueModified: updatePose()
-        }
+          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)        }
 
         Label {
           text: "Z (/m): "
@@ -110,7 +94,7 @@ ToolBar {
         IgnDoubleSpinBox {
           id: z
           value: 0
-          // onValueModified: updatePose()
+          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
         }
       }
 
@@ -128,7 +112,7 @@ ToolBar {
           from: 0
           to: 628*100
           value: 0
-          // onValueModified: updatePose()
+          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
         }
 
         Label {
@@ -140,7 +124,7 @@ ToolBar {
           from: 0
           to: 628*100
           value: 0
-          // onValueModified: updatePose()
+          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
         }
 
         Label {
@@ -152,14 +136,11 @@ ToolBar {
           from: 0
           to: 628*100
           value: 0
-          // onValueModified: updatePose()
+          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
         }
       }
     }
 
-    function updateColor() {
-      GridConfig.setColor(r.realValue, g.realValue, b.realValue, a.realValue)
-    }
     RowLayout {
       Label {
         text: "R: "
@@ -169,7 +150,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        // onValueModified: updateColor()
+        onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
       }
 
       Label {
@@ -180,7 +161,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        // onValueModified: updateColor()
+        onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
       }
     }
 
@@ -193,7 +174,7 @@ ToolBar {
         from: 0
         to: 100*100
         value: 0
-        // onValueModified: updateColor()
+        onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
       }
 
       Label {
@@ -203,8 +184,8 @@ ToolBar {
         id: a
         from: 0
         to: 100*100
-        value: 0
-        // onValueModified: updateColor()
+        value: 100
+        onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
       }
     }
 
@@ -218,11 +199,11 @@ ToolBar {
       title: "Please choose a color"
       visible: false
       onAccepted: {
-          updateColor()
-          colorDialog.close()
+        GridConfig.SetColor(colorDialog.color)
+        colorDialog.close()
       }
       onRejected: {
-          colorDialog.close()
+        colorDialog.close()
       }
     }
   }
