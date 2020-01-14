@@ -31,8 +31,12 @@ namespace systems
   // Forward declaration
   class BuoyancyPrivate;
 
-  /// \brief This system applies a thrust force to models with spinning
-  /// propellers. See examples/worlds/quadcopter.sdf for a demonstration.
+  /// \brief A system that simulates buoyancy of an object immersed in fluid.
+  /// All SDF parameters are optional.
+  ///
+  /// * <fluid_density> sets the density of the fluid that surrounds the buoyant
+  /// object. This plugin will compute the volume and center of volume of a
+  /// the model from each link's collision shapes.
   class IGNITION_GAZEBO_VISIBLE Buoyancy
       : public System,
         public ISystemConfigure,

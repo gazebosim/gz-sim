@@ -1,19 +1,4 @@
 <?xml version="1.0" ?>
-<!--
-  Ignition Gazebo buoyancy plugin demo. This world contains the following 
-  three models:
-
-  1. submarine: A simple submarine model that floats in place. 
-  2. submarine_sinking: A simple submarine model that is not buoyant and sinks.
-  3. submarine_buoyant: A simple submarine model that is buoyant and floats.
-
-  To run this demo: `ign gazebo -v 4 buoyancy.sdf`
-
-  To alter a submarine's buoyancy do one or both of the following:
-
-  1. Change the submarine's inertia.
-  2. Change the `fluid_density` in the `buoyancy-system` plugin.
--->
 <sdf version="1.6">
   <world name="buoyancy">
 
@@ -122,7 +107,7 @@
       <link name='body'>
         <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <mass>250.32741228718348</mass>
+          <mass>251.32741228718348</mass>
           <inertia>
             <ixx>86.28907821859966</ixx>
             <ixy>0</ixy>
@@ -261,15 +246,15 @@
         </axis>
       </joint>
 
+      <allow_auto_disable>1</allow_auto_disable>
+
       <plugin
         filename="libignition-gazebo-buoyancy-system.so"
         name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1999.1026</fluid_density>
+        <fluid_density>999.1026</fluid_density>
       </plugin>
-
     </model>
 
-    <!-- This model should sink -->
     <model name='submarine_sinking'>
       <pose>5 0 0 1.5707963267948966 0 0</pose>
       <link name='body'>
@@ -327,7 +312,6 @@
             <izz>1.0513012375</izz>
           </inertia>
         </inertial>
-
 
         <visual name=blade1_visual>
           <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
@@ -414,6 +398,8 @@
         </axis>
       </joint>
 
+      <allow_auto_disable>1</allow_auto_disable>
+
       <plugin
         filename="libignition-gazebo-buoyancy-system.so"
         name="ignition::gazebo::systems::Buoyancy">
@@ -422,7 +408,6 @@
 
     </model>
 
-    <!-- This model should float up -->
     <model name='submarine_buoyant'>
       <pose>-5 0 0 1.5707963267948966 0 0</pose>
       <link name='body'>
@@ -567,12 +552,13 @@
         </axis>
       </joint>
 
+      <allow_auto_disable>1</allow_auto_disable>
+
       <plugin
         filename="libignition-gazebo-buoyancy-system.so"
         name="ignition::gazebo::systems::Buoyancy">
         <fluid_density>999.1026</fluid_density>
       </plugin>
-
     </model>
 
   </world>

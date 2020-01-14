@@ -98,12 +98,32 @@ void Buoyancy::Configure(const Entity &_entity,
     return;
   }
 
+  // TODO(anyone) If systems are assumed to only have one world, we should
+  // capture the world Entity in a Configure call
+  Entity world = _ecm.EntityByComponents(components::World());
+
+  if (world == kNullEntity)
+  {
+    ignerr << "Missing world entity.\n";
+    return;
+  }
+
+  // Get the world acceleration (defined in world frame)
+  this->dataPtr->gravity =
+    _ecm.Component<components::Gravity>(world);
+  if (!this->dataPtr->gravity)
+  {
+    ignerr << "World is missing gravity." << std::endl;
+    return;
+  }
+
   if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
 
-
+  // Capture the volume of the model by iterating over all the collision
+  // elements and storing each geometry's volume.
   std::vector<Entity> links = _ecm.ChildrenByComponents(
       this->dataPtr->model.Entity(), components::Link());
   for (const Entity &link : links)
@@ -174,35 +194,16 @@ void Buoyancy::Configure(const Entity &_entity,
       pose.Pos();
     this->dataPtr->volPropsMap[link].volume = volumeSum;
   }
-
-  // TODO(addisu) If systems are assumed to only have one world, we should
-  // capture the world Entity in a Configure call
-  Entity world = _ecm.EntityByComponents(components::World());
-
-  if (world == kNullEntity)
-  {
-    ignerr << "Missing world entity.\n";
-    return;
-  }
-
-  // Get the world acceleration (defined in world frame)
-  this->dataPtr->gravity =
-    _ecm.Component<components::Gravity>(world);
-  if (!this->dataPtr->gravity)
-  {
-    ignerr << "World is missing gravity." << std::endl;
-    return;
-  }
 }
 
 //////////////////////////////////////////////////
 void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->gravity)
-    return;
-
   IGN_PROFILE("Buoyancy::PreUpdate");
+
+  if (!this->dataPtr->gravity || this->dataPtr->volPropsMap.empty())
+    return;
 
   std::vector<Entity> links = _ecm.ChildrenByComponents(
       this->dataPtr->model.Entity(), components::Link());
@@ -233,18 +234,24 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     msgs::Set(wrench.mutable_force(), buoyancy);
     msgs::Set(wrench.mutable_torque(), torque);
 
-    std::cout << "Density[" << this->dataPtr->fluidDensity << "] "
-      << " Volume[" << volume << "] "
-      << " Buoyancy[" << buoyancy  << "] "
-      << " Torque[" << torque << "] "
-      << std::endl;
+    // Debug
+    // std::cout << "Density[" << this->dataPtr->fluidDensity << "] "
+    //  << " Volume[" << volume << "] "
+    //  << " Buoyancy[" << buoyancy  << "] "
+    //  << " Torque[" << torque << "] "
+    //  << std::endl;
 
+    // Apply the wrench to the link. This wrench is applied in the
+    // Physics System.
     components::ExternalWorldWrenchCmd newWrenchComp(wrench);
 
     auto currWrenchComp =
       _ecm.Component<components::ExternalWorldWrenchCmd>(link);
     if (currWrenchComp)
     {
+      // \todo(nkoenig) This overwrites the current wrench component. When
+      // we added propellers to a vehicle, then we will need to add the
+      // force applied by the propellers to the force applied by buoyancy.
       *currWrenchComp = newWrenchComp;
     }
     else
