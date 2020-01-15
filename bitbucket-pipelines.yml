@@ -72,7 +72,7 @@ pipelines:
                 libignition-math6-eigen3-dev
                 libignition-plugin-dev
                 libignition-tools-dev
-            libignition-fuel-tools4-dev
+                libignition-fuel-tools4-dev
             # libignition-physics2-dev
             # libsdformat9-dev
             # libignition-gui3-dev
