@@ -1,8 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="ComponentInspector/">
   <file>ComponentInspector.qml</file>
-  <file>ign_gazebo_components.Name.qml</file>
-  <file>ign_gazebo_components.Pose.qml</file>
+  <file>Pose3d.qml</file>
+  <file>String.qml</file>
   <file>TypeHeader.qml</file>
 </qresource>
 </RCC>

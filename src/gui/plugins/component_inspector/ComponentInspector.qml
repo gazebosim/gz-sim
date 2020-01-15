@@ -38,10 +38,10 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade900)
 
   function delegateQml(_model) {
-    if (_model === null)
-      return ''
+    if (_model === null || _model.dataType == undefined)
+      return 'TypeHeader.qml'
 
-    return _model.typeName + '.qml'
+    return _model.dataType + '.qml'
   }
 
   Label {
@@ -66,12 +66,6 @@ Rectangle {
     delegate: Loader {
       id: loader
       source: delegateQml(model)
-      onStatusChanged: {
-        // TODO(louise) Suppress warning / don't try to load invalid file
-        if (loader.status == Loader.Null || loader.status == Loader.Error) {
-          loader.source = 'TypeHeader.qml'
-        }
-      }
     }
   }
 }
