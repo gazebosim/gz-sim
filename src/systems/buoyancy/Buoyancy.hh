@@ -34,9 +34,21 @@ namespace systems
   /// \brief A system that simulates buoyancy of an object immersed in fluid.
   /// All SDF parameters are optional.
   ///
+  /// ## System Parameters
+  ///
   /// * <fluid_density> sets the density of the fluid that surrounds the buoyant
   /// object. This plugin will compute the volume and center of volume of a
   /// the model from each link's collision shapes.
+  ///
+  /// ## Example
+  ///
+  /// The `buoyancy.sdf` SDF file contains three submarines. The first
+  /// submarine is neutrally buoyant, the second sinks, and the third
+  /// floats. To run:
+  ///
+  /// ```
+  /// ign gazebo -v 4 buoyancy.sdf
+  /// ```
   class IGNITION_GAZEBO_VISIBLE Buoyancy
       : public System,
         public ISystemConfigure,

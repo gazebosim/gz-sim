@@ -54,20 +54,18 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// \brief A class for storing the volume properties of a link.
   public: class VolumeProperties
   {
-    /// \brief Default constructor.
-    public: VolumeProperties() : volume(0) {}
-
     /// \brief Center of volume in the link frame.
-    public: ignition::math::Vector3d cov;
+    public: ignition::math::Vector3d centerOfVolume;
 
     /// \brief Volume of this link.
-    public: double volume;
+    public: double volume{0};
   };
 
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  public: const components::Gravity *gravity;
+  /// \brief Pointer to the gravity component.
+  public: const components::Gravity *gravity{nullptr};
 
   /// \brief The density of the fluid in which the object is submerged in
   /// kg/m^3. Defaults to 1000, the fluid density of water.
@@ -90,8 +88,10 @@ void Buoyancy::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
+  // Store this model.
   this->dataPtr->model = Model(_entity);
 
+  // Make sure this plugin is attached to a model.
   if (!this->dataPtr->model.Valid(_ecm))
   {
     ignerr << "Buoyancy plugin should be attached to a model "
@@ -109,15 +109,15 @@ void Buoyancy::Configure(const Entity &_entity,
     return;
   }
 
-  // Get the world acceleration (defined in world frame)
-  this->dataPtr->gravity =
-    _ecm.Component<components::Gravity>(world);
+  // Get the gravity (defined in world frame)
+  this->dataPtr->gravity = _ecm.Component<components::Gravity>(world);
   if (!this->dataPtr->gravity)
   {
     ignerr << "World is missing gravity." << std::endl;
     return;
   }
 
+  // Store the fluid_density, if specified.
   if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
@@ -191,8 +191,8 @@ void Buoyancy::Configure(const Entity &_entity,
     }
 
     math::Pose3d pose = worldPose(link, _ecm);
-    this->dataPtr->volPropsMap[link].cov = weightedPosSum / volumeSum -
-      pose.Pos();
+    this->dataPtr->volPropsMap[link].centerOfVolume =
+      weightedPosSum / volumeSum - pose.Pos();
     this->dataPtr->volPropsMap[link].volume = volumeSum;
   }
 }
@@ -210,40 +210,38 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       this->dataPtr->model.Entity(), components::Link());
   for (const Entity &link : links)
   {
+    // The volume properties of the link
     BuoyancyPrivate::VolumeProperties volumeProperties =
       this->dataPtr->volPropsMap[link];
-    double volume = volumeProperties.volume;
+
+    // The link's inertia
+    const components::Inertial *inertial =
+      _ecm.Component<components::Inertial>(link);
+
+    // World pose of the link.
+    math::Pose3d linkWorldPose = worldPose(link, _ecm);
 
     // By Archimedes' principle,
     // buoyancy = -(mass*gravity)*fluid_density/object_density
     // object_density = mass/volume, so the mass term cancels.
-    // Therefore,
-    math::Vector3d buoyancy = -this->dataPtr->fluidDensity * volume *
+    math::Vector3d buoyancy = -this->dataPtr->fluidDensity *
+      volumeProperties.volume *
       this->dataPtr->gravity->Data();
 
-    math::Pose3d linkWorldPose = worldPose(link, _ecm);
-
-    const components::Inertial *inertial =
-      _ecm.Component<components::Inertial>(link);
-
-    math::Vector3d offset = volumeProperties.cov -
+    // Get the offset of the center of volume from the interial frame.
+    math::Vector3d offset = volumeProperties.centerOfVolume -
       inertial->Data().Pose().Pos();
+    // Convert the offset to the world frame
     math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(offset);
+    // Compute the torque that should be applied due to buoyancy and
+    // the volume offset.
     math::Vector3d torque = offsetWorld.Cross(buoyancy);
-
-    msgs::Wrench wrench;
-    msgs::Set(wrench.mutable_force(), buoyancy);
-    msgs::Set(wrench.mutable_torque(), torque);
-
-    // Debug
-    // std::cout << "Density[" << this->dataPtr->fluidDensity << "] "
-    //  << " Volume[" << volume << "] "
-    //  << " Buoyancy[" << buoyancy  << "] "
-    //  << " Torque[" << torque << "] "
-    //  << std::endl;
 
     // Apply the wrench to the link. This wrench is applied in the
     // Physics System.
+    msgs::Wrench wrench;
+    msgs::Set(wrench.mutable_force(), buoyancy);
+    msgs::Set(wrench.mutable_torque(), torque);
     components::ExternalWorldWrenchCmd newWrenchComp(wrench);
 
     auto currWrenchComp =
