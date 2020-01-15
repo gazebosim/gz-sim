@@ -56,10 +56,11 @@ namespace gazebo
     /// \brief Callback to initiaize scene with default grid.
     /// \param[in] _scene created by used engine
     /// \param[in] _reload indicates first time loading grid or not
-    public slots: void InitGrid(rendering::ScenePtr _scene, bool _reload=false);
+    public slots: void InitGrid(
+      rendering::ScenePtr _scene, bool _reload = false);
 
     /// \brief Callback to update vertical cell count
-    /// \param[in] _c new vertical cell count 
+    /// \param[in] _c new vertical cell count
     public slots: void UpdateVerCellCount(int _c);
 
     /// \brief Callback to update horizontal cell count

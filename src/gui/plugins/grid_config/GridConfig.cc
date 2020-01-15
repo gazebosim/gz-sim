@@ -50,7 +50,7 @@ namespace ignition::gazebo
     public: rendering::RenderEngine *engine;
 
     public: std::string sceneName{"scene"};
-    
+
     /// \brief Default grid parameters
     public: GridParam gridParam;
 
@@ -99,7 +99,7 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     if (auto elem = _pluginElem->FirstChildElement("engine"))
     {
       engineName = elem->GetText();
-    } 
+    }
     if (auto elem = _pluginElem->FirstChildElement("scene"))
     {
       this->dataPtr->sceneName = elem->GetText();
@@ -115,12 +115,15 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     ignwarn << error << std::endl;
     return;
   }
-  
+
   // Trigger timer to periodically (/0.1s) search for scene
   // Retrieve grid ptr once scene is created
   this->dataPtr->timer = new QTimer(this);
   this->dataPtr->timer->setInterval(100);
-  this->connect(this->dataPtr->timer, &QTimer::timeout, this, &GridConfig::SearchScene);
+  this->connect(this->dataPtr->timer,
+    &QTimer::timeout,
+    this,
+    &GridConfig::SearchScene);
   this->dataPtr->timer->start();
 }
 
@@ -134,7 +137,8 @@ void GridConfig::SearchScene()
     {
       this->dataPtr->timer->stop();
       this->disconnect(this->dataPtr->timer, 0, 0, 0);
-      rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+      rendering::ScenePtr scene =
+        this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
 
       // Load grid ptr is a scene is created
       if (scene)
@@ -251,7 +255,8 @@ void GridConfig::UpdateCellLength(double _l)
 }
 
 /////////////////////////////////////////////////
-void GridConfig::SetPose(double _x, double _y, double _z, double _roll, double _pitch, double _yaw)
+void GridConfig::SetPose(double _x,
+  double _y, double _z, double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->gridParam.pose = math::Pose3d(_x, _y, _z, _roll, _pitch, _yaw);
   auto visual = this->GetVisual();
@@ -259,7 +264,6 @@ void GridConfig::SetPose(double _x, double _y, double _z, double _roll, double _
   {
     visual->SetLocalPose(this->dataPtr->gridParam.pose);
   }
-  
 }
 
 /////////////////////////////////////////////////
@@ -278,7 +282,8 @@ void GridConfig::SetColor(double _r, double _g, double _b, double _a)
 /////////////////////////////////////////////////
 void GridConfig::OnShow(bool _checked)
 {
-  rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+  rendering::ScenePtr scene = this->dataPtr->engine->SceneByName(
+    this->dataPtr->sceneName);
   if (_checked)
   {
     this->InitGrid(scene, _checked);
