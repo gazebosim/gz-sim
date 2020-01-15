@@ -3,15 +3,6 @@ import QtQuick.Controls 2.0
 import IgnGazebo 1.0 as IgnGazebo
 
 Item {
-  id: content
-
-  MouseArea {
-    id: mouse
-    anchors.fill: content
-    hoverEnabled: true
-    acceptedButtons: Qt.NoButton
-  }
-
   Menu {
     id: menu
     transformOrigin: Menu.TopRight
@@ -32,9 +23,9 @@ Item {
     }
   }
 
-  function open(_entity, _type) {
-    menu.x = mouse.mouseX
-    menu.y = mouse.mouseY
+  function open(_entity, _type, _x, _y) {
+    menu.x = _x
+    menu.y = _y
     context.entity = _entity
     context.type = _type
     moveToMenu.enabled = false
