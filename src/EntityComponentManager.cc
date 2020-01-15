@@ -1206,3 +1206,21 @@ void EntityComponentManager::SetChanged(
     this->dataPtr->oneTimeChangedComponents.erase(*iter);
   }
 }
+
+/////////////////////////////////////////////////
+std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
+    const Entity _entity) const
+{
+  std::unordered_set<ComponentTypeId> result;
+
+  auto it = this->dataPtr->entityComponents.find(_entity);
+  if (it == this->dataPtr->entityComponents.end())
+    return result;
+
+  for (const auto &key : it->second)
+  {
+    result.insert(key.first);
+  }
+
+  return result;
+}
