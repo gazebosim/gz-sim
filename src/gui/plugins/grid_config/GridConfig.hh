@@ -20,9 +20,8 @@
 
 #include <memory>
 
-#include <ignition/rendering.hh>
 #include <ignition/gui/Plugin.hh>
-#include <ignition/math/Color.hh>
+#include <ignition/rendering.hh>
 
 namespace ignition
 {
@@ -43,37 +42,47 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief Funtion to search for scene created
+    /// \brief Retrive visual ptr from the scene
+    /// \return VisualPtr visual to update grid pose
+    public: rendering::VisualPtr GetVisual();
+
+    /// \brief Retrieve material ptr from the scene
+    /// \return MaterialPtr material to update grid color
+    public: rendering::MaterialPtr GetMaterial();
+
+    /// \brief SLOT Funtion to search for scene created
     public slots: void SearchScene();
 
     /// \brief Callback to initiaize scene with default grid.
-    public slots: void InitGrid(rendering::ScenePtr scene, bool reload=false);
+    /// \param[in] _scene created by used engine
+    /// \param[in] _reload indicates first time loading grid or not
+    public slots: void InitGrid(rendering::ScenePtr _scene, bool _reload=false);
 
-    public: rendering::VisualPtr GetVisual();
+    /// \brief Callback to update vertical cell count
+    /// \param[in] _c new vertical cell count 
+    public slots: void UpdateVerCellCount(int _c);
 
-    public: rendering::MaterialPtr GetMaterial();
+    /// \brief Callback to update horizontal cell count
+    /// \param[in] _c new horizontal cell count
+    public slots: void UpdateHonCellCount(int _c);
 
+    /// \brief Callback to update cell length
+    /// \param[in] _l new cell length
+    public slots: void UpdateCellLength(double _l);
 
-    /// \brief Callback to update grid with new params.
-    public slots: void UpdateVerCellCount(int c);
+    /// \brief Callback to update grid pose
+    public slots: void SetPose(double _x, double _y, double _z,
+                         double _roll, double _pitch, double _yaw);
 
-    /// \brief Callback to update grid with new params.
-    public slots: void UpdateHonCellCount(int c);
+    /// \brief Callback to update grid color
+    public slots: void SetColor(double _r, double _g, double _b, double _a);
 
-    public slots: void UpdateCellLength(double l);
+    /// \brief Callback when checkbox is clicked.
+    /// \param[in] _checked indicates show or hide grid
+    public slots: void OnShow(bool _checked);
 
-    public slots: void SetPose(double x, double y, double z,
-                               double roll, double pitch, double yaw);
-
-    public slots: void SetColor(double r, double g, double b, double a);
-
-    public slots: void SetCustomColor(math::Color c);
-
-    /// \brief Callback in Qt thread when checkbox is clicked.
-    /// \param[in] checked checkbox state
-    public slots: void OnShow(bool checked);
-
-    public: void DestroyGrid();
+    /// \brief Callback to hide grid
+    public slots: void DestroyGrid();
 
     /// \internal
     /// \brief Pointer to private data.
