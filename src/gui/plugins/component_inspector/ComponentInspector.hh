@@ -34,10 +34,19 @@ namespace gazebo
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
   template <class DataType>
-  void setData(QStandardItem *_item, const DataType &/*_data*/)
+  void setData(QStandardItem *_item, const DataType &_data)
   {
-    ignwarn << "Attempting to set unsupported data type to item ["
-            << _item->text().toStdString() << "]" << std::endl;
+    if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
+    {
+      std::stringstream ss;
+      ss << _data;
+      setData(_item, ss.str());
+    }
+    else
+    {
+      ignwarn << "Attempting to set unsupported data type to item ["
+              << _item->text().toStdString() << "]" << std::endl;
+    }
   }
 
   /// \brief Specialized to set string data.

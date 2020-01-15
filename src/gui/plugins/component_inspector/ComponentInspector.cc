@@ -25,7 +25,9 @@
 
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
@@ -45,6 +47,7 @@ namespace ignition::gazebo
   template<>
   void setData(QStandardItem *_item, const math::Pose3d &_data)
   {
+    _item->setData(QString("Pose3d"), TreeModel::RoleNames().key("dataType"));
     _item->setData(QList({
       QVariant(_data.Pos().X()),
       QVariant(_data.Pos().Y()),
@@ -58,6 +61,7 @@ namespace ignition::gazebo
   template<>
   void setData(QStandardItem *_item, const std::string &_data)
   {
+    _item->setData(QString("String"), TreeModel::RoleNames().key("dataType"));
     _item->setData(QString::fromStdString(_data),
         TreeModel::RoleNames().key("data"));
   }
@@ -126,7 +130,8 @@ QHash<int, QByteArray> TreeModel::RoleNames()
   return {std::pair(100, "typeName"),
           std::pair(101, "typeId"),
           std::pair(102, "shortName"),
-          std::pair(103, "data")};
+          std::pair(103, "dataType"),
+          std::pair(104, "data")};
 }
 
 /////////////////////////////////////////////////
@@ -188,6 +193,18 @@ void ComponentInspector::Update(const UpdateInfo &,
     else if (typeId == components::Name::typeId)
     {
       auto comp = _ecm.Component<components::Name>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Static::typeId)
+    {
+      auto comp = _ecm.Component<components::Static>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::ParentEntity::typeId)
+    {
+      auto comp = _ecm.Component<components::ParentEntity>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
