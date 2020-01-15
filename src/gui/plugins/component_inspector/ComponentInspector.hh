@@ -20,6 +20,7 @@
 
 #include <map>
 #include <memory>
+#include <ignition/math/Pose3.hh>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
@@ -28,6 +29,28 @@ namespace ignition
 namespace gazebo
 {
   class ComponentInspectorPrivate;
+
+  /// \brief Generic function to set data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template <class DataType>
+  void setData(QStandardItem *_item, const DataType &/*_data*/)
+  {
+    ignwarn << "Attempting to set unsupported data type to item ["
+            << _item->text().toStdString() << "]" << std::endl;
+  }
+
+  /// \brief Specialized to set string data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const std::string &_data);
+
+  /// \brief Specialized to set pose data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const math::Pose3d &_data);
 
   /// \brief TODO
   class TreeModel : public QStandardItemModel
@@ -43,24 +66,11 @@ namespace gazebo
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
 
-    /// \brief Add an entity to the tree.
-    /// \param[in] _entity Entity to be added
-    /// \param[in] _entityName Name of entity to be added
-    /// \param[in] _parentEntity Parent entity. By default, kNullEntity, which
-    /// means it's a root entity.
-    /// \param[in] _type Entity type
-    public slots: void AddComponent(long _typeId,
-        const QString &_typeName);
+    public: static QHash<int, QByteArray> RoleNames();
 
-    public slots: void AddPose(
-        double _x,
-        double _y,
-        double _z,
-        double _roll,
-        double _pitch,
-        double _yaw);
-
-    public slots: void AddName(const QString &_name);
+    /// \brief Add
+    /// \param[in] _type
+    public slots: QStandardItem *AddComponentType(long _typeId);
 
     /// \brief Keep track of items in the tree
     private: std::map<QString, QStandardItem *> items;

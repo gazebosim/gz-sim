@@ -35,11 +35,32 @@ namespace ignition::gazebo
 {
   class ComponentInspectorPrivate
   {
-    /// \brief Model holding all the current components
+    /// \brief Model holding all the current components.
     public: TreeModel treeModel;
 
+    /// \brief Entity being inspected.
     public: Entity entity;
   };
+
+  template<>
+  void setData(QStandardItem *_item, const math::Pose3d &_data)
+  {
+    _item->setData(QList({
+      QVariant(_data.Pos().X()),
+      QVariant(_data.Pos().Y()),
+      QVariant(_data.Pos().Z()),
+      QVariant(_data.Rot().Roll()),
+      QVariant(_data.Rot().Pitch()),
+      QVariant(_data.Rot().Yaw())
+    }), TreeModel::RoleNames().key("data"));
+  }
+
+  template<>
+  void setData(QStandardItem *_item, const std::string &_data)
+  {
+    _item->setData(QString::fromStdString(_data),
+        TreeModel::RoleNames().key("data"));
+  }
 }
 
 using namespace ignition;
@@ -64,118 +85,48 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
-void TreeModel::AddComponent(long _typeId, const QString &_typeName)
+QStandardItem *TreeModel::AddComponentType(long _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("TreeModel::AddComponent");
+  IGN_PROFILE("TreeModel::AddComponentType");
 
-  if (this->items.find(_typeName) != this->items.end())
-    return;
+  auto typeName = QString::fromStdString(
+      components::Factory::Instance()->Name(_typeId));
+
+  auto itemIt = this->items.find(typeName);
+
+  // Existing component item
+  if (itemIt != this->items.end())
+  {
+    return itemIt->second;
+  }
 
   // New component item
-  auto item = new QStandardItem(_typeName);
+  auto item = new QStandardItem(typeName);
   item->setData(QString::fromStdString(shortName(
-      _typeName.toStdString())), this->roleNames().key("shortName"));
-  item->setData(_typeName, this->roleNames().key("typeName"));
+      typeName.toStdString())), this->roleNames().key("shortName"));
+  item->setData(typeName, this->roleNames().key("typeName"));
   item->setData(QString::number(_typeId),
       this->roleNames().key("typeId"));
-  item->setData("true", this->roleNames().key("isType"));
 
   this->invisibleRootItem()->appendRow(item);
-  this->items[_typeName] = item;
-}
-
-/////////////////////////////////////////////////
-void TreeModel::AddName(const QString &_name)
-{
-  IGN_PROFILE("TreeModel::AddName");
-
-  auto typeName =
-      components::Factory::Instance()->Name(components::Name::typeId);
-
-  auto itemIt = this->items.find(QString::fromStdString(typeName));
-
-  QStandardItem *item{nullptr};
-  if (itemIt == this->items.end())
-  {
-    item = new QStandardItem(QString::fromStdString(typeName));
-    item->setData(
-        QString::fromStdString(shortName(typeName)),
-        this->roleNames().key("shortName"));
-    item->setData(
-        QString::fromStdString(typeName),
-        this->roleNames().key("typeName"));
-    item->setData(
-        QString::number(components::Pose::typeId),
-        this->roleNames().key("typeId"));
-
-    this->invisibleRootItem()->appendRow(item);
-    this->items[QString::fromStdString(typeName)] = item;
-  }
-  else
-  {
-    item = itemIt->second;
-  }
-
-  item->setData(_name, this->roleNames().key("data"));
-}
-
-/////////////////////////////////////////////////
-void TreeModel::AddPose(
-    double _x,
-    double _y,
-    double _z,
-    double _roll,
-    double _pitch,
-    double _yaw)
-{
-  IGN_PROFILE("TreeModel::AddPose");
-
-  auto typeName =
-      components::Factory::Instance()->Name(components::Pose::typeId);
-
-  auto itemIt = this->items.find(QString::fromStdString(typeName));
-
-  QStandardItem *item{nullptr};
-  if (itemIt == this->items.end())
-  {
-    item = new QStandardItem(QString::fromStdString(typeName));
-    item->setData(
-        QString::fromStdString(shortName(typeName)),
-        this->roleNames().key("shortName"));
-    item->setData(
-        QString::fromStdString(typeName),
-        this->roleNames().key("typeName"));
-    item->setData(
-        QString::number(components::Pose::typeId),
-        this->roleNames().key("typeId"));
-
-    this->invisibleRootItem()->appendRow(item);
-    this->items[QString::fromStdString(typeName)] = item;
-  }
-  else
-  {
-    item = itemIt->second;
-  }
-
-  item->setData(QList({
-    QVariant(_x),
-    QVariant(_y),
-    QVariant(_z),
-    QVariant(_roll),
-    QVariant(_pitch),
-    QVariant(_yaw)
-  }), this->roleNames().key("data"));
+  this->items[typeName] = item;
+  return item;
 }
 
 /////////////////////////////////////////////////
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
+  return TreeModel::RoleNames();
+}
+
+/////////////////////////////////////////////////
+QHash<int, QByteArray> TreeModel::RoleNames()
+{
   return {std::pair(100, "typeName"),
           std::pair(101, "typeId"),
-          std::pair(109, "isType"),
-          std::pair(110, "shortName"),
-          std::pair(111, "data")};
+          std::pair(102, "shortName"),
+          std::pair(103, "data")};
 }
 
 /////////////////////////////////////////////////
@@ -212,42 +163,35 @@ void ComponentInspector::Update(const UpdateInfo &,
   // TODO(louise) Remove components that are no longer present
   for (const auto &typeId : componentTypes)
   {
+    // Add component to list
+    QStandardItem *item;
+    // TODO(louise) Blocking here is not the best idea
+    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponentType",
+        Qt::BlockingQueuedConnection,
+        Q_RETURN_ARG(QStandardItem *, item),
+        Q_ARG(long, typeId));
+
+    if (nullptr == item)
+    {
+      ignerr << "Failed to create item for component type [" << typeId << "]"
+             << std::endl;
+      continue;
+    }
+
+    // Populate component-specific data
     if (typeId == components::Pose::typeId)
     {
-      auto poseComp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-      if (poseComp)
-      {
-        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddPose",
-            Qt::QueuedConnection,
-            Q_ARG(double, poseComp->Data().Pos().X()),
-            Q_ARG(double, poseComp->Data().Pos().Y()),
-            Q_ARG(double, poseComp->Data().Pos().Z()),
-            Q_ARG(double, poseComp->Data().Rot().Roll()),
-            Q_ARG(double, poseComp->Data().Rot().Pitch()),
-            Q_ARG(double, poseComp->Data().Rot().Yaw()));
-      }
+      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::Name::typeId)
     {
-      auto nameComp = _ecm.Component<components::Name>(this->dataPtr->entity);
-      if (nameComp)
-      {
-        QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddName",
-            Qt::QueuedConnection,
-            Q_ARG(QString, QString::fromStdString(nameComp->Data())));
-      }
-    }
-    else
-    {
-      auto name = components::Factory::Instance()->Name(typeId);
-
-      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponent",
-          Qt::QueuedConnection,
-          Q_ARG(long, typeId),
-          Q_ARG(QString, QString::fromStdString(name)));
+      auto comp = _ecm.Component<components::Name>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
   }
-
 }
 
 /////////////////////////////////////////////////
