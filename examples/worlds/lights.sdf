@@ -91,16 +91,6 @@
 
       </plugin>
 
-      <!-- Grid Configuration -->
-      <plugin filename="GridConfig" name="Grid Config">
-        <ignition-gui>
-          <title>Grid Config</title>
-        </ignition-gui>
-
-        <engine>ogre</engine>
-        <scene>scene</scene>
-      </plugin>
-
     </gui>
 
     <light type="directional" name="directional">
