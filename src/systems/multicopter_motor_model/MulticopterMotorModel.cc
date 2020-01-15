@@ -34,6 +34,7 @@
 
 #include <sdf/sdf.hh>
 
+#include "ignition/gazebo/components/Actuators.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -204,8 +205,12 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   /// for increasing and decreasing values.
   public: std::unique_ptr<FirstOrderFilter<double>> rotorVelocityFilter;
 
-  /// \brief Mutex to protect refMotorInput.
-  public: std::mutex refMotorInputMutex;
+  /// \brief Received Actuators message. This is nullopt if no message has been
+  /// received.
+  public: std::optional<msgs::Actuators> recvdActuatorsMsg;
+
+  /// \brief Mutex to protect recvdActuatorsMsg.
+  public: std::mutex recvdActuatorsMsgMutex;
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -458,26 +463,8 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void MulticopterMotorModelPrivate::OnActuatorMsg(
     const ignition::msgs::Actuators &_msg)
 {
-  if (this->motorNumber > _msg.velocity_size() - 1)
-  {
-    ignerr << "You tried to access index " << this->motorNumber
-           << " of the Actuator velocity array which is of size "
-           << _msg.velocity_size() << std::endl;
-    return;
-  }
-
-  std::lock_guard<std::mutex> lock(this->refMotorInputMutex);
-  if (this->motorType == MotorType::kVelocity)
-  {
-    this->refMotorInput = std::min(
-        static_cast<double>(_msg.velocity(this->motorNumber)),
-        static_cast<double>(this->maxRotVelocity));
-  }
-  //  else if (this->motorType == MotorType::kPosition)
-  else  // if (this->motorType == MotorType::kForce) {
-  {
-    this->refMotorInput = _msg.velocity(this->motorNumber);
-  }
+  std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
+  this->recvdActuatorsMsg = _msg;
 }
 
 //////////////////////////////////////////////////
@@ -485,24 +472,62 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
-  double refMotorInputCopy;
+
+  std::optional<msgs::Actuators> msg;
+  auto actuatorMsgComp =
+      _ecm.Component<components::Actuators>(this->model.Entity());
+
+  // Actuators messages can come in from transport or via a component. If a
+  // component is available, it takes precedence.
+  if (actuatorMsgComp)
   {
-    std::lock_guard<std::mutex> lock(this->refMotorInputMutex);
-    refMotorInputCopy = this->refMotorInput;
+    msg = actuatorMsgComp->Data();
+  }
+  else
+  {
+    std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
+    if (this->recvdActuatorsMsg.has_value())
+    {
+      msg = *this->recvdActuatorsMsg;
+      this->recvdActuatorsMsg.reset();
+    }
+  }
+
+  if (msg.has_value())
+  {
+    if (this->motorNumber > msg->velocity_size() - 1)
+    {
+      ignerr << "You tried to access index " << this->motorNumber
+        << " of the Actuator velocity array which is of size "
+        << msg->velocity_size() << std::endl;
+      return;
+    }
+
+    if (this->motorType == MotorType::kVelocity)
+    {
+      this->refMotorInput = std::min(
+          static_cast<double>(msg->velocity(this->motorNumber)),
+          static_cast<double>(this->maxRotVelocity));
+    }
+    //  else if (this->motorType == MotorType::kPosition)
+    else  // if (this->motorType == MotorType::kForce) {
+    {
+      this->refMotorInput = msg->velocity(this->motorNumber);
+    }
   }
 
   switch (this->motorType)
   {
     case (MotorType::kPosition):
     {
-      // double err = joint_->GetAngle(0).Radian() - refMotorInputCopy;
+      // double err = joint_->GetAngle(0).Radian() - this->refMotorInput;
       // double force = pids_.Update(err, this->samplingTime);
       // joint_->SetForce(0, force);
       break;
     }
     case (MotorType::kForce):
     {
-      // joint_->SetForce(0, refMotorInputCopy);
+      // joint_->SetForce(0, this->refMotorInput);
       break;
     }
     default:  // MotorType::kVelocity
@@ -626,7 +651,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // Apply the filter on the motor's velocity.
       double refMotorRotVel;
       refMotorRotVel = this->rotorVelocityFilter->UpdateFilter(
-          refMotorInputCopy, this->samplingTime);
+          this->refMotorInput, this->samplingTime);
 
       const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
           this->jointEntity);
