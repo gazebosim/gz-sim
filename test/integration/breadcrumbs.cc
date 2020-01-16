@@ -345,7 +345,6 @@ TEST_F(BreadcrumbsTest, Performer)
             }
             return true;
           });
-
     }
     else if (_info.iterations == nIters)
     {
@@ -405,9 +404,9 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                              const gazebo::EntityComponentManager &_ecm)
   {
-    // Deploy a performer breadcrumb on a tile that's on the default a level, and check
-    // that it causes tile_1 to be loaded since the performer's volume is large
-    // enough to overlap with tile_1.
+    // Deploy a performer breadcrumb on a tile that's on the default a level,
+    // and check that it causes tile_1 to be loaded since the performer's volume
+    // is large enough to overlap with tile_1.
 
     // Set pose to tile_2 , check if tile_1 is still loaded
     if (_info.iterations == iterTestStart)
