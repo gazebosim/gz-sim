@@ -528,7 +528,7 @@ namespace ignition
       /// \param[in] _type Id of the component type.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      public: const components::BaseComponent *ComponentImplementation(
+      private: const components::BaseComponent *ComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _type) const;
 
@@ -537,7 +537,7 @@ namespace ignition
       /// \param[in] _type Id of the component type.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      public: components::BaseComponent *ComponentImplementation(
+      private: components::BaseComponent *ComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _type);
 
