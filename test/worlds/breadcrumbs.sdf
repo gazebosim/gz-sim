@@ -514,7 +514,6 @@
       </plugin>
       <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
-       <is_performer>true</is_performer>
        <performer_volume>
          <geometry>
            <box>
@@ -565,7 +564,6 @@
       <!-- Breadcrumb with large performer volume -->
       <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
-       <is_performer>true</is_performer>
        <performer_volume>
          <geometry>
            <box>
