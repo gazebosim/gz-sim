@@ -863,12 +863,14 @@ void IgnRenderer::HandleMouseTransformControl()
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d snapVals = this->dataPtr->transformControl.ScaleSnap();
+
         if (snapVals.X() <= 1e-4)
           snapVals.X() = 0.1;
         if (snapVals.Y() <= 1e-4)
           snapVals.Y() = 0.1;
         if (snapVals.Z() <= 1e-4)
           snapVals.Z() = 0.1;
+
         scale = SnapPoint(scale, snapVals);
       }
       this->dataPtr->transformControl.Scale(scale);
