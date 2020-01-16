@@ -2,6 +2,20 @@
 
 ### Ignition Gazebo 2.XX.X (201X-XX-XX)
 
+### Ignition Gazebo 2.14.0 (2020-01-10)
+
+1. Use Actuator component to communicate between MulticopterVelocityControl and MulticopterMotorModel systems
+    * [Pull Request 498](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/498)
+
+1.  Backport fix to insert multiple lights with same name
+    * [Pull Request 502](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/502)
+
+1.  Get all component types attached to an entity
+    * [Pull Request 494](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/494)
+
+1.  Fix tooltips on entity tree
+    * [Pull Request 496](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/496)
+
 ### Ignition Gazebo 2.13.0 (2019-12-17)
 
 1. Add Multicopter velocity controller
