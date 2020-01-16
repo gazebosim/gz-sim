@@ -789,6 +789,22 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
         }
       }
     }
+    else if ("visual" == plugin.EntityType())
+    {
+      // TODO(louise) Use scoped names for models and worlds too
+      auto visuals = this->entityCompMgr.EntitiesByComponents(
+          components::Sensor());
+
+      for (auto visual : visuals)
+      {
+        if (scopedName(visual, this->entityCompMgr, "::", false) ==
+            plugin.EntityName())
+        {
+          entity = visual;
+          break;
+        }
+      }
+    }
     else
     {
       ignwarn << "No support for attaching plugins to entity of type ["
