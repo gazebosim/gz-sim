@@ -83,31 +83,23 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->maxDeployments =
       _sdf->Get<int>("max_deployments", this->maxDeployments).first;
 
-  this->isPerformer = _sdf->Get<bool>("is_performer", this->isPerformer).first;
-
-  if (this->isPerformer)
+  if (_sdf->HasElement("performer_volume"))
   {
-    if (_sdf->HasElement("performer_volume"))
+    auto vol = _sdf->GetElementImpl("performer_volume");
+    sdf::Geometry geom;
+    geom.Load(vol->GetElementImpl("geometry"));
+    if (nullptr != geom.BoxShape())
     {
-      auto vol = _sdf->GetElementImpl("performer_volume");
-      sdf::Geometry geom;
-      geom.Load(vol->GetElementImpl("geometry"));
-      if (nullptr != geom.BoxShape())
-      {
-        this->performerGeometry = std::move(geom);
-      }
-      else
-      {
-        ignerr << "Geometry specified in <performer_volume> is invalid\n";
-        return;
-      }
+      this->performerGeometry = std::move(geom);
+      this->isPerformer = true;
     }
     else
     {
-      ignerr << "<is_performer> is set to true, but <performer_volume> could "
-                "not be found\n";
+      ignerr << "Geometry specified in <performer_volume> is invalid\n";
+      return;
     }
   }
+
   // Subscribe to commands
   std::string topic{"/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
                     this->modelRoot.ModelByIndex(0)->Name() + "/deploy"};
