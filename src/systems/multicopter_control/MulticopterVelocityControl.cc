@@ -32,6 +32,7 @@
 
 #include <sdf/sdf.hh>
 
+#include "ignition/gazebo/components/Actuators.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -273,9 +274,6 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   sdfClone->Get<std::string>("enableSubTopic",
       this->enableSubTopic, this->enableSubTopic);
 
-  sdfClone->Get<std::string>("motorControlPubTopic",
-      this->motorControlPubTopic, this->motorControlPubTopic);
-
   // Subscribe to actuator command messages
   std::string topic{this->robotNamespace + "/" + this->commandSubTopic};
 
@@ -283,18 +281,19 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   ignmsg << "MulticopterVelocityControl subscribing to Twist messages on ["
          << topic << "]" << std::endl;
 
-  std::string pubTopic{this->robotNamespace + "/"
-    + this->motorControlPubTopic};
-  this->motorControlPub =
-      this->node.Advertise<msgs::Actuators>(pubTopic);
-  ignmsg << "MulticopterVelocityControl publishing to Actuators messages on ["
-         << pubTopic << "]" << std::endl;
-
   std::string enableTopic{this->robotNamespace + "/" + this->enableSubTopic};
   this->node.Subscribe(enableTopic, &MulticopterVelocityControl::OnEnable,
                        this);
   ignmsg << "MulticopterVelocityControl subscribing to Boolean messages on ["
          << enableTopic << "]" << std::endl;
+
+  // Create the Actuators component to take control of rotor speeds
+  this->rotorVelocitiesMsg.mutable_velocity()->Resize(
+      this->rotorVelocities.size(), 0);
+
+  _ecm.CreateComponent(this->model.Entity(),
+                       components::Actuators(this->rotorVelocitiesMsg));
+
   this->initialized = true;
 }
 
@@ -331,7 +330,7 @@ void MulticopterVelocityControl::PreUpdate(
     if (this->rotorVelocities.squaredNorm() > 0)
     {
       this->rotorVelocities.setZero();
-      this->PublishRotorVelocities(this->rotorVelocities);
+      this->PublishRotorVelocities(_ecm, this->rotorVelocities);
       // Clear the cmdVelMsg so that the system waits for a new command after
       // being renabled.
       std::lock_guard<std::mutex> lock(this->cmdVelMsgMutex);
@@ -372,7 +371,7 @@ void MulticopterVelocityControl::PreUpdate(
   this->velocityController->CalculateRotorVelocities(*frameData, cmdVel,
                                                      this->rotorVelocities);
 
-  this->PublishRotorVelocities(this->rotorVelocities);
+  this->PublishRotorVelocities(_ecm, this->rotorVelocities);
 }
 
 //////////////////////////////////////////////////
@@ -392,6 +391,7 @@ void MulticopterVelocityControl::OnEnable(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PublishRotorVelocities(
+    ignition::gazebo::EntityComponentManager &_ecm,
     const Eigen::VectorXd &_vels)
 {
   if (_vels.size() != this->rotorVelocitiesMsg.velocity_size())
@@ -402,7 +402,29 @@ void MulticopterVelocityControl::PublishRotorVelocities(
   {
     this->rotorVelocitiesMsg.set_velocity(i, _vels(i));
   }
-  this->motorControlPub.Publish(this->rotorVelocitiesMsg);
+  // Publish the message by setting the Actuators component on the model entity.
+  // This assumes that the MulticopterMotorModel system is attached to this
+  // model
+  auto actuatorMsgComp =
+      _ecm.Component<components::Actuators>(this->model.Entity());
+
+  if (actuatorMsgComp)
+  {
+    auto compFunc = [](const msgs::Actuators &_a, const msgs::Actuators &_b)
+    {
+      return std::equal(_a.velocity().begin(), _a.velocity().end(),
+                        _b.velocity().begin());
+    };
+    auto state = actuatorMsgComp->SetData(this->rotorVelocitiesMsg, compFunc)
+                     ? ComponentState::PeriodicChange
+                     : ComponentState::NoChange;
+    _ecm.SetChanged(this->model.Entity(), components::Actuators::typeId, state);
+  }
+  else
+  {
+    _ecm.CreateComponent(this->model.Entity(),
+                         components::Actuators(this->rotorVelocitiesMsg));
+  }
 }
 
 IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
