@@ -1,3 +1,9 @@
+## Ignition Gazebo 4.x
+
+### Ignition Gazebo 4.X.X
+
+### Ignition Gazebo 4.0.0 (20XX-XX-XX)
+
 ## Ignition Gazebo 3.x
 
 ### Ignition Gazebo 3.X.X
