@@ -203,23 +203,30 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   IGN_PROFILE("Buoyancy::PreUpdate");
 
-  if (!this->dataPtr->gravity || this->dataPtr->volPropsMap.empty())
+  // Only update if not paused, we were able to get the gravity vector, and
+  // fill the volume property map.
+  if (_info.paused || !this->dataPtr->gravity ||
+      this->dataPtr->volPropsMap.empty())
+  {
     return;
+  }
 
   std::vector<Entity> links = _ecm.ChildrenByComponents(
       this->dataPtr->model.Entity(), components::Link());
-  for (const Entity &link : links)
+  for (const Entity &linkEntity : links)
   {
+    const Link link(linkEntity);
+
     // The volume properties of the link
     BuoyancyPrivate::VolumeProperties volumeProperties =
-      this->dataPtr->volPropsMap[link];
+      this->dataPtr->volPropsMap[linkEntity];
 
     // The link's inertia
     const components::Inertial *inertial =
-      _ecm.Component<components::Inertial>(link);
+      _ecm.Component<components::Inertial>(linkEntity);
 
     // World pose of the link.
-    math::Pose3d linkWorldPose = worldPose(link, _ecm);
+    math::Pose3d linkWorldPose = *(link.WorldPose(_ecm));
 
     // By Archimedes' principle,
     // buoyancy = -(mass*gravity)*fluid_density/object_density
@@ -239,24 +246,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     // Apply the wrench to the link. This wrench is applied in the
     // Physics System.
-    msgs::Wrench wrench;
-    msgs::Set(wrench.mutable_force(), buoyancy);
-    msgs::Set(wrench.mutable_torque(), torque);
-    components::ExternalWorldWrenchCmd newWrenchComp(wrench);
-
-    auto currWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(link);
-    if (currWrenchComp)
-    {
-      // \todo(nkoenig) This overwrites the current wrench component. When
-      // we added propellers to a vehicle, then we will need to add the
-      // force applied by the propellers to the force applied by buoyancy.
-      *currWrenchComp = newWrenchComp;
-    }
-    else
-    {
-      _ecm.CreateComponent(link, newWrenchComp);
-    }
+    link.AddWorldWrench(_ecm, buoyancy, torque);
   }
 }
 

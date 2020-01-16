@@ -67,6 +67,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/Link.hh"
 
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
@@ -735,6 +736,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         math::Vector3 force = msgs::Convert(_wrenchComp->Data().force());
         math::Vector3 torque = msgs::Convert(_wrenchComp->Data().torque());
+        Link l(_entity);
+        std::cout << "Adding Wrench Name[" << *(l.Name(_ecm))
+        << "][" << force << "][" << torque << "]\n";
         linkIt->second->AddExternalForce(math::eigen3::convert(force));
         linkIt->second->AddExternalTorque(math::eigen3::convert(torque));
 

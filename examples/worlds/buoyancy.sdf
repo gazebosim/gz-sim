@@ -13,6 +13,11 @@
 
   1. Change the submarine's inertia.
   2. Change the `fluid_density` in the `buoyancy-system` plugin.
+
+  To drive the submarine model:
+
+  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m ignition.msgs.Double  -p "data: 1.2
+
 -->
 <sdf version="1.6">
   <world name="buoyancy">
@@ -122,7 +127,7 @@
       <link name='body'>
         <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <mass>250.32741228718348</mass>
+          <mass>251.32741228718348</mass>
           <inertia>
             <ixx>86.28907821859966</ixx>
             <ixy>0</ixy>
@@ -246,7 +251,7 @@
 
       </link>
 
-      <joint name='spinning_joint' type='revolute'>
+      <joint name='propeller_joint' type='revolute'>
         <parent>body</parent>
         <child>propeller</child>
         <axis>
@@ -264,9 +269,83 @@
       <plugin
         filename="libignition-gazebo-buoyancy-system.so"
         name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1999.1026</fluid_density>
+        <fluid_density>1000</fluid_density>
+      </plugin>
+      <plugin
+        filename="libignition-gazebo-apply-joint-force-system.so"
+        name="ignition::gazebo::systems::ApplyJointForce">
+        <joint_name>propeller_joint</joint_name>
       </plugin>
 
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0 -0.7071067811865476 -0.7071067811865475</upward>
+        <forward>0 -0.7071067811865475 0.7071067811865476</forward>
+        <link_name>propeller</link_name>
+        <cp>0.35 0 0</cp>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>-0.7071067811865475 0 -0.7071067811865476</upward>
+        <forward>-0.7071067811865476 0 0.7071067811865475</forward>
+        <link_name>propeller</link_name>
+        <cp>0 -0.35 0</cp>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0 0.7071067811865475 -0.7071067811865476</upward>
+        <forward>0 -0.7071067811865476 -0.7071067811865475</forward>
+        <link_name>propeller</link_name>
+        <cp>-0.35 0 0</cp>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0.7071067811865476 0 -0.7071067811865475</upward>
+        <forward>0.7071067811865475 0 0.7071067811865476</forward>
+        <link_name>propeller</link_name>
+        <cp>0 0.35 0</cp>
+      </plugin>
     </model>
 
     <!-- This model should sink -->

@@ -191,6 +191,10 @@ namespace ignition
       public: void AddWorldForce(EntityComponentManager &_ecm,
                                  const math::Vector3d &_force) const;
 
+      public: void AddWorldWrench(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const math::Vector3d &_torque) const;
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;
     };
