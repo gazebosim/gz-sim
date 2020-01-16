@@ -120,19 +120,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
 
-    /// \brief Get the top level visual for the given visual, which
-    /// is the ancestor which is a direct child to the root visual.
-    /// Usually, this will be a model or a light.
-    /// \param[in] _visual Child visual
-    /// \return Top level visual containining this visual
-    public: rendering::VisualPtr TopLevelVisual(
-        rendering::VisualPtr _visual) const;
-
-    /// \brief
-    /// \param[in] _visual
-    /// \return
-    public: Entity VisualEntity(
-        rendering::VisualPtr _visual) const;
+    /// \brief Get the entity for a given visual.
+    /// \param[in] _visual Visual to get the entity for.
+    /// \return The entity for that visual, or `kNullEntity` for no entity.
+    public: Entity VisualEntity(rendering::VisualPtr _visual) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
@@ -148,6 +139,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Material object loaded from the sdf dom
     private: rendering::MaterialPtr LoadMaterial(
         const sdf::Material &_material);
+
+    /// \brief Get the top level visual for the given visual, which
+    /// is the ancestor which is a direct child to the root visual.
+    /// Usually, this will be a model or a light.
+    /// \param[in] _visual Child visual
+    /// \return Top level visual containining this visual
+    public: rendering::VisualPtr TopLevelVisual(
+        rendering::VisualPtr _visual) const;
 
     /// \internal
     /// \brief Pointer to private data class
