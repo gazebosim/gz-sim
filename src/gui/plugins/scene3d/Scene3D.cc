@@ -608,21 +608,21 @@ math::Vector3d IgnRenderer::SnapPoint(
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &axis)
+math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &_axis)
 {
   if (this->dataPtr->keyEvent.Key() == Qt::Key_X)
   {
-    axis = math::Vector3d(1, 0, 0);
+    _axis = math::Vector3d(1, 0, 0);
   }
   else if (this->dataPtr->keyEvent.Key() == Qt::Key_Y)
   {
-    axis = math::Vector3d(0, 1, 0);
+    _axis = math::Vector3d(0, 1, 0);
   }
   else if (this->dataPtr->keyEvent.Key() == Qt::Key_Z)
   {
-    axis = math::Vector3d(0, 0, 1);
+    _axis = math::Vector3d(0, 0, 1);
   }
-  return axis;
+  return _axis;
 }
 
 /////////////////////////////////////////////////
@@ -812,9 +812,9 @@ void IgnRenderer::HandleMouseTransformControl()
 
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d current_rot = rotation.Euler();
-        math::Vector3d new_rot = SnapPoint(current_rot, IGN_PI/4);
-        rotation = math::Quaterniond::EulerToQuaternion(new_rot);
+        math::Vector3d currentRot = rotation.Euler();
+        math::Vector3d newRot = SnapPoint(currentRot, IGN_PI/4);
+        rotation = math::Quaterniond::EulerToQuaternion(newRot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
     }

@@ -236,7 +236,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: double SnapValue(
                  double _coord, double _interval, double _sensitivity) const;
 
-    private: math::Vector3d GetXYZConstraint(math::Vector3d &axis);
+    private: math::Vector3d GetXYZConstraint(math::Vector3d &_axis);
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
