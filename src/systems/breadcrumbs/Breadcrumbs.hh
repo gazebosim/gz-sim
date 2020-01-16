@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
+#include <set>
 #include <vector>
 
 #include <sdf/Element.hh>
@@ -120,7 +121,7 @@ namespace systems
     /// \brief Pending commands
     private: std::vector<bool> pendingCmds;
 
-    /// \brief List of entities that need
+    /// \brief List of entities that need geometry updates.
     private: std::set<Entity> pendingGeometryUpdate;
 
     /// \brief Mutex to protect pending commands

@@ -160,7 +160,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
           msgs::Boolean rep;
           bool result;
           this->node.Request("/world/" + worldName + "/level/set_performer",
-                             req, 2000, rep, result);
+                             req, 0, rep, result);
 
           // When using the set_performer service, the performer gets a default
           // geometry for its bounding volume. To update the geometry, we make a
