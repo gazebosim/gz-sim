@@ -206,6 +206,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Where the mouse left off on when an x, y, or z was pressed - used
     /// to continue translating smoothly when switching axes through keybinding
     public: math::Vector2i newMousePressPos = math::Vector2i::Zero;
+
+    /// \brief The xyz values by which to snap the object.
+    public: math::Vector3d xyzSnap = math::Vector3d::Zero;
+
+    /// \brief The rpy values by which to snap the object.
+    public: math::Vector3d rpySnap = math::Vector3d::Zero;
+
+    /// \brief The scale values by which to snap the object.
+    public: math::Vector3d scaleSnap = math::Vector3d::Zero;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -800,7 +809,7 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         math::Vector3d relativePos =
           this->dataPtr->startWorldPos + distance;
-        math::Vector3d snapVals = this->dataPtr->transformControl.XYZSnap();
+        math::Vector3d snapVals = this->XYZSnap();
 
         if (snapVals.X() <= 1e-4)
           snapVals.X() = 1;
@@ -824,7 +833,7 @@ void IgnRenderer::HandleMouseTransformControl()
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d current_rot = rotation.Euler();
-        math::Vector3d snapVals = this->dataPtr->transformControl.RPYSnap();
+        math::Vector3d snapVals = this->RPYSnap();
 
         if (snapVals.X() <= 1e-4) {
           snapVals.X() = IGN_PI/4;
@@ -862,7 +871,7 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d snapVals = this->dataPtr->transformControl.ScaleSnap();
+        math::Vector3d snapVals = this->ScaleSnap();
 
         if (snapVals.X() <= 1e-4)
           snapVals.X() = 0.1;
@@ -1004,19 +1013,37 @@ void IgnRenderer::Destroy()
 /////////////////////////////////////////////////
 void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyz)
 {
-  this->dataPtr->transformControl.SetXYZSnap(_xyz);
+  this->dataPtr->xyzSnap = _xyz;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::XYZSnap()
+{
+  return this->dataPtr->xyzSnap;
 }
 
 /////////////////////////////////////////////////
 void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpy)
 {
-  this->dataPtr->transformControl.SetRPYSnap(_rpy);
+  this->dataPtr->rpySnap = _rpy;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::RPYSnap()
+{
+  return this->dataPtr->rpySnap;
 }
 
 /////////////////////////////////////////////////
 void IgnRenderer::SetScaleSnap(const math::Vector3d &_scale)
 {
-  this->dataPtr->transformControl.SetScaleSnap(_scale);
+  this->dataPtr->scaleSnap = _scale;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::ScaleSnap()
+{
+  return this->dataPtr->scaleSnap;
 }
 
 /////////////////////////////////////////////////
