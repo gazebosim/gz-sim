@@ -618,21 +618,21 @@ math::Vector3d IgnRenderer::SnapPoint(
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &axis)
+math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &_axis)
 {
   if (this->dataPtr->keyEvent.Key() == Qt::Key_X)
   {
-    axis = math::Vector3d(1, 0, 0);
+    _axis = math::Vector3d(1, 0, 0);
   }
   else if (this->dataPtr->keyEvent.Key() == Qt::Key_Y)
   {
-    axis = math::Vector3d(0, 1, 0);
+    _axis = math::Vector3d(0, 1, 0);
   }
   else if (this->dataPtr->keyEvent.Key() == Qt::Key_Z)
   {
-    axis = math::Vector3d(0, 0, 1);
+    _axis = math::Vector3d(0, 0, 1);
   }
-  return axis;
+  return _axis;
 }
 
 /////////////////////////////////////////////////
