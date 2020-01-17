@@ -1407,7 +1407,8 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
   msgs::EntityFactory req;
   req.set_sdf_filename(_drop.toStdString());
   req.set_allow_renaming(true);
-  msgs::Set(req.mutable_pose(), math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+  msgs::Set(req.mutable_pose(),
+      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
