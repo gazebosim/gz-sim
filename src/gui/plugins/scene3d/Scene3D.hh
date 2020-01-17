@@ -89,7 +89,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when receives a drop event.
     /// \param[in] _drop Dropped string.
-    public slots: void OnDropped(const QString &_drop, int _mouseX, int _mouseY);
+    /// \param[in] _mouseX x coordinate of mouse position.
+    /// \param[in] _mouseY y coordinate of mouse position.
+    public slots: void OnDropped(const QString &_drop,
+        int _mouseX, int _mouseY);
 
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
