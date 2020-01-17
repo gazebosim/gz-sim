@@ -544,12 +544,13 @@ void RenderUtilPrivate::CreateRenderingEntities(
           {
             visual.SetMaterial(material->Data());
           }
+
           // todo(anyone) make visual updates more generic without using extra
-          // variables like entityTemp just for storing one specific visual param?
+          // variables like entityTemp just for storing one specific visual
+          // param?
           auto temp = _ecm.Component<components::Temperature>(_entity);
           if (temp)
           {
-            std::cerr << " ================ got temp " << temp->Data() << std::endl;
             this->entityTemp[_entity] = temp->Data();
           }
 
