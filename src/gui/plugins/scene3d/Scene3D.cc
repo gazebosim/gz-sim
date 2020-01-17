@@ -1129,6 +1129,7 @@ void RenderWindowItem::OnContextMenuRequested(QString _entity)
   emit openContextMenu(std::move(_entity));
 }
 
+///////////////////////////////////////////////////
 math::Vector3d RenderWindowItem::ScreenToScene(const math::Vector2i &_screenPos)
 {
   return this->dataPtr->renderThread->ignRenderer.ScreenToScene(_screenPos);
