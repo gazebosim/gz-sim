@@ -357,6 +357,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
 
+    /// \brief Retrieve the first point on a surface in the 3D scene hit by a
+    /// ray cast from the given 2D screen coordinates.
+    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
+    /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos);
 
     /// \brief Slot called when thread is ready to be started
