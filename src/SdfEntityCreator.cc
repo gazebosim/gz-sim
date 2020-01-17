@@ -277,7 +277,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   }
   this->dataPtr->newVisuals.clear();
 
-
   return modelEntity;
 }
 

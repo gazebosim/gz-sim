@@ -18,8 +18,6 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
@@ -51,10 +49,6 @@ void Thermal::Configure(const Entity &_entity,
 {
   double temperature = _sdf->Get<double>("temperature");
   _ecm.CreateComponent(_entity, components::Temperature(temperature));
-
-
-  auto n = _ecm.Component<components::Name>(_entity);
-  std::cerr << "thermal system " << n->Data() << " " << temperature << std::endl;
 }
 
 
