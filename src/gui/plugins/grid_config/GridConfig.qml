@@ -7,12 +7,13 @@ import "qrc:/qml"
 Rectangle {
   id: gridconfigwindow
   color: "transparent"
-  Layout.minimumWidth: 370
-  Layout.minimumHeight: 650
+  Layout.minimumWidth: 250
+  Layout.minimumHeight: 660
 
   Column {
+    spacing: 5
     anchors.fill: parent
-    anchors.margins: 10
+    anchors.leftMargin: 20
 
     CheckBox {
       id: showgrid
@@ -30,45 +31,44 @@ Rectangle {
     }
 
     Row {
+      spacing: 25
+
       Column {
+        spacing: 2
         Text {
           id: vercelltext
           color: "dimgrey"
           text: "Vertical"
         }
 
-        SpinBox {
+        IgnSpinBox {
           id: verticalCellCount
-          from: 0
-          to: 100
+          minimumValue: 0
           value: 0
-          editable: true
-          scale: 0.8
-          onValueModified: GridConfig.UpdateVerCellCount(verticalCellCount.value)
+          onEditingFinished: GridConfig.UpdateVerCellCount(verticalCellCount.value)
         }
       }
       
       Column {
+        spacing: 2
         Text {
           id: honcelltext
           color: "dimgrey"
           text: "Horizontal"
         }
 
-        SpinBox {
+        IgnSpinBox {
           id: horizontalCellCount
-          from: 1
-          to: 100
+          minimumValue: 1
           value: 20
-          editable: true
-          scale: 0.8
-          onValueModified: GridConfig.UpdateHonCellCount(horizontalCellCount.value)
+          onEditingFinished: GridConfig.UpdateHonCellCount(horizontalCellCount.value)
         }
       }
     }
     
     Row {
       Column {
+        spacing: 2
         Text {
           id: celllengthtext
           text: "Cell Length"
@@ -76,23 +76,27 @@ Rectangle {
           font.bold: true
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: cellLength
-          from: 1
-          value: 100
-          scale: 0.8
-          onValueModified: GridConfig.UpdateCellLength(cellLength.realValue)
+          minimumValue: 0.01
+          value: 1.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.UpdateCellLength(cellLength.value)
         }
       }
     }
 
     Row {
+      spacing: 25
+
       Column {
+        spacing: 2
         Text {
           id: cartesian
           color: "dimgrey"
           font.bold: true
-          text: "Cartesian Pose (/m)"
+          text: "Position (/m)"
         }
 
         Text {
@@ -100,11 +104,13 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: x
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
+          value: 0.00
+          minimumValue: 0.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
 
         Text {
@@ -112,11 +118,13 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: y
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
+          value: 0.00
+          minimumValue: 0.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
 
         Text {
@@ -124,18 +132,21 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: z
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
+          value: 0.00
+          minimumValue: 0.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
       }
       
       Column {
+        spacing: 2
         Text {
           id: principal
-          text: "Principal Pose (/rad)"
+          text: "Rotation (/rad)"
           color: "dimgrey"
           font.bold: true
         }
@@ -145,13 +156,14 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: roll
-          from: 0
-          to: 628*100
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
+          minimumValue: 0.00
+          maximumValue: 6.28
+          value: 0.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
 
         Text {
@@ -159,13 +171,14 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: pitch
-          from: 0
-          to: 628*100
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
+          minimumValue: 0.00
+          maximumValue: 6.28
+          value: 0.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
 
         Text {
@@ -173,13 +186,14 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: yaw
-          from: 0
-          to: 628*100
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetPose(x.realValue, y.realValue, z.realValue, roll.realValue, pitch.realValue, yaw.realValue)
+          minimumValue: 0.00
+          maximumValue: 6.28
+          value: 0.00
+          decimals: 2
+          stepSize: 0.01
+          onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
       }      
     }
@@ -191,19 +205,23 @@ Rectangle {
     }
 
     Row {
+      spacing: 25
+
       Column {
+        spacing: 2
         Text {
           text: "R"
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: r
-          from: 0
-          to: 100*100
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
+          minimumValue: 0.00
+          maximumValue: 1.00
+          value: 0.70
+          stepSize: 0.01
+          decimals: 2
+          onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
         }
 
         Text {
@@ -211,42 +229,46 @@ Rectangle {
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: g
-          from: 0
-          to: 100*100
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
+          minimumValue: 0.00
+          maximumValue: 1.00
+          value: 0.70
+          stepSize: 0.01
+          decimals: 2
+          onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
         }
       }
 
       Column {
+        spacing: 2
         Text {
           text: "B"
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: b
-          from: 0
-          to: 100*100
-          value: 0
-          scale: 0.8
-          onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
+          minimumValue: 0.00
+          maximumValue: 1.00
+          value: 0.70
+          stepSize: 0.01
+          decimals: 2
+          onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
         }
         Text {
           text: "A"
           color: "dimgrey"
         }
 
-        IgnDoubleSpinBox {
+        IgnSpinBox {
           id: a
-          from: 0
-          to: 100*100
-          value: 100
-          scale: 0.8
-          onValueModified: GridConfig.SetColor(r.realValue, g.realValue, b.realValue, a.realValue)
+          minimumValue: 0.00
+          maximumValue: 1.00
+          value: 1.00
+          stepSize: 0.01
+          decimals: 2
+          onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
         }
       }
     }
