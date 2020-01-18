@@ -2,6 +2,11 @@
 
 ### Ignition Gazebo 3.X.X
 
+1. Add support for thermal camera
+    * [Pull Request 512](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/512)
+    * [Pull Request 513](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/513)
+    * [Pull Request 514](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/514)
+
 ### Ignition Gazebo 3.0.0 (2019-12-10)
 
 1. Remove <emissive> sdf element from visuals that do not emit light in the example worlds
