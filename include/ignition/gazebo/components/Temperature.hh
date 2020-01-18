@@ -29,9 +29,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// A component that stores temperature data in Kelvin
+  /// \brief A component that stores temperature data in Kelvin
   using Temperature = Component<double, class TemperatureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Temperature", Temperature)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Temperature",
+      Temperature)
 }
 }
 }

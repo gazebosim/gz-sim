@@ -47,6 +47,12 @@ void Thermal::Configure(const Entity &_entity,
     gazebo::EntityComponentManager &_ecm,
     gazebo::EventManager & /*_eventMgr*/)
 {
+  if (!_sdf->HasElement("temperature"))
+  {
+    ignerr << "Fail to load thermal system: <temperature> is not specified"
+           << std::endl;
+    return;
+  }
   double temperature = _sdf->Get<double>("temperature");
   _ecm.CreateComponent(_entity, components::Temperature(temperature));
 }
