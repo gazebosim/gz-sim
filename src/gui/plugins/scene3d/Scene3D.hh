@@ -91,6 +91,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _drop Dropped string.
     public slots: void OnDropped(const QString &_drop);
 
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
     /// \param[in] _res Response data
