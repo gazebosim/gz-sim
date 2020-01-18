@@ -152,6 +152,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
         components::Scene(*_world->Scene()));
   }
 
+  // atmosphere
+  if (_world->Atmosphere())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Atmosphere(*_world->Atmosphere()));
+  }
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -160,13 +167,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
     auto modelEntity = this->CreateEntities(model);
 
     this->SetParent(modelEntity, worldEntity);
-  }
-
-  // atmosphere
-  if (_world->Atmosphere())
-  {
-    this->dataPtr->ecm->CreateComponent(worldEntity,
-        components::Atmosphere(*_world->Atmosphere()));
   }
 
   // Actors
