@@ -40,9 +40,10 @@ namespace serializers
 
 namespace components
 {
-  /// \brief This component holds scene properties of the world.
+  /// \brief This component holds atmosphere properties of the world.
   using Atmosphere =
-      Component<sdf::Atmosphere, class AtmosphereTag, serializers::AtmosphereSerializer>;
+      Component<sdf::Atmosphere, class AtmosphereTag,
+      serializers::AtmosphereSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Atmosphere", Atmosphere)
 }
