@@ -203,8 +203,13 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   IGN_PROFILE("Buoyancy::PreUpdate");
 
-  if (!this->dataPtr->gravity || this->dataPtr->volPropsMap.empty())
+  // Only update if not paused, we were able to get the gravity vector, and
+  // fill the volume property map.
+  if (_info.paused || !this->dataPtr->gravity ||
+      this->dataPtr->volPropsMap.empty())
+  {
     return;
+  }
 
   std::vector<Entity> links = _ecm.ChildrenByComponents(
       this->dataPtr->model.Entity(), components::Link());

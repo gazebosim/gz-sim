@@ -264,7 +264,7 @@
       <plugin
         filename="libignition-gazebo-buoyancy-system.so"
         name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1999.1026</fluid_density>
+        <fluid_density>1000</fluid_density>
       </plugin>
 
     </model>
