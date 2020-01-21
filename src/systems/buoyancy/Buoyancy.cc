@@ -61,6 +61,8 @@ class ignition::gazebo::systems::BuoyancyPrivate
     public: double volume{0};
   };
 
+  public: double FluidDensity(const math::Pose3d &_pose) const;
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
@@ -75,6 +77,18 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// of volume) and volume of the link.
   public: std::map<int, VolumeProperties> volPropsMap;
 };
+
+double BuoyancyPrivate::FluidDensity(const math::Pose3d &_pose) const
+{
+  // \todo(nkoenig) Adjust the fluid density based on the provided pose.
+  // This could take into acount:
+  //   1. Transition from water to air. Currently this function is used for
+  //   a whole link, but when transitioning between mediums a link may span
+  //   both mediums. Surface tension could also be a factor.
+  //   2. Fluid density changes based on depth below the water surface and
+  //   height above water surface.
+  return this->fluidDensity;
+}
 
 //////////////////////////////////////////////////
 Buoyancy::Buoyancy()
@@ -117,7 +131,6 @@ void Buoyancy::Configure(const Entity &_entity,
     return;
   }
 
-  // Store the fluid_density, if specified.
   if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
@@ -190,6 +203,9 @@ void Buoyancy::Configure(const Entity &_entity,
       weightedPosSum += volume * pose.Pos();
     }
 
+    // \todo Make the volume propert map an ECS component. Then, this
+    // plugin can compute it once for all dynamic objects, and use the
+    // component in an "each" statement during the PreUpdate phase.
     math::Pose3d pose = worldPose(link, _ecm);
     this->dataPtr->volPropsMap[link].centerOfVolume =
       weightedPosSum / volumeSum - pose.Pos();
@@ -198,7 +214,7 @@ void Buoyancy::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo & /*_info*/,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Buoyancy::PreUpdate");
@@ -224,7 +240,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     // By Archimedes' principle,
     // buoyancy = -(mass*gravity)*fluid_density/object_density
     // object_density = mass/volume, so the mass term cancels.
-    math::Vector3d buoyancy = -this->dataPtr->fluidDensity *
+    math::Vector3d buoyancy =
+      -this->dataPtr->FluidDensity(linkWorldPose) *
       volumeProperties.volume *
       this->dataPtr->gravity->Data();
 
