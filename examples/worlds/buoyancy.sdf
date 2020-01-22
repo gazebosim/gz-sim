@@ -39,6 +39,12 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <plugin
+      filename="libignition-gazebo-buoyancy-system.so"
+      name="ignition::gazebo::systems::Buoyancy">
+      <fluid_density>1000</fluid_density>
+    </plugin>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -267,11 +273,6 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1000</fluid_density>
-      </plugin>
-      <plugin
         filename="libignition-gazebo-apply-joint-force-system.so"
         name="ignition::gazebo::systems::ApplyJointForce">
         <joint_name>propeller_joint</joint_name>
@@ -492,13 +493,6 @@
           </limit>
         </axis>
       </joint>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>999.1026</fluid_density>
-      </plugin>
-
     </model>
 
     <!-- This model should float up -->
@@ -645,13 +639,6 @@
           </limit>
         </axis>
       </joint>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>999.1026</fluid_density>
-      </plugin>
-
     </model>
 
   </world>
