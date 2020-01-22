@@ -33,6 +33,11 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-buoyancy-system.so"
+      name="ignition::gazebo::systems::Buoyancy">
+      <fluid_density>1000</fluid_density>
+    </plugin>
 
     <gui fullscreen="0">
 
@@ -98,7 +103,6 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/buoyancy/stats</topic>
-
       </plugin>
 
     </gui>
@@ -122,7 +126,7 @@
       <link name='body'>
         <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <mass>250.32741228718348</mass>
+          <mass>251.32741228718348</mass>
           <inertia>
             <ixx>86.28907821859966</ixx>
             <ixy>0</ixy>
@@ -260,12 +264,6 @@
           </limit>
         </axis>
       </joint>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1000</fluid_density>
-      </plugin>
 
     </model>
 
@@ -413,13 +411,6 @@
           </limit>
         </axis>
       </joint>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1000</fluid_density>
-      </plugin>
-
     </model>
 
     <!-- This model should float up -->
@@ -566,13 +557,6 @@
           </limit>
         </axis>
       </joint>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>1000</fluid_density>
-      </plugin>
-
     </model>
 
   </world>
