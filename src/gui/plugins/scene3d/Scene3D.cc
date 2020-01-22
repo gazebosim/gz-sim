@@ -476,7 +476,7 @@ void IgnRenderer::HandleMouseTransformControl()
   // selected
   if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE ||
       (this->dataPtr->transformControl.Node() &&
-      !this->dataPtr->renderUtil.SelectedEntity()))
+      this->dataPtr->renderUtil.SelectedEntity().empty()))
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
@@ -798,6 +798,13 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+
+  // Update selected entities if transform control is changed
+  if (!this->dataPtr->renderUtil.SelectedEntity().empty())
+  {
+    // Use last element clicked if multiple entities are selected
+    this->dataPtr->transformControl.Attach(this->dataPtr->renderUtil.SelectedEntity().back());
+  }
 }
 
 /////////////////////////////////////////////////

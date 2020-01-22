@@ -175,6 +175,8 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
+
+  public: std::vector<rendering::NodePtr> selectedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -962,11 +964,13 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
   // TODO(anyone) Support selecting multiple entities
   if (this->dataPtr->selectedEntity)
   {
+    this->dataPtr->selectedEntities.clear();
     this->dataPtr->LowlightNode(this->dataPtr->selectedEntity);
   }
 
   if (_node)
   {
+    this->dataPtr->selectedEntities.push_back(_node);
     this->dataPtr->originalEmissive.clear();
     this->dataPtr->HighlightNode(_node);
   }
@@ -975,9 +979,9 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr RenderUtil::SelectedEntity() const
+std::vector<rendering::NodePtr> RenderUtil::SelectedEntity() const
 {
-  return this->dataPtr->selectedEntity;
+  return this->dataPtr->selectedEntities;
 }
 
 /////////////////////////////////////////////////
