@@ -1,6 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="ViewAngles/">
-  <file>ViewAngles.qml</file>
+<qresource prefix="ViewAngle/">
+  <file>ViewAngle.qml</file>
   <file>view_angle_back.png</file>
   <file>view_angle_bottom.png</file>
   <file>view_angle_front.png</file>

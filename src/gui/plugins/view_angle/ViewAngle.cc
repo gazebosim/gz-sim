@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
 */
 #include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
 #include <ignition/common/Console.hh>
@@ -28,19 +28,19 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "ViewAngles.hh"
+#include "ViewAngle.hh"
 
 namespace ignition::gazebo
 {
-  class ViewAnglesPrivate
+  class ViewAnglePrivate
   {
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief Mutex to protect mode
+    /// \brief Mutex to protect angle mode
     public: std::mutex mutex;
 
-    /// \brief View Angles service name
+    /// \brief View Angle service name
     public: std::string service;
   };
 }
@@ -49,25 +49,26 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-ViewAngles::ViewAngles()
-  : gui::Plugin(), dataPtr(std::make_unique<ViewAnglesPrivate>())
+ViewAngle::ViewAngle()
+  : gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
 {
 }
 
 /////////////////////////////////////////////////
-ViewAngles::~ViewAngles() = default;
+ViewAngle::~ViewAngle() = default;
+
 /////////////////////////////////////////////////
-void ViewAngles::LoadConfig(const tinyxml2::XMLElement *)
+void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "View Angles";
+    this->title = "View Angle";
 
   // For view angle requests
-  this->dataPtr->service = "/gui/view_angles";
+  this->dataPtr->service = "/gui/view_angle";
 }
 
 /////////////////////////////////////////////////
-void ViewAngles::OnMode(const QString &_mode)
+void ViewAngle::OnAngleMode(int _x, int _y, int _z)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -76,11 +77,14 @@ void ViewAngles::OnMode(const QString &_mode)
       ignerr << "Error setting view angle mode" << std::endl;
   };
 
-  ignition::msgs::StringMsg req;
-  req.set_data(_mode.toStdString());
+  ignition::msgs::Vector3d req;
+  req.set_x(_x);
+  req.set_y(_y);
+  req.set_z(_z);
+  
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngles,
+IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngle,
                     ignition::gui::Plugin)

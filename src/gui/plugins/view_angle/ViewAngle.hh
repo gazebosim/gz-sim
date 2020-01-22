@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIEWANGLES_HH_
-#define IGNITION_GAZEBO_GUI_VIEWANGLES_HH_
+#ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
+#define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
 
 #include <memory>
 
@@ -26,33 +26,34 @@ namespace ignition
 {
 namespace gazebo
 {
-  class ViewAnglesPrivate;
+  class ViewAnglePrivate;
 
-  /// \brief TODO
-  /// \brief Provides buttons for translation, rotation, and scale
+  /// \brief Provides buttons for viewing angles
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive view angle requests.
-  class ViewAngles : public ignition::gui::Plugin
+  class ViewAngle : public ignition::gui::Plugin
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: ViewAngles();
+    public: ViewAngle();
 
     /// \brief Destructor
-    public: ~ViewAngles() override;
+    public: ~ViewAngle() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief Callback in Qt thread when mode changes.
-    /// \param[in] _mode New view angle mode
-    public slots: void OnMode(const QString &_mode);
+    /// \brief Callback in Qt thread when angle mode changes.
+    /// \param[in] _x x coordinate of desired camera pose
+    /// \param[in] _y y coordinate of desired camera pose
+    /// \param[in] _z z coordinate of desired camera pose
+    public slots: void OnAngleMode(int _x, int _y, int _z);
 
     /// \internal
     /// \brief Pointer to private data.
-    private: std::unique_ptr<ViewAnglesPrivate> dataPtr;
+    private: std::unique_ptr<ViewAnglePrivate> dataPtr;
   };
 }
 }
