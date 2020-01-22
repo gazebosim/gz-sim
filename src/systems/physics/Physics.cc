@@ -67,7 +67,6 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/Link.hh"
 
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
