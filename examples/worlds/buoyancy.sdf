@@ -479,7 +479,7 @@
 
       </link>
 
-      <joint name='spinning_joint' type='revolute'>
+      <joint name='propeller_joint' type='revolute'>
         <parent>body</parent>
         <child>propeller</child>
         <axis>
@@ -625,7 +625,7 @@
 
       </link>
 
-      <joint name='spinning_joint' type='revolute'>
+      <joint name='propeller_joint' type='revolute'>
         <parent>body</parent>
         <child>propeller</child>
         <axis>
