@@ -20,6 +20,7 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
 #include <ignition/msgs/video_record.pb.h>
 
 #include <string>
@@ -119,6 +120,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a view angle request
+    /// \param[in] _msg Request message to set the camera to.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewAngle(const msgs::Vector3d &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -175,6 +183,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
 
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is when following a target that is not
+    ///  present on startup but spawned later into simulation
+    public: void SetViewAngle(const math::Vector3d &_direction);
+
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
@@ -227,6 +242,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when a move to animation is complete
     private: void OnMoveToComplete();
+
+    /// \brief Callback when a view angle animation is complete
+    private: void OnLookDirectionComplete();
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
@@ -336,6 +354,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// on startup but spawned later into simulation
     public Q_SLOTS: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
+
+    /// \brief Move the user camera to follow the speficied target
+    /// \param[in] _target Target to follow
+    /// \param[in] _waitForTarget True to continuously look for the target
+    /// to follow. A typical use case is follow a target that is not present
+    /// on startup but spawned later into simulation
+    public: void SetViewAngle(const math::Vector3d &_direction);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
