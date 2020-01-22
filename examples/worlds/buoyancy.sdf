@@ -38,7 +38,6 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
     <plugin
       filename="libignition-gazebo-buoyancy-system.so"
       name="ignition::gazebo::systems::Buoyancy">
@@ -109,7 +108,6 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/buoyancy/stats</topic>
-
       </plugin>
 
     </gui>
