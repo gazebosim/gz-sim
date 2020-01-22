@@ -31,14 +31,19 @@ namespace systems
   // Forward declaration
   class BuoyancyPrivate;
 
-  /// \brief A system that simulates buoyancy of an object immersed in fluid.
-  /// All SDF parameters are optional.
+  /// \brief A system that simulates buoyancy of objects immersed in fluid.
+  /// All SDF parameters are optional. This system must be attached to the
+  /// world and this system will apply buoyancy to all links that have interia
+  /// and collision shapes.
+  ///
+  /// The volume and center of volume will be computed for each link, and
+  /// stored as components. During each iteration, Archimedes' principle is
+  /// applied to each link with a volume and center of volume component.
   ///
   /// ## System Parameters
   ///
   /// * <fluid_density> sets the density of the fluid that surrounds the buoyant
-  /// object. This plugin will compute the volume and center of volume of a
-  /// the model from each link's collision shapes.
+  /// object.
   ///
   /// ## Example
   ///

@@ -32,12 +32,14 @@
 
 #include <sdf/sdf.hh>
 
+#include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
@@ -51,18 +53,10 @@ using namespace systems;
 
 class ignition::gazebo::systems::BuoyancyPrivate
 {
-  /// \brief A class for storing the volume properties of a link.
-  public: class VolumeProperties
-  {
-    /// \brief Center of volume in the link frame.
-    public: ignition::math::Vector3d centerOfVolume;
-
-    /// \brief Volume of this link.
-    public: double volume{0};
-  };
+  public: double FluidDensity(const math::Pose3d &_pose) const;
 
   /// \brief Model interface
-  public: Model model{kNullEntity};
+  public: Entity world{kNullEntity};
 
   /// \brief Pointer to the gravity component.
   public: const components::Gravity *gravity{nullptr};
@@ -70,11 +64,20 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// \brief The density of the fluid in which the object is submerged in
   /// kg/m^3. Defaults to 1000, the fluid density of water.
   public: double fluidDensity{1000};
-
-  /// \brief Map of <link ID, point> pairs mapping link IDs to the CoV (center
-  /// of volume) and volume of the link.
-  public: std::map<int, VolumeProperties> volPropsMap;
 };
+
+//////////////////////////////////////////////////
+double BuoyancyPrivate::FluidDensity(const math::Pose3d & /*_pose*/) const
+{
+  // \todo(nkoenig) Adjust the fluid density based on the provided pose.
+  // This could take into acount:
+  //   1. Transition from water to air. Currently this function is used for
+  //   a whole link, but when transitioning between mediums a link may span
+  //   both mediums. Surface tension could also be a factor.
+  //   2. Fluid density changes based on depth below the water surface and
+  //   height above water surface.
+  return this->fluidDensity;
+}
 
 //////////////////////////////////////////////////
 Buoyancy::Buoyancy()
@@ -89,52 +92,56 @@ void Buoyancy::Configure(const Entity &_entity,
     EventManager &/*_eventMgr*/)
 {
   // Store this model.
-  this->dataPtr->model = Model(_entity);
-
-  // Make sure this plugin is attached to a model.
-  if (!this->dataPtr->model.Valid(_ecm))
-  {
-    ignerr << "Buoyancy plugin should be attached to a model "
-      << "entity. Failed to initialize." << std::endl;
-    return;
-  }
-
-  // TODO(anyone) If systems are assumed to only have one world, we should
-  // capture the world Entity in a Configure call
-  Entity world = _ecm.EntityByComponents(components::World());
-
-  if (world == kNullEntity)
-  {
-    ignerr << "Missing world entity.\n";
-    return;
-  }
+  this->dataPtr->world = _entity;
 
   // Get the gravity (defined in world frame)
-  this->dataPtr->gravity = _ecm.Component<components::Gravity>(world);
+  this->dataPtr->gravity = _ecm.Component<components::Gravity>(
+      this->dataPtr->world);
   if (!this->dataPtr->gravity)
   {
-    ignerr << "World is missing gravity." << std::endl;
+    ignerr << "Unable to get the gravity vector. Make sure this plugin is "
+      << "attached to a <world>, not a <model>." << std::endl;
     return;
   }
 
-  // Store the fluid_density, if specified.
   if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
+}
 
-  // Capture the volume of the model by iterating over all the collision
-  // elements and storing each geometry's volume.
-  std::vector<Entity> links = _ecm.ChildrenByComponents(
-      this->dataPtr->model.Entity(), components::Link());
-  for (const Entity &link : links)
+//////////////////////////////////////////////////
+void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("Buoyancy::PreUpdate");
+
+  // Compute the volume and center of volume for each new link
+  _ecm.EachNew<components::Link, components::Inertial>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Inertial *) -> bool
   {
+    // Skip if the entity already has a volume and center of volume
+    if (_ecm.EntityHasComponentType(_entity,
+          components::CenterOfVolume().TypeId()) &&
+        _ecm.EntityHasComponentType(_entity,
+          components::Volume().TypeId()))
+    {
+      return true;
+    }
+
+    Link link(_entity);
+
     std::vector<Entity> collisions = _ecm.ChildrenByComponents(
-        link, components::Collision());
+        _entity, components::Collision());
 
     double volumeSum = 0;
-    ignition::math::Vector3d weightedPosSum = ignition::math::Vector3d::Zero;
+    ignition::math::Vector3d weightedPosSum =
+      ignition::math::Vector3d::Zero;
 
+    // Compute the volume of the link by iterating over all the collision
+    // elements and storing each geometry's volume.
     for (const Entity &collision : collisions)
     {
       double volume = 0;
@@ -143,7 +150,7 @@ void Buoyancy::Configure(const Entity &_entity,
 
       if (!coll)
       {
-        std::cerr << "Invalid collision??\n";
+        ignerr << "Invalid collision pointer. This shouldn't happend\n";
         continue;
       }
 
@@ -159,7 +166,8 @@ void Buoyancy::Configure(const Entity &_entity,
           volume = coll->Data().Geom()->CylinderShape()->Shape().Volume();
           break;
         case sdf::GeometryType::PLANE:
-          ignwarn << "Plane shapes are not supported by the Buoyancy plugin.\n";
+          ignwarn <<
+            "Plane shapes are not supported by the Buoyancy plugin.\n";
           break;
         case sdf::GeometryType::MESH:
           {
@@ -190,79 +198,81 @@ void Buoyancy::Configure(const Entity &_entity,
       weightedPosSum += volume * pose.Pos();
     }
 
-    math::Pose3d pose = worldPose(link, _ecm);
-    this->dataPtr->volPropsMap[link].centerOfVolume =
-      weightedPosSum / volumeSum - pose.Pos();
-    this->dataPtr->volPropsMap[link].volume = volumeSum;
-  }
-}
+    // Store the center of volume
+    if (!_ecm.EntityHasComponentType(_entity,
+          components::CenterOfVolume().TypeId()))
+    {
+      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
+      _ecm.CreateComponent(_entity, components::CenterOfVolume(
+            weightedPosSum / volumeSum - linkWorldPose.Pos()));
+    }
 
-//////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("Buoyancy::PreUpdate");
+    // Store the volume
+    if (!_ecm.EntityHasComponentType(_entity,
+          components::Volume().TypeId()))
+    {
+      _ecm.CreateComponent(_entity, components::Volume(volumeSum));
+    }
 
-  // Only update if not paused, we were able to get the gravity vector, and
-  // fill the volume property map.
-  if (_info.paused || !this->dataPtr->gravity ||
-      this->dataPtr->volPropsMap.empty())
-  {
+    return true;
+  });
+
+  // Only update if not paused.
+  if (_info.paused)
     return;
-  }
 
-  std::vector<Entity> links = _ecm.ChildrenByComponents(
-      this->dataPtr->model.Entity(), components::Link());
-  for (const Entity &link : links)
-  {
-    // The volume properties of the link
-    BuoyancyPrivate::VolumeProperties volumeProperties =
-      this->dataPtr->volPropsMap[link];
-
-    // The link's inertia
-    const components::Inertial *inertial =
-      _ecm.Component<components::Inertial>(link);
-
-    // World pose of the link.
-    math::Pose3d linkWorldPose = worldPose(link, _ecm);
-
-    // By Archimedes' principle,
-    // buoyancy = -(mass*gravity)*fluid_density/object_density
-    // object_density = mass/volume, so the mass term cancels.
-    math::Vector3d buoyancy = -this->dataPtr->fluidDensity *
-      volumeProperties.volume *
-      this->dataPtr->gravity->Data();
-
-    // Get the offset of the center of volume from the interial frame.
-    math::Vector3d offset = volumeProperties.centerOfVolume -
-      inertial->Data().Pose().Pos();
-    // Convert the offset to the world frame
-    math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(offset);
-    // Compute the torque that should be applied due to buoyancy and
-    // the volume offset.
-    math::Vector3d torque = offsetWorld.Cross(buoyancy);
-
-    // Apply the wrench to the link. This wrench is applied in the
-    // Physics System.
-    msgs::Wrench wrench;
-    msgs::Set(wrench.mutable_force(), buoyancy);
-    msgs::Set(wrench.mutable_torque(), torque);
-    components::ExternalWorldWrenchCmd newWrenchComp(wrench);
-
-    auto currWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(link);
-    if (currWrenchComp)
+  _ecm.Each<components::Link,
+            components::Inertial,
+            components::Volume,
+            components::CenterOfVolume>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Inertial *_inertial,
+          const components::Volume *_volume,
+          const components::CenterOfVolume *_centerOfVolume) -> bool
     {
-      // \todo(nkoenig) This overwrites the current wrench component. When
-      // we added propellers to a vehicle, then we will need to add the
-      // force applied by the propellers to the force applied by buoyancy.
-      *currWrenchComp = newWrenchComp;
-    }
-    else
-    {
-      _ecm.CreateComponent(link, newWrenchComp);
-    }
-  }
+      // World pose of the link.
+      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
+
+      // By Archimedes' principle,
+      // buoyancy = -(mass*gravity)*fluid_density/object_density
+      // object_density = mass/volume, so the mass term cancels.
+      math::Vector3d buoyancy =
+        -this->dataPtr->FluidDensity(linkWorldPose) *
+        _volume->Data() *
+        this->dataPtr->gravity->Data();
+
+      // Get the offset of the center of volume from the interial frame.
+      math::Vector3d offset = _centerOfVolume->Data() -
+        _inertial->Data().Pose().Pos();
+      // Convert the offset to the world frame
+      math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(offset);
+      // Compute the torque that should be applied due to buoyancy and
+      // the volume offset.
+      math::Vector3d torque = offsetWorld.Cross(buoyancy);
+
+      // Apply the wrench to the link. This wrench is applied in the
+      // Physics System.
+      msgs::Wrench wrench;
+      msgs::Set(wrench.mutable_force(), buoyancy);
+      msgs::Set(wrench.mutable_torque(), torque);
+      components::ExternalWorldWrenchCmd newWrenchComp(wrench);
+
+      components::ExternalWorldWrenchCmd *currWrenchComp =
+        _ecm.Component<components::ExternalWorldWrenchCmd>(_entity);
+      if (currWrenchComp)
+      {
+        // \todo(nkoenig) This overwrites the current wrench component. When
+        // we added propellers to a vehicle, then we will need to add the
+        // force applied by the propellers to the force applied by buoyancy.
+        *currWrenchComp = newWrenchComp;
+      }
+      else
+      {
+        _ecm.CreateComponent(_entity, newWrenchComp);
+      }
+      return true;
+  });
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,
