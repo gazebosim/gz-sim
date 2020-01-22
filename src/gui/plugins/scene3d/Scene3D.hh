@@ -215,6 +215,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Camera follow offset position.
     public: math::Vector3d FollowOffset() const;
 
+    public: void SetInitCameraPose(const math::Pose3d &_pose);
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
@@ -331,6 +333,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the initial user camera pose
     /// \param[in] _pose Pose to set the camera to
     public: void SetCameraPose(const math::Pose3d &_pose);
+
+    /// \brief Set the initial user camera pose
+    /// \param[in] _pose Pose to set the camera to
+    public: void SetInitCameraPose(const math::Pose3d &_pose);
 
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
