@@ -22,7 +22,6 @@ ToolBar {
     ToolButton {
       id: top
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "View from the top"
       ToolTip.visible: hovered
@@ -37,7 +36,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
@@ -61,7 +59,6 @@ ToolBar {
     ToolButton {
       id: home
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "Reset View Angle"
       ToolTip.visible: hovered
@@ -76,7 +73,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
@@ -100,7 +96,6 @@ ToolBar {
     ToolButton {
       id: left
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "View from the left"
       ToolTip.visible: hovered
@@ -115,7 +110,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
@@ -139,7 +133,6 @@ ToolBar {
     ToolButton {
       id: front
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "View from the front"
       ToolTip.visible: hovered
@@ -154,7 +147,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
@@ -178,7 +170,6 @@ ToolBar {
     ToolButton {
       id: right
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "View from the right"
       ToolTip.visible: hovered
@@ -193,7 +184,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
@@ -217,7 +207,6 @@ ToolBar {
     ToolButton {
       id: back
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "View from the back"
       ToolTip.visible: hovered
@@ -232,7 +221,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
@@ -256,7 +244,6 @@ ToolBar {
     ToolButton {
       id: bottom
       checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "View from the bottom"
       ToolTip.visible: hovered
@@ -271,7 +258,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
         implicitHeight: 48
