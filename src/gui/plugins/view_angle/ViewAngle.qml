@@ -55,7 +55,7 @@ ToolBar {
         color: top.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(0, 0, -1)
       }
     }
     ToolButton {
@@ -94,7 +94,7 @@ ToolBar {
         color: home.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(0, 0, 0)
       }
     }
     ToolButton {
@@ -133,7 +133,7 @@ ToolBar {
         color: left.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(0, 1, 0)
       }
     }
     ToolButton {
@@ -172,7 +172,7 @@ ToolBar {
         color: front.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(-1, 0, 0)
       }
     }
     ToolButton {
@@ -211,7 +211,7 @@ ToolBar {
         color: right.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(0, -1, 0)
       }
     }
     ToolButton {
@@ -250,7 +250,7 @@ ToolBar {
         color: back.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(1, 0, 0)
       }
     }
     ToolButton {
@@ -289,7 +289,7 @@ ToolBar {
         color: bottom.Material.rippleColor
       }
       onClicked: {
-        // Setter function here
+        ViewAngle.OnAngleMode(0, 0, 1)
       }
     }
   }
