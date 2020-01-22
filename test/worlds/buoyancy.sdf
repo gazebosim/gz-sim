@@ -19,6 +19,12 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <plugin
+      filename="libignition-gazebo-buoyancy-system.so"
+      name="ignition::gazebo::systems::Buoyancy">
+      <fluid_density>1000</fluid_density>
+    </plugin>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -248,11 +254,6 @@
 
       <allow_auto_disable>1</allow_auto_disable>
 
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>999.1026</fluid_density>
-      </plugin>
     </model>
 
     <model name='submarine_sinking'>
@@ -399,13 +400,6 @@
       </joint>
 
       <allow_auto_disable>1</allow_auto_disable>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>999.1026</fluid_density>
-      </plugin>
-
     </model>
 
     <model name='submarine_buoyant'>
@@ -553,12 +547,6 @@
       </joint>
 
       <allow_auto_disable>1</allow_auto_disable>
-
-      <plugin
-        filename="libignition-gazebo-buoyancy-system.so"
-        name="ignition::gazebo::systems::Buoyancy">
-        <fluid_density>999.1026</fluid_density>
-      </plugin>
     </model>
 
   </world>
