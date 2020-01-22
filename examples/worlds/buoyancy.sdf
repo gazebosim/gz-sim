@@ -37,9 +37,9 @@
     <plugin
       filename="libignition-gazebo-buoyancy-system.so"
       name="ignition::gazebo::systems::Buoyancy">
-      <fluid_density>999.1026</fluid_density>
+      <fluid_density>1000</fluid_density>
     </plugin>
- 
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -412,7 +412,7 @@
           </limit>
         </axis>
       </joint>
-   </model>
+    </model>
 
     <!-- This model should float up -->
     <model name='submarine_buoyant'>
@@ -558,7 +558,7 @@
           </limit>
         </axis>
       </joint>
-   </model>
+    </model>
 
   </world>
 </sdf>
