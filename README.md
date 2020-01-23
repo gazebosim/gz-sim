@@ -122,7 +122,7 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo2-dev
+    sudo apt-get install libignition-gazebo4-dev
     ```
 
 ## Source Install (version 3)
