@@ -15,6 +15,7 @@
  *
 */
 
+#include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/entity.pb.h>
@@ -32,10 +33,12 @@
 
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/Temperature.hh>
 
 #include <ignition/common/Console.hh>
 
 #include <sdf/Actor.hh>
+#include <sdf/Atmosphere.hh>
 #include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
@@ -647,6 +650,40 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
   out.SetShadows(_in.shadows());
   out.SetGrid(_in.grid());
   out.SetOriginVisual(_in.origin_visual());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
+{
+  msgs::Atmosphere out;
+  out.set_temperature(_in.Temperature().Kelvin());
+  out.set_pressure(_in.Pressure());
+  if (_in.Type() == sdf::AtmosphereType::ADIABATIC)
+  {
+    out.set_type(msgs::Atmosphere::ADIABATIC);
+  }
+  // todo(anyone) add mass density to sdf::Atmosphere?
+  // out.set_mass_density(_in.MassDensity());k
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Atmosphere ignition::gazebo::convert(const msgs::Atmosphere &_in)
+{
+  sdf::Atmosphere out;
+  out.SetTemperature(math::Temperature(_in.temperature()));
+  out.SetPressure(_in.pressure());
+  // todo(anyone) add temperature gradient to msgs::Atmosphere?
+
+  if (_in.type() == msgs::Atmosphere::ADIABATIC)
+  {
+    out.SetType(sdf::AtmosphereType::ADIABATIC);
+  }
+
   return out;
 }
 
