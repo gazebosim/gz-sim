@@ -291,7 +291,6 @@ void IgnRenderer::Render()
       emit FollowTargetChanged(std::string(), false);
     }
   }
-
   // update and render to texture
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
@@ -480,7 +479,6 @@ void IgnRenderer::HandleMouseTransformControl()
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
-
     this->dataPtr->transformControl.Detach();
   }
   else
@@ -802,8 +800,15 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   // Update selected entities if transform control is changed
   if (!this->dataPtr->renderUtil.SelectedEntity().empty())
   {
+    std::string nodeName = this->dataPtr->renderUtil.SelectedEntity().back();
+    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = scene->NodeByName(nodeName);
+
     // Use last element clicked if multiple entities are selected
-    this->dataPtr->transformControl.Attach(this->dataPtr->renderUtil.SelectedEntity().back());
+    if (target)
+    {
+      this->dataPtr->transformControl.Attach(target);
+    }
   }
 }
 
