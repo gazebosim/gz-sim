@@ -291,6 +291,7 @@ void IgnRenderer::Render()
       emit FollowTargetChanged(std::string(), false);
     }
   }
+
   // update and render to texture
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
@@ -479,6 +480,7 @@ void IgnRenderer::HandleMouseTransformControl()
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
+
     this->dataPtr->transformControl.Detach();
   }
   else
@@ -804,6 +806,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = scene->NodeByName(nodeName);
 
+    // TODO(john) Deselect all other entities except the most recent in this case
     // Use last element clicked if multiple entities are selected
     if (target)
     {
