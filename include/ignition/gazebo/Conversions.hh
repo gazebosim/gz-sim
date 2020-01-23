@@ -392,13 +392,14 @@ namespace ignition
       Out::ConversionNotImplemented;
     }
 
-    /// \brief Specialized conversion from an SDF atmosphere to a scene message
+    /// \brief Specialized conversion from an SDF atmosphere to an atmosphere
+    /// message
     /// \param[in] _in SDF atmosphere.
     /// \return Atmosphere message.
     template<>
     msgs::Atmosphere convert(const sdf::Atmosphere &_in);
 
-    /// \brief Generic conversion from a atmosphere message to another type.
+    /// \brief Generic conversion from an atmosphere message to another type.
     /// \param[in] _in Atmosphere message.
     /// \return Conversion result.
     /// \tparam Out Output type.
@@ -408,8 +409,8 @@ namespace ignition
       Out::ConversionNotImplemented;
     }
 
-    /// \brief Specialized conversion from a scene message to a scene
-    /// SDF object.
+    /// \brief Specialized conversion from an atmosphere message to an
+    /// atmosphere SDF object.
     /// \param[in] _in Atmosphere message.
     /// \return SDF scene.
     template<>
