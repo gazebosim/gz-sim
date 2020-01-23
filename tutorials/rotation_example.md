@@ -1,4 +1,4 @@
-# Rotation example
+\page rotation_example Rotation example
 
 This example explains how to use quaternions, euler angles and convert between them.
 

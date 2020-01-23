@@ -1,4 +1,4 @@
-# Vector example
+\page example_vector2 Vector example
 
 This tutorial explains how to use the vector class from ignition math library.
 

@@ -1,4 +1,4 @@
-# Triangle example
+\page example_triangle Triangle example
 
 To compile the code, go to `ign-math/examples` and use `cmake` to compile the code:
 

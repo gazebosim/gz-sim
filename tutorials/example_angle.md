@@ -1,4 +1,4 @@
-# Angle example
+\page example_angle Angle example
 
 This tutorial explains how to use the angle class from ignition math library.
 
