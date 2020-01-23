@@ -1,12 +1,12 @@
 \page example_angle Angle example
 
-This tutorial explains how to use the angle class from ignition math library.
+This tutorial explains how to use the `Angle` class from Ignition Math library.
 
-## CPP example
+## C++ example
 
 ### Compile the code
 
-To compile the code, go to `ign-math/examples` and use `cmake` to compile the code:
+Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
 cd ign-math/examples
@@ -16,7 +16,7 @@ cmake ..
 make
 ```
 
-When the code is compiled just run:
+When the code is compiled, run:
 
 ```{.sh}
 ./angle_example
@@ -41,7 +41,7 @@ The code declares an angle class. The default constructed angle should be zero.
 ignition::math::Angle a;
 ```
 
-There are some predefined angles such as:
+There are some predefined angles, such as:
 
 ```{.cpp}
 // PI
@@ -49,7 +49,7 @@ ignition::math::Angle a = ignition::math::Angle::Pi;
 ignition::math::Angle a_half = ignition::math::Angle::HalfPi;
 ```
 
-By the default all the value are in radians, but you can use the method `Degree` to convert it to degrees.
+By default, all values are in radians, but you can use the method `Degree` to convert to degrees.
 
 ```{.cpp}
 // Output the angle in radians and degrees.
@@ -57,13 +57,13 @@ std::cout << "Pi in radians: " << a << std::endl;
 std::cout << "Pi in degrees: " << a.Degree() << std::endl;
 ```
 
-The Angle class overloads the +=, and many other, math operators.
+The `Angle` class overloads the `+=`, and many other, math operators.
 
 ```{.cpp}
 a += ignition::math::Angle::HalfPi;
 ```
 
-Use the method `Normalized` to bounded the value between `-PI` and `PI`
+Use the method `Normalized` to bound the value between `-PI` and `PI`.
 
 ```{.cpp}
 std::cout << "Normalized to the range -Pi and Pi: "
@@ -72,7 +72,7 @@ std::cout << "Normalized to the range -Pi and Pi: "
 
 ## Ruby example
 
-This example will only work if the Ruby interface library was compiled and installed. Modify the `RUBYLIB` environment variable to include the ignition math library install path. For example, if you install to ``/usr`:
+This example will only work if the Ruby interface library was compiled and installed. Modify the `RUBYLIB` environment variable to include the Ignition Math library install path. For example, if you install to `/usr`:
 
 ```{.sh}
 export RUBYLIB=/usr/lib/ruby:$RUBYLIB
@@ -94,7 +94,6 @@ printf("PI in degrees = %f\n", Ignition::Math::Angle.Pi.Degree)
 
 Create new objects:
 
-
 ```{.rb}
 a1 = Ignition::Math::Angle.new(1.5707)
 a2 = Ignition::Math::Angle.new(0.7854)
@@ -107,7 +106,7 @@ printf("a1 = %f radians, %f degrees\n", a1.Radian, a1.Degree)
 printf("a2 = %f radians, %f degrees\n", a2.Radian, a2.Degree)
 ```
 
-The Angle class overloads math operators.
+The `Angle` class overloads math operators.
 
 ```{.rb}
 printf("a1 * a2 = %f radians, %f degrees\n", (a1 * a2).Radian, (a1 * a2).Degree)
