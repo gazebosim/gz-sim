@@ -264,9 +264,11 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
-    this->textureId = this->dataPtr->camera->RenderTextureGLId();
     this->textureDirty = false;
   }
+
+  // texture id could change so get the value in every render update
+  this->textureId = this->dataPtr->camera->RenderTextureGLId();
 
   // update the scene
   this->dataPtr->renderUtil.SetTransformActive(
