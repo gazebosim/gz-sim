@@ -176,7 +176,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
 
-  public: std::vector<rendering::NodePtr> selectedEntities;
+  public: std::vector<std::string> selectedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -378,6 +378,20 @@ void RenderUtil::Update()
 
       node->SetLocalPose(pose.second);
     }
+  }
+
+  // update selected entities
+  if (!this->dataPtr->selectedEntities.empty())
+  {
+    rendering::ScenePtr scene = this->dataPtr->scene;
+    this->dataPtr->selectedEntities.erase(std::remove_if(
+          this->dataPtr->selectedEntities.begin(),
+          this->dataPtr->selectedEntities.end(),
+          [scene](const std::string &_node)
+          {
+            rendering::NodePtr target = scene->NodeByName(_node);
+            return !target;
+          }), this->dataPtr->selectedEntities.end());
   }
 }
 
@@ -970,7 +984,7 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 
   if (_node)
   {
-    this->dataPtr->selectedEntities.push_back(_node);
+    this->dataPtr->selectedEntities.push_back(_node->Name());
     this->dataPtr->originalEmissive.clear();
     this->dataPtr->HighlightNode(_node);
   }
@@ -979,7 +993,7 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 }
 
 /////////////////////////////////////////////////
-std::vector<rendering::NodePtr> RenderUtil::SelectedEntity() const
+std::vector<std::string> RenderUtil::SelectedEntity() const
 {
   return this->dataPtr->selectedEntities;
 }
