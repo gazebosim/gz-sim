@@ -1,10 +1,10 @@
 \page rotation_example Rotation example
 
-This example explains how to use quaternions, euler angles and convert between them.
+This example explains how to use quaternions and euler angles, and how to convert between them.
 
 ## Compiling and running the code
 
-To compile the code, go to `ign-math/examples` and use `cmake` to compile the code:
+Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
 cd ign-math/examples
@@ -24,7 +24,7 @@ Example
   quaternion_to_euler 0.5 0.5 0.5 0.5
 ```
 
-and the other one converts from euler to quaternion:
+And the other which converts from euler to quaternion:
 
 ```{.sh}
 Usage (angles specified in radians):
@@ -34,31 +34,7 @@ Example
   quaternion_from_euler 0 0 1.57
 ```
 
-The ouput of the program:
-
-```{.sh}
-./quaternion_from_euler 0 0 1.57
-Converting Euler angles:
- roll   0.000000 radians
- pitch  0.000000 radians
- yaw    1.570000 radians
-
- roll      0.000000 degrees
- pitch     0.000000 degrees
- yaw      89.954374 degrees
-
-to Quaternion
- W  0.707388
- X  0.000000
- Y  0.000000
- Z  0.706825
-
-to Rotation matrix
-    0.000796  -1.000000   0.000000
-    1.000000   0.000796   0.000000
-    0.000000   0.000000   1.000000
-```
-
+The ouput of each program, respectively:
 
 ```{.sh}
 ./quaternion_to_euler 0.5 0.5 0.5 0.5
@@ -88,6 +64,29 @@ to Rotation matrix
     0.000000   1.000000   0.000000
 ```
 
+```{.sh}
+./quaternion_from_euler 0 0 1.57
+Converting Euler angles:
+ roll   0.000000 radians
+ pitch  0.000000 radians
+ yaw    1.570000 radians
+
+ roll      0.000000 degrees
+ pitch     0.000000 degrees
+ yaw      89.954374 degrees
+
+to Quaternion
+ W  0.707388
+ X  0.000000
+ Y  0.000000
+ Z  0.706825
+
+to Rotation matrix
+    0.000796  -1.000000   0.000000
+    1.000000   0.000796   0.000000
+    0.000000   0.000000   1.000000
+```
+
 ## Code
 
 You can create some objects to express rotations:
@@ -106,7 +105,7 @@ printf(" W % .6f\n X % .6f\n Y % .6f\n Z % .6f\n",
       q.W(), q.X(), q.Y(), q.Z());
 ```
 
-or to acccess the rotation matrix elements.
+Or to acccess the rotation matrix elements:
 
 ```{.cpp}
 std::cout << "\nto Rotation matrix\n";
