@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -145,6 +146,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   {
     this->dataPtr->ecm->CreateComponent(worldEntity,
         components::Scene(*_world->Scene()));
+  }
+
+  // atmosphere
+  if (_world->Atmosphere())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Atmosphere(*_world->Atmosphere()));
   }
 
   // Models
