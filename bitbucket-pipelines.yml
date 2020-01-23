@@ -28,14 +28,14 @@ pipelines:
               libignition-tools-dev
               libignition-transport8-dev
               libsdformat9-dev
-              # libignition-fuel-tools4-dev
-              # libignition-physics2-dev
-              # libignition-sensors3-dev
+              libignition-fuel-tools4-dev
+              libignition-physics2-dev
+              libignition-sensors3-dev
           # METHOD 2: Build from source
           # Build dependencies from source using a given branch
-          - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
+          # - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
+          # - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
+          # - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
           # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
