@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_ATMOSPHERE_HH_
 #define IGNITION_GAZEBO_COMPONENTS_ATMOSPHERE_HH_
 
-#include <ignition/msgs/scene.pb.h>
-
 #include <sdf/Atmosphere.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
