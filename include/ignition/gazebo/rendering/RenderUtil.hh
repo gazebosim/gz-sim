@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <map>
 
 #include <sdf/Sensor.hh>
 
@@ -119,7 +120,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the entity being selected
     /// \return Node representing the selected entity
-    public: std::vector<std::string> SelectedEntity() const;
+    public: std::map<Entity, Entity> SelectedEntity() const;
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.
