@@ -476,7 +476,7 @@ void IgnRenderer::HandleMouseTransformControl()
   // selected
   if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE ||
       (this->dataPtr->transformControl.Node() &&
-      !this->dataPtr->renderUtil.SelectedEntity()))
+      this->dataPtr->renderUtil.SelectedEntity().empty()))
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
@@ -798,6 +798,22 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+
+  // Update selected entities if transform control is changed
+  if (!this->dataPtr->renderUtil.SelectedEntity().empty())
+  {
+    Entity nodeId =
+      (*(this->dataPtr->renderUtil.SelectedEntity().rbegin())).second;
+    rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = sceneManager->NodeById(nodeId);
+
+    // TODO(john) Deselect all other entities except the most recent in this
+    // case; Use last element clicked if multiple entities are selected
+    if (target)
+    {
+      this->dataPtr->transformControl.Attach(target);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
