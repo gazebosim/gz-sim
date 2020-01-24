@@ -453,14 +453,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Material(*_visual->Material()));
   }
 
-  // visual plugin element to be loaded in rendering thread
-  sdf::ElementPtr sdf = _visual->Element();
-  if (sdf->HasElement("plugin"))
-  {
-    // Keep track of visuals so we can load their plugins after loading the
-    // entire model and having its full scoped name.
-    this->dataPtr->newVisuals[visualEntity] = _visual->Element();
-  }
+  // Keep track of visuals so we can load their plugins after loading the
+  // entire model and having its full scoped name.
+  this->dataPtr->newVisuals[visualEntity] = _visual->Element();
 
   return visualEntity;
 }

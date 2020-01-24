@@ -18,6 +18,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
