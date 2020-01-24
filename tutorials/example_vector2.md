@@ -9,7 +9,7 @@ This tutorial explains how to use the `Vector` class from Ignition Math library.
 To compile the code, go to `ign-math/examples` and use `cmake`:
 
 ```{.sh}
-hg clone https://bitbucket.org/ignitionrobotics/ign-math
+hg clone https://bitbucket.org/ignitionrobotics/ign-math/
 cd ign-math/examples
 mkdir build
 cd build
@@ -44,48 +44,32 @@ Vec2b: x=1.2 y=3.4
 
 Create a `Vector2` called `vec2` of doubles using the typedef `Vector2d`. **The initial x and y values are zero**. The x and y component of `vec2` can be set at anytime.
 
-```{.cpp}
-ignition::math::Vector2d vec2;
-vec2.Set(2.0, 4.0);
-```
+\snippet examples/vector2_example.cc constructor
+
 
 The `Vector2` class is a template, so you can also create a `Vector2` using `ignition::math::Vector2<double>`:
 
-```{.cpp}
-ignition::math::Vector2<double> vec2a;
-vec2a.Set(1.0, 2.0);
-```
+\snippet examples/vector2_example.cc constructor2
 
 It's also possible to set initial values. Here we are using a `Vector2` of floats:
 
-```{.cpp}
-ignition::math::Vector2f vec2b(1.2f, 3.4f);
-```
+\snippet examples/vector2_example.cc constructor3
 
 We can output the contents of each vector using `std::cout`.
 
-```{.cpp}
-std::cout << "Vec2: " << vec2 << "\n"
-          << "Vec2a: " << vec2a << "\n"
-          << "Vec2b: " << vec2b << "\n";
-```
+\snippet examples/vector2_example.cc stdout
 
 You can also get access to each component in the vector using the `X()`, `Y()` accessors or the `[]` operator, The operator is clamped to the range `[0, 1]`.
 
+\snippet examples/vector2_example.cc access
+
 The `Vector2` class overloads many common operators, such as:
 
-```{.cpp}
-std::cout << vec2 * vec2a << "\n"
-          << vec2 + vec2a << "\n"
-          << vec2 - vec2a << "\n"
-          << vec2 / vec2a << "\n";
-```
+\snippet examples/vector2_example.cc operators
 
 There are also many useful function such as finding the distance between two vectors.
 
-```{.cpp}
-std::cout << vec2.Distance(vec2a) << std::endl;
-```
+\snippet examples/vector2_example.cc distance
 
 **There are more functions in Vector2. Take a look at the [API](https://ignitionrobotics.org/libs/math)**
 

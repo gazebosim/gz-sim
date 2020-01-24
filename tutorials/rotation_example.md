@@ -7,7 +7,7 @@ This example explains how to use quaternions and euler angles, and how to conver
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-hg clone https://bitbucket.org/ignitionrobotics/ign-math
+hg clone https://bitbucket.org/ignitionrobotics/ign-math/
 cd ign-math/examples
 mkdir build
 cd build
@@ -92,28 +92,13 @@ to Rotation matrix
 
 You can create some objects to express rotations:
 
-```{.cpp}
-ignition::math::Quaterniond q(roll, pitch, yaw);
-ignition::math::Matrix3d m(q);
-ignition::math::Vector3d euler;
-```
+\snippet examples/quaternion_from_euler.cc constructor
+\snippet examples/quaternion_to_euler.cc constructor
 
 To access the quaterions attributes:
 
-```{.cpp}
-std::cout << "\nto Quaternion\n";
-printf(" W % .6f\n X % .6f\n Y % .6f\n Z % .6f\n",
-      q.W(), q.X(), q.Y(), q.Z());
-```
+\snippet examples/quaternion_from_euler.cc access quaterion
 
 Or to acccess the rotation matrix elements:
 
-```{.cpp}
-std::cout << "\nto Rotation matrix\n";
-printf("   % .6f  % .6f  % .6f\n"
-       "   % .6f  % .6f  % .6f\n"
-       "   % .6f  % .6f  % .6f\n",
-        m(0, 0), m(0, 1), m(0, 2),
-        m(1, 0), m(1, 1), m(1, 2),
-        m(2, 0), m(2, 1), m(2, 2));
-```
+\snippet examples/quaternion_from_euler.cc rotation matrix

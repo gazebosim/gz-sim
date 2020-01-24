@@ -75,7 +75,9 @@ int main(int argc, char **argv)
             << std::endl;
 
   ignition::math::Matrix3d m(q);
+//![constructor]
   ignition::math::Vector3d euler(q.Euler());
+//![constructor]
 
   std::cout << "\nConverting to Euler angles\n";
   printf(" roll  % .6f radians\n"

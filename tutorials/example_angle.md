@@ -9,7 +9,7 @@ This tutorial explains how to use the `Angle` class from Ignition Math library.
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-hg clone https://bitbucket.org/ignitionrobotics/ign-math
+hg clone https://bitbucket.org/ignitionrobotics/ign-math/
 cd ign-math/examples
 mkdir build
 cd build
@@ -37,39 +37,23 @@ Normalized to the range -Pi and Pi: -1.5708
 
 The code declares an angle class. The default constructed angle should be zero.
 
-```{.cpp}
-// Create an angle.
-ignition::math::Angle a;
-```
+\snippet examples/angle_example.cc Create an angle
 
 There are some predefined angles, such as:
 
-```{.cpp}
-// PI
-ignition::math::Angle a = ignition::math::Angle::Pi;
-ignition::math::Angle a_half = ignition::math::Angle::HalfPi;
-```
+\snippet examples/angle_example.cc constant pi
 
 By default, all values are in radians, but you can use the method `Degree` to convert to degrees.
 
-```{.cpp}
-// Output the angle in radians and degrees.
-std::cout << "Pi in radians: " << a << std::endl;
-std::cout << "Pi in degrees: " << a.Degree() << std::endl;
-```
+\snippet examples/angle_example.cc Output the angle in radians and degrees.
 
 The `Angle` class overloads the `+=`, and many other, math operators.
 
-```{.cpp}
-a += ignition::math::Angle::HalfPi;
-```
+\snippet examples/angle_example.cc The Angle class overloads the +=, and many other, math operators.
 
 Use the method `Normalized` to bound the value between `-PI` and `PI`.
 
-```{.cpp}
-std::cout << "Normalized to the range -Pi and Pi: "
-  << a.Normalized() << std::endl;
-```
+\snippet examples/angle_example.cc normalized
 
 ## Ruby example
 
