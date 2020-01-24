@@ -802,12 +802,13 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   // Update selected entities if transform control is changed
   if (!this->dataPtr->renderUtil.SelectedEntity().empty())
   {
-    std::string nodeName = this->dataPtr->renderUtil.SelectedEntity().back();
-    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
-    rendering::NodePtr target = scene->NodeByName(nodeName);
+    Entity nodeId =
+      (*(this->dataPtr->renderUtil.SelectedEntity().rbegin())).second;
+    rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = sceneManager->NodeById(nodeId);
 
-    // TODO(john) Deselect all other entities except the most recent in this case
-    // Use last element clicked if multiple entities are selected
+    // TODO(john) Deselect all other entities except the most recent in this
+    // case; Use last element clicked if multiple entities are selected
     if (target)
     {
       this->dataPtr->transformControl.Attach(target);
