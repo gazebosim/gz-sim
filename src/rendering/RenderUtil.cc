@@ -175,6 +175,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
+
+  /// \brief Map of currently selected entities mapping entity id to node id
+  public: std::map<Entity, Entity> selectedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -278,6 +281,7 @@ void RenderUtil::Update()
       {
         this->dataPtr->selectedEntity.reset();
       }
+      this->dataPtr->selectedEntities.erase(entity.first);
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
     }
   }
@@ -962,11 +966,16 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
   // TODO(anyone) Support selecting multiple entities
   if (this->dataPtr->selectedEntity)
   {
+    this->dataPtr->selectedEntities.clear();
     this->dataPtr->LowlightNode(this->dataPtr->selectedEntity);
   }
 
   if (_node)
   {
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+    Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
+    this->dataPtr->selectedEntities.insert(
+        std::pair<Entity, Entity>(entityId, _node->Id()));
     this->dataPtr->originalEmissive.clear();
     this->dataPtr->HighlightNode(_node);
   }
@@ -975,9 +984,9 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr RenderUtil::SelectedEntity() const
+std::map<Entity, Entity> RenderUtil::SelectedEntity() const
 {
-  return this->dataPtr->selectedEntity;
+  return this->dataPtr->selectedEntities;
 }
 
 /////////////////////////////////////////////////
