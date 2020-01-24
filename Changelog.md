@@ -2,6 +2,9 @@
 
 ## Ignition Math 6.x.x
 
+1. Added a Gauss-Markov Process class.
+    * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/342)
+
 1. Create FAKE_INSTALL target so example compilation can be tested without doing a real install.
     * Angle: [Pull request 335](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/335)
 
