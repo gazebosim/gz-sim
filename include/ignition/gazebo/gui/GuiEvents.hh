@@ -19,8 +19,8 @@
 
 #include <set>
 #include <QEvent>
-#include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
