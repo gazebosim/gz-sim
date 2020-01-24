@@ -39,7 +39,7 @@ namespace ignition
      * ignition/math/GaussMarkovProcess.hh
      **/
     /// \brief Implementation of a stationary gauss-markov process, also
-    /// known as a Ornsteinâ€“Uhlenbeck process.
+    /// known as a Ornstein–Uhlenbeck process.
     ///
     /// See the Update(const clock::duration &) for details on the forumla
     /// used to update the process.
@@ -122,7 +122,7 @@ namespace ignition
       ///   * \f$x_{t+1}\f$ is the new value of the Gauss-Markvov process
       ///
       /// See also: https://en.wikipedia.org/wiki/Ornstein%E2%80%93Uhlenbeck_process
-      /// \param[in] _time The next sample time.
+      /// \param[in] _dt Length of the timestep after which a new sample should be taken.
       /// \return The new value of this process.
       public: double Update(const clock::duration &_dt);
 
