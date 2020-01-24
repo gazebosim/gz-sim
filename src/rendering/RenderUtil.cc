@@ -551,7 +551,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           auto temp = _ecm.Component<components::Temperature>(_entity);
           if (temp)
           {
-            this->entityTemp[_entity] = temp->Data();
+            this->entityTemp[_entity] = temp->Data().Kelvin();
           }
 
           this->newVisuals.push_back(
