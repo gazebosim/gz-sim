@@ -176,6 +176,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
 
+  /// \brief Map of currently selected entities mapping entity id to node id
   public: std::map<Entity, Entity> selectedEntities;
 };
 
@@ -380,22 +381,6 @@ void RenderUtil::Update()
       node->SetLocalPose(pose.second);
     }
   }
-
-  // update selected entities
-  /*
-  if (!this->dataPtr->selectedEntities.empty())
-  {
-    rendering::ScenePtr scene = this->dataPtr->scene;
-    this->dataPtr->selectedEntities.erase(std::remove_if(
-          this->dataPtr->selectedEntities.begin(),
-          this->dataPtr->selectedEntities.end(),
-          [scene](const std::string &_node)
-          {
-            rendering::NodePtr target = scene->NodeByName(_node);
-            return !target;
-          }), this->dataPtr->selectedEntities.end());
-  }
-  */
 }
 
 //////////////////////////////////////////////////
