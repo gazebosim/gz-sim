@@ -157,8 +157,12 @@ class ignition::gazebo::RenderUtilPrivate
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
-  /// \brief Entity currently being selected.
-  public: rendering::NodePtr selectedEntity{nullptr};
+  /// \brief Entities currently being selected.
+  /// \TODO(anyone) Keep only one source of truth, either the nodes or the IDs.
+  public: std::set<rendering::NodePtr> selectedEntityNodes;
+
+  /// \brief Map of currently selected entities mapping entity id to node id
+  public: std::map<Entity, uint64_t> selectedEntities;
 
   /// \brief
   public: std::map<std::string, math::Color> originalEmissive;
@@ -175,9 +179,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// \param[in] _node Node to be restored.
   /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
-
-  /// \brief Map of currently selected entities mapping entity id to node id
-  public: std::map<Entity, Entity> selectedEntities;
 };
 
 //////////////////////////////////////////////////
@@ -275,11 +276,12 @@ void RenderUtil::Update()
     IGN_PROFILE("RenderUtil::Update Remove");
     for (auto &entity : removeEntities)
     {
-      if (this->dataPtr->selectedEntity &&
-          this->dataPtr->sceneManager.NodeById(entity.first) ==
-          this->dataPtr->selectedEntity)
+      auto node = this->dataPtr->sceneManager.NodeById(entity.first);
+      if (!this->dataPtr->selectedEntities.empty() &&
+          this->dataPtr->selectedEntityNodes.find(node) !=
+          this->dataPtr->selectedEntityNodes.end())
       {
-        this->dataPtr->selectedEntity.reset();
+        this->dataPtr->selectedEntityNodes.erase(node);
       }
       this->dataPtr->selectedEntities.erase(entity.first);
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
@@ -371,9 +373,10 @@ void RenderUtil::Update()
         continue;
 
       // TODO(anyone) Check top level visual instead of parent
+      // TODO(anyone) Check all selected entities
       if (this->dataPtr->transformActive &&
-          (node == this->dataPtr->selectedEntity ||
-          node->Parent() == this->dataPtr->selectedEntity))
+          (node == *this->dataPtr->selectedEntityNodes.begin() ||
+          node->Parent() == *this->dataPtr->selectedEntityNodes.begin()))
       {
         continue;
       }
@@ -964,10 +967,12 @@ SceneManager &RenderUtil::SceneManager()
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   // TODO(anyone) Support selecting multiple entities
-  if (this->dataPtr->selectedEntity)
+  if (!this->dataPtr->selectedEntityNodes.empty())
   {
     this->dataPtr->selectedEntities.clear();
-    this->dataPtr->LowlightNode(this->dataPtr->selectedEntity);
+    for (auto node : this->dataPtr->selectedEntityNodes)
+      this->dataPtr->LowlightNode(node);
+    this->dataPtr->selectedEntityNodes.clear();
   }
 
   if (_node)
@@ -976,15 +981,20 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
     Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
     this->dataPtr->selectedEntities.insert(
         std::pair<Entity, Entity>(entityId, _node->Id()));
+    this->dataPtr->selectedEntityNodes.insert(_node);
     this->dataPtr->originalEmissive.clear();
     this->dataPtr->HighlightNode(_node);
   }
-
-  this->dataPtr->selectedEntity = std::move(_node);
 }
 
 /////////////////////////////////////////////////
-std::map<Entity, Entity> RenderUtil::SelectedEntity() const
+rendering::NodePtr RenderUtil::SelectedEntity() const
+{
+  return *this->dataPtr->selectedEntityNodes.rbegin();
+}
+
+/////////////////////////////////////////////////
+std::map<Entity, Entity> RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
 }
