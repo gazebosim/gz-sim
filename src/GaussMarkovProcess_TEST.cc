@@ -19,6 +19,7 @@
 
 #include "ignition/math/GaussMarkovProcess.hh"
 #include "ignition/math/Helpers.hh"
+#include "ignition/math/Rand.hh"
 
 using namespace ignition;
 using namespace math;
@@ -82,13 +83,17 @@ TEST(GaussMarkovProcessTest, Noise)
   // Sigma (volatility) of 0.5.
   GaussMarkovProcess gmp(20.2, 0.1, 0, 0.5);
   clock::duration dt = std::chrono::milliseconds(100);
+  Rand::Seed(1001);
 
   // This process should decrease toward the mean value of 0. With noise,
   // the process will walk.
   for (int i = 0; i < 1000; ++i)
   {
     double value = gmp.Update(dt);
-    EXPECT_GT(value, -10);
-    EXPECT_LT(value, 25);
+    // Hand-tuned values that are repeatable given the seed set above.
+    EXPECT_GT(value, -11);
+    EXPECT_LT(value, 22);
   }
+  // Hand-tuned values that are repeatable given the seed set above.
+  EXPECT_NEAR(-4.118732, gmp.Value(), 1e-4);
 }
