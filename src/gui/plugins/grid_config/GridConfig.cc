@@ -49,14 +49,14 @@ namespace ignition::gazebo
     /// \brief Ptr to singleton engine
     public: rendering::RenderEngine *engine;
 
+    /// \brief Assume only one gridptr in a scene
+    public: rendering::GridPtr grid;
+
     /// \brief Default grid parameters
     public: GridParam gridParam;
 
     /// \brief Timer to search for scene
     public: QTimer *timer;
-
-    /// \brief Assume only one gridptr in a scene
-    public: rendering::GridPtr grid;
   };
 }
 
@@ -91,11 +91,9 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 /////////////////////////////////////////////////
 void GridConfig::SearchEngine()
 {
-  std::cout << "searching.." << std::endl;
   auto loadedEngNames = rendering::loadedEngines();
   if (!loadedEngNames.empty())
   {
-    std::cout << "Engine is created" << std::endl;
     // stop the timer if engine found  
     this->dataPtr->timer->stop();
     this->disconnect(this->dataPtr->timer, 0, 0, 0);
@@ -108,7 +106,10 @@ void GridConfig::SearchEngine()
         << "Grid config plugin will use engine ["
           << engineName << "]" << std::endl;
     }
+    std::cout << "1" << std::endl;
+    std::cout << engineName << std::endl;
     this->dataPtr->engine = rendering::engine(engineName);
+    std::cout << "2" << std::endl;
     if (!this->dataPtr->engine)
     {
       ignerr << "Internal error: failed to load engine [" << engineName
@@ -119,7 +120,6 @@ void GridConfig::SearchEngine()
     // assume there is only one scene
     // load scene
     auto scene = this->dataPtr->engine->SceneByIndex(0);
-    std::cout << "3" << std::endl;
     if (!scene)
     {
       ignerr << "No scene found. Grid plugin won't work." << std::endl;
@@ -128,7 +128,6 @@ void GridConfig::SearchEngine()
 
     // load grid
     this->LoadGrid(scene);
-    std::cout << "4" << std::endl;
     if (!this->dataPtr->grid)
       this->ShowGrid(scene);
   }
@@ -144,14 +143,12 @@ void GridConfig::LoadGrid(rendering::ScenePtr _scene)
     auto vis = _scene->VisualByIndex(i);
     if (!vis || vis->GeometryCount() == 0)
       continue;
-    // std::cout << "# of GeomPtrs: " << vis->GeometryCount() << std::endl;
     for (unsigned int j = 0; j < vis->GeometryCount(); ++j)
     {
       auto grid = std::dynamic_pointer_cast<rendering::Grid>(
             vis->GeometryByIndex(j));
       if (grid)
       {
-        std::cout << "found existing grid" << std::endl;
         this->dataPtr->grid = grid;
         return;
       }
@@ -163,7 +160,6 @@ void GridConfig::LoadGrid(rendering::ScenePtr _scene)
 void GridConfig::ShowGrid(rendering::ScenePtr _scene)
 {
   // reloading or no existing grid found
-  std::cout << "creating new grid" << std::endl;
   auto root = _scene->RootVisual();
   this->dataPtr->grid = _scene->CreateGrid();
   this->dataPtr->grid->SetCellCount(this->dataPtr->gridParam.honCellCount);
@@ -227,7 +223,6 @@ void GridConfig::SetColor(double _r, double _g, double _b, double _a)
   if (visual)
   {
     auto mat = visual->Material();
-    std::cout << "setting new color" << std::endl;
     mat->SetAmbient(this->dataPtr->gridParam.color);
     mat->SetDiffuse(this->dataPtr->gridParam.color);
     mat->SetSpecular(this->dataPtr->gridParam.color);

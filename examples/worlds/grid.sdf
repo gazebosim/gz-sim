@@ -85,9 +85,10 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/grid/stats</topic>
+
       </plugin>
 
-      <!-- Grid Config -->
+        <!-- Grid Config -->
       <plugin filename="GridConfig" name="Grid config">
         <ignition-gui>
           <title>Grid Config</title>

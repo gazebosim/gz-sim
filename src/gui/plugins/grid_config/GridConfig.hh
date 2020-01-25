@@ -45,11 +45,12 @@ namespace gazebo
     /// \brief SLOT Funtion to search for scene created
     public slots: void SearchEngine();
 
-    /// \brief Callback to initiaize scene with default grid.
-    /// \param[in] _scene created by used engine
-    /// \param[in] _reload indicates first time loading grid or not
+    /// \brief Callback to retrieve existing gridptr.
+    /// \param[in] _scene scene created by current engine
     public slots: void LoadGrid(rendering::ScenePtr _scene);
 
+    /// \brief Callback to create new gridptr.
+    /// \param[in] _scene scene created by current engine
     public slots: void ShowGrid(rendering::ScenePtr _scene);
 
     /// \brief Callback to update vertical cell count
