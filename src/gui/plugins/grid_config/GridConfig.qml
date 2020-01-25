@@ -283,6 +283,10 @@ Rectangle {
         title: "Choose a grid color"
         visible: false
         onAccepted: {
+          r.value = colorDialog.color.r
+          g.value = colorDialog.color.g
+          b.value = colorDialog.color.b
+          a.value = colorDialog.color.a
           GridConfig.SetColor(colorDialog.color.r, colorDialog.color.g, colorDialog.color.b, colorDialog.color.a)
           colorDialog.close()
         }
