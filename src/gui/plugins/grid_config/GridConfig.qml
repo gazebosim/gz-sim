@@ -218,7 +218,7 @@ Rectangle {
           id: r
           minimumValue: 0.00
           maximumValue: 1.00
-          value: 0.70
+          value: 0.7
           stepSize: 0.01
           decimals: 2
           onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
@@ -233,7 +233,7 @@ Rectangle {
           id: g
           minimumValue: 0.00
           maximumValue: 1.00
-          value: 0.70
+          value: 0.7
           stepSize: 0.01
           decimals: 2
           onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
@@ -251,7 +251,7 @@ Rectangle {
           id: b
           minimumValue: 0.00
           maximumValue: 1.00
-          value: 0.70
+          value: 0.7
           stepSize: 0.01
           decimals: 2
           onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
@@ -265,7 +265,7 @@ Rectangle {
           id: a
           minimumValue: 0.00
           maximumValue: 1.00
-          value: 1.00
+          value: 1.0
           stepSize: 0.01
           decimals: 2
           onEditingFinished: GridConfig.SetColor(r.value, g.value, b.value, a.value)
