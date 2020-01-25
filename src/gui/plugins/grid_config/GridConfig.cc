@@ -94,7 +94,7 @@ void GridConfig::SearchEngine()
   auto loadedEngNames = rendering::loadedEngines();
   if (!loadedEngNames.empty())
   {
-    // stop the timer if engine found  
+    // stop the timer if engine found
     this->dataPtr->timer->stop();
     this->disconnect(this->dataPtr->timer, 0, 0, 0);
 
@@ -162,9 +162,12 @@ void GridConfig::ShowGrid(rendering::ScenePtr _scene)
   // reloading or no existing grid found
   auto root = _scene->RootVisual();
   this->dataPtr->grid = _scene->CreateGrid();
-  this->dataPtr->grid->SetCellCount(this->dataPtr->gridParam.honCellCount);
-  this->dataPtr->grid->SetVerticalCellCount(this->dataPtr->gridParam.verCellCount);
-  this->dataPtr->grid->SetCellLength(this->dataPtr->gridParam.cellLength);
+  this->dataPtr->grid->SetCellCount(
+    this->dataPtr->gridParam.honCellCount);
+  this->dataPtr->grid->SetVerticalCellCount(
+    this->dataPtr->gridParam.verCellCount);
+  this->dataPtr->grid->SetCellLength(
+    this->dataPtr->gridParam.cellLength);
 
   auto vis = _scene->CreateVisual();
   root->AddChild(vis);
