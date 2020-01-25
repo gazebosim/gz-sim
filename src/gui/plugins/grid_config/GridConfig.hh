@@ -42,22 +42,15 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief Retrive visual ptr from the scene
-    /// \return VisualPtr visual to update grid pose
-    public: rendering::VisualPtr GetVisual();
-
-    /// \brief Retrieve material ptr from the scene
-    /// \return MaterialPtr material to update grid color
-    public: rendering::MaterialPtr GetMaterial();
-
     /// \brief SLOT Funtion to search for scene created
-    public slots: void SearchScene();
+    public slots: void SearchEngine();
 
     /// \brief Callback to initiaize scene with default grid.
     /// \param[in] _scene created by used engine
     /// \param[in] _reload indicates first time loading grid or not
-    public slots: void InitGrid(
-      rendering::ScenePtr _scene, bool _reload = false);
+    public slots: void LoadGrid(rendering::ScenePtr _scene);
+
+    public slots: void ShowGrid(rendering::ScenePtr _scene);
 
     /// \brief Callback to update vertical cell count
     /// \param[in] _c new vertical cell count
