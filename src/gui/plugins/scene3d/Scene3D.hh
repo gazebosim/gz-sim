@@ -183,11 +183,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
 
-    /// \brief Move the user camera to follow the speficied target
-    /// \param[in] _target Target to follow
-    /// \param[in] _waitForTarget True to continuously look for the target
-    /// to follow. A typical use case is when following a target that is not
-    ///  present on startup but spawned later into simulation
+    /// \brief Set the viewing angle of the camera
+    /// \param[in] _direction The pose to assume relative to the entit(y/ies).
+    /// (0, 0, 0) indicates to return the camera back to the home pose
+    /// originally loaded in from the sdf
     public: void SetViewAngle(const math::Vector3d &_direction);
 
     /// \brief Set the p gain for the camera follow movement
@@ -215,6 +214,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Camera follow offset position.
     public: math::Vector3d FollowOffset() const;
 
+    /// \brief Set the initial user camera pose
+    /// \param[in] _pose Pose to set the camera to
     public: void SetInitCameraPose(const math::Pose3d &_pose);
 
     /// \brief New mouse event triggered
@@ -246,7 +247,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: void OnMoveToComplete();
 
     /// \brief Callback when a view angle animation is complete
-    private: void OnLookDirectionComplete();
+    private: void OnViewAngleComplete();
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
@@ -349,11 +350,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
 
-    /// \brief Move the user camera to move to the speficied target
+    /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
 
-    /// \brief Move the user camera to follow the speficied target
+    /// \brief Move the user camera to follow the specified target
     /// \param[in] _target Target to follow
     /// \param[in] _waitForTarget True to continuously look for the target
     /// to follow. A typical use case is follow a target that is not present
@@ -361,11 +362,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public Q_SLOTS: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
 
-    /// \brief Move the user camera to follow the speficied target
-    /// \param[in] _target Target to follow
-    /// \param[in] _waitForTarget True to continuously look for the target
-    /// to follow. A typical use case is follow a target that is not present
-    /// on startup but spawned later into simulation
+    /// \brief Set the viewing angle of the camera
+    /// \param[in] _direction The pose to assume relative to the entit(y/ies).
+    /// (0, 0, 0) indicates to return the camera back to the home pose
+    /// originally loaded in from the sdf
     public: void SetViewAngle(const math::Vector3d &_direction);
 
     /// \brief Set the p gain for the camera follow movement
