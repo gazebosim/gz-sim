@@ -19,14 +19,8 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
-
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ViewAngle.hh"
 
@@ -81,7 +75,7 @@ void ViewAngle::OnAngleMode(int _x, int _y, int _z)
   req.set_x(_x);
   req.set_y(_y);
   req.set_z(_z);
-  
+
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
 

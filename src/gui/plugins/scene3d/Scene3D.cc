@@ -78,7 +78,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Move the camera to look at the specified target
     /// param[in] _camera Camera to be moved
-    /// param[in] _direction The pose to assume
+    /// param[in] _direction The pose to assume relative to the entit(y/ies),
+    /// (0, 0, 0) indicates to return the camera back to the home pose
+    /// originally loaded in from the sdf.
     /// param[in] _duration Duration of the move to animation, in seconds.
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
@@ -178,8 +180,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// false to follow in target's local frame
     public: bool followWorldFrame = false;
 
+    /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
 
+    /// \brief The pose set during a view angle button press that holds
+    /// the pose the camera should assume relative to the entit(y/ies).
+    /// The vector (0, 0, 0) indicates to return the camera back to the home
+    /// pose originally loaded from the sdf.
     public: math::Vector3d viewAngleDirection = math::Vector3d::Zero;
 
     /// \brief Last move to animation time
@@ -446,7 +453,7 @@ void IgnRenderer::Render()
       {
         this->dataPtr->moveToHelper.LookDirection(this->dataPtr->camera,
             this->dataPtr->viewAngleDirection,
-            0.5, std::bind(&IgnRenderer::OnLookDirectionComplete, this));
+            0.5, std::bind(&IgnRenderer::OnViewAngleComplete, this));
         this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
       else
@@ -910,7 +917,7 @@ void IgnRenderer::OnMoveToComplete()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::OnLookDirectionComplete()
+void IgnRenderer::OnViewAngleComplete()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewAngle = false;
@@ -1463,7 +1470,7 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
 {
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
-  renderWindow->SetViewAngle({_msg.x(), _msg.y(), _msg.z()});
+  renderWindow->SetViewAngle(msgs::Convert(_msg));
 
   _res.set_data(true);
   return true;
@@ -1708,13 +1715,13 @@ void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
   this->poseAnim = std::make_unique<common::PoseAnimation>(
       "view_angle", _duration, false);
   this->onAnimationComplete = std::move(_onAnimationComplete);
-  
+
   math::Pose3d start = _camera->WorldPose();
 
   // Look at world origin unless there are visuals selected
   math::Vector3d lookAt = math::Vector3d::Zero;
 
-  // TODO set lookat to be average of selected objects
+  // TODO(john) set lookat to be average of selected objects
 
   // Keep current distance to look at target
   math::Vector3d camPos = _camera->WorldPose().Pos();
@@ -1724,13 +1731,14 @@ void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
   math::Vector3d endPos = lookAt - _direction * distance;
 
   // Calculate camera orientation
-  math::Quaterniond endRot = ignition::math::Matrix4d::LookAt(endPos, lookAt).Rotation();
+  math::Quaterniond endRot =
+    ignition::math::Matrix4d::LookAt(endPos, lookAt).Rotation();
 
   // Move camera to that pose
   common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
   key->Translation(start.Pos());
   key->Rotation(start.Rot());
-  
+
   // Move camera back to initial pose
   if (_direction == math::Vector3d::Zero)
   {

@@ -46,9 +46,12 @@ namespace gazebo
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     /// \brief Callback in Qt thread when angle mode changes.
-    /// \param[in] _x x coordinate of desired camera pose
-    /// \param[in] _y y coordinate of desired camera pose
-    /// \param[in] _z z coordinate of desired camera pose
+    /// \param[in] _x The x component of the directional vector for the camera
+    /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
+    /// \param[in] _y The y component of the directional vector for the camera
+    /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
+    /// \param[in] _z The z component of the directional vector for the camera
+    /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
     public slots: void OnAngleMode(int _x, int _y, int _z);
 
     /// \internal
