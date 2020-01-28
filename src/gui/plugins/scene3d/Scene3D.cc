@@ -49,6 +49,7 @@
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
@@ -646,7 +647,7 @@ void IgnRenderer::HandleMouseTransformControl()
   // selected
   if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE ||
       (this->dataPtr->transformControl.Node() &&
-      !this->dataPtr->renderUtil.SelectedEntity()))
+      this->dataPtr->renderUtil.SelectedEntities().empty()))
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
@@ -728,6 +729,7 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->transformControl.Stop();
         this->dataPtr->mouseDirty = false;
       }
+      // Select entity
       else
       {
         rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
@@ -738,7 +740,10 @@ void IgnRenderer::HandleMouseTransformControl()
               this->dataPtr->mouseEvent.Pos());
 
         if (!visual)
+        {
+          this->dataPtr->renderUtil.SetSelectedEntity(nullptr);
           return;
+        }
 
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
@@ -750,9 +755,32 @@ void IgnRenderer::HandleMouseTransformControl()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
+            auto topEntity =
+                this->dataPtr->renderUtil.SceneManager().VisualEntity(topVis);
+
+            if (topEntity == kNullEntity)
+            {
+              ignerr << "Failed to find entity for visual [" << topVis->Name()
+                     << "]" << std::endl;
+              return;
+            }
+
+            // TODO(louise) Do this even when not in transform mode
+            // Notify other widgets
+            auto event = new gui::events::EntitiesSelected({topEntity});
+            ignition::gui::App()->sendEvent(
+                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+                event);
+
+            // Attach control
             this->dataPtr->transformControl.Attach(topVis);
             this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
+            return;
+          }
+          else
+          {
+            this->dataPtr->renderUtil.SetSelectedEntity(nullptr);
             return;
           }
         }
@@ -1053,6 +1081,22 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+
+  // Update selected entities if transform control is changed
+  if (!this->dataPtr->renderUtil.SelectedEntities().empty())
+  {
+    Entity nodeId =
+      (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
+    rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
+    rendering::NodePtr target = sceneManager->NodeById(nodeId);
+
+    // TODO(john) Deselect all other entities except the most recent in this
+    // case; Use last element clicked if multiple entities are selected
+    if (target)
+    {
+      this->dataPtr->transformControl.Attach(target);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1707,6 +1751,25 @@ void Scene3D::OnDropped(const QString &_drop)
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  {
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && !selectedEvent->Data().empty())
+    {
+      auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
+          *selectedEvent->Data().begin());
+      this->dataPtr->renderUtil->SetSelectedEntity(node);
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
 }
 
 /////////////////////////////////////////////////

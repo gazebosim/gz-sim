@@ -157,11 +157,28 @@ class ignition::gazebo::RenderUtilPrivate
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
-  /// \brief Entity currently being selected.
-  public: rendering::NodePtr selectedEntity{nullptr};
+  /// \brief Entities currently being selected.
+  /// \TODO(anyone) Keep only one source of truth, either the nodes or the IDs.
+  public: std::set<rendering::NodePtr> selectedEntityNodes;
+
+  /// \brief Map of currently selected entities mapping entity id to node id
+  public: std::map<Entity, uint64_t> selectedEntities;
+
+  /// \brief
+  public: std::map<std::string, math::Color> originalEmissive;
 
   /// \brief Whether the transform gizmo is being dragged.
   public: bool transformActive{false};
+
+  /// \brief Highlight a node and all its children.
+  /// \param[in] _node Node to be highlighted
+  /// TODO(anyone) On future versions, use a bounding box instead
+  public: void HighlightNode(const rendering::NodePtr &_node);
+
+  /// \brief Restore a highlighted node to normal.
+  /// \param[in] _node Node to be restored.
+  /// TODO(anyone) On future versions, use a bounding box instead
+  public: void LowlightNode(const rendering::NodePtr &_node);
 };
 
 //////////////////////////////////////////////////
@@ -259,12 +276,14 @@ void RenderUtil::Update()
     IGN_PROFILE("RenderUtil::Update Remove");
     for (auto &entity : removeEntities)
     {
-      if (this->dataPtr->selectedEntity &&
-          this->dataPtr->sceneManager.NodeById(entity.first) ==
-          this->dataPtr->selectedEntity)
+      auto node = this->dataPtr->sceneManager.NodeById(entity.first);
+      if (!this->dataPtr->selectedEntities.empty() &&
+          this->dataPtr->selectedEntityNodes.find(node) !=
+          this->dataPtr->selectedEntityNodes.end())
       {
-        this->dataPtr->selectedEntity.reset();
+        this->dataPtr->selectedEntityNodes.erase(node);
       }
+      this->dataPtr->selectedEntities.erase(entity.first);
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
     }
   }
@@ -354,9 +373,10 @@ void RenderUtil::Update()
         continue;
 
       // TODO(anyone) Check top level visual instead of parent
+      // TODO(anyone) Check all selected entities
       if (this->dataPtr->transformActive &&
-          (node == this->dataPtr->selectedEntity ||
-          node->Parent() == this->dataPtr->selectedEntity))
+          (node == *this->dataPtr->selectedEntityNodes.begin() ||
+          node->Parent() == *this->dataPtr->selectedEntityNodes.begin()))
       {
         continue;
       }
@@ -946,17 +966,121 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  this->dataPtr->selectedEntity = std::move(_node);
+  // TODO(anyone) Support selecting multiple entities
+  if (!this->dataPtr->selectedEntityNodes.empty())
+  {
+    this->dataPtr->selectedEntities.clear();
+    for (auto node : this->dataPtr->selectedEntityNodes)
+      this->dataPtr->LowlightNode(node);
+    this->dataPtr->selectedEntityNodes.clear();
+  }
+
+  if (_node)
+  {
+    auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+    Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
+    this->dataPtr->selectedEntities.insert(
+        std::pair<Entity, Entity>(entityId, _node->Id()));
+    this->dataPtr->selectedEntityNodes.insert(_node);
+    this->dataPtr->originalEmissive.clear();
+    this->dataPtr->HighlightNode(_node);
+  }
 }
 
 /////////////////////////////////////////////////
 rendering::NodePtr RenderUtil::SelectedEntity() const
 {
-  return this->dataPtr->selectedEntity;
+  return *this->dataPtr->selectedEntityNodes.rbegin();
+}
+
+/////////////////////////////////////////////////
+std::map<Entity, Entity> RenderUtil::SelectedEntities() const
+{
+  return this->dataPtr->selectedEntities;
 }
 
 /////////////////////////////////////////////////
 void RenderUtil::SetTransformActive(bool _active)
 {
   this->dataPtr->transformActive = _active;
+}
+
+////////////////////////////////////////////////
+void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
+{
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->HighlightNode(child);
+
+    auto childVis = std::dynamic_pointer_cast<rendering::Visual>(child);
+    if (nullptr == childVis)
+      continue;
+
+    // Visual material
+    auto visMat = childVis->Material();
+    if (nullptr != visMat)
+    {
+      this->originalEmissive[childVis->Name()] = visMat->Emissive();
+      visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+      childVis->SetMaterial(visMat);
+    }
+
+    for (auto g = 0u; g < childVis->GeometryCount(); ++g)
+    {
+      auto geom = childVis->GeometryByIndex(g);
+
+      // Geometry material
+      auto geomMat = geom->Material();
+      if (nullptr == geomMat)
+        continue;
+
+      this->originalEmissive[geom->Name()] = geomMat->Emissive();
+      geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+      geom->SetMaterial(geomMat);
+    }
+  }
+}
+
+////////////////////////////////////////////////
+void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
+{
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->LowlightNode(child);
+
+    auto childVis = std::dynamic_pointer_cast<rendering::Visual>(child);
+    if (nullptr == childVis)
+      continue;
+
+    // Visual material
+    auto visMat = childVis->Material();
+    if (nullptr != visMat)
+    {
+      auto visEmissive = this->originalEmissive.find(childVis->Name());
+      if (visEmissive != this->originalEmissive.end())
+      {
+        visMat->SetEmissive(visEmissive->second);
+        childVis->SetMaterial(visMat);
+      }
+    }
+
+    for (auto g = 0u; g < childVis->GeometryCount(); ++g)
+    {
+      auto geom = childVis->GeometryByIndex(g);
+
+      // Geometry material
+      auto geomMat = geom->Material();
+      if (nullptr == geomMat)
+        continue;
+
+      auto geomEmissive = this->originalEmissive.find(geom->Name());
+      if (geomEmissive != this->originalEmissive.end())
+      {
+        geomMat->SetEmissive(geomEmissive->second);
+        geom->SetMaterial(geomMat);
+      }
+    }
+  }
 }
