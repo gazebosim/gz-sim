@@ -68,8 +68,13 @@ namespace gazebo
     /// \return Scoped name of the entity
     public: Q_INVOKABLE QString ScopedName(const QModelIndex &_index) const;
 
+    /// \brief Get the entity type of a tree item at specified index
+    /// \param[in] _index Model index
+    /// \return Type of entity
+    public: Q_INVOKABLE unsigned int EntityId(const QModelIndex &_index) const;
+
     /// \brief Keep track of which item corresponds to which entity.
-    private: std::map<Entity, QStandardItem *> entityItems;
+    public: std::map<Entity, QStandardItem *> entityItems;
   };
 
   /// \brief Displays a tree view with all the entities in the world.
@@ -91,6 +96,13 @@ namespace gazebo
 
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
+
+    /// \brief
+    /// \param[in] _index
+    public: Q_INVOKABLE void OnEntitySelectedFromQml(unsigned int _entity);
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \internal
     /// \brief Pointer to private data.

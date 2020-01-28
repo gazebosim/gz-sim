@@ -649,3 +649,22 @@ rendering::VisualPtr SceneManager::TopLevelVisual(
 
   return visual;
 }
+
+/////////////////////////////////////////////////
+Entity SceneManager::VisualEntity(rendering::VisualPtr _visual) const
+{
+  // TODO(louise) On Citadel, set entity ID into visual with SetUserData
+  auto found = std::find_if(std::begin(this->dataPtr->visuals),
+      std::end(this->dataPtr->visuals),
+      [&](const std::pair<Entity, rendering::VisualPtr> &_item)
+  {
+    return _item.second == _visual;
+  });
+
+  if (found != this->dataPtr->visuals.end())
+  {
+    return found->first;
+  }
+
+  return kNullEntity;
+}

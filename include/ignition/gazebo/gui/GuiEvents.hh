@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 #ifndef IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
+#include <set>
 #include <QEvent>
 #include <ignition/math/Vector3.hh>
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
 
 namespace ignition
@@ -78,6 +80,19 @@ namespace events
 
     /// \brief RPY snapping values.
     private: math::Vector3d scale;
+  };
+  class EntitiesSelected : public QEvent
+  {
+    public: EntitiesSelected(std::set<Entity> _entities)
+        : QEvent(Type), entities(_entities)
+    {
+    }
+    public: std::set<Entity> Data() const
+    {
+      return this->entities;
+    }
+    static const QEvent::Type Type = QEvent::Type(QEvent::User + 1);
+    private: std::set<Entity> entities;
   };
 }  // namespace events
 }
