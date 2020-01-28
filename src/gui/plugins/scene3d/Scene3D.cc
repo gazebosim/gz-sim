@@ -196,16 +196,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
-    /// \brief Flag to keep track of world pose setting.
+    /// \brief Flag to keep track of world pose setting used
+    /// for button translating.
     public: bool isStartWorldPosSet = false;
 
-    /// \brief Flag to keep track of if we are currently translating
-    /// using buttons x, y, or z
-    public: bool areButtonTranslating = false;
-
-    /// \brief Where the mouse left off on when an x, y, or z was pressed - used
-    /// to continue translating smoothly when switching axes through keybinding
-    public: math::Vector2i newMousePressPos = math::Vector2i::Zero;
+    /// \brief Where the mouse left off - used to continue translating
+    /// smoothly when switching axes through keybinding and clicking
+    /// Updated on an x, y, or z, press or release and a mouse press
+    public: math::Vector2i mousePressPos = math::Vector2i::Zero;
 
     /// \brief The xyz values by which to snap the object.
     public: math::Vector3d xyzSnap = math::Vector3d::Zero;
@@ -521,8 +519,7 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
       _e->key() == Qt::Key_Z)
   {
     this->dataPtr->transformControl.Start();
-    this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
-    this->dataPtr->areButtonTranslating = true;
+    this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
   }
 }
 
@@ -559,8 +556,8 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       _e->key() == Qt::Key_Z)
   {
     this->dataPtr->transformControl.Start();
-    this->dataPtr->newMousePressPos = this->dataPtr->mouseEvent.Pos();
-    this->dataPtr->areButtonTranslating = true;
+    this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->isStartWorldPosSet = false;
   }
 }
 
@@ -681,6 +678,7 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS
         && this->dataPtr->transformControl.Node())
     {
+      this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
       // get the visual at mouse position
       rendering::VisualPtr visual = this->dataPtr->camera->VisualAt(
             this->dataPtr->mouseEvent.PressPos());
@@ -704,7 +702,6 @@ void IgnRenderer::HandleMouseTransformControl()
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
       this->dataPtr->isStartWorldPosSet = false;
-      this->dataPtr->areButtonTranslating = false;
       if (this->dataPtr->transformControl.Active())
       {
         if (this->dataPtr->transformControl.Node())
@@ -771,14 +768,10 @@ void IgnRenderer::HandleMouseTransformControl()
     auto imageHeight = static_cast<double>(
         this->dataPtr->camera->ImageHeight());
     double nx = 2.0 *
-      (this->dataPtr->areButtonTranslating ?
-       this->dataPtr->newMousePressPos.X() :
-       this->dataPtr->mouseEvent.PressPos().X()) /
+      this->dataPtr->mousePressPos.X() /
       imageWidth - 1.0;
     double ny = 1.0 - 2.0 *
-      (this->dataPtr->areButtonTranslating ?
-       this->dataPtr->newMousePressPos.Y() :
-       this->dataPtr->mouseEvent.PressPos().Y()) /
+      this->dataPtr->mousePressPos.Y() /
       imageHeight;
     double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() /
       imageWidth - 1.0;
