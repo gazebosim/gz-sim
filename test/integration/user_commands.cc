@@ -687,3 +687,157 @@ TEST_F(UserCommandsTest, Pose)
   ASSERT_NE(nullptr, poseComp);
   EXPECT_NEAR(0.0, poseComp->Data().Pos().Y(), 0.2);
 }
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, SpawnRemoveEntity)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/examples/worlds/empty.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  // TODO(louise) It would be much more convenient if the Server just returned
+  // the ECM for us. This would save all the trouble which is causing us to
+  // create `Relay` systems in the first place. Consider keeping the ECM in a
+  // shared pointer owned by the SimulationRunner.
+  EntityComponentManager *ecm{nullptr};
+  Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+
+  // Record the poses of the sphere
+  const std::string modelName = "sphere";
+  std::vector<ignition::math::Pose3d> spherePoses;
+  testSystem.OnPostUpdate(
+    [modelName, &spherePoses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (_name->Data() == modelName) {
+            spherePoses.push_back(_pose->Data());
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // SDF strings
+  double sphereRadius = 0.5;
+  std::string r = std::to_string(sphereRadius);
+  auto modelStr = std::string("<?xml version=\"1.0\" ?>") +
+      "<sdf version='1.6'>" +
+      "<model name='sphere'>" +
+      "<link name='link'>" +
+      "<visual name='visual'>" +
+      "<geometry><sphere><radius>" + r + "</radius></sphere></geometry>" +
+      "</visual>" +
+      "<collision name='visual'>" +
+      "<geometry><sphere><radius>" + r + "</radius></sphere></geometry>" +
+      "</collision>" +
+      "</link>" +
+      "</model>" +
+      "</sdf>";
+
+  // set up service requests for create and remove
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+
+  // services
+  transport::Node node;
+  std::string service{"/world/empty/create"};
+  std::string removeService{"/world/empty/remove"};
+
+  // poses
+  double meshZPos = 10.0;
+  double sphereZPos = 11.0;
+
+  unsigned int runs = 5u;
+  for (unsigned int i = 0; i < runs; ++i)
+  {
+    // spawn mesh
+    msgs::EntityFactory req;
+    auto testModel =
+      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Urban Service Room Straight";
+    req.set_sdf_filename(testModel);
+    auto pose = req.mutable_pose();
+    auto pos = pose->mutable_position();
+    pos->set_z(meshZPos);
+    EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+    // Run an iteration and check it was created
+    server.Run(true, 1, false);
+    EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
+        components::Name("urban_service_room_straight")));
+
+    // spawn sphere
+    req.Clear();
+    req.set_sdf(modelStr);
+    pose = req.mutable_pose();
+    pos = pose->mutable_position();
+    pos->set_z(sphereZPos);
+    EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+    // Run an iteration and check it was created
+    server.Run(true, 1, false);
+    auto model = ecm->EntityByComponents(components::Model(),
+        components::Name("sphere"));
+    EXPECT_NE(kNullEntity, model);
+
+    // verify sphere pose
+    auto poseComp = ecm->Component<components::Pose>(model);
+    EXPECT_NE(nullptr, poseComp);
+    EXPECT_EQ(math::Pose3d(0, 0, sphereZPos, 0, 0, 0), poseComp->Data());
+
+    spherePoses.clear();
+    // run for 2 seconds and check to see if the sphere has stopped and landed
+    // on the mesh
+    server.Run(true, 2000, false);
+    EXPECT_NEAR(meshZPos + sphereRadius, spherePoses.back().Pos().Z(), 5e-2);
+
+    // remove mesh
+    msgs::Entity removeReq;
+    removeReq.set_name("urban_service_room_straight");
+    removeReq.set_type(msgs::Entity::MODEL);
+    EXPECT_TRUE(node.Request(removeService, removeReq, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+    // Run an iteration and check it was removed
+    server.Run(true, 1, false);
+    EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+        components::Name("urban_service_room_straight")));
+
+    // remove sphere
+    removeReq.set_name("sphere");
+    removeReq.set_type(msgs::Entity::MODEL);
+    EXPECT_TRUE(node.Request(removeService, removeReq, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+    // Run an iteration and check it was removed
+    server.Run(true, 1, false);
+    EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+        components::Name("sphere")));
+  }
+}
+
