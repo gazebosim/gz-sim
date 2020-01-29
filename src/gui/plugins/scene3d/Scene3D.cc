@@ -563,6 +563,12 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::DeselectAllEntities()
+{
+  this->dataPtr->renderUtil.DeselectAllEntities();
+}
+
+/////////////////////////////////////////////////
 double IgnRenderer::SnapValue(
     double _coord, double _interval, double _sensitivity) const
 {
@@ -653,8 +659,10 @@ void IgnRenderer::HandleMouseTransformControl()
       this->dataPtr->transformControl.Stop();
 
     this->dataPtr->transformControl.Detach();
+    /*
     this->dataPtr->renderUtil.SetSelectedEntity(
         rendering::VisualPtr());
+    */
   }
   else
   {
@@ -741,7 +749,7 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
-          this->dataPtr->renderUtil.SetSelectedEntity(nullptr);
+          this->dataPtr->renderUtil.DeselectAllEntities();
           return;
         }
 
@@ -774,13 +782,17 @@ void IgnRenderer::HandleMouseTransformControl()
 
             // Attach control
             this->dataPtr->transformControl.Attach(topVis);
+            if (!this->dataPtr->keyEvent.Control())
+            {
+              this->dataPtr->renderUtil.DeselectAllEntities();
+            }
             this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
             return;
           }
           else
           {
-            this->dataPtr->renderUtil.SetSelectedEntity(nullptr);
+            this->dataPtr->renderUtil.DeselectAllEntities();
             return;
           }
         }
@@ -815,15 +827,19 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      Entity nodeId =
+        (*(this->dataPtr->renderUtil.SelectedEntities().begin())).second;
+      rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
+      rendering::NodePtr target = sceneManager->NodeById(nodeId);
       axis = GetXYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
         this->dataPtr->startWorldPos =
-          this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+          target->WorldPosition();
       }
       ignition::math::Vector3d worldPos =
-        this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+        target->WorldPosition();
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
@@ -1675,6 +1691,18 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetScaleSnap(snapEvent->Scale());
     }
   }
+  else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  {
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && !selectedEvent->Data().empty())
+    {
+      auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
+          *selectedEvent->Data().begin());
+      //ignwarn << "Set Selected 1\n";
+      //this->dataPtr->renderUtil->SetSelectedEntity(node);
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
@@ -1754,25 +1782,6 @@ void Scene3D::OnDropped(const QString &_drop)
 }
 
 /////////////////////////////////////////////////
-bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
-{
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
-  {
-    auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
-    if (selectedEvent && !selectedEvent->Data().empty())
-    {
-      auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
-          *selectedEvent->Data().begin());
-      this->dataPtr->renderUtil->SetSelectedEntity(node);
-    }
-  }
-
-  // Standard event processing
-  return QObject::eventFilter(_obj, _event);
-}
-
-/////////////////////////////////////////////////
 void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
   this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
@@ -1808,6 +1817,11 @@ void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
 void RenderWindowItem::SetMoveTo(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
+}
+
+void RenderWindowItem::DeselectAllEntities()
+{
+  this->dataPtr->renderThread->ignRenderer.DeselectAllEntities();
 }
 
 /////////////////////////////////////////////////
@@ -1926,6 +1940,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
+    this->DeselectAllEntities();
   }
 }
 
