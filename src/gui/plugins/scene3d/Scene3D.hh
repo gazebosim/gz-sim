@@ -216,6 +216,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle key release event for snapping.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    public: void DeselectAllEntities();
+
     /// \brief Set the XYZ snap values.
     /// \param[in] _xyz The XYZ snap values
     public: void SetXYZSnap(const math::Vector3d &_xyz);
@@ -264,6 +266,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
                  double _coord, double _interval, double _sensitivity) const;
 
     private: math::Vector3d GetXYZConstraint(math::Vector3d &_axis);
+
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
@@ -412,6 +415,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
+
+    public: void DeselectAllEntities();
 
     /// \brief Set the XYZ snap values from the user input.
     /// \param[in] _xyz The XYZ snap values
