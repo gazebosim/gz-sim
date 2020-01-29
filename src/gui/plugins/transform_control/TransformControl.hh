@@ -46,6 +46,11 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    public slots: void OnSnapUpdate(
+        double _x, double _y, double _z,
+        double _roll, double _pitch, double _yaw,
+        double _scaleX, double _scaleY, double _scaleZ);
+
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);

@@ -157,10 +157,6 @@ class ignition::gazebo::RenderUtilPrivate
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
-  /// \brief Entities currently being selected.
-  /// \TODO(anyone) Keep only one source of truth, either the nodes or the IDs.
-  public: std::set<rendering::NodePtr> selectedEntityNodes;
-
   /// \brief Map of currently selected entities mapping entity id to node id
   public: std::map<Entity, uint64_t> selectedEntities;
 
@@ -278,13 +274,12 @@ void RenderUtil::Update()
     {
       auto node = this->dataPtr->sceneManager.NodeById(entity.first);
       if (!this->dataPtr->selectedEntities.empty() &&
-          this->dataPtr->selectedEntityNodes.find(node) !=
-          this->dataPtr->selectedEntityNodes.end())
+          this->dataPtr->selectedEntities.find(entity.first) !=
+          this->dataPtr->selectedEntities.end())
       {
-        this->dataPtr->selectedEntityNodes.erase(node);
+        this->dataPtr->selectedEntities.erase(entity.first);
+        this->dataPtr->sceneManager.RemoveEntity(entity.first);
       }
-      this->dataPtr->selectedEntities.erase(entity.first);
-      this->dataPtr->sceneManager.RemoveEntity(entity.first);
     }
   }
 
@@ -374,9 +369,11 @@ void RenderUtil::Update()
 
       // TODO(anyone) Check top level visual instead of parent
       // TODO(anyone) Check all selected entities
+      auto visual = std::dynamic_pointer_cast<rendering::Visual>(node->Parent());
+      Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
       if (this->dataPtr->transformActive &&
-          (node == *this->dataPtr->selectedEntityNodes.begin() ||
-          node->Parent() == *this->dataPtr->selectedEntityNodes.begin()))
+          (pose.first == (*this->dataPtr->selectedEntities.begin()).first ||
+          entityId == (*this->dataPtr->selectedEntities.begin()).first))
       {
         continue;
       }
@@ -967,13 +964,18 @@ SceneManager &RenderUtil::SceneManager()
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   // TODO(anyone) Support selecting multiple entities
+  /*
   if (!this->dataPtr->selectedEntityNodes.empty())
   {
     this->dataPtr->selectedEntities.clear();
     for (auto node : this->dataPtr->selectedEntityNodes)
+    {
+      ignwarn << "Lowlight 1\n";
       this->dataPtr->LowlightNode(node);
+    }
     this->dataPtr->selectedEntityNodes.clear();
   }
+  */
 
   if (_node)
   {
@@ -981,16 +983,30 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
     Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
     this->dataPtr->selectedEntities.insert(
         std::pair<Entity, Entity>(entityId, _node->Id()));
-    this->dataPtr->selectedEntityNodes.insert(_node);
     this->dataPtr->originalEmissive.clear();
     this->dataPtr->HighlightNode(_node);
   }
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::DeselectAllEntities()
+{
+  for (const auto &entity : this->dataPtr->selectedEntities)
+  {
+    auto node = this->dataPtr->sceneManager.NodeById(entity.first);
+    this->dataPtr->LowlightNode(node);
+  }
+  ignwarn << "Deselect all \n";
+  this->dataPtr->selectedEntities.clear();
+}
+
+/////////////////////////////////////////////////
 rendering::NodePtr RenderUtil::SelectedEntity() const
 {
-  return *this->dataPtr->selectedEntityNodes.rbegin();
+  // Return most recently clicked node
+  auto node = this->dataPtr->sceneManager.NodeById(
+      (*(this->dataPtr->selectedEntities.rbegin())).first);
+  return node;
 }
 
 /////////////////////////////////////////////////
@@ -1008,6 +1024,7 @@ void RenderUtil::SetTransformActive(bool _active)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 {
+  ignwarn << "Highlight node\n";
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
@@ -1045,6 +1062,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 {
+  ignwarn << "Lowlight node\n";
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
