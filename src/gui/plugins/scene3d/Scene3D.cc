@@ -749,6 +749,7 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
+          // TODO emit signal to clear treeview
           this->dataPtr->renderUtil.DeselectAllEntities();
           return;
         }
@@ -773,25 +774,43 @@ void IgnRenderer::HandleMouseTransformControl()
               return;
             }
 
+
+            // Deselect all and select only current node if control is not being held
+            if (!this->dataPtr->keyEvent.Control())
+            {
+              this->dataPtr->renderUtil.DeselectAllEntities();
+              this->dataPtr->renderUtil.SetSelectedEntity(topVis);
+              // Attach control
+              this->dataPtr->transformControl.Attach(topVis);
+            }
+            // Add selected entity if control + no transform mode
+            else if (this->dataPtr->keyEvent.Control() && this->dataPtr->transformControl.Mode() == rendering::TransformMode::TM_NONE)
+            {
+              this->dataPtr->renderUtil.SetSelectedEntity(topVis);
+              // Attach control
+              this->dataPtr->transformControl.Attach(topVis);
+            }
+            
             // TODO(louise) Do this even when not in transform mode
             // Notify other widgets
-            auto event = new gui::events::EntitiesSelected({topEntity});
+            std::set<Entity> selectedEntities;
+            for (const auto &node : this->dataPtr->renderUtil.SelectedEntities())
+              selectedEntities.insert(node.first);
+            
+            auto event = new gui::events::EntitiesSelected(selectedEntities);
             ignition::gui::App()->sendEvent(
                 ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
                 event);
 
-            // Attach control
-            this->dataPtr->transformControl.Attach(topVis);
-            if (!this->dataPtr->keyEvent.Control())
-            {
-              this->dataPtr->renderUtil.DeselectAllEntities();
-            }
-            this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
             return;
           }
           else
           {
+            auto event = new gui::events::EntitiesSelected({});
+            ignition::gui::App()->sendEvent(
+                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+                event);
             this->dataPtr->renderUtil.DeselectAllEntities();
             return;
           }
@@ -1680,7 +1699,7 @@ void Scene3D::Update(const UpdateInfo &_info,
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::SnapEvent)
+  if (_event->type() == ignition::gazebo::gui::events::SnapIntervals::Type)
   {
     auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
     if (snapEvent)
@@ -1697,9 +1716,11 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
     if (selectedEvent && !selectedEvent->Data().empty())
     {
-      auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
-          *selectedEvent->Data().begin());
-      //ignwarn << "Set Selected 1\n";
+      for (const auto &entity : selectedEvent->Data())
+      {
+        auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
+            entity);
+      }
       //this->dataPtr->renderUtil->SetSelectedEntity(node);
     }
   }

@@ -372,11 +372,18 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    // Clear all treeview elements before updating - also
+    // can be used to clear the treeview if an empty set is sent
+    QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
+        Qt::QueuedConnection);
     if (selectedEvent && !selectedEvent->Data().empty())
     {
-      QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
-          Qt::QueuedConnection, Q_ARG(QVariant,
-          QVariant(static_cast<unsigned int>(*selectedEvent->Data().begin()))));
+      for (const auto &entity : selectedEvent->Data())
+      {
+        QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
+            Qt::QueuedConnection, Q_ARG(QVariant,
+            QVariant(static_cast<unsigned int>(entity))));
+      }
     }
   }
 
