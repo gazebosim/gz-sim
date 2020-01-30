@@ -147,6 +147,10 @@ void LevelManager::ReadLevelPerformerInfo()
   // Load world plugins.
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
       this->runner->sdfWorld->Element());
+
+  // Store the model's SDF DOM to be used when saving the world to file
+  this->runner->entityCompMgr.CreateComponent(
+      worldEntity, components::WorldSdf(*this->runner->sdfWorld));
 }
 
 /////////////////////////////////////////////////

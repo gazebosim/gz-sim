@@ -315,6 +315,9 @@ namespace components
             typename Serializer = serializers::DefaultSerializer<DataType>>
   class Component : public BaseComponent
   {
+    /// \brief Alias for DataType
+    public: using Type = DataType;
+
     /// \brief Default constructor
     public: Component() = default;
 
