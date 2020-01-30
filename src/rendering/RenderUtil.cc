@@ -977,13 +977,15 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
   }
   */
 
+
+
   if (_node)
   {
     auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
     Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
+
     this->dataPtr->selectedEntities.insert(
         std::pair<Entity, Entity>(entityId, _node->Id()));
-    this->dataPtr->originalEmissive.clear();
     this->dataPtr->HighlightNode(_node);
   }
 }
@@ -996,8 +998,8 @@ void RenderUtil::DeselectAllEntities()
     auto node = this->dataPtr->sceneManager.NodeById(entity.first);
     this->dataPtr->LowlightNode(node);
   }
-  ignwarn << "Deselect all \n";
   this->dataPtr->selectedEntities.clear();
+  this->dataPtr->originalEmissive.clear();
 }
 
 /////////////////////////////////////////////////
@@ -1024,7 +1026,6 @@ void RenderUtil::SetTransformActive(bool _active)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 {
-  ignwarn << "Highlight node\n";
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
@@ -1038,9 +1039,13 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     auto visMat = childVis->Material();
     if (nullptr != visMat)
     {
-      this->originalEmissive[childVis->Name()] = visMat->Emissive();
-      visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-      childVis->SetMaterial(visMat);
+      // If the entity isn't already highlighted, highlight it
+      if (this->originalEmissive.find(childVis->Name()) == this->originalEmissive.end())
+      {
+        this->originalEmissive[childVis->Name()] = visMat->Emissive();
+        visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+        childVis->SetMaterial(visMat);
+      }
     }
 
     for (auto g = 0u; g < childVis->GeometryCount(); ++g)
@@ -1052,9 +1057,13 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       if (nullptr == geomMat)
         continue;
 
-      this->originalEmissive[geom->Name()] = geomMat->Emissive();
-      geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-      geom->SetMaterial(geomMat);
+      // If the entity isn't already highlighted, highlight it
+      if (this->originalEmissive.find(geom->Name()) == this->originalEmissive.end())
+      {
+        this->originalEmissive[geom->Name()] = geomMat->Emissive();
+        geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+        geom->SetMaterial(geomMat);
+      }
     }
   }
 }
@@ -1062,7 +1071,6 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 {
-  ignwarn << "Lowlight node\n";
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
