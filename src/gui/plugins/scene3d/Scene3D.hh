@@ -216,6 +216,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle key release event for snapping.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    public: void SetSelectedEntity(const rendering::NodePtr &_node);
+    
     public: void DeselectAllEntities();
 
     /// \brief Set the XYZ snap values.
@@ -415,6 +417,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
+
+    public: void SetSelectedEntity(const rendering::NodePtr &_node);
 
     public: void DeselectAllEntities();
 
