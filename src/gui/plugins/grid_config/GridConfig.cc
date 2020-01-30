@@ -94,10 +94,6 @@ void GridConfig::SearchEngine()
   auto loadedEngNames = rendering::loadedEngines();
   if (!loadedEngNames.empty())
   {
-    // stop the timer if engine found
-    this->dataPtr->timer->stop();
-    this->disconnect(this->dataPtr->timer, 0, 0, 0);
-
     // assume there is only one engine loaded
     auto engineName = loadedEngNames[0];
     if (loadedEngNames.size() > 1)
@@ -113,20 +109,25 @@ void GridConfig::SearchEngine()
         << "] , Grid plugin won't work." << std::endl;
       return;
     }
-
-    // assume there is only one scene
-    // load scene
-    auto scene = this->dataPtr->engine->SceneByIndex(0);
-    if (!scene)
+    if (this->dataPtr->engine->SceneCount() != 0)
     {
-      ignerr << "No scene found. Grid plugin won't work." << std::endl;
-      return;
-    }
+      // stop the timer if both engine and scene found
+      this->dataPtr->timer->stop();
+      this->disconnect(this->dataPtr->timer, 0, 0, 0);
+      // assume there is only one scene
+      // load scene
+      auto scene = this->dataPtr->engine->SceneByIndex(0);
+      if (!scene)
+      {
+        ignerr << "No scene found. Grid plugin won't work." << std::endl;
+        return;
+      }
 
-    // load grid
-    this->LoadGrid(scene);
-    if (!this->dataPtr->grid)
-      this->ShowGrid(scene);
+      // load grid
+      this->LoadGrid(scene);
+      if (!this->dataPtr->grid)
+        this->ShowGrid(scene);
+    }
   }
 }
 
@@ -237,22 +238,11 @@ void GridConfig::SetColor(double _r, double _g, double _b, double _a)
 /////////////////////////////////////////////////
 void GridConfig::OnShow(bool _checked)
 {
-  auto scene = this->dataPtr->engine->SceneByIndex(0);
-  if (_checked)
+  auto visual = this->dataPtr->grid->Parent();
+  if (visual)
   {
-    this->ShowGrid(scene);
+    visual->SetVisible(_checked);
   }
-  else
-  {
-    this->DestroyGrid();
-  }
-}
-
-/////////////////////////////////////////////////
-void GridConfig::DestroyGrid()
-{
-  this->dataPtr->grid->Scene()->DestroyVisual(
-    this->dataPtr->grid->Parent());
 }
 
 // Register this plugin
