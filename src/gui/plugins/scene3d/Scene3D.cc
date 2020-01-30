@@ -807,6 +807,7 @@ void IgnRenderer::HandleMouseTransformControl()
           }
           else
           {
+            // Send empty set to clear all items on the TreeView
             auto event = new gui::events::EntitiesSelected({});
             ignition::gui::App()->sendEvent(
                 ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -1064,6 +1065,12 @@ void IgnRenderer::Destroy()
 
     // TODO(anyone) If that was the last scene, terminate engine?
   }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetSelectedEntity(const rendering::NodePtr &_node)
+{
+  this->dataPtr->renderUtil.SetSelectedEntity(_node);
 }
 
 /////////////////////////////////////////////////
@@ -1720,8 +1727,9 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       {
         auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
             entity);
+        //TODO debug the functionality occurring when below line is uncommented
+        //this->dataPtr->renderUtil->SetSelectedEntity(node);
       }
-      //this->dataPtr->renderUtil->SetSelectedEntity(node);
     }
   }
 
@@ -1800,6 +1808,12 @@ void Scene3D::OnDropped(const QString &_drop)
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetSelectedEntity(const rendering::NodePtr &_node)
+{
+  this->dataPtr->renderThread->ignRenderer.SetSelectedEntity(_node);
 }
 
 /////////////////////////////////////////////////
