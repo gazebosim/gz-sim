@@ -162,6 +162,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
 
+  // Store the model's SDF DOM to be used when saving the world to file
+  this->dataPtr->ecm->CreateComponent(
+      worldEntity, components::WorldSdf(*_world));
+
   return worldEntity;
 }
 
@@ -229,6 +233,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
   }
   this->dataPtr->newSensors.clear();
+
+  // Store the model's SDF DOM to be used when saving the world to file
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::ModelSdf(*_model));
 
   return modelEntity;
 }
