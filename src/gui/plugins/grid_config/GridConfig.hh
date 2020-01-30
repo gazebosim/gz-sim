@@ -76,9 +76,6 @@ namespace gazebo
     /// \param[in] _checked indicates show or hide grid
     public slots: void OnShow(bool _checked);
 
-    /// \brief Callback to hide grid
-    public slots: void DestroyGrid();
-
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<GridConfigPrivate> dataPtr;
