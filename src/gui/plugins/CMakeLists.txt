@@ -34,7 +34,6 @@ function(gz_add_gui_library library_name)
   target_link_libraries(${library_name}
     PUBLIC
       ${PROJECT_LIBRARY_TARGET_NAME}
-      ${IGNITION-RENDERING_LIBRARIES}
       TINYXML2::TINYXML2
       ${gz_add_gui_library_PUBLIC_LINK_LIBS}
     PRIVATE

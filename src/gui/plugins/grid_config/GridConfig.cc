@@ -106,10 +106,7 @@ void GridConfig::SearchEngine()
         << "Grid config plugin will use engine ["
           << engineName << "]" << std::endl;
     }
-    std::cout << "1" << std::endl;
-    std::cout << engineName << std::endl;
     this->dataPtr->engine = rendering::engine(engineName);
-    std::cout << "2" << std::endl;
     if (!this->dataPtr->engine)
     {
       ignerr << "Internal error: failed to load engine [" << engineName
