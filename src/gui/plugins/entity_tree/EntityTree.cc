@@ -366,16 +366,22 @@ void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 }
 
 /////////////////////////////////////////////////
+void EntityTree::DeselectAllEntities()
+{
+  auto event = new gui::events::DeselectAllEntities();
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
+}
+
+/////////////////////////////////////////////////
 bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
-    // Clear all treeview elements before updating - also
-    // can be used to clear the treeview if an empty set is sent
-    QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
-        Qt::QueuedConnection);
+    ignwarn << "size " << selectedEvent->Data().size() << "\n";
     if (selectedEvent && !selectedEvent->Data().empty())
     {
       for (const auto &entity : selectedEvent->Data())
@@ -384,6 +390,23 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
             Qt::QueuedConnection, Q_ARG(QVariant,
             QVariant(static_cast<unsigned int>(entity))));
       }
+    }
+    else if (selectedEvent->Data().empty())
+    {
+      // Can be used to clear the treeview if an empty set is sent
+      QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
+          Qt::QueuedConnection);
+    
+    }
+  }
+  else if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::Type)
+  {
+    auto deselectAllEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+    if (deselectAllEvent)
+    {
+      QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
+          Qt::QueuedConnection);
     }
   }
 

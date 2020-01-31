@@ -132,21 +132,27 @@ Rectangle {
           enter: null
           exit: null
         }
+
         MouseArea {
           id: ma
           anchors.fill: parent
           hoverEnabled: true
           propagateComposedEvents: true
-          onClicked: {
+          onPressed: {
             if (mouse.button == Qt.RightButton) {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
               entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
             }
             else if (mouse.button == Qt.LeftButton) {
+              // If control not held, send empty list to clear cpp selected set
+              if (!(mouse.modifiers & Qt.ControlModifier)) {
+                // TODO clear selected here
+                print ("Clearing selected")
+                EntityTree.DeselectAllEntities()
+              }
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
-              print("Mouse area clicked")
               //tree.selection.setCurrentIndex(styleData.index,
               //    ItemSelectionModel.ClearAndSelect)
             }
@@ -172,12 +178,10 @@ Rectangle {
   }
 
   function onEntitySelectedFromCpp(_entity) {
-    print ("on Entity Selected")
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
       if (EntityTreeModel.data(itemId, 101) == _entity)
       {
-        print ("Selecting " + itemId)
         tree.selection.setCurrentIndex(itemId,
             ItemSelectionModel.Select)
         break;

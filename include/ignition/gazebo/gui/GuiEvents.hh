@@ -96,6 +96,15 @@ namespace events
     static const QEvent::Type Type = QEvent::Type(QEvent::User + 1);
     private: std::set<Entity> entities;
   };
+
+  class DeselectAllEntities : public QEvent
+  {
+    public: DeselectAllEntities()
+        : QEvent(Type)
+    {
+    }
+    static const QEvent::Type Type = QEvent::Type(QEvent::User + 2);
+  };
 }  // namespace events
 }
 }  // namespace gui
