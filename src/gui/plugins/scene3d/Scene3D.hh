@@ -89,7 +89,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when receives a drop event.
     /// \param[in] _drop Dropped string.
-    public slots: void OnDropped(const QString &_drop);
+    /// \param[in] _mouseX x coordinate of mouse position.
+    /// \param[in] _mouseY y coordinate of mouse position.
+    public slots: void OnDropped(const QString &_drop,
+        int _mouseX, int _mouseY);
 
     /// \brief Callback for a transform mode request
     /// \param[in] _msg Request message to set a new transform mode
@@ -222,7 +225,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// ray cast from the given 2D screen coordinates.
     /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
     /// \return 3D coordinates of a point in the 3D scene.
-    private: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
+    public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
 
     /// \brief Callback when a move to animation is complete
@@ -353,6 +356,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
+
+    /// \brief Retrieve the first point on a surface in the 3D scene hit by a
+    /// ray cast from the given 2D screen coordinates.
+    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
+    /// \return 3D coordinates of a point in the 3D scene.
+    public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos);
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
