@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.X (201X-XX-XX)
 
+1. Fix seeking back in time in log playback
+    * [Pull Request 523](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/523)
+
 ### Ignition Gazebo 2.14.0 (2020-01-10)
 
 1. Use Actuator component to communicate between MulticopterVelocityControl and MulticopterMotorModel systems

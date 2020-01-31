@@ -36,7 +36,6 @@
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
@@ -617,7 +616,6 @@ TEST_F(LogSystemTest, LogControlLevels)
     entitiesAtTime00.insert(v.first);
 
   // verify the entities are the same at beginning of playback
-  EXPECT_EQ(entitiesAtTimeA.size(), entitiesAtTimeAA.size());
   EXPECT_EQ(entitiesAtTime0.size(), entitiesAtTime00.size());
   for (auto it = entitiesAtTime0.begin(), it2 = entitiesAtTime00.begin();
       it != entitiesAtTime0.end() && it2 != entitiesAtTime00.end();
