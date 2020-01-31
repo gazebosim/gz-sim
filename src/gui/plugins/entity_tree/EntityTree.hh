@@ -101,6 +101,9 @@ namespace gazebo
     /// \param[in] _index
     public: Q_INVOKABLE void OnEntitySelectedFromQml(unsigned int _entity);
 
+    /// \brief
+    public: Q_INVOKABLE void DeselectAllEntities();
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 

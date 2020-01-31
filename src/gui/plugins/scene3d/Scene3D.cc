@@ -794,10 +794,17 @@ void IgnRenderer::HandleMouseTransformControl()
             // TODO(louise) Do this even when not in transform mode
             // Notify other widgets
             std::set<Entity> selectedEntities;
+            
+            // Send empty set as event to clear current selection
+            auto event = new gui::events::EntitiesSelected(selectedEntities);
+            ignition::gui::App()->sendEvent(
+                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+                event);
+            
             for (const auto &node : this->dataPtr->renderUtil.SelectedEntities())
               selectedEntities.insert(node.first);
             
-            auto event = new gui::events::EntitiesSelected(selectedEntities);
+            event = new gui::events::EntitiesSelected(selectedEntities);
             ignition::gui::App()->sendEvent(
                 ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
                 event);
@@ -1728,9 +1735,14 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
         auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
             entity);
         //TODO debug the functionality occurring when below line is uncommented
-        //this->dataPtr->renderUtil->SetSelectedEntity(node);
+        this->dataPtr->renderUtil->SetSelectedEntity(node);
+        ignwarn << "Setting selected node\n";
       }
     }
+  }
+  else if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::Type)
+  {
+    ignwarn << "Deselect all\n";
   }
 
   // Standard event processing
