@@ -359,7 +359,8 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 /////////////////////////////////////////////////
 void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 {
-  auto event = new gui::events::EntitiesSelected({_entity});
+  std::set<Entity> entitySet {_entity};
+  auto event = new gui::events::EntitiesSelected(entitySet);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       event);
@@ -381,7 +382,6 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
-    ignwarn << "size " << selectedEvent->Data().size() << "\n";
     if (selectedEvent && !selectedEvent->Data().empty())
     {
       for (const auto &entity : selectedEvent->Data())
@@ -396,10 +396,10 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
       // Can be used to clear the treeview if an empty set is sent
       QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
           Qt::QueuedConnection);
-    
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::Type)
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::DeselectAllEntities::Type)
   {
     auto deselectAllEvent =
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
