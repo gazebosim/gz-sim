@@ -368,8 +368,8 @@ void RenderUtil::Update()
         continue;
 
       // TODO(anyone) Check top level visual instead of parent
-      // TODO(anyone) Check all selected entities
-      auto visual = std::dynamic_pointer_cast<rendering::Visual>(node->Parent());
+      auto visual =
+        std::dynamic_pointer_cast<rendering::Visual>(node->Parent());
       Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
       if (this->dataPtr->transformActive &&
           (pose.first == (*this->dataPtr->selectedEntities.begin()).first ||
@@ -1040,7 +1040,8 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     if (nullptr != visMat)
     {
       // If the entity isn't already highlighted, highlight it
-      if (this->originalEmissive.find(childVis->Name()) == this->originalEmissive.end())
+      if (this->originalEmissive.find(childVis->Name()) ==
+          this->originalEmissive.end())
       {
         this->originalEmissive[childVis->Name()] = visMat->Emissive();
         visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
@@ -1058,7 +1059,8 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
         continue;
 
       // If the entity isn't already highlighted, highlight it
-      if (this->originalEmissive.find(geom->Name()) == this->originalEmissive.end())
+      if (this->originalEmissive.find(geom->Name()) ==
+          this->originalEmissive.end())
       {
         this->originalEmissive[geom->Name()] = geomMat->Emissive();
         geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));

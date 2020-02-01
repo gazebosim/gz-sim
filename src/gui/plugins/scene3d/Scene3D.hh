@@ -217,7 +217,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void HandleKeyRelease(QKeyEvent *_e);
 
     public: void SetSelectedEntity(const rendering::NodePtr &_node);
-    
+
     public: void DeselectAllEntities();
 
     /// \brief Set the XYZ snap values.

@@ -17,8 +17,10 @@
 #ifndef IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
-#include <set>
+
 #include <QEvent>
+#include <set>
+
 #include <ignition/math/Vector3.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
@@ -85,7 +87,7 @@ namespace events
 
   class EntitiesSelected : public QEvent
   {
-    public: EntitiesSelected(std::set<Entity> _entities)
+    public: explicit EntitiesSelected(std::set<Entity> &_entities)
         : QEvent(Type), entities(_entities)
     {
     }
