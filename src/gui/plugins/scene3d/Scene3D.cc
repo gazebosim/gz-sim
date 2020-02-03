@@ -629,8 +629,8 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 math::Vector3d IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
-    const
+    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+    double _sensitivity) const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
