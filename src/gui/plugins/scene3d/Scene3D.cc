@@ -267,6 +267,7 @@ QList<QThread *> RenderWindowItemPrivate::threads;
 IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
+  this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
 }
 
 
