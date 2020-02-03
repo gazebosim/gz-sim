@@ -205,6 +205,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Updated on an x, y, or z, press or release and a mouse press
     public: math::Vector2i mousePressPos = math::Vector2i::Zero;
 
+    /// \brief Flag to indicate whether the x key is currently being pressed
+    public: bool xPressed = false;
+
+    /// \brief Flag to indicate whether the y key is currently being pressed
+    public: bool yPressed = false;
+
+    /// \brief Flag to indicate whether the z key is currently being pressed
+    public: bool zPressed = false;
+
     /// \brief The xyz values by which to snap the object.
     public: math::Vector3d xyzSnap = math::Vector3d::Zero;
 
@@ -521,6 +530,21 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
     this->dataPtr->transformControl.Start();
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
   }
+
+  switch (_e->key())
+  {
+    case Qt::Key_X:
+      this->dataPtr->xPressed = true;
+      break;
+    case Qt::Key_Y:
+      this->dataPtr->yPressed = true;
+      break;
+    case Qt::Key_Z:
+      this->dataPtr->zPressed = true;
+      break;
+    default:
+      break;
+  }
 }
 
 ////////////////////////////////////////////////
@@ -559,6 +583,21 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
     this->dataPtr->isStartWorldPosSet = false;
   }
+
+  switch (_e->key())
+  {
+    case Qt::Key_X:
+      this->dataPtr->xPressed = false;
+      break;
+    case Qt::Key_Y:
+      this->dataPtr->yPressed = false;
+      break;
+    case Qt::Key_Z:
+      this->dataPtr->zPressed = false;
+      break;
+    default:
+      break;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -590,7 +629,8 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 math::Vector3d IgnRenderer::SnapPoint(
-    math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
+    ignition::math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
+    const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
@@ -617,19 +657,24 @@ math::Vector3d IgnRenderer::SnapPoint(
 /////////////////////////////////////////////////
 math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &_axis)
 {
-  if (this->dataPtr->keyEvent.Key() == Qt::Key_X)
+  math::Vector3d translationAxis = math::Vector3d::Zero;
+
+  if (this->dataPtr->xPressed)
   {
-    _axis = math::Vector3d(1, 0, 0);
+    translationAxis += {1, 0, 0};
   }
-  else if (this->dataPtr->keyEvent.Key() == Qt::Key_Y)
+
+  if (this->dataPtr->yPressed)
   {
-    _axis = math::Vector3d(0, 1, 0);
+    translationAxis += {0, 1, 0};
   }
-  else if (this->dataPtr->keyEvent.Key() == Qt::Key_Z)
+
+  if (this->dataPtr->zPressed)
   {
-    _axis = math::Vector3d(0, 0, 1);
+    translationAxis += {0, 0, 1};
   }
-  return _axis;
+
+  return (translationAxis == math::Vector3d::Zero) ? _axis : translationAxis;
 }
 
 /////////////////////////////////////////////////
