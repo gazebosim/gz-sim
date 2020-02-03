@@ -777,10 +777,11 @@ void IgnRenderer::HandleMouseTransformControl()
               // Attach control
               this->dataPtr->transformControl.Attach(topVis);
             }
-            // Add selected entity if control + no transform mode
-            else if (this->dataPtr->keyEvent.Control() &&
+            // Add selected entity if control + no transform mode or
+            // selected entities is currently empty
+            else if ((this->dataPtr->keyEvent.Control() &&
                      this->dataPtr->transformControl.Mode() ==
-                     rendering::TransformMode::TM_NONE)
+                     rendering::TransformMode::TM_NONE) || (this->dataPtr->renderUtil.SelectedEntities().empty()))
             {
               this->dataPtr->renderUtil.SetSelectedEntity(topVis);
               // Attach control
@@ -788,7 +789,7 @@ void IgnRenderer::HandleMouseTransformControl()
             }
 
             // TODO(louise) Do this even when not in transform mode
-            // Notify other widgets
+            // Notify other widgets of the currently selected entities
             std::set<Entity> selectedEntities;
 
             for (const auto &node :
@@ -1136,7 +1137,8 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
       (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
     rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = sceneManager->NodeById(nodeId);
-
+    this->dataPtr->renderUtil.DeselectAllEntities();
+    this->dataPtr->renderUtil.SetSelectedEntity(target);
     // TODO(john) Deselect all other entities except the most recent in this
     // case; Use last element clicked if multiple entities are selected
     if (target)
