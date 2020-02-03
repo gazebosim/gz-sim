@@ -90,7 +90,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when receives a drop event.
     /// \param[in] _drop Dropped string.
-    public slots: void OnDropped(const QString &_drop);
+    /// \param[in] _mouseX x coordinate of mouse position.
+    /// \param[in] _mouseY y coordinate of mouse position.
+    public slots: void OnDropped(const QString &_drop,
+        int _mouseX, int _mouseY);
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
@@ -250,7 +253,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Snapped 3D point.
     public: math::Vector3d SnapPoint(
                 math::Vector3d &_point,
-                math::Vector3d &_snapVals, double _sensitivity = 0.4);
+                math::Vector3d &_snapVals, double _sensitivity = 0.4) const;
 
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
@@ -281,7 +284,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// ray cast from the given 2D screen coordinates.
     /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
     /// \return 3D coordinates of a point in the 3D scene.
-    private: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
+    public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
 
     /// \brief Callback when a move to animation is complete
@@ -424,6 +427,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the scale snap values from the user input.
     /// \param[in] _scale The scale snap values
     public: void SetScaleSnap(const math::Vector3d &_scale);
+
+    /// \brief Retrieve the first point on a surface in the 3D scene hit by a
+    /// ray cast from the given 2D screen coordinates.
+    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
+    /// \return 3D coordinates of a point in the 3D scene.
+    public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos);
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
