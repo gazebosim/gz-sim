@@ -1,13 +1,6 @@
 <?xml version="1.0" ?>
-<!--
-
-Try moving a model:
-
-    ign service -s /world/shapes/set_pose --reqtype ignition.msgs.Pose --reptype ignition.msgs.Boolean --timeout 300 --req 'name: "box", position: {z: 5.0}'
-
--->
 <sdf version="1.6">
-  <world name="shapes">
+  <world name="shapes_bitmask">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -67,8 +60,8 @@ Try moving a model:
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/shapes/control</service>
-        <stats_topic>/world/shapes/stats</stats_topic>
+        <service>/world/shapes_bitmask/control</service>
+        <stats_topic>/world/shapes_bitmask/stats</stats_topic>
 
       </plugin>
 
@@ -93,7 +86,7 @@ Try moving a model:
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/shapes/stats</topic>
+        <topic>/world/shapes_bitmask/stats</topic>
 
       </plugin>
 
