@@ -188,9 +188,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
 
-    /// \brief Text key.
-    public: std::string keyText;
-
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
@@ -545,7 +542,6 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->keyEvent.SetKey(0);
-  this->dataPtr->keyText = "";
 
   this->dataPtr->keyEvent.SetControl(
     (_e->modifiers() & Qt::ControlModifier)
@@ -617,7 +613,7 @@ double IgnRenderer::SnapValue(
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::SnapPoint(
+void IgnRenderer::SnapPoint(
     ignition::math::Vector3d &_point, double _interval, double _sensitivity)
     const
 {
@@ -625,45 +621,44 @@ math::Vector3d IgnRenderer::SnapPoint(
   {
     ignerr << "Interval distance must be greater than 0"
         << std::endl;
-    return math::Vector3d::Zero;
+    return;
   }
 
   if (_sensitivity < 0 || _sensitivity > 1.0)
   {
     ignerr << "Sensitivity must be between 0 and 1" << std::endl;
-    return math::Vector3d::Zero;
+    return;
   }
 
-  math::Vector3d point;
-
-  point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
-  point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
-  point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
-
-  return point;
+  _point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
+  _point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
+  _point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &_axis)
+void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 {
   math::Vector3d translationAxis = math::Vector3d::Zero;
 
   if (this->dataPtr->xPressed)
   {
-    translationAxis += {1, 0, 0};
+    translationAxis += math::Vector3d::UnitX;
   }
 
   if (this->dataPtr->yPressed)
   {
-    translationAxis += {0, 1, 0};
+    translationAxis += math::Vector3d::UnitY;
   }
 
   if (this->dataPtr->zPressed)
   {
-    translationAxis += {0, 0, 1};
+    translationAxis += math::Vector3d::UnitZ;
   }
 
-  return (translationAxis == math::Vector3d::Zero) ? _axis : translationAxis;
+  if (translationAxis != math::Vector3d::Zero)
+  {
+    _axis = translationAxis;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -821,7 +816,7 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
-      axis = GetXYZConstraint(axis);
+      this->XYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
@@ -834,9 +829,12 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d relativePos =
-          this->dataPtr->startWorldPos + distance;
-        distance = SnapPoint(relativePos) - this->dataPtr->startWorldPos;
+        // Translate to world frame for snapping
+        distance += this->dataPtr->startWorldPos;
+        SnapPoint(distance);
+
+        // Translate back to entity frame
+        distance -= this->dataPtr->startWorldPos;
         distance *= axis;
       }
       this->dataPtr->transformControl.Translate(distance);
@@ -850,21 +848,21 @@ void IgnRenderer::HandleMouseTransformControl()
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d currentRot = rotation.Euler();
-        math::Vector3d newRot = SnapPoint(currentRot, IGN_PI/4);
-        rotation = math::Quaterniond::EulerToQuaternion(newRot);
+        SnapPoint(currentRot, IGN_PI/4);
+        rotation = math::Quaterniond::EulerToQuaternion(currentRot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
     }
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
-      axis = GetXYZConstraint(axis);
+      this->XYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        scale = SnapPoint(scale, 0.5);
+        SnapPoint(scale, 0.5);
       }
       this->dataPtr->transformControl.Scale(scale);
     }
