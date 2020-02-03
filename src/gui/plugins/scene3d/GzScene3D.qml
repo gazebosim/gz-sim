@@ -73,7 +73,7 @@ Rectangle {
     anchors.fill: renderWindow
 
     onDropped: {
-      GzScene3D.OnDropped(drop.text)
+      GzScene3D.OnDropped(drop.text, drag.x, drag.y)
     }
   }
 }
