@@ -175,12 +175,12 @@
             <box>
               <size>1 1 1</size>
             </box>
+          </geometry>
           <material>
             <ambient>1 0 0 1</ambient>
             <diffuse>1 0 0 1</diffuse>
             <specular>1 0 0 1</specular>
           </material>
-          </geometry>
         </visual>
       </link>
     </model>
@@ -218,9 +218,9 @@
             </box>
           </geometry>
           <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
           </material>
         </visual>
       </link>
@@ -257,12 +257,12 @@
             <box>
               <size>1 1 1</size>
             </box>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
-          </material>
           </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>1 1 0 1</specular>
+          </material>
         </visual>
       </link>
     </model>
