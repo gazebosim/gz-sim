@@ -78,6 +78,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const rendering::NodePtr &_target, double _duration,
         std::function<void()> _onAnimationComplete);
 
+    /// \brief Move the camera to look at the specified target
+    /// param[in] _camera Camera to be moved
+    /// param[in] _direction The pose to assume relative to the entit(y/ies),
+    /// (0, 0, 0) indicates to return the camera back to the home pose
+    /// originally loaded in from the sdf.
+    /// param[in] _duration Duration of the move to animation, in seconds.
+    /// param[in] _onAnimationComplete Callback function when animation is
+    /// complete
+    public: void LookDirection(const rendering::CameraPtr &_camera,
+        const math::Vector3d &_direction, double _duration,
+        std::function<void()> _onAnimationComplete);
+
     /// \brief Add time to the animation.
     /// \param[in] _time Time to add in seconds
     public: void AddTime(double _time);
@@ -87,6 +99,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return True if idle, false otherwise
     public: bool Idle() const;
 
+    /// \brief Set the initial camera pose
+    /// param[in] _pose The init pose of the camera
+    public: void SetInitCameraPose(const math::Pose3d &_pose);
+
     /// \brief Pose animation object
     public: std::unique_ptr<common::PoseAnimation> poseAnim;
 
@@ -95,6 +111,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback function when animation is complete.
     public: std::function<void()> onAnimationComplete;
+
+    /// \brief Initial pose of the camera used for view angles
+    public: math::Pose3d initCameraPose;
   };
 
   /// \brief Private data class for IgnRenderer
@@ -166,6 +185,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// false to follow in target's local frame
     public: bool followWorldFrame = false;
 
+    /// \brief Flag for indicating whether we are in view angle mode or not
+    public: bool viewAngle = false;
+
+    /// \brief The pose set during a view angle button press that holds
+    /// the pose the camera should assume relative to the entit(y/ies).
+    /// The vector (0, 0, 0) indicates to return the camera back to the home
+    /// pose originally loaded from the sdf.
+    public: math::Vector3d viewAngleDirection = math::Vector3d::Zero;
+
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
 
@@ -189,9 +217,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
-
-    /// \brief Text key.
-    public: std::string keyText;
 
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
@@ -260,6 +285,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Follow service
     public: std::string followService;
+
+    /// \brief Follow service
+    public: std::string viewAngleService;
   };
 }
 }
@@ -274,6 +302,7 @@ QList<QThread *> RenderWindowItemPrivate::threads;
 IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
+  this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
 }
 
 
@@ -450,6 +479,28 @@ void IgnRenderer::Render()
       this->dataPtr->camera->SetTrackTarget(nullptr);
     }
   }
+
+  // View Angle
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewAngle");
+    if (this->dataPtr->viewAngle)
+    {
+      if (this->dataPtr->moveToHelper.Idle())
+      {
+        this->dataPtr->moveToHelper.LookDirection(this->dataPtr->camera,
+            this->dataPtr->viewAngleDirection,
+            0.5, std::bind(&IgnRenderer::OnViewAngleComplete, this));
+        this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
+      }
+      else
+      {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
+        this->dataPtr->moveToHelper.AddTime(dt.count());
+        this->dataPtr->prevMoveToTime = now;
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -556,7 +607,6 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->keyEvent.SetKey(0);
-  this->dataPtr->keyText = "";
 
   this->dataPtr->keyEvent.SetControl(
     (_e->modifiers() & Qt::ControlModifier)
@@ -628,53 +678,52 @@ double IgnRenderer::SnapValue(
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
-    double _sensitivity) const
+void IgnRenderer::SnapPoint(
+    ignition::math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
+    const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
     ignerr << "Interval distance must be greater than 0"
         << std::endl;
-    return math::Vector3d::Zero;
+    return;
   }
 
   if (_sensitivity < 0 || _sensitivity > 1.0)
   {
     ignerr << "Sensitivity must be between 0 and 1" << std::endl;
-    return math::Vector3d::Zero;
+    return;
   }
 
-  math::Vector3d point;
-
-  point.X() = this->SnapValue(_point.X(), _snapVals.X(), _sensitivity);
-  point.Y() = this->SnapValue(_point.Y(), _snapVals.Y(), _sensitivity);
-  point.Z() = this->SnapValue(_point.Z(), _snapVals.Z(), _sensitivity);
-
-  return point;
+  _point.X() = this->SnapValue(_point.X(), _snapVals.X(), _sensitivity);
+  _point.Y() = this->SnapValue(_point.Y(), _snapVals.Y(), _sensitivity);
+  _point.Z() = this->SnapValue(_point.Z(), _snapVals.Z(), _sensitivity);
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::GetXYZConstraint(math::Vector3d &_axis)
+void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 {
   math::Vector3d translationAxis = math::Vector3d::Zero;
 
   if (this->dataPtr->xPressed)
   {
-    translationAxis += {1, 0, 0};
+    translationAxis += math::Vector3d::UnitX;
   }
 
   if (this->dataPtr->yPressed)
   {
-    translationAxis += {0, 1, 0};
+    translationAxis += math::Vector3d::UnitY;
   }
 
   if (this->dataPtr->zPressed)
   {
-    translationAxis += {0, 0, 1};
+    translationAxis += math::Vector3d::UnitZ;
   }
 
-  return (translationAxis == math::Vector3d::Zero) ? _axis : translationAxis;
+  if (translationAxis != math::Vector3d::Zero)
+  {
+    _axis = translationAxis;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -832,7 +881,7 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
-      axis = GetXYZConstraint(axis);
+      this->XYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
@@ -845,8 +894,9 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d relativePos =
-          this->dataPtr->startWorldPos + distance;
+        // Translate to world frame for snapping
+        distance += this->dataPtr->startWorldPos;
+
         math::Vector3d snapVals = this->XYZSnap();
 
         if (snapVals.X() <= 1e-4)
@@ -856,8 +906,10 @@ void IgnRenderer::HandleMouseTransformControl()
         if (snapVals.Z() <= 1e-4)
           snapVals.Z() = 1;
 
-        distance =
-          SnapPoint(relativePos, snapVals) - this->dataPtr->startWorldPos;
+        SnapPoint(distance, snapVals);
+
+        // Translate back to entity frame
+        distance -= this->dataPtr->startWorldPos;
         distance *= axis;
       }
       this->dataPtr->transformControl.Translate(distance);
@@ -870,10 +922,11 @@ void IgnRenderer::HandleMouseTransformControl()
 
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d current_rot = rotation.Euler();
+        math::Vector3d currentRot = rotation.Euler();
         math::Vector3d snapVals = this->RPYSnap();
 
-        if (snapVals.X() <= 1e-4) {
+        if (snapVals.X() <= 1e-4)
+        {
           snapVals.X() = IGN_PI/4;
         }
         else
@@ -895,15 +948,15 @@ void IgnRenderer::HandleMouseTransformControl()
           snapVals.Z() = snapVals.Z() * IGN_PI / 180.0;
         }
 
-        math::Vector3d new_rot = SnapPoint(current_rot, snapVals);
-        rotation = math::Quaterniond::EulerToQuaternion(new_rot);
+        SnapPoint(currentRot, snapVals);
+        rotation = math::Quaterniond::EulerToQuaternion(currentRot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
     }
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
-      axis = GetXYZConstraint(axis);
+      this->XYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
@@ -918,7 +971,7 @@ void IgnRenderer::HandleMouseTransformControl()
         if (snapVals.Z() <= 1e-4)
           snapVals.Z() = 0.1;
 
-        scale = SnapPoint(scale, snapVals);
+        SnapPoint(scale, snapVals);
       }
       this->dataPtr->transformControl.Scale(scale);
     }
@@ -1127,6 +1180,14 @@ void IgnRenderer::SetFollowTarget(const std::string &_target,
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewAngle(const math::Vector3d &_direction)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewAngle = true;
+  this->dataPtr->viewAngleDirection = _direction;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowPGain(double _gain)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1138,6 +1199,13 @@ void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followWorldFrame = _worldFrame;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetInitCameraPose(const math::Pose3d &_pose)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToHelper.SetInitCameraPose(_pose);
 }
 
 /////////////////////////////////////////////////
@@ -1173,6 +1241,13 @@ void IgnRenderer::OnMoveToComplete()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToTarget.clear();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::OnViewAngleComplete()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewAngle = false;
 }
 
 /////////////////////////////////////////////////
@@ -1557,6 +1632,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream poseStr;
       poseStr << std::string(elem->GetText());
       poseStr >> pose;
+      renderWindow->SetInitCameraPose(pose);
       renderWindow->SetCameraPose(pose);
     }
 
@@ -1636,6 +1712,14 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       &Scene3D::OnFollow, this);
   ignmsg << "Follow service on ["
          << this->dataPtr->followService << "]" << std::endl;
+
+  // view angle
+  this->dataPtr->viewAngleService =
+      "/gui/view_angle";
+  this->dataPtr->node.Advertise(this->dataPtr->viewAngleService,
+      &Scene3D::OnViewAngle, this);
+  ignmsg << "View angle service on ["
+         << this->dataPtr->viewAngleService << "]" << std::endl;
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
@@ -1736,6 +1820,18 @@ bool Scene3D::OnFollow(const msgs::StringMsg &_msg,
 }
 
 /////////////////////////////////////////////////
+bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewAngle(msgs::Convert(_msg));
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
@@ -1813,6 +1909,12 @@ void RenderWindowItem::SetFollowTarget(const std::string &_target,
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewAngle(_direction);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
@@ -1834,6 +1936,12 @@ void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
 void RenderWindowItem::SetCameraPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.cameraPose = _pose;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetInitCameraPose(const math::Pose3d &_pose)
+{
+  this->dataPtr->renderThread->ignRenderer.SetInitCameraPose(_pose);
 }
 
 /////////////////////////////////////////////////
@@ -1984,6 +2092,51 @@ void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
 }
 
 ////////////////////////////////////////////////
+void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
+    const math::Vector3d &_direction, double _duration,
+    std::function<void()> _onAnimationComplete)
+{
+  this->camera = _camera;
+  this->poseAnim = std::make_unique<common::PoseAnimation>(
+      "view_angle", _duration, false);
+  this->onAnimationComplete = std::move(_onAnimationComplete);
+
+  math::Pose3d start = _camera->WorldPose();
+
+  // Look at world origin unless there are visuals selected
+  math::Vector3d lookAt = math::Vector3d::Zero;
+
+  // TODO(john) set lookat to be average of selected objects
+
+  // Keep current distance to look at target
+  math::Vector3d camPos = _camera->WorldPose().Pos();
+  double distance = std::fabs((camPos - lookAt).Length());
+
+  // Calculate camera position
+  math::Vector3d endPos = lookAt - _direction * distance;
+
+  // Calculate camera orientation
+  math::Quaterniond endRot =
+    ignition::math::Matrix4d::LookAt(endPos, lookAt).Rotation();
+
+  // Move camera to that pose
+  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
+  key->Translation(start.Pos());
+  key->Rotation(start.Rot());
+
+  // Move camera back to initial pose
+  if (_direction == math::Vector3d::Zero)
+  {
+    endPos = this->initCameraPose.Pos();
+    endRot = this->initCameraPose.Rot();
+  }
+
+  key = this->poseAnim->CreateKeyFrame(_duration);
+  key->Translation(endPos);
+  key->Rotation(endRot);
+}
+
+////////////////////////////////////////////////
 void MoveToHelper::AddTime(double _time)
 {
   if (!this->camera || !this->poseAnim)
@@ -2014,6 +2167,12 @@ void MoveToHelper::AddTime(double _time)
 bool MoveToHelper::Idle() const
 {
   return this->poseAnim == nullptr;
+}
+
+////////////////////////////////////////////////
+void MoveToHelper::SetInitCameraPose(const math::Pose3d &_pose)
+{
+  this->initCameraPose = _pose;
 }
 
 // Register this plugin
