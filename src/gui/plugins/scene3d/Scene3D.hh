@@ -219,6 +219,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle key release event for snapping.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    public: void UpdateSelectedEntities(const rendering::NodePtr &_node);
+
     public: void SetSelectedEntity(const rendering::NodePtr &_node);
 
     public: void DeselectAllEntities();
