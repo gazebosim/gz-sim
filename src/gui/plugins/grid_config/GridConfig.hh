@@ -42,16 +42,12 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief SLOT Funtion to search for scene created
-    public slots: void SearchEngine();
+    /// \brief Update grid
+    public: void UpdateGrid();
 
-    /// \brief Callback to retrieve existing grid.
+    /// \brief Callback to retrieve existing grid or create a new one.
     /// \param[in] _scene Scene to look for grid.
-    public slots: void LoadGrid(rendering::ScenePtr _scene);
-
-    /// \brief Callback to create new grid.
-    /// \param[in] _scene Scene to add the grid to.
-    public slots: void CreateGrid(rendering::ScenePtr _scene);
+    public: void LoadGrid();
 
     /// \brief Callback to update vertical cell count
     /// \param[in] _c new vertical cell count
@@ -75,6 +71,9 @@ namespace gazebo
     /// \brief Callback when checkbox is clicked.
     /// \param[in] _checked indicates show or hide grid
     public slots: void OnShow(bool _checked);
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \internal
     /// \brief Pointer to private data.
