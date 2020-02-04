@@ -73,7 +73,7 @@ GridConfig::GridConfig()
 GridConfig::~GridConfig() = default;
 
 /////////////////////////////////////////////////
-void GridConfig::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void GridConfig::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Grid config";
