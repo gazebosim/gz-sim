@@ -106,14 +106,11 @@ void GridConfig::SearchEngine()
     if (!this->dataPtr->engine)
     {
       ignerr << "Internal error: failed to load engine [" << engineName
-        << "] , Grid plugin won't work." << std::endl;
+        << "]. Grid plugin won't work." << std::endl;
       return;
     }
     if (this->dataPtr->engine->SceneCount() != 0)
     {
-      // stop the timer if both engine and scene found
-      this->dataPtr->timer->stop();
-      this->disconnect(this->dataPtr->timer, 0, 0, 0);
       // assume there is only one scene
       // load scene
       auto scene = this->dataPtr->engine->SceneByIndex(0);
@@ -123,10 +120,20 @@ void GridConfig::SearchEngine()
         return;
       }
 
+      if (!scene->IsInitialized() || scene->VisualCount() == 0)
+      {
+        // Try again next timer tick
+        return;
+      }
+
+      // stop the timer if both engine and scene found
+      this->dataPtr->timer->stop();
+      this->disconnect(this->dataPtr->timer, 0, 0, 0);
+
       // load grid
       this->LoadGrid(scene);
       if (!this->dataPtr->grid)
-        this->ShowGrid(scene);
+        this->CreateGrid(scene);
     }
   }
 }
@@ -135,7 +142,6 @@ void GridConfig::SearchEngine()
 void GridConfig::LoadGrid(rendering::ScenePtr _scene)
 {
   // if gridPtr found, load the existing gridPtr to class
-  // std::cout << "# of visualPtrs: " << _scene->VisualCount() << std::endl;
   for (unsigned int i = 0; i < _scene->VisualCount(); ++i)
   {
     auto vis = _scene->VisualByIndex(i);
@@ -155,8 +161,9 @@ void GridConfig::LoadGrid(rendering::ScenePtr _scene)
 }
 
 /////////////////////////////////////////////////
-void GridConfig::ShowGrid(rendering::ScenePtr _scene)
+void GridConfig::CreateGrid(rendering::ScenePtr _scene)
 {
+  // FIXME(louise) This currently crashes. Must be called from RenderThread.
   // reloading or no existing grid found
   auto root = _scene->RootVisual();
   this->dataPtr->grid = _scene->CreateGrid();

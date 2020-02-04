@@ -23,7 +23,7 @@ Rectangle {
         GridConfig.OnShow(checked)
       }
     }
-  
+
     Text {
       text: "Cell Count"
       color: "dimgrey"
@@ -48,7 +48,7 @@ Rectangle {
           onEditingFinished: GridConfig.UpdateVerCellCount(verticalCellCount.value)
         }
       }
-      
+
       Column {
         spacing: 2
         Text {
@@ -65,7 +65,7 @@ Rectangle {
         }
       }
     }
-    
+
     Row {
       Column {
         spacing: 2
@@ -107,7 +107,7 @@ Rectangle {
         IgnSpinBox {
           id: x
           value: 0.00
-          minimumValue: 0.00
+          minimumValue: -1000.00
           decimals: 2
           stepSize: 0.01
           onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
@@ -121,7 +121,7 @@ Rectangle {
         IgnSpinBox {
           id: y
           value: 0.00
-          minimumValue: 0.00
+          minimumValue: -1000.00
           decimals: 2
           stepSize: 0.01
           onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
@@ -135,13 +135,13 @@ Rectangle {
         IgnSpinBox {
           id: z
           value: 0.00
-          minimumValue: 0.00
+          minimumValue: -1000.00
           decimals: 2
           stepSize: 0.01
           onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
       }
-      
+
       Column {
         spacing: 2
         Text {
@@ -158,8 +158,7 @@ Rectangle {
 
         IgnSpinBox {
           id: roll
-          minimumValue: 0.00
-          maximumValue: 6.28
+          minimumValue: -1000.00
           value: 0.00
           decimals: 2
           stepSize: 0.01
@@ -173,8 +172,7 @@ Rectangle {
 
         IgnSpinBox {
           id: pitch
-          minimumValue: 0.00
-          maximumValue: 6.28
+          minimumValue: -1000.00
           value: 0.00
           decimals: 2
           stepSize: 0.01
@@ -188,14 +186,13 @@ Rectangle {
 
         IgnSpinBox {
           id: yaw
-          minimumValue: 0.00
-          maximumValue: 6.28
+          minimumValue: -1000.00
           value: 0.00
           decimals: 2
           stepSize: 0.01
           onEditingFinished: GridConfig.SetPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
         }
-      }      
+      }
     }
 
     Text {
