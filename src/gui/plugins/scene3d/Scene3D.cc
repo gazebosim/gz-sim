@@ -1135,12 +1135,26 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   {
     Entity nodeId =
       (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
+    Entity entityId =
+      (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).first;
     rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = sceneManager->NodeById(nodeId);
+    
+    // Update QML
+    std::set<Entity> selectedEntity{entityId};
+    auto event = new gui::events::DeselectAllEntities();
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        event);
+    auto selectEvent =
+      new gui::events::EntitiesSelected(selectedEntity);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        selectEvent);
+
+    // Update data structs
     this->dataPtr->renderUtil.DeselectAllEntities();
     this->dataPtr->renderUtil.SetSelectedEntity(target);
-    // TODO(john) Deselect all other entities except the most recent in this
-    // case; Use last element clicked if multiple entities are selected
     if (target)
     {
       this->dataPtr->transformControl.Attach(target);
@@ -1741,7 +1755,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       {
         auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
             entity);
-        this->dataPtr->renderUtil->SetSelectedEntity(node);
+        auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+        renderWindow->SetSelectedEntity(node);
       }
     }
   }
