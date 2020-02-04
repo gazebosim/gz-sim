@@ -45,10 +45,12 @@
 
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "Scene3D.hh"
@@ -466,6 +468,11 @@ void IgnRenderer::Render()
       }
     }
   }
+
+  auto event = new gui::events::Render();
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
 }
 
 /////////////////////////////////////////////////
@@ -1589,7 +1596,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
   this->forceActiveFocus();
 
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
@@ -1601,7 +1608,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
@@ -1613,7 +1620,7 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   if (!event.Dragging())

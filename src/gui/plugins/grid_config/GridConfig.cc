@@ -17,11 +17,13 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/rendering.hh>
 
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "GridConfig.hh"
 
 namespace ignition::gazebo
@@ -42,21 +44,21 @@ namespace ignition::gazebo
 
     /// \brief Default color of grid
     math::Color color{math::Color(0.7, 0.7, 0.7, 1.0)};
+
+    /// \brief Default visible state
+    bool visible{true};
   };
 
   class GridConfigPrivate
   {
-    /// \brief Ptr to singleton engine
-    public: rendering::RenderEngine *engine;
-
     /// \brief Assume only one gridptr in a scene
     public: rendering::GridPtr grid;
 
     /// \brief Default grid parameters
     public: GridParam gridParam;
 
-    /// \brief Timer to search for scene
-    public: QTimer *timer;
+    /// \brief Flag that indicates whether there are new updates to be rendered.
+    public: bool dirty{false};
   };
 }
 
@@ -65,7 +67,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 GridConfig::GridConfig()
-  : gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
+  : ignition::gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
 {
 }
 
@@ -78,73 +80,110 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Grid config";
 
-  // wait for engine to be created
-  this->dataPtr->timer = new QTimer(this);
-  this->dataPtr->timer->setInterval(100);
-  this->connect(this->dataPtr->timer,
-      &QTimer::timeout,
-      this,
-      &GridConfig::SearchEngine);
-  this->dataPtr->timer->start();
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
-void GridConfig::SearchEngine()
+bool GridConfig::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::Render::Type)
+  {
+    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // rendering calls here
+    this->UpdateGrid();
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void GridConfig::UpdateGrid()
+{
+  if (nullptr == this->dataPtr->grid)
+  {
+    this->LoadGrid();
+  }
+
+  if (nullptr == this->dataPtr->grid)
+  {
+    ignerr << "Failed to load or create a grid." << std::endl;
+    return;
+  }
+
+  if (!this->dataPtr->dirty)
+    return;
+
+  this->dataPtr->grid->SetVerticalCellCount(
+    this->dataPtr->gridParam.verCellCount);
+  this->dataPtr->grid->SetCellCount(
+    this->dataPtr->gridParam.honCellCount);
+  this->dataPtr->grid->SetCellLength(
+    this->dataPtr->gridParam.cellLength);
+
+  auto visual = this->dataPtr->grid->Parent();
+  if (visual)
+  {
+    visual->SetLocalPose(this->dataPtr->gridParam.pose);
+
+    auto mat = visual->Material();
+    mat->SetAmbient(this->dataPtr->gridParam.color);
+    mat->SetDiffuse(this->dataPtr->gridParam.color);
+    mat->SetSpecular(this->dataPtr->gridParam.color);
+    visual->SetMaterial(mat);
+
+    visual->SetVisible(this->dataPtr->gridParam.visible);
+  }
+
+  this->dataPtr->dirty = true;
+}
+
+/////////////////////////////////////////////////
+void GridConfig::LoadGrid()
 {
   auto loadedEngNames = rendering::loadedEngines();
-  if (!loadedEngNames.empty())
+  if (loadedEngNames.empty())
+    return;
+
+  // assume there is only one engine loaded
+  auto engineName = loadedEngNames[0];
+  if (loadedEngNames.size() > 1)
   {
-    // assume there is only one engine loaded
-    auto engineName = loadedEngNames[0];
-    if (loadedEngNames.size() > 1)
-    {
-      igndbg << "More than one engine is available. "
-        << "Grid config plugin will use engine ["
-          << engineName << "]" << std::endl;
-    }
-    this->dataPtr->engine = rendering::engine(engineName);
-    if (!this->dataPtr->engine)
-    {
-      ignerr << "Internal error: failed to load engine [" << engineName
-        << "]. Grid plugin won't work." << std::endl;
-      return;
-    }
-    if (this->dataPtr->engine->SceneCount() != 0)
-    {
-      // assume there is only one scene
-      // load scene
-      auto scene = this->dataPtr->engine->SceneByIndex(0);
-      if (!scene)
-      {
-        ignerr << "No scene found. Grid plugin won't work." << std::endl;
-        return;
-      }
-
-      if (!scene->IsInitialized() || scene->VisualCount() == 0)
-      {
-        // Try again next timer tick
-        return;
-      }
-
-      // stop the timer if both engine and scene found
-      this->dataPtr->timer->stop();
-      this->disconnect(this->dataPtr->timer, 0, 0, 0);
-
-      // load grid
-      this->LoadGrid(scene);
-      if (!this->dataPtr->grid)
-        this->CreateGrid(scene);
-    }
+    igndbg << "More than one engine is available. "
+      << "Grid config plugin will use engine ["
+        << engineName << "]" << std::endl;
   }
-}
-
-/////////////////////////////////////////////////
-void GridConfig::LoadGrid(rendering::ScenePtr _scene)
-{
-  // if gridPtr found, load the existing gridPtr to class
-  for (unsigned int i = 0; i < _scene->VisualCount(); ++i)
+  auto engine = rendering::engine(engineName);
+  if (!engine)
   {
-    auto vis = _scene->VisualByIndex(i);
+    ignerr << "Internal error: failed to load engine [" << engineName
+      << "]. Grid plugin won't work." << std::endl;
+    return;
+  }
+
+  if (engine->SceneCount() == 0)
+    return;
+
+  // assume there is only one scene
+  // load scene
+  auto scene = engine->SceneByIndex(0);
+  if (!scene)
+  {
+    ignerr << "Internal error: scene is null." << std::endl;
+    return;
+  }
+
+  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  {
+    return;
+  }
+
+  // load grid
+  // if gridPtr found, load the existing gridPtr to class
+  for (unsigned int i = 0; i < scene->VisualCount(); ++i)
+  {
+    auto vis = scene->VisualByIndex(i);
     if (!vis || vis->GeometryCount() == 0)
       continue;
     for (unsigned int j = 0; j < vis->GeometryCount(); ++j)
@@ -153,20 +192,21 @@ void GridConfig::LoadGrid(rendering::ScenePtr _scene)
             vis->GeometryByIndex(j));
       if (grid)
       {
+        igndbg << "Attaching to existing grid" << std::endl;
         this->dataPtr->grid = grid;
         return;
       }
     }
   }
-}
 
-/////////////////////////////////////////////////
-void GridConfig::CreateGrid(rendering::ScenePtr _scene)
-{
-  // FIXME(louise) This currently crashes. Must be called from RenderThread.
-  // reloading or no existing grid found
-  auto root = _scene->RootVisual();
-  this->dataPtr->grid = _scene->CreateGrid();
+  if (this->dataPtr->grid)
+    return;
+
+  // Create grid
+  igndbg << "Creating grid" << std::endl;
+
+  auto root = scene->RootVisual();
+  this->dataPtr->grid = scene->CreateGrid();
   this->dataPtr->grid->SetCellCount(
     this->dataPtr->gridParam.honCellCount);
   this->dataPtr->grid->SetVerticalCellCount(
@@ -174,16 +214,15 @@ void GridConfig::CreateGrid(rendering::ScenePtr _scene)
   this->dataPtr->grid->SetCellLength(
     this->dataPtr->gridParam.cellLength);
 
-  auto vis = _scene->CreateVisual();
+  auto vis = scene->CreateVisual();
   root->AddChild(vis);
   vis->SetLocalPose(this->dataPtr->gridParam.pose);
   vis->AddGeometry(this->dataPtr->grid);
 
-  auto mat = _scene->CreateMaterial();
+  auto mat = scene->CreateMaterial();
   mat->SetAmbient(this->dataPtr->gridParam.color);
   mat->SetDiffuse(this->dataPtr->gridParam.color);
   mat->SetSpecular(this->dataPtr->gridParam.color);
-
   vis->SetMaterial(mat);
 }
 
@@ -191,24 +230,21 @@ void GridConfig::CreateGrid(rendering::ScenePtr _scene)
 void GridConfig::UpdateVerCellCount(int _c)
 {
   this->dataPtr->gridParam.verCellCount = _c;
-  this->dataPtr->grid->SetVerticalCellCount(
-    this->dataPtr->gridParam.verCellCount);
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
 void GridConfig::UpdateHonCellCount(int _c)
 {
   this->dataPtr->gridParam.honCellCount = _c;
-  this->dataPtr->grid->SetCellCount(
-    this->dataPtr->gridParam.honCellCount);
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
 void GridConfig::UpdateCellLength(double _l)
 {
   this->dataPtr->gridParam.cellLength = _l;
-  this->dataPtr->grid->SetCellLength(
-    this->dataPtr->gridParam.cellLength);
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -216,40 +252,21 @@ void GridConfig::SetPose(double _x,
   double _y, double _z, double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->gridParam.pose = math::Pose3d(_x, _y, _z, _roll, _pitch, _yaw);
-  auto visual = this->dataPtr->grid->Parent();
-  if (visual)
-  {
-    visual->SetLocalPose(this->dataPtr->gridParam.pose);
-  }
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
 void GridConfig::SetColor(double _r, double _g, double _b, double _a)
 {
   this->dataPtr->gridParam.color = math::Color(_r, _g, _b, _a);
-  auto visual = this->dataPtr->grid->Parent();
-  if (visual)
-  {
-    auto mat = visual->Material();
-    mat->SetAmbient(this->dataPtr->gridParam.color);
-    mat->SetDiffuse(this->dataPtr->gridParam.color);
-    mat->SetSpecular(this->dataPtr->gridParam.color);
-    visual->SetMaterial(mat);
-  }
-  else
-  {
-    std::cout << "no visual ptr found" << std::endl;
-  }
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
 void GridConfig::OnShow(bool _checked)
 {
-  auto visual = this->dataPtr->grid->Parent();
-  if (visual)
-  {
-    visual->SetVisible(_checked);
-  }
+  this->dataPtr->gridParam.visible = _checked;
+  this->dataPtr->dirty = true;
 }
 
 // Register this plugin
