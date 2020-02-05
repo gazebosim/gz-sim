@@ -36,7 +36,8 @@ namespace components
   /// sdf::Sensor, information.
   using ThermalCamera = Component<sdf::Sensor, class ThermalCameraTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ThermalCamera", ThermalCamera)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ThermalCamera",
+      ThermalCamera)
 }
 }
 }
