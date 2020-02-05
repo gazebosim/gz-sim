@@ -108,7 +108,6 @@ void GridConfig::UpdateGrid()
 
   if (nullptr == this->dataPtr->grid)
   {
-    ignerr << "Failed to load or create a grid." << std::endl;
     return;
   }
 
@@ -207,6 +206,18 @@ void GridConfig::LoadGrid()
 
   auto root = scene->RootVisual();
   this->dataPtr->grid = scene->CreateGrid();
+  if (!this->dataPtr->grid)
+  {
+    ignwarn << "Failed to create grid, grid config plugin won't work."
+            << std::endl;
+
+    // If we get here, most likely the render engine and scene are fully loaded,
+    // but they don't support grids. So stop trying.
+    ignition::gui::App()->findChild<
+        ignition::gui::MainWindow *>()->removeEventFilter(this);
+    return;
+  }
+
   this->dataPtr->grid->SetCellCount(
     this->dataPtr->gridParam.honCellCount);
   this->dataPtr->grid->SetVerticalCellCount(
