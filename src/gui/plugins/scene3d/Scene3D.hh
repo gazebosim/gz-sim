@@ -20,6 +20,7 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
 #include <ignition/msgs/video_record.pb.h>
 
 #include <string>
@@ -32,6 +33,7 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/common/MouseEvent.hh>
+#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -125,6 +127,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnFollow(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a view angle request
+    /// \param[in] _msg Request message to set the camera to.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewAngle(const msgs::Vector3d &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -181,6 +190,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
 
+    /// \brief Set the viewing angle of the camera
+    /// \param[in] _direction The pose to assume relative to the entit(y/ies).
+    /// (0, 0, 0) indicates to return the camera back to the home pose
+    /// originally loaded in from the sdf
+    public: void SetViewAngle(const math::Vector3d &_direction);
+
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
     public: void SetFollowPGain(double _gain);
@@ -206,11 +221,49 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Camera follow offset position.
     public: math::Vector3d FollowOffset() const;
 
+    /// \brief Set the initial user camera pose
+    /// \param[in] _pose Pose to set the camera to
+    public: void SetInitCameraPose(const math::Pose3d &_pose);
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
+
+    /// \brief Handle key press event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyRelease(QKeyEvent *_e);
+
+    /// \brief Snaps a point at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _point Input point to snap.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    public: void SnapPoint(
+                math::Vector3d &_point,
+                double _interval = 1.0, double _sensitivity = 0.4) const;
+
+    /// \brief Snaps a value at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _coord Input coordinate point.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    /// \return Snapped coordinate point.
+    private: double SnapValue(
+                 double _coord, double _interval, double _sensitivity) const;
+
+    /// \brief Constraints the passed in axis to the currently selected axes.
+    /// \param[in] _axis The axis to constrain.
+    private: void XYZConstraint(math::Vector3d &_axis);
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
@@ -233,6 +286,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when a move to animation is complete
     private: void OnMoveToComplete();
+
+    /// \brief Callback when a view angle animation is complete
+    private: void OnViewAngleComplete();
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
@@ -320,6 +376,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose Pose to set the camera to
     public: void SetCameraPose(const math::Pose3d &_pose);
 
+    /// \brief Set the initial user camera pose
+    /// \param[in] _pose Pose to set the camera to
+    public: void SetInitCameraPose(const math::Pose3d &_pose);
+
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
@@ -331,17 +391,23 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
 
-    /// \brief Move the user camera to move to the speficied target
+    /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
 
-    /// \brief Move the user camera to follow the speficied target
+    /// \brief Move the user camera to follow the specified target
     /// \param[in] _target Target to follow
     /// \param[in] _waitForTarget True to continuously look for the target
     /// to follow. A typical use case is follow a target that is not present
     /// on startup but spawned later into simulation
     public Q_SLOTS: void SetFollowTarget(const std::string &_target,
         bool _waitForTarget = false);
+
+    /// \brief Set the viewing angle of the camera
+    /// \param[in] _direction The pose to assume relative to the entit(y/ies).
+    /// (0, 0, 0) indicates to return the camera back to the home pose
+    /// originally loaded in from the sdf
+    public: void SetViewAngle(const math::Vector3d &_direction);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -380,6 +446,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
+
+    // Documentation inherited
+    protected: void keyPressEvent(QKeyEvent *_e) override;
 
     // Documentation inherited
     protected: void keyReleaseEvent(QKeyEvent *_e) override;
