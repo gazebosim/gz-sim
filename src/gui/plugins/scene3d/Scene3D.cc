@@ -744,7 +744,10 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
-          this->dataPtr->renderUtil.DeselectAllEntities();
+          auto event = new gui::events::DeselectAllEntities(true);
+          ignition::gui::App()->sendEvent(
+              ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+              event);
           return;
         }
 
@@ -768,45 +771,7 @@ void IgnRenderer::HandleMouseTransformControl()
               return;
             }
 
-            // Deselect all and select only current node if
-            // control is not being held
-            if (!this->dataPtr->keyEvent.Control())
-            {
-              this->dataPtr->renderUtil.DeselectAllEntities();
-              this->dataPtr->renderUtil.SetSelectedEntity(topVis);
-              // Attach control
-              this->dataPtr->transformControl.Attach(topVis);
-            }
-            // Add selected entity if control + no transform mode or
-            // selected entities is currently empty
-            else if ((this->dataPtr->keyEvent.Control() &&
-                     this->dataPtr->transformControl.Mode() ==
-                     rendering::TransformMode::TM_NONE) || (this->dataPtr->renderUtil.SelectedEntities().empty()))
-            {
-              this->dataPtr->renderUtil.SetSelectedEntity(topVis);
-              // Attach control
-              this->dataPtr->transformControl.Attach(topVis);
-            }
-
-            // TODO(louise) Do this even when not in transform mode
-            // Notify other widgets of the currently selected entities
-            std::set<Entity> selectedEntities;
-
-            for (const auto &node :
-                 this->dataPtr->renderUtil.SelectedEntities())
-              selectedEntities.insert(node.first);
-
-            // Deselect all nodes
-            auto deselectEvent = new gui::events::DeselectAllEntities();
-            ignition::gui::App()->sendEvent(
-                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-                deselectEvent);
-
-            auto selectEvent =
-              new gui::events::EntitiesSelected(selectedEntities);
-            ignition::gui::App()->sendEvent(
-                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-                selectEvent);
+            this->UpdateSelectedEntity(topVis);
 
             this->dataPtr->mouseDirty = false;
             return;
@@ -814,11 +779,11 @@ void IgnRenderer::HandleMouseTransformControl()
           else
           {
             // Send empty set to clear all items on the TreeView
-            auto event = new gui::events::DeselectAllEntities();
+            // TODO(anyone) If currently dragging, don't deselect all
+            auto event = new gui::events::DeselectAllEntities(true);
             ignition::gui::App()->sendEvent(
                 ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
                 event);
-            this->dataPtr->renderUtil.DeselectAllEntities();
             return;
           }
         }
@@ -1074,9 +1039,59 @@ void IgnRenderer::Destroy()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetSelectedEntity(const rendering::NodePtr &_node)
+void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
 {
-  this->dataPtr->renderUtil.SetSelectedEntity(_node);
+  if (!_node)
+  {
+    return;
+  }
+
+  // Deselect all and select only current node if
+  // control is not being held
+  if (!this->dataPtr->mouseEvent.Control())
+  {
+    this->dataPtr->renderUtil.DeselectAllEntities();
+    this->dataPtr->renderUtil.SetSelectedEntity(_node);
+
+    // Attach control if in a transform mode
+    if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
+    {
+      this->dataPtr->transformControl.Attach(_node);
+    }
+  }
+  // Add selected entity if control + no transform mode or
+  // selected entities is currently empty
+  else if ((this->dataPtr->mouseEvent.Control() &&
+            this->dataPtr->transformControl.Mode() ==
+            rendering::TransformMode::TM_NONE)
+            || (this->dataPtr->renderUtil.SelectedEntities().empty()))
+  {
+    this->dataPtr->renderUtil.SetSelectedEntity(_node);
+
+    // Attach control if in a transform mode
+    if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
+    {
+      this->dataPtr->transformControl.Attach(_node);
+    }
+  }
+
+  // Notify other widgets of the currently selected entities
+  auto deselectEvent = new gui::events::DeselectAllEntities();
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      deselectEvent);
+
+  std::set<Entity> selectedEntities;
+
+  for (const auto &node :
+       this->dataPtr->renderUtil.SelectedEntities())
+    selectedEntities.insert(node.first);
+
+  auto selectEvent =
+    new gui::events::EntitiesSelected(selectedEntities);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      selectEvent);
 }
 
 /////////////////////////////////////////////////
@@ -1135,26 +1150,11 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   {
     Entity nodeId =
       (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
-    Entity entityId =
-      (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).first;
     rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = sceneManager->NodeById(nodeId);
-    
-    // Update QML
-    std::set<Entity> selectedEntity{entityId};
-    auto event = new gui::events::DeselectAllEntities();
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        event);
-    auto selectEvent =
-      new gui::events::EntitiesSelected(selectedEntity);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        selectEvent);
 
-    // Update data structs
-    this->dataPtr->renderUtil.DeselectAllEntities();
-    this->dataPtr->renderUtil.SetSelectedEntity(target);
+    this->UpdateSelectedEntity(target);
+
     if (target)
     {
       this->dataPtr->transformControl.Attach(target);
@@ -1755,16 +1755,29 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       {
         auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
             entity);
-        auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-        renderWindow->SetSelectedEntity(node);
+
+        // If the event is from the user, update render util state
+        if (selectedEvent->FromUser())
+        {
+          auto renderWindow =
+            this->PluginItem()->findChild<RenderWindowItem *>();
+          renderWindow->UpdateSelectedEntity(node);
+        }
       }
     }
   }
   else if (_event->type() ==
            ignition::gazebo::gui::events::DeselectAllEntities::Type)
   {
-    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-    renderWindow->DeselectAllEntities();
+    auto deselectEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+
+    // If the event is from the user, update render util state
+    if (deselectEvent && deselectEvent->FromUser())
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->DeselectAllEntities();
+    }
   }
 
   // Standard event processing
@@ -1849,9 +1862,9 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::SetSelectedEntity(const rendering::NodePtr &_node)
+void RenderWindowItem::UpdateSelectedEntity(const rendering::NodePtr &_node)
 {
-  this->dataPtr->renderThread->ignRenderer.SetSelectedEntity(_node);
+  this->dataPtr->renderThread->ignRenderer.UpdateSelectedEntity(_node);
 }
 
 /////////////////////////////////////////////////
@@ -2013,7 +2026,6 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities();
     auto event = new gui::events::DeselectAllEntities();
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),

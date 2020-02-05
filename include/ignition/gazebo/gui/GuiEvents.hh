@@ -87,25 +87,37 @@ namespace events
 
   class EntitiesSelected : public QEvent
   {
-    public: explicit EntitiesSelected(std::set<Entity> &_entities)
-        : QEvent(Type), entities(_entities)
+    public: explicit EntitiesSelected(std::set<Entity> &_entities,
+                                      bool _fromUser = false)
+        : QEvent(Type), entities(_entities), fromUser(_fromUser)
     {
     }
     public: std::set<Entity> Data() const
     {
       return this->entities;
     }
+    public: bool FromUser() const
+    {
+      return this->fromUser;
+    }
+
     static const QEvent::Type Type = QEvent::Type(QEvent::User + 1);
     private: std::set<Entity> entities;
+    private: bool fromUser = false;
   };
 
   class DeselectAllEntities : public QEvent
   {
-    public: DeselectAllEntities()
-        : QEvent(Type)
+    public: explicit DeselectAllEntities(bool _fromUser = false)
+        : QEvent(Type), fromUser(_fromUser)
     {
     }
+    public: bool FromUser() const
+    {
+      return this->fromUser;
+    }
     static const QEvent::Type Type = QEvent::Type(QEvent::User + 2);
+    private: bool fromUser = false;
   };
 }  // namespace events
 }

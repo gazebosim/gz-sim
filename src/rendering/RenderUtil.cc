@@ -368,9 +368,7 @@ void RenderUtil::Update()
         continue;
 
       // TODO(anyone) Check top level visual instead of parent
-      auto visual =
-        std::dynamic_pointer_cast<rendering::Visual>(node->Parent());
-      Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
+      Entity entityId = this->EntityFromNode(node->Parent());
       if (this->dataPtr->transformActive &&
           (pose.first == (*this->dataPtr->selectedEntities.begin()).first ||
           entityId == (*this->dataPtr->selectedEntities.begin()).first))
@@ -960,6 +958,12 @@ SceneManager &RenderUtil::SceneManager()
   return this->dataPtr->sceneManager;
 }
 
+Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
+{
+  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  return this->dataPtr->sceneManager.VisualEntity(visual);
+}
+
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
@@ -981,8 +985,7 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 
   if (_node)
   {
-    auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
-    Entity entityId = this->dataPtr->sceneManager.VisualEntity(visual);
+    Entity entityId = this->EntityFromNode(_node);
 
     this->dataPtr->selectedEntities.insert(
         std::pair<Entity, Entity>(entityId, _node->Id()));
