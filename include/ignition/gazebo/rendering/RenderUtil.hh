@@ -114,6 +114,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();
 
+    public: Entity EntityFromNode(const rendering::NodePtr& _node);
+
     /// \brief Get the entity being selected. This will only return the
     /// last entity selected.
     /// \TODO(anyone) Deprecate in favour of SelectedEntities
@@ -127,6 +129,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Map of currently selected entities, entity to rendering node id
     public: std::map<Entity, uint64_t> SelectedEntities() const;
 
+    /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();
 
     /// \brief Set whether the transform controls are currently being dragged.

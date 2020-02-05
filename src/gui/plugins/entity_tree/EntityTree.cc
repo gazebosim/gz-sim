@@ -360,7 +360,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 {
   std::set<Entity> entitySet {_entity};
-  auto event = new gui::events::EntitiesSelected(entitySet);
+  auto event = new gui::events::EntitiesSelected(entitySet, true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       event);
@@ -369,7 +369,7 @@ void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 /////////////////////////////////////////////////
 void EntityTree::DeselectAllEntities()
 {
-  auto event = new gui::events::DeselectAllEntities();
+  auto event = new gui::events::DeselectAllEntities(true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       event);
@@ -390,12 +390,6 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
             Qt::QueuedConnection, Q_ARG(QVariant,
             QVariant(static_cast<unsigned int>(entity))));
       }
-    }
-    else if (selectedEvent->Data().empty())
-    {
-      // Can be used to clear the treeview if an empty set is sent
-      QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
-          Qt::QueuedConnection);
     }
   }
   else if (_event->type() ==

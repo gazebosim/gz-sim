@@ -219,9 +219,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle key release event for snapping.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
-    public: void UpdateSelectedEntities(const rendering::NodePtr &_node);
-
-    public: void SetSelectedEntity(const rendering::NodePtr &_node);
+    public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
     public: void DeselectAllEntities();
 
@@ -423,8 +421,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
 
-    public: void SetSelectedEntity(const rendering::NodePtr &_node);
+    /// \brief An update function to apply the rules of selection to the
+    /// passed in node. The rules are as follows:
+    /// - If control is held, append the node to the selected entity list.
+    /// - If the user is currently in a transform mode, update the most
+    ///   recently clicked node and deselect all of the others.
+    /// - Don't allow multiple node selection if the user is holding control
+    ///   and using the transform plugin unless there are no current selected
+    ///   nodes
+    /// Note that this function updates the QML plugin to reflect the current
+    /// state.
+    /// \param[in] _node The node to update the state of the system with.
+    public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
+    /// \brief Deselect all the currently selected entities within
+    /// the RenderUtil class.  Note that this function does not update the
+    /// QML plugin to reflect the changes
     public: void DeselectAllEntities();
 
     /// \brief Set the XYZ snap values from the user input.

@@ -145,17 +145,10 @@ Rectangle {
               entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
             }
             else if (mouse.button == Qt.LeftButton) {
-              // If control not held, send empty list to clear cpp selected set
-              if (!(mouse.modifiers & Qt.ControlModifier)) {
-                // TODO clear selected here
-                print ("Clearing selected")
-                EntityTree.DeselectAllEntities()
-              }
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
-              //tree.selection.setCurrentIndex(styleData.index,
-              //    ItemSelectionModel.ClearAndSelect)
             }
+            
             mouse.accepted = false
           }
 
