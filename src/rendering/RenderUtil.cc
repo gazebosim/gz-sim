@@ -90,9 +90,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
-  /// \brief Initial Camera pose
-  public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
-
   /// \brief Scene background color
   public: math::Color backgroundColor = math::Color::Black;
 
