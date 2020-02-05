@@ -75,6 +75,10 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   /// \brief Keep track of new sensors being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::ElementPtr> newSensors;
+
+  /// \brief Keep track of new visuals being added, so we load their plugins
+  /// only after we have their scoped name.
+  public: std::map<Entity, sdf::ElementPtr> newVisuals;
 };
 
 using namespace ignition;
@@ -265,6 +269,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   }
   this->dataPtr->newSensors.clear();
 
+  // Load visual plugins after model, so we get scoped name.
+  for (const auto &[entity, element] : this->dataPtr->newVisuals)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newVisuals.clear();
+
   return modelEntity;
 }
 
@@ -440,6 +451,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
     this->dataPtr->ecm->CreateComponent(visualEntity,
         components::Material(*_visual->Material()));
   }
+
+  // Keep track of visuals so we can load their plugins after loading the
+  // entire model and having its full scoped name.
+  this->dataPtr->newVisuals[visualEntity] = _visual->Element();
 
   return visualEntity;
 }

@@ -18,8 +18,8 @@
 #include <map>
 #include <vector>
 
-#include <sdf/Element.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Element.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -55,6 +55,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -163,6 +164,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
+  /// \brief A map of entity ids and temperature
+  public: std::map<Entity, float> entityTemp;
+
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
 
@@ -247,6 +251,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
+  auto entityTemp = std::move(this->dataPtr->entityTemp);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -257,6 +262,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
+  this->dataPtr->entityTemp.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -414,6 +420,20 @@ void RenderUtil::Update()
       tf.second.erase("actorPose");
       actorMesh->SetSkeletonLocalTransforms(tf.second);
     }
+    // set visual temperature
+    for (auto &temp : entityTemp)
+    {
+      auto node = this->dataPtr->sceneManager.NodeById(temp.first);
+      if (!node)
+        continue;
+
+      auto visual =
+          std::dynamic_pointer_cast<rendering::Visual>(node);
+      if (!visual)
+        continue;
+
+      visual->SetUserData("temperature", temp.second);
+    }
   }
 }
 
@@ -520,6 +540,15 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (material != nullptr)
           {
             visual.SetMaterial(material->Data());
+          }
+
+          // todo(anyone) make visual updates more generic without using extra
+          // variables like entityTemp just for storing one specific visual
+          // param?
+          auto temp = _ecm.Component<components::Temperature>(_entity);
+          if (temp)
+          {
+            this->entityTemp[_entity] = temp->Data().Kelvin();
           }
 
           this->newVisuals.push_back(
