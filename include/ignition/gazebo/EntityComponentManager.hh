@@ -214,6 +214,12 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const ComponentKey &_key);
 
+      /// \brief Get the type IDs of all components attached to an entity.
+      /// \param[in] _entity Entity to check.
+      /// \return All the component type IDs.
+      public: std::unordered_set<ComponentTypeId> ComponentTypes(
+          Entity _entity) const;
+
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
