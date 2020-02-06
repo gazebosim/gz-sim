@@ -75,14 +75,21 @@ namespace gazebo
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
 
+    /// \brief Static version of roleNames
+    /// \return A hash connecting a unique ideitifier to a role name.
     public: static QHash<int, QByteArray> RoleNames();
 
-    /// \brief Add
-    /// \param[in] _type
+    /// \brief Add a component type to the inspector.
+    /// \param[in] _typeId Type of component to be added.
+    /// \return Newly created item.
     public slots: QStandardItem *AddComponentType(long _typeId);
 
-    /// \brief Keep track of items in the tree
-    private: std::map<QString, QStandardItem *> items;
+    /// \brief Remove a component type from the inspector.
+    /// \param[in] _typeId Type of component to be removed.
+    public slots: void RemoveComponentType(long _typeId);
+
+    /// \brief Keep track of items in the tree, according to type ID.
+    public: std::map<long, QStandardItem *> items;
   };
 
   /// \brief Displays a tree view with all the entities in the world.

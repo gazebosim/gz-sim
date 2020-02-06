@@ -97,7 +97,7 @@ QStandardItem *TreeModel::AddComponentType(long _typeId)
   auto typeName = QString::fromStdString(
       components::Factory::Instance()->Name(_typeId));
 
-  auto itemIt = this->items.find(typeName);
+  auto itemIt = this->items.find(_typeId);
 
   // Existing component item
   if (itemIt != this->items.end())
@@ -114,8 +114,24 @@ QStandardItem *TreeModel::AddComponentType(long _typeId)
       this->roleNames().key("typeId"));
 
   this->invisibleRootItem()->appendRow(item);
-  this->items[typeName] = item;
+  this->items[_typeId] = item;
   return item;
+}
+
+/////////////////////////////////////////////////
+void TreeModel::RemoveComponentType(long _typeId)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("TreeModel::RemoveComponentType");
+
+  auto itemIt = this->items.find(_typeId);
+
+  // Existing component item
+  if (itemIt != this->items.end())
+  {
+    this->invisibleRootItem()->removeRow(itemIt->second->row());
+    this->items.erase(_typeId);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -165,7 +181,6 @@ void ComponentInspector::Update(const UpdateInfo &,
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
   // List all components
-  // TODO(louise) Remove components that are no longer present
   for (const auto &typeId : componentTypes)
   {
     // Add component to list
@@ -207,6 +222,18 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::ParentEntity>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
+    }
+  }
+
+  // Remove components no longer present
+  for (auto itemIt : this->dataPtr->treeModel.items)
+  {
+    auto typeId = itemIt.first;
+    if (componentTypes.find(typeId) == componentTypes.end())
+    {
+      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveComponentType",
+          Qt::QueuedConnection,
+          Q_ARG(long, typeId));
     }
   }
 }
