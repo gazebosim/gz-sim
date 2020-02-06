@@ -5,6 +5,27 @@
 1. Fix seeking back in time in log playback
     * [Pull Request 523](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/523)
 
+1. Fix the deprecated ign-gazebo command line
+    * [Pull Request 499](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/499)
+
+1. Always use the latest render texture in scene3d
+    * [Pull Request 518](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/518)
+
+1. Remove redundent messages when levels get unloaded
+    * [Pull Request 522](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/522)
+
+1. View angle plugin
+    * [Pull Request 516](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/516)
+
+1. Support breadcrumb performers
+    * [Pull Request 484](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/484)
+
+1. Drag and drop Fuel object into mouse position
+    * [Pull Request 511](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/511)
+
+1. Add hotkey keybindings
+    * [Pull Request 486](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/486)
+
 ### Ignition Gazebo 2.14.0 (2020-01-10)
 
 1. Use Actuator component to communicate between MulticopterVelocityControl and MulticopterMotorModel systems
