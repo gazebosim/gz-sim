@@ -576,6 +576,9 @@ void LevelManager::UpdateLevelsState()
           });
   }
 
+  // Sort levelsToLoad and levelsToUnload so as to run std::unique on them.
+  std::sort(levelsToLoad.begin(), levelsToLoad.end());
+  std::sort(levelsToUnload.begin(), levelsToUnload.end());
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());

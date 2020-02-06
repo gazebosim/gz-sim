@@ -44,6 +44,7 @@ using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
+//////////////////////////////////////////////////
 class SensorsFixture : public ::testing::Test
 {
   protected: void SetUp() override
@@ -68,7 +69,8 @@ class SensorsFixture : public ::testing::Test
   private: gazebo::SystemLoader sm;
 };
 
-void TestDefaultTopics()
+//////////////////////////////////////////////////
+void testDefaultTopics()
 {
   // TODO(anyone) This should be a new test, but running multiple tests with
   // sensors is not currently working
@@ -127,7 +129,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   server.Run(true, 10, false);
   ASSERT_NE(nullptr, ecm);
 
-  TestDefaultTopics();
+  testDefaultTopics();
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator

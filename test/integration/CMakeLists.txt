@@ -5,6 +5,7 @@ set(tests
   altimeter_system.cc
   apply_joint_force_system.cc
   battery_plugin.cc
+  breadcrumbs.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
@@ -21,6 +22,7 @@ set(tests
   logical_camera_system.cc
   magnetometer_system.cc
   model.cc
+  multicopter.cc
   network_handshake.cc
   physics_system.cc
   play_pause.cc

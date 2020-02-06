@@ -97,6 +97,10 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+if (NOT APPLE)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PRIVATE stdc++fs)
+endif()
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC

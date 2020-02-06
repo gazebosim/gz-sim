@@ -33,11 +33,13 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -87,9 +89,6 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Name of scene
   public: std::string sceneName = "scene";
-
-  /// \brief Initial Camera pose
-  public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
 
   /// \brief Scene background color
   public: math::Color backgroundColor = math::Color::Black;
@@ -183,7 +182,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm, _info);
-  if (!_info.paused)
+  if (_info.dt != std::chrono::steady_clock::duration::zero())
     this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
 }
@@ -245,6 +244,8 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    if (scene.Grid() && !this->dataPtr->enableSensors)
+      this->ShowGrid();
     // only one scene so break
     break;
   }
@@ -443,18 +444,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -578,18 +583,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -856,6 +865,37 @@ void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::ShowGrid()
+{
+  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
+
+  // create gray material
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
+
+  // create grid visual
+  rendering::VisualPtr visual = this->dataPtr->scene->CreateVisual();
+  rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
+  if (!gridGeom)
+  {
+    ignwarn << "Failed to create grid for scene ["
+      << this->dataPtr->scene->Name() << "] on engine ["
+        << this->dataPtr->scene->Engine()->Name() << "]"
+          << std::endl;
+    return;
+  }
+  gridGeom->SetCellCount(20);
+  gridGeom->SetCellLength(1);
+  gridGeom->SetVerticalCellCount(0);
+  visual->AddGeometry(gridGeom);
+  visual->SetLocalPosition(0, 0, 0.015);
+  visual->SetMaterial(gray);
+  root->AddChild(visual);
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::SetEngineName(const std::string &_name)
 {
   this->dataPtr->engineName = _name;
@@ -903,7 +943,7 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  this->dataPtr->selectedEntity = _node;
+  this->dataPtr->selectedEntity = std::move(_node);
 }
 
 /////////////////////////////////////////////////

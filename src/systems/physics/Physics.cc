@@ -63,6 +63,8 @@
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Util.hh"
+
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -123,6 +125,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointProperties,
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
+          ignition::physics::SetJointVelocityCommandFeature,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
@@ -310,6 +313,15 @@ Physics::~Physics() = default;
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Physics::Update");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
   if (this->dataPtr->engine)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
@@ -494,7 +506,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         // Use the parent link's parent model as the model of this joint
         auto jointPtrPhys = modelPtrPhys->GetJoint(_name->Data());
 
-        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        if (jointPtrPhys.Valid())
+        {
+          // Some joints may not be supported, so only add them to the map if
+          // the physics entity is valid
+          this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        }
         return true;
       });
 
@@ -506,7 +523,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           _ecm.ParentEntity(_entity), false));
         return true;
       });
-
 }
 
 //////////////////////////////////////////////////
@@ -591,7 +607,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             jointIt->second->SetForce(i, 0);
             // TODO(anyone): Only for diff drive, which does not use
             //   JointForceCmd. Remove when it does.
-            jointIt->second->SetVelocity(i, 0);
+            jointIt->second->SetVelocityCommand(i, 0);
           }
           return true;
         }
@@ -632,7 +648,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                 jointIt->second->GetDegreesOfFreedom());
             for (std::size_t i = 0; i < nDofs; ++i)
             {
-              jointIt->second->SetVelocity(i, velCmd->Data()[i]);
+              jointIt->second->SetVelocityCommand(i, velCmd->Data()[i]);
             }
           }
         }
