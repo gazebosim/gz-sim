@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.X (201X-XX-XX)
 
+1. Fix seeking back in time in log playback
+    * [Pull Request 523](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/523)
+
 1. Fix the deprecated ign-gazebo command line
     * [Pull Request 499](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/499)
 
