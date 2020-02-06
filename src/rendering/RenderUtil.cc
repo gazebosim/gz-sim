@@ -967,22 +967,6 @@ Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  // TODO(anyone) Support selecting multiple entities
-  /*
-  if (!this->dataPtr->selectedEntityNodes.empty())
-  {
-    this->dataPtr->selectedEntities.clear();
-    for (auto node : this->dataPtr->selectedEntityNodes)
-    {
-      ignwarn << "Lowlight 1\n";
-      this->dataPtr->LowlightNode(node);
-    }
-    this->dataPtr->selectedEntityNodes.clear();
-  }
-  */
-
-
-
   if (_node)
   {
     Entity entityId = this->EntityFromNode(_node);
