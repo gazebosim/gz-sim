@@ -1,11 +1,14 @@
 import QtQuick 2.9
+import QtQuick.Window 2.2
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import "qrc:/qml"
 
 ToolBar {
+  id: transformControl
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
@@ -14,7 +17,15 @@ ToolBar {
   //   scale.checked = true;
   //   TransformControl.OnMode("scale");
   // } 
- 
+
+  property color snapTitle: (Material.theme == Material.Light) ?
+    Material.color(Material.Grey, Material.Shade200) :
+    Material.color(Material.Grey, Material.Shade900)
+  
+  property color snapItem: (Material.theme == Material.Light) ?
+    Material.color(Material.Grey, Material.Shade100) :
+    Material.color(Material.Grey, Material.Shade800)
+
   function activateTranslate() {
     translate.checked = true;
     TransformControl.OnMode("translate");
@@ -28,6 +39,14 @@ ToolBar {
   function activateSelect() {
     select.checked = true;
     TransformControl.OnMode("select");
+  }
+
+  function windowWidth() {
+    return transformControl.Window.window ? (transformControl.Window.window.width) : 0
+  }
+
+  function windowHeight() {
+    return transformControl.Window.window ? (transformControl.Window.window.height) : 0
   }
 
   background: Rectangle {
@@ -127,20 +146,31 @@ ToolBar {
         Menu {
           id: snapTranslateMenu
           Text {
-            id: x
-            text: qsTr("X (0-100) :")
+            text: "Snapping Intervals"
+            font.pointSize: 15
+            color: Material.theme == Material.Light ? "black" : "white"
+            bottomPadding: 10
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
           }
-          TextField {
+          Text {
+            id: x
+            text: qsTr("X (Meters) :")
+            topPadding: 5
+            bottomPadding: 5
+            horizontalAlignment: Text.AlignHCenter
+            color: Material.theme == Material.Light ? "black" : "white"
+          }
+          IgnSpinBox {
             id: xEntry
-            placeholderText: qsTr("Meters")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 100
-              decimals: 10
-            }
+            minimumValue: 0.01
+            maximumValue: 100.0
+            decimals: 2
+            stepSize: 0.01
+            value: 1
             onEditingFinished: {
               TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
+                xEntry.value, yEntry.value, zEntry.value,
                 rollEntry.text, pitchEntry.text, yawEntry.text,
                 xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
               )
@@ -148,19 +178,22 @@ ToolBar {
           }
           Text {
             id: y
-            text: qsTr("Y (0-100) :")
+            text: qsTr("Y (Meters) :")
+            topPadding: 5
+            bottomPadding: 5
+            horizontalAlignment: Text.AlignHCenter
+            color: Material.theme == Material.Light ? "black" : "white"
           }
-          TextField {
+          IgnSpinBox {
             id: yEntry
-            placeholderText: qsTr("Meters")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 100
-              decimals: 10
-            }
+            minimumValue: 0.01
+            maximumValue: 100.0
+            decimals: 2
+            stepSize: 0.01
+            value: 1
             onEditingFinished: {
               TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
+                xEntry.value, yEntry.value, zEntry.value,
                 rollEntry.text, pitchEntry.text, yawEntry.text,
                 xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
               )
@@ -168,19 +201,22 @@ ToolBar {
           }
           Text {
             id: z
-            text: qsTr("Z (0-100) :")
+            text: qsTr("Z (Meters) :")
+            topPadding: 5
+            bottomPadding: 5
+            horizontalAlignment: Text.AlignHCenter
+            color: Material.theme == Material.Light ? "black" : "white"
           }
-          TextField {
+          IgnSpinBox {
             id: zEntry
-            placeholderText: qsTr("Meters")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 100
-              decimals: 10
-            }
+            minimumValue: 0.01
+            maximumValue: 100.0
+            decimals: 2
+            stepSize: 0.01
+            value: 1
             onEditingFinished: {
               TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
+                xEntry.value, yEntry.value, zEntry.value,
                 rollEntry.text, pitchEntry.text, yawEntry.text,
                 xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
               )
@@ -315,6 +351,44 @@ ToolBar {
         active: rotate.enabled && (rotate.down || rotate.visualFocus || rotate.hovered || rotate.checked)
         color: rotate.Material.rippleColor
       }
+    }
+    ToolButton {
+      id: snap
+      text: "S"
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "Rotate mode"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "magnet.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: {
+          if (mouse.button === Qt.LeftButton) {
+            print(windowWidth())
+            print(windowHeight())
+            snapDialog.open()
+          }
+        }
+      }
+    }
+    Dialog {
+      id: snapDialog
+      x: (windowWidth() - width) / 2
+      y: (windowHeight() - height) / 2
+      width: windowWidth() * 0.3
+      height: windowHeight() * 0.3
+      modal: true
+      focus: true
+      title: "Snap values"
     }
     Text {
       id: xScaleEntry

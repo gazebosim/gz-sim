@@ -32,9 +32,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 /// more information about events.
 namespace events
 {
-  /// \brief The QEvent representing a snap event occurrence.
-  static const QEvent::Type SnapEvent = QEvent::Type(1000);
-
+  /// \brief The class for sending and receiving custom snap value events.
   class SnapIntervals : public QEvent
   {
     /// \brief Constructor
@@ -45,7 +43,7 @@ namespace events
                 math::Vector3d _xyz,
                 math::Vector3d _rpy,
                 math::Vector3d _scale)
-    : QEvent(SnapEvent), xyz(_xyz), rpy(_rpy), scale(_scale)
+    : QEvent(Type), xyz(_xyz), rpy(_rpy), scale(_scale)
     {
     }
 
@@ -69,14 +67,18 @@ namespace events
     {
       return this->scale;
     }
+  
+    /// \brief The QEvent representing a snap event occurrence.
+    static const QEvent::Type Type = QEvent::Type(QEvent::User);
 
-    /// \brief XYZ snapping values.
+    /// \brief XYZ snapping values in meters, these values must be positive.
     private: math::Vector3d xyz;
 
-    /// \brief RPY snapping values.
+    /// \brief RPY snapping values in degrees, these values must be positive.
     private: math::Vector3d rpy;
 
-    /// \brief RPY snapping values.
+    /// \brief Scale snapping values - a multiplier of the current size,
+    /// these values must be positive.
     private: math::Vector3d scale;
   };
 }  // namespace events

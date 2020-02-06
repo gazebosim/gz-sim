@@ -240,13 +240,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: bool zPressed = false;
 
     /// \brief The xyz values by which to snap the object.
-    public: math::Vector3d xyzSnap = math::Vector3d::Zero;
+    public: math::Vector3d xyzSnap = math::Vector3d::One;
 
     /// \brief The rpy values by which to snap the object.
-    public: math::Vector3d rpySnap = math::Vector3d::Zero;
+    public: math::Vector3d rpySnap = {45, 45, 45};
 
     /// \brief The scale values by which to snap the object.
-    public: math::Vector3d scaleSnap = math::Vector3d::Zero;
+    public: math::Vector3d scaleSnap = math::Vector3d::One;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -899,12 +899,10 @@ void IgnRenderer::HandleMouseTransformControl()
 
         math::Vector3d snapVals = this->XYZSnap();
 
-        if (snapVals.X() <= 1e-4)
-          snapVals.X() = 1;
-        if (snapVals.Y() <= 1e-4)
-          snapVals.Y() = 1;
-        if (snapVals.Z() <= 1e-4)
-          snapVals.Z() = 1;
+        // Constrain snap values to a minimum of 1e-4
+        snapVals.X() = std::max(1e-4, snapVals.X());
+        snapVals.Y() = std::max(1e-4, snapVals.Y());
+        snapVals.Z() = std::max(1e-4, snapVals.Z());
 
         SnapPoint(distance, snapVals);
 
@@ -931,21 +929,23 @@ void IgnRenderer::HandleMouseTransformControl()
         }
         else
         {
-          snapVals.X() = snapVals.X() * IGN_PI / 180.0;
+          snapVals.X() = IGN_DTOR(snapVals.X());
         }
-        if (snapVals.Y() <= 1e-4) {
+        if (snapVals.Y() <= 1e-4)
+        {
           snapVals.Y() = IGN_PI/4;
         }
         else
         {
-          snapVals.Y() = snapVals.Y() * IGN_PI / 180.0;
+          snapVals.Y() = IGN_DTOR(snapVals.Y());
         }
-        if (snapVals.Z() <= 1e-4) {
+        if (snapVals.Z() <= 1e-4)
+        {
           snapVals.Z() = IGN_PI/4;
         }
         else
         {
-          snapVals.Z() = snapVals.Z() * IGN_PI / 180.0;
+          snapVals.Z() = IGN_DTOR(snapVals.Z());
         }
 
         SnapPoint(currentRot, snapVals);
@@ -1755,7 +1755,7 @@ void Scene3D::Update(const UpdateInfo &_info,
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::SnapEvent)
+  if (_event->type() == ignition::gazebo::gui::events::SnapIntervals::Type)
   {
     auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
     if (snapEvent)

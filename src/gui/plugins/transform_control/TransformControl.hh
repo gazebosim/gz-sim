@@ -28,7 +28,6 @@ namespace gazebo
 {
   class TransformControlPrivate;
 
-  /// \brief TODO
   /// \brief Provides buttons for translation, rotation, and scale
   ///
   /// ## Configuration
@@ -46,6 +45,17 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    /// \brief Sends an event to update the internal snapping values for
+    /// translation, rotation, and scaling.
+    /// \param[in] _x
+    /// \param[in] _y
+    /// \param[in] _z
+    /// \param[in] _roll
+    /// \param[in] _pitch
+    /// \param[in] _yaw
+    /// \param[in] _scaleX
+    /// \param[in] _scaleY
+    /// \param[in] _scaleZ
     public slots: void OnSnapUpdate(
         double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw,
