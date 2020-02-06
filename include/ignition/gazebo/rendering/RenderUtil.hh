@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -117,9 +118,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
-    /// \brief Get the entity being selected
+    /// \brief Get the entity being selected. This will only return the
+    /// last entity selected.
+    /// \TODO(anyone) Deprecate in favour of SelectedEntities
     /// \return Node representing the selected entity
     public: rendering::NodePtr SelectedEntity() const;
+
+    /// \brief Get the entities currently selected.
+    /// \return Map of currently selected entities, entity to rendering node id
+    public: std::map<Entity, uint64_t> SelectedEntities() const;
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.
