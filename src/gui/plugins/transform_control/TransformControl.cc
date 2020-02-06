@@ -59,6 +59,7 @@ TransformControl::TransformControl()
 
 /////////////////////////////////////////////////
 TransformControl::~TransformControl() = default;
+
 /////////////////////////////////////////////////
 void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
@@ -69,6 +70,7 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->service = "/gui/transform_mode";
 }
 
+/////////////////////////////////////////////////
 void TransformControl::OnSnapUpdate(
     double _x, double _y, double _z,
     double _roll, double _pitch, double _yaw,

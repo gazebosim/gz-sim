@@ -266,8 +266,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point to snap.
-    /// \param[in] _interval Fixed distance interval at which the point is
-    /// snapped.
+    /// \param[in] _snapVals The snapping values to use for each corresponding
+    /// coordinate in _point
     /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
     /// percentage of the interval.
     public: void SnapPoint(
