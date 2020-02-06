@@ -935,7 +935,7 @@ void IgnRenderer::HandleMouseTransformControl()
         // Translate to world frame for snapping
         distance += this->dataPtr->startWorldPos;
         math::Vector3d snapVals = this->XYZSnap();
-        
+
         if (snapVals.X() <= 1e-4)
           snapVals.X() = 1;
         if (snapVals.Y() <= 1e-4)
@@ -984,9 +984,9 @@ void IgnRenderer::HandleMouseTransformControl()
         {
           snapVals.Z() = snapVals.Z() * IGN_PI / 180.0;
         }
-        
+
         SnapPoint(currentRot, snapVals);
-        rotation = math::Quaterniond::EulerToQuaternion(newRot);
+        rotation = math::Quaterniond::EulerToQuaternion(currentRot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
     }
