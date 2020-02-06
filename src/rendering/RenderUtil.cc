@@ -56,6 +56,7 @@
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Temperature.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -355,31 +356,31 @@ void RenderUtil::Update()
     {
       for (const auto &sensor : newSensors)
       {
-         Entity entity = std::get<0>(sensor);
-         const sdf::Sensor &dataSdf = std::get<1>(sensor);
-         Entity parent = std::get<2>(sensor);
+        Entity entity = std::get<0>(sensor);
+        const sdf::Sensor &dataSdf = std::get<1>(sensor);
+        Entity parent = std::get<2>(sensor);
 
-         // two sensors with the same name cause conflicts. We'll need to use
-         // scoped names
-         // TODO(anyone) do this in ign-sensors?
-         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-         if (!parentNode)
-         {
-           ignerr << "Failed to create sensor with name[" << dataSdf.Name()
-                  << "] for entity [" << entity
-                  << "]. Parent not found with ID[" << parent << "]."
-                  << std::endl;
-           continue;
-         }
+        // two sensors with the same name cause conflicts. We'll need to use
+        // scoped names
+        // TODO(anyone) do this in ign-sensors?
+        auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
+        if (!parentNode)
+        {
+          ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                 << "] for entity [" << entity
+                 << "]. Parent not found with ID[" << parent << "]."
+                 << std::endl;
+          continue;
+        }
 
-         std::string sensorName =
-             this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
-         // Add to the system's scene manager
-         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
-         {
-           ignerr << "Failed to create sensor [" << sensorName << "]"
-                  << std::endl;
-         }
+        std::string sensorName =
+            this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
+        // Add to the system's scene manager
+        if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
+        {
+          ignerr << "Failed to create sensor [" << sensorName << "]"
+                 << std::endl;
+        }
       }
     }
   }
@@ -420,6 +421,7 @@ void RenderUtil::Update()
       tf.second.erase("actorPose");
       actorMesh->SetSkeletonLocalTransforms(tf.second);
     }
+
     // set visual temperature
     for (auto &temp : entityTemp)
     {
@@ -462,6 +464,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string cameraSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
+  const std::string thermalCameraSuffix{""};
   const std::string gpuLidarSuffix{"/scan"};
 
   // Treat all pre-existent entities as new at startup
@@ -623,6 +626,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
                          gpuLidarSuffix);
             return true;
           });
+
+      // Create thermal camera
+      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ThermalCamera *_thermalCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
+                         thermalCameraSuffix);
+            return true;
+          });
     }
     this->initialized = true;
   }
@@ -773,6 +787,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
                          gpuLidarSuffix);
             return true;
           });
+
+      // Create thermal camera
+      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ThermalCamera *_thermalCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
+                         thermalCameraSuffix);
+            return true;
+          });
     }
   }
 }
@@ -872,6 +897,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+
+  // Update thermal cameras
+  _ecm.Each<components::ThermalCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::ThermalCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -936,6 +971,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // gpu_lidars
   _ecm.EachRemoved<components::GpuLidar>(
     [&](const Entity &_entity, const components::GpuLidar *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // thermal cameras
+  _ecm.EachRemoved<components::ThermalCamera>(
+    [&](const Entity &_entity, const components::ThermalCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

@@ -56,11 +56,6 @@ void Thermal::Configure(const Entity &_entity,
   }
   double temperature = _sdf->Get<double>("temperature");
   _ecm.CreateComponent(_entity, components::Temperature(temperature));
-
-  // todo(anyone) This just prints out temperature data. Remove this msg later.
-  auto n = _ecm.Component<components::Name>(_entity);
-  ignmsg << "Thermal system: setting " << n->Data() << "'s temperature to "
-         << temperature << std::endl;
 }
 
 

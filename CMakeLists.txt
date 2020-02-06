@@ -98,6 +98,7 @@ ign_find_package(ignition-sensors3 REQUIRED
     logical_camera
     magnetometer
     depth_camera
+    thermal_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 
