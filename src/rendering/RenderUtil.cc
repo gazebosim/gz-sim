@@ -1013,6 +1013,9 @@ void RenderUtil::SetTransformActive(bool _active)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 {
+  if (!_node)
+    return;
+
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
@@ -1060,6 +1063,9 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 {
+  if (!_node)
+    return;
+
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);

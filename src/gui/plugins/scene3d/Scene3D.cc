@@ -1143,7 +1143,10 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
 {
   if (!_node)
   {
+    ignwarn << "Node is null\n";
     return;
+  } else {
+    ignwarn << "Node is " << _node << "\n";
   }
 
   // Deselect all and select only current node if
@@ -1183,10 +1186,14 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
 
   std::set<Entity> selectedEntities;
 
+  ignwarn << "Selected entities size: " << this->dataPtr->renderUtil.SelectedEntities().size() << "\n";
+
   for (const auto &node :
        this->dataPtr->renderUtil.SelectedEntities())
+  {
     selectedEntities.insert(node.first);
-
+    ignwarn << "node name: " << node.first << "\n";
+  }
   auto selectEvent =
     new gui::events::EntitiesSelected(selectedEntities);
   ignition::gui::App()->sendEvent(
