@@ -24,6 +24,7 @@ if (SWIG_FOUND)
     ruby
     Angle
     GaussMarkovProcess
+    Rand
     Vector2
     Vector3)
 endif()

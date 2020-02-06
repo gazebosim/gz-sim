@@ -53,12 +53,15 @@ class GaussMarkovProcess_TEST < Test::Unit::TestCase
     assert(gmp.Theta() == 0.1, "Theta should equal zero")
     assert(gmp.Mu() == 0, "Mu should equal zero")
     assert(gmp.Sigma() == 0.5, "Sigma should equal zero")
+    Ignition::Math::Rand::Seed(1001);
 
     for i in 0..1000 do
       value = gmp.Update(0.1);
-      assert(value > -10, "Value should be greater than -10")
-      assert(value < 25, "Value should be less than 25")
+      assert(value > -11, "Value should be greater than -10")
+      assert(value < 22, "Value should be less than 25")
     end
+    puts gmp.Value() + 4.118732
+    assert(Math.abs(gmp.Value() + 4.118732) <= 1e-4);
   end
 
 end
