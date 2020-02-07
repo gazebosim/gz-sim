@@ -39,7 +39,7 @@ namespace ignition
      * ignition/math/GaussMarkovProcess.hh
      **/
     /// \brief Implementation of a stationary gauss-markov process, also
-    /// known as a Ornstein–Uhlenbeck process.
+    /// known as a Ornstein Ulenbeck process.
     ///
     /// See the Update(const clock::duration &) for details on the forumla
     /// used to update the process.
@@ -125,10 +125,11 @@ namespace ignition
       ///
       /// See also: https://en.wikipedia.org/wiki/Ornstein%E2%80%93Uhlenbeck_process
       ///
-      /// This function utilizes a drift parameter, mu. In financial
+      /// This implementation include a drift parameter, mu. In financial
       /// mathematics, this is known as a Vasicek model.
       ///
-      /// \param[in] _dt Length of the timestep after which a new sample should be taken.
+      /// \param[in] _dt Length of the timestep after which a new sample
+      /// should be taken.
       /// \return The new value of this process.
       public: double Update(const clock::duration &_dt);
 
