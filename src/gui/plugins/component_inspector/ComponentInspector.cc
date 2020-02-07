@@ -23,16 +23,22 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/AngularAcceleration.hh"
+#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/LinearAcceleration.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -109,6 +115,22 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
   _item->setData(_data, TreeModel::RoleNames().key("data"));
 }
 
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
+{
+  _item->setData(QString("Integer"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(_data, TreeModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
+{
+  _item->setData(QString("Float"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(_data, TreeModel::RoleNames().key("data"));
+}
+
 /////////////////////////////////////////////////
 std::string shortName(const std::string &_typeName)
 {
@@ -128,7 +150,7 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
-QStandardItem *TreeModel::AddComponentType(long _typeId)
+QStandardItem *TreeModel::AddComponentType(ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("TreeModel::AddComponentType");
@@ -158,7 +180,7 @@ QStandardItem *TreeModel::AddComponentType(long _typeId)
 }
 
 /////////////////////////////////////////////////
-void TreeModel::RemoveComponentType(long _typeId)
+void TreeModel::RemoveComponentType(ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("TreeModel::RemoveComponentType");
@@ -230,7 +252,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponentType",
         Qt::BlockingQueuedConnection,
         Q_RETURN_ARG(QStandardItem *, item),
-        Q_ARG(long, typeId));
+        Q_ARG(ComponentTypeId, typeId));
 
     if (nullptr == item)
     {
@@ -240,7 +262,21 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
 
     // Populate component-specific data
-    if (typeId == components::CastShadows::typeId)
+    if (typeId == components::AngularAcceleration::typeId)
+    {
+      auto comp = _ecm.Component<components::AngularAcceleration>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::AngularVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::AngularVelocity>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::CastShadows::typeId)
     {
       auto comp = _ecm.Component<components::CastShadows>(
           this->dataPtr->entity);
@@ -257,6 +293,20 @@ void ComponentInspector::Update(const UpdateInfo &,
     else if (typeId == components::Gravity::typeId)
     {
       auto comp = _ecm.Component<components::Gravity>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::LinearAcceleration::typeId)
+    {
+      auto comp = _ecm.Component<components::LinearAcceleration>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::LinearVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::LinearVelocity>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -308,6 +358,40 @@ void ComponentInspector::Update(const UpdateInfo &,
     else if (typeId == components::WindMode::typeId)
     {
       auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::WorldAngularAcceleration::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldAngularAcceleration>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::WorldLinearVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldLinearVelocity>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::WorldLinearVelocitySeed::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldLinearVelocitySeed>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::WorldPose::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldPose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::WorldPoseCmd::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldPoseCmd>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }

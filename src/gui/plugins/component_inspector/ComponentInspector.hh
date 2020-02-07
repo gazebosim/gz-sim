@@ -21,8 +21,10 @@
 #include <map>
 #include <memory>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
@@ -73,6 +75,18 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const bool &_data);
 
+  /// \brief Specialized to set integer data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const int &_data);
+
+  /// \brief Specialized to set double data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const double &_data);
+
   /// \brief Specialized to set stream data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
@@ -100,14 +114,14 @@ namespace gazebo
     /// \brief Add a component type to the inspector.
     /// \param[in] _typeId Type of component to be added.
     /// \return Newly created item.
-    public slots: QStandardItem *AddComponentType(long _typeId);
+    public slots: QStandardItem *AddComponentType(ComponentTypeId _typeId);
 
     /// \brief Remove a component type from the inspector.
     /// \param[in] _typeId Type of component to be removed.
-    public slots: void RemoveComponentType(long _typeId);
+    public slots: void RemoveComponentType(ComponentTypeId _typeId);
 
     /// \brief Keep track of items in the tree, according to type ID.
-    public: std::map<long, QStandardItem *> items;
+    public: std::map<ComponentTypeId, QStandardItem *> items;
   };
 
   /// \brief Displays a tree view with all the entities in the world.

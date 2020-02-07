@@ -28,7 +28,7 @@ Rectangle {
   Text {
     id: headerText
     text: model && model.shortName ? model.shortName : ''
-    color: Material.theme == Material.Light ? "black" : "white"
+    color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
     font.pointSize: 12
     leftPadding: 10
 
