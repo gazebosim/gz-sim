@@ -1,6 +1,6 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.XX.X (201X-XX-XX)
+### Ignition Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
     * [Pull Request 523](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/523)
