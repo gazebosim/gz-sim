@@ -22,27 +22,42 @@ Rectangle {
     Rectangle {
       id: header
       width: parent.width
-      height: headerItem.height
+      height: typeHeader.height
       color: "transparent"
 
       TypeHeader {
-        id: headerItem
+        id: typeHeader
       }
       MouseArea {
         anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: {
           content.show = !content.show
+        }
+        onEntered: {
+          header.color = darkGrey
+        }
+        onExited: {
+          header.color = "transparent"
         }
       }
     }
 
     Rectangle {
       id: content
-      property bool show: true
+      property bool show: false
       width: parent.width
       height: show ? grid.height : 0
       clip: true
       color: darkGrey
+
+      Behavior on height {
+        NumberAnimation {
+          duration: 200;
+          easing.type: Easing.InOutQuad
+        }
+      }
 
       GridLayout {
         id: grid
@@ -107,13 +122,6 @@ Rectangle {
           maximumValue: spinMax
           decimals: zSpin.width < 100 ? 2 : 6
           Layout.fillWidth: true
-        }
-
-        Behavior on height {
-          NumberAnimation {
-            duration: 200;
-            easing.type: Easing.InOutQuad
-          }
         }
       }
     }

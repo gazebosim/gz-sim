@@ -8,7 +8,7 @@ import "qrc:/ComponentInspector"
 
 Rectangle {
   id: stringComponent
-  height: header.height
+  height: typeHeader.height
   width: componentInspector.width
   color: "transparent"
 
@@ -20,9 +20,9 @@ Rectangle {
   }
 
   Row {
-    spacing: stringComponent.width - header.width - content.width - 20
+    spacing: stringComponent.width - typeHeader.width - content.width - 20
     TypeHeader {
-      id: header
+      id: typeHeader
     }
 
     TextInput {

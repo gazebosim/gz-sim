@@ -23,11 +23,15 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/WindMode.hh"
@@ -84,6 +88,16 @@ void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
   _item->setData(QString("String"), TreeModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data),
+      TreeModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item,
+    const std::ostringstream &_data)
+{
+  _item->setData(QString("Raw"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QString::fromStdString(_data.str()),
       TreeModel::RoleNames().key("data"));
 }
 
@@ -226,33 +240,17 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
 
     // Populate component-specific data
-    if (typeId == components::Pose::typeId)
+    if (typeId == components::CastShadows::typeId)
     {
-      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      auto comp = _ecm.Component<components::CastShadows>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Name::typeId)
+    else if (typeId == components::ChildLinkName::typeId)
     {
-      auto comp = _ecm.Component<components::Name>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
-    else if (typeId == components::Static::typeId)
-    {
-      auto comp = _ecm.Component<components::Static>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
-    else if (typeId == components::ParentEntity::typeId)
-    {
-      auto comp = _ecm.Component<components::ParentEntity>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
-    else if (typeId == components::WindMode::typeId)
-    {
-      auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
+      auto comp = _ecm.Component<components::ChildLinkName>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -269,10 +267,63 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else
+    else if (typeId == components::Name::typeId)
     {
-      // TODO(louise) Display deserialized data
+      auto comp = _ecm.Component<components::Name>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
+    else if (typeId == components::ParentEntity::typeId)
+    {
+      auto comp = _ecm.Component<components::ParentEntity>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::ParentLinkName::typeId)
+    {
+      auto comp = _ecm.Component<components::ParentLinkName>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PerformerAffinity::typeId)
+    {
+      auto comp = _ecm.Component<components::PerformerAffinity>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Pose::typeId)
+    {
+      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Static::typeId)
+    {
+      auto comp = _ecm.Component<components::Static>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::WindMode::typeId)
+    {
+      auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    // Unknown types use raw data
+    // TODO(louise) Enable this once we have a good use case. Right now it just
+    // adds garbage with no benefit.
+    //else
+    //{
+    //  auto comp = _ecm.Component(this->dataPtr->entity, typeId);
+    //  if (comp)
+    //  {
+    //    std::ostringstream ostr;
+    //    comp->Serialize(ostr);
+    //    setData(item, ostr);
+    //  }
+    //}
   }
 
   // Remove components no longer present

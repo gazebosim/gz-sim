@@ -8,14 +8,14 @@ import "qrc:/ComponentInspector"
 
 Rectangle {
   id: booleanComponent
-  height: header.height
+  height: typeHeader.height
   width: componentInspector.width
   color: "transparent"
 
   Row {
-    spacing: booleanComponent.width - header.width - content.width - 20
+    spacing: booleanComponent.width - typeHeader.width - content.width - 20
     TypeHeader {
-      id: header
+      id: typeHeader
     }
 
     Switch {
@@ -24,5 +24,21 @@ Rectangle {
       checked: model.data
       enabled: false
     }
+  }
+
+  ToolTip {
+    visible: ma.containsMouse
+    delay: tooltipDelay
+    text: content.checked ? "True" : "False"
+    y: content.y - 30
+    x: content.x
+    enter: null
+    exit: null
+  }
+  MouseArea {
+    id: ma
+    anchors.fill: booleanComponent
+    hoverEnabled: true
+    acceptedButtons: Qt.RightButton
   }
 }
