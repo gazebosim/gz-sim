@@ -73,6 +73,12 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const bool &_data);
 
+  /// \brief Specialized to set stream data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const std::ostream &_data);
+
   /// \brief TODO
   class TreeModel : public QStandardItemModel
   {

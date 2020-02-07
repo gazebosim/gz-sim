@@ -36,7 +36,7 @@ Rectangle {
       visible: ma.containsMouse
       delay: tooltipDelay
       text: tooltipText(model)
-      y: typeHeader.z - 30
+      y: typeHeader.y - 30
       enter: null
       exit: null
     }
