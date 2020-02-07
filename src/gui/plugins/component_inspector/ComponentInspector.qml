@@ -51,7 +51,9 @@ Rectangle {
     anchors.right: parent.right
     text: 'Entity: ' + ComponentInspector.entity
     color: Material.theme == Material.Light ? "black" : "white"
+    background: Rectangle {color: darkGrey}
     font.pointSize: 13
+    width: parent.width
     padding: 3
   }
 

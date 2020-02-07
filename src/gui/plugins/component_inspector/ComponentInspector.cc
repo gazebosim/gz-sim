@@ -24,10 +24,13 @@
 #include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
@@ -40,35 +43,57 @@ namespace ignition::gazebo
     /// \brief Model holding all the current components.
     public: TreeModel treeModel;
 
-    /// \brief Entity being inspected.
-    public: Entity entity;
+    /// \brief Entity being inspected. Default to world.
+    public: Entity entity{1};
   };
-
-  template<>
-  void setData(QStandardItem *_item, const math::Pose3d &_data)
-  {
-    _item->setData(QString("Pose3d"), TreeModel::RoleNames().key("dataType"));
-    _item->setData(QList({
-      QVariant(_data.Pos().X()),
-      QVariant(_data.Pos().Y()),
-      QVariant(_data.Pos().Z()),
-      QVariant(_data.Rot().Roll()),
-      QVariant(_data.Rot().Pitch()),
-      QVariant(_data.Rot().Yaw())
-    }), TreeModel::RoleNames().key("data"));
-  }
-
-  template<>
-  void setData(QStandardItem *_item, const std::string &_data)
-  {
-    _item->setData(QString("String"), TreeModel::RoleNames().key("dataType"));
-    _item->setData(QString::fromStdString(_data),
-        TreeModel::RoleNames().key("data"));
-  }
 }
 
 using namespace ignition;
 using namespace gazebo;
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
+{
+  _item->setData(QString("Pose3d"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.Pos().X()),
+    QVariant(_data.Pos().Y()),
+    QVariant(_data.Pos().Z()),
+    QVariant(_data.Rot().Roll()),
+    QVariant(_data.Rot().Pitch()),
+    QVariant(_data.Rot().Yaw())
+  }), TreeModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const math::Vector3d &_data)
+{
+  _item->setData(QString("Vector3d"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.X()),
+    QVariant(_data.Y()),
+    QVariant(_data.Z())
+  }), TreeModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
+{
+  _item->setData(QString("String"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QString::fromStdString(_data),
+      TreeModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
+{
+  _item->setData(QString("Boolean"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(_data, TreeModel::RoleNames().key("data"));
+}
 
 /////////////////////////////////////////////////
 std::string shortName(const std::string &_typeName)
@@ -180,6 +205,8 @@ void ComponentInspector::Update(const UpdateInfo &,
 
   auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
+  // TODO(louise) Sort so type and name are up top
+
   // List all components
   for (const auto &typeId : componentTypes)
   {
@@ -223,6 +250,29 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::WindMode::typeId)
+    {
+      auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Gravity::typeId)
+    {
+      auto comp = _ecm.Component<components::Gravity>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::MagneticField::typeId)
+    {
+      auto comp = _ecm.Component<components::MagneticField>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else
+    {
+      // TODO(louise) Display deserialized data
+    }
   }
 
   // Remove components no longer present
@@ -264,7 +314,16 @@ int ComponentInspector::Entity() const
 /////////////////////////////////////////////////
 void ComponentInspector::SetEntity(const int &_entity)
 {
-  this->dataPtr->entity = _entity;
+  // If nothing is selected, display world properties
+  if (_entity == kNullEntity)
+  {
+    // TODO(anyone) Don't hardcode world entity
+    this->dataPtr->entity = 1;
+  }
+  else
+  {
+    this->dataPtr->entity = _entity;
+  }
   this->EntityChanged();
 }
 

@@ -7,7 +7,7 @@ import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
 
 Rectangle {
-  id: nameComponent
+  id: stringComponent
   height: header.height
   width: componentInspector.width
   color: "transparent"
@@ -20,16 +20,18 @@ Rectangle {
   }
 
   Row {
-    spacing: nameComponent.width - header.width - content.width - 20
+    spacing: stringComponent.width - header.width - content.width - 20
     TypeHeader {
       id: header
     }
 
-    Text {
+    TextInput {
       id: content
       text: textFromModel(model)
       color: Material.theme == Material.Light ? "black" : "white"
       font.pointSize: 12
+      selectByMouse: true // will only work when we enable it
+      enabled: false
     }
   }
 }

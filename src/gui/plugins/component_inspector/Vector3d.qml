@@ -7,7 +7,7 @@ import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
-// Item displaying 3D pose information.
+// Item displaying 3D vector information.
 Rectangle {
   height: header.height + content.height
   width: componentInspector.width
@@ -47,7 +47,7 @@ Rectangle {
       GridLayout {
         id: grid
         width: parent.width
-        columns: 6
+        columns: 4
 
         // Left spacer
         Item {
@@ -68,22 +68,6 @@ Rectangle {
           minimumValue: -spinMax
           maximumValue: spinMax
           decimals: xSpin.width < 100 ? 2 : 6
-          Layout.fillWidth: true
-        }
-
-        Text {
-          text: 'Roll (rad)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "black" : "white"
-          font.pointSize: 12
-        }
-
-        IgnSpinBox {
-          id: rollSpin
-          value: model.data[3]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: rollSpin.width < 100 ? 2 : 6
           Layout.fillWidth: true
         }
 
@@ -110,22 +94,6 @@ Rectangle {
         }
 
         Text {
-          text: 'Pitch (rad)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "black" : "white"
-          font.pointSize: 12
-        }
-
-        IgnSpinBox {
-          id: pitchSpin
-          value: model.data[4]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: pitchSpin.width < 100 ? 2 : 6
-          Layout.fillWidth: true
-        }
-
-        Text {
           text: 'Z (m)'
           leftPadding: 5
           color: Material.theme == Material.Light ? "black" : "white"
@@ -139,23 +107,6 @@ Rectangle {
           maximumValue: spinMax
           decimals: zSpin.width < 100 ? 2 : 6
           Layout.fillWidth: true
-        }
-
-        Text {
-          text: 'Yaw (m)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "black" : "white"
-          font.pointSize: 12
-        }
-
-        IgnSpinBox {
-          id: yawSpin
-          value: model.data[5]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: yawSpin.width < 100 ? 2 : 6
-          Layout.fillWidth: true
-          suffix: 'm'
         }
 
         Behavior on height {
