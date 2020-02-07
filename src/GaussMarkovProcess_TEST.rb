@@ -60,8 +60,8 @@ class GaussMarkovProcess_TEST < Test::Unit::TestCase
       assert(value > -11, "Value should be greater than -10")
       assert(value < 22, "Value should be less than 25")
     end
-    puts gmp.Value() + 4.118732
-    assert(Math.abs(gmp.Value() + 4.118732) <= 1e-4);
+    # Hand-tuned values that are repeatable given the seed set above.
+    assert((gmp.Value() + 3.99148).abs <= 1e-4);
   end
 
 end
