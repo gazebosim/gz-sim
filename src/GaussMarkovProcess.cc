@@ -115,8 +115,6 @@ double GaussMarkovProcess::Update(const clock::duration &_dt)
 //////////////////////////////////////////////////
 double GaussMarkovProcess::Update(double _dt)
 {
-  // This equation comes from:
-  // https://en.wikipedia.org/wiki/Ornstein%E2%80%93Uhlenbeck_process
   this->dataPtr->value += this->dataPtr->theta *
     (this->dataPtr->mu - this->dataPtr->value) * _dt +
     this->dataPtr->sigma * Rand::DblNormal(0, 1);

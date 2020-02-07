@@ -55,9 +55,11 @@ namespace ignition
       /// \brief Create a process with the provided process parameters.
       /// This will also call Set(), and in turn Reset().
       /// \param[in] _start The start value of the process.
-      /// \param[in] _theta The theta (\f$\theta\f$) parameter.
+      /// \param[in] _theta The theta (\f$\theta\f$) parameter. A value of
+      /// zero will be used if this parameter is negative.
       /// \param[in] _mu The mu (\f$\mu\f$) parameter.
-      /// \param[in] _sigma The sigma (\f$\sigma\f$) parameter.
+      /// \param[in] _sigma The sigma (\f$\sigma\f$) parameter. A value of
+      /// zero will be used if this parameter is negative.
       /// \sa Update(const clock::duration &)
       public: GaussMarkovProcess(double _start, double _theta, double _mu,
                   double _sigma);
@@ -122,6 +124,10 @@ namespace ignition
       ///   * \f$x_{t+1}\f$ is the new value of the Gauss-Markvov process
       ///
       /// See also: https://en.wikipedia.org/wiki/Ornstein%E2%80%93Uhlenbeck_process
+      ///
+      /// This function utilizes a drift parameter, mu. In financial
+      /// mathematics, this is known as a Vasicek model.
+      ///
       /// \param[in] _dt Length of the timestep after which a new sample should be taken.
       /// \return The new value of this process.
       public: double Update(const clock::duration &_dt);
