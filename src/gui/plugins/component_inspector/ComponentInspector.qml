@@ -69,30 +69,14 @@ Rectangle {
     width: parent.width
     color: darkGrey
 
-    Image {
-      id: icon
-      anchors.left: parent.left
-      sourceSize.height: entityLabel.height
-      sourceSize.width: entityLabel.height
-      fillMode: Image.PreserveAspectFit
-      horizontalAlignment: Image.AlignHCenter
-      verticalAlignment: Image.AlignLeft
-      source: "qrc:/Gazebo/images/" + ComponentInspector.type + ".png"
 
-      ToolTip {
-        visible: iconMa.containsMouse
-        delay: tooltipDelay
-        text: ComponentInspector.type
-        y: icon.z - 30
-        enter: null
-        exit: null
-      }
-      MouseArea {
-        id: iconMa
-        anchors.fill: parent
-        hoverEnabled: true
-      }
-    }
+    //IgnGazebo.TypeIcon {
+    //  id: icon
+    //  anchors.left: parent.left
+    //  height: entityLabel.height
+    //  width: entityLabel.height
+    //  type: ComponentInspector.type
+    //}
 
     Label {
       id: entityLabel
