@@ -27,20 +27,30 @@
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Level.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
@@ -55,6 +65,9 @@ namespace ignition::gazebo
 
     /// \brief Entity being inspected. Default to world.
     public: Entity entity{1};
+
+    /// \brief Entity type, such as 'world' or 'model'.
+    public: QString type;
   };
 }
 
@@ -150,7 +163,8 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
-QStandardItem *TreeModel::AddComponentType(ComponentTypeId _typeId)
+QStandardItem *TreeModel::AddComponentType(
+    ignition::gazebo::ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("TreeModel::AddComponentType");
@@ -180,7 +194,7 @@ QStandardItem *TreeModel::AddComponentType(ComponentTypeId _typeId)
 }
 
 /////////////////////////////////////////////////
-void TreeModel::RemoveComponentType(ComponentTypeId _typeId)
+void TreeModel::RemoveComponentType(ignition::gazebo::ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("TreeModel::RemoveComponentType");
@@ -218,6 +232,8 @@ ComponentInspector::ComponentInspector()
   // Connect model
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "ComponentInspectorModel", &this->dataPtr->treeModel);
+
+  qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
 }
 
 /////////////////////////////////////////////////
@@ -246,13 +262,74 @@ void ComponentInspector::Update(const UpdateInfo &,
   // List all components
   for (const auto &typeId : componentTypes)
   {
+    // Type components
+    if (typeId == components::World::typeId)
+    {
+      this->SetType("world");
+      continue;
+    }
+
+    if (typeId == components::Model::typeId)
+    {
+      this->SetType("model");
+      continue;
+    }
+
+    if (typeId == components::Link::typeId)
+    {
+      this->SetType("link");
+      continue;
+    }
+
+    if (typeId == components::Collision::typeId)
+    {
+      this->SetType("collision");
+      continue;
+    }
+
+    if (typeId == components::Visual::typeId)
+    {
+      this->SetType("visual");
+      continue;
+    }
+
+    if (typeId == components::Sensor::typeId)
+    {
+      this->SetType("sensor");
+      continue;
+    }
+
+    if (typeId == components::Joint::typeId)
+    {
+      this->SetType("joint");
+      continue;
+    }
+
+    if (typeId == components::Performer::typeId)
+    {
+      this->SetType("performer");
+      continue;
+    }
+
+    if (typeId == components::Level::typeId)
+    {
+      this->SetType("level");
+      continue;
+    }
+
+    if (typeId == components::Light::typeId)
+    {
+      this->SetType("light");
+      continue;
+    }
+
     // Add component to list
     QStandardItem *item;
     // TODO(louise) Blocking here is not the best idea
     QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponentType",
         Qt::BlockingQueuedConnection,
         Q_RETURN_ARG(QStandardItem *, item),
-        Q_ARG(ComponentTypeId, typeId));
+        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
 
     if (nullptr == item)
     {
@@ -418,7 +495,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveComponentType",
           Qt::QueuedConnection,
-          Q_ARG(long, typeId));
+          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
   }
 }
@@ -460,6 +537,19 @@ void ComponentInspector::SetEntity(const int &_entity)
     this->dataPtr->entity = _entity;
   }
   this->EntityChanged();
+}
+
+/////////////////////////////////////////////////
+QString ComponentInspector::Type() const
+{
+  return this->dataPtr->type;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetType(const QString &_type)
+{
+  this->dataPtr->type = _type;
+  this->TypeChanged();
 }
 
 // Register this plugin

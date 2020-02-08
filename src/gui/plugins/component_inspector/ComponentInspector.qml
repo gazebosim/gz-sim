@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2019 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
@@ -44,21 +60,52 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
-  Label {
-    id: entityLabel
+  Rectangle {
+    id: header
+    height: entityLabel.height
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
-    text: 'Entity: ' + ComponentInspector.entity
-    color: Material.theme == Material.Light ? "black" : "white"
-    background: Rectangle {color: darkGrey}
-    font.pointSize: 13
     width: parent.width
-    padding: 3
+    color: darkGrey
+
+    Image {
+      id: icon
+      anchors.left: parent.left
+      sourceSize.height: entityLabel.height
+      sourceSize.width: entityLabel.height
+      fillMode: Image.PreserveAspectFit
+      horizontalAlignment: Image.AlignHCenter
+      verticalAlignment: Image.AlignLeft
+      source: "qrc:/Gazebo/images/" + ComponentInspector.type + ".png"
+
+      ToolTip {
+        visible: iconMa.containsMouse
+        delay: tooltipDelay
+        text: ComponentInspector.type
+        y: icon.z - 30
+        enter: null
+        exit: null
+      }
+      MouseArea {
+        id: iconMa
+        anchors.fill: parent
+        hoverEnabled: true
+      }
+    }
+
+    Label {
+      id: entityLabel
+      anchors.right: parent.right
+      text: 'Entity ' + ComponentInspector.entity
+      color: Material.theme == Material.Light ? "black" : "white"
+      font.pointSize: 13
+      padding: 3
+    }
   }
 
   ListView {
-    anchors.top: entityLabel.bottom
+    anchors.top: header.bottom
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
