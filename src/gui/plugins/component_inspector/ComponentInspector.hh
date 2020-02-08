@@ -26,6 +26,8 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
+Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
+
 namespace ignition
 {
 namespace gazebo
@@ -114,11 +116,11 @@ namespace gazebo
     /// \brief Add a component type to the inspector.
     /// \param[in] _typeId Type of component to be added.
     /// \return Newly created item.
-    public slots: QStandardItem *AddComponentType(ComponentTypeId _typeId);
+    public slots: QStandardItem *AddComponentType(ignition::gazebo::ComponentTypeId _typeId);
 
     /// \brief Remove a component type from the inspector.
     /// \param[in] _typeId Type of component to be removed.
-    public slots: void RemoveComponentType(ComponentTypeId _typeId);
+    public slots: void RemoveComponentType(ignition::gazebo::ComponentTypeId _typeId);
 
     /// \brief Keep track of items in the tree, according to type ID.
     public: std::map<ComponentTypeId, QStandardItem *> items;
@@ -140,6 +142,14 @@ namespace gazebo
       NOTIFY EntityChanged
     )
 
+    /// \brief Type
+    Q_PROPERTY(
+      QString type
+      READ Type
+      WRITE SetType
+      NOTIFY TypeChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -155,18 +165,27 @@ namespace gazebo
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
-    /// \brief Get the message type as a string, for example
-    /// 'ignition.msgs.StringMsg'
-    /// \return Message type
+    /// \brief Get the entity currently inspected.
+    /// \return Entity ID.
     public: Q_INVOKABLE int Entity() const;
 
-    /// \brief Set the message type from a string, for example
-    /// 'ignition.msgs.StringMsg'
-    /// \param[in] _entity Message type
+    /// \brief Set the entity currently inspected.
+    /// \param[in] _entity Entity ID.
     public: Q_INVOKABLE void SetEntity(const int &_entity);
 
-    /// \brief Notify that message type has changed
+    /// \brief Notify that entity has changed.
     signals: void EntityChanged();
+
+    /// \brief Get the type of entity currently inspected.
+    /// \return Type, such as 'world' or 'model'
+    public: Q_INVOKABLE QString Type() const;
+
+    /// \brief Set the type of entity currently inspected.
+    /// \param[in] _type Type, such as 'world' or 'model'.
+    public: Q_INVOKABLE void SetType(const QString &_entity);
+
+    /// \brief Notify that entity type has changed
+    signals: void TypeChanged();
 
     /// \internal
     /// \brief Pointer to private data.
