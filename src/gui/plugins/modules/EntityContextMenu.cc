@@ -26,7 +26,6 @@
 #include <ignition/transport/Node.hh>
 
 #include "EntityContextMenu.hh"
-#include "TypeIcon.hh"
 
 namespace ignition::gazebo
 {
@@ -59,8 +58,6 @@ void IgnGazeboPlugin::registerTypes(const char *_uri)
   // Register our 'EntityContextMenuItem' in qml engine
   qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,
       "EntityContextMenuItem");
-//  qmlRegisterType<ignition::gazebo::TypeIcon>(_uri, 1, 0,
-//      "TypeIcon");
 }
 
 /////////////////////////////////////////////////

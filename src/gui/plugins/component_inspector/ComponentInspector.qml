@@ -24,7 +24,7 @@ import IgnGazebo 1.0 as IgnGazebo
 
 Rectangle {
   id: componentInspector
-  color: "transparent"
+  color: lightGrey
   Layout.minimumWidth: 250
   Layout.minimumHeight: 375
   anchors.fill: parent
@@ -70,20 +70,30 @@ Rectangle {
     color: darkGrey
 
 
-    //IgnGazebo.TypeIcon {
-    //  id: icon
-    //  anchors.left: parent.left
-    //  height: entityLabel.height
-    //  width: entityLabel.height
-    //  type: ComponentInspector.type
-    //}
+    IgnGazebo.TypeIcon {
+      id: icon
+      anchors.left: parent.left
+      height: entityLabel.height
+      width: entityLabel.height
+      entityType: ComponentInspector.type
+    }
+
+    Label {
+      anchors.left: parent.left
+      text: ComponentInspector.type
+      font.capitalization: Font.Capitalize
+      color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+      font.pointSize: 9
+      padding: 3
+      leftPadding: entityLabel.height
+    }
 
     Label {
       id: entityLabel
       anchors.right: parent.right
       text: 'Entity ' + ComponentInspector.entity
-      color: Material.theme == Material.Light ? "black" : "white"
-      font.pointSize: 13
+      color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+      font.pointSize: 9
       padding: 3
     }
   }
