@@ -33,10 +33,10 @@ Rectangle {
 
     var info = '';
     if (model.typeName !== undefined)
-      info += "Type name [" + model.typeName + "]\n"
+      info += "Type name: " + model.typeName + "\n"
 
     if (model.typeId !== undefined)
-      info += "Type Id [" + model.typeId + "]"
+      info += "Type Id: " + model.typeId + ""
 
     return info
   }
