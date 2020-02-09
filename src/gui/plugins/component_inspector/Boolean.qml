@@ -34,27 +34,34 @@ Rectangle {
       id: typeHeader
     }
 
-    Switch {
+    Rectangle {
       id: content
       y: -content.width * 0.2
-      checked: model.data
-      enabled: false
-    }
-  }
+      height: booleanSwitch.height
+      width: booleanSwitch.width
+      color: "transparent"
 
-  ToolTip {
-    visible: ma.containsMouse
-    delay: tooltipDelay
-    text: content.checked ? "True" : "False"
-    y: content.y - 30
-    x: content.x
-    enter: null
-    exit: null
-  }
-  MouseArea {
-    id: ma
-    anchors.fill: booleanComponent
-    hoverEnabled: true
-    acceptedButtons: Qt.RightButton
+      Switch {
+        id: booleanSwitch
+        checked: model.data
+        enabled: false
+      }
+
+      ToolTip {
+        visible: ma.containsMouse
+        delay: tooltipDelay
+        text: content.checked ? "True" : "False"
+        y: booleanSwitch.y - booleanSwitch.height * 0.5
+        x: booleanSwitch.x
+        enter: null
+        exit: null
+      }
+      MouseArea {
+        id: ma
+        anchors.fill: content
+        hoverEnabled: true
+        acceptedButtons: Qt.RightButton
+      }
+    }
   }
 }

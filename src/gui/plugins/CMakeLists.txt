@@ -79,6 +79,8 @@ function(gz_add_gui_plugin plugin_name)
 endfunction()
 
 add_subdirectory(modules)
+
+# Plugins
 add_subdirectory(component_inspector)
 add_subdirectory(entity_tree)
 add_subdirectory(scene3d)

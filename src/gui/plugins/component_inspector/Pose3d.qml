@@ -186,7 +186,6 @@ Rectangle {
           maximumValue: spinMax
           decimals: yawSpin.width < 100 ? 2 : 6
           Layout.fillWidth: true
-          suffix: 'm'
         }
       }
     }
