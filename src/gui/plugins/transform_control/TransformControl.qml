@@ -120,72 +120,6 @@ ToolBar {
             translate.checked = true;
             TransformControl.OnMode("translate")
           }
-          if (mouse.button === Qt.RightButton) {
-            snapTranslateMenu.open()
-          }
-        }
-        Menu {
-          id: snapTranslateMenu
-          Text {
-            id: x
-            text: qsTr("X (0-100) :")
-          }
-          TextField {
-            id: xEntry
-            placeholderText: qsTr("Meters")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 100
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: y
-            text: qsTr("Y (0-100) :")
-          }
-          TextField {
-            id: yEntry
-            placeholderText: qsTr("Meters")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 100
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: z
-            text: qsTr("Z (0-100) :")
-          }
-          TextField {
-            id: zEntry
-            placeholderText: qsTr("Meters")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 100
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
         }
       }
       // Almost an exact copy from upstream, adding `checked`
@@ -230,72 +164,6 @@ ToolBar {
             rotate.checked = true;
             TransformControl.OnMode("rotate")
           }
-          if (mouse.button === Qt.RightButton) {
-            snapRotateMenu.open()
-          }
-        }
-        Menu {
-          id: snapRotateMenu
-          Text {
-            id: roll
-            text: qsTr("R (0-90) :")
-          }
-          TextField {
-            id: rollEntry
-            placeholderText: qsTr("Degrees")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 90
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: pitch
-            text: qsTr("P (0-90) :")
-          }
-          TextField {
-            id: pitchEntry
-            placeholderText: qsTr("Degrees")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 90
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: yaw
-            text: qsTr("Y (0-90) :")
-          }
-          TextField {
-            id: yawEntry
-            placeholderText: qsTr("Degrees")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 90
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
         }
       }
       // Almost an exact copy from upstream, adding `checked`
@@ -315,15 +183,6 @@ ToolBar {
         active: rotate.enabled && (rotate.down || rotate.visualFocus || rotate.hovered || rotate.checked)
         color: rotate.Material.rippleColor
       }
-    }
-    Text {
-      id: xScaleEntry
-    }
-    Text {
-      id: yScaleEntry
-    }
-    Text {
-      id: zScaleEntry
     }
     // TODO(anyone) enable scale button when support is added in ign-physics
     // ToolButton {
@@ -350,81 +209,15 @@ ToolBar {
     //         scale.checked = true;
     //         TransformControl.OnMode("scale")
     //       }
-    //       if (mouse.button === Qt.RightButton) {
-    //         snapScaleMenu.open()
-    //       }
-    //     }
-    //     Menu {
-    //       id: snapScaleMenu
-    //       Text {
-    //         id: xScale
-    //         text: qsTr("X (0-5) :")
-    //       }
-    //       TextField {
-    //         id: xScaleEntry
-    //         placeholderText: qsTr("Size")
-    //         validator: DoubleValidator {
-    //           bottom: 0
-    //           top: 5
-    //           decimals: 10
-    //         }
-    //        onEditingFinished: {
-    //           TransformControl.OnSnapUpdate(
-    //             xEntry.text, yEntry.text, zEntry.text,
-    //             rollEntry.text, pitchEntry.text, yawEntry.text,
-    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-    //           )
-    //         }
-    //       }
-    //       Text {
-    //         id: yScale
-    //         text: qsTr("Y (0-5) :")
-    //       }
-    //       TextField {
-    //         id: yScaleEntry
-    //         placeholderText: qsTr("Size")
-    //         validator: DoubleValidator {
-    //           bottom: 0
-    //           top: 5
-    //           decimals: 10
-    //         }
-    //        onEditingFinished: {
-    //           TransformControl.OnSnapUpdate(
-    //             xEntry.text, yEntry.text, zEntry.text,
-    //             rollEntry.text, pitchEntry.text, yawEntry.text,
-    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-    //           )
-    //         }
-    //       }
-    //       Text {
-    //         id: zScale
-    //         text: qsTr("Z (0-5) :")
-    //       }
-    //       TextField {
-    //         id: zScaleEntry
-    //         placeholderText: qsTr("Size")
-    //         validator: DoubleValidator {
-    //           bottom: 0
-    //           top: 5
-    //           decimals: 10
-    //         }
-    //        onEditingFinished: {
-    //           TransformControl.OnSnapUpdate(
-    //             xEntry.text, yEntry.text, zEntry.text,
-    //             rollEntry.text, pitchEntry.text, yawEntry.text,
-    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-    //           )
-    //         }
-    //       }
     //     }
     //   }
     //  // Almost an exact copy from upstream, adding `checked`
     //  background: Ripple {
     //    implicitWidth: 48
     //    implicitHeight: 48
-
+    //
     //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
-
+    //
     //    x: (parent.width - width) / 2
     //    y: (parent.height - height) / 2
     //    clip: !square
