@@ -147,8 +147,13 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
       this->roleNames().key("icon"));
 
   parentItem->appendRow(entityItem);
-
   this->entityItems[_entity] = entityItem;
+}
+
+QStandardItem* TreeModel::EntityItem(unsigned int _entity)
+{
+  ignwarn << "entity item " << this->entityItems[_entity] << "\n";
+  return this->entityItems[_entity];
 }
 
 /////////////////////////////////////////////////
@@ -253,6 +258,7 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
+  qRegisterMetaType<QStandardItem*>("QStandardItem*");
   // Connect model
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
      "EntityTreeModel", &this->dataPtr->treeModel);
