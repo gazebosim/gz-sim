@@ -146,10 +146,6 @@ Rectangle {
             }
             else if (mouse.button == Qt.LeftButton) {
               var entity = EntityTreeModel.EntityId(styleData.index)
-              tree.selection.setCurrentIndex(styleData.index,
-                  ItemSelectionModel.Select)
-              print("styledata index " + styleData.index)
-              print("Entity " + entity)
               EntityTree.OnEntitySelectedFromQml(entity)
             }
             mouse.accepted = false
@@ -179,7 +175,6 @@ Rectangle {
 
       if (EntityTreeModel.data(itemId, 101) == _entity)
       {
-        print("Highlighting " + itemId)
         tree.selection.setCurrentIndex(itemId,
             ItemSelectionModel.Select)
         break;
