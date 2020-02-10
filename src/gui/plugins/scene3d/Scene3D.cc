@@ -218,9 +218,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
 
-    /// \brief Text key.
-    public: std::string keyText;
-
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
@@ -232,15 +229,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// smoothly when switching axes through keybinding and clicking
     /// Updated on an x, y, or z, press or release and a mouse press
     public: math::Vector2i mousePressPos = math::Vector2i::Zero;
-
-    /// \brief The xyz values by which to snap the object.
-    public: math::Vector3d xyzSnap = math::Vector3d::Zero;
-
-    /// \brief The rpy values by which to snap the object.
-    public: math::Vector3d rpySnap = math::Vector3d::Zero;
-
-    /// \brief The scale values by which to snap the object.
-    public: math::Vector3d scaleSnap = math::Vector3d::Zero;
 
     /// \brief Flag to indicate whether the x key is currently being pressed
     public: bool xPressed = false;
@@ -610,7 +598,6 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   this->dataPtr->keyEvent.SetKey(0);
-  this->dataPtr->keyText = "";
 
   this->dataPtr->keyEvent.SetControl(
     (_e->modifiers() & Qt::ControlModifier)
@@ -689,9 +676,9 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
+    ignition::math::Vector3d &_point, double _interval, double _sensitivity) const
 {
-  if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
+  if (_interval <= 0)
   {
     ignerr << "Interval distance must be greater than 0"
         << std::endl;
@@ -704,9 +691,9 @@ void IgnRenderer::SnapPoint(
     return;
   }
 
-  _point.X() = this->SnapValue(_point.X(), _snapVals.X(), _sensitivity);
-  _point.Y() = this->SnapValue(_point.Y(), _snapVals.Y(), _sensitivity);
-  _point.Z() = this->SnapValue(_point.Z(), _snapVals.Z(), _sensitivity);
+  _point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
+  _point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
+  _point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
 }
 
 /////////////////////////////////////////////////
@@ -934,15 +921,7 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         // Translate to world frame for snapping
         distance += this->dataPtr->startWorldPos;
-        math::Vector3d snapVals = this->XYZSnap();
-
-        if (snapVals.X() <= 1e-4)
-          snapVals.X() = 1;
-        if (snapVals.Y() <= 1e-4)
-          snapVals.Y() = 1;
-        if (snapVals.Z() <= 1e-4)
-          snapVals.Z() = 1;
-        SnapPoint(distance, snapVals);
+        SnapPoint(distance);
 
         // Translate back to entity frame
         distance -= this->dataPtr->startWorldPos;
@@ -959,33 +938,7 @@ void IgnRenderer::HandleMouseTransformControl()
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d currentRot = rotation.Euler();
-        math::Vector3d snapVals = this->RPYSnap();
-
-        if (snapVals.X() <= 1e-4)
-        {
-          snapVals.X() = IGN_PI/4;
-        }
-        else
-        {
-          snapVals.X() = snapVals.X() * IGN_PI / 180.0;
-        }
-        if (snapVals.Y() <= 1e-4)
-        {
-          snapVals.Y() = IGN_PI/4;
-        }
-        else
-        {
-          snapVals.Y() = snapVals.Y() * IGN_PI / 180.0;
-        }
-        if (snapVals.Z() <= 1e-4) {
-          snapVals.Z() = IGN_PI/4;
-        }
-        else
-        {
-          snapVals.Z() = snapVals.Z() * IGN_PI / 180.0;
-        }
-
-        SnapPoint(currentRot, snapVals);
+        SnapPoint(currentRot, IGN_PI/4);
         rotation = math::Quaterniond::EulerToQuaternion(currentRot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
@@ -999,16 +952,7 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d snapVals = this->ScaleSnap();
-
-        if (snapVals.X() <= 1e-4)
-          snapVals.X() = 0.1;
-        if (snapVals.Y() <= 1e-4)
-          snapVals.Y() = 0.1;
-        if (snapVals.Z() <= 1e-4)
-          snapVals.Z() = 0.1;
-
-        SnapPoint(scale, snapVals);
+        SnapPoint(scale, 0.5);
       }
       this->dataPtr->transformControl.Scale(scale);
     }
@@ -1145,8 +1089,6 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
   {
     ignwarn << "Node is null\n";
     return;
-  } else {
-    ignwarn << "Node is " << _node << "\n";
   }
 
   // Deselect all and select only current node if
@@ -1186,55 +1128,16 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
 
   std::set<Entity> selectedEntities;
 
-  ignwarn << "Selected entities size: " << this->dataPtr->renderUtil.SelectedEntities().size() << "\n";
-
   for (const auto &node :
        this->dataPtr->renderUtil.SelectedEntities())
   {
     selectedEntities.insert(node.first);
-    ignwarn << "node name: " << node.first << "\n";
   }
   auto selectEvent =
     new gui::events::EntitiesSelected(selectedEntities);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       selectEvent);
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyz)
-{
-  this->dataPtr->xyzSnap = _xyz;
-}
-
-/////////////////////////////////////////////////
-math::Vector3d IgnRenderer::XYZSnap()
-{
-  return this->dataPtr->xyzSnap;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpy)
-{
-  this->dataPtr->rpySnap = _rpy;
-}
-
-/////////////////////////////////////////////////
-math::Vector3d IgnRenderer::RPYSnap()
-{
-  return this->dataPtr->rpySnap;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetScaleSnap(const math::Vector3d &_scale)
-{
-  this->dataPtr->scaleSnap = _scale;
-}
-
-/////////////////////////////////////////////////
-math::Vector3d IgnRenderer::ScaleSnap()
-{
-  return this->dataPtr->scaleSnap;
 }
 
 /////////////////////////////////////////////////
@@ -1871,18 +1774,7 @@ void Scene3D::Update(const UpdateInfo &_info,
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::SnapIntervals::Type)
-  {
-    auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
-    if (snapEvent)
-    {
-      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetXYZSnap(snapEvent->XYZ());
-      renderWindow->SetRPYSnap(snapEvent->RPY());
-      renderWindow->SetScaleSnap(snapEvent->Scale());
-    }
-  }
-  else if (_event->type() ==
+  if (_event->type() ==
            ignition::gazebo::gui::events::EntitiesSelected::Type)
   {
     auto selectedEvent =
@@ -2015,24 +1907,6 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 void RenderWindowItem::UpdateSelectedEntity(const rendering::NodePtr &_node)
 {
   this->dataPtr->renderThread->ignRenderer.UpdateSelectedEntity(_node);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
-{
-  this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::SetRPYSnap(const math::Vector3d &_rpy)
-{
-  this->dataPtr->renderThread->ignRenderer.SetRPYSnap(_rpy);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
-{
-  this->dataPtr->renderThread->ignRenderer.SetScaleSnap(_scale);
 }
 
 /////////////////////////////////////////////////

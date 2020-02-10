@@ -53,7 +53,7 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
   : ignition::gui::Plugin(),
-  dataPtr(std::make_unique<TransformControlPrivate>())
+    dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
 
@@ -67,18 +67,6 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 
   // For transform requests
   this->dataPtr->service = "/gui/transform_mode";
-}
-
-void TransformControl::OnSnapUpdate(
-    double _x, double _y, double _z,
-    double _roll, double _pitch, double _yaw,
-    double _scaleX, double _scaleY, double _scaleZ)
-{
-  auto event = new gui::events::SnapIntervals(
-      math::Vector3d(_x, _y, _z), math::Vector3d(_roll, _pitch, _yaw),
-      math::Vector3d(_scaleX, _scaleY, _scaleZ));
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
 }
 
 /////////////////////////////////////////////////
