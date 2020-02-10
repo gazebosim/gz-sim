@@ -58,6 +58,8 @@ namespace gazebo
     /// \param[in] _entity Entity to be removed
     public slots: void RemoveEntity(unsigned int _entity);
 
+    public: Q_INVOKABLE QStandardItem* EntityItem(unsigned int _entity);
+
     /// \brief Get the entity type of a tree item at specified index
     /// \param[in] _index Model index
     /// \return Type of entity
@@ -100,6 +102,9 @@ namespace gazebo
     /// \brief
     /// \param[in] _index
     public: Q_INVOKABLE void OnEntitySelectedFromQml(unsigned int _entity);
+
+    /// \brief
+    public: Q_INVOKABLE void DeselectAllEntities();
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;

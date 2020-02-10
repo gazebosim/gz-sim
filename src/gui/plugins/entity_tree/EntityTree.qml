@@ -42,6 +42,7 @@ Rectangle {
     id: tree
     anchors.fill: parent
     model: EntityTreeModel
+    selectionMode: SelectionMode.MultiSelection
 
     // Hacky: the sibling of listView is the background(Rectangle) of TreeView
     Component.onCompleted: {
@@ -131,12 +132,13 @@ Rectangle {
           enter: null
           exit: null
         }
+
         MouseArea {
           id: ma
           anchors.fill: parent
           hoverEnabled: true
           propagateComposedEvents: true
-          onClicked: {
+          onPressed: {
             if (mouse.button == Qt.RightButton) {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
@@ -145,8 +147,6 @@ Rectangle {
             else if (mouse.button == Qt.LeftButton) {
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
-              tree.selection.setCurrentIndex(styleData.index,
-                  ItemSelectionModel.ClearAndSelect)
             }
             mouse.accepted = false
           }
@@ -165,16 +165,20 @@ Rectangle {
     }
   }
 
+  function clearAllSelected() {
+    tree.selection.clear()
+  }
+
   function onEntitySelectedFromCpp(_entity) {
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
+
       if (EntityTreeModel.data(itemId, 101) == _entity)
       {
         tree.selection.setCurrentIndex(itemId,
-            ItemSelectionModel.ClearAndSelect)
+            ItemSelectionModel.Select)
         break;
       }
     }
-    // TODO clear selection
   }
 }

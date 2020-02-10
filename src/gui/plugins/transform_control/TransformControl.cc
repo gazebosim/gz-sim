@@ -20,6 +20,7 @@
 #include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
@@ -27,6 +28,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "TransformControl.hh"
 
@@ -50,7 +52,8 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
+  : ignition::gui::Plugin(),
+    dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
 
