@@ -239,8 +239,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief Process a node's selection
+    /// \param[in] _node The node to be selected. Null to deselect all entities.
     public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
+    /// \brief Deselect all entities.
     public: void DeselectAllEntities();
 
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
@@ -250,7 +253,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// snapped.
     /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
     /// percentage of the interval.
-    /// \return Snapped 3D point.
     public: void SnapPoint(
                 math::Vector3d &_point,
                 double _interval = 1.0, double _sensitivity = 0.4) const;
@@ -433,20 +435,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief An update function to apply the rules of selection to the
     /// passed in node. The rules are as follows:
+    /// - If a null node is passed, deselect all entities.
     /// - If control is held, append the node to the selected entity list.
-    /// - If the user is currently in a transform mode, update the most
-    ///   recently clicked node and deselect all of the others.
-    /// - Don't allow multiple node selection if the user is holding control
-    ///   and using the transform plugin unless there are no current selected
-    ///   nodes
-    /// Note that this function updates the QML plugin to reflect the current
-    /// state.
+    /// - If the user is currently in a transform mode, attach the control
+    ///   to the latest selected node.
+    /// Note that this function emits events to update other widgets.
     /// \param[in] _node The node to update the state of the system with.
     public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
     /// \brief Deselect all the currently selected entities within
-    /// the RenderUtil class.  Note that this function does not update the
-    /// QML plugin to reflect the changes
+    /// the RenderUtil class.  Note that this function does not emit events.
     public: void DeselectAllEntities();
 
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a

@@ -90,9 +90,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
-  /// \brief Initial Camera pose
-  public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
-
   /// \brief Scene background color
   public: math::Color backgroundColor = math::Color::Black;
 
@@ -160,7 +157,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Map of currently selected entities mapping entity id to node id
   public: std::map<Entity, uint64_t> selectedEntities;
 
-  /// \brief
+  /// \brief Map of original emissive colors for nodes currently highlighted.
   public: std::map<std::string, math::Color> originalEmissive;
 
   /// \brief Whether the transform gizmo is being dragged.
@@ -367,11 +364,12 @@ void RenderUtil::Update()
       if (!node)
         continue;
 
+      // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
       Entity entityId = this->EntityFromNode(node->Parent());
       if (this->dataPtr->transformActive &&
-          (pose.first == (*this->dataPtr->selectedEntities.begin()).first ||
-          entityId == (*this->dataPtr->selectedEntities.begin()).first))
+          (pose.first == (*this->dataPtr->selectedEntities.rbegin()).first ||
+          entityId == (*this->dataPtr->selectedEntities.rbegin()).first))
       {
         continue;
       }
@@ -958,6 +956,7 @@ SceneManager &RenderUtil::SceneManager()
   return this->dataPtr->sceneManager;
 }
 
+/////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
   auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -972,7 +971,7 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
     Entity entityId = this->EntityFromNode(_node);
 
     this->dataPtr->selectedEntities.insert(
-        std::pair<Entity, Entity>(entityId, _node->Id()));
+        std::pair<Entity, uint64_t>(entityId, _node->Id()));
     this->dataPtr->HighlightNode(_node);
   }
 }
@@ -992,7 +991,7 @@ void RenderUtil::DeselectAllEntities()
 /////////////////////////////////////////////////
 rendering::NodePtr RenderUtil::SelectedEntity() const
 {
-  // Return most recently clicked node
+  // Return most recently selected node
   auto node = this->dataPtr->sceneManager.NodeById(
       (*(this->dataPtr->selectedEntities.rbegin())).first);
   return node;

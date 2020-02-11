@@ -58,7 +58,10 @@ namespace gazebo
     /// \param[in] _entity Entity to be removed
     public slots: void RemoveEntity(unsigned int _entity);
 
-    public: Q_INVOKABLE QStandardItem* EntityItem(unsigned int _entity);
+    /// \brief Get an item given its entity.
+    /// \param[in] _entity Entity whose item we want.
+    /// \return Pointer to the item.
+    public: Q_INVOKABLE QStandardItem *EntityItem(unsigned int _entity);
 
     /// \brief Get the entity type of a tree item at specified index
     /// \param[in] _index Model index
@@ -99,11 +102,13 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief
-    /// \param[in] _index
+    /// \brief Callback when an entity has been selected. This should be
+    /// called from QML.
+    /// \param[in] _entity Entity being selected.
     public: Q_INVOKABLE void OnEntitySelectedFromQml(unsigned int _entity);
 
-    /// \brief
+    /// \brief Callback when all entities have been deselected.
+    /// This should be called from QML.
     public: Q_INVOKABLE void DeselectAllEntities();
 
     // Documentation inherited

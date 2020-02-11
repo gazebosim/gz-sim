@@ -138,7 +138,7 @@ Rectangle {
           anchors.fill: parent
           hoverEnabled: true
           propagateComposedEvents: true
-          onPressed: {
+          onClicked: {
             if (mouse.button == Qt.RightButton) {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
@@ -147,6 +147,8 @@ Rectangle {
             else if (mouse.button == Qt.LeftButton) {
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
+              tree.selection.setCurrentIndex(styleData.index,
+                  ItemSelectionModel.Select)
             }
             mouse.accepted = false
           }
@@ -165,10 +167,17 @@ Rectangle {
     }
   }
 
-  function clearAllSelected() {
+  /*
+   * Deselect all entities.
+   */
+  function deselectAllEntities() {
     tree.selection.clear()
   }
 
+  /*
+   * Callback when an entity selection comes from the C++ code.
+   * For example, if it comes from the 3D window.
+   */
   function onEntitySelectedFromCpp(_entity) {
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
