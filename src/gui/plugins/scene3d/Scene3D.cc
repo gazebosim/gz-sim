@@ -843,16 +843,6 @@ void IgnRenderer::HandleMouseTransformControl()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
-            auto topEntity =
-                this->dataPtr->renderUtil.SceneManager().EntityFromNode(topVis);
-
-            if (topEntity == kNullEntity)
-            {
-              ignerr << "Failed to find entity for visual [" << topVis->Name()
-                     << "]" << std::endl;
-              return;
-            }
-
             this->UpdateSelectedEntity(topVis);
 
             this->dataPtr->mouseDirty = false;
@@ -1110,11 +1100,21 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
   // Select new entity
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
-  // Attach control if in a transform mode - control is always attached to
-  // latest selection
+  // Attach control if in a transform mode - control is attached to:
+  // * latest selection
+  // * top-level nodes (model, light...)
   if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
   {
-    this->dataPtr->transformControl.Attach(_node);
+    auto topNode =
+        this->dataPtr->renderUtil.SceneManager().TopLevelNode(_node);
+    if (topNode == _node)
+    {
+      this->dataPtr->transformControl.Attach(_node);
+    }
+    else
+    {
+      this->dataPtr->transformControl.Detach();
+    }
   }
 
   // Notify other widgets of the currently selected entities
@@ -1152,13 +1152,18 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   {
     Entity nodeId =
       (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
-    rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
-    rendering::NodePtr target = sceneManager->NodeById(nodeId);
+    auto target = this->dataPtr->renderUtil.Scene()->NodeById(nodeId);
 
-    if (target)
+    // Only attach to top-level nodes
+    auto topNode =
+        this->dataPtr->renderUtil.SceneManager().TopLevelNode(target);
+    if (topNode && topNode == target)
     {
-      this->UpdateSelectedEntity(target);
       this->dataPtr->transformControl.Attach(target);
+    }
+    else
+    {
+      this->dataPtr->transformControl.Detach();
     }
   }
 }
