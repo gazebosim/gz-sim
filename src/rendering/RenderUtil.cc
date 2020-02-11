@@ -959,21 +959,23 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
-  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  return this->dataPtr->sceneManager.VisualEntity(visual);
+  return this->dataPtr->sceneManager.EntityFromNode(_node);
 }
 
 /////////////////////////////////////////////////
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  if (_node)
-  {
-    Entity entityId = this->EntityFromNode(_node);
+  if (!_node)
+    return;
 
-    this->dataPtr->selectedEntities.insert(
-        std::pair<Entity, uint64_t>(entityId, _node->Id()));
-    this->dataPtr->HighlightNode(_node);
-  }
+  Entity entityId = this->EntityFromNode(_node);
+
+  if (entityId == kNullEntity)
+    return;
+
+  this->dataPtr->selectedEntities.insert(
+      std::pair<Entity, uint64_t>(entityId, _node->Id()));
+  this->dataPtr->HighlightNode(_node);
 }
 
 /////////////////////////////////////////////////

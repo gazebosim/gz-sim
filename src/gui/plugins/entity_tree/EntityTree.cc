@@ -366,7 +366,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 /////////////////////////////////////////////////
 void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 {
-  std::set<Entity> entitySet {_entity};
+  std::vector<Entity> entitySet {_entity};
   auto event = new gui::events::EntitiesSelected(entitySet, true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
