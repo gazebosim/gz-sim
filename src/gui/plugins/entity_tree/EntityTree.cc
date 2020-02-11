@@ -147,12 +147,13 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
       this->roleNames().key("icon"));
 
   parentItem->appendRow(entityItem);
+
   this->entityItems[_entity] = entityItem;
 }
 
-QStandardItem* TreeModel::EntityItem(unsigned int _entity)
+/////////////////////////////////////////////////
+QStandardItem *TreeModel::EntityItem(unsigned int _entity)
 {
-  ignwarn << "entity item " << this->entityItems[_entity] << "\n";
   return this->entityItems[_entity];
 }
 
@@ -392,6 +393,9 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     {
       for (const auto &entity : selectedEvent->Data())
       {
+        if (entity == kNullEntity)
+          continue;
+
         QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
             Qt::QueuedConnection, Q_ARG(QVariant,
             QVariant(static_cast<unsigned int>(entity))));
@@ -405,7 +409,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
     if (deselectAllEvent)
     {
-      QMetaObject::invokeMethod(this->PluginItem(), "clearAllSelected",
+      QMetaObject::invokeMethod(this->PluginItem(), "deselectAllEntities",
           Qt::QueuedConnection);
     }
   }

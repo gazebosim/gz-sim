@@ -112,16 +112,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: {
-          if (mouse.button === Qt.LeftButton) {
-            translate.checked = true;
-            TransformControl.OnMode("translate")
-          }
-        }
-      }
       // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
@@ -138,6 +128,9 @@ ToolBar {
         anchor: translate
         active: translate.enabled && (translate.down || translate.visualFocus || translate.hovered || translate.checked)
         color: translate.Material.rippleColor
+      }
+      onClicked: {
+        TransformControl.OnMode("translate")
       }
     }
     ToolButton {
@@ -156,16 +149,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: {
-          if (mouse.button === Qt.LeftButton) {
-            rotate.checked = true;
-            TransformControl.OnMode("rotate")
-          }
-        }
-      }
       // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
@@ -182,6 +165,9 @@ ToolBar {
         anchor: rotate
         active: rotate.enabled && (rotate.down || rotate.visualFocus || rotate.hovered || rotate.checked)
         color: rotate.Material.rippleColor
+      }
+      onClicked: {
+        TransformControl.OnMode("rotate")
       }
     }
     // TODO(anyone) enable scale button when support is added in ign-physics
@@ -201,23 +187,13 @@ ToolBar {
     //     sourceSize.width: 24;
     //     sourceSize.height: 24;
     //   }
-    //   MouseArea {
-    //     anchors.fill: parent
-    //     acceptedButtons: Qt.LeftButton | Qt.RightButton
-    //     onClicked: {
-    //       if (mouse.button === Qt.LeftButton) {
-    //         scale.checked = true;
-    //         TransformControl.OnMode("scale")
-    //       }
-    //     }
-    //   }
     //  // Almost an exact copy from upstream, adding `checked`
     //  background: Ripple {
     //    implicitWidth: 48
     //    implicitHeight: 48
-    //
+
     //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
-    //
+
     //    x: (parent.width - width) / 2
     //    y: (parent.height - height) / 2
     //    clip: !square
@@ -228,6 +204,9 @@ ToolBar {
     //    active: scale.enabled && (scale.down || scale.visualFocus || scale.hovered || scale.checked)
     //    color: scale.Material.rippleColor
     //  }
+    //   onClicked: {
+    //     TransformControl.OnMode("scale")
+    //   }
     // }
   }
 }

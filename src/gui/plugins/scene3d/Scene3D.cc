@@ -676,7 +676,8 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, double _interval, double _sensitivity) const
+    ignition::math::Vector3d &_point, double _interval, double _sensitivity)
+    const
 {
   if (_interval <= 0)
   {
@@ -828,10 +829,7 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
-          auto event = new gui::events::DeselectAllEntities(true);
-          ignition::gui::App()->sendEvent(
-              ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-              event);
+          this->UpdateSelectedEntity(nullptr);
           return;
         }
 
@@ -860,14 +858,11 @@ void IgnRenderer::HandleMouseTransformControl()
             this->dataPtr->mouseDirty = false;
             return;
           }
-          else
+          // Don't deselect after dragging, user may be orbiting the camera
+          else if (!this->dataPtr->mouseEvent.Dragging())
           {
-            // Send empty set to clear all items on the TreeView
-            // TODO(anyone) If currently dragging, don't deselect all
-            auto event = new gui::events::DeselectAllEntities(true);
-            ignition::gui::App()->sendEvent(
-                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-                event);
+            // Deselect all
+            this->UpdateSelectedEntity(nullptr);
             return;
           }
         }
@@ -906,6 +901,12 @@ void IgnRenderer::HandleMouseTransformControl()
         (*(this->dataPtr->renderUtil.SelectedEntities().begin())).second;
       rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
       rendering::NodePtr target = sceneManager->NodeById(nodeId);
+      if (!target)
+      {
+        ignwarn << "Failed to find node with ID [" << nodeId << "]"
+                << std::endl;
+        return;
+      }
       this->XYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
@@ -1085,47 +1086,37 @@ void IgnRenderer::Destroy()
 /////////////////////////////////////////////////
 void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
 {
+  // Deselect all
   if (!_node)
   {
-    ignwarn << "Node is null\n";
+    auto event = new gui::events::DeselectAllEntities(true);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        event);
     return;
   }
 
-  // Deselect all and select only current node if
-  // control is not being held
+  // Deselect all if control is not being held
   if (!this->dataPtr->mouseEvent.Control())
   {
     this->dataPtr->renderUtil.DeselectAllEntities();
-    this->dataPtr->renderUtil.SetSelectedEntity(_node);
-
-    // Attach control if in a transform mode
-    if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
-    {
-      this->dataPtr->transformControl.Attach(_node);
-    }
+    auto deselectEvent = new gui::events::DeselectAllEntities();
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        deselectEvent);
   }
-  // Add selected entity if control + no transform mode or
-  // selected entities is currently empty
-  else if ((this->dataPtr->mouseEvent.Control() &&
-            this->dataPtr->transformControl.Mode() ==
-            rendering::TransformMode::TM_NONE)
-            || (this->dataPtr->renderUtil.SelectedEntities().empty()))
-  {
-    this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
-    // Attach control if in a transform mode
-    if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
-    {
-      this->dataPtr->transformControl.Attach(_node);
-    }
+  // Select new entity
+  this->dataPtr->renderUtil.SetSelectedEntity(_node);
+
+  // Attach control if in a transform mode - control is always attached to
+  // latest selection
+  if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
+  {
+    this->dataPtr->transformControl.Attach(_node);
   }
 
   // Notify other widgets of the currently selected entities
-  auto deselectEvent = new gui::events::DeselectAllEntities();
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      deselectEvent);
-
   std::set<Entity> selectedEntities;
 
   for (const auto &node :
@@ -1772,49 +1763,6 @@ void Scene3D::Update(const UpdateInfo &_info,
 }
 
 /////////////////////////////////////////////////
-bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
-{
-  if (_event->type() ==
-           ignition::gazebo::gui::events::EntitiesSelected::Type)
-  {
-    auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
-    if (selectedEvent && !selectedEvent->Data().empty())
-    {
-      for (const auto &entity : selectedEvent->Data())
-      {
-        auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
-            entity);
-
-        // If the event is from the user, update render util state
-        if (selectedEvent->FromUser())
-        {
-          auto renderWindow =
-            this->PluginItem()->findChild<RenderWindowItem *>();
-          renderWindow->UpdateSelectedEntity(node);
-        }
-      }
-    }
-  }
-  else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::Type)
-  {
-    auto deselectEvent =
-        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
-
-    // If the event is from the user, update render util state
-    if (deselectEvent && deselectEvent->FromUser())
-    {
-      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->DeselectAllEntities();
-    }
-  }
-
-  // Standard event processing
-  return QObject::eventFilter(_obj, _event);
-}
-
-/////////////////////////////////////////////////
 bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
   msgs::Boolean &_res)
 {
@@ -1901,6 +1849,48 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 
   this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
       req, cb);
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  {
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && !selectedEvent->Data().empty())
+    {
+      for (const auto &entity : selectedEvent->Data())
+      {
+        auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
+            entity);
+
+        // If the event is from the user, update render util state
+        if (selectedEvent->FromUser())
+        {
+          auto renderWindow =
+            this->PluginItem()->findChild<RenderWindowItem *>();
+          renderWindow->UpdateSelectedEntity(node);
+        }
+      }
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::DeselectAllEntities::Type)
+  {
+    auto deselectEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+
+    // If the event is from the user, update render util state
+    if (deselectEvent && deselectEvent->FromUser())
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->DeselectAllEntities();
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
 }
 
 /////////////////////////////////////////////////
@@ -2005,6 +1995,11 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
   auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
+
+  // A release at the end of a drag
+  if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE)
+    event.SetDragging(this->dataPtr->mouseEvent.Dragging());
+
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
@@ -2016,10 +2011,11 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
   auto event = ignition::gui::convert(*_e);
-  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   if (!event.Dragging())
     return;
+
+  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
