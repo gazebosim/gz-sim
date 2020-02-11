@@ -169,16 +169,20 @@ Rectangle {
     tree.selection.clear()
   }
 
+  function recurseTreeItem(_entity, itemId) {
+    if (EntityTreeModel.data(itemId, 101) == _entity) {
+      tree.selection.setCurrentIndex(itemId, ItemSelectionModel.Select)
+      return
+    }
+    for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
+      recurseTreeItem(_entity, EntityTreeModel.index(i, 0, itemId))
+    }
+  }
+
   function onEntitySelectedFromCpp(_entity) {
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
-
-      if (EntityTreeModel.data(itemId, 101) == _entity)
-      {
-        tree.selection.setCurrentIndex(itemId,
-            ItemSelectionModel.Select)
-        break;
-      }
+      recurseTreeItem(_entity, itemId)
     }
   }
 }
