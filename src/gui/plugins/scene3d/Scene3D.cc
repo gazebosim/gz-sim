@@ -1097,9 +1097,6 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
         deselectEvent);
   }
 
-  // Select new entity
-  this->dataPtr->renderUtil.SetSelectedEntity(_node);
-
   // Attach control if in a transform mode - control is attached to:
   // * latest selection
   // * top-level nodes (model, light...)
@@ -1110,12 +1107,22 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
     if (topNode == _node)
     {
       this->dataPtr->transformControl.Attach(_node);
+
+      // When attached, we want only one entity selected
+      this->DeselectAllEntities();
+      auto event = new gui::events::DeselectAllEntities();
+      ignition::gui::App()->sendEvent(
+          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+          event);
     }
     else
     {
       this->dataPtr->transformControl.Detach();
     }
   }
+
+  // Select new entity
+  this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
   // Notify other widgets of the currently selected entities
   std::vector<Entity> selectedEntities;
@@ -1150,21 +1157,12 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   // Update selected entities if transform control is changed
   if (!this->dataPtr->renderUtil.SelectedEntities().empty())
   {
+    // FIXME(louise) We don't want the last sorted element, we want the last
+    // added
     Entity nodeId =
       (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
     auto target = this->dataPtr->renderUtil.Scene()->NodeById(nodeId);
-
-    // Only attach to top-level nodes
-    auto topNode =
-        this->dataPtr->renderUtil.SceneManager().TopLevelNode(target);
-    if (topNode && topNode == target)
-    {
-      this->dataPtr->transformControl.Attach(target);
-    }
-    else
-    {
-      this->dataPtr->transformControl.Detach();
-    }
+    this->UpdateSelectedEntity(target);
   }
 }
 
@@ -1927,6 +1925,7 @@ void RenderWindowItem::SetMoveTo(const std::string &_target)
   this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
 }
 
+/////////////////////////////////////////////////
 void RenderWindowItem::DeselectAllEntities()
 {
   this->dataPtr->renderThread->ignRenderer.DeselectAllEntities();
