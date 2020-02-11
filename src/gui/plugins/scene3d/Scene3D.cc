@@ -818,7 +818,7 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->mouseDirty = false;
       }
       // Select entity
-      else
+      else if (!this->dataPtr->mouseEvent.Dragging())
       {
         rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
               this->dataPtr->mouseEvent.Pos());
