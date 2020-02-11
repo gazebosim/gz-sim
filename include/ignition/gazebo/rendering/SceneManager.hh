@@ -120,10 +120,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
 
-    /// \brief Get the entity for a given visual.
+    /// \brief Get the entity for a given node.
     /// \param[in] _visual Visual to get the entity for.
     /// \return The entity for that visual, or `kNullEntity` for no entity.
-    public: Entity VisualEntity(rendering::VisualPtr _visual) const;
+    public: Entity EntityFromNode(rendering::NodePtr _node) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom

@@ -651,19 +651,39 @@ rendering::VisualPtr SceneManager::TopLevelVisual(
 }
 
 /////////////////////////////////////////////////
-Entity SceneManager::VisualEntity(rendering::VisualPtr _visual) const
+Entity SceneManager::EntityFromNode(rendering::NodePtr _node) const
 {
   // TODO(louise) On Citadel, set entity ID into visual with SetUserData
-  auto found = std::find_if(std::begin(this->dataPtr->visuals),
-      std::end(this->dataPtr->visuals),
-      [&](const std::pair<Entity, rendering::VisualPtr> &_item)
+  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (visual)
   {
-    return _item.second == _visual;
-  });
+    auto found = std::find_if(std::begin(this->dataPtr->visuals),
+        std::end(this->dataPtr->visuals),
+        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
+    {
+      return _item.second == visual;
+    });
 
-  if (found != this->dataPtr->visuals.end())
+    if (found != this->dataPtr->visuals.end())
+    {
+      return found->first;
+    }
+  }
+
+  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
+  if (light)
   {
-    return found->first;
+    auto found = std::find_if(std::begin(this->dataPtr->lights),
+        std::end(this->dataPtr->lights),
+        [&](const std::pair<Entity, rendering::LightPtr> &_item)
+    {
+      return _item.second == light;
+    });
+
+    if (found != this->dataPtr->lights.end())
+    {
+      return found->first;
+    }
   }
 
   return kNullEntity;

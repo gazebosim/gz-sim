@@ -844,7 +844,7 @@ void IgnRenderer::HandleMouseTransformControl()
           if (topVis && topVis->Name() != "ground_plane")
           {
             auto topEntity =
-                this->dataPtr->renderUtil.SceneManager().VisualEntity(topVis);
+                this->dataPtr->renderUtil.SceneManager().EntityFromNode(topVis);
 
             if (topEntity == kNullEntity)
             {
@@ -1097,7 +1097,8 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
   }
 
   // Deselect all if control is not being held
-  if (!this->dataPtr->mouseEvent.Control())
+  if (!this->dataPtr->mouseEvent.Control() &&
+      !this->dataPtr->renderUtil.SelectedEntities().empty())
   {
     this->dataPtr->renderUtil.DeselectAllEntities();
     auto deselectEvent = new gui::events::DeselectAllEntities();
@@ -1117,12 +1118,12 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
   }
 
   // Notify other widgets of the currently selected entities
-  std::set<Entity> selectedEntities;
+  std::vector<Entity> selectedEntities;
 
   for (const auto &node :
        this->dataPtr->renderUtil.SelectedEntities())
   {
-    selectedEntities.insert(node.first);
+    selectedEntities.push_back(node.first);
   }
   auto selectEvent =
     new gui::events::EntitiesSelected(selectedEntities);
@@ -1154,10 +1155,9 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = sceneManager->NodeById(nodeId);
 
-    this->UpdateSelectedEntity(target);
-
     if (target)
     {
+      this->UpdateSelectedEntity(target);
       this->dataPtr->transformControl.Attach(target);
     }
   }
@@ -1864,6 +1864,9 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       {
         auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
             entity);
+
+        if (nullptr == node)
+          continue;
 
         // If the event is from the user, update render util state
         if (selectedEvent->FromUser())

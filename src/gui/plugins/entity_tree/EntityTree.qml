@@ -147,8 +147,7 @@ Rectangle {
             else if (mouse.button == Qt.LeftButton) {
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
-              tree.selection.setCurrentIndex(styleData.index,
-                  ItemSelectionModel.Select)
+              tree.selection.select(styleData.index, ItemSelectionModel.Select)
             }
             mouse.accepted = false
           }
@@ -174,13 +173,17 @@ Rectangle {
     tree.selection.clear()
   }
 
-  function recurseTreeItem(_entity, itemId) {
+  /*
+   * Iterate through item's children until the one corresponding to _entity is
+   * found and select that.
+   */
+  function selectRecursively(_entity, itemId) {
     if (EntityTreeModel.data(itemId, 101) == _entity) {
-      tree.selection.setCurrentIndex(itemId, ItemSelectionModel.Select)
+      tree.selection.select(itemId, ItemSelectionModel.Select)
       return
     }
     for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
-      recurseTreeItem(_entity, EntityTreeModel.index(i, 0, itemId))
+      selectRecursively(_entity, EntityTreeModel.index(i, 0, itemId))
     }
   }
 
@@ -191,7 +194,7 @@ Rectangle {
   function onEntitySelectedFromCpp(_entity) {
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
-      recurseTreeItem(_entity, itemId)
+      selectRecursively(_entity, itemId)
     }
   }
 }
