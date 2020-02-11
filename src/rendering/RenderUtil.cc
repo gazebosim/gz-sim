@@ -1021,42 +1021,42 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   {
     auto child = _node->ChildByIndex(n);
     this->HighlightNode(child);
+  }
 
-    auto childVis = std::dynamic_pointer_cast<rendering::Visual>(child);
-    if (nullptr == childVis)
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    // If the entity isn't already highlighted, highlight it
+    if (this->originalEmissive.find(vis->Name()) ==
+        this->originalEmissive.end())
+    {
+      this->originalEmissive[vis->Name()] = visMat->Emissive();
+      visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+      vis->SetMaterial(visMat);
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat)
       continue;
 
-    // Visual material
-    auto visMat = childVis->Material();
-    if (nullptr != visMat)
+    // If the entity isn't already highlighted, highlight it
+    if (this->originalEmissive.find(geom->Name()) ==
+        this->originalEmissive.end())
     {
-      // If the entity isn't already highlighted, highlight it
-      if (this->originalEmissive.find(childVis->Name()) ==
-          this->originalEmissive.end())
-      {
-        this->originalEmissive[childVis->Name()] = visMat->Emissive();
-        visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-        childVis->SetMaterial(visMat);
-      }
-    }
-
-    for (auto g = 0u; g < childVis->GeometryCount(); ++g)
-    {
-      auto geom = childVis->GeometryByIndex(g);
-
-      // Geometry material
-      auto geomMat = geom->Material();
-      if (nullptr == geomMat)
-        continue;
-
-      // If the entity isn't already highlighted, highlight it
-      if (this->originalEmissive.find(geom->Name()) ==
-          this->originalEmissive.end())
-      {
-        this->originalEmissive[geom->Name()] = geomMat->Emissive();
-        geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-        geom->SetMaterial(geomMat);
-      }
+      this->originalEmissive[geom->Name()] = geomMat->Emissive();
+      geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+      geom->SetMaterial(geomMat);
     }
   }
 }
@@ -1071,38 +1071,38 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
   {
     auto child = _node->ChildByIndex(n);
     this->LowlightNode(child);
+  }
 
-    auto childVis = std::dynamic_pointer_cast<rendering::Visual>(child);
-    if (nullptr == childVis)
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visEmissive = this->originalEmissive.find(vis->Name());
+    if (visEmissive != this->originalEmissive.end())
+    {
+      visMat->SetEmissive(visEmissive->second);
+      vis->SetMaterial(visMat);
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat)
       continue;
 
-    // Visual material
-    auto visMat = childVis->Material();
-    if (nullptr != visMat)
+    auto geomEmissive = this->originalEmissive.find(geom->Name());
+    if (geomEmissive != this->originalEmissive.end())
     {
-      auto visEmissive = this->originalEmissive.find(childVis->Name());
-      if (visEmissive != this->originalEmissive.end())
-      {
-        visMat->SetEmissive(visEmissive->second);
-        childVis->SetMaterial(visMat);
-      }
-    }
-
-    for (auto g = 0u; g < childVis->GeometryCount(); ++g)
-    {
-      auto geom = childVis->GeometryByIndex(g);
-
-      // Geometry material
-      auto geomMat = geom->Material();
-      if (nullptr == geomMat)
-        continue;
-
-      auto geomEmissive = this->originalEmissive.find(geom->Name());
-      if (geomEmissive != this->originalEmissive.end())
-      {
-        geomMat->SetEmissive(geomEmissive->second);
-        geom->SetMaterial(geomMat);
-      }
+      geomMat->SetEmissive(geomEmissive->second);
+      geom->SetMaterial(geomMat);
     }
   }
 }
