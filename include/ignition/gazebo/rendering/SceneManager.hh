@@ -148,6 +148,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr TopLevelVisual(
         rendering::VisualPtr _visual) const;
 
+    /// \brief Get the top level node for the given node, which
+    /// is the ancestor which is a direct child to the root visual.
+    /// Usually, this will be a model or a light.
+    /// \param[in] _node Child node
+    /// \return Top level node containining this node
+    public: rendering::NodePtr TopLevelNode(
+        rendering::NodePtr _node) const;
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;
