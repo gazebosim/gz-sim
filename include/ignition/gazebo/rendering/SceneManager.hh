@@ -111,7 +111,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return true if exists, false otherwise
     public: bool HasEntity(Entity _id) const;
 
-    /// \brief Get a rendering node given an id
+    /// \brief Get a rendering node given an entity id
     /// \param[in] _id Entity's unique id
     /// \return Pointer to requested entity's node
     public: rendering::NodePtr NodeById(Entity _id) const;

@@ -128,9 +128,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \TODO(anyone) Deprecate in favour of SelectedEntities
     public: rendering::NodePtr SelectedEntity() const;
 
-    /// \brief Get the entities currently selected.
+    /// \brief Get the entities currently selected, in order of selection.
     /// \return Map of currently selected entities, entity to rendering node id
-    public: std::map<Entity, uint64_t> SelectedEntities() const;
+    public: std::vector<Entity> SelectedEntities() const;
 
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();

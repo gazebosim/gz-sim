@@ -154,8 +154,8 @@ class ignition::gazebo::RenderUtilPrivate
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
-  /// \brief Map of currently selected entities mapping entity id to node id
-  public: std::map<Entity, uint64_t> selectedEntities;
+  /// \brief Currently selected entities, organized by order of selection.
+  public: std::vector<Entity> selectedEntities;
 
   /// \brief Map of original emissive colors for nodes currently highlighted.
   public: std::map<std::string, math::Color> originalEmissive;
@@ -270,13 +270,11 @@ void RenderUtil::Update()
     for (auto &entity : removeEntities)
     {
       auto node = this->dataPtr->sceneManager.NodeById(entity.first);
-      if (!this->dataPtr->selectedEntities.empty() &&
-          this->dataPtr->selectedEntities.find(entity.first) !=
-          this->dataPtr->selectedEntities.end())
-      {
-        this->dataPtr->selectedEntities.erase(entity.first);
-        this->dataPtr->sceneManager.RemoveEntity(entity.first);
-      }
+      this->dataPtr->selectedEntities.erase(std::remove(
+          this->dataPtr->selectedEntities.begin(),
+          this->dataPtr->selectedEntities.end(), entity.first),
+          this->dataPtr->selectedEntities.end());
+      this->dataPtr->sceneManager.RemoveEntity(entity.first);
     }
   }
 
@@ -368,8 +366,8 @@ void RenderUtil::Update()
       // TODO(anyone) Check top level visual instead of parent
       Entity entityId = this->EntityFromNode(node->Parent());
       if (this->dataPtr->transformActive &&
-          (pose.first == (*this->dataPtr->selectedEntities.rbegin()).first ||
-          entityId == (*this->dataPtr->selectedEntities.rbegin()).first))
+          (pose.first == this->dataPtr->selectedEntities.back() ||
+          entityId == this->dataPtr->selectedEntities.back()))
       {
         continue;
       }
@@ -973,8 +971,7 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
   if (entityId == kNullEntity)
     return;
 
-  this->dataPtr->selectedEntities.insert(
-      std::pair<Entity, uint64_t>(entityId, _node->Id()));
+  this->dataPtr->selectedEntities.push_back(entityId);
   this->dataPtr->HighlightNode(_node);
 }
 
@@ -983,7 +980,7 @@ void RenderUtil::DeselectAllEntities()
 {
   for (const auto &entity : this->dataPtr->selectedEntities)
   {
-    auto node = this->dataPtr->sceneManager.NodeById(entity.first);
+    auto node = this->dataPtr->sceneManager.NodeById(entity);
     this->dataPtr->LowlightNode(node);
   }
   this->dataPtr->selectedEntities.clear();
@@ -995,12 +992,12 @@ rendering::NodePtr RenderUtil::SelectedEntity() const
 {
   // Return most recently selected node
   auto node = this->dataPtr->sceneManager.NodeById(
-      (*(this->dataPtr->selectedEntities.rbegin())).first);
+      this->dataPtr->selectedEntities.back());
   return node;
 }
 
 /////////////////////////////////////////////////
-std::map<Entity, Entity> RenderUtil::SelectedEntities() const
+std::vector<Entity> RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
 }
