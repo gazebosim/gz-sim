@@ -42,6 +42,7 @@ Rectangle {
     id: tree
     anchors.fill: parent
     model: EntityTreeModel
+    selectionMode: SelectionMode.MultiSelection
 
     // Hacky: the sibling of listView is the background(Rectangle) of TreeView
     Component.onCompleted: {
@@ -115,6 +116,7 @@ Rectangle {
           enter: null
           exit: null
         }
+
         MouseArea {
           id: ma
           anchors.fill: parent
@@ -127,10 +129,11 @@ Rectangle {
               entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
             }
             else if (mouse.button == Qt.LeftButton) {
+              var mode = mouse.modifiers & Qt.ControlModifier ?
+                  ItemSelectionModel.Select : ItemSelectionModel.ClearAndSelect
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
-              tree.selection.setCurrentIndex(styleData.index,
-                  ItemSelectionModel.ClearAndSelect)
+              tree.selection.select(styleData.index, mode)
             }
             mouse.accepted = false
           }
@@ -149,16 +152,35 @@ Rectangle {
     }
   }
 
+  /*
+   * Deselect all entities.
+   */
+  function deselectAllEntities() {
+    tree.selection.clear()
+  }
+
+  /*
+   * Iterate through item's children until the one corresponding to _entity is
+   * found and select that.
+   */
+  function selectRecursively(_entity, itemId) {
+    if (EntityTreeModel.data(itemId, 101) == _entity) {
+      tree.selection.select(itemId, ItemSelectionModel.Select)
+      return
+    }
+    for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
+      selectRecursively(_entity, EntityTreeModel.index(i, 0, itemId))
+    }
+  }
+
+  /*
+   * Callback when an entity selection comes from the C++ code.
+   * For example, if it comes from the 3D window.
+   */
   function onEntitySelectedFromCpp(_entity) {
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
-      if (EntityTreeModel.data(itemId, 101) == _entity)
-      {
-        tree.selection.setCurrentIndex(itemId,
-            ItemSelectionModel.ClearAndSelect)
-        break;
-      }
+      selectRecursively(_entity, itemId)
     }
-    // TODO clear selection
   }
 }

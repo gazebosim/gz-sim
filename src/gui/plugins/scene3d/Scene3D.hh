@@ -239,6 +239,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief Process a node's selection
+    /// \param[in] _node The node to be selected. Null to deselect all entities.
+    public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
+
+    /// \brief Deselect all entities.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the deselection is initiated from this plugin.
+    public: void DeselectAllEntities(bool _sendEvent);
+
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point to snap.
@@ -425,6 +434,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
+
+    /// \brief An update function to apply the rules of selection to the
+    /// passed in node. The rules are as follows:
+    /// - If a null node is passed, deselect all entities.
+    /// - If control is held, append the node to the selected entity list.
+    /// - If the user is currently in a transform mode, attach the control
+    ///   to the latest selected node.
+    /// Note that this function emits events to update other widgets.
+    /// \param[in] _node The node to update the state of the system with.
+    public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
+
+    /// \brief Deselect all the currently selected entities within
+    /// the RenderUtil class.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the deselection is initiated from this plugin.
+    public: void DeselectAllEntities(bool _sendEvent);
 
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
