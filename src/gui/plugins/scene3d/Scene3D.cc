@@ -897,10 +897,9 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
-      Entity nodeId =
-        (*(this->dataPtr->renderUtil.SelectedEntities().begin())).second;
-      rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
-      rendering::NodePtr target = sceneManager->NodeById(nodeId);
+      Entity nodeId = this->dataPtr->renderUtil.SelectedEntities().front();
+      rendering::NodePtr target =
+          this->dataPtr->renderUtil.SceneManager().NodeById(nodeId);
       if (!target)
       {
         ignwarn << "Failed to find node with ID [" << nodeId << "]"
@@ -1120,15 +1119,8 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
   // Notify other widgets of the currently selected entities
-  std::vector<Entity> selectedEntities;
-
-  for (const auto &node :
-       this->dataPtr->renderUtil.SelectedEntities())
-  {
-    selectedEntities.push_back(node.first);
-  }
-  auto selectEvent =
-    new gui::events::EntitiesSelected(selectedEntities);
+  auto selectEvent = new gui::events::EntitiesSelected(
+      this->dataPtr->renderUtil.SelectedEntities());
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       selectEvent);
@@ -1152,12 +1144,17 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   // Update selected entities if transform control is changed
   if (!this->dataPtr->renderUtil.SelectedEntities().empty())
   {
-    // FIXME(louise) We don't want the last sorted element, we want the last
-    // added
-    Entity nodeId =
-      (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
-    auto target = this->dataPtr->renderUtil.Scene()->NodeById(nodeId);
-    this->UpdateSelectedEntity(target);
+    Entity entity = this->dataPtr->renderUtil.SelectedEntities().back();
+    auto target = this->dataPtr->renderUtil.SceneManager().NodeById(entity);
+    if (!target)
+    {
+      ignerr << "Failed to find node for entity [" << entity << "]"
+             << std::endl;
+    }
+    else
+    {
+      this->UpdateSelectedEntity(target);
+    }
   }
 }
 
