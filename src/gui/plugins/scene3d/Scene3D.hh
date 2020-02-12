@@ -244,7 +244,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
     /// \brief Deselect all entities.
-    public: void DeselectAllEntities();
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the deselection is initiated from this plugin.
+    public: void DeselectAllEntities(bool _sendEvent);
 
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
@@ -444,8 +446,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
     /// \brief Deselect all the currently selected entities within
-    /// the RenderUtil class.  Note that this function does not emit events.
-    public: void DeselectAllEntities();
+    /// the RenderUtil class.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the deselection is initiated from this plugin.
+    public: void DeselectAllEntities(bool _sendEvent);
 
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.

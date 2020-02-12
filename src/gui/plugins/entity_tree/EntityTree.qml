@@ -145,9 +145,11 @@ Rectangle {
               entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
             }
             else if (mouse.button == Qt.LeftButton) {
+              var mode = mouse.modifiers & Qt.ControlModifier ?
+                  ItemSelectionModel.Select : ItemSelectionModel.ClearAndSelect
               var entity = EntityTreeModel.EntityId(styleData.index)
               EntityTree.OnEntitySelectedFromQml(entity)
-              tree.selection.select(styleData.index, ItemSelectionModel.Select)
+              tree.selection.select(styleData.index, mode)
             }
             mouse.accepted = false
           }
