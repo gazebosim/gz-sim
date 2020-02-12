@@ -17,9 +17,9 @@
 #ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
-#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <sdf/Sensor.hh>
 
