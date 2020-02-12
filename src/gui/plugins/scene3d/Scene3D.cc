@@ -590,7 +590,8 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   // only for x, y, and z key presses
   if (_e->key() == Qt::Key_X ||
       _e->key() == Qt::Key_Y ||
-      _e->key() == Qt::Key_Z)
+      _e->key() == Qt::Key_Z ||
+      _e->key() == Qt::Key_Shift)
   {
     this->dataPtr->transformControl.Start();
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
@@ -641,7 +642,8 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   // only for x, y, and z key presses
   if (_e->key() == Qt::Key_X ||
       _e->key() == Qt::Key_Y ||
-      _e->key() == Qt::Key_Z)
+      _e->key() == Qt::Key_Z ||
+      _e->key() == Qt::Key_Shift)
   {
     this->dataPtr->transformControl.Start();
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
@@ -860,7 +862,11 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
-          this->UpdateSelectedEntity(nullptr);
+          // Hit the background, deselect all
+          if (!this->dataPtr->mouseEvent.Dragging())
+          {
+            this->DeselectAllEntities(true);
+          }
           return;
         }
 
@@ -882,7 +888,7 @@ void IgnRenderer::HandleMouseTransformControl()
           // Don't deselect after dragging, user may be orbiting the camera
           else if (!this->dataPtr->mouseEvent.Dragging())
           {
-            // Deselect all
+            // Hit the ground, deselect all
             this->DeselectAllEntities(true);
             return;
           }
