@@ -40,10 +40,10 @@ namespace events
     /// \param[in] _rpy RPY snapping values.
     /// \param[in] _scale Scale snapping values.
     public: SnapIntervals(
-                math::Vector3d _xyz,
-                math::Vector3d _rpy,
-                math::Vector3d _scale)
-    : QEvent(Type), xyz(_xyz), rpy(_rpy), scale(_scale)
+                const math::Vector3d &_xyz,
+                const math::Vector3d &_rpy,
+                const math::Vector3d &_scale)
+    : QEvent(kType), xyz(_xyz), rpy(_rpy), scale(_scale)
     {
     }
 
@@ -67,9 +67,9 @@ namespace events
     {
       return this->scale;
     }
-  
+
     /// \brief The QEvent representing a snap event occurrence.
-    static const QEvent::Type Type = QEvent::Type(QEvent::User);
+    static const QEvent::Type kType = QEvent::Type(QEvent::User);
 
     /// \brief XYZ snapping values in meters, these values must be positive.
     private: math::Vector3d xyz;

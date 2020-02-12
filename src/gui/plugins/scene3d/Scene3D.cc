@@ -681,8 +681,8 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, math::Vector3d &_snapVals, double _sensitivity)
-    const
+    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+    double _sensitivity) const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
@@ -1757,7 +1757,7 @@ void Scene3D::Update(const UpdateInfo &_info,
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::SnapIntervals::Type)
+  if (_event->type() == ignition::gazebo::gui::events::SnapIntervals::kType)
   {
     auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
     if (snapEvent)
