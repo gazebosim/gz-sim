@@ -839,7 +839,11 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
-          this->UpdateSelectedEntity(nullptr);
+          // Hit the background, deselect all
+          if (!this->dataPtr->mouseEvent.Dragging())
+          {
+            this->DeselectAllEntities(true);
+          }
           return;
         }
 
@@ -861,7 +865,7 @@ void IgnRenderer::HandleMouseTransformControl()
           // Don't deselect after dragging, user may be orbiting the camera
           else if (!this->dataPtr->mouseEvent.Dragging())
           {
-            // Deselect all
+            // Hit the ground, deselect all
             this->DeselectAllEntities(true);
             return;
           }
