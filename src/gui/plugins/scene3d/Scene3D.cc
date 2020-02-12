@@ -322,9 +322,11 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
-    this->textureId = this->dataPtr->camera->RenderTextureGLId();
     this->textureDirty = false;
   }
+
+  // texture id could change so get the value in every render update
+  this->textureId = this->dataPtr->camera->RenderTextureGLId();
 
   // update the scene
   this->dataPtr->renderUtil.SetTransformActive(
@@ -642,6 +644,20 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::DeselectAllEntities(bool _sendEvent)
+{
+  this->dataPtr->renderUtil.DeselectAllEntities();
+
+  if (_sendEvent)
+  {
+    auto deselectEvent = new gui::events::DeselectAllEntities();
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        deselectEvent);
+  }
+}
+
+/////////////////////////////////////////////////
 double IgnRenderer::SnapValue(
     double _coord, double _interval, double _sensitivity) const
 {
@@ -812,7 +828,7 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->mouseDirty = false;
       }
       // Select entity
-      else
+      else if (!this->dataPtr->mouseEvent.Dragging())
       {
         rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
               this->dataPtr->mouseEvent.Pos());
@@ -823,7 +839,7 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (!visual)
         {
-          this->dataPtr->renderUtil.SetSelectedEntity(nullptr);
+          this->UpdateSelectedEntity(nullptr);
           return;
         }
 
@@ -837,32 +853,16 @@ void IgnRenderer::HandleMouseTransformControl()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
-            auto topEntity =
-                this->dataPtr->renderUtil.SceneManager().VisualEntity(topVis);
+            this->UpdateSelectedEntity(topVis);
 
-            if (topEntity == kNullEntity)
-            {
-              ignerr << "Failed to find entity for visual [" << topVis->Name()
-                     << "]" << std::endl;
-              return;
-            }
-
-            // TODO(louise) Do this even when not in transform mode
-            // Notify other widgets
-            auto event = new gui::events::EntitiesSelected({topEntity});
-            ignition::gui::App()->sendEvent(
-                ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-                event);
-
-            // Attach control
-            this->dataPtr->transformControl.Attach(topVis);
-            this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
             return;
           }
-          else
+          // Don't deselect after dragging, user may be orbiting the camera
+          else if (!this->dataPtr->mouseEvent.Dragging())
           {
-            this->dataPtr->renderUtil.SetSelectedEntity(nullptr);
+            // Deselect all
+            this->DeselectAllEntities(true);
             return;
           }
         }
@@ -897,15 +897,24 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      Entity nodeId = this->dataPtr->renderUtil.SelectedEntities().front();
+      rendering::NodePtr target =
+          this->dataPtr->renderUtil.SceneManager().NodeById(nodeId);
+      if (!target)
+      {
+        ignwarn << "Failed to find node with ID [" << nodeId << "]"
+                << std::endl;
+        return;
+      }
       this->XYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
         this->dataPtr->startWorldPos =
-          this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+          target->WorldPosition();
       }
       ignition::math::Vector3d worldPos =
-        this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+        target->WorldPosition();
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
@@ -1074,6 +1083,50 @@ void IgnRenderer::Destroy()
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
+{
+  if (!_node)
+    return;
+
+  // Deselect all if control is not being held
+  if (!this->dataPtr->mouseEvent.Control() &&
+      !this->dataPtr->renderUtil.SelectedEntities().empty())
+  {
+    this->DeselectAllEntities(true);
+  }
+
+  // Attach control if in a transform mode - control is attached to:
+  // * latest selection
+  // * top-level nodes (model, light...)
+  if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
+  {
+    auto topNode =
+        this->dataPtr->renderUtil.SceneManager().TopLevelNode(_node);
+    if (topNode == _node)
+    {
+      this->dataPtr->transformControl.Attach(_node);
+
+      // When attached, we want only one entity selected
+      this->DeselectAllEntities(true);
+    }
+    else
+    {
+      this->dataPtr->transformControl.Detach();
+    }
+  }
+
+  // Select new entity
+  this->dataPtr->renderUtil.SetSelectedEntity(_node);
+
+  // Notify other widgets of the currently selected entities
+  auto selectEvent = new gui::events::EntitiesSelected(
+      this->dataPtr->renderUtil.SelectedEntities());
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      selectEvent);
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetTransformMode(const std::string &_mode)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1091,16 +1144,16 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   // Update selected entities if transform control is changed
   if (!this->dataPtr->renderUtil.SelectedEntities().empty())
   {
-    Entity nodeId =
-      (*(this->dataPtr->renderUtil.SelectedEntities().rbegin())).second;
-    rendering::ScenePtr sceneManager = this->dataPtr->renderUtil.Scene();
-    rendering::NodePtr target = sceneManager->NodeById(nodeId);
-
-    // TODO(john) Deselect all other entities except the most recent in this
-    // case; Use last element clicked if multiple entities are selected
-    if (target)
+    Entity entity = this->dataPtr->renderUtil.SelectedEntities().back();
+    auto target = this->dataPtr->renderUtil.SceneManager().NodeById(entity);
+    if (!target)
     {
-      this->dataPtr->transformControl.Attach(target);
+      ignerr << "Failed to find node for entity [" << entity << "]"
+             << std::endl;
+    }
+    else
+    {
+      this->UpdateSelectedEntity(target);
     }
   }
 }
@@ -1802,14 +1855,54 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
     if (selectedEvent && !selectedEvent->Data().empty())
     {
-      auto node = this->dataPtr->renderUtil->SceneManager().NodeById(
-          *selectedEvent->Data().begin());
-      this->dataPtr->renderUtil->SetSelectedEntity(node);
+      for (const auto &entity : selectedEvent->Data())
+      {
+        // If the event is from the user, update render util state
+        if (!selectedEvent->FromUser())
+          continue;
+
+        auto node = this->dataPtr->renderUtil->SceneManager().NodeById(entity);
+
+        if (nullptr == node)
+        {
+          // If an unknown entity has been selected, and control is not pressed,
+          // deselect all known selected entities
+          if (!(QGuiApplication::keyboardModifiers() & Qt::ControlModifier))
+          {
+            auto renderWindow =
+                this->PluginItem()->findChild<RenderWindowItem *>();
+            renderWindow->DeselectAllEntities(false);
+          }
+          continue;
+        }
+
+        auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+        renderWindow->UpdateSelectedEntity(node);
+      }
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::DeselectAllEntities::Type)
+  {
+    auto deselectEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+
+    // If the event is from the user, update render util state
+    if (deselectEvent && deselectEvent->FromUser())
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->DeselectAllEntities(false);
     }
   }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::UpdateSelectedEntity(const rendering::NodePtr &_node)
+{
+  this->dataPtr->renderThread->ignRenderer.UpdateSelectedEntity(_node);
 }
 
 /////////////////////////////////////////////////
@@ -1830,6 +1923,12 @@ void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
 void RenderWindowItem::SetMoveTo(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::DeselectAllEntities(bool _sendEvent)
+{
+  this->dataPtr->renderThread->ignRenderer.DeselectAllEntities(_sendEvent);
 }
 
 /////////////////////////////////////////////////
@@ -1903,6 +2002,11 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
   auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
+
+  // A release at the end of a drag
+  if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE)
+    event.SetDragging(this->dataPtr->mouseEvent.Dragging());
+
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
@@ -1914,10 +2018,11 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
   auto event = ignition::gui::convert(*_e);
-  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   if (!event.Dragging())
     return;
+
+  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
@@ -1960,6 +2065,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
+    this->DeselectAllEntities(true);
   }
 }
 

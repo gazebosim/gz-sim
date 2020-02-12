@@ -152,6 +152,12 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 }
 
 /////////////////////////////////////////////////
+QStandardItem *TreeModel::EntityItem(unsigned int _entity)
+{
+  return this->entityItems[_entity];
+}
+
+/////////////////////////////////////////////////
 void TreeModel::RemoveEntity(unsigned int _entity)
 {
   IGN_PROFILE("TreeModel::RemoveEntity");
@@ -253,6 +259,7 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
+  qRegisterMetaType<QStandardItem*>("QStandardItem*");
   // Connect model
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
      "EntityTreeModel", &this->dataPtr->treeModel);
@@ -359,7 +366,17 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 /////////////////////////////////////////////////
 void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 {
-  auto event = new gui::events::EntitiesSelected({_entity});
+  std::vector<Entity> entitySet {_entity};
+  auto event = new gui::events::EntitiesSelected(entitySet, true);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
+}
+
+/////////////////////////////////////////////////
+void EntityTree::DeselectAllEntities()
+{
+  auto event = new gui::events::DeselectAllEntities(true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       event);
@@ -374,9 +391,26 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
     if (selectedEvent && !selectedEvent->Data().empty())
     {
-      QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
-          Qt::QueuedConnection, Q_ARG(QVariant,
-          QVariant(static_cast<unsigned int>(*selectedEvent->Data().begin()))));
+      for (const auto &entity : selectedEvent->Data())
+      {
+        if (entity == kNullEntity)
+          continue;
+
+        QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
+            Qt::QueuedConnection, Q_ARG(QVariant,
+            QVariant(static_cast<unsigned int>(entity))));
+      }
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::DeselectAllEntities::Type)
+  {
+    auto deselectAllEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+    if (deselectAllEvent)
+    {
+      QMetaObject::invokeMethod(this->PluginItem(), "deselectAllEntities",
+          Qt::QueuedConnection);
     }
   }
 
