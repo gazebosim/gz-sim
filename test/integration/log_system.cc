@@ -149,27 +149,6 @@ void entryDiff(std::vector<std::string> &_paths1,
     std::set_difference(pathsUnion.begin(), pathsUnion.end(),
     pathsIntersection.begin(), pathsIntersection.end(), _diff.begin());
   _diff.resize(diffIt - _diff.begin());
-
-
-  /*
-  for (auto &p1: _paths1)
-  {
-    bool match = false;
-    // Look for a match
-    for (auto &p2: _paths2)
-    {
-      if (p1.compare(p2) == 0)
-      {
-        match = true;
-        break;
-      }
-    }
-    if (!match)
-    {
-      _diff.push_back(p1);
-    }
-  }
-  */
 }
 #endif
 
