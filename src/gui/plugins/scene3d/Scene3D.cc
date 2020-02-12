@@ -569,7 +569,8 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   // only for x, y, and z key presses
   if (_e->key() == Qt::Key_X ||
       _e->key() == Qt::Key_Y ||
-      _e->key() == Qt::Key_Z)
+      _e->key() == Qt::Key_Z ||
+      _e->key() == Qt::Key_Shift)
   {
     this->dataPtr->transformControl.Start();
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
@@ -620,7 +621,8 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
   // only for x, y, and z key presses
   if (_e->key() == Qt::Key_X ||
       _e->key() == Qt::Key_Y ||
-      _e->key() == Qt::Key_Z)
+      _e->key() == Qt::Key_Z ||
+      _e->key() == Qt::Key_Shift)
   {
     this->dataPtr->transformControl.Start();
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
