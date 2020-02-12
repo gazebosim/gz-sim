@@ -139,89 +139,6 @@ ToolBar {
             translate.checked = true;
             TransformControl.OnMode("translate")
           }
-          if (mouse.button === Qt.RightButton) {
-            snapTranslateMenu.open()
-          }
-        }
-        Menu {
-          id: snapTranslateMenu
-          Text {
-            text: "Snapping Intervals"
-            font.pointSize: 15
-            color: Material.theme == Material.Light ? "black" : "white"
-            bottomPadding: 10
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-          }
-          Text {
-            id: x
-            text: qsTr("X (Meters) :")
-            topPadding: 5
-            bottomPadding: 5
-            horizontalAlignment: Text.AlignHCenter
-            color: Material.theme == Material.Light ? "black" : "white"
-          }
-          IgnSpinBox {
-            id: xEntry
-            minimumValue: 0.01
-            maximumValue: 100.0
-            decimals: 2
-            stepSize: 0.01
-            value: 1
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.value, yEntry.value, zEntry.value,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: y
-            text: qsTr("Y (Meters) :")
-            topPadding: 5
-            bottomPadding: 5
-            horizontalAlignment: Text.AlignHCenter
-            color: Material.theme == Material.Light ? "black" : "white"
-          }
-          IgnSpinBox {
-            id: yEntry
-            minimumValue: 0.01
-            maximumValue: 100.0
-            decimals: 2
-            stepSize: 0.01
-            value: 1
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.value, yEntry.value, zEntry.value,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: z
-            text: qsTr("Z (Meters) :")
-            topPadding: 5
-            bottomPadding: 5
-            horizontalAlignment: Text.AlignHCenter
-            color: Material.theme == Material.Light ? "black" : "white"
-          }
-          IgnSpinBox {
-            id: zEntry
-            minimumValue: 0.01
-            maximumValue: 100.0
-            decimals: 2
-            stepSize: 0.01
-            value: 1
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.value, yEntry.value, zEntry.value,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
         }
       }
       // Almost an exact copy from upstream, adding `checked`
@@ -266,72 +183,6 @@ ToolBar {
             rotate.checked = true;
             TransformControl.OnMode("rotate")
           }
-          if (mouse.button === Qt.RightButton) {
-            snapRotateMenu.open()
-          }
-        }
-        Menu {
-          id: snapRotateMenu
-          Text {
-            id: roll
-            text: qsTr("R (0-90) :")
-          }
-          TextField {
-            id: rollEntry
-            placeholderText: qsTr("Degrees")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 90
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: pitch
-            text: qsTr("P (0-90) :")
-          }
-          TextField {
-            id: pitchEntry
-            placeholderText: qsTr("Degrees")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 90
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
-          Text {
-            id: yaw
-            text: qsTr("Y (0-90) :")
-          }
-          TextField {
-            id: yawEntry
-            placeholderText: qsTr("Degrees")
-            validator: DoubleValidator {
-              bottom: 0
-              top: 90
-              decimals: 10
-            }
-            onEditingFinished: {
-              TransformControl.OnSnapUpdate(
-                xEntry.text, yEntry.text, zEntry.text,
-                rollEntry.text, pitchEntry.text, yawEntry.text,
-                xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-              )
-            }
-          }
         }
       }
       // Almost an exact copy from upstream, adding `checked`
@@ -357,7 +208,7 @@ ToolBar {
       text: "S"
       checkable: true
       ButtonGroup.group: group
-      ToolTip.text: "Rotate mode"
+      ToolTip.text: "Enter custom snap values"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
       contentItem: Image {
@@ -373,8 +224,6 @@ ToolBar {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: {
           if (mouse.button === Qt.LeftButton) {
-            print(windowWidth())
-            print(windowHeight())
             snapDialog.open()
           }
         }
@@ -382,23 +231,248 @@ ToolBar {
     }
     Dialog {
       id: snapDialog
+      parent: transformControl.Window.window ? transformControl.Window.window.contentItem : transformControl
       x: (windowWidth() - width) / 2
       y: (windowHeight() - height) / 2
-      width: windowWidth() * 0.3
-      height: windowHeight() * 0.3
+      width: 330
+      height: 250
       modal: true
       focus: true
       title: "Snap values"
+      GridLayout {
+        columns: 6
+        columnSpacing: 30
+        Text {
+          text: "Translation (m)"
+          font.weight: Font.Bold
+          Layout.columnSpan: 2
+          Layout.row: 0
+          Layout.column: 0
+          bottomPadding: 10
+        }
+        Text {
+          text: "X"
+          Layout.row: 1
+          Layout.column: 0
+        }
+        IgnSpinBox {
+          id: xEntry
+          minimumValue: 0.01
+          maximumValue: 100.0
+          decimals: 2
+          stepSize: 0.01
+          value: 1
+          Layout.row: 1
+          Layout.column: 1
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              0, 0, 0
+            )
+          }
+        }
+        Text {
+          text: "Y"
+          Layout.row: 2
+          Layout.column: 0
+        }
+        IgnSpinBox {
+          id: yEntry
+          minimumValue: 0.01
+          maximumValue: 100.0
+          decimals: 2
+          stepSize: 0.01
+          value: 1
+          Layout.row: 2
+          Layout.column: 1
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              0, 0, 0
+            )
+          }
+        }
+        Text {
+          text: "Z"
+          Layout.row: 3
+          Layout.column: 0
+        }
+        IgnSpinBox {
+          id: zEntry
+          minimumValue: 0.01
+          maximumValue: 100.0
+          decimals: 2
+          stepSize: 0.01
+          value: 1
+          Layout.row: 3
+          Layout.column: 1
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              0, 0, 0
+            )
+          }
+        }
+        Text {
+          text: "Rotation (deg)"
+          font.weight: Font.Bold
+          Layout.columnSpan: 2
+          Layout.row: 0
+          Layout.column: 2
+          bottomPadding: 10
+        }
+        Text {
+          text: "Roll"
+          Layout.row: 1
+          Layout.column: 2
+        }
+        IgnSpinBox {
+          id: rollEntry
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
+          value: 45
+          Layout.row: 1
+          Layout.column: 3
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              0, 0, 0
+            )
+          }
+        }
+        Text {
+          text: "Pitch"
+          Layout.row: 2
+          Layout.column: 2
+        }
+        IgnSpinBox {
+          id: pitchEntry
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
+          value: 45
+          Layout.row: 2
+          Layout.column: 3
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              0, 0, 0
+            )
+          }
+        }
+        Text {
+          text: "Yaw"
+          Layout.row: 3
+          Layout.column: 2
+        }
+        IgnSpinBox {
+          id: yawEntry
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
+          value: 45
+          Layout.row: 3
+          Layout.column: 3
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              0, 0, 0
+            )
+          }
+        }
+
+        // TODO(anyone) enable scale snap values below when support is added in ign-physics
+        // Also be sure to replace the above placeholder 0's, in the `OnSnapUpdate` call to
+        // xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
+        /*
+        Text {
+          text: "Scaling"
+          font.weight: Font.Bold
+          Layout.columnSpan: 2
+          Layout.row: 0
+          Layout.column: 4
+          bottomPadding: 10
+        }
+        Text {
+          text: "X"
+          Layout.row: 1
+          Layout.column: 4
+        }
+        IgnSpinBox {
+          id: xScaleEntry
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
+          value: 45
+          Layout.row: 1
+          Layout.column: 5
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              xScaleEntry.value, yScaleEntry.value, zScaleEntry.value
+            )
+          }
+        }
+        Text {
+          text: "Y"
+          Layout.row: 2
+          Layout.column: 4
+        }
+        IgnSpinBox {
+          id: yScaleEntry
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
+          value: 45
+          Layout.row: 2
+          Layout.column: 5
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              xScaleEntry.value, yScaleEntry.value, zScaleEntry.value
+            )
+          }
+        }
+        Text {
+          text: "Z"
+          Layout.row: 3
+          Layout.column: 4
+        }
+        IgnSpinBox {
+          id: zScaleEntry
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
+          value: 45
+          Layout.row: 3
+          Layout.column: 5
+          onEditingFinished: {
+            TransformControl.OnSnapUpdate(
+              xEntry.value, yEntry.value, zEntry.value,
+              rollEntry.value, pitchEntry.value, yawEntry.value,
+              xScaleEntry.value, yScaleEntry.value, zScaleEntry.value
+            )
+          }
+        }
+        */
+      }
     }
-    Text {
-      id: xScaleEntry
-    }
-    Text {
-      id: yScaleEntry
-    }
-    Text {
-      id: zScaleEntry
-    }
+    
     // TODO(anyone) enable scale button when support is added in ign-physics
     // ToolButton {
     //   id: scale
