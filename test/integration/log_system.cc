@@ -930,7 +930,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   ignLogInit(this->logDir, "server_console.log");
   EXPECT_EQ(this->logDir, ignLogDirectory());
 
-  // First recording, to create some files
+  // Record something to create some files
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -964,7 +964,10 @@ TEST_F(LogSystemTest, LogOverwrite)
   auto tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
-  // Path exists, no overwrite flag, should overwrite because path is set on SDF
+  // Test case 1:
+  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
+  // default behavior whenever the specified path already exists.
+  // Path is set by SDF.
   {
     EXPECT_TRUE(common::exists(this->logDir));
 
@@ -997,7 +1000,10 @@ TEST_F(LogSystemTest, LogOverwrite)
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
-  // Path exists, using C++ API it will ovewrite
+  // Test case 2:
+  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
+  // default behavior whenever the specified path already exists.
+  // Path is set by C++ API.
   {
     // Pass SDF file to server
     ServerConfig recordServerConfig;
@@ -1026,8 +1032,9 @@ TEST_F(LogSystemTest, LogOverwrite)
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
+  // Test case 3:
   // Path exists, command line --log-overwrite, should overwrite by
-  //   command-line logic in ign.cc
+  // command-line logic in ign.cc
   {
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
@@ -1055,7 +1062,9 @@ TEST_F(LogSystemTest, LogOverwrite)
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
-  // Path exists, no --log-overwrite, should create new files
+  // Test case 4:
+  // Path exists, no --log-overwrite, should create new files by command-line
+  // logic in ign.cc
   {
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
