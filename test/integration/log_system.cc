@@ -441,8 +441,8 @@ TEST_F(LogSystemTest, LogPaths)
   // A path is specified in SDF.
   // No path specified on command line (therefore LogIgnoreSdfPath is not set).
   // State log should be stored in SDF path.
-  // Console log should be stored to ignLogDirectory because ign.cc is
-  // triggered by command line.
+  // Console log should be stored to default timestamp path ignLogDirectory
+  // because ign.cc is triggered by command line.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -585,6 +585,73 @@ TEST_F(LogSystemTest, LogPaths)
   EXPECT_EQ(1, entryCount(cppPath));
 #endif
   EXPECT_FALSE(common::exists(sdfPath));
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 5:
+  // A path is specified by --record-path on command line.
+  // Both state and console logs should be stored here.
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-path " + this->logDir + " " + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir, "state.tlog")));
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+    "server_console.log")));
+#ifndef __APPLE__
+  EXPECT_EQ(2, entryCount(this->logDir));
+#endif
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 6:
+  // A path is specified in SDF.
+  // A path is specified by --record-path on command line.
+  // Path in SDF should be ignored. Both state and console logs should be
+  // stored to --record-path path.
+  std::string cliPath = common::joinPaths(this->logDir, "cli");
+  {
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
+
+    // Save changed SDF to temporary file
+    std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
+      "with_record_path.sdf");
+    // TODO(anyone): Does this work on Apple?
+    std::ofstream ofs(tmpRecordSdfPath);
+    ofs << recordSdfRoot.Element()->ToString("").c_str();
+    ofs.close();
+
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-path " + cliPath + " " + kSdfFileOpt + tmpRecordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  EXPECT_TRUE(common::exists(common::joinPaths(cliPath, "state.tlog")));
+  EXPECT_TRUE(common::exists(common::joinPaths(cliPath,
+    "server_console.log")));
+#ifndef __APPLE__
+  EXPECT_EQ(2, entryCount(cliPath));
+#endif
 
   // Revert environment variable after test is done
   EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
@@ -1039,7 +1106,7 @@ TEST_F(LogSystemTest, LogOverwrite)
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-overwrite "
-      + "--record-path " + this->logDir + kSdfFileOpt + recordSdfPath;
+      + "--record-path " + this->logDir + " " + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
     // Run
@@ -1069,7 +1136,7 @@ TEST_F(LogSystemTest, LogOverwrite)
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
-      + "--record-path " + this->logDir + kSdfFileOpt + recordSdfPath;
+      + "--record-path " + this->logDir + " " + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
     // Run
