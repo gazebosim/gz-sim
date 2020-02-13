@@ -113,7 +113,7 @@ void entryList(const std::string &_directory, std::vector<std::string> &_paths)
   if (!common::exists(_directory))
     return;
 
-  for (auto &entry: std::filesystem::directory_iterator(_directory))
+  for (auto &entry : std::filesystem::directory_iterator(_directory))
   {
     _paths.push_back(entry.path().string());
   }
@@ -131,15 +131,13 @@ void entryDiff(std::vector<std::string> &_paths1,
   std::sort(_paths2.begin(), _paths2.end());
   std::vector<std::string> pathsUnion;
   pathsUnion.resize(_paths1.size() + _paths2.size());
-  std::vector<std::string>::iterator unionIt = 
-    std::set_union(_paths1.begin(),
+  std::vector<std::string>::iterator unionIt = std::set_union(_paths1.begin(),
     _paths1.end(), _paths2.begin(), _paths2.end(), pathsUnion.begin());
   pathsUnion.resize(unionIt - pathsUnion.begin());
 
   std::vector<std::string> pathsIntersection;
   pathsIntersection.resize(_paths1.size() + _paths2.size());
-  std::vector<std::string>::iterator intersectionIt =
-    std::set_intersection(
+  std::vector<std::string>::iterator intersectionIt = std::set_intersection(
     _paths1.begin(), _paths1.end(), _paths2.begin(), _paths2.end(),
     pathsIntersection.begin());
   pathsIntersection.resize(intersectionIt - pathsIntersection.begin());
@@ -340,7 +338,7 @@ TEST_F(LogSystemTest, LogDefaults)
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
- 
+
     // Run
     std::string output = customExecStr(cmd);
     std::cout << output << std::endl;
@@ -350,9 +348,8 @@ TEST_F(LogSystemTest, LogDefaults)
   // ignLogDirectory() is nonempty when printed from LogRecord.cc during the
   // run above, but is empty here for some reason, so can't check the exact
   // directory
-  // Check the diff of list of files in directory instead, and assume there
-  // is a single diff, it being the newly created log directory from the run
-  // above.
+  // Check the diff of list of files in directory instead, and assume there is
+  // a single diff, it being the newly created log directory from the run above.
   EXPECT_EQ(nEntries + 1, entryCount(logPath));
   std::vector<std::string> entriesAfter;
   entryList(logPath, entriesAfter);
@@ -465,7 +462,7 @@ TEST_F(LogSystemTest, LogPaths)
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + kSdfFileOpt + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
- 
+
     // Run
     std::string output = customExecStr(cmd);
     std::cout << output << std::endl;
@@ -480,9 +477,8 @@ TEST_F(LogSystemTest, LogPaths)
   // ignLogDirectory() is nonempty when printed from LogRecord.cc during the
   // run above, but is empty here for some reason, so can't check the exact
   // directory
-  // Check the diff of list of files in directory instead, and assume there
-  // is a single diff, it being the newly created log directory from the run
-  // above.
+  // Check the diff of list of files in directory instead, and assume there is
+  // a single diff, it being the newly created log directory from the run above.
   EXPECT_EQ(nEntries + 1, entryCount(logPath));
   std::vector<std::string> entriesAfter;
   entryList(logPath, entriesAfter);
