@@ -506,12 +506,12 @@ TEST_F(LogSystemTest, LogPaths)
   // LogIgnoreSdfPath is not set (pure C++ API usage).
   // Should store state.tlog to SDF path. Console log is not initialized
   // because ign.cc is not triggered.
+  std::string stateLogPath = this->logDir;
+
+  std::string consoleLogPath = common::joinPaths(this->logsDir, "console");
+  common::createDirectories(consoleLogPath);
+
   {
-    std::string stateLogPath = this->logDir;
-
-    std::string consoleLogPath = common::joinPaths(this->logsDir, "console");
-    common::createDirectories(consoleLogPath);
-
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
     this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
@@ -530,20 +530,16 @@ TEST_F(LogSystemTest, LogPaths)
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 200, false);
 
-    EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
-#ifndef __APPLE__
-    // state.tlog-journal may still exist
-    int count = entryCount(stateLogPath);
-    if (count > 1)
-    {
-      EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath,
-        "state.tlog-journal")));
-    }
-
-    EXPECT_EQ(0, entryCount(consoleLogPath));
-#endif
-    common::removeAll(consoleLogPath);
+    // Terminate server to close tlog file, otherwise we get a temporary
+    // tlog-journal file
   }
+
+  EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(stateLogPath));
+  EXPECT_EQ(0, entryCount(consoleLogPath));
+#endif
+  common::removeAll(consoleLogPath);
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
@@ -555,10 +551,11 @@ TEST_F(LogSystemTest, LogPaths)
   // LogIgnoreSdfPath is set (similar to specifying a path on command line).
   // Should take C++ API path. State log should be stored here. Console log is
   // not initialized because ign.cc is not triggered.
+  const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
+  const std::string cppPath = common::joinPaths(this->logsDir, "cppPath");
   {
     // Change log path in SDF
     sdf::Root recordSdfRoot;
-    const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
     this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
         sdfPath);
 
@@ -570,7 +567,6 @@ TEST_F(LogSystemTest, LogPaths)
     recordServerConfig.SetUseLogRecord(true);
 
     // Mock command line arg. Set record path to something different from in SDF
-    const std::string cppPath = common::joinPaths(this->logsDir, "cppPath");
     recordServerConfig.SetLogRecordPath(cppPath);
     // Set this flag to simulate path being passed in from command line
     recordServerConfig.SetLogIgnoreSdfPath(true);
@@ -579,19 +575,16 @@ TEST_F(LogSystemTest, LogPaths)
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 200, false);
 
-    EXPECT_TRUE(common::exists(cppPath));
-    EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
-#ifndef __APPLE__
-    // state.tlog-journal may still exist
-    int count = entryCount(cppPath);
-    if (count > 1)
-    {
-      EXPECT_TRUE(common::exists(common::joinPaths(cppPath,
-        "state.tlog-journal")));
-    }
-#endif
-    EXPECT_FALSE(common::exists(sdfPath));
+    // Terminate server to close tlog file, otherwise we get a temporary
+    // tlog-journal file
   }
+
+  EXPECT_TRUE(common::exists(cppPath));
+  EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(cppPath));
+#endif
+  EXPECT_FALSE(common::exists(sdfPath));
 
   // Revert environment variable after test is done
   EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
