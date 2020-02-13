@@ -152,12 +152,6 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 }
 
 /////////////////////////////////////////////////
-QStandardItem *TreeModel::EntityItem(unsigned int _entity)
-{
-  return this->entityItems[_entity];
-}
-
-/////////////////////////////////////////////////
 void TreeModel::RemoveEntity(unsigned int _entity)
 {
   IGN_PROFILE("TreeModel::RemoveEntity");
@@ -259,7 +253,6 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
-  qRegisterMetaType<QStandardItem*>("QStandardItem*");
   // Connect model
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
      "EntityTreeModel", &this->dataPtr->treeModel);
@@ -385,7 +378,7 @@ void EntityTree::DeselectAllEntities()
 /////////////////////////////////////////////////
 bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -403,7 +396,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::Type)
+           ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     auto deselectAllEvent =
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);

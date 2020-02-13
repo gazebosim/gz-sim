@@ -208,7 +208,7 @@ TEST(UtilTest, AsFullPath)
   const std::string relativeUriUnix{"meshes/collision.dae"};
   const std::string relativeUriWindows{"meshes\\collision.dae"};
   const std::string absoluteUriUnix{"/path/to/collision.dae"};
-  const std::string absoluteUriWindows{"C:\\path\\to\\collision.dae"};
+  const std::string absoluteUriWindows{R"(C:\path\to\collision.dae)"};
   const std::string schemeUri{"https://website.com/collision.dae"};
 
   // Empty path
@@ -236,7 +236,7 @@ TEST(UtilTest, AsFullPath)
 #ifdef _WIN32
   {
     // Absolute Windows path
-    const std::string path{"C:\\abs\\path\\file"};
+    const std::string path{R"(C:\abs\path\file)"};
 
     // Directory
     EXPECT_EQ("C:\\abs\\path\\meshes\\collision.dae",
