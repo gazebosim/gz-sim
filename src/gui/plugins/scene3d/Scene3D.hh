@@ -33,6 +33,7 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/common/MouseEvent.hh>
+#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -227,6 +228,40 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
+    /// \brief Handle key press event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyRelease(QKeyEvent *_e);
+
+    /// \brief Snaps a point at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _point Input point to snap.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    public: void SnapPoint(
+                math::Vector3d &_point,
+                double _interval = 1.0, double _sensitivity = 0.4) const;
+
+    /// \brief Snaps a value at intervals of a fixed distance. Currently used
+    /// to give a snapping behavior when moving models with a mouse.
+    /// \param[in] _coord Input coordinate point.
+    /// \param[in] _interval Fixed distance interval at which the point is
+    /// snapped.
+    /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
+    /// percentage of the interval.
+    /// \return Snapped coordinate point.
+    private: double SnapValue(
+                 double _coord, double _interval, double _sensitivity) const;
+
+    /// \brief Constraints the passed in axis to the currently selected axes.
+    /// \param[in] _axis The axis to constrain.
+    private: void XYZConstraint(math::Vector3d &_axis);
+
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
 
@@ -408,6 +443,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
+
+    // Documentation inherited
+    protected: void keyPressEvent(QKeyEvent *_e) override;
 
     // Documentation inherited
     protected: void keyReleaseEvent(QKeyEvent *_e) override;
