@@ -313,15 +313,6 @@ TEST_F(LogSystemTest, LogDefaults)
   // Check ignLogDirectory is empty
   EXPECT_TRUE(ignLogDirectory().empty());
 
-  // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
-      "log");
-#ifndef __APPLE__
-  int nEntries = entryCount(logPath);
-  std::vector<std::string> entriesBefore;
-  entryList(logPath, entriesBefore);
-#endif
-
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
   this->CreateLogsDir();
@@ -332,6 +323,16 @@ TEST_F(LogSystemTest, LogDefaults)
   // Run from command line, which should trigger ign.cc, which should initialize
   // ignLogDirectory() to default timestamp path. Both console and state logs
   // should be recorded here.
+
+  // Store number of files before running
+  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+      "log");
+#ifndef __APPLE__
+  int nEntries = entryCount(logPath);
+  std::vector<std::string> entriesBefore;
+  entryList(logPath, entriesBefore);
+#endif
+
   {
     // Command line triggers ign.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
@@ -1013,8 +1014,8 @@ TEST_F(LogSystemTest, LogOverwrite)
   const std::string tlogPath = common::joinPaths(this->logDir, "state.tlog");
   EXPECT_TRUE(common::exists(tlogPath));
 
-  auto logPath = common::joinPaths(this->logDir, "server_console.log");
-  EXPECT_TRUE(common::exists(logPath));
+  auto clogPath = common::joinPaths(this->logDir, "server_console.log");
+  EXPECT_TRUE(common::exists(clogPath));
 
 #ifndef __APPLE__
   // Log files were created
@@ -1047,7 +1048,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   // Log files still exist
   EXPECT_TRUE(common::exists(tlogPath));
-  EXPECT_TRUE(common::exists(logPath));
+  EXPECT_TRUE(common::exists(clogPath));
 
 #ifndef __APPLE__
   // No new files were created
@@ -1079,7 +1080,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   // Log files still exist
   EXPECT_TRUE(common::exists(tlogPath));
-  EXPECT_TRUE(common::exists(logPath));
+  EXPECT_TRUE(common::exists(clogPath));
 
 #ifndef __APPLE__
   // No new files were created
@@ -1093,6 +1094,86 @@ TEST_F(LogSystemTest, LogOverwrite)
 #endif
 
   // Test case 3:
+  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
+  // default behavior whenever the specified path already exists.
+  // Path is set by SDF.
+  // Server is run from command line, ign.cc should initialize new default
+  // timestamp directory, where console log should be recorded. State log should
+  // be recorded to the path in SDF.
+
+  // Change environment variable so that test files aren't written to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
+  // Store number of files before running
+  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+      "log");
+#ifndef __APPLE__
+  int nEntries = entryCount(logPath);
+  std::vector<std::string> entriesBefore;
+  entryList(logPath, entriesBefore);
+#endif
+
+  std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
+    "with_record_path.sdf");
+
+  {
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
+
+    // Save changed SDF to temporary file
+    // TODO(anyone): Does this work on Apple?
+    std::ofstream ofs(tmpRecordSdfPath);
+    ofs << recordSdfRoot.Element()->ToString("").c_str();
+    ofs.close();
+
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + kSdfFileOpt + tmpRecordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  // State log file still exists
+  EXPECT_TRUE(common::exists(tlogPath));
+
+#ifndef __APPLE__
+  // Check the diff of list of files and assume there is a single diff, it
+  // being the newly created log directory from the run above.
+  EXPECT_EQ(nEntries + 1, entryCount(logPath));
+  std::vector<std::string> entriesAfter;
+  entryList(logPath, entriesAfter);
+  std::vector<std::string> entriesDiff;
+  entryDiff(entriesBefore, entriesAfter, entriesDiff);
+  EXPECT_EQ(1ul, entriesDiff.size());
+  // This should be $HOME/.ignition/..., default path
+  std::string timestampPath = entriesDiff[0];
+
+  EXPECT_FALSE(timestampPath.empty());
+  EXPECT_EQ(0, timestampPath.compare(0, logPath.length(), logPath));
+  EXPECT_TRUE(common::exists(timestampPath));
+  EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
+      "server_console.log")));
+  EXPECT_EQ(1, entryCount(timestampPath));
+#endif
+
+  // Cleanup
+  common::removeFile(tmpRecordSdfPath);
+  common::removeAll(timestampPath);
+  common::removeAll(homeFake);
+
+  // Revert environment variable after test is done
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+
+  // Test case 4:
   // Path exists, command line --log-overwrite, should overwrite by
   // command-line logic in ign.cc
   {
@@ -1109,7 +1190,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   // Log files still exist
   EXPECT_TRUE(common::exists(tlogPath));
-  EXPECT_TRUE(common::exists(logPath));
+  EXPECT_TRUE(common::exists(clogPath));
 
 #ifndef __APPLE__
   // No new files were created
@@ -1122,7 +1203,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
-  // Test case 4:
+  // Test case 5:
   // Path exists, no --log-overwrite, should create new files by command-line
   // logic in ign.cc
   {
@@ -1140,7 +1221,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   // Old log files still exist
   EXPECT_TRUE(common::exists(this->logDir));
   EXPECT_TRUE(common::exists(tlogPath));
-  EXPECT_TRUE(common::exists(logPath));
+  EXPECT_TRUE(common::exists(clogPath));
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
