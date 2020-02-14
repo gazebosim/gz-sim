@@ -125,6 +125,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
+    /// \brief Key event
+    public: common::KeyEvent keyEvent;
+
     /// \brief Mouse move distance since last event.
     public: math::Vector2d drag;
 
@@ -214,6 +217,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
+
+    /// \brief The starting world pose of a clicked visual.
+    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
+
+    /// \brief Flag to keep track of world pose setting used
+    /// for button translating.
+    public: bool isStartWorldPosSet = false;
+
+    /// \brief Where the mouse left off - used to continue translating
+    /// smoothly when switching axes through keybinding and clicking
+    /// Updated on an x, y, or z, press or release and a mouse press
+    public: math::Vector2i mousePressPos = math::Vector2i::Zero;
+
+    /// \brief Flag to indicate whether the x key is currently being pressed
+    public: bool xPressed = false;
+
+    /// \brief Flag to indicate whether the y key is currently being pressed
+    public: bool yPressed = false;
+
+    /// \brief Flag to indicate whether the z key is currently being pressed
+    public: bool zPressed = false;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -298,9 +322,11 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
-    this->textureId = this->dataPtr->camera->RenderTextureGLId();
     this->textureDirty = false;
   }
+
+  // texture id could change so get the value in every render update
+  this->textureId = this->dataPtr->camera->RenderTextureGLId();
 
   // update the scene
   this->dataPtr->renderUtil.SetTransformActive(
@@ -523,6 +549,185 @@ void IgnRenderer::HandleMouseContextMenu()
   }
 }
 
+////////////////////////////////////////////////
+void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
+{
+  if (_e->isAutoRepeat())
+    return;
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
+  this->dataPtr->keyEvent.SetKey(_e->key());
+  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
+
+  this->dataPtr->keyEvent.SetControl(
+    (_e->modifiers() & Qt::ControlModifier));
+  this->dataPtr->keyEvent.SetShift(
+    (_e->modifiers() & Qt::ShiftModifier));
+  this->dataPtr->keyEvent.SetAlt(
+    (_e->modifiers() & Qt::AltModifier));
+
+  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
+  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
+  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+  this->dataPtr->keyEvent.SetType(common::KeyEvent::PRESS);
+
+  // Update the object and mouse to be placed at the current position
+  // only for x, y, and z key presses
+  if (_e->key() == Qt::Key_X ||
+      _e->key() == Qt::Key_Y ||
+      _e->key() == Qt::Key_Z ||
+      _e->key() == Qt::Key_Shift)
+  {
+    this->dataPtr->transformControl.Start();
+    this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
+  }
+
+  switch (_e->key())
+  {
+    case Qt::Key_X:
+      this->dataPtr->xPressed = true;
+      break;
+    case Qt::Key_Y:
+      this->dataPtr->yPressed = true;
+      break;
+    case Qt::Key_Z:
+      this->dataPtr->zPressed = true;
+      break;
+    default:
+      break;
+  }
+}
+
+////////////////////////////////////////////////
+void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
+{
+  if (_e->isAutoRepeat())
+    return;
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
+  this->dataPtr->keyEvent.SetKey(0);
+
+  this->dataPtr->keyEvent.SetControl(
+    (_e->modifiers() & Qt::ControlModifier)
+    && (_e->key() != Qt::Key_Control));
+  this->dataPtr->keyEvent.SetShift(
+    (_e->modifiers() & Qt::ShiftModifier)
+    && (_e->key() != Qt::Key_Shift));
+  this->dataPtr->keyEvent.SetAlt(
+    (_e->modifiers() & Qt::AltModifier)
+    && (_e->key() != Qt::Key_Alt));
+
+  this->dataPtr->mouseEvent.SetControl(this->dataPtr->keyEvent.Control());
+  this->dataPtr->mouseEvent.SetShift(this->dataPtr->keyEvent.Shift());
+  this->dataPtr->mouseEvent.SetAlt(this->dataPtr->keyEvent.Alt());
+  this->dataPtr->keyEvent.SetType(common::KeyEvent::RELEASE);
+
+  // Update the object and mouse to be placed at the current position
+  // only for x, y, and z key presses
+  if (_e->key() == Qt::Key_X ||
+      _e->key() == Qt::Key_Y ||
+      _e->key() == Qt::Key_Z ||
+      _e->key() == Qt::Key_Shift)
+  {
+    this->dataPtr->transformControl.Start();
+    this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->isStartWorldPosSet = false;
+  }
+
+  switch (_e->key())
+  {
+    case Qt::Key_X:
+      this->dataPtr->xPressed = false;
+      break;
+    case Qt::Key_Y:
+      this->dataPtr->yPressed = false;
+      break;
+    case Qt::Key_Z:
+      this->dataPtr->zPressed = false;
+      break;
+    default:
+      break;
+  }
+}
+
+/////////////////////////////////////////////////
+double IgnRenderer::SnapValue(
+    double _coord, double _interval, double _sensitivity) const
+{
+  double snap = _interval * _sensitivity;
+  double rem = fmod(_coord, _interval);
+  double minInterval = _coord - rem;
+
+  if (rem < 0)
+  {
+    minInterval -= _interval;
+  }
+
+  double maxInterval = minInterval + _interval;
+
+  if (_coord < (minInterval + snap))
+  {
+    _coord = minInterval;
+  }
+  else if (_coord > (maxInterval - snap))
+  {
+    _coord = maxInterval;
+  }
+
+  return _coord;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SnapPoint(
+    ignition::math::Vector3d &_point, double _interval, double _sensitivity)
+    const
+{
+  if (_interval <= 0)
+  {
+    ignerr << "Interval distance must be greater than 0"
+        << std::endl;
+    return;
+  }
+
+  if (_sensitivity < 0 || _sensitivity > 1.0)
+  {
+    ignerr << "Sensitivity must be between 0 and 1" << std::endl;
+    return;
+  }
+
+  _point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
+  _point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
+  _point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
+{
+  math::Vector3d translationAxis = math::Vector3d::Zero;
+
+  if (this->dataPtr->xPressed)
+  {
+    translationAxis += math::Vector3d::UnitX;
+  }
+
+  if (this->dataPtr->yPressed)
+  {
+    translationAxis += math::Vector3d::UnitY;
+  }
+
+  if (this->dataPtr->zPressed)
+  {
+    translationAxis += math::Vector3d::UnitZ;
+  }
+
+  if (translationAxis != math::Vector3d::Zero)
+  {
+    _axis = translationAxis;
+  }
+}
+
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
@@ -548,11 +753,10 @@ void IgnRenderer::HandleMouseTransformControl()
   }
   else
   {
-    // TODO(anyone) make key events work
     // shift indicates world space transformation
-    // this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
-    //     rendering::TransformSpace::TS_WORLD :
-    //     rendering::TransformSpace::TS_LOCAL;
+    this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
+        rendering::TransformSpace::TS_WORLD :
+        rendering::TransformSpace::TS_LOCAL;
     this->dataPtr->transformControl.SetTransformSpace(
         this->dataPtr->transformSpace);
   }
@@ -570,6 +774,7 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS
         && this->dataPtr->transformControl.Node())
     {
+      this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
       // get the visual at mouse position
       rendering::VisualPtr visual = this->dataPtr->camera->VisualAt(
             this->dataPtr->mouseEvent.PressPos());
@@ -592,6 +797,7 @@ void IgnRenderer::HandleMouseTransformControl()
     }
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
+      this->dataPtr->isStartWorldPosSet = false;
       if (this->dataPtr->transformControl.Active())
       {
         if (this->dataPtr->transformControl.Node())
@@ -657,9 +863,11 @@ void IgnRenderer::HandleMouseTransformControl()
     auto imageWidth = static_cast<double>(this->dataPtr->camera->ImageWidth());
     auto imageHeight = static_cast<double>(
         this->dataPtr->camera->ImageHeight());
-    double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() /
+    double nx = 2.0 *
+      this->dataPtr->mousePressPos.X() /
       imageWidth - 1.0;
-    double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.PressPos().Y() /
+    double ny = 1.0 - 2.0 *
+      this->dataPtr->mousePressPos.Y() /
       imageHeight;
     double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() /
       imageWidth - 1.0;
@@ -675,8 +883,27 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      this->XYZConstraint(axis);
+      if (!this->dataPtr->isStartWorldPosSet)
+      {
+        this->dataPtr->isStartWorldPosSet = true;
+        this->dataPtr->startWorldPos =
+          this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+      }
+      ignition::math::Vector3d worldPos =
+        this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
       math::Vector3d distance =
-          this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
+        this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
+      if (this->dataPtr->keyEvent.Control())
+      {
+        // Translate to world frame for snapping
+        distance += this->dataPtr->startWorldPos;
+        SnapPoint(distance);
+
+        // Translate back to entity frame
+        distance -= this->dataPtr->startWorldPos;
+        distance *= axis;
+      }
       this->dataPtr->transformControl.Translate(distance);
     }
     else if (this->dataPtr->transformControl.Mode() ==
@@ -684,14 +911,26 @@ void IgnRenderer::HandleMouseTransformControl()
     {
       math::Quaterniond rotation =
           this->dataPtr->transformControl.RotationFrom2d(axis, start, end);
+
+      if (this->dataPtr->keyEvent.Control())
+      {
+        math::Vector3d currentRot = rotation.Euler();
+        SnapPoint(currentRot, IGN_PI/4);
+        rotation = math::Quaterniond::EulerToQuaternion(currentRot);
+      }
       this->dataPtr->transformControl.Rotate(rotation);
     }
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
+      this->XYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
+      if (this->dataPtr->keyEvent.Control())
+      {
+        SnapPoint(scale, 0.5);
+      }
       this->dataPtr->transformControl.Scale(scale);
     }
     this->dataPtr->drag = 0;
@@ -1650,8 +1889,16 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 }
 
 ////////////////////////////////////////////////
+void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+{
+  this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
+}
+
+////////////////////////////////////////////////
 void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 {
+  this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
+
   if (_e->key() == Qt::Key_Escape)
   {
     if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
