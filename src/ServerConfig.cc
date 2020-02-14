@@ -219,7 +219,6 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordPath(_cfg->logRecordPath),
             logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
-            logRecordOverwrite(_cfg->logRecordOverwrite),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -253,9 +252,6 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
-
-  /// \brief When recording, overwrite existing log files
-  public: bool logRecordOverwrite{false};
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -445,18 +441,6 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
-}
-
-/////////////////////////////////////////////////
-bool ServerConfig::LogRecordOverwrite() const
-{
-  return this->dataPtr->logRecordOverwrite;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
-{
-  this->dataPtr->logRecordOverwrite = _overwrite;
 }
 
 /////////////////////////////////////////////////
