@@ -345,11 +345,8 @@ TEST_F(LogSystemTest, LogDefaults)
   }
 
 #ifndef __APPLE__
-  // ignLogDirectory() is nonempty when printed from LogRecord.cc during the
-  // run above, but is empty here for some reason, so can't check the exact
-  // directory
-  // Check the diff of list of files in directory instead, and assume there is
-  // a single diff, it being the newly created log directory from the run above.
+  // Check the diff of list of files and assume there is a single diff, it
+  // being the newly created log directory from the run above.
   EXPECT_EQ(nEntries + 1, entryCount(logPath));
   std::vector<std::string> entriesAfter;
   entryList(logPath, entriesAfter);
@@ -474,10 +471,7 @@ TEST_F(LogSystemTest, LogPaths)
 #ifndef __APPLE__
   EXPECT_EQ(1, entryCount(this->logDir));
 
-  // ignLogDirectory() is nonempty when printed from LogRecord.cc during the
-  // run above, but is empty here for some reason, so can't check the exact
-  // directory
-  // Check the diff of list of files in directory instead, and assume there is
+  // Check the diff of list of files in directory, and assume there is
   // a single diff, it being the newly created log directory from the run above.
   EXPECT_EQ(nEntries + 1, entryCount(logPath));
   std::vector<std::string> entriesAfter;
