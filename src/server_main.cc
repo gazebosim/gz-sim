@@ -270,11 +270,6 @@ int main(int _argc, char **_argv)
     }
   }
 
-  if (FLAGS_log_overwrite)
-  {
-    serverConfig.SetLogRecordOverwrite(FLAGS_log_overwrite);
-  }
-
   if (FLAGS_log_compress)
   {
     serverConfig.SetLogRecordCompress(FLAGS_log_compress);

@@ -62,9 +62,8 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_TRUE(serverConfig.NetworkRole().empty());
   EXPECT_FALSE(serverConfig.UseLogRecord());
   EXPECT_FALSE(serverConfig.LogRecordPath().empty());
-  EXPECT_FALSE(serverConfig.LogRecordPathFromCmdLine());
+  EXPECT_FALSE(serverConfig.LogIgnoreSdfPath());
   EXPECT_TRUE(serverConfig.LogPlaybackPath().empty());
-  EXPECT_FALSE(serverConfig.LogRecordOverwrite());
   EXPECT_FALSE(serverConfig.LogRecordCompress());
   EXPECT_TRUE(serverConfig.LogRecordCompressPath().empty());
   EXPECT_EQ(0u, serverConfig.Seed());
