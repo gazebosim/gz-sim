@@ -131,20 +131,19 @@ void entryDiff(std::vector<std::string> &_paths1,
   std::sort(_paths2.begin(), _paths2.end());
   std::vector<std::string> pathsUnion;
   pathsUnion.resize(_paths1.size() + _paths2.size());
-  std::vector<std::string>::iterator unionIt = std::set_union(_paths1.begin(),
+  auto unionIt = std::set_union(_paths1.begin(),
     _paths1.end(), _paths2.begin(), _paths2.end(), pathsUnion.begin());
   pathsUnion.resize(unionIt - pathsUnion.begin());
 
   std::vector<std::string> pathsIntersection;
   pathsIntersection.resize(_paths1.size() + _paths2.size());
-  std::vector<std::string>::iterator intersectionIt = std::set_intersection(
+  auto intersectionIt = std::set_intersection(
     _paths1.begin(), _paths1.end(), _paths2.begin(), _paths2.end(),
     pathsIntersection.begin());
   pathsIntersection.resize(intersectionIt - pathsIntersection.begin());
 
   _diff.resize(pathsUnion.size() + pathsIntersection.size());
-  std::vector<std::string>::iterator diffIt =
-    std::set_difference(pathsUnion.begin(), pathsUnion.end(),
+  auto diffIt = std::set_difference(pathsUnion.begin(), pathsUnion.end(),
     pathsIntersection.begin(), pathsIntersection.end(), _diff.begin());
   _diff.resize(diffIt - _diff.begin());
 }
@@ -1161,4 +1160,151 @@ TEST_F(LogSystemTest, LogOverwrite)
 #endif
 
   this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogControlLevels)
+{
+  auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "levels_log");
+
+  const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "log_playback.sdf");
+
+  // Change log path in world SDF to build directory
+  sdf::Root playSdfRoot;
+  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
+      logPath);
+
+  ServerConfig config;
+  config.SetSdfString(playSdfRoot.Element()->ToString(""));
+
+  Server server(config);
+
+  Relay testSystem;
+
+  EntityGraph entityGraph;
+
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        entityGraph = _ecm.Entities();
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
+
+  // store the entities at the beginning of playback
+  std::set<uint64_t> entitiesAtTime0;
+  for (const auto &v : entityGraph.Vertices())
+    entitiesAtTime0.insert(v.first);
+
+  // verify there are entities at the beginning of the playback
+  EXPECT_TRUE(!entitiesAtTime0.empty());
+
+  double timeA = 8;
+  double timeB = 18;
+
+  transport::Node node;
+
+  // Seek forward
+  msgs::LogPlaybackControl req;
+  msgs::Boolean res;
+  bool result{false};
+  unsigned int timeout = 1000;
+  std::string service{"/world/default/playback/control"};
+
+  req.mutable_seek()->set_sec(timeA);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run 2 iterations because control messages are processed in the end of an
+  // update cycle
+  server.Run(true, 2, false);
+
+  // store entities at time A
+  std::set<uint64_t> entitiesAtTimeA;
+  for (const auto &v : entityGraph.Vertices())
+    entitiesAtTimeA.insert(v.first);
+
+  // Seek forward again
+  req.mutable_seek()->set_sec(timeB);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run 2 iterations because control messages are processed in the end of an
+  // update cycle
+  server.Run(true, 2, false);
+
+  // Run another iteration for the view updates to propagate the entity graph
+  server.Run(true, 1, false);
+
+  // store entities at time B
+  std::set<uint64_t> entitiesAtTimeB;
+  for (const auto &v : entityGraph.Vertices())
+    entitiesAtTimeB.insert(v.first);
+
+  // the entities at time B should be different from time A as levels get
+  // loaded and unloaded
+  EXPECT_NE(entitiesAtTimeA.size(), entitiesAtTimeB.size());
+
+  // Seek backward to time A
+  req.mutable_seek()->set_sec(timeA);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run 2 iterations because control messages are processed in the end of an
+  // update cycle
+  server.Run(true, 2, false);
+
+  // Run another iteration for the view updates to propagate to the entity graph
+  server.Run(true, 1, false);
+
+  // store another set of entities at time A after jumping back in time
+  std::set<uint64_t> entitiesAtTimeAA;
+  for (const auto &v : entityGraph.Vertices())
+    entitiesAtTimeAA.insert(v.first);
+
+  // verify the entities are the same at time A
+  EXPECT_EQ(entitiesAtTimeA.size(), entitiesAtTimeAA.size());
+  for (auto aIt = entitiesAtTimeA.begin(), aaIt = entitiesAtTimeAA.begin();
+      aIt != entitiesAtTimeA.end() && aaIt != entitiesAtTimeAA.end();
+      ++aIt, ++aaIt)
+  {
+    EXPECT_EQ(*aIt, *aaIt);
+  }
+
+  // rewind
+  req.Clear();
+  req.set_rewind(true);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run 2 iterations because control messages are processed in the end of an
+  // update cycle
+  server.Run(true, 2, false);
+
+  // Run another iteration for the view updates to propagate to the entity graph
+  server.Run(true, 1, false);
+
+  // store another set of entities at time 0 after rewind
+  std::set<uint64_t> entitiesAtTime00;
+  for (const auto &v : entityGraph.Vertices())
+    entitiesAtTime00.insert(v.first);
+
+  // verify the entities are the same at beginning of playback
+  EXPECT_EQ(entitiesAtTime0.size(), entitiesAtTime00.size());
+  for (auto it = entitiesAtTime0.begin(), it2 = entitiesAtTime00.begin();
+      it != entitiesAtTime0.end() && it2 != entitiesAtTime00.end();
+      ++it, ++it2)
+  {
+    EXPECT_EQ(*it, *it2);
+  }
 }

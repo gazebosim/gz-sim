@@ -38,7 +38,6 @@
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
-
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
@@ -283,10 +282,28 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // just playing every single step so we don't miss insertions and deletions.
   auto startTime = _info.simTime - _info.dt;
   auto endTime = _info.simTime;
+
+  bool seekRewind = false;
+  std::set<Entity> entitiesToRemove;
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    // If jumping backwards, check 1 second before
-    startTime = endTime - std::chrono::seconds(1);
+    // Detected jumping back in time. This can be expensive.
+    // To rewind / seek backward in time, we also need to play every single
+    // step from the beginning so we don't miss insertions and deletions
+    // This is because each serialized state is a changed state and not an
+    // absolute state.
+    // todo(anyone) Record absolute states during recording, i.e. key frames,
+    // so that playback can jump to these states without the need to
+    // incrementally build the states from the beginning
+
+    // Create a list of entities to be removed. The list will be updated later
+    // as the log steps forward below
+    seekRewind = true;
+    const auto &entities = _ecm.Entities().Vertices();
+    for (const auto &entity : entities)
+      entitiesToRemove.insert(Entity(entity.first));
+
+    startTime = std::chrono::steady_clock::duration::zero();
   }
 
   this->dataPtr->batch = this->dataPtr->log->QueryMessages(
@@ -315,12 +332,53 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
+
+      // For seeking back in time only:
+      // While stepping, update the list of entities to be removed
+      // so we do not remove any entities that are to be created
+      if (seekRewind)
+      {
+        for (const auto &entIt : msg.entities())
+        {
+          Entity entity{entIt.id()};
+          if (entIt.remove())
+          {
+            entitiesToRemove.insert(entity);
+          }
+          else
+          {
+            entitiesToRemove.erase(entity);
+          }
+        }
+      }
+
       this->dataPtr->Parse(_ecm, msg);
     }
     else if (msgType == "ignition.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
+
+      // For seeking back in time only:
+      // While stepping, update the list of entities to be removed
+      // so we do not remove any entities that are to be created
+      if (seekRewind)
+      {
+        for (const auto &entIt : msg.entities())
+        {
+          const auto &entityMsg = entIt.second;
+          Entity entity{entityMsg.id()};
+          if (entityMsg.remove())
+          {
+            entitiesToRemove.insert(entity);
+          }
+          else
+          {
+            entitiesToRemove.erase(entity);
+          }
+        }
+      }
+
       this->dataPtr->Parse(_ecm, msg);
     }
     else if (msgType == "ignition.msgs.StringMsg")
@@ -338,6 +396,23 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (queuedPose.pose_size() > 0)
   {
     this->dataPtr->Parse(_ecm, queuedPose);
+  }
+
+  // for seek back in time only
+  // remove entities that should not be present in the current time step
+  for (auto entity : entitiesToRemove)
+  {
+    _ecm.RequestRemoveEntity(entity);
+  }
+
+  // pause playback if end of log is reached
+  if (_info.simTime >= this->dataPtr->log->EndTime())
+  {
+    ignmsg << "End of log file reached. Time: " <<
+      std::chrono::duration_cast<std::chrono::seconds>(
+      this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
+
+    this->dataPtr->eventManager->Emit<events::Pause>(true);
   }
 }
 
