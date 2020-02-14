@@ -219,7 +219,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
                   !pluginElem->Get<std::string>("path").empty())
               {
                 // If record path came from command line, overwrite SDF <path>
-                if (_config.LogRecordPathFromCmdLine())
+                if (_config.LogIgnoreSdfPath())
                 {
                   overwriteSdf = true;
                 }

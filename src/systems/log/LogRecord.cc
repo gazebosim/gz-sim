@@ -57,9 +57,6 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: bool Start(const std::string &_logPath = std::string(""),
     const std::string &_cmpPath = std::string(""));
 
-  /// \brief Default directory to record to
-  public: static std::string DefaultRecordPath();
-
   /// \brief Append an extension to the end of a directory path.
   /// \param[in] _dir Path of a directory
   /// \param[in] _ext Extension to append, starting with "."
@@ -130,20 +127,6 @@ class ignition::gazebo::systems::LogRecordPrivate
 bool LogRecordPrivate::started{false};
 
 //////////////////////////////////////////////////
-std::string LogRecordPrivate::DefaultRecordPath()
-{
-  std::string home;
-  common::env(IGN_HOMEDIR, home);
-
-  std::string timestamp = common::systemTimeISO();
-
-  std::string path = common::joinPaths(home,
-    ".ignition", "gazebo", "log", timestamp);
-
-  return path;
-}
-
-//////////////////////////////////////////////////
 std::string LogRecordPrivate::AppendExtension(const std::string &_dir,
   const std::string &_ext)
 {
@@ -199,13 +182,7 @@ void LogRecord::Configure(const Entity &_entity,
     //   SDF, initialize to default here.
     if (logPath.empty())
     {
-      ignLogInit(this->dataPtr->DefaultRecordPath(), "server_console.log");
       logPath = ignLogDirectory();
-    }
-    // If path is relative, prepend working directory
-    else if (logPath.compare(common::absPath(logPath)) != 0)
-    {
-      logPath = common::absPath(logPath);
     }
 
     this->dataPtr->Start(logPath, this->dataPtr->cmpPath);

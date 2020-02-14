@@ -44,9 +44,10 @@ namespace systems
   /// at least 4 rotors is required for the controller to function.
   ///
   /// Note that this system only computes the necessary rotor velocities and
-  /// publishes them over a topic. To actually convert these velocities to
-  /// thrust, this system requires the MulticopterMotorModel system on each
-  /// rotor.
+  /// updates the Actuators component on the model entity. To actually convert
+  /// these velocities to thrust, this system requires the MulticopterMotorModel
+  /// system on each rotor. Note also that only one MulticopterVelocityControl
+  /// system is allowed per model.
   ///
   /// This system is inspired by the LeePositionController from RotorS
   /// https://github.com/ethz-asl/rotors_simulator/blob/master/rotors_control/include/rotors_control/lee_position_controller.h
@@ -73,10 +74,6 @@ namespace systems
   ///
   /// commandSubTopic: The system subscribes to this topic to receive twist
   /// commands. The default value is "cmd_vel".
-  ///
-  /// motorControlPubTopic: The system publishes rotor velocities to this topic.
-  /// This topic must match the subscribed topic of a set of
-  /// MulticopterMotorModel systems. The default value is "motor_speed".
   ///
   /// enableSubTopic: Topic to enable or disable the system. If false, the
   /// controller sends a zero rotor velocity command once and gets disabled. If
@@ -182,8 +179,11 @@ namespace systems
     private: void OnEnable(const msgs::Boolean &_msg);
 
     /// \brief Publish provided rotor velocities
+    /// \param[in] _ecm Mutable reference to the EntityComponentManager
     /// \param[in] _vels Rotor velocities to be published
-    private: void PublishRotorVelocities(const Eigen::VectorXd &_vels);
+    private: void PublishRotorVelocities(
+                 ignition::gazebo::EntityComponentManager &_ecm,
+                 const Eigen::VectorXd &_vels);
 
     /// \brief Model interface
     private: Model model{kNullEntity};
@@ -202,12 +202,6 @@ namespace systems
 
     /// \brief Topic for enable commands.
     private: std::string enableSubTopic{"enable"};
-
-    /// \brief Topic for twist commands.
-    private: std::string motorControlPubTopic{"motor_speed"};
-
-    /// \brief Motor control publisher
-    private: transport::Node::Publisher motorControlPub;
 
     /// \brief Ignition communication node.
     private: transport::Node node;

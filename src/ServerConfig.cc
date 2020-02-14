@@ -217,9 +217,8 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
-            logRecordPathFromCmdLine(_cfg->logRecordPathFromCmdLine),
+            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
-            logRecordOverwrite(_cfg->logRecordOverwrite),
             logRecordCompress(_cfg->logRecordCompress),
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
@@ -251,13 +250,10 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
   /// \brief Whether log record path is specified from command line
-  public: bool logRecordPathFromCmdLine{false};
+  public: bool logIgnoreSdfPath{false};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
-
-  /// \brief When recording, overwrite existing log files
-  public: bool logRecordOverwrite{false};
 
   /// \brief When recording, compress final log files
   public: bool logRecordCompress{false};
@@ -432,15 +428,15 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogRecordPathFromCmdLine() const
+bool ServerConfig::LogIgnoreSdfPath() const
 {
-  return this->dataPtr->logRecordPathFromCmdLine;
+  return this->dataPtr->logIgnoreSdfPath;
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetLogRecordPathFromCmdLine(bool _fromCmdLine)
+void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
 {
-  this->dataPtr->logRecordPathFromCmdLine = _fromCmdLine;
+  this->dataPtr->logIgnoreSdfPath = _ignore;
 }
 
 /////////////////////////////////////////////////
@@ -453,18 +449,6 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
-}
-
-/////////////////////////////////////////////////
-bool ServerConfig::LogRecordOverwrite() const
-{
-  return this->dataPtr->logRecordOverwrite;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
-{
-  this->dataPtr->logRecordOverwrite = _overwrite;
 }
 
 /////////////////////////////////////////////////
