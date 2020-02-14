@@ -250,13 +250,16 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
-      /// \brief Get whether record path came from command line
-      /// \return Whether record path came from command line
+      /// \brief Get whether to ignore the path specified in SDF.
+      /// \return Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
       public: bool LogIgnoreSdfPath() const;
 
       /// \brief Set whether to ignore the path specified in SDF. Path in SDF
-      /// is ignored if a record path is specified on command line
+      /// should be ignored if a record path is specified on the command line,
+      /// for example.
       /// \param[in] _ignore Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
       public: void SetLogIgnoreSdfPath(bool _ignore);
 
       /// \brief Get path to recorded states to play back
@@ -266,14 +269,6 @@ namespace ignition
       /// \brief Set path to recorded states to play back
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
-
-      /// \brief Get whether to overwrite existing log files
-      /// \return True if may overwrite.
-      public: bool LogRecordOverwrite() const;
-
-      /// \brief Set whether to overwrite existing log files
-      /// \param[in] _overwrite Value to set
-      public: void SetLogRecordOverwrite(bool _overwrite);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.

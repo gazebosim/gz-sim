@@ -89,6 +89,68 @@ std::string customExecStr(std::string _cmd)
   return result;
 }
 
+/////////////////////////////////////////////////
+// Count the number of entries in a directory, both files and directories
+#ifndef __APPLE__
+int entryCount(const std::string &_directory)
+{
+  if (!common::exists(_directory))
+    return 0;
+
+  auto it = std::filesystem::directory_iterator(_directory);
+  return std::count_if(begin(it), end(it), [](auto &)
+      {
+        return true;
+      });
+}
+
+/////////////////////////////////////////////////
+// Return a list of entries in the directory
+void entryList(const std::string &_directory, std::vector<std::string> &_paths)
+{
+  _paths.clear();
+
+  if (!common::exists(_directory))
+    return;
+
+  for (auto &entry : std::filesystem::directory_iterator(_directory))
+  {
+    _paths.push_back(entry.path().string());
+  }
+}
+
+/////////////////////////////////////////////////
+// Compare between two lists, return items that are different between the lists
+// Side effects: order of elements in _paths1 and _paths2 will be sorted
+void entryDiff(std::vector<std::string> &_paths1,
+  std::vector<std::string> &_paths2, std::vector<std::string> &_diff)
+{
+  _diff.clear();
+
+  std::sort(_paths1.begin(), _paths1.end());
+  std::sort(_paths2.begin(), _paths2.end());
+  std::vector<std::string> pathsUnion;
+  pathsUnion.resize(_paths1.size() + _paths2.size());
+  std::vector<std::string>::iterator unionIt = std::set_union(_paths1.begin(),
+    _paths1.end(), _paths2.begin(), _paths2.end(), pathsUnion.begin());
+  pathsUnion.resize(unionIt - pathsUnion.begin());
+
+  std::vector<std::string> pathsIntersection;
+  pathsIntersection.resize(_paths1.size() + _paths2.size());
+  std::vector<std::string>::iterator intersectionIt = std::set_intersection(
+    _paths1.begin(), _paths1.end(), _paths2.begin(), _paths2.end(),
+    pathsIntersection.begin());
+  pathsIntersection.resize(intersectionIt - pathsIntersection.begin());
+
+  _diff.resize(pathsUnion.size() + pathsIntersection.size());
+  std::vector<std::string>::iterator diffIt =
+    std::set_difference(pathsUnion.begin(), pathsUnion.end(),
+    pathsIntersection.begin(), pathsIntersection.end(), _diff.begin());
+  _diff.resize(diffIt - _diff.begin());
+}
+#endif
+
+/////////////////////////////////////////////////
 class Relay
 {
   public: Relay()
@@ -151,6 +213,7 @@ class LogSystemTest : public ::testing::Test
     common::createDirectories(this->logPlaybackDir);
   }
 
+  // Remove the test logs directory
   public: void RemoveLogsDir()
   {
     common::removeAll(this->logsDir);
@@ -168,26 +231,25 @@ class LogSystemTest : public ::testing::Test
     sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
     while (pluginElt != nullptr)
     {
-      if (pluginElt->HasAttribute("name"))
+      EXPECT_TRUE(pluginElt->HasAttribute("name"));
+
+      // Change log path to build directory
+      if (pluginElt->GetAttribute("name")->GetAsString().find(_pluginName)
+        != std::string::npos)
       {
-        // Change log path to build directory
-        if (pluginElt->GetAttribute("name")->GetAsString().find(_pluginName)
-          != std::string::npos)
+        if (pluginElt->HasElement("path"))
         {
-          if (pluginElt->HasElement("path"))
-          {
-            sdf::ElementPtr pathElt = pluginElt->GetElement("path");
-            pathElt->Set(_logDest);
-          }
-          else
-          {
-            sdf::ElementPtr pathElt = std::make_shared<sdf::Element>();
-            pathElt->SetName("path");
-            pluginElt->AddElementDescription(pathElt);
-            pathElt = pluginElt->GetElement("path");
-            pathElt->AddValue("string", "", false, "");
-            pathElt->Set<std::string>(_logDest);
-          }
+          sdf::ElementPtr pathElt = pluginElt->GetElement("path");
+          pathElt->Set(_logDest);
+        }
+        else
+        {
+          sdf::ElementPtr pathElt = std::make_shared<sdf::Element>();
+          pathElt->SetName("path");
+          pluginElt->AddElementDescription(pathElt);
+          pathElt = pluginElt->GetElement("path");
+          pathElt->AddValue("string", "", false, "");
+          pathElt->Set<std::string>(_logDest);
         }
       }
 
@@ -209,6 +271,7 @@ class LogSystemTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
+// Logging behavior when no paths are specified
 TEST_F(LogSystemTest, LogDefaults)
 {
   // Create temp directory to store log
@@ -219,14 +282,17 @@ TEST_F(LogSystemTest, LogDefaults)
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
-  // No path specified on command line and in SDF, should use default path.
-  {
-    // Change environment variable so that test files isn't written to $HOME
-    std::string homeOrig;
-    common::env(IGN_HOMEDIR, homeOrig);
-    std::string homeFake = common::joinPaths(this->logsDir, "default");
-    EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+  // Change environment variable so that test files aren't written to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
 
+  // Test case 1:
+  // No path specified, on both command line and SDF. This does not go through
+  // ign.cc, so ignLogDirectory() is not initialized (empty string). Recording
+  // should not take place.
+  {
     // Change log path in SDF to empty
     sdf::Root recordSdfRoot;
     this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
@@ -237,27 +303,253 @@ TEST_F(LogSystemTest, LogDefaults)
     recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
     // Set record path to empty
+    recordServerConfig.SetUseLogRecord(true);
+    recordServerConfig.SetLogRecordPath("");
+
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 200, false);
+  }
+
+  // Check ignLogDirectory is empty
+  EXPECT_TRUE(ignLogDirectory().empty());
+
+  // Store number of files before running
+  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+      "log");
+#ifndef __APPLE__
+  int nEntries = entryCount(logPath);
+  std::vector<std::string> entriesBefore;
+  entryList(logPath, entriesBefore);
+#endif
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 2:
+  // No path specified on command line (only --record, no --record-path).
+  // No path specified in SDF.
+  // Run from command line, which should trigger ign.cc, which should initialize
+  // ignLogDirectory() to default timestamp path. Both console and state logs
+  // should be recorded here.
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record " + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+#ifndef __APPLE__
+  // Check the diff of list of files and assume there is a single diff, it
+  // being the newly created log directory from the run above.
+  EXPECT_EQ(nEntries + 1, entryCount(logPath));
+  std::vector<std::string> entriesAfter;
+  entryList(logPath, entriesAfter);
+  std::vector<std::string> entriesDiff;
+  entryDiff(entriesBefore, entriesAfter, entriesDiff);
+  EXPECT_EQ(1ul, entriesDiff.size());
+  // This should be $HOME/.ignition/..., default path
+  std::string timestampPath = entriesDiff[0];
+
+  EXPECT_FALSE(timestampPath.empty());
+  EXPECT_EQ(0, timestampPath.compare(0, logPath.length(), logPath));
+  EXPECT_TRUE(common::exists(timestampPath));
+  EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
+      "server_console.log")));
+  EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
+      "state.tlog")));
+  EXPECT_EQ(2, entryCount(timestampPath));
+#endif
+
+  // Revert environment variable after test is done
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+}
+
+/////////////////////////////////////////////////
+// Logging behavior when a path is specified either via the C++ API, SDF, or
+// the command line.
+TEST_F(LogSystemTest, LogPaths)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_dbl_pendulum.sdf");
+
+  // Test case 1:
+  // A path is specified in SDF.
+  // No path specified in C++ API.
+  // LogIgnoreSdfPath is not set.
+  // Should take SDF path. State log should be stored here. Console log is not
+  // initialized because ign.cc is not triggered.
+  {
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
+
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // Set record path to empty
+    recordServerConfig.SetUseLogRecord(true);
+    recordServerConfig.SetLogRecordPath("");
+
+    // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 200, false);
+  }
+
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+      "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(this->logDir));
+#endif
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Change environment variable so that test files aren't written to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
+  // Store number of files before running
+  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+      "log");
+#ifndef __APPLE__
+  int nEntries = entryCount(logPath);
+  std::vector<std::string> entriesBefore;
+  entryList(logPath, entriesBefore);
+#endif
+
+  // Test case 2:
+  // A path is specified in SDF.
+  // No path specified on command line (therefore LogIgnoreSdfPath is not set).
+  // State log should be stored in SDF path.
+  // Console log should be stored to default timestamp path ignLogDirectory
+  // because ign.cc is triggered by command line.
+  {
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
+
+    // Save changed SDF to temporary file
+    std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
+      "with_record_path.sdf");
+    // TODO(anyone): Does this work on Apple?
+    std::ofstream ofs(tmpRecordSdfPath);
+    ofs << recordSdfRoot.Element()->ToString("").c_str();
+    ofs.close();
+
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record " + kSdfFileOpt + tmpRecordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  // Check state.tlog is stored to path specified in SDF
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+      "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(this->logDir));
+
+  // Check the diff of list of files in directory, and assume there is
+  // a single diff, it being the newly created log directory from the run above.
+  EXPECT_EQ(nEntries + 1, entryCount(logPath));
+  std::vector<std::string> entriesAfter;
+  entryList(logPath, entriesAfter);
+  std::vector<std::string> entriesDiff;
+  entryDiff(entriesBefore, entriesAfter, entriesDiff);
+  EXPECT_EQ(1ul, entriesDiff.size());
+  // This should be $HOME/.ignition/..., default path
+  std::string timestampPath = entriesDiff[0];
+
+  EXPECT_FALSE(timestampPath.empty());
+  EXPECT_EQ(0, timestampPath.compare(0, logPath.length(), logPath));
+  EXPECT_TRUE(common::exists(timestampPath));
+  EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
+      "server_console.log")));
+  EXPECT_EQ(1, entryCount(timestampPath));
+#endif
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 3:
+  // A path is specified in SDF.
+  // A different path is specified via C++ API.
+  // LogIgnoreSdfPath is not set (pure C++ API usage).
+  // Should store state.tlog to SDF path. Console log is not initialized
+  // because ign.cc is not triggered.
+  std::string stateLogPath = this->logDir;
+
+  std::string consoleLogPath = common::joinPaths(this->logsDir, "console");
+  common::createDirectories(consoleLogPath);
+
+  {
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        stateLogPath);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
+
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+
+    // Set record path to empty
+    recordServerConfig.SetUseLogRecord(true);
     recordServerConfig.SetLogRecordPath("");
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 200, false);
 
-    EXPECT_FALSE(ignLogDirectory().empty());
-    // This should be $HOME/.ignition/..., default path set in LogRecord.cc
-    EXPECT_EQ(ignLogDirectory().compare(0, homeFake.length(), homeFake), 0);
-    EXPECT_TRUE(common::exists(ignLogDirectory()));
-
-    // Revert environment variable after test is done
-    EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+    // Terminate server to close tlog file, otherwise we get a temporary
+    // tlog-journal file
   }
 
-  // Different paths specified on cmmand line and in SDF, should use the path
-  //   from command line.
+  EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(stateLogPath));
+  EXPECT_EQ(0, entryCount(consoleLogPath));
+#endif
+  common::removeAll(consoleLogPath);
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 4:
+  // A path is specified in SDF.
+  // A different path is specified via C++ API.
+  // LogIgnoreSdfPath is set (similar to specifying a path on command line).
+  // Should take C++ API path. State log should be stored here. Console log is
+  // not initialized because ign.cc is not triggered.
+  const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
+  const std::string cppPath = common::joinPaths(this->logsDir, "cppPath");
   {
     // Change log path in SDF
     sdf::Root recordSdfRoot;
-    const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
     this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
         sdfPath);
 
@@ -269,18 +561,96 @@ TEST_F(LogSystemTest, LogDefaults)
     recordServerConfig.SetUseLogRecord(true);
 
     // Mock command line arg. Set record path to something different from in SDF
-    const std::string cliPath = common::joinPaths(this->logsDir, "cliPath");
-    recordServerConfig.SetLogRecordPath(cliPath);
+    recordServerConfig.SetLogRecordPath(cppPath);
+    // Set this flag to simulate path being passed in from command line
     recordServerConfig.SetLogIgnoreSdfPath(true);
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 200, false);
 
-    EXPECT_TRUE(common::exists(cliPath));
-    EXPECT_TRUE(common::exists(common::joinPaths(cliPath, "state.tlog")));
-    EXPECT_FALSE(common::exists(sdfPath));
+    // Terminate server to close tlog file, otherwise we get a temporary
+    // tlog-journal file
   }
+
+  EXPECT_TRUE(common::exists(cppPath));
+  EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(cppPath));
+#endif
+  EXPECT_FALSE(common::exists(sdfPath));
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 5:
+  // A path is specified by --record-path on command line.
+  // Both state and console logs should be stored here.
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-path " + this->logDir + " " + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir, "state.tlog")));
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+    "server_console.log")));
+#ifndef __APPLE__
+  EXPECT_EQ(2, entryCount(this->logDir));
+#endif
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+
+  // Test case 6:
+  // A path is specified in SDF.
+  // A path is specified by --record-path on command line.
+  // Path in SDF should be ignored. Both state and console logs should be
+  // stored to --record-path path.
+  std::string cliPath = common::joinPaths(this->logDir, "cli");
+  {
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
+
+    // Save changed SDF to temporary file
+    std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
+      "with_record_path.sdf");
+    // TODO(anyone): Does this work on Apple?
+    std::ofstream ofs(tmpRecordSdfPath);
+    ofs << recordSdfRoot.Element()->ToString("").c_str();
+    ofs.close();
+
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-path " + cliPath + " " + kSdfFileOpt + tmpRecordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  EXPECT_TRUE(common::exists(common::joinPaths(cliPath, "state.tlog")));
+  EXPECT_TRUE(common::exists(common::joinPaths(cliPath,
+    "server_console.log")));
+#ifndef __APPLE__
+  EXPECT_EQ(2, entryCount(cliPath));
+#endif
+
+  // Revert environment variable after test is done
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+
+  this->RemoveLogsDir();
 }
 
 /////////////////////////////////////////////////
@@ -608,6 +978,10 @@ TEST_F(LogSystemTest, LogOverwrite)
 {
   // Create temp directory to store log
   this->CreateLogsDir();
+#ifndef __APPLE__
+  EXPECT_EQ(1, entryCount(this->logsDir));
+  EXPECT_EQ(0, entryCount(this->logDir));
+#endif
 
   // World with moving entities
   const auto recordSdfPath = common::joinPaths(
@@ -615,8 +989,9 @@ TEST_F(LogSystemTest, LogOverwrite)
     "log_record_dbl_pendulum.sdf");
 
   ignLogInit(this->logDir, "server_console.log");
+  EXPECT_EQ(this->logDir, ignLogDirectory());
 
-  // First recording, to create some files
+  // Record something to create some files
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -630,27 +1005,32 @@ TEST_F(LogSystemTest, LogOverwrite)
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 100, false);
+
+    // Terminate server to close tlog file, otherwise we get a temporary
+    // tlog-journal file
   }
 
-  // Test path exists
-  const std::string firstRecordPath = ignLogDirectory();
-  EXPECT_TRUE(common::exists(firstRecordPath));
-  // Test recorded file exists. (Server console log is elsewhere, in default
-  // timestamped dir.)
+  // Test files exist
   const std::string tlogPath = common::joinPaths(this->logDir, "state.tlog");
   EXPECT_TRUE(common::exists(tlogPath));
 
+  auto logPath = common::joinPaths(this->logDir, "server_console.log");
+  EXPECT_TRUE(common::exists(logPath));
+
 #ifndef __APPLE__
+  // Log files were created
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
   std::filesystem::path tlogStdPath = tlogPath;
   auto tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
-  // Path exists, no overwrite flag, should overwrite by default behavior in
-  //   LogRecord.cc
+  // Test case 1:
+  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
+  // default behavior whenever the specified path already exists.
+  // Path is set by SDF.
   {
-    // Remove file recorded from first run
-    EXPECT_TRUE(common::removeFile(common::joinPaths(this->logDir,
-        "state.tlog")));
+    EXPECT_TRUE(common::exists(this->logDir));
 
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -664,86 +1044,121 @@ TEST_F(LogSystemTest, LogOverwrite)
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 100, false);
-
-    // Test record path is same as the first
-    EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
-    EXPECT_TRUE(common::exists(tlogPath));
-
-#ifndef __APPLE__
-    // Test timestamp is newer
-    EXPECT_TRUE(std::filesystem::last_write_time(tlogStdPath) > tlogPrevTime);
-    // Update timestamp for next test
-    tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
-#endif
   }
 
-  // Path exists, set C++ API overwrite flag
+  // Log files still exist
+  EXPECT_TRUE(common::exists(tlogPath));
+  EXPECT_TRUE(common::exists(logPath));
+
+#ifndef __APPLE__
+  // No new files were created
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
+
+  // Test timestamp is newer
+  EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
+  // Update timestamp for next test
+  tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+#endif
+
+  // Test case 2:
+  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
+  // default behavior whenever the specified path already exists.
+  // Path is set by C++ API.
   {
-    // Remove file recorded from previous run
-    EXPECT_TRUE(common::removeFile(common::joinPaths(this->logDir,
-        "state.tlog")));
-
-    // Change log path in SDF to build directory
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        this->logDir);
-
-    // Pass changed SDF to server
+    // Pass SDF file to server
     ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-
-    // Set overwrite flag
-    recordServerConfig.SetLogRecordOverwrite(true);
+    recordServerConfig.SetSdfFile(recordSdfPath);
+    recordServerConfig.SetUseLogRecord(true);
+    recordServerConfig.SetLogRecordPath(this->logDir);
+    recordServerConfig.SetLogIgnoreSdfPath(true);
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
     recordServer.Run(true, 100, false);
-
-    // Test record path is same as the first
-    EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
-    EXPECT_TRUE(common::exists(tlogPath));
-
-#ifndef __APPLE__
-    // Test timestamp is newer
-    EXPECT_TRUE(std::filesystem::last_write_time(tlogStdPath) > tlogPrevTime);
-    // Update timestamp for next test
-    tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
-#endif
   }
 
+  // Log files still exist
+  EXPECT_TRUE(common::exists(tlogPath));
+  EXPECT_TRUE(common::exists(logPath));
+
+#ifndef __APPLE__
+  // No new files were created
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
+
+  // Test timestamp is newer
+  EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
+  // Update timestamp for next test
+  tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+#endif
+
+  // Test case 3:
   // Path exists, command line --log-overwrite, should overwrite by
-  //   command-line logic in ign.cc
+  // command-line logic in ign.cc
   {
-    // Remove file recorded from previous run
-    EXPECT_TRUE(common::removeFile(common::joinPaths(this->logDir,
-        "state.tlog")));
-
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-overwrite "
-      + "--record-path " + this->logDir + kSdfFileOpt + recordSdfPath;
+      + "--record-path " + this->logDir + " " + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
     // Run
     std::string output = customExecStr(cmd);
     std::cout << output << std::endl;
+  }
 
-    // Test record path is same as the first
-    EXPECT_EQ(ignLogDirectory().compare(firstRecordPath), 0);
-    EXPECT_TRUE(common::exists(tlogPath));
+  // Log files still exist
+  EXPECT_TRUE(common::exists(tlogPath));
+  EXPECT_TRUE(common::exists(logPath));
 
 #ifndef __APPLE__
-    // Test timestamp is newer
-    EXPECT_TRUE(std::filesystem::last_write_time(tlogStdPath) > tlogPrevTime);
-    // Update timestamp for next test
-    tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
+  // No new files were created
+  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
+
+  // Test timestamp is newer
+  EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
+  // Update timestamp for next test
+  tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 #endif
 
-    // Server console log should have been re-initialized in ign.cc to
-    // command-line path
-    EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
-        "server_console.log")));
+  // Test case 4:
+  // Path exists, no --log-overwrite, should create new files by command-line
+  // logic in ign.cc
+  {
+    // Command line triggers ign.cc, which handles creating a unique path if
+    // file already exists, so as to not overwrite
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-path " + this->logDir + " " + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
   }
+
+  // Old log files still exist
+  EXPECT_TRUE(common::exists(this->logDir));
+  EXPECT_TRUE(common::exists(tlogPath));
+  EXPECT_TRUE(common::exists(logPath));
+
+  // New log files were created
+  EXPECT_TRUE(common::exists(this->logDir + "(1)"));
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir + "(1)",
+      "state.tlog")));
+  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir + "(1)",
+      "server_console.log")));
+
+#ifndef __APPLE__
+  // New files were created
+  EXPECT_EQ(3, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logDir));
+  EXPECT_EQ(2, entryCount(this->logDir + "(1)"));
+
+  // Old timestamp is same
+  EXPECT_EQ(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
+#endif
 
   this->RemoveLogsDir();
 }

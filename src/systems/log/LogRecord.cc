@@ -54,9 +54,6 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \return True if any recorder has been started successfully.
   public: bool Start(const std::string &_logPath = std::string(""));
 
-  /// \brief Default directory to record to
-  public: static std::string DefaultRecordPath();
-
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
   /// in the future.
@@ -103,20 +100,6 @@ class ignition::gazebo::systems::LogRecordPrivate
 bool LogRecordPrivate::started{false};
 
 //////////////////////////////////////////////////
-std::string LogRecordPrivate::DefaultRecordPath()
-{
-  std::string home;
-  common::env(IGN_HOMEDIR, home);
-
-  std::string timestamp = common::systemTimeISO();
-
-  std::string path = common::joinPaths(home,
-    ".ignition", "gazebo", "log", timestamp);
-
-  return path;
-}
-
-//////////////////////////////////////////////////
 LogRecord::LogRecord()
   : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
@@ -153,7 +136,6 @@ void LogRecord::Configure(const Entity &_entity,
     //   SDF, initialize to default here.
     if (logPath.empty())
     {
-      ignLogInit(this->dataPtr->DefaultRecordPath(), "server_console.log");
       logPath = ignLogDirectory();
     }
 
