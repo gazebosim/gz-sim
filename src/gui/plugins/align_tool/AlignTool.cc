@@ -36,6 +36,14 @@ namespace ignition::gazebo
 
     /// \brief Align Tool service name
     public: std::string service;
+
+    public: AlignAxis axis{AlignAxis::ALIGN_X};
+
+    public: AlignConfig config{AlignConfig::ALIGN_MIN};
+
+    public: AlignTarget target{AlignTarget::FIRST};
+
+    public: bool reverse{false};
   };
 }
 
@@ -62,21 +70,88 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void AlignTool::OnAngleMode(int _x, int _y, int _z)
+void AlignTool::OnAlignAxis(const QString &_axis)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::string newAxis = _axis.toStdString();  
+  ignwarn << "Received " << newAxis << "\n";
+
+  if (newAxis == "X")
   {
-    if (!_result)
-      ignerr << "Error setting align tool mode" << std::endl;
-  };
+    this->dataPtr->axis = AlignAxis::ALIGN_X;
+  }
+  else if (newAxis == "Y")
+  {
+    this->dataPtr->axis = AlignAxis::ALIGN_Y;
+  }
+  else if (newAxis == "Z")
+  {
+    this->dataPtr->axis = AlignAxis::ALIGN_Z;
+  }
+  else
+  {
+    ignwarn << "Invalid align axis string: " << newAxis << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - X\n";
+    ignwarn << " - Y\n";
+    ignwarn << " - Z\n";
+  }
+}
 
-  ignition::msgs::Vector3d req;
-  req.set_x(_x);
-  req.set_y(_y);
-  req.set_z(_z);
+void AlignTool::OnAlignTarget(const QString &_target)
+{
+  std::string newTarget = _target.toStdString();
+  ignwarn << "Received " << newTarget << "\n";
 
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  if (newTarget == "first")
+  {
+    this->dataPtr->target = AlignTarget::FIRST;
+  }
+  else if (newTarget == "last")
+  {
+    this->dataPtr->target = AlignTarget::LAST;
+  }
+  else
+  {
+    ignwarn << "Invalid align target string: " << newTarget << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - first\n";
+    ignwarn << " - last\n"; 
+  }
+}
+
+void AlignTool::OnReverse(bool _reverse)
+{
+  ignwarn << "Received " << _reverse << "\n";
+
+  this->dataPtr->reverse = _reverse;
+}
+
+void AlignTool::OnAlignConfig(const QString &_config)
+{
+  std::string newConfig = _config.toStdString();
+
+  ignwarn << "Received " << newConfig << "\n";
+
+  if (newConfig == "min")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MIN;
+  }
+  else if (newConfig == "center")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_CENTER;
+  }
+  else if (newConfig == "max")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MAX;
+  }
+  else
+  {
+    ignwarn << "Invalid align config string: " << newConfig << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - min\n"; 
+    ignwarn << " - center\n"; 
+    ignwarn << " - max\n"; 
+  }
 }
 
 // Register this plugin

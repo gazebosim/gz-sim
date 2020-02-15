@@ -26,6 +26,26 @@ namespace ignition
 {
 namespace gazebo
 {
+  enum class AlignAxis
+  {
+    ALIGN_X,
+    ALIGN_Y,
+    ALIGN_Z
+  };
+
+  enum class AlignConfig
+  {
+    ALIGN_MIN,
+    ALIGN_CENTER,
+    ALIGN_MAX
+  };
+
+  enum class AlignTarget
+  {
+    FIRST,
+    LAST
+  };
+
   class AlignToolPrivate;
 
   /// \brief Provides buttons for the align tool
@@ -45,14 +65,13 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief Callback in Qt thread when angle mode changes.
-    /// \param[in] _x The x component of the directional vector for the camera
-    /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
-    /// \param[in] _y The y component of the directional vector for the camera
-    /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
-    /// \param[in] _z The z component of the directional vector for the camera
-    /// to assume.  All 0s for x, y, and z indicate the initial camera pose.
-    public slots: void OnAngleMode(int _x, int _y, int _z);
+    public slots: void OnAlignAxis(const QString &_mode);
+
+    public slots: void OnAlignTarget(const QString &_target);
+
+    public slots: void OnReverse(bool _reverse);
+
+    public slots: void OnAlignConfig(const QString &_config);
 
     /// \internal
     /// \brief Pointer to private data.

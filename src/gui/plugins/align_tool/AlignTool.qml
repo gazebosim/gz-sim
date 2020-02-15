@@ -23,7 +23,7 @@ import QtQuick.Controls.Styles 1.4
 
 ToolBar {
   Layout.minimumWidth: 200
-  Layout.minimumHeight: 350
+  Layout.minimumHeight: 370
 
   background: Rectangle {
     color: "transparent"
@@ -34,12 +34,16 @@ ToolBar {
   }
 
   GridLayout {
+    anchors.fill: parent
     columns: 4
-    x: 35
-    y: 10
+    columnSpacing: 5
     Text {
       text: "X:"
       font.weight: Font.Bold
+      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+      Layout.leftMargin: 25
+      Layout.topMargin: 15
+      font.pointSize: 14
     }
     ToolButton {
       id: x_min
@@ -48,16 +52,19 @@ ToolBar {
       ToolTip.text: "View from the top"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.topMargin: 15
+      Layout.leftMargin: 10
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "x_min.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, 0, -1)
+        AlignTool.OnAlignAxis("X")
+        AlignTool.OnAlignConfig("min")
       }
     }
     ToolButton {
@@ -67,16 +74,18 @@ ToolBar {
       ToolTip.text: "Reset View Angle"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.topMargin: 15
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "x_center.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, 0, 0)
+        AlignTool.OnAlignAxis("X")
+        AlignTool.OnAlignConfig("center")
       }
     }
     ToolButton {
@@ -86,21 +95,26 @@ ToolBar {
       ToolTip.text: "View from the left"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.topMargin: 15
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "x_max.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, 1, 0)
+        AlignTool.OnAlignAxis("X")
+        AlignTool.OnAlignConfig("max")
       }
     }
     Text {
       text: "Y:"
       font.weight: Font.Bold
+      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+      Layout.leftMargin: 25
+      font.pointSize: 14
     }
     ToolButton {
       id: y_min
@@ -109,16 +123,18 @@ ToolBar {
       ToolTip.text: "View from the front"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.leftMargin: 10
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "y_min.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(-1, 0, 0)
+        AlignTool.OnAlignAxis("Y")
+        AlignTool.OnAlignConfig("min")
       }
     }
     ToolButton {
@@ -133,11 +149,12 @@ ToolBar {
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "y_center.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, -1, 0)
+        AlignTool.OnAlignAxis("Y")
+        AlignTool.OnAlignConfig("center")
       }
     }
     ToolButton {
@@ -152,16 +169,20 @@ ToolBar {
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "y_max.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(1, 0, 0)
+        AlignTool.OnAlignAxis("Y")
+        AlignTool.OnAlignConfig("max")
       }
     }
     Text {
       text: "Z:"
       font.weight: Font.Bold
+      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+      Layout.leftMargin: 25
+      font.pointSize: 14
     }
     ToolButton {
       id: z_min
@@ -170,16 +191,18 @@ ToolBar {
       ToolTip.text: "View from the bottom"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.leftMargin: 10
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "z_min.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, 0, 1)
+        AlignTool.OnAlignAxis("Z")
+        AlignTool.OnAlignConfig("min")
       }
     }
     ToolButton {
@@ -194,11 +217,12 @@ ToolBar {
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "z_center.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, 0, 1)
+        AlignTool.OnAlignAxis("Z")
+        AlignTool.OnAlignConfig("center")
       }
     }
     ToolButton {
@@ -213,29 +237,52 @@ ToolBar {
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "z_max.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 28;
+        sourceSize.height: 28;
       }
       onClicked: {
-        ViewAngle.OnAngleMode(0, 0, 1)
+        AlignTool.OnAlignAxis("Z")
+        AlignTool.OnAlignConfig("max")
       }
     }
     CheckBox {
       text: qsTr("Reverse")
       Layout.columnSpan: 4
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+      Layout.leftMargin: 10
+      checked: false
+      onClicked: {
+        AlignTool.OnReverse(checked)
+      }
     }
-    ComboBox {
-      width: 400
+    RowLayout {
       Layout.columnSpan: 4
-      model: ["Relative to First","Relative to Last"]
-      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+      spacing: 10
+      Text {
+        text: "Relative to:"
+        font.weight: Font.Bold
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+        Layout.leftMargin: 15
+        Layout.bottomMargin: 5
+      }
+      ComboBox {
+        currentIndex: 0
+        width: 1
+        Layout.leftMargin: 10
+        Layout.bottomMargin: 5
+        model: ListModel {
+          id: relativeAlignList
+          ListElement { text: "First" }
+          ListElement { text: "Last" }
+        } 
+        onCurrentIndexChanged: print(relativeAlignList.get(currentIndex).text)
+      }
     }
     Text {
       Layout.columnSpan: 4
       text: "Remember to Pause"
       font.weight: Font.Bold
-      Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
+      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
     }
   }
 }
