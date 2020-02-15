@@ -150,6 +150,7 @@
     </include>
 
     <actor name="actor_talking">
+      <pose>-2 -2 1.0 0 0 0</pose>
       <skin>
         <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_a.dae</filename>
         <scale>1.0</scale>
@@ -165,11 +166,11 @@
         <trajectory id="0" type="walk">
           <waypoint>
             <time>0</time>
-            <pose>-2 -2 1.0 0 0 0</pose>
+            <pose>0 0 0 0 0 0</pose>
           </waypoint>
           <waypoint>
             <time>3</time>
-            <pose>-2 -2 1.0 0 0 0</pose>
+            <pose>0 0 0 0 0 0</pose>
           </waypoint>
         </trajectory>
       </script>
