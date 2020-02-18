@@ -73,17 +73,18 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 void AlignTool::OnAlignAxis(const QString &_axis)
 {
   std::string newAxis = _axis.toStdString();  
+  std::transform(newAxis.begin(), newAxis.end(), newAxis.begin(), ::tolower);
   ignwarn << "Received " << newAxis << "\n";
 
-  if (newAxis == "X")
+  if (newAxis == "x")
   {
     this->dataPtr->axis = AlignAxis::ALIGN_X;
   }
-  else if (newAxis == "Y")
+  else if (newAxis == "y")
   {
     this->dataPtr->axis = AlignAxis::ALIGN_Y;
   }
-  else if (newAxis == "Z")
+  else if (newAxis == "z")
   {
     this->dataPtr->axis = AlignAxis::ALIGN_Z;
   }
@@ -100,6 +101,8 @@ void AlignTool::OnAlignAxis(const QString &_axis)
 void AlignTool::OnAlignTarget(const QString &_target)
 {
   std::string newTarget = _target.toStdString();
+  std::transform(newTarget.begin(), newTarget.end(), newTarget.begin(), ::tolower);
+
   ignwarn << "Received " << newTarget << "\n";
 
   if (newTarget == "first")
@@ -129,6 +132,7 @@ void AlignTool::OnReverse(bool _reverse)
 void AlignTool::OnAlignConfig(const QString &_config)
 {
   std::string newConfig = _config.toStdString();
+  std::transform(newConfig.begin(), newConfig.end(), newConfig.begin(), ::tolower);
 
   ignwarn << "Received " << newConfig << "\n";
 

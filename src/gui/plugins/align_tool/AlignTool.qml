@@ -275,7 +275,7 @@ ToolBar {
           ListElement { text: "First" }
           ListElement { text: "Last" }
         } 
-        onCurrentIndexChanged: print(relativeAlignList.get(currentIndex).text)
+        onCurrentIndexChanged: AlignTool.OnAlignTarget(relativeAlignList.get(currentIndex).text)
       }
     }
     Text {
