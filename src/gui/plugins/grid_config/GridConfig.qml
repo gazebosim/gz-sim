@@ -62,7 +62,7 @@ Rectangle {
           maximumValue: 1000
           minimumValue: 0
           value: 0
-          onEditingFinished: GridConfig.UpdateVerCellCount(verticalCellCount.value)
+          onEditingFinished: GridConfig.UpdateVCellCount(verticalCellCount.value)
         }
       }
 
@@ -79,7 +79,7 @@ Rectangle {
           maximumValue: 1000
           minimumValue: 1
           value: 20
-          onEditingFinished: GridConfig.UpdateHonCellCount(horizontalCellCount.value)
+          onEditingFinished: GridConfig.UpdateHCellCount(horizontalCellCount.value)
         }
       }
     }
