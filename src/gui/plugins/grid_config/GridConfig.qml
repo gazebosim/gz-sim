@@ -59,6 +59,7 @@ Rectangle {
 
         IgnSpinBox {
           id: verticalCellCount
+          maximumValue: 1000
           minimumValue: 0
           value: 0
           onEditingFinished: GridConfig.UpdateVerCellCount(verticalCellCount.value)
@@ -75,6 +76,7 @@ Rectangle {
 
         IgnSpinBox {
           id: horizontalCellCount
+          maximumValue: 1000
           minimumValue: 1
           value: 20
           onEditingFinished: GridConfig.UpdateHonCellCount(horizontalCellCount.value)
@@ -94,6 +96,7 @@ Rectangle {
 
         IgnSpinBox {
           id: cellLength
+          maximumValue: 1000.00
           minimumValue: 0.01
           value: 1.00
           decimals: 2
@@ -123,6 +126,7 @@ Rectangle {
         IgnSpinBox {
           id: x
           value: 0.00
+          maximumValue: 1000.00
           minimumValue: -1000.00
           decimals: 2
           stepSize: 0.01
@@ -137,6 +141,7 @@ Rectangle {
         IgnSpinBox {
           id: y
           value: 0.00
+          maximumValue: 1000.00
           minimumValue: -1000.00
           decimals: 2
           stepSize: 0.01
@@ -151,6 +156,7 @@ Rectangle {
         IgnSpinBox {
           id: z
           value: 0.00
+          maximumValue: 1000.00
           minimumValue: -1000.00
           decimals: 2
           stepSize: 0.01
@@ -174,7 +180,8 @@ Rectangle {
 
         IgnSpinBox {
           id: roll
-          minimumValue: -1000.00
+          maximumValue: 6.28
+          minimumValue: 0.00
           value: 0.00
           decimals: 2
           stepSize: 0.01
@@ -188,7 +195,8 @@ Rectangle {
 
         IgnSpinBox {
           id: pitch
-          minimumValue: -1000.00
+          maximumValue: 6.28
+          minimumValue: 0.00
           value: 0.00
           decimals: 2
           stepSize: 0.01
@@ -202,7 +210,8 @@ Rectangle {
 
         IgnSpinBox {
           id: yaw
-          minimumValue: -1000.00
+          maximumValue: 6.28
+          minimumValue: 0.00
           value: 0.00
           decimals: 2
           stepSize: 0.01
@@ -229,8 +238,8 @@ Rectangle {
 
         IgnSpinBox {
           id: r
-          minimumValue: 0.00
           maximumValue: 1.00
+          minimumValue: 0.00
           value: 0.7
           stepSize: 0.01
           decimals: 2
@@ -244,8 +253,8 @@ Rectangle {
 
         IgnSpinBox {
           id: g
-          minimumValue: 0.00
           maximumValue: 1.00
+          minimumValue: 0.00
           value: 0.7
           stepSize: 0.01
           decimals: 2
@@ -262,8 +271,8 @@ Rectangle {
 
         IgnSpinBox {
           id: b
-          minimumValue: 0.00
           maximumValue: 1.00
+          minimumValue: 0.00
           value: 0.7
           stepSize: 0.01
           decimals: 2
@@ -276,8 +285,8 @@ Rectangle {
 
         IgnSpinBox {
           id: a
-          minimumValue: 0.00
           maximumValue: 1.00
+          minimumValue: 0.00
           value: 1.0
           stepSize: 0.01
           decimals: 2

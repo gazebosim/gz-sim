@@ -31,10 +31,10 @@ namespace ignition::gazebo
   struct GridParam
   {
     /// \brief Default horizontal cell count
-    int honCellCount{20};
+    int hCellCount{20};
 
     /// \brief Default vertical cell count
-    int verCellCount{0};
+    int vCellCount{0};
 
     /// \brief Default cell length
     double cellLength{1.0};
@@ -115,9 +115,9 @@ void GridConfig::UpdateGrid()
     return;
 
   this->dataPtr->grid->SetVerticalCellCount(
-    this->dataPtr->gridParam.verCellCount);
+    this->dataPtr->gridParam.vCellCount);
   this->dataPtr->grid->SetCellCount(
-    this->dataPtr->gridParam.honCellCount);
+    this->dataPtr->gridParam.hCellCount);
   this->dataPtr->grid->SetCellLength(
     this->dataPtr->gridParam.cellLength);
 
@@ -219,9 +219,9 @@ void GridConfig::LoadGrid()
   }
 
   this->dataPtr->grid->SetCellCount(
-    this->dataPtr->gridParam.honCellCount);
+    this->dataPtr->gridParam.hCellCount);
   this->dataPtr->grid->SetVerticalCellCount(
-    this->dataPtr->gridParam.verCellCount);
+    this->dataPtr->gridParam.vCellCount);
   this->dataPtr->grid->SetCellLength(
     this->dataPtr->gridParam.cellLength);
 
@@ -238,29 +238,30 @@ void GridConfig::LoadGrid()
 }
 
 /////////////////////////////////////////////////
-void GridConfig::UpdateVerCellCount(int _c)
+void GridConfig::UpdateVCellCount(int _cellCount)
 {
-  this->dataPtr->gridParam.verCellCount = _c;
+  this->dataPtr->gridParam.vCellCount = _cellCount;
   this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
-void GridConfig::UpdateHonCellCount(int _c)
+void GridConfig::UpdateHCellCount(int _cellCount)
 {
-  this->dataPtr->gridParam.honCellCount = _c;
+  this->dataPtr->gridParam.hCellCount = _cellCount;
   this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
-void GridConfig::UpdateCellLength(double _l)
+void GridConfig::UpdateCellLength(double _length)
 {
-  this->dataPtr->gridParam.cellLength = _l;
+  this->dataPtr->gridParam.cellLength = _length;
   this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
-void GridConfig::SetPose(double _x,
-  double _y, double _z, double _roll, double _pitch, double _yaw)
+void GridConfig::SetPose(
+  double _x, double _y, double _z,
+  double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->gridParam.pose = math::Pose3d(_x, _y, _z, _roll, _pitch, _yaw);
   this->dataPtr->dirty = true;
