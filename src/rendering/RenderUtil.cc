@@ -961,6 +961,7 @@ Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   if (!_node)
@@ -1016,8 +1017,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
-    auto child = _node->ChildByIndex(n);
-    this->HighlightNode(child);
+    this->HighlightNode(_node->ChildByIndex(n));
   }
 
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -1066,8 +1066,7 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
-    auto child = _node->ChildByIndex(n);
-    this->LowlightNode(child);
+    this->LowlightNode(_node->ChildByIndex(n));
   }
 
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -1084,6 +1083,11 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
       visMat->SetEmissive(visEmissive->second);
       vis->SetMaterial(visMat);
     }
+    else
+    {
+      ignerr << "Failed to find original material for visual [" << vis->Name()
+             << "]" << std::endl;
+    }
   }
 
   for (auto g = 0u; g < vis->GeometryCount(); ++g)
@@ -1093,13 +1097,21 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     // Geometry material
     auto geomMat = geom->Material();
     if (nullptr == geomMat)
+    {
+      ignerr << "Geometry missing material during lowlight." << std::endl;
       continue;
+    }
 
     auto geomEmissive = this->originalEmissive.find(geom->Name());
     if (geomEmissive != this->originalEmissive.end())
     {
       geomMat->SetEmissive(geomEmissive->second);
       geom->SetMaterial(geomMat);
+    }
+    else
+    {
+      ignerr << "Failed to find original material for geometry ["
+             << geom->Name() << "]" << std::endl;
     }
   }
 }

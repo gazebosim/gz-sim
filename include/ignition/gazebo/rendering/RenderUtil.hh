@@ -116,12 +116,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
+    /// \TODO(anyone) Make const ref when merging forward
+    // NOLINTNEXTLINE(performance-unnecessary-value-param)
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
-    /// \brief
-    /// \param[in]
-    /// \return
-    public: Entity EntityFromNode(const rendering::NodePtr& _node);
+    /// \brief Get the entity for a given node.
+    /// \param[in] _node Node to get the entity for.
+    /// \return The entity for that node, or `kNullEntity` for no entity.
+    public: Entity EntityFromNode(const rendering::NodePtr &_node);
 
     /// \brief Get the entity being selected. This will only return the
     /// last entity selected.
