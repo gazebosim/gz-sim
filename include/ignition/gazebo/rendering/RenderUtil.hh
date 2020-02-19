@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -27,7 +28,6 @@
 #include <ignition/gazebo/System.hh>
 
 #include "ignition/gazebo/rendering/SceneManager.hh"
-#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 
 namespace ignition
@@ -114,17 +114,26 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();
 
-    /// \brief Get the marker manager
-    /// Returns reference to the marker manager.
-    public: class MarkerManager &MarkerManager();
-
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
-    /// \brief Get the entity being selected
-    /// \return Node representing the selected entity
+    /// \brief
+    /// \param[in]
+    /// \return
+    public: Entity EntityFromNode(const rendering::NodePtr& _node);
+
+    /// \brief Get the entity being selected. This will only return the
+    /// last entity selected.
+    /// \TODO(anyone) Deprecate in favour of SelectedEntities
     public: rendering::NodePtr SelectedEntity() const;
+
+    /// \brief Get the entities currently selected, in order of selection.
+    /// \return Map of currently selected entities, entity to rendering node id
+    public: std::vector<Entity> SelectedEntities() const;
+
+    /// \brief Clears the set of selected entities and lowlights all of them.
+    public: void DeselectAllEntities();
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.
