@@ -17,6 +17,7 @@
 
 
 #include <map>
+#include <variant>
 
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -143,6 +144,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
+  modelVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   modelVis->SetLocalPose(_model.RawPose());
   this->dataPtr->visuals[_id] = modelVis;
 
@@ -224,6 +226,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
+  visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   visualVis->SetLocalPose(_visual.RawPose());
 
   math::Vector3d scale = math::Vector3d::One;
@@ -240,6 +243,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     if (localPose != math::Pose3d::Zero)
     {
       geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
+      geomVis->SetUserData("gazebo-entity", static_cast<int>(_id));
       geomVis->SetLocalPose(_visual.RawPose() * localPose);
       visualVis = geomVis;
     }
@@ -537,6 +541,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
+  actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
   actorVisual->SetLocalPose(_actor.RawPose());
   actorVisual->AddGeometry(actorMesh);
 
