@@ -99,7 +99,7 @@ are handled for you. The downside of a binary install is that you won't be able 
 the code. See [Source Install](#markdown-header-source-install) for information on
 installing Ignition Gazebo from source.
 
-**Ubuntu Bionic**
+**Ubuntu Bionic (version 2)**
 
 1. Configure package repositories.
 
@@ -125,7 +125,7 @@ installing Ignition Gazebo from source.
     sudo apt-get install libignition-gazebo2-dev
     ```
 
-## Source Install
+## Source Install (version 3)
 
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
@@ -162,7 +162,7 @@ for dependency installation instructions for each supported operating system.
     ```
 
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering2-dev libignition-tools-dev libignition-transport7-dev libignition-gui2-dev libignition-msgs4-dev libsdformat8-dev
+    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libignition-gui3-dev libignition-msgs5-dev libsdformat9-dev
     ```
 
 ### Building from source
@@ -206,6 +206,30 @@ For help, and command line options use:
 ```
 ign gazebo -h
 ```
+## Known issue of command line tools
+
+In the event that the installation is a mix of Debian and from source, command
+line tools from `ign-tools` may not work correctly.
+A workaround for a single package is to define the environment variable
+`IGN_CONFIG_PATH` to point to the location of the Ignition library installation,
+where the YAML file for the package is found, such as
+```
+export IGN_CONFIG_PATH=/usr/local/share/ignition
+```
+However, that environment variable only takes a single path, which means if the
+installations from source are in different locations, only one can be specified.
+Another workaround for working with multiple Ignition libraries on the command
+line is using symbolic links to each library's YAML file.
+```
+mkdir ~/.ignition/tools/configs -p
+cd ~/.ignition/tools/configs/
+ln -s /usr/local/share/ignition/fuel4.yaml .
+ln -s /usr/local/share/ignition/transport7.yaml .
+ln -s /usr/local/share/ignition/transportlog7.yaml .
+...
+export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
+```
+This issue is tracked [here](https://bitbucket.org/ignitionrobotics/ign-tools/issues/8/too-strict-looking-for-config-paths).
 
 # Documentation
 
