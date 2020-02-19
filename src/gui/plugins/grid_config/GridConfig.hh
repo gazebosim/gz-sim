@@ -50,22 +50,25 @@ namespace gazebo
     public: void LoadGrid();
 
     /// \brief Callback to update vertical cell count
-    /// \param[in] _c new vertical cell count
-    public slots: void UpdateVerCellCount(int _c);
+    /// \param[in] _cellCount new vertical cell count
+    public slots: void UpdateVCellCount(int _cellCount);
 
     /// \brief Callback to update horizontal cell count
-    /// \param[in] _c new horizontal cell count
-    public slots: void UpdateHonCellCount(int _c);
+    /// \param[in] _cellCount new horizontal cell count
+    public slots: void UpdateHCellCount(int _cellCount);
 
     /// \brief Callback to update cell length
-    /// \param[in] _l new cell length
-    public slots: void UpdateCellLength(double _l);
+    /// \param[in] _length new cell length
+    public slots: void UpdateCellLength(double _length);
 
     /// \brief Callback to update grid pose
+    /// \param[in] _x, _y, _z cartesion coordinates
+    /// \param[in] _roll, _pitch, _yaw principal coordinates
     public slots: void SetPose(double _x, double _y, double _z,
-                         double _roll, double _pitch, double _yaw);
+                               double _roll, double _pitch, double _yaw);
 
     /// \brief Callback to update grid color
+    /// \param[in] _r, _g, _b, _a three channel RGB color model with fourth alpha channel
     public slots: void SetColor(double _r, double _g, double _b, double _a);
 
     /// \brief Callback when checkbox is clicked.
