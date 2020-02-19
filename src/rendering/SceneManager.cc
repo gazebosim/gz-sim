@@ -25,11 +25,7 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
-#include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/Skeleton.hh>
-#include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
 
 #include <ignition/rendering/Geometry.hh>
@@ -43,7 +39,6 @@
 
 using namespace ignition;
 using namespace gazebo;
-using namespace std::chrono_literals;
 
 /// \brief Private data class.
 class ignition::gazebo::SceneManagerPrivate
@@ -58,16 +53,6 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
   public: std::map<Entity, rendering::VisualPtr> visuals;
-
-  /// \brief Map of actor entity in Gazebo to actor pointers.
-  public: std::map<Entity, rendering::MeshPtr> actors;
-
-  /// \brief Map of actor entity in Gazebo to actor animations.
-  public: std::map<Entity, common::SkeletonPtr> actorSkeletons;
-
-  /// \brief Map of actor entity to the associated trajectories.
-  public: std::map<Entity, std::vector<common::TrajectoryInfo>>
-                    actorTrajectories;
 
   /// \brief Map of light entity in Gazebo to light pointers.
   public: std::map<Entity, rendering::LightPtr> lights;
@@ -143,7 +128,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
-  modelVis->SetLocalPose(_model.RawPose());
+  modelVis->SetLocalPose(_model.Pose());
   this->dataPtr->visuals[_id] = modelVis;
 
   if (parent)
@@ -183,7 +168,7 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
-  linkVis->SetLocalPose(_link.RawPose());
+  linkVis->SetLocalPose(_link.Pose());
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
@@ -224,7 +209,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
-  visualVis->SetLocalPose(_visual.RawPose());
+  visualVis->SetLocalPose(_visual.Pose());
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
@@ -240,7 +225,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     if (localPose != math::Pose3d::Zero)
     {
       geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetLocalPose(_visual.RawPose() * localPose);
+      geomVis->SetLocalPose(_visual.Pose() * localPose);
       visualVis = geomVis;
     }
 
@@ -352,7 +337,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    common::MeshManager *meshManager = common::MeshManager::Instance();
+    ignition::common::MeshManager* meshManager =
+        ignition::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -454,225 +440,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       else
         ignerr << "Unable to find file [" << environmentMap << "]\n";
     }
-
-    // emissive map
-    std::string emissiveMap = workflow->EmissiveMap();
-    if (!emissiveMap.empty())
-    {
-      std::string fullPath = common::findFile(emissiveMap);
-      if (!fullPath.empty())
-        material->SetEmissiveMap(fullPath);
-      else
-        ignerr << "Unable to find file [" << emissiveMap << "]\n";
-    }
   }
   return material;
-}
-
-/////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateActor(Entity _id,
-    const sdf::Actor &_actor, Entity _parentId)
-{
-  // creating an actor needs to create the visual and the mesh
-  // the visual is stored in: this->dataPtr->visuals
-  // the mesh is stored in: this->dataPtr->actors
-
-  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
-  {
-    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
-  std::string name = _actor.Name().empty() ? std::to_string(_id) :
-      _actor.Name();
-
-  rendering::VisualPtr parent;
-  if (_parentId != this->dataPtr->worldId)
-  {
-    auto it = this->dataPtr->visuals.find(_parentId);
-    if (it == this->dataPtr->visuals.end())
-    {
-      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding actor with ID[" << _id
-             << "]  and name [" << name << "] to the rendering scene."
-             << std::endl;
-      return rendering::VisualPtr();
-    }
-    parent = it->second;
-  }
-
-  if (parent)
-    name = parent->Name() +  "::" + name;
-
-  rendering::MeshDescriptor descriptor;
-  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
-  common::MeshManager *meshManager = common::MeshManager::Instance();
-  descriptor.mesh = meshManager->Load(descriptor.meshName);
-  if (nullptr == descriptor.mesh)
-  {
-    ignerr << "Actor skin mesh [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
-  common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
-  if (nullptr == meshSkel)
-  {
-    ignerr << "Mesh skeleton in [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
-  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
-  if (nullptr == actorMesh)
-  {
-    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
-  unsigned int numAnims = 0;
-  std::map<std::string, unsigned int> mapAnimNameId;
-  mapAnimNameId[descriptor.meshName] = numAnims++;
-
-  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
-  actorVisual->SetLocalPose(_actor.RawPose());
-  actorVisual->AddGeometry(actorMesh);
-
-  this->dataPtr->visuals[_id] = actorVisual;
-  this->dataPtr->actors[_id] = actorMesh;
-
-  // Load all animations
-  for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
-  {
-    std::string animName = _actor.AnimationByIndex(i)->Name();
-    std::string animFilename = asFullPath(
-        _actor.AnimationByIndex(i)->Filename(),
-        _actor.AnimationByIndex(i)->FilePath());
-    double animScale = _actor.AnimationByIndex(i)->Scale();
-
-    std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
-                                  animFilename.size());
-    std::transform(extension.begin(), extension.end(),
-                    extension.begin(), ::tolower);
-
-    if (extension == "bvh")
-    {
-      meshSkel->AddBvhAnimation(animFilename, animScale);
-      mapAnimNameId[animName] = numAnims++;
-    }
-    else if (extension == "dae")
-    {
-      common::MeshManager::Instance()->Load(animFilename);
-      auto animMesh = common::MeshManager::Instance()->MeshByName(animFilename);
-
-      // add the first animation
-      if (animMesh->MeshSkeleton()->AnimationCount() > 1)
-      {
-        ignwarn << "File [" << animFilename
-            << "] has more than one animation, but only the 1st one is used."
-            << std::endl;
-      }
-      auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
-      if (nullptr == firstAnim)
-      {
-        ignerr << "Failed to get animations from [" << animFilename
-                << "]" << std::endl;
-        return nullptr;
-      }
-      meshSkel->AddAnimation(firstAnim);
-      mapAnimNameId[animName] = numAnims++;
-    }
-  }
-  this->dataPtr->actorSkeletons[_id] = meshSkel;
-
-  using TP = std::chrono::steady_clock::time_point;
-
-  std::vector<common::TrajectoryInfo> trajectories;
-  if (_actor.TrajectoryCount() != 0)
-  {
-    // Load all trajectories specified in sdf
-    for (unsigned i = 0; i < _actor.TrajectoryCount(); i++)
-    {
-      const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
-      if (nullptr == trajSdf)
-      {
-        ignerr << "Null trajectory SDF for [" << _actor.Name() << "]"
-               << std::endl;
-        continue;
-      }
-
-      common::TrajectoryInfo trajInfo;
-      trajInfo.SetId(trajSdf->Id());
-      trajInfo.SetAnimIndex(mapAnimNameId[trajSdf->Type()]);
-
-      if (trajSdf->WaypointCount() != 0)
-      {
-        std::map<TP, math::Pose3d> waypoints;
-        for (unsigned j = 0; j < trajSdf->WaypointCount(); j++)
-        {
-          auto point = trajSdf->WaypointByIndex(j);
-          TP pointTp(std::chrono::milliseconds(
-                    static_cast<int>(point->Time()*1000)));
-          waypoints[pointTp] = point->Pose();
-        }
-        trajInfo.SetWaypoints(waypoints);
-      }
-      else
-      {
-        trajInfo.SetTranslated(false);
-      }
-      trajectories.push_back(trajInfo);
-    }
-  }
-  // if there are no trajectories, but there are animations, add a trajectory
-  else
-  {
-    auto skel = this->dataPtr->actorSkeletons[_id];
-    common::TrajectoryInfo trajInfo;
-    trajInfo.SetId(0);
-    trajInfo.SetAnimIndex(0);
-    trajInfo.SetStartTime(TP(0ms));
-    auto timepoint = std::chrono::milliseconds(
-                  static_cast<int>(skel->Animation(0)->Length() * 1000));
-    trajInfo.SetEndTime(TP(timepoint));
-    trajInfo.SetTranslated(false);
-    trajectories.push_back(trajInfo);
-  }
-
-  // sequencing all trajectories
-  auto delayStartTime = std::chrono::milliseconds(
-              static_cast<int>(_actor.ScriptDelayStart() * 1000));
-  TP time(delayStartTime);
-  for (auto &trajectory : trajectories)
-  {
-    auto dura = trajectory.Duration();
-    trajectory.SetStartTime(time);
-    time += dura;
-    trajectory.SetEndTime(time);
-  }
-
-  // loop flag: add a placeholder trajectory to indicate no loop
-  if (!_actor.ScriptLoop())
-  {
-    common::TrajectoryInfo noLoopTrajInfo;
-    noLoopTrajInfo.SetId(0);
-    noLoopTrajInfo.SetAnimIndex(0);
-    noLoopTrajInfo.SetStartTime(time);
-    noLoopTrajInfo.SetEndTime(time);
-    noLoopTrajInfo.SetTranslated(false);
-    trajectories.push_back(noLoopTrajInfo);
-  }
-
-  this->dataPtr->actorTrajectories[_id] = trajectories;
-
-  if (parent)
-    parent->AddChild(actorVisual);
-  else
-    this->dataPtr->scene->RootVisual()->AddChild(actorVisual);
-
-  return actorVisual;
 }
 
 /////////////////////////////////////////////////
@@ -734,7 +503,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       return light;
   }
 
-  light->SetLocalPose(_light.RawPose());
+  light->SetLocalPose(_light.Pose());
   light->SetDiffuseColor(_light.Diffuse());
   light->SetSpecularColor(_light.Specular());
 
@@ -798,7 +567,6 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
 bool SceneManager::HasEntity(Entity _id) const
 {
   return this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end() ||
-      this->dataPtr->actors.find(_id) != this->dataPtr->actors.end() ||
       this->dataPtr->lights.find(_id) != this->dataPtr->lights.end() ||
       this->dataPtr->sensors.find(_id) != this->dataPtr->sensors.end();
 }
@@ -828,147 +596,6 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
     }
   }
   return rendering::NodePtr();
-}
-
-/////////////////////////////////////////////////
-rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
-{
-  auto vIt = this->dataPtr->actors.find(_id);
-  if (vIt != this->dataPtr->actors.end())
-  {
-    return vIt->second;
-  }
-  return rendering::MeshPtr();
-}
-
-/////////////////////////////////////////////////
-std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
-    Entity _id, std::chrono::steady_clock::duration _time) const
-{
-  std::map<std::string, math::Matrix4d> allFrames;
-
-  if (this->dataPtr->actorTrajectories.find(_id)
-      == this->dataPtr->actorTrajectories.end())
-  {
-    return allFrames;
-  }
-
-  auto trajs = this->dataPtr->actorTrajectories[_id];
-  bool followTraj = true;
-  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
-  {
-    followTraj = false;
-  }
-
-  auto firstTraj = trajs.begin();
-  auto poseFrame = common::PoseKeyFrame(0.0);
-
-  common::TrajectoryInfo traj = trajs[0];
-
-  using TP = std::chrono::steady_clock::time_point;
-  auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
-
-  // delay start
-  if (_time < (trajs.begin()->StartTime() - TP(0ms)))
-  {
-    _time = std::chrono::steady_clock::duration(0);
-  }
-  else
-  {
-    _time -= trajs.begin()->StartTime() - TP(0ms);
-  }
-
-  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
-            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
-
-  if (_time >= totalTime && noLoop)
-  {
-    _time = totalTime;
-  }
-
-  if (!noLoop || _time <= totalTime)
-  {
-    while (_time > totalTime)
-    {
-      _time = _time - totalTime;
-    }
-    if (followTraj)
-    {
-      for (auto &trajectory : trajs)
-      {
-        if (trajectory.StartTime() - firstTraj->StartTime() <= _time
-            && trajectory.EndTime() - firstTraj->StartTime() >= _time)
-        {
-          traj = trajectory;
-          _time -= traj.StartTime() - firstTraj->StartTime();
-
-          traj.Waypoints()->Time(std::chrono::duration<double>(_time).count());
-          traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
-          break;
-        }
-      }
-    }
-  }
-
-  math::Matrix4d rootTf(poseFrame.Rotation());
-  rootTf.SetTranslation(poseFrame.Translation());
-
-  auto vIt = this->dataPtr->actorSkeletons.find(_id);
-  if (vIt != this->dataPtr->actorSkeletons.end())
-  {
-    auto skel = vIt->second;
-    unsigned int animIndex = traj.AnimIndex();
-    std::map<std::string, math::Matrix4d> rawFrames;
-
-    double timeSeconds = std::chrono::duration<double>(_time).count();
-
-    if (followTraj)
-    {
-      double distance = traj.DistanceSoFar(_time);
-      if (distance < 0.1)
-      {
-        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
-      }
-      else
-      {
-        rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
-                                        skel->RootNode()->Name());
-      }
-    }
-    else
-    {
-      rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
-    }
-
-    for (auto pair : rawFrames)
-    {
-      std::string nodeName = pair.first;
-      auto nodeTf = pair.second;
-
-      std::string skinName = skel->NodeNameAnimToSkin(animIndex, nodeName);
-      math::Matrix4d skinTf = skel->AlignTranslation(animIndex, nodeName)
-              * nodeTf * skel->AlignRotation(animIndex, nodeName);
-
-      allFrames[skinName] = skinTf;
-    }
-  }
-
-  // correct animation root pose
-  auto skel = this->dataPtr->actorSkeletons[_id];
-
-  if (followTraj)
-  {
-    allFrames["actorPose"] = rootTf;
-  }
-  else
-  {
-    allFrames["actorPose"] = math::Matrix4d(math::Quaterniond::Identity);
-    allFrames["actorPose"].SetTranslation(
-            allFrames[skel->RootNode()->Name()].Translation());
-  }
-
-  allFrames[skel->RootNode()->Name()].SetTranslation(math::Vector3d::Zero);
-  return allFrames;
 }
 
 /////////////////////////////////////////////////
@@ -1010,15 +637,62 @@ void SceneManager::RemoveEntity(Entity _id)
 rendering::VisualPtr SceneManager::TopLevelVisual(
     rendering::VisualPtr _visual) const
 {
-  rendering::VisualPtr rootVisual =
+  auto node = this->TopLevelNode(_visual);
+  return std::dynamic_pointer_cast<rendering::Visual>(node);
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr SceneManager::TopLevelNode(
+    rendering::NodePtr _node) const
+{
+  rendering::NodePtr rootNode =
       this->dataPtr->scene->RootVisual();
 
-  rendering::VisualPtr visual = std::move(_visual);
-  while (visual && visual->Parent() != rootVisual)
+  rendering::NodePtr node = std::move(_node);
+  while (node && node->Parent() != rootNode)
   {
-    visual =
-      std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+    node =
+      std::dynamic_pointer_cast<rendering::Node>(node->Parent());
   }
 
-  return visual;
+  return node;
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::EntityFromNode(rendering::NodePtr _node) const
+{
+  // TODO(louise) On Citadel, set entity ID into visual with SetUserData
+  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (visual)
+  {
+    auto found = std::find_if(std::begin(this->dataPtr->visuals),
+        std::end(this->dataPtr->visuals),
+        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
+    {
+      return _item.second == visual;
+    });
+
+    if (found != this->dataPtr->visuals.end())
+    {
+      return found->first;
+    }
+  }
+
+  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
+  if (light)
+  {
+    auto found = std::find_if(std::begin(this->dataPtr->lights),
+        std::end(this->dataPtr->lights),
+        [&](const std::pair<Entity, rendering::LightPtr> &_item)
+    {
+      return _item.second == light;
+    });
+
+    if (found != this->dataPtr->lights.end())
+    {
+      return found->first;
+    }
+  }
+
+  return kNullEntity;
 }
