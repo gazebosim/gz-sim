@@ -66,6 +66,16 @@ ToolBar {
         AlignTool.OnAlignAxis("X")
         AlignTool.OnAlignConfig("min")
       }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          print("Entered")
+        }
+        onExited: {
+          print("Exited")
+        }
+      }
     }
     ToolButton {
       id: x_center

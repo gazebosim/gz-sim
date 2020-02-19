@@ -65,6 +65,8 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    public: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     public slots: void OnAlignAxis(const QString &_mode);
 
     public slots: void OnAlignTarget(const QString &_target);
@@ -72,6 +74,8 @@ namespace gazebo
     public slots: void OnReverse(bool _reverse);
 
     public slots: void OnAlignConfig(const QString &_config);
+
+    public: void Align();
 
     /// \internal
     /// \brief Pointer to private data.

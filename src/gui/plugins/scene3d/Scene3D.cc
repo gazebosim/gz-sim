@@ -494,6 +494,13 @@ void IgnRenderer::Render()
       }
     }
   }
+
+  if (ignition::gui::App())
+  {
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        new gui::events::Render());
+  }
 }
 
 /////////////////////////////////////////////////

@@ -14,14 +14,19 @@
  * limitations under the License.
  *
 */
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
+
+#include <ignition/gazebo/rendering/RenderUtil.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/rendering.hh>
 
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "AlignTool.hh"
 
 namespace ignition::gazebo
@@ -44,6 +49,8 @@ namespace ignition::gazebo
     public: AlignTarget target{AlignTarget::FIRST};
 
     public: bool reverse{false};
+
+    std::vector<Entity> selectedEntities;
   };
 }
 
@@ -52,8 +59,9 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 AlignTool::AlignTool()
-  : gui::Plugin(), dataPtr(std::make_unique<AlignToolPrivate>())
+  : ignition::gui::Plugin(), dataPtr(std::make_unique<AlignToolPrivate>())
 {
+  // TODO deselect all selected here
 }
 
 /////////////////////////////////////////////////
@@ -67,6 +75,31 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 
   // For align tool requests
   this->dataPtr->service = "/gui/align_tool";
+}
+
+// TODO add eventFilter function with updates
+/////////////////////////////////////////////////
+bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::Render::Type)
+  {
+    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // rendering calls here
+    this->Align();
+  }
+  else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  {
+    auto selectedEvent = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && !selectedEvent->Data().empty() && !selectedEvent->FromUser())
+    {
+      this->dataPtr->selectedEntities = selectedEvent->Data();
+      for (const auto &i : this->dataPtr->selectedEntities)
+      {
+        ignwarn << i << "\n";
+      }
+    }
+  }
+  return QObject::eventFilter(_obj, _event);
 }
 
 /////////////////////////////////////////////////
@@ -156,6 +189,66 @@ void AlignTool::OnAlignConfig(const QString &_config)
     ignwarn << " - center\n"; 
     ignwarn << " - max\n"; 
   }
+}
+
+void AlignTool::Align()
+{
+  auto loadedEngNames = rendering::loadedEngines();
+  if (loadedEngNames.empty())
+    return;
+
+  // Assume there is only one engine loaded
+  auto engineName = loadedEngNames[0];
+  if (loadedEngNames.size() > 1)
+  {
+    ignerr << "Internal error: failed to load engine [" << engineName
+
+      << "]. Grid plugin won't work." << std::endl;
+
+    return;
+  }
+  auto engine = rendering::engine(engineName);
+
+  if (!engine)
+  {
+    ignerr << "Internal error: failed to load engine [" << engineName
+      << "]. Grid plugin won't work." << std::endl;
+    return;
+  }
+
+  if (engine->SceneCount() == 0)
+    return;
+
+  // assume there is only one scene
+  // load scene
+
+  auto scene = engine->SceneByIndex(0);
+
+  if (!scene)
+  {
+    ignerr << "Internal error: scene is null." << std::endl;
+    return;
+  }
+
+  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  {
+    return;
+  }
+
+  // TODO get current list of selected entities
+
+ // auto runners = ignition::gui::App()->findChildren<RenderUtil *>();
+  //auto renderUtil = mainWindow->findChildren<ignition::gazebo::RenderUtil *>();
+  /*
+  if (!renderUtil)
+  {
+    ignwarn << "renderutil is null\n";
+  }
+  else
+  {
+    ignwarn << "found renderutil\n";
+  }
+  */
 }
 
 // Register this plugin
