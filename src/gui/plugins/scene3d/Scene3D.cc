@@ -880,7 +880,8 @@ void IgnRenderer::HandleMouseTransformControl()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
-            this->UpdateSelectedEntity(topVis);
+            // Highlight entity and notify other widgets
+            this->UpdateSelectedEntity(topVis, true);
 
             this->dataPtr->mouseDirty = false;
             return;
@@ -1110,16 +1111,22 @@ void IgnRenderer::Destroy()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
+void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
+    bool _sendEvent)
 {
   if (!_node)
     return;
+
+  bool deselectedAll{false};
 
   // Deselect all if control is not being held
   if (!this->dataPtr->mouseEvent.Control() &&
       !this->dataPtr->renderUtil.SelectedEntities().empty())
   {
+    // Notify other widgets regardless of _sendEvent, because this is a new
+    // decision from this widget
     this->DeselectAllEntities(true);
+    deselectedAll = true;
   }
 
   // Attach control if in a transform mode - control is attached to:
@@ -1134,7 +1141,10 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
       this->dataPtr->transformControl.Attach(_node);
 
       // When attached, we want only one entity selected
+      // Notify other widgets regardless of _sendEvent, because this is a new
+      // decision from this widget
       this->DeselectAllEntities(true);
+      deselectedAll = true;
     }
     else
     {
@@ -1146,11 +1156,14 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
   // Notify other widgets of the currently selected entities
-  auto selectEvent = new gui::events::EntitiesSelected(
-      this->dataPtr->renderUtil.SelectedEntities());
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      selectEvent);
+  if (_sendEvent || deselectedAll)
+  {
+    auto selectEvent = new gui::events::EntitiesSelected(
+        this->dataPtr->renderUtil.SelectedEntities());
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        selectEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1180,7 +1193,8 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     }
     else
     {
-      this->UpdateSelectedEntity(target);
+      // No need to notify other widgets since the target was already selected
+      this->UpdateSelectedEntity(target, false);
     }
   }
 }
@@ -1876,11 +1890,11 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
-    if (selectedEvent && !selectedEvent->Data().empty())
+    if (selectedEvent)
     {
       for (const auto &entity : selectedEvent->Data())
       {
@@ -1904,12 +1918,12 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
         }
 
         auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-        renderWindow->UpdateSelectedEntity(node);
+        renderWindow->UpdateSelectedEntity(node, false);
       }
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::Type)
+           ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
@@ -1927,9 +1941,11 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::UpdateSelectedEntity(const rendering::NodePtr &_node)
+void RenderWindowItem::UpdateSelectedEntity(const rendering::NodePtr &_node,
+    bool _sendEvent)
 {
-  this->dataPtr->renderThread->ignRenderer.UpdateSelectedEntity(_node);
+  this->dataPtr->renderThread->ignRenderer.UpdateSelectedEntity(_node,
+      _sendEvent);
 }
 
 /////////////////////////////////////////////////

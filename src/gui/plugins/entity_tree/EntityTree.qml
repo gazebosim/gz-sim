@@ -38,6 +38,38 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
+  /*
+   * Deselect all entities.
+   */
+  function deselectAllEntities() {
+    tree.selection.clear()
+  }
+
+  /*
+   * Iterate through item's children until the one corresponding to _entity is
+   * found and select that.
+   */
+  function selectRecursively(_entity, itemId) {
+    if (EntityTreeModel.data(itemId, 101) == _entity) {
+      tree.selection.select(itemId, ItemSelectionModel.Select)
+      return
+    }
+    for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
+      selectRecursively(_entity, EntityTreeModel.index(i, 0, itemId))
+    }
+  }
+
+  /*
+   * Callback when an entity selection comes from the C++ code.
+   * For example, if it comes from the 3D window.
+   */
+  function onEntitySelectedFromCpp(_entity) {
+    for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
+      var itemId = EntityTreeModel.index(i, 0)
+      selectRecursively(_entity, itemId)
+    }
+  }
+
   TreeView {
     id: tree
     anchors.fill: parent
@@ -138,11 +170,15 @@ Rectangle {
           anchors.fill: parent
           hoverEnabled: true
           propagateComposedEvents: true
+          acceptedButtons: Qt.RightButton | Qt.LeftButton
           onClicked: {
+            mouse.accepted = false
             if (mouse.button == Qt.RightButton) {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
               entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
+              // Prevent plugin's context menu from opening
+              mouse.accepted = true
             }
             else if (mouse.button == Qt.LeftButton) {
               var mode = mouse.modifiers & Qt.ControlModifier ?
@@ -151,52 +187,19 @@ Rectangle {
               EntityTree.OnEntitySelectedFromQml(entity)
               tree.selection.select(styleData.index, mode)
             }
-            mouse.accepted = false
-          }
-
-          IgnGazebo.EntityContextMenu {
-            id: entityContextMenu
-            anchors.fill: parent
           }
         }
       }
     }
 
+    IgnGazebo.EntityContextMenu {
+      id: entityContextMenu
+      anchors.fill: ma
+    }
+
     TableViewColumn {
       role: "entityName"
       width: 300
-    }
-  }
-
-  /*
-   * Deselect all entities.
-   */
-  function deselectAllEntities() {
-    tree.selection.clear()
-  }
-
-  /*
-   * Iterate through item's children until the one corresponding to _entity is
-   * found and select that.
-   */
-  function selectRecursively(_entity, itemId) {
-    if (EntityTreeModel.data(itemId, 101) == _entity) {
-      tree.selection.select(itemId, ItemSelectionModel.Select)
-      return
-    }
-    for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
-      selectRecursively(_entity, EntityTreeModel.index(i, 0, itemId))
-    }
-  }
-
-  /*
-   * Callback when an entity selection comes from the C++ code.
-   * For example, if it comes from the 3D window.
-   */
-  function onEntitySelectedFromCpp(_entity) {
-    for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
-      var itemId = EntityTreeModel.index(i, 0)
-      selectRecursively(_entity, itemId)
     }
   }
 }
