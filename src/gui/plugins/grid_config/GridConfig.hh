@@ -40,7 +40,10 @@ namespace gazebo
     public: ~GridConfig() override;
 
     // Documentation inherited
-    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+    public: void LoadConfig(const tinyxml2::XMLElement *) override;
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \brief Update grid
     public: void UpdateGrid();
@@ -74,9 +77,6 @@ namespace gazebo
     /// \brief Callback when checkbox is clicked.
     /// \param[in] _checked indicates show or hide grid
     public slots: void OnShow(bool _checked);
-
-    // Documentation inherited
-    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \internal
     /// \brief Pointer to private data.
