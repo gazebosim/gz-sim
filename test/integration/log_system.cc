@@ -1167,8 +1167,10 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   // Cleanup
   common::removeFile(tmpRecordSdfPath);
-  common::removeAll(timestampPath);
   common::removeAll(homeFake);
+#ifndef __APPLE__
+  common::removeAll(timestampPath);
+#endif
 
   // Revert environment variable after test is done
   EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
