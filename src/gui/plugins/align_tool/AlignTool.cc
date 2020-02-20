@@ -239,12 +239,16 @@ void AlignTool::Align()
 
   // TODO 
   // 1. Get current list of selected entities
-
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
     for (unsigned int i = 0; i < scene->VisualCount(); i++)
     {
       ignition::rendering::VisualPtr vis = scene->VisualById(i);
+      if (!vis)
+      {
+        ignwarn << "vis is null\n";
+        continue;
+      }
       if (std::get<int>(vis->UserData("gazebo-entity")) == static_cast<int>(entityId))
       {
         ignwarn << "Found visual\n";
@@ -255,7 +259,6 @@ void AlignTool::Align()
       }
     }
   }
-  
    
 
   // 2. Do the max based on the current set configuration
