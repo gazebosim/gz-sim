@@ -49,13 +49,13 @@ Rectangle {
    * Iterate through item's children until the one corresponding to _entity is
    * found and select that.
    */
-  function selectRecursively(_entity, itemId) {
+  function selectFromCpp(_entity, itemId) {
     if (EntityTreeModel.data(itemId, 101) == _entity) {
       tree.selection.select(itemId, ItemSelectionModel.Select)
       return
     }
     for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
-      selectRecursively(_entity, EntityTreeModel.index(i, 0, itemId))
+      selectFromCpp(_entity, EntityTreeModel.index(i, 0, itemId))
     }
   }
 
@@ -66,7 +66,7 @@ Rectangle {
   function onEntitySelectedFromCpp(_entity) {
     for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
       var itemId = EntityTreeModel.index(i, 0)
-      selectRecursively(_entity, itemId)
+      selectFromCpp(_entity, itemId)
     }
   }
 
@@ -109,12 +109,41 @@ Rectangle {
           source: styleData.isExpanded ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          propagateComposedEvents: true
+          onClicked: {
+            // Stop the event propagation. The TreeView's own collapsible
+            // behaviour gets messy otherwise.
+            mouse.accepted = true
+
+            if (tree.isExpanded(styleData.index))
+              tree.collapse(styleData.index)
+            else
+              tree.expand(styleData.index)
+          }
+        }
       }
 
       rowDelegate: Rectangle {
         visible: styleData.row !== undefined
         height: itemHeight
         color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? even : odd
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          propagateComposedEvents: true
+          onClicked: {
+            // Stop event propagation and handle selection here.
+            mouse.accepted = true
+
+            // branchDelegate and itemDelegate have styleData.index, but, for
+            // some reason, rowDelegate doesn't. So instead of finding
+            // the QModelIndex some other way we just disable selection from the
+            // row for now
+          }
+        }
       }
 
       itemDelegate: Rectangle {
@@ -199,7 +228,7 @@ Rectangle {
 
     TableViewColumn {
       role: "entityName"
-      width: 300
+      width: parent.width
     }
   }
 }
