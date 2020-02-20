@@ -1,21 +1,54 @@
 \page log Logging
 
-The logging system allows for recording and playing back world state
-information. Currently, only link poses are supported. In the future, other
-state information will be supported.
+Ignition records two types of information to files:
 
-## Record from command line
+* Console messages
+    * From the server process only, not the GUI
+    * Logged to a plain-text `server_console.log` file
+    * Always recorded
+* Simulation state
+    * Entity poses, insertion and deletion
+    * Logged to an [Ignition Transport `state.tlog` file](https://ignitionrobotics.org/api/transport/7.0/logging.html)
+    * Recording must be enabled from the command line or the C++ API
+    * Can be played back using the command line or the C++ API
 
-Run the example world with `--record` flag. This records data to a default path, i.e. `~/.ignition/gazebo/log/<timestamp>`:
+## Record
+
+### From command line
+
+Run the example world with `--record` flag. This records data to a default
+path, i.e. `~/.ignition/gazebo/log/<timestamp>`:
 
 `ign gazebo -v 4 -r --record pose_publisher.sdf`
 
-A custom path can be specified for recorded files through the `--record-path` flag. When `--record-path` is specified, `--record` does not need to be separately specified:
+A custom path can be specified for recorded files through the `--record-path`
+flag. When `--record-path` is specified, `--record` does not need to be
+separately specified:
 
 `ign gazebo -v 4 -r --record-path ./foo pose_publisher.sdf `
 
+Other options for recording:
 
-## Record by specifying plugin in SDF
+* `--log-overwrite`: If the record path already exists, overwrite it. Defaults to
+                     false, in which case it's recorded to the given path with
+                     a number appended (i.e. `/tmp/log(1)`, `/tmp/log(2)`...).
+
+### From C++ API
+
+All features available through the command line are also available through
+[ignition::gazebo::ServerConfig](https://ignitionrobotics.org/api/gazebo/2.0/classignition_1_1gazebo_1_1ServerConfig.html).
+When instantiating a server programmatically, logging options can be passed
+to the constructor, for example:
+
+```
+ignition::gazebo::ServerConfig serverConfig;
+serverConfig.SetUseLogRecord(true);
+serverConfig.SetLogRecordPath("custom_path");
+
+ignition::gazebo::Server server(serverConfig);
+```
+
+### From plugin in SDF
 
 Recording can be specified in the SDF, under `<world>` tag:
 
@@ -25,23 +58,47 @@ Recording can be specified in the SDF, under `<world>` tag:
     <plugin
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
-      <!-- Optional, directories to write recorded files. If unspecified,
-             will record to default. -->
-      <path>/tmp/log</path>
+      <!--
+         Deprecated: Specifying the path on SDF is deprecated on Blueprint and
+         Citadel, and will be removed on Dome. Use one of the other methods to
+         speficy the path instead.
+      -->
+      <!--path>/tmp/log</path-->
     </plugin>
     ...
 </world>
 ```
 
-If `<path>` is not specified, recorded files will be placed in the default
-path (`~/.ignition/gazebo/log/<timestamp>`).
+Use of `<path>` results in the console log and state recording being written
+to different locations. Existing paths are overwritten by default. See below.
 
 Currently, it is enforced that only one recording instance is allowed to
 start during a Gazebo run.
 
-\note If both a record plugin and a record command line flag are specified, e.g. `ign gazebo -v 4 -r --record log_record_shapes.sdf`, the command line flag will be ignored, and recorded files will be placed in the path specified in the plugin SDF (or default if none specified).
+### Record path
 
-## Playback from command line
+The final record path will depend on a few options:
+
+* If state recording is not enabled, only the console log is recorded to
+  `~/.ignition/gazebo/log/<timestamp>`.
+* If only `--record`, all files are recorded to
+  `~/.ignition/gazebo/log/<timestamp>`.
+* If `--record-path` is specified:
+    * If the path doesn't exist, logs are recorded there.
+    * If the path exists:
+        * If no `--log-overwrite`, logs are recorded to a new path with a number
+          appended, i.e. `/tmp/log(1)`, `/tmp/log(2)`...
+        * If `--log-overwrite`, the directory is cleared and logs recorded to it.
+* If `<path>` in SDF (deprecated, not recommended):
+    * It will be used unless the path is specified through the command line or API.
+    * The SDF doesn't affect the console log, so that file will still go to the
+      timestamped directory.
+    * If the path exists, it will always be overwritten and there's no way to
+      disable this behaviour.
+
+## Playback
+
+### From command line
 
 Playback can be triggered by `--playback` command line flag. `<path>` is the
 directory specified to record:
@@ -49,7 +106,7 @@ directory specified to record:
 `ign gazebo -r -v 4 --playback <path>`
 
 
-## Playback by specifying plugin in SDF
+### From plugin in SDF
 
 Alternatively, playback can be specified in an SDF file. See example file
 `examples/worlds/log_playback.sdf`:
