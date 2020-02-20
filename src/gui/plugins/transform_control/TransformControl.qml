@@ -35,12 +35,12 @@ ToolBar {
   // }
 
   property color snapTitle: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade200) :
-    Material.color(Material.Grey, Material.Shade900)
+    Material.color(Material.Grey, Material.Shade900) :
+    Material.color(Material.Grey, Material.Shade200)
   
   property color snapItem: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade100) :
-    Material.color(Material.Grey, Material.Shade800)
+    Material.color(Material.Grey, Material.Shade800) :
+    Material.color(Material.Grey, Material.Shade100)
 
   function activateTranslate() {
     translate.checked = true;
@@ -95,6 +95,7 @@ ToolBar {
   }
 
   RowLayout {
+    spacing: 2
     ToolButton {
       id: select
       checkable: true
@@ -147,16 +148,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: {
-          if (mouse.button === Qt.LeftButton) {
-            translate.checked = true;
-            TransformControl.OnMode("translate")
-          }
-        }
-      }
       // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
@@ -194,16 +185,6 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: {
-          if (mouse.button === Qt.LeftButton) {
-            rotate.checked = true;
-            TransformControl.OnMode("rotate")
-          }
-        }
-      }
       // Almost an exact copy from upstream, adding `checked`
       background: Ripple {
         implicitWidth: 48
@@ -221,7 +202,53 @@ ToolBar {
         active: rotate.enabled && (rotate.down || rotate.visualFocus || rotate.hovered || rotate.checked)
         color: rotate.Material.rippleColor
       }
+      onClicked: {
+        TransformControl.OnMode("translate")
+      }
     }
+    // TODO(anyone) enable scale snap values below when support is added in ign-physics
+    // Also be sure to replace the placeholder 0's in the `OnSnapUpdate` call to
+    // xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
+    /*
+    ToolButton {
+      id: scale
+      text: "S"
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "Scale mode"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "scale.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      // Almost an exact copy from upstream, adding `checked`
+      background: Ripple {
+        implicitWidth: 48
+        implicitHeight: 48
+
+        readonly property bool square: scale.contentItem.width <= scale.contentItem.height
+
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+        clip: !square
+        width: square ? parent.height / 2 : parent.width
+        height: square ? parent.height / 2 : parent.height
+        pressed: scale.pressed
+        anchor: scale
+        active: scale.enabled && (scale.down || scale.visualFocus || scale.hovered || scale.checked)
+        color: scale.Material.rippleColor
+      }
+      onClicked: {
+        TransformControl.OnMode("scale")
+      }
+    }
+    */
+
     ToolButton {
       id: snap
       text: "S"
@@ -238,14 +265,8 @@ ToolBar {
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
-      MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: {
-          if (mouse.button === Qt.LeftButton) {
-            snapDialog.open()
-          }
-        }
+      onClicked: {
+        TransformControl.OnMode("translate")
       }
     }
     Dialog {
@@ -263,6 +284,7 @@ ToolBar {
         columnSpacing: 30
         Text {
           text: "Translation (m)"
+          color: snapTitle
           font.weight: Font.Bold
           Layout.columnSpan: 2
           Layout.row: 0
@@ -271,6 +293,7 @@ ToolBar {
         }
         Text {
           text: "X"
+          color: snapItem
           Layout.row: 1
           Layout.column: 0
         }
@@ -293,6 +316,7 @@ ToolBar {
         }
         Text {
           text: "Y"
+          color: snapItem
           Layout.row: 2
           Layout.column: 0
         }
@@ -315,6 +339,7 @@ ToolBar {
         }
         Text {
           text: "Z"
+          color: snapItem
           Layout.row: 3
           Layout.column: 0
         }
@@ -338,6 +363,7 @@ ToolBar {
         Text {
           text: "Rotation (deg)"
           font.weight: Font.Bold
+          color: snapTitle
           Layout.columnSpan: 2
           Layout.row: 0
           Layout.column: 2
@@ -345,6 +371,7 @@ ToolBar {
         }
         Text {
           text: "Roll"
+          color: snapItem
           Layout.row: 1
           Layout.column: 2
         }
@@ -367,6 +394,7 @@ ToolBar {
         }
         Text {
           text: "Pitch"
+          color: snapItem
           Layout.row: 2
           Layout.column: 2
         }
@@ -389,6 +417,7 @@ ToolBar {
         }
         Text {
           text: "Yaw"
+          color: snapItem
           Layout.row: 3
           Layout.column: 2
         }
@@ -410,9 +439,6 @@ ToolBar {
           }
         }
 
-        // TODO(anyone) enable scale snap values below when support is added in ign-physics
-        // Also be sure to replace the above placeholder 0's, in the `OnSnapUpdate` call to
-        // xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
         /*
         Text {
           text: "Scaling"
@@ -491,120 +517,5 @@ ToolBar {
         */
       }
     }
-    
-    // TODO(anyone) enable scale button when support is added in ign-physics
-    // ToolButton {
-    //   id: scale
-    //   text: "S"
-    //   checkable: true
-    //   ButtonGroup.group: group
-    //   ToolTip.text: "Scale mode"
-    //   ToolTip.visible: hovered
-    //   ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-    //   contentItem: Image {
-    //     fillMode: Image.Pad
-    //     horizontalAlignment: Image.AlignHCenter
-    //     verticalAlignment: Image.AlignVCenter
-    //     source: "scale.png"
-    //     sourceSize.width: 24;
-    //     sourceSize.height: 24;
-    //   }
-    //   MouseArea {
-    //     anchors.fill: parent
-    //     acceptedButtons: Qt.LeftButton | Qt.RightButton
-    //     onClicked: {
-    //       if (mouse.button === Qt.LeftButton) {
-    //         scale.checked = true;
-    //         TransformControl.OnMode("scale")
-    //       }
-    //       if (mouse.button === Qt.RightButton) {
-    //         snapScaleMenu.open()
-    //       }
-    //     }
-    //     Menu {
-    //       id: snapScaleMenu
-    //       Text {
-    //         id: xScale
-    //         text: qsTr("X (0-5) :")
-    //       }
-    //       TextField {
-    //         id: xScaleEntry
-    //         placeholderText: qsTr("Size")
-    //         validator: DoubleValidator {
-    //           bottom: 0
-    //           top: 5
-    //           decimals: 10
-    //         }
-    //        onEditingFinished: {
-    //           TransformControl.OnSnapUpdate(
-    //             xEntry.text, yEntry.text, zEntry.text,
-    //             rollEntry.text, pitchEntry.text, yawEntry.text,
-    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-    //           )
-    //         }
-    //       }
-    //       Text {
-    //         id: yScale
-    //         text: qsTr("Y (0-5) :")
-    //       }
-    //       TextField {
-    //         id: yScaleEntry
-    //         placeholderText: qsTr("Size")
-    //         validator: DoubleValidator {
-    //           bottom: 0
-    //           top: 5
-    //           decimals: 10
-    //         }
-    //        onEditingFinished: {
-    //           TransformControl.OnSnapUpdate(
-    //             xEntry.text, yEntry.text, zEntry.text,
-    //             rollEntry.text, pitchEntry.text, yawEntry.text,
-    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-    //           )
-    //         }
-    //       }
-    //       Text {
-    //         id: zScale
-    //         text: qsTr("Z (0-5) :")
-    //       }
-    //       TextField {
-    //         id: zScaleEntry
-    //         placeholderText: qsTr("Size")
-    //         validator: DoubleValidator {
-    //           bottom: 0
-    //           top: 5
-    //           decimals: 10
-    //         }
-    //        onEditingFinished: {
-    //           TransformControl.OnSnapUpdate(
-    //             xEntry.text, yEntry.text, zEntry.text,
-    //             rollEntry.text, pitchEntry.text, yawEntry.text,
-    //             xScaleEntry.text, yScaleEntry.text, zScaleEntry.text
-    //           )
-    //         }
-    //       }
-    //     }
-    //   }
-    //  // Almost an exact copy from upstream, adding `checked`
-    //  background: Ripple {
-    //    implicitWidth: 48
-    //    implicitHeight: 48
-
-    //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
-
-    //    x: (parent.width - width) / 2
-    //    y: (parent.height - height) / 2
-    //    clip: !square
-    //    width: square ? parent.height / 2 : parent.width
-    //    height: square ? parent.height / 2 : parent.height
-    //    pressed: select.pressed
-    //    anchor: scale
-    //    active: scale.enabled && (scale.down || scale.visualFocus || scale.hovered || scale.checked)
-    //    color: scale.Material.rippleColor
-    //  }
-    //   onClicked: {
-    //     TransformControl.OnMode("scale")
-    //   }
-    // }
   }
 }
