@@ -368,31 +368,31 @@ void RenderUtil::Update()
     {
       for (const auto &sensor : newSensors)
       {
-         Entity entity = std::get<0>(sensor);
-         const sdf::Sensor &dataSdf = std::get<1>(sensor);
-         Entity parent = std::get<2>(sensor);
+        Entity entity = std::get<0>(sensor);
+        const sdf::Sensor &dataSdf = std::get<1>(sensor);
+        Entity parent = std::get<2>(sensor);
 
-         // two sensors with the same name cause conflicts. We'll need to use
-         // scoped names
-         // TODO(anyone) do this in ign-sensors?
-         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-         if (!parentNode)
-         {
-           ignerr << "Failed to create sensor with name[" << dataSdf.Name()
-                  << "] for entity [" << entity
-                  << "]. Parent not found with ID[" << parent << "]."
-                  << std::endl;
-           continue;
-         }
+        // two sensors with the same name cause conflicts. We'll need to use
+        // scoped names
+        // TODO(anyone) do this in ign-sensors?
+        auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
+        if (!parentNode)
+        {
+          ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                 << "] for entity [" << entity
+                 << "]. Parent not found with ID[" << parent << "]."
+                 << std::endl;
+          continue;
+        }
 
-         std::string sensorName =
-             this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
-         // Add to the system's scene manager
-         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
-         {
-           ignerr << "Failed to create sensor [" << sensorName << "]"
-                  << std::endl;
-         }
+        std::string sensorName =
+            this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
+        // Add to the system's scene manager
+        if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
+        {
+          ignerr << "Failed to create sensor [" << sensorName << "]"
+                 << std::endl;
+        }
       }
     }
   }
@@ -547,7 +547,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
+          visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
 
