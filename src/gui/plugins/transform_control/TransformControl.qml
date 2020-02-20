@@ -207,8 +207,8 @@ ToolBar {
       }
     }
     // TODO(anyone) enable scale snap values below when support is added in ign-physics
-    // Also be sure to replace the placeholder 0's in the `OnSnapUpdate` call to
-    // xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
+    // Also be sure to replace the placeholder 0's in all of the `OnSnapUpdate` calls in
+    // this file to xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
     /*
     ToolButton {
       id: scale
