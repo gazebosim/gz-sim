@@ -1099,7 +1099,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   bool deselectedAll{false};
 
   // Deselect all if control is not being held
-  if (!this->dataPtr->mouseEvent.Control() &&
+  if (!(QGuiApplication::keyboardModifiers() & Qt::ControlModifier) &&
       !this->dataPtr->renderUtil.SelectedEntities().empty())
   {
     // Notify other widgets regardless of _sendEvent, because this is a new
