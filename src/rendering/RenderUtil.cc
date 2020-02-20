@@ -431,6 +431,7 @@ void RenderUtil::Update()
       actorPose.Pos() = tf.second["actorPose"].Translation();
       actorPose.Rot() = tf.second["actorPose"].Rotation();
       actorVisual->SetLocalPose(actorPose);
+
       tf.second.erase("actorPose");
       actorMesh->SetSkeletonLocalTransforms(tf.second);
     }
