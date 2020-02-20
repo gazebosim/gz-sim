@@ -203,7 +203,7 @@ ToolBar {
         color: rotate.Material.rippleColor
       }
       onClicked: {
-        TransformControl.OnMode("translate")
+        TransformControl.OnMode("rotate")
       }
     }
     // TODO(anyone) enable scale snap values below when support is added in ign-physics
@@ -266,7 +266,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        TransformControl.OnMode("translate")
+        snapDialog.open()
       }
     }
     Dialog {
@@ -438,83 +438,6 @@ ToolBar {
             )
           }
         }
-
-        /*
-        Text {
-          text: "Scaling"
-          font.weight: Font.Bold
-          Layout.columnSpan: 2
-          Layout.row: 0
-          Layout.column: 4
-          bottomPadding: 10
-        }
-        Text {
-          text: "X"
-          Layout.row: 1
-          Layout.column: 4
-        }
-        IgnSpinBox {
-          id: xScaleEntry
-          minimumValue: 0.01
-          maximumValue: 180.0
-          decimals: 2
-          stepSize: 0.01
-          value: 45
-          Layout.row: 1
-          Layout.column: 5
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              xScaleEntry.value, yScaleEntry.value, zScaleEntry.value
-            )
-          }
-        }
-        Text {
-          text: "Y"
-          Layout.row: 2
-          Layout.column: 4
-        }
-        IgnSpinBox {
-          id: yScaleEntry
-          minimumValue: 0.01
-          maximumValue: 180.0
-          decimals: 2
-          stepSize: 0.01
-          value: 45
-          Layout.row: 2
-          Layout.column: 5
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              xScaleEntry.value, yScaleEntry.value, zScaleEntry.value
-            )
-          }
-        }
-        Text {
-          text: "Z"
-          Layout.row: 3
-          Layout.column: 4
-        }
-        IgnSpinBox {
-          id: zScaleEntry
-          minimumValue: 0.01
-          maximumValue: 180.0
-          decimals: 2
-          stepSize: 0.01
-          value: 45
-          Layout.row: 3
-          Layout.column: 5
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              xScaleEntry.value, yScaleEntry.value, zScaleEntry.value
-            )
-          }
-        }
-        */
       }
     }
   }
