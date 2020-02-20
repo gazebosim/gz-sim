@@ -618,6 +618,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
           waypoints[pointTp] = point->Pose();
         }
         trajInfo.SetWaypoints(waypoints);
+        // Animations are offset by 1 because index 0 is taken by the mesh name
+        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
+        trajInfo.Waypoints()->InterpolateX(animation->InterpolateX());
       }
       else
       {
@@ -924,15 +927,15 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
 
     if (followTraj)
     {
-      double distance = traj.DistanceSoFar(_time);
-      if (distance < 0.1)
+      if (traj.Waypoints()->InterpolateX())
       {
-        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
+        double distance = traj.DistanceSoFar(_time);
+        rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
+                                        skel->RootNode()->Name());
       }
       else
       {
-        rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
-                                        skel->RootNode()->Name());
+        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
       }
     }
     else
