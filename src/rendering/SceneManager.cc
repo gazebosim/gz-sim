@@ -25,7 +25,11 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
+#include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/KeyFrame.hh>
+#include <ignition/common/Skeleton.hh>
+#include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
 
 #include <ignition/rendering/Geometry.hh>
@@ -39,6 +43,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /// \brief Private data class.
 class ignition::gazebo::SceneManagerPrivate
@@ -53,6 +58,16 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
   public: std::map<Entity, rendering::VisualPtr> visuals;
+
+  /// \brief Map of actor entity in Gazebo to actor pointers.
+  public: std::map<Entity, rendering::MeshPtr> actors;
+
+  /// \brief Map of actor entity in Gazebo to actor animations.
+  public: std::map<Entity, common::SkeletonPtr> actorSkeletons;
+
+  /// \brief Map of actor entity to the associated trajectories.
+  public: std::map<Entity, std::vector<common::TrajectoryInfo>>
+                    actorTrajectories;
 
   /// \brief Map of light entity in Gazebo to light pointers.
   public: std::map<Entity, rendering::LightPtr> lights;
@@ -128,7 +143,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   }
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
-  modelVis->SetLocalPose(_model.Pose());
+  modelVis->SetLocalPose(_model.RawPose());
   this->dataPtr->visuals[_id] = modelVis;
 
   if (parent)
@@ -168,7 +183,7 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
-  linkVis->SetLocalPose(_link.Pose());
+  linkVis->SetLocalPose(_link.RawPose());
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
@@ -209,7 +224,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
-  visualVis->SetLocalPose(_visual.Pose());
+  visualVis->SetLocalPose(_visual.RawPose());
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
@@ -225,7 +240,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     if (localPose != math::Pose3d::Zero)
     {
       geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetLocalPose(_visual.Pose() * localPose);
+      geomVis->SetLocalPose(_visual.RawPose() * localPose);
       visualVis = geomVis;
     }
 
@@ -439,6 +454,17 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
         material->SetEnvironmentMap(fullPath);
       else
         ignerr << "Unable to find file [" << environmentMap << "]\n";
+    }
+
+    // emissive map
+    std::string emissiveMap = workflow->EmissiveMap();
+    if (!emissiveMap.empty())
+    {
+      std::string fullPath = common::findFile(emissiveMap);
+      if (!fullPath.empty())
+        material->SetEmissiveMap(fullPath);
+      else
+        ignerr << "Unable to find file [" << emissiveMap << "]\n";
     }
   }
   return material;

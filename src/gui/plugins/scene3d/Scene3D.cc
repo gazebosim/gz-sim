@@ -322,6 +322,7 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
+    this->textureId = this->dataPtr->camera->RenderTextureGLId();
     this->textureDirty = false;
   }
 

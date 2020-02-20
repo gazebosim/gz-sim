@@ -28,6 +28,7 @@
 #include <ignition/gazebo/System.hh>
 
 #include "ignition/gazebo/rendering/SceneManager.hh"
+#include "ignition/gazebo/rendering/MarkerManager.hh"
 
 
 namespace ignition
@@ -114,13 +115,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();
 
+    /// \brief Get the marker manager
+    /// Returns reference to the marker manager.
+    public: class MarkerManager &MarkerManager();
+
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
-    /// \brief
-    /// \param[in]
-    /// \return
+    /// \brief Get the entity id from the node ptr
+    /// \param[in] _node The node pointer to get the entity id for
+    /// \return The entity id
     public: Entity EntityFromNode(const rendering::NodePtr& _node);
 
     /// \brief Get the entity being selected. This will only return the
