@@ -53,13 +53,39 @@ class ServerFixture : public ::testing::TestWithParam<int>
 TEST_P(ServerFixture, DefaultServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+  EXPECT_FALSE(serverConfig.UpdateRate());
+  EXPECT_FALSE(serverConfig.UseLevels());
+  EXPECT_FALSE(serverConfig.UseDistributedSimulation());
+  EXPECT_EQ(0u, serverConfig.NetworkSecondaries());
+  EXPECT_TRUE(serverConfig.NetworkRole().empty());
+  EXPECT_FALSE(serverConfig.UseLogRecord());
+  EXPECT_FALSE(serverConfig.LogRecordPath().empty());
+  EXPECT_FALSE(serverConfig.LogIgnoreSdfPath());
+  EXPECT_TRUE(serverConfig.LogPlaybackPath().empty());
+  EXPECT_EQ(0u, serverConfig.Seed());
+  EXPECT_EQ(123ms, serverConfig.UpdatePeriod().value_or(123ms));
+  EXPECT_TRUE(serverConfig.ResourceCache().empty());
+  EXPECT_TRUE(serverConfig.Plugins().empty());
+
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(std::nullopt, server.Running(1));
   EXPECT_TRUE(*server.Paused());
-  EXPECT_TRUE(serverConfig.Plugins().empty());
+  EXPECT_EQ(0u, *server.IterationCount());
 
+  EXPECT_EQ(3u, *server.EntityCount());
+  EXPECT_TRUE(server.HasEntity("default"));
+
+  EXPECT_EQ(3u, *server.SystemCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, UpdateRate)
+{
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetUpdateRate(1000.0);
   EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
   serverConfig.SetUpdateRate(-1000.0);
@@ -239,6 +265,32 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_FALSE(server.HasEntity("bad", 0));
   EXPECT_FALSE(server.HasEntity("bad", 1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigLogRecord)
+{
+  auto logPath = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logFile = common::joinPaths(logPath, "state.tlog");
+
+  igndbg << "Log path [" << logPath << "]" << std::endl;
+
+  common::removeAll(logPath);
+  EXPECT_FALSE(common::exists(logFile));
+
+  {
+    gazebo::ServerConfig serverConfig;
+    serverConfig.SetUseLogRecord(true);
+    serverConfig.SetLogRecordPath(logPath);
+
+    gazebo::Server server(serverConfig);
+    EXPECT_EQ(0u, *server.IterationCount());
+    EXPECT_EQ(3u, *server.EntityCount());
+    EXPECT_EQ(4u, *server.SystemCount());
+  }
+
+  EXPECT_TRUE(common::exists(logFile));
 }
 
 /////////////////////////////////////////////////
