@@ -123,7 +123,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return true if exists, false otherwise
     public: bool HasEntity(Entity _id) const;
 
-    /// \brief Get a rendering node given an id
+    /// \brief Get a rendering node given an entity id
     /// \param[in] _id Entity's unique id
     /// \return Pointer to requested entity's node
     public: rendering::NodePtr NodeById(Entity _id) const;
@@ -143,6 +143,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
+
+    /// \brief Get the entity for a given node.
+    /// \param[in] _visual Visual to get the entity for.
+    /// \return The entity for that visual, or `kNullEntity` for no entity.
+    public: Entity EntityFromNode(rendering::NodePtr _node) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
@@ -166,6 +171,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Top level visual containining this visual
     public: rendering::VisualPtr TopLevelVisual(
         rendering::VisualPtr _visual) const;
+
+    /// \brief Get the top level node for the given node, which
+    /// is the ancestor which is a direct child to the root visual.
+    /// Usually, this will be a model or a light.
+    /// \param[in] _node Child node
+    /// \return Top level node containining this node
+    public: rendering::NodePtr TopLevelNode(
+        rendering::NodePtr _node) const;
 
     /// \internal
     /// \brief Pointer to private data class
