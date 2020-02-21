@@ -62,6 +62,21 @@ namespace ignition
 namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+
+  /// \brief Helper to store selection requests to be handled in the render
+  /// thread by `IgnRenderer::HandleEntitySelection`.
+  struct SelectionHelper
+  {
+    /// \brief Entity to be selected
+    Entity selectEntity{kNullEntity};
+
+    /// \brief Deselect all entities
+    bool deselectAll{false};
+
+    /// \brief True to send an event and notify all widgets
+    bool sendEvent{false};
+  };
+
   //
   /// \brief Helper class for animating a user camera to move to a target entity
   /// todo(anyone) Move this functionality to rendering::Camera class in
@@ -166,6 +181,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Helper object to select entities. Only the latest selection
+    /// request is kept.
+    public: SelectionHelper selectionHelper;
+
     /// \brief Target to follow
     public: std::string followTarget;
 
@@ -238,6 +257,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
+
+    /// \brief ID of thread where render calls can be made.
+    public: std::thread::id renderThreadId;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -309,6 +331,8 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  this->dataPtr->renderThreadId = std::this_thread::get_id();
+
   IGN_PROFILE_THREAD_NAME("RenderThread");
   IGN_PROFILE("IgnRenderer::Render");
   if (this->textureDirty)
@@ -335,6 +359,9 @@ void IgnRenderer::Render()
 
   // view control
   this->HandleMouseEvent();
+
+  // Entity selection
+  this->HandleEntitySelection();
 
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
@@ -505,7 +532,6 @@ void IgnRenderer::HandleMouseEvent()
   this->HandleMouseViewControl();
 }
 
-
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseContextMenu()
 {
@@ -646,8 +672,34 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::HandleEntitySelection()
+{
+  if (this->dataPtr->selectionHelper.deselectAll)
+  {
+    this->DeselectAllEntities(this->dataPtr->selectionHelper.sendEvent);
+
+    this->dataPtr->selectionHelper = SelectionHelper();
+  }
+  else if (this->dataPtr->selectionHelper.selectEntity != kNullEntity)
+  {
+    auto node = this->dataPtr->renderUtil.SceneManager().NodeById(
+      this->dataPtr->selectionHelper.selectEntity);
+    this->UpdateSelectedEntity(node,
+        this->dataPtr->selectionHelper.sendEvent);
+
+    this->dataPtr->selectionHelper = SelectionHelper();
+  }
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 {
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
   this->dataPtr->renderUtil.DeselectAllEntities();
 
   if (_sendEvent)
@@ -738,6 +790,12 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
   // set transform configuration
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
@@ -975,6 +1033,12 @@ void IgnRenderer::HandleMouseViewControl()
   if (!this->dataPtr->mouseDirty)
     return;
 
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
   math::Vector3d camWorldPos;
   if (!this->dataPtr->followTarget.empty())
     this->dataPtr->camera->WorldPosition();
@@ -1096,6 +1160,12 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   if (!_node)
     return;
 
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
   bool deselectedAll{false};
 
   // Deselect all if control is not being held
@@ -1164,17 +1234,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   if (!this->dataPtr->renderUtil.SelectedEntities().empty())
   {
     Entity entity = this->dataPtr->renderUtil.SelectedEntities().back();
-    auto target = this->dataPtr->renderUtil.SceneManager().NodeById(entity);
-    if (!target)
-    {
-      ignerr << "Failed to find node for entity [" << entity << "]"
-             << std::endl;
-    }
-    else
-    {
-      // No need to notify other widgets since the target was already selected
-      this->UpdateSelectedEntity(target, false);
-    }
+    this->dataPtr->selectionHelper = {entity, false, false};
   }
 }
 
@@ -1307,6 +1367,13 @@ math::Vector3d IgnRenderer::ScreenToScene(
   // Set point to be 10m away if no intersection found
   return this->dataPtr->rayQuery->Origin() +
       this->dataPtr->rayQuery->Direction() * 10;
+}
+
+////////////////////////////////////////////////
+void IgnRenderer::RequestSelectionChange(Entity _selectedEntity,
+    bool _deselectAll, bool _sendEvent)
+{
+  this->dataPtr->selectionHelper = {_selectedEntity, _deselectAll, _sendEvent};
 }
 
 /////////////////////////////////////////////////
@@ -1897,7 +1964,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
         }
 
         auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-        renderWindow->UpdateSelectedEntity(node, false);
+        renderWindow->UpdateSelectedEntity(entity, false);
       }
     }
   }
@@ -1920,11 +1987,11 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::UpdateSelectedEntity(const rendering::NodePtr &_node,
+void RenderWindowItem::UpdateSelectedEntity(Entity _entity,
     bool _sendEvent)
 {
-  this->dataPtr->renderThread->ignRenderer.UpdateSelectedEntity(_node,
-      _sendEvent);
+  this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
+      _entity, false, _sendEvent);
 }
 
 /////////////////////////////////////////////////
@@ -1950,7 +2017,8 @@ void RenderWindowItem::SetMoveTo(const std::string &_target)
 /////////////////////////////////////////////////
 void RenderWindowItem::DeselectAllEntities(bool _sendEvent)
 {
-  this->dataPtr->renderThread->ignRenderer.DeselectAllEntities(_sendEvent);
+  this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
+      kNullEntity, true, _sendEvent);
 }
 
 /////////////////////////////////////////////////
