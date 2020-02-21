@@ -68,13 +68,13 @@ namespace gazebo
     /// \return Scoped name of the entity
     public: Q_INVOKABLE QString ScopedName(const QModelIndex &_index) const;
 
-    /// \brief Get the entity type of a tree item at specified index
+    /// \brief Get the entity ID of a tree item at specified index
     /// \param[in] _index Model index
-    /// \return Type of entity
+    /// \return Entity ID
     public: Q_INVOKABLE unsigned int EntityId(const QModelIndex &_index) const;
 
     /// \brief Keep track of which item corresponds to which entity.
-    public: std::map<Entity, QStandardItem *> entityItems;
+    private: std::map<Entity, QStandardItem *> entityItems;
   };
 
   /// \brief Displays a tree view with all the entities in the world.

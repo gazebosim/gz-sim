@@ -635,7 +635,7 @@ void SceneManager::RemoveEntity(Entity _id)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::TopLevelVisual(
-// NOLINTNEXTLINE(performance-unnecessary-value-param)
+// NOLINTNEXTLINE
     rendering::VisualPtr _visual) const
 {
   auto node = this->TopLevelNode(_visual);
