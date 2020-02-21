@@ -117,7 +117,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
     /// \TODO(anyone) Make const ref when merging forward
-    // NOLINTNEXTLINE(performance-unnecessary-value-param)
+    // NOLINTNEXTLINE
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
     /// \brief Get the entity for a given node.

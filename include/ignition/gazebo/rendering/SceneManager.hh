@@ -147,7 +147,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Top level visual containining this visual
     /// \TODO(anyone) Make it const ref when merging forward
     public: rendering::VisualPtr TopLevelVisual(
-        // NOLINTNEXTLINE(performance-unnecessary-value-param)
+        // NOLINTNEXTLINE
         rendering::VisualPtr _visual) const;
 
     /// \brief Get the top level node for the given node, which
