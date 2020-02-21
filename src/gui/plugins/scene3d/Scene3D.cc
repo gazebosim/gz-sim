@@ -62,7 +62,6 @@ namespace ignition
 namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
   /// \brief Helper to store selection requests to be handled in the render
   /// thread by `IgnRenderer::HandleEntitySelection`.
   struct SelectionHelper

@@ -961,7 +961,7 @@ Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
-// NOLINTNEXTLINE(performance-unnecessary-value-param)
+// NOLINTNEXTLINE
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   if (!_node)
