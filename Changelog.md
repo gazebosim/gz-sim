@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Use interpolate\_x sdf parameter for actor animations
+    * [Pull Request 536](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/536)
+
 ## Ignition Gazebo 3.x
 
 ### Ignition Gazebo 3.X.X
