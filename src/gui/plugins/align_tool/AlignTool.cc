@@ -62,6 +62,8 @@ namespace ignition::gazebo
 
     public: bool align{false};
 
+    public: bool paused{false};
+
     std::vector<Entity> selectedEntities;
   };
 }
@@ -91,9 +93,10 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void AlignTool::Update(const UpdateInfo &/* _info */,
+void AlignTool::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  this->dataPtr->paused = _info.paused;
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
@@ -141,7 +144,10 @@ void AlignTool::OnAlignAxis(const QString &_axis)
 {
   std::string newAxis = _axis.toStdString();  
   std::transform(newAxis.begin(), newAxis.end(), newAxis.begin(), ::tolower);
-  this->dataPtr->align = true;
+  if (!this->dataPtr->paused)
+  {
+    this->dataPtr->align = true;
+  }
 
   if (newAxis == "x")
   {
@@ -286,8 +292,7 @@ void AlignTool::Align()
     (relativeVisual = selectedList.front()) :
     (relativeVisual = selectedList.back());
 
-  // 2. Do the max based on the current set configuration
-
+  // Callback function for ignition node request
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/* _rep*/, const bool _result)
   {
@@ -295,35 +300,25 @@ void AlignTool::Align()
       ignerr << "Error setting pose" << std::endl;
   };
 
+  // Set service topic
   if (this->dataPtr->poseCmdService.empty())
   {
     this->dataPtr->poseCmdService = "/world/" + this->dataPtr->worldName
         + "/set_pose";
   }
 
+  int axisIndex = static_cast<int>(this->dataPtr->axis);
+  ignition::msgs::Pose req;
+
   for (const auto &vis : selectedList)
   {
-    double relativeCoord;
-    math::Vector3d newPos{vis->WorldPosition()};
-    ignition::msgs::Pose req;
-    req.set_name(vis->Name());
- 
-    if (this->dataPtr->axis == AlignAxis::ALIGN_X)
-    {
-      relativeCoord = relativeVisual->WorldPosition().X();
-      newPos.X(relativeCoord);
-    }
-    else if (this->dataPtr->axis == AlignAxis::ALIGN_Y)
-    {
-      relativeCoord = relativeVisual->WorldPosition().Y();
-      newPos.Y(relativeCoord);
-    }
-    else if (this->dataPtr->axis == AlignAxis::ALIGN_Z)
-    {
-      relativeCoord = relativeVisual->WorldPosition().Z();
-      newPos.Z(relativeCoord);
-    }
+    // Set new position according to the chosen axis
+    double relativeCoord = relativeVisual->WorldPosition()[axisIndex];
+    math::Vector3d newPos = vis->WorldPosition();
+    newPos[axisIndex] = relativeCoord;
 
+    // Send new position request 
+    req.set_name(vis->Name());
     msgs::Set(req.mutable_position(), newPos);
     msgs::Set(req.mutable_orientation(), vis->WorldRotation());
     this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);

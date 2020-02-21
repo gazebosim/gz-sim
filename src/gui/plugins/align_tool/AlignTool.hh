@@ -29,9 +29,9 @@ namespace gazebo
 {
   enum class AlignAxis
   {
-    ALIGN_X,
-    ALIGN_Y,
-    ALIGN_Z
+    ALIGN_X = 0,
+    ALIGN_Y = 1,
+    ALIGN_Z = 2
   };
 
   enum class AlignConfig
