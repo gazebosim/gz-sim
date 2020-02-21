@@ -27,7 +27,10 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/rendering.hh>
 #include <ignition/rendering/RenderTypes.hh>
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Name.hh"
 
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "AlignTool.hh"
 
@@ -44,10 +47,10 @@ namespace ignition::gazebo
     /// \brief Align Tool service name
     public: std::string service;
 
-    public: transport::Node node;
-
     // TODO need to set the pose cmd service to the world topic
     public: std::string poseCmdService;
+
+    public: std::string worldName;
 
     public: AlignAxis axis{AlignAxis::ALIGN_X};
 
@@ -68,7 +71,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 AlignTool::AlignTool()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<AlignToolPrivate>())
+  : GuiSystem(), dataPtr(std::make_unique<AlignToolPrivate>())
 {
   // Deselect all entities upon loading plugin
   auto deselectEvent = new gui::events::DeselectAllEntities(true);
@@ -83,11 +86,27 @@ AlignTool::~AlignTool() = default;
 /////////////////////////////////////////////////
 void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 {
-  if (this->title.empty())
-    this->title = "Align Tool";
-
   // For align tool requests
   ignition::gui::App()->findChild<ignition::gui::MainWindow *>()->installEventFilter(this);
+}
+
+/////////////////////////////////////////////////
+void AlignTool::Update(const UpdateInfo &/* _info */,
+    EntityComponentManager &_ecm)
+{
+  if (this->dataPtr->worldName.empty())
+  {
+    // TODO(anyone) Only one scene is supported for now
+    _ecm.Each<components::World, components::Name>(
+        [&](const Entity &/*_entity*/,
+          const components::World * /* _world */ ,
+          const components::Name *_name)->bool
+        {
+          this->dataPtr->worldName = _name->Data();
+          ignwarn << "in lambda\n";
+          return true;
+        });
+  }
 }
 
 /////////////////////////////////////////////////
@@ -97,7 +116,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
-    if (this->dataPtr->align)
+    if (this->dataPtr->align && this->dataPtr->selectedEntities.size() > 1)
     {
       this->Align();
       this->dataPtr->align = false;
@@ -250,8 +269,8 @@ void AlignTool::Align()
   }
 
   // Get current list of selected entities
-  std::vector<ignition::rendering::NodePtr> selectedList;
-  ignition::rendering::NodePtr relativeNode;
+  std::vector<ignition::rendering::VisualPtr> selectedList;
+  ignition::rendering::VisualPtr relativeVisual;
 
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
@@ -274,23 +293,52 @@ void AlignTool::Align()
 
   // 2. Do the max based on the current set configuration
 
-  double relativeCoord;
-  double alignIndex;
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/* _rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting pose" << std::endl;
+    else
+      ignwarn << "Success\n";
+  };
 
-  if (this->dataPtr->axis == AlignAxis::ALIGN_X)
+  if (this->dataPtr->poseCmdService.empty())
   {
-    relativeCoord = relativeVisual.WorldPosition().X();
-    alignIndex = 0;
+    this->dataPtr->poseCmdService = "/world/" + this->dataPtr->worldName
+        + "/set_pose";
   }
-  else if (this->dataPtr->axis == AlignAxis::ALIGN_Y)
+
+  ignwarn << "pose cmd service is " << this->dataPtr->poseCmdService << "\n";
+
+  for (const auto &vis : selectedList)
   {
-    relativeCoord = relativeVisual.WorldPosition().Y();
-    alignIndex = 1;
-  }
-  else if (this->dataPtr->axis == AlignAxis::ALIGN_Z)
-  {
-    relativeCoord = relativeVisual.WorldPosition().Z();
-    alignIndex = 2;
+    double relativeCoord;
+    math::Vector3d newPos{vis->WorldPosition()};
+    ignition::msgs::Pose req;
+    req.set_name(vis->Name());
+    ignwarn << "vis name: " << vis->Name() << "\n";
+ 
+    if (this->dataPtr->axis == AlignAxis::ALIGN_X)
+    {
+      relativeCoord = relativeVisual->WorldPosition().X();
+      newPos.X(relativeCoord);
+    }
+    else if (this->dataPtr->axis == AlignAxis::ALIGN_Y)
+    {
+      relativeCoord = relativeVisual->WorldPosition().Y();
+      newPos.Y(relativeCoord);
+    }
+    else if (this->dataPtr->axis == AlignAxis::ALIGN_Z)
+    {
+      relativeCoord = relativeVisual->WorldPosition().Z();
+      newPos.Z(relativeCoord);
+    }
+
+    ignwarn << "Setting to " << newPos << " from " << vis->WorldPosition() << "\n";   
+ 
+    msgs::Set(req.mutable_position(), newPos);
+    msgs::Set(req.mutable_orientation(), vis->WorldRotation());
+    this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
   }
 
   // TODO make the transport node service call for the name of the node

@@ -21,6 +21,7 @@
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
+#include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
 {
@@ -46,7 +47,8 @@ namespace gazebo
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive align tool requests.
-  class AlignTool : public ignition::gui::Plugin
+  class AlignTool :
+    public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -58,6 +60,9 @@ namespace gazebo
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+
+    public: void Update(const UpdateInfo &_info,
+        EntityComponentManager &_ecm) override;
 
     public slots: void OnAlignAxis(const QString &_mode);
 
