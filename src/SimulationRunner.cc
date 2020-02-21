@@ -17,8 +17,9 @@
 
 #include "SimulationRunner.hh"
 
-#include "ignition/common/Profiler.hh"
+#include <sdf/Root.hh>
 
+#include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -63,7 +64,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     physics = _world->PhysicsDefault();
   }
-
 
   // Step size
   auto dur = std::chrono::duration<double>(physics->MaxStepSize());
@@ -154,7 +154,55 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
-  this->LoadServerPlugins();
+  // Load any additional plugins from the Server Configuration
+  this->LoadServerPlugins(this->serverConfig);
+
+  // If we have reached this point and no systems have been loaded, then load
+  // a default set of systems.
+  // Order:
+  // 1. File at IGN_GAZEBO_DEFAULT_SYSTEMS
+  // 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/systems.config
+  // 3. File at ${IGN_DATA_INSTALL_DIR}/systems/systems.config
+
+  if (this->systems.empty() && this->pendingSystems.empty())
+  {
+    ignmsg << "No systems loaded, loading defaults" << std::endl;
+
+    std::string envConfig;
+    ignition::common::env("IGN_GAZEBO_DEFAULT_SYSTEMS", envConfig);
+
+    std::string defaultConfig;
+    ignition::common::env(IGN_HOMEDIR, defaultConfig);
+    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", "systems.config");
+
+    auto installedConfig = ignition::common::joinPaths(
+        IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
+
+    std::string configPath;
+    if (envConfig.size() && ignition::common::exists(envConfig))
+    {
+      configPath = envConfig;
+    }
+    else if (ignition::common::exists(defaultConfig))
+    {
+      configPath = defaultConfig;
+    }
+    else
+    {
+      configPath = installedConfig;
+    }
+
+    igndbg << "Loading default plugins from: " << configPath << std::endl;
+
+    ServerConfig tmpConfig;
+    auto plugins = ignition::gazebo::ParsePluginsFromFile(configPath);
+    for (auto plugin : plugins)
+    {
+      tmpConfig.AddPlugin(plugin);
+    }
+    this->LoadServerPlugins(tmpConfig);
+  }
 
   // World control
   transport::NodeOptions opts;
@@ -761,7 +809,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadServerPlugins()
+void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
 {
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
@@ -769,7 +817,7 @@ void SimulationRunner::LoadServerPlugins()
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
-  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
+  for (const ServerConfig::PluginInfo &plugin : _config.Plugins())
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
@@ -783,8 +831,16 @@ void SimulationRunner::LoadServerPlugins()
     }
     else if ("world" == plugin.EntityType())
     {
-      entity = this->entityCompMgr.EntityByComponents(
-          components::Name(plugin.EntityName()), components::World());
+      // Allow wildcard for world name
+      if (plugin.EntityName() == "*")
+      {
+        entity = this->entityCompMgr.EntityByComponents(components::World());
+      }
+      else
+      {
+        entity = this->entityCompMgr.EntityByComponents(
+            components::Name(plugin.EntityName()), components::World());
+      }
     }
     else if ("sensor" == plugin.EntityType())
     {
@@ -794,7 +850,6 @@ void SimulationRunner::LoadServerPlugins()
 
       for (auto sensor : sensors)
       {
-        igndbg << scopedName(sensor, this->entityCompMgr, "::", false) << std::endl;
         if (scopedName(sensor, this->entityCompMgr, "::", false) ==
             plugin.EntityName())
         {

@@ -187,7 +187,7 @@ namespace ignition
           const sdf::ElementPtr &_sdf);
 
       /// \brief Load server plugins for a given entity.
-      public: void LoadServerPlugins();
+      public: void LoadServerPlugins(const ServerConfig &_config);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.

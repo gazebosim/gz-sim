@@ -22,6 +22,9 @@
 #include <ignition/math/Rand.hh>
 #include "ignition/gazebo/ServerConfig.hh"
 
+#include <tinyxml2.h>
+
+
 using namespace ignition;
 using namespace gazebo;
 
@@ -552,4 +555,114 @@ void ServerConfig::ClearLogRecordTopics()
 const std::vector<std::string> &ServerConfig::LogRecordTopics() const
 {
   return this->dataPtr->logRecordTopics;
+}
+
+/////////////////////////////////////////////////
+void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
+{
+  _sdf->SetName(_xml->Value());
+  if (_xml->GetText() != nullptr)
+    _sdf->AddValue("string", _xml->GetText(), "1");
+
+  for (const tinyxml2::XMLAttribute *attribute = _xml->FirstAttribute();
+       attribute; attribute = attribute->Next())
+  {
+    _sdf->AddAttribute(attribute->Name(), "string", "", 1, "");
+    _sdf->GetAttribute(attribute->Name())->SetFromString(
+        attribute->Value());
+  }
+
+  // Iterate over all the child elements
+  const tinyxml2::XMLElement *elemXml = nullptr;
+  for (elemXml = _xml->FirstChildElement(); elemXml;
+      elemXml = elemXml->NextSiblingElement())
+  {
+    sdf::ElementPtr element(new sdf::Element);
+    element->SetParent(_sdf);
+
+    copyElement(element, elemXml);
+    _sdf->InsertElement(element);
+  }
+}
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo> Parse(tinyxml2::XMLDocument &_doc)
+{
+  auto ret =  std::list<ServerConfig::PluginInfo>();
+  auto _elem = _doc.RootElement();
+  const tinyxml2::XMLElement *elem;
+
+  // Note, this was taken from ign-launch, where this type of parsing happens.
+  // Process all the plugins.
+  for (elem = _elem->FirstChildElement("plugin"); elem;
+       elem = elem->NextSiblingElement("plugin"))
+  {
+    // Get the plugin's name
+    const char *nameStr = elem->Attribute("name");
+    std::string name = nameStr == nullptr ? "" : nameStr;
+    if (name.empty())
+    {
+      ignerr << "GazeboServer plugin is missing the name attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's filename
+    const char *fileStr = elem->Attribute("filename");
+    std::string file = fileStr == nullptr ? "" : fileStr;
+    if (file.empty())
+    {
+      ignerr << "A GazeboServer plugin with name[" << name << "] is "
+        << "missing the filename attribute. Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's entity name attachment information.
+    const char *entityNameStr = elem->Attribute("entity_name");
+    std::string entityName = entityNameStr == nullptr ? "" : entityNameStr;
+    if (entityName.empty())
+    {
+      ignerr << "A GazeboServer plugin with name[" << name << "] and "
+        << "filename[" << file << "] is missing the entity_name attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's entity type attachment information.
+    const char *entityTypeStr = elem->Attribute("entity_type");
+    std::string entityType = entityTypeStr == nullptr ? "" : entityTypeStr;
+    if (entityType.empty())
+    {
+      ignerr << "A GazeboServer plugin with name[" << name << "] and "
+        << "filename[" << file << "] is missing the entity_type attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Create an SDF element of the plugin
+    sdf::ElementPtr sdf(new sdf::Element);
+    copyElement(sdf, elem);
+
+    // Add the plugin to the server config
+    ret.push_back({entityName, entityType, file, name, sdf});
+  }
+  return ret;
+}
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+ignition::gazebo::ParsePluginsFromFile(const std::string &_fname)
+{
+  tinyxml2::XMLDocument doc;
+  doc.LoadFile(_fname.c_str());
+  return Parse(doc);
+}
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+ignition::gazebo::ParsePluginsFromString(const std::string &_str)
+{
+  tinyxml2::XMLDocument doc;
+  doc.Parse(_str.c_str());
+  return Parse(doc);
 }
