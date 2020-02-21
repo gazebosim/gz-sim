@@ -170,11 +170,24 @@ namespace ignition
       /// \brief Publish current world statistics.
       public: void PublishStats();
 
+      /// \brief Load system plugin for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _fname Filename of the plugin library
+      /// \param[in] _name Name of the plugin
+      /// \param[in] _sdf SDF element (content of plugin tag)
+      public: void LoadPlugin(const Entity _entity,
+          const std::string &_fname,
+          const std::string &_name,
+          const sdf::ElementPtr &_sdf);
+
       /// \brief Load system plugins for a given entity.
       /// \param[in] _entity Entity
       /// \param[in] _sdf SDF element
       public: void LoadPlugins(const Entity _entity,
           const sdf::ElementPtr &_sdf);
+
+      /// \brief Load server plugins for a given entity.
+      public: void LoadServerPlugins();
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.

@@ -64,6 +64,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     physics = _world->PhysicsDefault();
   }
 
+
   // Step size
   auto dur = std::chrono::duration<double>(physics->MaxStepSize());
 
@@ -152,6 +153,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
+
+  this->LoadServerPlugins();
 
   // World control
   transport::NodeOptions opts;
@@ -730,43 +733,36 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+void SimulationRunner::LoadPlugin(const Entity _entity,
+                                  const std::string &_fname,
+                                  const std::string &_name,
+                                  const sdf::ElementPtr &_sdf)
 {
-  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
-  while (pluginElem)
+  std::optional<SystemPluginPtr> system;
   {
-    // No error message for the 'else' case of the following 'if' statement
-    // because SDF create a default <plugin> element even if it's not
-    // specified. An error message would result in spamming
-    // the console. \todo(nkoenig) Fix SDF should so that elements are not
-    // automatically added.
-    if (pluginElem->Get<std::string>("filename") != "__default__" &&
-        pluginElem->Get<std::string>("name") != "__default__")
-    {
-      std::optional<SystemPluginPtr> system;
-      {
-        std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-        system = this->systemLoader->LoadPlugin(pluginElem);
-      }
-      if (system)
-      {
-        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-        if (systemConfig != nullptr)
-        {
-          systemConfig->Configure(_entity, pluginElem,
-              this->entityCompMgr,
-              this->eventMgr);
-        }
-        this->AddSystem(system.value());
-        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
-               << "] for entity [" << _entity << "]" << std::endl;
-      }
-    }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
+    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
   }
 
+  // System correctly loaded from library, try to configure
+  if (system)
+  {
+    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+    if (systemConfig != nullptr)
+    {
+      systemConfig->Configure(_entity, _sdf,
+          this->entityCompMgr,
+          this->eventMgr);
+    }
+    this->AddSystem(system.value());
+    igndbg << "Loaded system [" << _name
+           << "] for entity [" << _entity << "]" << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadServerPlugins()
+{
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
   // the same plugin to multiple entities, for example via a regex
@@ -798,6 +794,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 
       for (auto sensor : sensors)
       {
+        igndbg << scopedName(sensor, this->entityCompMgr, "::", false) << std::endl;
         if (scopedName(sensor, this->entityCompMgr, "::", false) ==
             plugin.EntityName())
         {
@@ -828,29 +825,30 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
               << plugin.EntityType() << "]" << std::endl;
     }
 
-    // Skip plugins that do not match the provided entity
-    if (entity != _entity)
-      continue;
+    this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+  }
+}
 
-    std::optional<SystemPluginPtr> system;
+//////////////////////////////////////////////////
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::ElementPtr &_sdf)
+{
+  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  while (pluginElem)
+  {
+    auto filename = pluginElem->Get<std::string>("filename");
+    auto name = pluginElem->Get<std::string>("name");
+    // No error message for the 'else' case of the following 'if' statement
+    // because SDF create a default <plugin> element even if it's not
+    // specified. An error message would result in spamming
+    // the console. \todo(nkoenig) Fix SDF should so that elements are not
+    // automatically added.
+    if (filename != "__default__" && name != "__default__")
     {
-      std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-      system = this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(),
-                                              nullptr);
+      this->LoadPlugin(_entity, filename, name, pluginElem);
     }
 
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(_entity, plugin.Sdf(), this->entityCompMgr,
-                                this->eventMgr);
-      }
-      this->AddSystem(system.value());
-      igndbg << "Loaded system [" << plugin.Name()
-             << "] for entity [" << _entity << "]" << std::endl;
-    }
+    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 

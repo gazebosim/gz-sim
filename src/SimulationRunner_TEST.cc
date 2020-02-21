@@ -16,6 +16,8 @@
 */
 
 #include <gtest/gtest.h>
+#include <tinyxml2.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
@@ -25,6 +27,7 @@
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
+
 
 #include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -1061,6 +1064,207 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  // Get world entity
+  Entity worldId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::World *_world)->bool
+      {
+        EXPECT_NE(nullptr, _world);
+        worldId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, worldId);
+
+  // Get model entity
+  Entity modelId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Model *_model)->bool
+      {
+        EXPECT_NE(nullptr, _model);
+        modelId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, modelId);
+
+  // Get sensor entity
+  Entity sensorId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Sensor>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Sensor *_sensor)->bool
+      {
+        EXPECT_NE(nullptr, _sensor);
+        sensorId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, sensorId);
+
+  // Check component registered by world plugin
+  std::string worldComponentName{"WorldPluginComponent"};
+  auto worldComponentId = ignition::common::hash64(worldComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(worldComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
+      worldComponentId));
+
+  // Check component registered by model plugin
+  std::string modelComponentName{"ModelPluginComponent"};
+  auto modelComponentId = ignition::common::hash64(modelComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(modelComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
+      modelComponentId));
+
+  // Check component registered by sensor plugin
+  std::string sensorComponentName{"SensorPluginComponent"};
+  auto sensorComponentId = ignition::common::hash64(sensorComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
+      sensorComponentId));
+
+  // Clang re-registers components between tests. If we don't unregister them
+  // beforehand, the new plugin tries to create a storage type from a previous
+  // plugin, causing a crash.
+  // Is this only a problem with GTest, or also during simulation? How to
+  // reproduce? Maybe we need to test unloading plugins, but we have no API for
+  // it yet.
+  #if defined (__clang__)
+    components::Factory::Instance()->Unregister(worldComponentId);
+    components::Factory::Instance()->Unregister(modelComponentId);
+    components::Factory::Instance()->Unregister(sensorComponentId);
+  #endif
+}
+
+/////////////////////////////////////////////////
+void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
+{
+  _sdf->SetName(_xml->Value());
+  if (_xml->GetText() != nullptr)
+    _sdf->AddValue("string", _xml->GetText(), "1");
+
+  for (const tinyxml2::XMLAttribute *attribute = _xml->FirstAttribute();
+       attribute; attribute = attribute->Next())
+  {
+    _sdf->AddAttribute(attribute->Name(), "string", "", 1, "");
+    _sdf->GetAttribute(attribute->Name())->SetFromString(
+        attribute->Value());
+  }
+
+  // Iterate over all the child elements
+  const tinyxml2::XMLElement *elemXml = nullptr;
+  for (elemXml = _xml->FirstChildElement(); elemXml;
+      elemXml = elemXml->NextSiblingElement())
+  {
+    sdf::ElementPtr element(new sdf::Element);
+    element->SetParent(_sdf);
+
+    copyElement(element, elemXml);
+    _sdf->InsertElement(element);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/plugins_empty.sdf");
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  std::string plugins = R"(
+  <root>
+    <plugin
+      entity_name="default"
+      entity_type="world"
+      filename="libTestWorldSystem.so"
+      name="ignition::gazebo::TestWorldSystem">
+      <world_key>0.123</world_key>
+    </plugin>
+    <plugin
+      entity_name="box"
+      entity_type="model"
+      filename="libTestModelSystem.so"
+      name="ignition::gazebo::TestModelSystem">
+      <model_key>987</model_key>
+    </plugin>
+    <plugin
+      entity_name="default::box::link_1::camera"
+      entity_type="sensor"
+      filename="libTestSensorSystem.so"
+      name="ignition::gazebo::TestSensorSystem">
+      <sensor_key>456</sensor_key>
+    </plugin>
+  </root>)";
+
+  tinyxml2::XMLDocument doc;
+  doc.Parse(plugins.c_str());
+  auto _elem = doc.RootElement();
+  const tinyxml2::XMLElement *elem;
+
+  // Create a server configuration with plugins
+  ServerConfig serverConfig;
+
+  // Note, this was taken from ign-launch, where this type of parsing happens.
+  // Process all the plugins.
+  for (elem = _elem->FirstChildElement("plugin"); elem;
+       elem = elem->NextSiblingElement("plugin"))
+  {
+    // Get the plugin's name
+    const char *nameStr = elem->Attribute("name");
+    std::string name = nameStr == nullptr ? "" : nameStr;
+    if (name.empty())
+    {
+      ignerr << "A GazeboServer plugin is missing the name attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's filename
+    const char *fileStr = elem->Attribute("filename");
+    std::string file = fileStr == nullptr ? "" : fileStr;
+    if (file.empty())
+    {
+      ignerr << "A GazeboServer plugin with name[" << name << "] is "
+        << "missing the filename attribute. Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's entity name attachment information.
+    const char *entityNameStr = elem->Attribute("entity_name");
+    std::string entityName = entityNameStr == nullptr ? "" : entityNameStr;
+    if (entityName.empty())
+    {
+      ignerr << "A GazeboServer plugin with name[" << name << "] and "
+        << "filename[" << file << "] is missing the entity_name attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's entity type attachment information.
+    const char *entityTypeStr = elem->Attribute("entity_type");
+    std::string entityType = entityTypeStr == nullptr ? "" : entityTypeStr;
+    if (entityType.empty())
+    {
+      ignerr << "A GazeboServer plugin with name[" << name << "] and "
+        << "filename[" << file << "] is missing the entity_type attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Create an SDF element of the plugin
+    sdf::ElementPtr sdf(new sdf::Element);
+    copyElement(sdf, elem);
+
+    // Add the plugin to the server config
+    serverConfig.AddPlugin({entityName, entityType, file, name, sdf});
+  }
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader, serverConfig);
 
   // Get world entity
   Entity worldId{kNullEntity};
