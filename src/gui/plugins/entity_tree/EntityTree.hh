@@ -58,11 +58,6 @@ namespace gazebo
     /// \param[in] _entity Entity to be removed
     public slots: void RemoveEntity(unsigned int _entity);
 
-    /// \brief Get an item given its entity.
-    /// \param[in] _entity Entity whose item we want.
-    /// \return Pointer to the item.
-    public: Q_INVOKABLE QStandardItem *EntityItem(unsigned int _entity);
-
     /// \brief Get the entity type of a tree item at specified index
     /// \param[in] _index Model index
     /// \return Type of entity
