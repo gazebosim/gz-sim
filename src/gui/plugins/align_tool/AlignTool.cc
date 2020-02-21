@@ -103,7 +103,6 @@ void AlignTool::Update(const UpdateInfo &/* _info */,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
-          ignwarn << "in lambda\n";
           return true;
         });
   }
@@ -128,10 +127,6 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     if (selectedEvent && !selectedEvent->Data().empty() && !selectedEvent->FromUser())
     {
       this->dataPtr->selectedEntities = selectedEvent->Data();
-      for (const auto &i : this->dataPtr->selectedEntities)
-      {
-        ignwarn << i << "\n";
-      }
     }
   }
   else if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::Type)
@@ -298,8 +293,6 @@ void AlignTool::Align()
   {
     if (!_result)
       ignerr << "Error setting pose" << std::endl;
-    else
-      ignwarn << "Success\n";
   };
 
   if (this->dataPtr->poseCmdService.empty())
@@ -308,15 +301,12 @@ void AlignTool::Align()
         + "/set_pose";
   }
 
-  ignwarn << "pose cmd service is " << this->dataPtr->poseCmdService << "\n";
-
   for (const auto &vis : selectedList)
   {
     double relativeCoord;
     math::Vector3d newPos{vis->WorldPosition()};
     ignition::msgs::Pose req;
     req.set_name(vis->Name());
-    ignwarn << "vis name: " << vis->Name() << "\n";
  
     if (this->dataPtr->axis == AlignAxis::ALIGN_X)
     {
@@ -334,16 +324,10 @@ void AlignTool::Align()
       newPos.Z(relativeCoord);
     }
 
-    ignwarn << "Setting to " << newPos << " from " << vis->WorldPosition() << "\n";   
- 
     msgs::Set(req.mutable_position(), newPos);
     msgs::Set(req.mutable_orientation(), vis->WorldRotation());
     this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
   }
-
-  // TODO make the transport node service call for the name of the node
-  // that the visual is associated with to set it at the position of the
-  // chosen coordinate of the relative visual 
 }
 
 // Register this plugin
