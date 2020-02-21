@@ -44,13 +44,20 @@ namespace ignition::gazebo
     /// \brief Align Tool service name
     public: std::string service;
 
+    public: transport::Node node;
+
+    // TODO need to set the pose cmd service to the world topic
+    public: std::string poseCmdService;
+
     public: AlignAxis axis{AlignAxis::ALIGN_X};
 
     public: AlignConfig config{AlignConfig::ALIGN_MIN};
 
-    public: AlignTarget target{AlignTarget::FIRST};
+    public: bool first{true};
 
     public: bool reverse{false};
+
+    public: bool align{false};
 
     std::vector<Entity> selectedEntities;
   };
@@ -90,7 +97,11 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
-    this->Align();
+    if (this->dataPtr->align)
+    {
+      this->Align();
+      this->dataPtr->align = false;
+    }
   }
   else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
   {
@@ -116,6 +127,7 @@ void AlignTool::OnAlignAxis(const QString &_axis)
 {
   std::string newAxis = _axis.toStdString();  
   std::transform(newAxis.begin(), newAxis.end(), newAxis.begin(), ::tolower);
+  this->dataPtr->align = true;
 
   if (newAxis == "x")
   {
@@ -146,11 +158,11 @@ void AlignTool::OnAlignTarget(const QString &_target)
 
   if (newTarget == "first")
   {
-    this->dataPtr->target = AlignTarget::FIRST;
+    this->dataPtr->first = true;
   }
   else if (newTarget == "last")
   {
-    this->dataPtr->target = AlignTarget::LAST;
+    this->dataPtr->first = false;
   }
   else
   {
@@ -237,33 +249,53 @@ void AlignTool::Align()
     return;
   }
 
-  // TODO 
-  // 1. Get current list of selected entities
+  // Get current list of selected entities
+  std::vector<ignition::rendering::NodePtr> selectedList;
+  ignition::rendering::NodePtr relativeNode;
+
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
     for (unsigned int i = 0; i < scene->VisualCount(); i++)
     {
-      ignition::rendering::VisualPtr vis = scene->VisualById(i);
+      ignition::rendering::VisualPtr vis = scene->VisualByIndex(i);
       if (!vis)
-      {
-        ignwarn << "vis is null\n";
         continue;
-      }
       if (std::get<int>(vis->UserData("gazebo-entity")) == static_cast<int>(entityId))
       {
-        ignwarn << "Found visual\n";
-      }
-      else
-      {
-        ignwarn << "No visual found\n";
+        selectedList.push_back(vis);
       }
     }
   }
-   
+
+  // Set relative visual to move the others around
+  this->dataPtr->first ?
+    (relativeVisual = selectedList.front()) :
+    (relativeVisual = selectedList.back());
 
   // 2. Do the max based on the current set configuration
-  // 3. Set the new entities
-  // 4. Render call
+
+  double relativeCoord;
+  double alignIndex;
+
+  if (this->dataPtr->axis == AlignAxis::ALIGN_X)
+  {
+    relativeCoord = relativeVisual.WorldPosition().X();
+    alignIndex = 0;
+  }
+  else if (this->dataPtr->axis == AlignAxis::ALIGN_Y)
+  {
+    relativeCoord = relativeVisual.WorldPosition().Y();
+    alignIndex = 1;
+  }
+  else if (this->dataPtr->axis == AlignAxis::ALIGN_Z)
+  {
+    relativeCoord = relativeVisual.WorldPosition().Z();
+    alignIndex = 2;
+  }
+
+  // TODO make the transport node service call for the name of the node
+  // that the visual is associated with to set it at the position of the
+  // chosen coordinate of the relative visual 
 }
 
 // Register this plugin

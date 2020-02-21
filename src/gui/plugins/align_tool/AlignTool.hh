@@ -40,12 +40,6 @@ namespace gazebo
     ALIGN_MAX
   };
 
-  enum class AlignTarget
-  {
-    FIRST,
-    LAST
-  };
-
   class AlignToolPrivate;
 
   /// \brief Provides buttons for the align tool
