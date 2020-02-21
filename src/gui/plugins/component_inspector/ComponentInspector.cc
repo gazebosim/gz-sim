@@ -503,7 +503,7 @@ void ComponentInspector::Update(const UpdateInfo &,
 /////////////////////////////////////////////////
 bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
