@@ -7,7 +7,12 @@ set(tests
 
 link_directories(${PROJECT_BINARY_DIR}/test)
 
-ign_build_tests(TYPE PERFORMANCE SOURCES ${tests})
+ign_build_tests(TYPE PERFORMANCE
+  SOURCES
+    ${tests}
+  LIB_DEPS
+    ${EXTRA_TEST_LIB_DEPS}
+)
 
 add_executable(
   PERFORMANCE_sdf_runner
