@@ -1139,34 +1139,6 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 }
 
 /////////////////////////////////////////////////
-void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
-{
-  _sdf->SetName(_xml->Value());
-  if (_xml->GetText() != nullptr)
-    _sdf->AddValue("string", _xml->GetText(), "1");
-
-  for (const tinyxml2::XMLAttribute *attribute = _xml->FirstAttribute();
-       attribute; attribute = attribute->Next())
-  {
-    _sdf->AddAttribute(attribute->Name(), "string", "", 1, "");
-    _sdf->GetAttribute(attribute->Name())->SetFromString(
-        attribute->Value());
-  }
-
-  // Iterate over all the child elements
-  const tinyxml2::XMLElement *elemXml = nullptr;
-  for (elemXml = _xml->FirstChildElement(); elemXml;
-      elemXml = elemXml->NextSiblingElement())
-  {
-    sdf::ElementPtr element(new sdf::Element);
-    element->SetParent(_sdf);
-
-    copyElement(element, elemXml);
-    _sdf->InsertElement(element);
-  }
-}
-
-/////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
 {
   sdf::Root rootWithout;
@@ -1199,72 +1171,17 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
     </plugin>
   </root>)";
 
-  tinyxml2::XMLDocument doc;
-  doc.Parse(plugins.c_str());
-  auto _elem = doc.RootElement();
-  const tinyxml2::XMLElement *elem;
-
   // Create a server configuration with plugins
   ServerConfig serverConfig;
-
-  // Note, this was taken from ign-launch, where this type of parsing happens.
-  // Process all the plugins.
-  for (elem = _elem->FirstChildElement("plugin"); elem;
-       elem = elem->NextSiblingElement("plugin"))
+  for (auto plugin : ParsePluginsFromString(plugins))
   {
-    // Get the plugin's name
-    const char *nameStr = elem->Attribute("name");
-    std::string name = nameStr == nullptr ? "" : nameStr;
-    if (name.empty())
-    {
-      ignerr << "A GazeboServer plugin is missing the name attribute. "
-        << "Skipping this plugin.\n";
-      continue;
-    }
-
-    // Get the plugin's filename
-    const char *fileStr = elem->Attribute("filename");
-    std::string file = fileStr == nullptr ? "" : fileStr;
-    if (file.empty())
-    {
-      ignerr << "A GazeboServer plugin with name[" << name << "] is "
-        << "missing the filename attribute. Skipping this plugin.\n";
-      continue;
-    }
-
-    // Get the plugin's entity name attachment information.
-    const char *entityNameStr = elem->Attribute("entity_name");
-    std::string entityName = entityNameStr == nullptr ? "" : entityNameStr;
-    if (entityName.empty())
-    {
-      ignerr << "A GazeboServer plugin with name[" << name << "] and "
-        << "filename[" << file << "] is missing the entity_name attribute. "
-        << "Skipping this plugin.\n";
-      continue;
-    }
-
-    // Get the plugin's entity type attachment information.
-    const char *entityTypeStr = elem->Attribute("entity_type");
-    std::string entityType = entityTypeStr == nullptr ? "" : entityTypeStr;
-    if (entityType.empty())
-    {
-      ignerr << "A GazeboServer plugin with name[" << name << "] and "
-        << "filename[" << file << "] is missing the entity_type attribute. "
-        << "Skipping this plugin.\n";
-      continue;
-    }
-
-    // Create an SDF element of the plugin
-    sdf::ElementPtr sdf(new sdf::Element);
-    copyElement(sdf, elem);
-
-    // Add the plugin to the server config
-    serverConfig.AddPlugin({entityName, entityType, file, name, sdf});
+    serverConfig.AddPlugin(plugin);
   }
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader, serverConfig);
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+      serverConfig);
 
   // Get world entity
   Entity worldId{kNullEntity};
@@ -1337,6 +1254,20 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
     components::Factory::Instance()->Unregister(modelComponentId);
     components::Factory::Instance()->Unregister(sensorComponentId);
   #endif
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadPluginsDefault)
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/plugins_empty.sdf");
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
+  ASSERT_EQ(3u, runner.SystemCount());
 }
 
 /////////////////////////////////////////////////

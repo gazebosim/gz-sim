@@ -372,6 +372,12 @@ namespace ignition
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
+
+    std::list<ServerConfig::PluginInfo>
+    ParsePluginsFromFile(const std::string &_fname);
+
+    std::list<ServerConfig::PluginInfo>
+    ParsePluginsFromString(const std::string &_str);
     }
   }
 }
