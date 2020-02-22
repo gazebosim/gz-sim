@@ -27,6 +27,13 @@ namespace ignition
 {
 namespace gazebo
 {
+  enum class AlignStatus
+  {
+    NO_ALIGN,
+    ALIGN,
+    NONE
+  };
+
   enum class AlignAxis
   {
     ALIGN_X = 0,
@@ -71,6 +78,10 @@ namespace gazebo
     public slots: void OnReverse(bool _reverse);
 
     public slots: void OnAlignConfig(const QString &_config);
+
+    public slots: void SetAlignStatus(const QString &_status);
+
+    public slots: void SetHovered(bool _hovered);
 
     public: void Align();
 

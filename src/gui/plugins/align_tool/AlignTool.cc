@@ -55,16 +55,22 @@ namespace ignition::gazebo
     public: AlignAxis axis{AlignAxis::ALIGN_X};
 
     public: AlignConfig config{AlignConfig::ALIGN_MIN};
+    
+    public: AlignStatus status{AlignStatus::NONE};
 
     public: bool first{true};
 
     public: bool reverse{false};
 
-    public: bool align{false};
+    public: bool hovered{false};
 
     public: bool paused{false};
 
+    public: bool reset{false};
+
     std::vector<Entity> selectedEntities;
+
+    std::vector<math::Vector3d> prevPositions;
   };
 }
 
@@ -118,10 +124,12 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
-    if (this->dataPtr->align && this->dataPtr->selectedEntities.size() > 1)
+    if ((this->dataPtr->hovered || this->dataPtr->reset)
+         && this->dataPtr->selectedEntities.size() > 1)
     {
       this->Align();
-      this->dataPtr->align = false;
+      this->dataPtr->reset = false;
+      this->dataPtr->hovered = false;
     }
   }
   else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
@@ -140,14 +148,69 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
+void AlignTool::SetAlignStatus(const QString &_status)
+{
+  std::string newStatus = _status.toStdString();  
+  std::transform(newStatus.begin(), newStatus.end(), newStatus.begin(), ::tolower);
+  if (!this->dataPtr->paused)
+  {
+    if (newStatus == "no_align")
+    {
+      this->dataPtr->status = AlignStatus::NO_ALIGN;
+    }
+    else if (newStatus == "align")
+    {
+      this->dataPtr->status = AlignStatus::ALIGN;
+    }
+    else if (newStatus == "none")
+    {
+      this->dataPtr->status = AlignStatus::NONE;
+    }
+    else
+    {
+      ignwarn << "Invalid align status string: " << newStatus << "\n";
+      ignwarn << "The valid options are:\n";
+      ignwarn << " - no_align\n";
+      ignwarn << " - align\n";
+      ignwarn << " - none\n";
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+// TODO(john) split the following function into two separate
+// enter and exit functions
+void AlignTool::SetHovered(bool _hovered)
+{
+  if (!this->dataPtr->paused)
+  {
+    this->dataPtr->hovered = _hovered;
+
+    // If we exit hovering and the button has not been clicked, reset nodes
+    if (!this->dataPtr->hovered && this->dataPtr->status == AlignStatus::NO_ALIGN)
+    {
+      // TODO set entities back to prev pos
+      
+      this->dataPtr->reset = true;
+      this->SetAlignStatus("none");
+    }
+    if (!this->dataPtr->hovered)
+    {
+      this->SetAlignStatus("none");
+      this->dataPtr->prevPositions.clear();
+    }
+    else if (this->dataPtr->hovered)
+    {
+      this->SetAlignStatus("no_align");
+    }
+  }
+}
+
+/////////////////////////////////////////////////
 void AlignTool::OnAlignAxis(const QString &_axis)
 {
   std::string newAxis = _axis.toStdString();  
   std::transform(newAxis.begin(), newAxis.end(), newAxis.begin(), ::tolower);
-  if (!this->dataPtr->paused)
-  {
-    this->dataPtr->align = true;
-  }
 
   if (newAxis == "x")
   {
@@ -171,6 +234,7 @@ void AlignTool::OnAlignAxis(const QString &_axis)
   }
 }
 
+/////////////////////////////////////////////////
 void AlignTool::OnAlignTarget(const QString &_target)
 {
   std::string newTarget = _target.toStdString();
@@ -193,11 +257,13 @@ void AlignTool::OnAlignTarget(const QString &_target)
   }
 }
 
+/////////////////////////////////////////////////
 void AlignTool::OnReverse(bool _reverse)
 {
   this->dataPtr->reverse = _reverse;
 }
 
+/////////////////////////////////////////////////
 void AlignTool::OnAlignConfig(const QString &_config)
 {
   std::string newConfig = _config.toStdString();
@@ -225,6 +291,7 @@ void AlignTool::OnAlignConfig(const QString &_config)
   }
 }
 
+/////////////////////////////////////////////////
 void AlignTool::Align()
 {
   auto loadedEngNames = rendering::loadedEngines();
@@ -255,7 +322,6 @@ void AlignTool::Align()
 
   // assume there is only one scene
   // load scene
-
   auto scene = engine->SceneByIndex(0);
 
   if (!scene)
@@ -310,12 +376,24 @@ void AlignTool::Align()
   int axisIndex = static_cast<int>(this->dataPtr->axis);
   ignition::msgs::Pose req;
 
-  for (const auto &vis : selectedList)
+  for (unsigned int i = 0; i < selectedList.size(); i++)
   {
+    rendering::VisualPtr vis = selectedList[i];
+
     // Set new position according to the chosen axis
-    double relativeCoord = relativeVisual->WorldPosition()[axisIndex];
     math::Vector3d newPos = vis->WorldPosition();
-    newPos[axisIndex] = relativeCoord;
+    if (this->dataPtr->reset)
+    {
+      newPos = this->dataPtr->prevPositions[i];
+    }
+    else
+    {
+      double relativeCoord = relativeVisual->WorldPosition()[axisIndex];
+      newPos[axisIndex] = relativeCoord;
+
+      // Store the vis's world positions in a vector
+      this->dataPtr->prevPositions.push_back(vis->WorldPosition());
+    }
 
     // Send new position request 
     req.set_name(vis->Name());
