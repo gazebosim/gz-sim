@@ -635,17 +635,65 @@ void SceneManager::RemoveEntity(Entity _id)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::TopLevelVisual(
+// NOLINTNEXTLINE
     rendering::VisualPtr _visual) const
 {
-  rendering::VisualPtr rootVisual =
+  auto node = this->TopLevelNode(_visual);
+  return std::dynamic_pointer_cast<rendering::Visual>(node);
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr SceneManager::TopLevelNode(
+    const rendering::NodePtr &_node) const
+{
+  rendering::NodePtr rootNode =
       this->dataPtr->scene->RootVisual();
 
-  rendering::VisualPtr visual = std::move(_visual);
-  while (visual && visual->Parent() != rootVisual)
+  rendering::NodePtr node = _node;
+  while (node && node->Parent() != rootNode)
   {
-    visual =
-      std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+    node =
+      std::dynamic_pointer_cast<rendering::Node>(node->Parent());
   }
 
-  return visual;
+  return node;
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
+{
+  // TODO(louise) On Citadel, set entity ID into visual with SetUserData
+  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (visual)
+  {
+    auto found = std::find_if(std::begin(this->dataPtr->visuals),
+        std::end(this->dataPtr->visuals),
+        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
+    {
+      return _item.second == visual;
+    });
+
+    if (found != this->dataPtr->visuals.end())
+    {
+      return found->first;
+    }
+  }
+
+  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
+  if (light)
+  {
+    auto found = std::find_if(std::begin(this->dataPtr->lights),
+        std::end(this->dataPtr->lights),
+        [&](const std::pair<Entity, rendering::LightPtr> &_item)
+    {
+      return _item.second == light;
+    });
+
+    if (found != this->dataPtr->lights.end())
+    {
+      return found->first;
+    }
+  }
+
+  return kNullEntity;
 }
