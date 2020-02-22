@@ -39,12 +39,15 @@ ToolBar {
     columnSpacing: 5
     Text {
       text: "X:"
+      Layout.row: 0
+      Layout.column: 0
       font.weight: Font.Bold
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
       Layout.topMargin: 15
       font.pointSize: 14
     }
+    /*
     ToolButton {
       id: x_min
       checkable: true
@@ -77,8 +80,11 @@ ToolBar {
         }
       }
     }
+    */
     ToolButton {
       id: x_center
+      Layout.row: 0
+      Layout.column: 1
       checkable: true
       ButtonGroup.group: group
       ToolTip.text: "Reset View Angle"
@@ -97,17 +103,19 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
           AlignTool.OnAlignAxis("X")
           AlignTool.OnAlignConfig("center")
+          AlignTool.SetHovered(1)
+        }
+        onExited: {
+          AlignTool.SetHovered(0)
+        }
+        onClicked: {
+          AlignTool.SetAlignStatus("align")
         }
       }
     }
+    /*
     ToolButton {
       id: x_max
       checkable: true
@@ -139,13 +147,17 @@ ToolBar {
         }
       }
     }
+    */
     Text {
       text: "Y:"
       font.weight: Font.Bold
+      Layout.row: 1
+      Layout.column: 0
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
       font.pointSize: 14
     }
+    /*
     ToolButton {
       id: y_min
       checkable: true
@@ -177,10 +189,13 @@ ToolBar {
         }
       }
     }
+    */
     ToolButton {
       id: y_center
       checkable: true
       ButtonGroup.group: group
+      Layout.row: 1
+      Layout.column: 1
       ToolTip.text: "View from the right"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -196,17 +211,19 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
           AlignTool.OnAlignAxis("Y")
           AlignTool.OnAlignConfig("center")
+          AlignTool.SetHovered(1)
+        }
+        onExited: {
+          AlignTool.SetHovered(0)
+        }
+        onClicked: {
+          AlignTool.SetAlignStatus("align")
         }
       }
     }
+    /*
     ToolButton {
       id: y_max
       checkable: true
@@ -237,13 +254,17 @@ ToolBar {
         }
       }
     }
+    */
     Text {
       text: "Z:"
       font.weight: Font.Bold
+      Layout.row: 2
+      Layout.column: 0
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
       font.pointSize: 14
     }
+    /*
     ToolButton {
       id: z_min
       checkable: true
@@ -275,6 +296,7 @@ ToolBar {
         }
       }
     }
+    */
     ToolButton {
       id: z_center
       checkable: true
@@ -282,6 +304,8 @@ ToolBar {
       ToolTip.text: "View from the bottom"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.row: 2
+      Layout.column: 1
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
@@ -294,17 +318,19 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
           AlignTool.OnAlignAxis("Z")
           AlignTool.OnAlignConfig("center")
+          AlignTool.SetHovered(1)
+        }
+        onExited: {
+          AlignTool.SetHovered(0)
+        }
+        onClicked: {
+          AlignTool.SetAlignStatus("align")
         }
       }
     }
+    /*
     ToolButton {
       id: z_max
       checkable: true
@@ -335,6 +361,7 @@ ToolBar {
         }
       }
     }
+    */
     CheckBox {
       text: qsTr("Reverse")
       Layout.columnSpan: 4
