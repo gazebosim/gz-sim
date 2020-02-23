@@ -7,7 +7,7 @@ This tutorial explains how to use the `Triangle` class from Ignition Math librar
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-hg clone https://bitbucket.org/ignitionrobotics/ign-math/
+hg clone https://bitbucket.org/ignitionrobotics/ign-math/ -b default
 cd ign-math/examples
 mkdir build
 cd build
@@ -48,7 +48,7 @@ The individual vertices are accessible through the `[]` operator.
 
 \snippet examples/triangle_example.cc access1
 
-Each side of the triangle is also accessible via the `Side` function.
+Each side of the triangle is also accessible via the `Side` method. Each side consists of 2 vertices, the following code will print out the X and Y values of each vertex.
 
 \snippet examples/triangle_example.cc access2
 

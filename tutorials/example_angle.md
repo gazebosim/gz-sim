@@ -9,7 +9,7 @@ This tutorial explains how to use the `Angle` class from Ignition Math library.
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-hg clone https://bitbucket.org/ignitionrobotics/ign-math/
+hg clone https://bitbucket.org/ignitionrobotics/ign-math/ -b default
 cd ign-math/examples
 mkdir build
 cd build
@@ -35,7 +35,7 @@ Normalized to the range -Pi and Pi: -1.5708
 
 ### Code
 
-The code declares an angle class. The default constructed angle should be zero.
+The code instantiates an angle class. The default constructed angle should be zero.
 
 \snippet examples/angle_example.cc Create an angle
 

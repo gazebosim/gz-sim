@@ -7,7 +7,7 @@ This example explains how to use quaternions and euler angles, and how to conver
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-hg clone https://bitbucket.org/ignitionrobotics/ign-math/
+hg clone https://bitbucket.org/ignitionrobotics/ign-math/ -b default
 cd ign-math/examples
 mkdir build
 cd build
@@ -19,10 +19,10 @@ When the code is compiled, you can run two different examples, one which convert
 
 ```{.sh}
 Usage:
-  quaternion_to_euler <float_w> <float_x> <float_y> <float_z>
+  ./quaternion_to_euler <float_w> <float_x> <float_y> <float_z>
 
 Example
-  quaternion_to_euler 0.5 0.5 0.5 0.5
+  ./quaternion_to_euler 0.5 0.5 0.5 0.5
 ```
 
 And the other which converts from euler to quaternion:
