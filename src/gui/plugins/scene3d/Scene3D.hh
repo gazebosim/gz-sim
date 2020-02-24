@@ -274,6 +274,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
                 math::Vector3d &_point,
                 math::Vector3d &_snapVals, double _sensitivity = 0.4) const;
 
+    /// \brief Request entity selection. This queues the selection to be handled
+    /// later in the render thread.
+    /// \param[in] _selectedEntity Entity to be selected, or `kNullEntity`.
+    /// \param[in] _deselectAll True if all entities should be deselected.
+    /// \param[in] _sendEvent True to emit an event to other widgets.
+    public: void RequestSelectionChange(Entity _selectedEntity,
+        bool _deselectAll, bool _sendEvent);
+
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _coord Input coordinate point.
@@ -301,6 +309,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle mouse event for transform control
     private: void HandleMouseTransformControl();
 
+    /// \brief Handle entity selection requests
+    private: void HandleEntitySelection();
+
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
     /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
@@ -313,6 +324,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Callback when a view angle animation is complete
     private: void OnViewAngleComplete();
+
+    /// \brief Process a node's selection
+    /// \param[in] _node The node to be selected.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the selection is initiated from this plugin.
+    private: void UpdateSelectedEntity(const rendering::NodePtr &_node,
+        bool _sendEvent);
+
+    /// \brief Deselect all entities.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the deselection is initiated from this plugin.
+    private: void DeselectAllEntities(bool _sendEvent);
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
@@ -449,6 +472,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world name
     /// \param[in] _name Name of the world to set to.
     public: void SetWorldName(const std::string &_name);
+
+    /// \brief An update function to apply the rules of selection to the
+    /// passed in node. The rules are as follows:
+    /// - If control is held, append the node to the selected entity list.
+    /// - If control is not held, deselect all other entities.
+    /// - If the user is currently in a transform mode, attach the control
+    ///   to the latest selected node and deselect all others.
+    /// Note that this function emits events to update other widgets.
+    /// \param[in] _entity The entity to select.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the selection is initiated from this plugin.
+    public: void UpdateSelectedEntity(Entity _entity,
+        bool _sendEvent);
+
+    /// \brief Deselect all the currently selected entities within
+    /// the RenderUtil class.
+    /// \param[in] _sendEvent True to notify other widgets. This should be true
+    /// when the deselection is initiated from this plugin.
+    public: void DeselectAllEntities(bool _sendEvent);
 
     /// \brief Set the XYZ snap values from the user input.
     /// \param[in] _xyz The XYZ snap values
