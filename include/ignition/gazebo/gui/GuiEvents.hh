@@ -106,7 +106,7 @@ namespace events
     {
     }
     /// \brief Unique type for this event.
-    static const QEvent::Type Type = QEvent::Type(QEvent::User + 4);
+    static const QEvent::Type Type = QEvent::Type(QEvent::User + 3);
   };
 }  // namespace events
 }

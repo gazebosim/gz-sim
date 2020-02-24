@@ -130,7 +130,6 @@ void GridConfig::UpdateGrid()
     mat->SetAmbient(this->dataPtr->gridParam.color);
     mat->SetDiffuse(this->dataPtr->gridParam.color);
     mat->SetSpecular(this->dataPtr->gridParam.color);
-    visual->SetMaterial(mat);
 
     visual->SetVisible(this->dataPtr->gridParam.visible);
   }
@@ -234,7 +233,6 @@ void GridConfig::LoadGrid()
   mat->SetAmbient(this->dataPtr->gridParam.color);
   mat->SetDiffuse(this->dataPtr->gridParam.color);
   mat->SetSpecular(this->dataPtr->gridParam.color);
-  vis->SetMaterial(mat);
 }
 
 /////////////////////////////////////////////////
