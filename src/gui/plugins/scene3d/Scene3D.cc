@@ -257,6 +257,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
 
+    /// \brief ID of thread where render calls can be made.
+    public: std::thread::id renderThreadId;
+
     /// \brief The xyz values by which to snap the object.
     public: math::Vector3d xyzSnap = math::Vector3d::One;
 
@@ -1015,8 +1018,6 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         // Translate to world frame for snapping
         distance += this->dataPtr->startWorldPos;
-        SnapPoint(distance);
-
         math::Vector3d snapVals = this->XYZSnap();
 
         // Constrain snap values to a minimum of 1e-4
@@ -2108,7 +2109,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->DeselectAllEntities(false);
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::SnapEvent)
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::SnapIntervals::kType)
   {
     auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
     if (snapEvent)
