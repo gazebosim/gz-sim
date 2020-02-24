@@ -26,8 +26,8 @@ GridLayout {
   Layout.minimumWidth: 100
   Layout.minimumHeight: 600
   anchors.fill: parent
-  anchors.leftMargin: 20
-  anchors.rightMargin: 20
+  anchors.leftMargin: 10
+  anchors.rightMargin: 10
 
   // Left spacer
   Item {
