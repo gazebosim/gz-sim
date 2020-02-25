@@ -101,8 +101,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
     public: void LookDirection(const rendering::CameraPtr &_camera,
-        const math::Vector3d &_direction, double _duration,
-        std::function<void()> _onAnimationComplete);
+        const math::Vector3d &_direction, const math::Vector3d &_lookAt,
+        double _duration, std::function<void()> _onAnimationComplete);
 
     /// \brief Add time to the animation.
     /// \param[in] _time Time to add in seconds
@@ -506,8 +506,29 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
+        std::vector<Entity> selectedEntities =
+          this->dataPtr->renderUtil.SelectedEntities();
+
+        // Look at the origin if no entities are selected
+        math::Vector3d lookAt = math::Vector3d::Zero;
+        if (!selectedEntities.empty())
+        {
+          for (const auto &entity : selectedEntities)
+          {
+            rendering::NodePtr node =
+                this->dataPtr->renderUtil.SceneManager().NodeById(entity);
+
+            if (!node)
+              continue;
+
+            math::Vector3d nodePos = node->WorldPose().Pos();
+            lookAt += nodePos;
+          }
+          lookAt /= selectedEntities.size();
+        }
+
         this->dataPtr->moveToHelper.LookDirection(this->dataPtr->camera,
-            this->dataPtr->viewAngleDirection,
+            this->dataPtr->viewAngleDirection, lookAt,
             0.5, std::bind(&IgnRenderer::OnViewAngleComplete, this));
         this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
@@ -519,6 +540,13 @@ void IgnRenderer::Render()
         this->dataPtr->prevMoveToTime = now;
       }
     }
+  }
+
+  if (ignition::gui::App())
+  {
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        new gui::events::Render());
   }
 }
 
@@ -2222,8 +2250,8 @@ void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
 
 ////////////////////////////////////////////////
 void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
-    const math::Vector3d &_direction, double _duration,
-    std::function<void()> _onAnimationComplete)
+    const math::Vector3d &_direction, const math::Vector3d &_lookAt,
+    double _duration, std::function<void()> _onAnimationComplete)
 {
   this->camera = _camera;
   this->poseAnim = std::make_unique<common::PoseAnimation>(
@@ -2233,20 +2261,16 @@ void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
   math::Pose3d start = _camera->WorldPose();
 
   // Look at world origin unless there are visuals selected
-  math::Vector3d lookAt = math::Vector3d::Zero;
-
-  // TODO(john) set lookat to be average of selected objects
-
   // Keep current distance to look at target
   math::Vector3d camPos = _camera->WorldPose().Pos();
-  double distance = std::fabs((camPos - lookAt).Length());
+  double distance = std::fabs((camPos - _lookAt).Length());
 
   // Calculate camera position
-  math::Vector3d endPos = lookAt - _direction * distance;
+  math::Vector3d endPos = _lookAt - _direction * distance;
 
   // Calculate camera orientation
   math::Quaterniond endRot =
-    ignition::math::Matrix4d::LookAt(endPos, lookAt).Rotation();
+    ignition::math::Matrix4d::LookAt(endPos, _lookAt).Rotation();
 
   // Move camera to that pose
   common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
