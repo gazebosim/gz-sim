@@ -46,6 +46,7 @@ Rectangle {
 
       TypeHeader {
         id: typeHeader
+        headerPadding: 0
       }
       MouseArea {
         anchors.fill: parent

@@ -29,13 +29,31 @@ Rectangle {
   width: componentInspector.width
   color: "transparent"
 
+  // Left indentation
+  property int indentation: 10
+
+  // Horizontal margins
+  property int margin: 5
+
   // Maximum spinbox value
   property double spinMax: 1000000
 
   Row {
-    spacing: numberComponent.width - typeHeader.width - content.width - 20
+    anchors.fill: parent
+
+    Item {
+      height: parent.height
+      width: margin
+    }
+
+    Item {
+      height: parent.height
+      width: indentation
+    }
+
     TypeHeader {
       id: typeHeader
+      headerPadding: 0
     }
 
     IgnSpinBox {
@@ -44,6 +62,11 @@ Rectangle {
       minimumValue: -spinMax
       maximumValue: spinMax
       Layout.fillWidth: true
+    }
+
+    Item {
+      height: parent.height
+      width: margin
     }
   }
 }

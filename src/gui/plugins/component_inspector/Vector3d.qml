@@ -29,6 +29,12 @@ Rectangle {
   width: componentInspector.width
   color: "transparent"
 
+  // Left indentation
+  property int indentation: 10
+
+  // Horizontal margins
+  property int margin: 5
+
   // Maximum spinbox value
   property double spinMax: 1000000
 
@@ -38,14 +44,34 @@ Rectangle {
   Column {
     anchors.fill: parent
 
+    // Header
     Rectangle {
       id: header
       width: parent.width
       height: typeHeader.height
       color: "transparent"
 
-      TypeHeader {
-        id: typeHeader
+      RowLayout {
+        anchors.fill: parent
+        Item {
+          width: margin
+        }
+        Image {
+          id: icon
+          sourceSize.height: indentation
+          sourceSize.width: indentation
+          fillMode: Image.Pad
+          anchors.verticalCenter: parent.verticalCenter
+          source: content.show ?
+              "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
+        }
+        TypeHeader {
+          id: typeHeader
+          headerPadding: 0
+        }
+        Item {
+          Layout.fillWidth: true
+        }
       }
       MouseArea {
         anchors.fill: parent
@@ -63,6 +89,7 @@ Rectangle {
       }
     }
 
+    // Content
     Rectangle {
       id: content
       property bool show: false
@@ -86,13 +113,13 @@ Rectangle {
         // Left spacer
         Item {
           Layout.rowSpan: 3
-          width: 5
+          width: indentation + margin
         }
 
         Text {
           text: 'X (' + unit + ')'
           leftPadding: 5
-          color: Material.theme == Material.Light ? "black" : "white"
+          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
           font.pointSize: 12
         }
 
@@ -108,13 +135,13 @@ Rectangle {
         // Right spacer
         Item {
           Layout.rowSpan: 3
-          width: 5
+          width: margin
         }
 
         Text {
           text: 'Y (' + unit + ')'
           leftPadding: 5
-          color: Material.theme == Material.Light ? "black" : "white"
+          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
           font.pointSize: 12
         }
 
@@ -130,7 +157,7 @@ Rectangle {
         Text {
           text: 'Z (' + unit + ')'
           leftPadding: 5
-          color: Material.theme == Material.Light ? "black" : "white"
+          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
           font.pointSize: 12
         }
 
