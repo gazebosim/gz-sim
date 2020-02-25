@@ -6,6 +6,7 @@ gz_add_system(physics
     ignition-common${IGN_COMMON_VER}::profiler
     ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
   PRIVATE_COMPILE_DEFS
-    "dartsim_plugin_LIB=\"$<TARGET_SONAME_FILE:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}-dartsim-plugin>\""
+    # Directory where all ign-physics engine plugins are installed
+    "ign_physics_engines=\"$<TARGET_SONAME_FILE_DIR:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}>\""
 )
 
