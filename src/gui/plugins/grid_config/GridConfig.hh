@@ -71,7 +71,7 @@ namespace gazebo
                                double _roll, double _pitch, double _yaw);
 
     /// \brief Callback to update grid color
-    /// \param[in] _r, _g, _b, _a three channel RGB color model with fourth alpha channel
+    /// \param[in] _r, _g, _b, _a RGB color model with fourth alpha channel
     public slots: void SetColor(double _r, double _g, double _b, double _a);
 
     /// \brief Callback when checkbox is clicked.
