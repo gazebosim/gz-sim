@@ -47,6 +47,7 @@ using namespace systems;
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Extract model resource files and state file from compression.
+  /// \return True if extraction was successful.
   public: bool ExtractStateAndResources();
 
   /// \brief Start log playback.
