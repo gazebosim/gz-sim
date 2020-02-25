@@ -245,7 +245,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the XYZ snap values.
     /// \return XYZ snapping values as a Vector3d
-    public: math::Vector3d XYZSnap();
+    public: math::Vector3d XYZSnap() const;
 
     /// \brief Set the RPY snap values.
     /// \param[in] _rpy The RPY snap values
@@ -253,7 +253,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the RPY snap values.
     /// \return RPY snapping values as a Vector3d
-    public: math::Vector3d RPYSnap();
+    public: math::Vector3d RPYSnap() const;
 
     /// \brief Set the scale snap values.
     /// \param[in] _scale The scale snap values
@@ -261,7 +261,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the scale snap values.
     /// \return Scale snapping values as a Vector3d
-    public: math::Vector3d ScaleSnap();
+    public: math::Vector3d ScaleSnap() const;
 
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
