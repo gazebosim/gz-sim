@@ -144,6 +144,13 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
   _item->setData(_data, TreeModel::RoleNames().key("data"));
 }
 
+//////////////////////////////////////////////////
+void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
+{
+  _item->setData(QString::fromStdString(_unit),
+      TreeModel::RoleNames().key("unit"));
+}
+
 /////////////////////////////////////////////////
 std::string shortName(const std::string &_typeName)
 {
@@ -222,7 +229,8 @@ QHash<int, QByteArray> TreeModel::RoleNames()
           std::pair(101, "typeId"),
           std::pair(102, "shortName"),
           std::pair(103, "dataType"),
-          std::pair(104, "data")};
+          std::pair(104, "unit"),
+          std::pair(105, "data")};
 }
 
 /////////////////////////////////////////////////
@@ -344,14 +352,20 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::AngularAcceleration>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "rad/s\u00B2");
+      }
     }
     else if (typeId == components::AngularVelocity::typeId)
     {
       auto comp = _ecm.Component<components::AngularVelocity>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "rad/s");
+      }
     }
     else if (typeId == components::CastShadows::typeId)
     {
@@ -371,28 +385,40 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       auto comp = _ecm.Component<components::Gravity>(this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "m/s\u00B2");
+      }
     }
     else if (typeId == components::LinearAcceleration::typeId)
     {
       auto comp = _ecm.Component<components::LinearAcceleration>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "m/s\u00B2");
+      }
     }
     else if (typeId == components::LinearVelocity::typeId)
     {
       auto comp = _ecm.Component<components::LinearVelocity>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "m/s");
+      }
     }
     else if (typeId == components::MagneticField::typeId)
     {
       auto comp = _ecm.Component<components::MagneticField>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "T");
+      }
     }
     else if (typeId == components::Name::typeId)
     {
@@ -443,21 +469,30 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::WorldAngularAcceleration>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "rad/s\u00B2");
+      }
     }
     else if (typeId == components::WorldLinearVelocity::typeId)
     {
       auto comp = _ecm.Component<components::WorldLinearVelocity>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "m/s");
+      }
     }
     else if (typeId == components::WorldLinearVelocitySeed::typeId)
     {
       auto comp = _ecm.Component<components::WorldLinearVelocitySeed>(
           this->dataPtr->entity);
       if (comp)
+      {
         setData(item, comp->Data());
+        setUnit(item, "m/s");
+      }
     }
     else if (typeId == components::WorldPose::typeId)
     {
