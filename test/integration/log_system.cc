@@ -1522,14 +1522,11 @@ TEST_F(LogSystemTest, LogCompress)
   // Test compressed file exists
   EXPECT_TRUE(common::exists(customCmpPath));
 
-  // Create new directory for playback tests
-  common::createDirectories(logPlaybackDir);
-
   // Move recorded file to playback directory
   // Prefix the zip by the name of the original recorded folder. Playback will
   // extract and assume subdirectory to take on the name of the zip file
   // without extension.
-  auto newCmpPath = common::joinPaths(logPlaybackDir,
+  auto newCmpPath = common::joinPaths(this->logPlaybackDir,
     common::basename(defaultCmpPath));
   common::moveFile(customCmpPath, newCmpPath);
   EXPECT_TRUE(common::exists(newCmpPath));
