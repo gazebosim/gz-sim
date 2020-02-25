@@ -354,7 +354,6 @@ void IgnRenderer::Render()
       IGN_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->PreRender();
     }
-    this->textureId = this->dataPtr->camera->RenderTextureGLId();
     this->textureDirty = false;
   }
 
@@ -843,8 +842,6 @@ void IgnRenderer::HandleMouseTransformControl()
       this->dataPtr->transformControl.Stop();
 
     this->dataPtr->transformControl.Detach();
-    this->dataPtr->renderUtil.SetSelectedEntity(
-        rendering::VisualPtr());
   }
   else
   {
@@ -1235,7 +1232,7 @@ void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyz)
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::XYZSnap()
+math::Vector3d IgnRenderer::XYZSnap() const
 {
   return this->dataPtr->xyzSnap;
 }
@@ -1247,7 +1244,7 @@ void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpy)
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::RPYSnap()
+math::Vector3d IgnRenderer::RPYSnap() const
 {
   return this->dataPtr->rpySnap;
 }
@@ -1259,7 +1256,7 @@ void IgnRenderer::SetScaleSnap(const math::Vector3d &_scale)
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::ScaleSnap()
+math::Vector3d IgnRenderer::ScaleSnap() const
 {
   return this->dataPtr->scaleSnap;
 }

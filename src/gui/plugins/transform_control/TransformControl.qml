@@ -37,7 +37,7 @@ ToolBar {
   property color snapTitle: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade900) :
     Material.color(Material.Grey, Material.Shade200)
-  
+
   property color snapItem: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade800) :
     Material.color(Material.Grey, Material.Shade100)
@@ -252,9 +252,8 @@ ToolBar {
 
     ToolButton {
       id: snap
-      text: "S"
-      checkable: true
-      ButtonGroup.group: group
+      text: "N"
+      checkable: false
       ToolTip.text: "Enter custom snap values"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -441,43 +440,5 @@ ToolBar {
         }
       }
     }
-    // TODO(anyone) enable scale button when support is added in ign-physics
-    // ToolButton {
-    //   id: scale
-    //   text: "S"
-    //   checkable: true
-    //   ButtonGroup.group: group
-    //   ToolTip.text: "Scale mode"
-    //   ToolTip.visible: hovered
-    //   ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-    //   contentItem: Image {
-    //     fillMode: Image.Pad
-    //     horizontalAlignment: Image.AlignHCenter
-    //     verticalAlignment: Image.AlignVCenter
-    //     source: "scale.png"
-    //     sourceSize.width: 24;
-    //     sourceSize.height: 24;
-    //   }
-    //  // Almost an exact copy from upstream, adding `checked`
-    //  background: Ripple {
-    //    implicitWidth: 48
-    //    implicitHeight: 48
-
-    //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
-
-    //    x: (parent.width - width) / 2
-    //    y: (parent.height - height) / 2
-    //    clip: !square
-    //    width: square ? parent.height / 2 : parent.width
-    //    height: square ? parent.height / 2 : parent.height
-    //    pressed: select.pressed
-    //    anchor: scale
-    //    active: scale.enabled && (scale.down || scale.visualFocus || scale.hovered || scale.checked)
-    //    color: scale.Material.rippleColor
-    //  }
-    //   onClicked: {
-    //     TransformControl.OnMode("scale")
-    //   }
-    // }
   }
 }
