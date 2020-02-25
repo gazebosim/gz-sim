@@ -216,7 +216,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   if (_logCompress > 0)
   {
-    serverConfig.SetLogRecordCompress(true);
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 

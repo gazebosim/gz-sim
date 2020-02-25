@@ -270,15 +270,14 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             }
 
             // If compress flag specified on command line, replace in SDF
-            if (_config.LogRecordCompress())
+            if (!_config.LogRecordCompressPath().empty())
             {
               sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
               compressElem->SetName("compress");
               pluginElem->AddElementDescription(compressElem);
               compressElem = pluginElem->GetElement("compress");
               compressElem->AddValue("bool", "false", false, "");
-              compressElem->Set<bool>(_config.LogRecordCompress()
-                ? true : false);
+              compressElem->Set<bool>(true);
 
               sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
               cPathElem->SetName("compress_path");
@@ -329,7 +328,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   recordElem->AddElementDescription(compressElem);
   compressElem = recordElem->GetElement("compress");
   compressElem->AddValue("bool", "false", false, "");
-  compressElem->Set<bool>(_config.LogRecordCompress() ? true : false);
+  compressElem->Set<bool>(_config.LogRecordCompressPath().empty() ? false :
+    true);
 
   // Set compress path
   sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();

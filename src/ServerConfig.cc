@@ -219,7 +219,6 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordPath(_cfg->logRecordPath),
             logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
-            logRecordCompress(_cfg->logRecordCompress),
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
@@ -254,9 +253,6 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
-
-  /// \brief When recording, compress final log files
-  public: bool logRecordCompress{false};
 
   /// \brief Path to compress log files to
   public: std::string logRecordCompressPath = "";
@@ -449,18 +445,6 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
-}
-
-/////////////////////////////////////////////////
-bool ServerConfig::LogRecordCompress() const
-{
-  return this->dataPtr->logRecordCompress;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogRecordCompress(bool _compress)
-{
-  this->dataPtr->logRecordCompress = _compress;
 }
 
 /////////////////////////////////////////////////
