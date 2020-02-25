@@ -261,7 +261,8 @@ void Physics::Configure(const Entity &/*_entity*/,
 {
   // Use DART by default
   std::string className = "ignition::physics::dartsim::Plugin";
-  std::string pluginLib = "libignition-physics1-dartsim-plugin.so";
+  std::string pluginLib =
+      "libignition-physics" IGN_PHYSICS_VER "-dartsim-plugin.so";
 
   // Add path to dartsim plugin path
   // Get custom engine from SDF
@@ -279,7 +280,7 @@ void Physics::Configure(const Entity &/*_entity*/,
   // * Engines installed with ign-physics
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths({ign_physics_engines});
+  systemPaths.AddPluginPaths({IGN_PHYSICS_ENGINES});
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())
