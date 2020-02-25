@@ -280,16 +280,16 @@ class LogSystemTest : public ::testing::Test
 
   // Run the server to record, passing in compress flag.
   // \param[in] _recordSdfRoot SDF Root element of the world to load
-  // \param[in] _compress Whether to specify the compress flag
-  public: void Compress(sdf::Root &_recordSdfRoot,
-      bool _compress = true)
+  // \param[in] _cmpPath Path for compressed file
+  public: void RunCompress(sdf::Root &_recordSdfRoot,
+    const std::string &_cmpPath)
   {
     // Pass changed SDF to server
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfString(_recordSdfRoot.Element()->ToString(""));
 
-    // Set compress flag
-    recordServerConfig.SetLogRecordCompress(_compress);
+    // Set compress path
+    recordServerConfig.SetLogRecordCompressPath(_cmpPath);
 
     // This tells server to call AddRecordPlugin() where flags are passed to
     //   recorder.
@@ -1468,7 +1468,7 @@ TEST_F(LogSystemTest, LogCompress)
     recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
     // Set compress flag
-    recordServerConfig.SetLogRecordCompress(true);
+    recordServerConfig.SetLogRecordCompressPath(defaultCmpPath);
 
     // This tells server to call AddRecordPlugin() where flags are passed to
     //   recorder.
@@ -1499,9 +1499,6 @@ TEST_F(LogSystemTest, LogCompress)
     // Pass SDF to server
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-
-    // Set compress flag
-    recordServerConfig.SetLogRecordCompress(true);
 
     // Set compress path
     recordServerConfig.SetLogRecordCompressPath(customCmpPath);
@@ -1593,7 +1590,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_TRUE(common::exists(recordPath));
     EXPECT_FALSE(common::exists(defaultCmpPath));
 
-    this->Compress(recordSdfRoot);
+    this->RunCompress(recordSdfRoot, defaultCmpPath);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1605,7 +1602,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_FALSE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(defaultCmpPath));
 
-    this->Compress(recordSdfRoot);
+    this->RunCompress(recordSdfRoot, defaultCmpPath);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1638,7 +1635,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   // Compress only, both recorded directory and compressed file exist
   {
     // Create compressed file
-    this->Compress(recordSdfRoot);
+    this->RunCompress(recordSdfRoot, defaultCmpPath);
 
     // Recreate recording directory so that it exists
     common::createDirectories(recordPath);

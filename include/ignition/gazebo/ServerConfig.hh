@@ -270,14 +270,6 @@ namespace ignition
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
-      /// \brief Get whether to compress log files
-      /// \return True if should compress.
-      public: bool LogRecordCompress() const;
-
-      /// \brief Set whether to compress log files
-      /// \param[in] _compress Value to set
-      public: void SetLogRecordCompress(bool _compress);
-
       /// \brief Get file path to compress log files to
       /// \return File path to compress log files to
       public: std::string LogRecordCompressPath() const;

@@ -64,7 +64,6 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_FALSE(serverConfig.LogRecordPath().empty());
   EXPECT_FALSE(serverConfig.LogIgnoreSdfPath());
   EXPECT_TRUE(serverConfig.LogPlaybackPath().empty());
-  EXPECT_FALSE(serverConfig.LogRecordCompress());
   EXPECT_TRUE(serverConfig.LogRecordCompressPath().empty());
   EXPECT_EQ(0u, serverConfig.Seed());
   EXPECT_EQ(123ms, serverConfig.UpdatePeriod().value_or(123ms));
@@ -317,8 +316,8 @@ TEST_P(ServerFixture, ServerConfigLogRecordCompress)
   {
     gazebo::ServerConfig serverConfig;
     serverConfig.SetUseLogRecord(true);
-    serverConfig.SetLogRecordCompress(true);
     serverConfig.SetLogRecordPath(logPath);
+    serverConfig.SetLogRecordCompressPath(compressedFile);
 
     gazebo::Server server(serverConfig);
     EXPECT_EQ(0u, *server.IterationCount());
