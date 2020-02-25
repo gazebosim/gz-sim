@@ -64,14 +64,6 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: std::string AppendExtension(const std::string &_dir,
     const std::string &_ext);
 
-  /// \brief Get whether to compress log files at the end.
-  /// \return True if compress log files.
-  public: bool Compress() const;
-
-  /// \brief Set whether to compress log files at the end.
-  /// \param[in] _compress True to compress log files.
-  public: void SetCompress(bool _compress);
-
   /// \brief Compress model resource files and state file into one file.
   public: void CompressStateAndResources();
 
@@ -153,7 +145,7 @@ LogRecord::~LogRecord()
     // Use ign-transport directly
     this->dataPtr->recorder.Stop();
 
-    if (this->dataPtr->Compress())
+    if (this->dataPtr->compress)
       this->dataPtr->CompressStateAndResources();
 
     ignmsg << "Stopping recording" << std::endl;
@@ -169,7 +161,7 @@ void LogRecord::Configure(const Entity &_entity,
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
-  this->dataPtr->SetCompress(_sdf->Get<bool>("compress", false).first);
+  this->dataPtr->compress = _sdf->Get<bool>("compress", false).first;
   this->dataPtr->cmpPath = _sdf->Get<std::string>("compress_path", "").first;
 
   // If plugin is specified in both the SDF tag and on command line, only
@@ -287,18 +279,6 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   }
   else
     return false;
-}
-
-//////////////////////////////////////////////////
-bool LogRecordPrivate::Compress() const
-{
-  return this->compress;
-}
-
-//////////////////////////////////////////////////
-void LogRecordPrivate::SetCompress(bool _compress)
-{
-  this->compress = _compress;
 }
 
 //////////////////////////////////////////////////

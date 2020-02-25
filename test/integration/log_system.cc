@@ -278,10 +278,10 @@ class LogSystemTest : public ::testing::Test
     }
   }
 
-  // Run the server to record, passing in compress and overwrite flags.
+  // Run the server to record, passing in compress flag.
   // \param[in] _recordSdfRoot SDF Root element of the world to load
   // \param[in] _compress Whether to specify the compress flag
-  public: void CompressAndOverwrite(sdf::Root &_recordSdfRoot,
+  public: void Compress(sdf::Root &_recordSdfRoot,
       bool _compress = true)
   {
     // Pass changed SDF to server
@@ -1596,7 +1596,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_TRUE(common::exists(recordPath));
     EXPECT_FALSE(common::exists(defaultCmpPath));
 
-    this->CompressAndOverwrite(recordSdfRoot);
+    this->Compress(recordSdfRoot);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1608,7 +1608,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_FALSE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(defaultCmpPath));
 
-    this->CompressAndOverwrite(recordSdfRoot);
+    this->Compress(recordSdfRoot);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1641,7 +1641,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   // Compress only, both recorded directory and compressed file exist
   {
     // Create compressed file
-    this->CompressAndOverwrite(recordSdfRoot);
+    this->Compress(recordSdfRoot);
 
     // Recreate recording directory so that it exists
     common::createDirectories(recordPath);

@@ -146,30 +146,39 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         // Otherwise rename to unique path
         else
         {
-          // Remove the separator at end of path
-          if (!std::string(1, recordPathMod.back()).compare(
-            ignition::common::separator("")))
+          // Keep renaming until path does not exist for both directory and
+          // compressed file
+          while (ignition::common::exists(recordPathMod) ||
+            ignition::common::exists(cmpPath))
           {
-            recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
-          }
-          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+            // Remove the separator at end of path
+            if (!std::string(1, recordPathMod.back()).compare(
+              ignition::common::separator("")))
+            {
+              recordPathMod = recordPathMod.substr(0, recordPathMod.length()
+                - 1);
+            }
 
-          cmpPath = std::string(recordPathMod);
-          // Remove the separator at end of path
-          if (!std::string(1, cmpPath.back()).compare(
-            ignition::common::separator("")))
-          {
-            cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
-          }
-          cmpPath += ".zip";
+            recordPathMod = ignition::common::uniqueDirectoryPath(
+              recordPathMod);
 
-          // If compressed file exists, rename again
-          if (ignition::common::exists(cmpPath))
-          {
-            cmpPath = ignition::common::uniqueFilePath(recordPathMod, "zip");
+            cmpPath = std::string(recordPathMod);
+            // Remove the separator at end of path
+            if (!std::string(1, cmpPath.back()).compare(
+              ignition::common::separator("")))
+            {
+              cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+            }
+            cmpPath += ".zip";
 
-            size_t extIdx = cmpPath.find_last_of('.');
-            recordPathMod = cmpPath.substr(0, extIdx);
+            // If compressed file exists, rename again
+            if (ignition::common::exists(cmpPath))
+            {
+              cmpPath = ignition::common::uniqueFilePath(recordPathMod, "zip");
+
+              size_t extIdx = cmpPath.find_last_of('.');
+              recordPathMod = cmpPath.substr(0, extIdx);
+            }
           }
 
           ignLogInit(recordPathMod, "server_console.log");
