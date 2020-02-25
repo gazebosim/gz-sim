@@ -83,7 +83,7 @@ Rectangle {
       text: ComponentInspector.type
       font.capitalization: Font.Capitalize
       color: Material.theme == Material.Light ? "#444444" : "#cccccc"
-      font.pointSize: 9
+      font.pointSize: 14
       padding: 3
       leftPadding: entityLabel.height
     }
@@ -93,7 +93,7 @@ Rectangle {
       anchors.right: parent.right
       text: 'Entity ' + ComponentInspector.entity
       color: Material.theme == Material.Light ? "#444444" : "#cccccc"
-      font.pointSize: 9
+      font.pointSize: 14
       padding: 3
     }
   }

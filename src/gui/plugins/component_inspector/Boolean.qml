@@ -28,31 +28,69 @@ Rectangle {
   width: componentInspector.width
   color: "transparent"
 
-  Row {
-    spacing: booleanComponent.width - typeHeader.width - content.width - 20
+  // Left indentation
+  property int indentation: 10
+
+  // Horizontal margins
+  property int margin: 5
+
+  RowLayout {
+    anchors.fill: parent
+
+    Item {
+      height: parent.height
+      width: margin
+    }
+
+    Item {
+      height: parent.height
+      width: indentation
+    }
+
     TypeHeader {
       id: typeHeader
+      headerPadding: 0
     }
 
     Rectangle {
       id: content
-      y: -content.width * 0.2
-      height: booleanSwitch.height
-      width: booleanSwitch.width
+      Layout.fillWidth: true
+      height: typeHeader.height
       color: "transparent"
 
       Switch {
         id: booleanSwitch
+        anchors.right: content.right
+        height: typeHeader.height * 0.8
+        y: typeHeader.height * 0.1
         checked: model.data
         enabled: false
+
+        Binding {
+          target: booleanSwitch.indicator
+          property: 'height'
+          value: booleanSwitch.height
+        }
+
+        // groove
+        Binding {
+          target: (booleanSwitch.indicator ? booleanSwitch.indicator.children[0] : null)
+          property: 'height'
+          value: booleanSwitch.height * 0.8
+        }
+
+        // handle
+        Binding {
+          target: (booleanSwitch.indicator ? booleanSwitch.indicator.children[1] : null)
+          property: 'height'
+          value: booleanSwitch.height
+        }
       }
 
       ToolTip {
         visible: ma.containsMouse
         delay: tooltipDelay
         text: content.checked ? "True" : "False"
-        y: booleanSwitch.y - booleanSwitch.height * 0.5
-        x: booleanSwitch.x
         enter: null
         exit: null
       }
@@ -62,6 +100,11 @@ Rectangle {
         hoverEnabled: true
         acceptedButtons: Qt.RightButton
       }
+    }
+
+    Item {
+      height: parent.height
+      width: margin
     }
   }
 }

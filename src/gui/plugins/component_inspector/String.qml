@@ -28,6 +28,12 @@ Rectangle {
   width: componentInspector.width
   color: "transparent"
 
+  // Left indentation
+  property int indentation: 10
+
+  // Horizontal margins
+  property int margin: 5
+
   function textFromModel(_model) {
     if (_model && _model.data !== undefined && typeof _model.data == 'string')
       return _model.data
@@ -35,19 +41,38 @@ Rectangle {
     return 'N/A'
   }
 
-  Row {
-    spacing: stringComponent.width - typeHeader.width - content.width - 20
+  RowLayout {
+    anchors.fill: parent
+
+    Item {
+      height: parent.height
+      width: margin
+    }
+
+    Item {
+      height: parent.height
+      width: indentation
+    }
+
     TypeHeader {
       id: typeHeader
+      headerPadding: 0
     }
 
     TextInput {
       id: content
       text: textFromModel(model)
+      Layout.fillWidth: true
+      horizontalAlignment: Text.AlignRight
       color: Material.theme == Material.Light ? "black" : "white"
       font.pointSize: 12
       selectByMouse: true // will only work when we enable it
       enabled: false
+    }
+
+    Item {
+      height: parent.height
+      width: margin
     }
   }
 }

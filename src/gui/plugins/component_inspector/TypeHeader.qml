@@ -27,6 +27,9 @@ Rectangle {
   width: headerText.width
   color: "transparent"
 
+  // Left indentation
+  property int headerPadding: 25
+
   function tooltipText(_model) {
     if (model === null)
       return "Unknown component"
@@ -46,7 +49,7 @@ Rectangle {
     text: model && model.shortName ? model.shortName : ''
     color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
     font.pointSize: 12
-    leftPadding: 10
+    leftPadding: headerPadding
 
     ToolTip {
       visible: ma.containsMouse
