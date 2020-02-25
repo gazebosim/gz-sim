@@ -32,6 +32,9 @@ Rectangle {
   // Maximum spinbox value
   property double spinMax: 1000000
 
+  // Units, defaults to meters.
+  property string unit: model && model.unit != undefined ? model.unit : 'm'
+
   Column {
     anchors.fill: parent
 
@@ -87,7 +90,7 @@ Rectangle {
         }
 
         Text {
-          text: 'X (m)'
+          text: 'X (' + unit + ')'
           leftPadding: 5
           color: Material.theme == Material.Light ? "black" : "white"
           font.pointSize: 12
@@ -109,7 +112,7 @@ Rectangle {
         }
 
         Text {
-          text: 'Y (m)'
+          text: 'Y (' + unit + ')'
           leftPadding: 5
           color: Material.theme == Material.Light ? "black" : "white"
           font.pointSize: 12
@@ -125,7 +128,7 @@ Rectangle {
         }
 
         Text {
-          text: 'Z (m)'
+          text: 'Z (' + unit + ')'
           leftPadding: 5
           color: Material.theme == Material.Light ? "black" : "white"
           font.pointSize: 12

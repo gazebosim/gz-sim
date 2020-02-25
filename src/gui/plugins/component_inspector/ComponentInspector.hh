@@ -95,6 +95,11 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const std::ostream &_data);
 
+  /// \brief Set the unit of a given item.
+  /// \param[in] _item Item whose unit will be set.
+  /// \param[in] _unit Unit to be displayed, such as 'm' for meters.
+  void setUnit(QStandardItem *_item, const std::string &_unit);
+
   /// \brief TODO
   class TreeModel : public QStandardItemModel
   {
