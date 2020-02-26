@@ -155,6 +155,22 @@ namespace gazebo
       NOTIFY TypeChanged
     )
 
+    /// \brief Locked
+    Q_PROPERTY(
+      bool locked
+      READ Locked
+      WRITE SetLocked
+      NOTIFY LockedChanged
+    )
+
+    /// \brief Paused
+    Q_PROPERTY(
+      bool paused
+      READ Paused
+      WRITE SetPaused
+      NOTIFY PausedChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -191,6 +207,28 @@ namespace gazebo
 
     /// \brief Notify that entity type has changed
     signals: void TypeChanged();
+
+    /// \brief Get whether the inspector is currently locked on an entity.
+    /// \return True for locked
+    public: Q_INVOKABLE bool Locked() const;
+
+    /// \brief Set whether the inspector is currently locked on an entity.
+    /// \param[in] _locked True for locked.
+    public: Q_INVOKABLE void SetLocked(bool _locked);
+
+    /// \brief Notify that locked has changed.
+    signals: void LockedChanged();
+
+    /// \brief Get whether the inspector is currently paused for updates.
+    /// \return True for paused.
+    public: Q_INVOKABLE bool Paused() const;
+
+    /// \brief Set whether the inspector is currently paused for updates.
+    /// \param[in] _paused True for paused.
+    public: Q_INVOKABLE void SetPaused(bool _paused);
+
+    /// \brief Notify that paused has changed.
+    signals: void PausedChanged();
 
     /// \internal
     /// \brief Pointer to private data.

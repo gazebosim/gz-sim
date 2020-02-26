@@ -68,6 +68,12 @@ namespace ignition::gazebo
 
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
+
+    /// \brief Whether currently locked on a given entity
+    public: bool locked{false};
+
+    /// \brief Whether updates are currently paused.
+    public: bool paused{false};
   };
 }
 
@@ -263,9 +269,10 @@ void ComponentInspector::Update(const UpdateInfo &,
 {
   IGN_PROFILE("ComponentInspector::Update");
 
-  auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
+  if (this->dataPtr->paused)
+    return;
 
-  // TODO(louise) Sort so type and name are up top
+  auto componentTypes = _ecm.ComponentTypes(this->dataPtr->entity);
 
   // List all components
   for (const auto &typeId : componentTypes)
@@ -538,7 +545,8 @@ void ComponentInspector::Update(const UpdateInfo &,
 /////////////////////////////////////////////////
 bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (!this->dataPtr->locked &&
+      _event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -585,6 +593,32 @@ void ComponentInspector::SetType(const QString &_type)
 {
   this->dataPtr->type = _type;
   this->TypeChanged();
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::Locked() const
+{
+  return this->dataPtr->locked;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetLocked(bool _locked)
+{
+  this->dataPtr->locked = _locked;
+  this->LockedChanged();
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::Paused() const
+{
+  return this->dataPtr->paused;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetPaused(bool _paused)
+{
+  this->dataPtr->paused = _paused;
+  this->PausedChanged();
 }
 
 // Register this plugin
