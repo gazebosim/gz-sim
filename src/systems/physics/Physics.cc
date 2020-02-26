@@ -30,6 +30,7 @@
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
+#include <ignition/physics/FindFeatures.hh>
 #include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
 #include <ignition/plugin/Loader.hh>
@@ -95,6 +96,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -254,24 +256,41 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 }
 
 //////////////////////////////////////////////////
-void Physics::Configure(const Entity &/*_entity*/,
+void Physics::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/,
+    EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
-  // Use DART by default
-  std::string className = "ignition::physics::dartsim::Plugin";
-  std::string pluginLib =
-      "libignition-physics" IGN_PHYSICS_VER "-dartsim-plugin.so";
+  std::string pluginLib;
 
-  // Add path to dartsim plugin path
-  // Get custom engine from SDF
-  if (_sdf->HasElement("engine"))
+  // 1. Engine from component (from command line / ServerConfig)
+  auto engineComp = _ecm.Component<components::PhysicsEnginePlugin>(_entity);
+  if (engineComp && !engineComp->Data().empty())
+  {
+    pluginLib = engineComp->Data();
+  }
+  // 2. Engine from SDF
+  else if (_sdf->HasElement("engine"))
   {
     auto sdfClone = _sdf->Clone();
     auto engineElem = sdfClone->GetElement("engine");
     pluginLib = engineElem->Get<std::string>("filename", pluginLib).first;
-    className = engineElem->Get<std::string>("class", className).first;
+  }
+  // 3. Use DART by default
+  else
+  {
+    pluginLib = "libignition-physics" IGN_PHYSICS_VER "-dartsim-plugin.so";
+  }
+
+  // Update component
+  if (!engineComp)
+  {
+    _ecm.CreateComponent(_entity, components::PhysicsEnginePlugin(pluginLib));
+  }
+  else
+  {
+    engineComp->SetData(pluginLib,
+        [](const std::string &_a, const std::string &_b){return _a == _b;});
   }
 
   // Find engine shared library
@@ -292,34 +311,49 @@ void Physics::Configure(const Entity &/*_entity*/,
   }
 
   // Load engine plugin
-  ignition::plugin::Loader pl;
-  std::unordered_set<std::string> plugins = pl.LoadLib(pathToLib);
-  if (!plugins.empty())
-  {
-    ignition::plugin::PluginPtr plugin = pl.Instantiate(className);
-
-    if (plugin)
-    {
-      this->dataPtr->engine = ignition::physics::RequestEngine<
-        ignition::physics::FeaturePolicy3d,
-        PhysicsPrivate::MinimumFeatureList>::From(plugin);
-
-      if (nullptr == this->dataPtr->engine)
-      {
-        ignerr << "Engine [" << className
-               << "] is missing required features and can't be loaded."
-               << std::endl;
-      }
-    }
-    else
-    {
-      ignerr << "Unable to instantiate [" << className << "] from plugin ["
-             << pluginLib << "]." << std::endl;
-    }
-  }
-  else
+  ignition::plugin::Loader pluginLoader;
+  auto plugins = pluginLoader.LoadLib(pathToLib);
+  if (plugins.empty())
   {
     ignerr << "Unable to load the [" << pathToLib << "] library.\n";
+    return;
+  }
+
+  auto classNames =
+      physics::FindFeatures3d<PhysicsPrivate::MinimumFeatureList>::From(
+      pluginLoader);
+  if (classNames.empty())
+  {
+    ignerr << "No plugins with all required features found in library ["
+           << pathToLib << "]." << std::endl;
+    return;
+  }
+
+  // Get the first plugin that works
+  for (auto className : classNames)
+  {
+    auto plugin = pluginLoader.Instantiate(className);
+
+    if (!plugin)
+      continue;
+
+    this->dataPtr->engine = ignition::physics::RequestEngine<
+      ignition::physics::FeaturePolicy3d,
+      PhysicsPrivate::MinimumFeatureList>::From(plugin);
+
+    if (nullptr != this->dataPtr->engine)
+    {
+      igndbg << "Loaded [" << className << "] from library ["
+             << pathToLib << "]" << std::endl;
+      break;
+    }
+  }
+
+  if (nullptr == this->dataPtr->engine)
+  {
+    ignerr << "Failed to load a valid physics engine from [" << pathToLib
+           << "]."
+           << std::endl;
   }
 }
 
