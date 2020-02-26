@@ -62,39 +62,84 @@ Rectangle {
 
   Rectangle {
     id: header
-    height: entityLabel.height
+    height: lockButton.height
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
     width: parent.width
     color: darkGrey
 
+    RowLayout {
+      anchors.fill: parent
+      spacing: 0
 
-    IgnGazebo.TypeIcon {
-      id: icon
-      anchors.left: parent.left
-      height: entityLabel.height
-      width: entityLabel.height
-      entityType: ComponentInspector.type
-    }
+      IgnGazebo.TypeIcon {
+        id: icon
+        height: lockButton.height * 0.8
+        width: lockButton.height * 0.8
+        entityType: ComponentInspector.type
+      }
 
-    Label {
-      anchors.left: parent.left
-      text: ComponentInspector.type
-      font.capitalization: Font.Capitalize
-      color: Material.theme == Material.Light ? "#444444" : "#cccccc"
-      font.pointSize: 14
-      padding: 3
-      leftPadding: entityLabel.height
-    }
+      Label {
+        text: ComponentInspector.type
+        font.capitalization: Font.Capitalize
+        color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+        font.pointSize: 12
+        padding: 3
+      }
 
-    Label {
-      id: entityLabel
-      anchors.right: parent.right
-      text: 'Entity ' + ComponentInspector.entity
-      color: Material.theme == Material.Light ? "#444444" : "#cccccc"
-      font.pointSize: 14
-      padding: 3
+      Item {
+        height: entityLabel.height
+        Layout.fillWidth: true
+      }
+
+      ToolButton {
+        id: lockButton
+        checkable: true
+        checked: false
+        text: "Lock entity"
+        contentItem: Image {
+          fillMode: Image.Pad
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignVCenter
+          source: lockButton.checked ? "qrc:/Gazebo/images/lock.svg" : "qrc:/Gazebo/images/unlock.svg"
+          sourceSize.width: 24;
+          sourceSize.height: 24;
+        }
+        ToolTip.text: lockButton.checked ? "Lock entity (locked)" : "Lock entity (unlocked)"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onToggled: {
+          ComponentInspector.locked = lockButton.checked
+        }
+      }
+
+      ToolButton {
+        id: pauseButton
+        checkable: true
+        checked: false
+        text: pauseButton.checked ? "\u275A\u275A" : "\u25B6"
+        contentItem: Text {
+          text: pauseButton.text
+          color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+        }
+        ToolTip.text: pauseButton.checked ? "Pause updates (paused)" : "Pause updates (unpaused)"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onToggled: {
+          ComponentInspector.paused = pauseButton.checked
+        }
+      }
+
+      Label {
+        id: entityLabel
+        text: 'Entity ' + ComponentInspector.entity
+        color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+        font.pointSize: 12
+        padding: 3
+      }
     }
   }
 
