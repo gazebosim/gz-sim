@@ -37,6 +37,7 @@ ToolBar {
     anchors.fill: parent
     columns: 4
     columnSpacing: 5
+    rowSpacing: 5
     Text {
       text: "X:"
       Layout.row: 0
@@ -105,10 +106,10 @@ ToolBar {
         onEntered: {
           AlignTool.OnAlignAxis("X")
           AlignTool.OnAlignConfig("center")
-          AlignTool.SetHovered(1)
+          AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.SetHovered(0)
+          AlignTool.OnHoveredExited()
         }
         onClicked: {
           AlignTool.SetAlignStatus("align")
@@ -213,10 +214,10 @@ ToolBar {
         onEntered: {
           AlignTool.OnAlignAxis("Y")
           AlignTool.OnAlignConfig("center")
-          AlignTool.SetHovered(1)
+          AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.SetHovered(0)
+          AlignTool.OnHoveredExited()
         }
         onClicked: {
           AlignTool.SetAlignStatus("align")
@@ -320,10 +321,10 @@ ToolBar {
         onEntered: {
           AlignTool.OnAlignAxis("Z")
           AlignTool.OnAlignConfig("center")
-          AlignTool.SetHovered(1)
+          AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.SetHovered(0)
+          AlignTool.OnHoveredExited()
         }
         onClicked: {
           AlignTool.SetAlignStatus("align")

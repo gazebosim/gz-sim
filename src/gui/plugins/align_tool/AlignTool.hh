@@ -29,7 +29,7 @@ namespace gazebo
 {
   enum class AlignStatus
   {
-    NO_ALIGN,
+    HOVER,
     ALIGN,
     NONE
   };
@@ -81,7 +81,9 @@ namespace gazebo
 
     public slots: void SetAlignStatus(const QString &_status);
 
-    public slots: void SetHovered(bool _hovered);
+    public slots: void OnHoveredEntered();
+    
+    public slots: void OnHoveredExited();
 
     public: void Align();
 

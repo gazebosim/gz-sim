@@ -409,7 +409,11 @@ void RenderUtil::Update()
       // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
       Entity entityId = this->EntityFromNode(node->Parent());
-      if (this->dataPtr->transformActive &&
+      auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+      int updateNode = 0;
+      if (vis)
+        updateNode = std::get<int>(vis->UserData("pause-update"));
+      if ((this->dataPtr->transformActive || updateNode) &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
           entityId == this->dataPtr->selectedEntities.back()))
       {

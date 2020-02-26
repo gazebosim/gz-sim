@@ -47,29 +47,45 @@ namespace ignition::gazebo
     /// \brief Align Tool service name
     public: std::string service;
 
-    // TODO need to set the pose cmd service to the world topic
+    /// \brief The service call string for requesting a new pose for an entity
     public: std::string poseCmdService;
 
+    /// \brief The current world name
     public: std::string worldName;
 
+    /// \brief The current selected axis about which to align
     public: AlignAxis axis{AlignAxis::ALIGN_X};
 
-    public: AlignConfig config{AlignConfig::ALIGN_MIN};
-    
+    /// \brief The current align configuration
+    public: AlignConfig config{AlignConfig::ALIGN_CENTER};
+
+    /// \brief The current stat
     public: AlignStatus status{AlignStatus::NONE};
 
+    /// \brief Flag to indicate if the entities to should aligned to the first
+    /// or last entity selected
     public: bool first{true};
 
+    /// \brief Flag to indicate if the reverse align should occur
     public: bool reverse{false};
 
-    public: bool hovered{false};
+    /// \brief Flag to indicate if the rendering thread should update the scene
+    /// with newly provided information.
+    public: bool alignDirty{false};
 
+    /// \brief Flag to indicate if the simulation is currently paused
     public: bool paused{false};
 
+    /// \brief Flag to indicate if we should reset the entities to their
+    /// previous positions.  Occurs when the user exits hovering over a button
+    /// but does not click the button
     public: bool reset{false};
 
+    /// \brief The current selected entities
     std::vector<Entity> selectedEntities;
 
+    /// \brief the previous positions of all the selected nodes.  Should always
+    /// be equal to the number of selected entities
     std::vector<math::Vector3d> prevPositions;
   };
 }
@@ -124,12 +140,11 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
-    if ((this->dataPtr->hovered || this->dataPtr->reset)
+    if ((this->dataPtr->alignDirty)
          && this->dataPtr->selectedEntities.size() > 1)
     {
       this->Align();
-      this->dataPtr->reset = false;
-      this->dataPtr->hovered = false;
+      this->dataPtr->alignDirty = false;
     }
   }
   else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::Type)
@@ -154,9 +169,9 @@ void AlignTool::SetAlignStatus(const QString &_status)
   std::transform(newStatus.begin(), newStatus.end(), newStatus.begin(), ::tolower);
   if (!this->dataPtr->paused)
   {
-    if (newStatus == "no_align")
+    if (newStatus == "hover")
     {
-      this->dataPtr->status = AlignStatus::NO_ALIGN;
+      this->dataPtr->status = AlignStatus::HOVER;
     }
     else if (newStatus == "align")
     {
@@ -174,35 +189,30 @@ void AlignTool::SetAlignStatus(const QString &_status)
       ignwarn << " - align\n";
       ignwarn << " - none\n";
     }
+    this->dataPtr->alignDirty = true;
   }
 }
 
-/////////////////////////////////////////////////
-// TODO(john) split the following function into two separate
-// enter and exit functions
-void AlignTool::SetHovered(bool _hovered)
+void AlignTool::OnHoveredEntered()
 {
   if (!this->dataPtr->paused)
   {
-    this->dataPtr->hovered = _hovered;
+    this->SetAlignStatus("hover");
+  }
+}
 
-    // If we exit hovering and the button has not been clicked, reset nodes
-    if (!this->dataPtr->hovered && this->dataPtr->status == AlignStatus::NO_ALIGN)
+void AlignTool::OnHoveredExited()
+{
+  if (!this->dataPtr->paused)
+  {
+    // If no align has occurred, reset entities to start positions
+    if (this->dataPtr->status == AlignStatus::HOVER)
     {
-      // TODO set entities back to prev pos
-      
       this->dataPtr->reset = true;
-      this->SetAlignStatus("none");
     }
-    if (!this->dataPtr->hovered)
-    {
-      this->SetAlignStatus("none");
-      this->dataPtr->prevPositions.clear();
-    }
-    else if (this->dataPtr->hovered)
-    {
-      this->SetAlignStatus("no_align");
-    }
+    // Set align status back to none to indicate an irrelevant (unhovered) state
+    this->SetAlignStatus("none");
+    this->dataPtr->prevPositions.clear();
   }
 }
 
@@ -385,22 +395,36 @@ void AlignTool::Align()
     if (this->dataPtr->reset)
     {
       newPos = this->dataPtr->prevPositions[i];
+      vis->SetWorldPosition(newPos);
+      vis->SetUserData("pause-update", static_cast<int>(0));
+    }
+    else if (this->dataPtr->status == AlignStatus::ALIGN)
+    {
+      req.set_name(vis->Name());
+      msgs::Set(req.mutable_position(), newPos);
+      msgs::Set(req.mutable_orientation(), vis->WorldRotation());
+      this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
     }
     else
     {
-      double relativeCoord = relativeVisual->WorldPosition()[axisIndex];
-      newPos[axisIndex] = relativeCoord;
+      newPos[axisIndex] = relativeVisual->WorldPosition()[axisIndex];
 
       // Store the vis's world positions in a vector
       this->dataPtr->prevPositions.push_back(vis->WorldPosition());
-    }
 
-    // Send new position request 
-    req.set_name(vis->Name());
-    msgs::Set(req.mutable_position(), newPos);
-    msgs::Set(req.mutable_orientation(), vis->WorldRotation());
-    this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
+      // Send new position request 
+      // TODO find correct material of object
+      rendering::MaterialPtr mat = vis->Material();
+      if (mat)
+      {
+        std::cout << "Found material\n";
+        mat->SetTransparency(0.5);
+      }
+      vis->SetUserData("pause-update", static_cast<int>(1));
+      vis->SetWorldPosition(newPos);
+    }
   }
+  this->dataPtr->reset = false;
 }
 
 // Register this plugin

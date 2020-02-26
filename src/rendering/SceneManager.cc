@@ -145,6 +145,7 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 
   rendering::VisualPtr modelVis = this->dataPtr->scene->CreateVisual(name);
   modelVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  modelVis->SetUserData("pause-update", static_cast<int>(0));
   modelVis->SetLocalPose(_model.RawPose());
   this->dataPtr->visuals[_id] = modelVis;
 
@@ -227,6 +228,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
   visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
   math::Vector3d scale = math::Vector3d::One;
@@ -244,6 +246,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     {
       geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
       geomVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+      geomVis->SetUserData("pause-update", static_cast<int>(0));
       geomVis->SetLocalPose(_visual.RawPose() * localPose);
       visualVis = geomVis;
     }
@@ -543,6 +546,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
   actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+  actorVisual->SetUserData("pause-update", static_cast<int>(0));
   actorVisual->SetLocalPose(_actor.RawPose());
   actorVisual->AddGeometry(actorMesh);
 
