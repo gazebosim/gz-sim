@@ -67,6 +67,7 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_EQ(0u, serverConfig.Seed());
   EXPECT_EQ(123ms, serverConfig.UpdatePeriod().value_or(123ms));
   EXPECT_TRUE(serverConfig.ResourceCache().empty());
+  EXPECT_TRUE(serverConfig.PhysicsEngine().empty());
   EXPECT_TRUE(serverConfig.Plugins().empty());
 
   gazebo::Server server(serverConfig);

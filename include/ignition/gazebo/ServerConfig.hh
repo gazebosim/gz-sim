@@ -298,6 +298,14 @@ namespace ignition
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
 
+      /// \brief Physics engine plugin library to load.
+      /// \return File containing physics engine library.
+      public: const std::string &PhysicsEngine() const;
+
+      /// \brief Set the physics engine plugin library.
+      /// \param[in] _physicsEngine File containing physics engine library.
+      public: void SetPhysicsEngine(const std::string &_physicsEngine);
+
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.
       /// \param[in] _info Information about the plugin to load.
