@@ -412,10 +412,14 @@ void RenderUtil::Update()
       auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
       int updateNode = 0;
       if (vis)
+      {
         updateNode = std::get<int>(vis->UserData("pause-update"));
-      if ((this->dataPtr->transformActive || updateNode) &&
+      }
+      if ((this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
-          entityId == this->dataPtr->selectedEntities.back()))
+          entityId == this->dataPtr->selectedEntities.back())) ||
+          updateNode
+          )
       {
         continue;
       }
