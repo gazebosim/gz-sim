@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include <ignition/rendering.hh>
 #include <ignition/gui/Plugin.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
@@ -83,6 +84,16 @@ namespace gazebo
     public slots: void AddStatus(const QString &_status);
     
     public: void AddStatus(const AlignStatus &_status);
+
+    public: void MakeSolid(const rendering::NodePtr &_node);
+
+    public: void MakeTransparent(const rendering::NodePtr &_node);
+
+    public: rendering::VisualPtr TopLevelVisual(rendering::ScenePtr &_scene,
+            rendering::VisualPtr &_visual) const;
+    
+    public: rendering::NodePtr TopLevelNode(rendering::ScenePtr &_scene,
+            rendering::NodePtr &_node) const;
 
     public slots: void OnHoveredEntered();
     
