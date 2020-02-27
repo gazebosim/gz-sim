@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="340.05306"
-     inkscape:cy="334.81287"
+     inkscape:cx="218.83475"
+     inkscape:cy="294.40677"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -55,9 +55,9 @@
      id="layer1"
      transform="translate(0,-164.70832)">
     <path
-       style="fill:none;stroke:#d1d1d1;stroke-width:10.58333302;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 36.615924,192.75413 c 0,0 7.461487,-21.31844 28.330571,-20.31248 35.530695,1.7127 32.606884,51.85029 32.606884,51.85029"
-       id="path4531"
+       style="fill:none;stroke:#d1d1d1;stroke-width:10.68289852;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 78.895025,224.29194 c 0,0 -3.193938,-50.77032 25.206455,-51.31575 17.38662,-0.33391 20.9701,20.84702 20.9701,20.84702"
+       id="path4531-3"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="csc" />
     <rect
@@ -65,7 +65,8 @@
        id="rect4529"
        width="91.406174"
        height="73.499123"
-       x="20.442747"
-       y="223.50087" />
+       x="7.213582"
+       y="223.50087"
+       ry="10.156242" />
   </g>
 </svg>
