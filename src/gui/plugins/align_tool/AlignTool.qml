@@ -23,7 +23,7 @@ import QtQuick.Controls.Styles 1.4
 
 ToolBar {
   Layout.minimumWidth: 200
-  Layout.minimumHeight: 370
+  Layout.minimumHeight: 330
 
   background: Rectangle {
     color: "transparent"
@@ -362,7 +362,6 @@ ToolBar {
         }
       }
     }
-    */
     CheckBox {
       text: qsTr("Reverse")
       Layout.columnSpan: 4
@@ -373,6 +372,7 @@ ToolBar {
         AlignTool.OnReverse(checked)
       }
     }
+    */
     RowLayout {
       Layout.columnSpan: 4
       spacing: 10

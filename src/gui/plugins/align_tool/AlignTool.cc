@@ -77,13 +77,15 @@ namespace ignition::gazebo
     public: bool paused{false};
 
     /// \brief The current selected entities
-    std::vector<Entity> selectedEntities;
+    public: std::vector<Entity> selectedEntities;
 
     /// \brief the previous positions of all the selected nodes.  Should always
     /// be equal to the number of selected entities
-    std::vector<math::Vector3d> prevPositions;
+    public: std::vector<math::Vector3d> prevPositions;
 
-    std::queue<AlignStatus> statuses;
+    public: std::queue<AlignStatus> statuses;
+
+    public: std::map<std::string, double> originalTransparency;
   };
 }
 
@@ -403,12 +405,22 @@ void AlignTool::Align()
   {
     rendering::VisualPtr vis = selectedList[i];
 
+    // TODO check here to see if visual is top level or not, continue if not
+    rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
+    if (topLevelVis != vis)
+    {
+      ignwarn << "top level: " << topLevelVis << "\n";
+      ignwarn << "vis: " << vis << "\n";
+      ignwarn << "visual is not top level\n";
+      continue;
+    }
     math::Vector3d newPos = vis->WorldPosition();
-    
+
     // If a reset is occuring, the user has not clicked align,
     // so pull all of the previous positions and set
     if (this->dataPtr->currentStatus == AlignStatus::RESET)
     {
+      this->MakeSolid(vis);
       newPos = this->dataPtr->prevPositions[i];
       vis->SetWorldPosition(newPos);
       vis->SetUserData("pause-update", static_cast<int>(0));
@@ -417,6 +429,7 @@ void AlignTool::Align()
     // make a request to the backend to send the node to the new position
     else if (this->dataPtr->currentStatus == AlignStatus::ALIGN)
     {
+      this->MakeSolid(vis);
       req.set_name(vis->Name());
       msgs::Set(req.mutable_position(), newPos);
       msgs::Set(req.mutable_orientation(), vis->WorldRotation());
@@ -433,23 +446,161 @@ void AlignTool::Align()
       // Store the vis's world positions in a vector
       this->dataPtr->prevPositions.push_back(vis->WorldPosition());
 
-      // Send new position request 
-      // TODO find correct material of object
-      rendering::MaterialPtr mat = vis->Material();
-      if (mat)
-      {
-        mat->SetTransparency(0.5);
-      }
+      // Make the visual transparent and update to new position
+      this->MakeTransparent(vis);
       vis->SetUserData("pause-update", static_cast<int>(1));
       vis->SetWorldPosition(newPos);
     }
   }
   
   // If reset has iterated once, set status back to none as job
-  // has been completed
+  // has been completed, and reset transparency map
   if (this->dataPtr->currentStatus == AlignStatus::RESET)
+  {
+    this->dataPtr->originalTransparency.clear();
     this->dataPtr->currentStatus = AlignStatus::NONE;
+  }
+  // Also reset transparency map if status is align
+  else if (this->dataPtr->currentStatus == AlignStatus::ALIGN)
+  {
+    this->dataPtr->originalTransparency.clear();
+  }
 }
+
+void AlignTool::MakeSolid(const rendering::NodePtr &_node)
+{
+  if (!_node)
+    return;
+
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->MakeSolid(child);
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visTransparency = this->dataPtr->originalTransparency.find(vis->Name());
+    if (visTransparency != this->dataPtr->originalTransparency.end())
+    {
+      visMat->SetTransparency(visTransparency->second);
+      vis->SetMaterial(visMat);
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat)
+      continue;
+
+    auto geomTransparency = this->dataPtr->originalTransparency.find(geom->Name());
+    if (geomTransparency != this->dataPtr->originalTransparency.end())
+    {
+      geomMat->SetTransparency(geomTransparency->second);
+      geom->SetMaterial(geomMat);
+    }
+  }
+}
+
+////////////////////////////////////////////////
+void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
+{
+  if (!_node)
+    return;
+
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    auto child = _node->ChildByIndex(n);
+    this->MakeTransparent(child);
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    // If the entity isn't already highlighted, highlight it
+    if (this->dataPtr->originalTransparency.find(vis->Name()) ==
+        this->dataPtr->originalTransparency.end())
+    {
+      this->dataPtr->originalTransparency[vis->Name()] = visMat->Transparency();
+      visMat->SetTransparency(visMat->Transparency() + 0.5);
+      vis->SetMaterial(visMat);
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat)
+      continue;
+
+    // If the entity isn't already highlighted, highlight it
+    if (this->dataPtr->originalTransparency.find(geom->Name()) ==
+        this->dataPtr->originalTransparency.end())
+    {
+      this->dataPtr->originalTransparency[geom->Name()] = geomMat->Transparency();
+      geomMat->SetTransparency(geomMat->Transparency() + 0.5);
+      geom->SetMaterial(geomMat);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr AlignTool::TopLevelVisual(rendering::ScenePtr &_scene,
+    rendering::VisualPtr &_visual) const
+{
+  auto visNode = std::dynamic_pointer_cast<rendering::Node>(_visual);
+  auto node = this->TopLevelNode(_scene, visNode);
+  return std::dynamic_pointer_cast<rendering::Visual>(node);
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr AlignTool::TopLevelNode(rendering::ScenePtr &_scene,
+    rendering::NodePtr &_node) const
+{
+  rendering::NodePtr rootNode =
+      _scene->RootVisual();
+
+  rendering::NodePtr node;
+
+  if (_node)
+  {
+    node = std::dynamic_pointer_cast<rendering::Node>(_node->Parent());
+    
+    // Be sure not to skip checking the node before iterating through
+    // its ancestors below
+    if (node && node == rootNode)
+      return _node;
+  }
+  else
+    ignwarn << "Node is null\n";
+
+  while (node && node->Parent() != rootNode)
+  {
+    node =
+      std::dynamic_pointer_cast<rendering::Node>(node->Parent());
+  }
+  ignwarn << "node after loop " << node << "\n";
+  return node;
+}
+
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::AlignTool,
