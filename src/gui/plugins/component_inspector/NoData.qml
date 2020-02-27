@@ -15,16 +15,12 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
-import "qrc:/qml"
 
 Rectangle {
-  id: numberComponent
+  id: stringComponent
   height: typeHeader.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
@@ -35,10 +31,7 @@ Rectangle {
   // Horizontal margins
   property int margin: 5
 
-  // Maximum spinbox value
-  property double spinMax: 1000000
-
-  Row {
+  RowLayout {
     anchors.fill: parent
 
     Item {
@@ -55,17 +48,9 @@ Rectangle {
       id: typeHeader
     }
 
-    IgnSpinBox {
-      id: content
-      value: model.data
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      Layout.fillWidth: true
-    }
-
     Item {
       height: parent.height
-      width: margin
+      Layout.fillWidth: true
     }
   }
 }

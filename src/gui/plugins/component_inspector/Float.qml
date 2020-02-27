@@ -27,7 +27,7 @@ Rectangle {
   id: numberComponent
   height: typeHeader.height
   width: componentInspector.width
-  color: "transparent"
+  color: index % 2 == 0 ? lightGrey : darkGrey
 
   // Left indentation
   property int indentation: 10
@@ -53,7 +53,6 @@ Rectangle {
 
     TypeHeader {
       id: typeHeader
-      headerPadding: 0
     }
 
     IgnSpinBox {

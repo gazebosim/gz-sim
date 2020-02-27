@@ -53,9 +53,17 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
+  /**
+   * Highlight color
+   */
+  property color highlightColor: Qt.rgba(
+    Material.accent.r,
+    Material.accent.g,
+    Material.accent.b, 0.3)
+
   function delegateQml(_model) {
     if (_model === null || _model.dataType == undefined)
-      return 'TypeHeader.qml'
+      return 'NoData.qml'
 
     return _model.dataType + '.qml'
   }
