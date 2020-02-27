@@ -556,14 +556,6 @@ const components::BaseComponent
 }
 
 /////////////////////////////////////////////////
-const components::BaseComponent *EntityComponentManager::Component(
-    const Entity _entity, const ComponentTypeId _type) const
-{
-  return static_cast<const components::BaseComponent *>(
-      this->ComponentImplementation(_entity, _type));
-}
-
-/////////////////////////////////////////////////
 components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {

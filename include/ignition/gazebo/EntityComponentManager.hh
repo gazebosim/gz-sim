@@ -214,15 +214,6 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const ComponentKey &_key);
 
-      /// \brief Get a base component for an entity, given its type.
-      /// \param[in] _entity The entity.
-      /// \param[in] _type Id of the component type.
-      /// \return The component with the specified type, or nullptr if the
-      /// component could not be found.
-      public: const components::BaseComponent *Component(
-                   const Entity _entity,
-                   const ComponentTypeId _type) const;
-
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.
       /// \return All the component type IDs.

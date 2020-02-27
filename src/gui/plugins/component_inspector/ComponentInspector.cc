@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,13 @@ namespace ignition::gazebo
   class ComponentInspectorPrivate
   {
     /// \brief Model holding all the current components.
-    public: TreeModel treeModel;
+    public: ComponentsModel componentsModel;
 
     /// \brief Entity being inspected. Default to world.
     public: Entity entity{1};
+
+    /// \brief World entity
+    public: Entity worldEntity{kNullEntity};
 
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
@@ -84,7 +87,8 @@ using namespace gazebo;
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 {
-  _item->setData(QString("Pose3d"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QString("Pose3d"),
+      ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
     QVariant(_data.Pos().X()),
     QVariant(_data.Pos().Y()),
@@ -92,28 +96,30 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
     QVariant(_data.Rot().Roll()),
     QVariant(_data.Rot().Pitch()),
     QVariant(_data.Rot().Yaw())
-  }), TreeModel::RoleNames().key("data"));
+  }), ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const math::Vector3d &_data)
 {
-  _item->setData(QString("Vector3d"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QString("Vector3d"),
+      ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
     QVariant(_data.X()),
     QVariant(_data.Y()),
     QVariant(_data.Z())
-  }), TreeModel::RoleNames().key("data"));
+  }), ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
-  _item->setData(QString("String"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QString("String"),
+      ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data),
-      TreeModel::RoleNames().key("data"));
+      ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
@@ -121,40 +127,44 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
-  _item->setData(QString("Raw"), TreeModel::RoleNames().key("dataType"));
+  _item->setData(QString("Raw"),
+      ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QString::fromStdString(_data.str()),
-      TreeModel::RoleNames().key("data"));
+      ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
-  _item->setData(QString("Boolean"), TreeModel::RoleNames().key("dataType"));
-  _item->setData(_data, TreeModel::RoleNames().key("data"));
+  _item->setData(QString("Boolean"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(_data, ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
-  _item->setData(QString("Integer"), TreeModel::RoleNames().key("dataType"));
-  _item->setData(_data, TreeModel::RoleNames().key("data"));
+  _item->setData(QString("Integer"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(_data, ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
-  _item->setData(QString("Float"), TreeModel::RoleNames().key("dataType"));
-  _item->setData(_data, TreeModel::RoleNames().key("data"));
+  _item->setData(QString("Float"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(_data, ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
 void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   _item->setData(QString::fromStdString(_unit),
-      TreeModel::RoleNames().key("unit"));
+      ComponentsModel::RoleNames().key("unit"));
 }
 
 /////////////////////////////////////////////////
@@ -171,16 +181,16 @@ std::string shortName(const std::string &_typeName)
 }
 
 /////////////////////////////////////////////////
-TreeModel::TreeModel() : QStandardItemModel()
+ComponentsModel::ComponentsModel() : QStandardItemModel()
 {
 }
 
 /////////////////////////////////////////////////
-QStandardItem *TreeModel::AddComponentType(
+QStandardItem *ComponentsModel::AddComponentType(
     ignition::gazebo::ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("TreeModel::AddComponentType");
+  IGN_PROFILE("ComponentsModel::AddComponentType");
 
   auto typeName = QString::fromStdString(
       components::Factory::Instance()->Name(_typeId));
@@ -207,10 +217,11 @@ QStandardItem *TreeModel::AddComponentType(
 }
 
 /////////////////////////////////////////////////
-void TreeModel::RemoveComponentType(ignition::gazebo::ComponentTypeId _typeId)
+void ComponentsModel::RemoveComponentType(
+      ignition::gazebo::ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("TreeModel::RemoveComponentType");
+  IGN_PROFILE("ComponentsModel::RemoveComponentType");
 
   auto itemIt = this->items.find(_typeId);
 
@@ -223,13 +234,13 @@ void TreeModel::RemoveComponentType(ignition::gazebo::ComponentTypeId _typeId)
 }
 
 /////////////////////////////////////////////////
-QHash<int, QByteArray> TreeModel::roleNames() const
+QHash<int, QByteArray> ComponentsModel::roleNames() const
 {
-  return TreeModel::RoleNames();
+  return ComponentsModel::RoleNames();
 }
 
 /////////////////////////////////////////////////
-QHash<int, QByteArray> TreeModel::RoleNames()
+QHash<int, QByteArray> ComponentsModel::RoleNames()
 {
   return {std::pair(100, "typeName"),
           std::pair(101, "typeId"),
@@ -245,7 +256,7 @@ ComponentInspector::ComponentInspector()
 {
   // Connect model
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "ComponentInspectorModel", &this->dataPtr->treeModel);
+      "ComponentsModel", &this->dataPtr->componentsModel);
 
   qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
 }
@@ -280,6 +291,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     // Type components
     if (typeId == components::World::typeId)
     {
+      this->dataPtr->worldEntity = this->dataPtr->entity;
       this->SetType("world");
       continue;
     }
@@ -341,7 +353,8 @@ void ComponentInspector::Update(const UpdateInfo &,
     // Add component to list
     QStandardItem *item;
     // TODO(louise) Blocking here is not the best idea
-    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddComponentType",
+    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+        "AddComponentType",
         Qt::BlockingQueuedConnection,
         Q_RETURN_ARG(QStandardItem *, item),
         Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
@@ -514,28 +527,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    // Unknown types use raw data
-    // TODO(louise) Enable this once we have a good use case. Right now it just
-    // adds garbage with no benefit.
-    //else
-    //{
-    //  auto comp = _ecm.Component(this->dataPtr->entity, typeId);
-    //  if (comp)
-    //  {
-    //    std::ostringstream ostr;
-    //    comp->Serialize(ostr);
-    //    setData(item, ostr);
-    //  }
-    //}
   }
 
   // Remove components no longer present
-  for (auto itemIt : this->dataPtr->treeModel.items)
+  for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
     if (componentTypes.find(typeId) == componentTypes.end())
     {
-      QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveComponentType",
+      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+          "RemoveComponentType",
           Qt::QueuedConnection,
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
@@ -545,14 +546,25 @@ void ComponentInspector::Update(const UpdateInfo &,
 /////////////////////////////////////////////////
 bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (!this->dataPtr->locked &&
-      _event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (!this->dataPtr->locked)
   {
-    auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
-    if (selectedEvent && !selectedEvent->Data().empty())
+    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
     {
-      this->SetEntity(*selectedEvent->Data().begin());
+      auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+      if (event && !event->Data().empty())
+      {
+        this->SetEntity(*event->Data().begin());
+      }
+    }
+
+    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    {
+      auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
+          _event);
+      if (event)
+      {
+        this->SetEntity(kNullEntity);
+      }
     }
   }
 
@@ -572,8 +584,7 @@ void ComponentInspector::SetEntity(const int &_entity)
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
   {
-    // TODO(anyone) Don't hardcode world entity
-    this->dataPtr->entity = 1;
+    this->dataPtr->entity = this->dataPtr->worldEntity;
   }
   else
   {

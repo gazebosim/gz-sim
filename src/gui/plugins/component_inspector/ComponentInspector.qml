@@ -102,11 +102,12 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: lockButton.checked ? "qrc:/Gazebo/images/lock.svg" : "qrc:/Gazebo/images/unlock.svg"
-          sourceSize.width: 24;
-          sourceSize.height: 24;
+          source: lockButton.checked ? "qrc:/Gazebo/images/unlock.svg" :
+                                       "qrc:/Gazebo/images/lock.svg"
+          sourceSize.width: 18;
+          sourceSize.height: 18;
         }
-        ToolTip.text: lockButton.checked ? "Lock entity (locked)" : "Lock entity (unlocked)"
+        ToolTip.text: lockButton.checked ? "Unlock entity" : "Lock entity"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
@@ -118,14 +119,14 @@ Rectangle {
         id: pauseButton
         checkable: true
         checked: false
-        text: pauseButton.checked ? "\u275A\u275A" : "\u25B6"
+        text: pauseButton.checked ? "\u25B6" : "\u275A\u275A"
         contentItem: Text {
           text: pauseButton.text
-          color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+          color: "#b5b5b5"
           horizontalAlignment: Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
         }
-        ToolTip.text: pauseButton.checked ? "Pause updates (paused)" : "Pause updates (unpaused)"
+        ToolTip.text: pauseButton.checked ? "Resume updates" : "Pause updates"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
@@ -148,7 +149,7 @@ Rectangle {
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    model: ComponentInspectorModel
+    model: ComponentsModel
     spacing: 5
 
     delegate: Loader {

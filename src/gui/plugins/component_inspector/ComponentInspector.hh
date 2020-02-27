@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
-#define IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
+#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_HH_
+#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_HH_
 
 #include <map>
 #include <memory>
@@ -100,32 +100,35 @@ namespace gazebo
   /// \param[in] _unit Unit to be displayed, such as 'm' for meters.
   void setUnit(QStandardItem *_item, const std::string &_unit);
 
-  /// \brief TODO
-  class TreeModel : public QStandardItemModel
+  /// \brief Model holding information about components, such as their type
+  /// and data.
+  class ComponentsModel : public QStandardItemModel
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: explicit TreeModel();
+    public: explicit ComponentsModel();
 
     /// \brief Destructor
-    public: ~TreeModel() override = default;
+    public: ~ComponentsModel() override = default;
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
 
     /// \brief Static version of roleNames
-    /// \return A hash connecting a unique ideitifier to a role name.
+    /// \return A hash connecting a unique identifier to a role name.
     public: static QHash<int, QByteArray> RoleNames();
 
     /// \brief Add a component type to the inspector.
     /// \param[in] _typeId Type of component to be added.
     /// \return Newly created item.
-    public slots: QStandardItem *AddComponentType(ignition::gazebo::ComponentTypeId _typeId);
+    public slots: QStandardItem *AddComponentType(
+        ignition::gazebo::ComponentTypeId _typeId);
 
     /// \brief Remove a component type from the inspector.
     /// \param[in] _typeId Type of component to be removed.
-    public slots: void RemoveComponentType(ignition::gazebo::ComponentTypeId _typeId);
+    public slots: void RemoveComponentType(
+        ignition::gazebo::ComponentTypeId _typeId);
 
     /// \brief Keep track of items in the tree, according to type ID.
     public: std::map<ComponentTypeId, QStandardItem *> items;
@@ -135,7 +138,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// None
-  class ComponentInspector : public ignition::gazebo::GuiSystem
+  class ComponentInspector : public gazebo::GuiSystem
   {
     Q_OBJECT
 
