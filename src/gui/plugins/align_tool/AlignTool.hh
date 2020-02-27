@@ -29,9 +29,10 @@ namespace gazebo
 {
   enum class AlignStatus
   {
-    HOVER,
-    ALIGN,
-    NONE
+    HOVER = 0,
+    RESET = 1,
+    ALIGN = 2,
+    NONE = 3
   };
 
   enum class AlignAxis
@@ -79,7 +80,9 @@ namespace gazebo
 
     public slots: void OnAlignConfig(const QString &_config);
 
-    public slots: void SetAlignStatus(const QString &_status);
+    public slots: void AddStatus(const QString &_status);
+    
+    public: void AddStatus(const AlignStatus &_status);
 
     public slots: void OnHoveredEntered();
     
