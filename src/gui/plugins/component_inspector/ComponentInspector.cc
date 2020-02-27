@@ -254,10 +254,6 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
-  // Connect model
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "ComponentsModel", &this->dataPtr->componentsModel);
-
   qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
 }
 
@@ -272,6 +268,10 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
+
+  // Connect model
+  this->Context()->setContextProperty(
+      "ComponentsModel", &this->dataPtr->componentsModel);
 }
 
 //////////////////////////////////////////////////
