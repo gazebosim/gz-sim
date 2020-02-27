@@ -27,7 +27,7 @@ import "qrc:/qml"
 Rectangle {
   height: header.height + content.height
   width: componentInspector.width
-  color: "transparent"
+  color: index % 2 == 0 ? lightGrey : darkGrey
 
   // Left indentation
   property int indentation: 10
@@ -101,7 +101,6 @@ Rectangle {
         }
         TypeHeader {
           id: typeHeader
-          headerPadding: 0
         }
         Item {
           Layout.fillWidth: true
@@ -115,7 +114,7 @@ Rectangle {
           content.show = !content.show
         }
         onEntered: {
-          header.color = darkGrey
+          header.color = highlightColor
         }
         onExited: {
           header.color = "transparent"
@@ -130,7 +129,7 @@ Rectangle {
       width: parent.width
       height: show ? grid.height : 0
       clip: true
-      color: darkGrey
+      color: "transparent"
 
       Behavior on height {
         NumberAnimation {
