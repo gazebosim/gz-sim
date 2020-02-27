@@ -38,6 +38,40 @@ Rectangle {
   // Maximum spinbox value
   property double spinMax: 1000000
 
+  // Read-only / write
+  property bool readOnly: true
+
+  /**
+   * Used to create a spin box
+   */
+  Component {
+    id: writableNumber
+    IgnSpinBox {
+      id: writableSpin
+      value: numberValue
+      minimumValue: -spinMax
+      maximumValue: spinMax
+      decimals: writableSpin.width < 100 ? 2 : 6
+    }
+  }
+
+  /**
+   * Used to create a read-only number
+   */
+  Component {
+    id: readOnlyNumber
+    Text {
+      id: numberText
+      anchors.fill: parent
+      horizontalAlignment: Text.AlignRight
+      verticalAlignment: Text.AlignVCenter
+      text: {
+        var decimals = numberText.width < 100 ? 2 : 6
+        return numberValue.toFixed(decimals)
+      }
+    }
+  }
+
   Column {
     anchors.fill: parent
 
@@ -120,13 +154,14 @@ Rectangle {
           font.pointSize: 12
         }
 
-        IgnSpinBox {
-          id: xSpin
-          value: model.data[0]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: xSpin.width < 100 ? 2 : 6
+        Item {
           Layout.fillWidth: true
+          height: 40
+          Loader {
+            anchors.fill: parent
+            property double numberValue: model.data[0]
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+          }
         }
 
         Text {
@@ -136,13 +171,14 @@ Rectangle {
           font.pointSize: 12
         }
 
-        IgnSpinBox {
-          id: rollSpin
-          value: model.data[3]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: rollSpin.width < 100 ? 2 : 6
+        Item {
           Layout.fillWidth: true
+          height: 40
+          Loader {
+            anchors.fill: parent
+            property double numberValue: model.data[3]
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+          }
         }
 
         // Right spacer
@@ -158,13 +194,14 @@ Rectangle {
           font.pointSize: 12
         }
 
-        IgnSpinBox {
-          id: ySpin
-          value: model.data[1]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: ySpin.width < 100 ? 2 : 6
+        Item {
           Layout.fillWidth: true
+          height: 40
+          Loader {
+            anchors.fill: parent
+            property double numberValue: model.data[1]
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+          }
         }
 
         Text {
@@ -174,13 +211,14 @@ Rectangle {
           font.pointSize: 12
         }
 
-        IgnSpinBox {
-          id: pitchSpin
-          value: model.data[4]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: pitchSpin.width < 100 ? 2 : 6
+        Item {
           Layout.fillWidth: true
+          height: 40
+          Loader {
+            anchors.fill: parent
+            property double numberValue: model.data[4]
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+          }
         }
 
         Text {
@@ -190,13 +228,14 @@ Rectangle {
           font.pointSize: 12
         }
 
-        IgnSpinBox {
-          id: zSpin
-          value: model.data[2]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: zSpin.width < 100 ? 2 : 6
+        Item {
           Layout.fillWidth: true
+          height: 40
+          Loader {
+            anchors.fill: parent
+            property double numberValue: model.data[2]
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+          }
         }
 
         Text {
@@ -206,13 +245,14 @@ Rectangle {
           font.pointSize: 12
         }
 
-        IgnSpinBox {
-          id: yawSpin
-          value: model.data[5]
-          minimumValue: -spinMax
-          maximumValue: spinMax
-          decimals: yawSpin.width < 100 ? 2 : 6
+        Item {
           Layout.fillWidth: true
+          height: 40
+          Loader {
+            anchors.fill: parent
+            property double numberValue: model.data[5]
+            sourceComponent: readOnly ? readOnlyNumber : writableNumber
+          }
         }
       }
     }
