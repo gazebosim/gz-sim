@@ -27,7 +27,7 @@ namespace command_actor
   class CommandActor:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemUpdate
+    public ignition::gazebo::ISystemPreUpdate
   {
     /// \brief Constructor
     public: CommandActor();
@@ -42,7 +42,7 @@ namespace command_actor
                            ignition::gazebo::EventManager &_eventMgr) final;
 
     // Documentation inherited
-    public: void Update(const ignition::gazebo::UpdateInfo &_info,
+    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
     // Actor entity
