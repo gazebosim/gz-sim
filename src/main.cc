@@ -46,7 +46,8 @@ DEFINE_bool(distributed, false, "Use distributed simulation.");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
 DEFINE_bool(record_resources, false, "Record meshes and material files");
-DEFINE_bool(log_overwrite, false, "When logging, overwrite existing files");
+DEFINE_bool(log_overwrite, false, "When logging, overwrite files if they "
+    "exist");
 DEFINE_bool(log_compress, false, "When logging, compress final log files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 
@@ -106,7 +107,7 @@ void help()
   << "  --record-resources     Implicitly invokes --record, and records"
   << " meshes and material files."
   << std::endl
-  << "  --log-overwrite        When recording, overwrite existing log files."
+  << "  --log-overwrite        When recording, overwrite files if they exist."
   << std::endl
   << "  --log-compress         When recording, compress final log files."
   << std::endl

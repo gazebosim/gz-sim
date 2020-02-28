@@ -210,14 +210,16 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             std::string recordPath = _config.LogRecordPath();
             std::string cmpPath = _config.LogRecordCompressPath();
 
+            // Set record path
             if (!_config.LogRecordPath().empty())
             {
               bool overwriteSdf = false;
               // If <path> is specified in SDF, check whether to replace it
-              if (pluginElem->HasElement("path"))
+              if (pluginElem->HasElement("path") &&
+                  !pluginElem->Get<std::string>("path").empty())
               {
                 // If record path came from command line, overwrite SDF <path>
-                if (_config.LogRecordPathFromCmdLine())
+                if (_config.LogIgnoreSdfPath())
                 {
                   overwriteSdf = true;
                 }
@@ -280,15 +282,14 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             }
 
             // If compress flag specified on command line, replace in SDF
-            if (_config.LogRecordCompress())
+            if (!_config.LogRecordCompressPath().empty())
             {
               sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
               compressElem->SetName("compress");
               pluginElem->AddElementDescription(compressElem);
               compressElem = pluginElem->GetElement("compress");
               compressElem->AddValue("bool", "false", false, "");
-              compressElem->Set<bool>(_config.LogRecordCompress()
-                ? true : false);
+              compressElem->Set<bool>(true);
 
               sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
               cPathElem->SetName("compress_path");
@@ -347,7 +348,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   recordElem->AddElementDescription(compressElem);
   compressElem = recordElem->GetElement("compress");
   compressElem->AddValue("bool", "false", false, "");
-  compressElem->Set<bool>(_config.LogRecordCompress() ? true : false);
+  compressElem->Set<bool>(_config.LogRecordCompressPath().empty() ? false :
+    true);
 
   // Set compress path
   sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();

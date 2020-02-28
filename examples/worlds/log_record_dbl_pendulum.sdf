@@ -2,10 +2,12 @@
 <!--
   Log record demo.
 
-  Running this world will record log files to /tmp/log. It will overwrite that
-  directory if it already exists.
+  Running this world will record log files to ~/.ignition/gazebo/log/<timestamp>
+  by default.
 
-  You can playback running the log_playback.sdf file.
+  You can playback the logs with:
+
+      ign gazebo --playback ~/.ignition/gazebo/log/<timestamp>
 -->
 <sdf version="1.6">
   <world name="log_pendulum">
@@ -29,9 +31,9 @@
     <plugin
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
-      <!-- Optional, directories to write recorded files. If unspecified,
-             will record to default. -->
-      <path>/tmp/log</path>
+      <!-- Deprecated: directories to write recorded files.
+           Use --record-path instead. -->
+      <!--path>/tmp/log</path-->
     </plugin>
 
     <gui fullscreen="0">

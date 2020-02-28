@@ -217,11 +217,9 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
-            logRecordPathFromCmdLine(_cfg->logRecordPathFromCmdLine),
+            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
-            logRecordOverwrite(_cfg->logRecordOverwrite),
-            logRecordCompress(_cfg->logRecordCompress),
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
@@ -252,19 +250,13 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
   /// \brief Whether log record path is specified from command line
-  public: bool logRecordPathFromCmdLine{false};
+  public: bool logIgnoreSdfPath{false};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
 
   /// \brief Record meshes and material files
   public: bool logRecordResources{false};
-
-  /// \brief When recording, overwrite existing log files
-  public: bool logRecordOverwrite{false};
-
-  /// \brief When recording, compress final log files
-  public: bool logRecordCompress{false};
 
   /// \brief Path to compress log files to
   public: std::string logRecordCompressPath = "";
@@ -436,15 +428,15 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::LogRecordPathFromCmdLine() const
+bool ServerConfig::LogIgnoreSdfPath() const
 {
-  return this->dataPtr->logRecordPathFromCmdLine;
+  return this->dataPtr->logIgnoreSdfPath;
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetLogRecordPathFromCmdLine(bool _fromCmdLine)
+void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
 {
-  this->dataPtr->logRecordPathFromCmdLine = _fromCmdLine;
+  this->dataPtr->logIgnoreSdfPath = _ignore;
 }
 
 /////////////////////////////////////////////////
@@ -469,30 +461,6 @@ bool ServerConfig::LogRecordResources() const
 void ServerConfig::SetLogRecordResources(bool _recordResources)
 {
   this->dataPtr->logRecordResources = _recordResources;
-}
-
-/////////////////////////////////////////////////
-bool ServerConfig::LogRecordOverwrite() const
-{
-  return this->dataPtr->logRecordOverwrite;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogRecordOverwrite(bool _overwrite)
-{
-  this->dataPtr->logRecordOverwrite = _overwrite;
-}
-
-/////////////////////////////////////////////////
-bool ServerConfig::LogRecordCompress() const
-{
-  return this->dataPtr->logRecordCompress;
-}
-
-/////////////////////////////////////////////////
-void ServerConfig::SetLogRecordCompress(bool _compress)
-{
-  this->dataPtr->logRecordCompress = _compress;
 }
 
 /////////////////////////////////////////////////
