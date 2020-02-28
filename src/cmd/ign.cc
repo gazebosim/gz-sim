@@ -78,7 +78,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   cmpPath += ".zip";
 
   // Initialize console log
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
+    _record > 0 || _recordResources > 0)
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -87,6 +88,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
 
     serverConfig.SetUseLogRecord(true);
+    serverConfig.SetLogRecordResources(_recordResources);
 
     // If a record path is specified
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
