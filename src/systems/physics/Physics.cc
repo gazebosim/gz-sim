@@ -28,6 +28,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/math/eigen3/Conversions.hh>
+#include <ignition/physics/config.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
 #include <ignition/physics/FindFeatures.hh>
@@ -276,10 +277,11 @@ void Physics::Configure(const Entity &_entity,
     auto engineElem = sdfClone->GetElement("engine");
     pluginLib = engineElem->Get<std::string>("filename", pluginLib).first;
   }
+
   // 3. Use DART by default
-  else
+  if (pluginLib.empty())
   {
-    pluginLib = "libignition-physics" IGN_PHYSICS_VER "-dartsim-plugin.so";
+    pluginLib = "libignition-physics-dartsim-plugin.so";
   }
 
   // Update component
@@ -299,7 +301,7 @@ void Physics::Configure(const Entity &_entity,
   // * Engines installed with ign-physics
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths({IGN_PHYSICS_ENGINES});
+  systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())

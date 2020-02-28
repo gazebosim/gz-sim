@@ -95,8 +95,9 @@ COMMANDS = { 'gazebo' =>
   "                              used.                                      \n"\
   "\n"\
   "  --physics-engine [arg]      Ignition Physics engine plugin to load.    \n"\
-  "                              Gazebo will use DART by default. Make sure \n"\
-  "                              the plugin is in                           \n"\
+  "                              Gazebo will use DART by default.           \n"\
+  "                              (ignition-physics-dartsim-plugin)          \n"\
+  "                              Make sure custom plugins are in            \n"\
   "                              IGN_GAZEBO_PHYSICS_ENGINE_PATH.            \n"\
   "\n"\
   "  --version                   Print Gazebo version information.          \n"\
