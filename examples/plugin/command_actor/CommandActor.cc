@@ -23,7 +23,7 @@ IGNITION_ADD_PLUGIN(
     command_actor::CommandActor,
     ignition::gazebo::System,
     command_actor::CommandActor::ISystemConfigure,
-    command_actor::CommandActor::ISystemUpdate)
+    command_actor::CommandActor::ISystemPreUpdate)
 using namespace command_actor;
 
 //////////////////////////////////////////////////
@@ -60,7 +60,7 @@ void CommandActor::Configure(const ignition::gazebo::Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void CommandActor::Update(const ignition::gazebo::UpdateInfo &_info,
+void CommandActor::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   auto sec = std::chrono::duration_cast<std::chrono::seconds>(
