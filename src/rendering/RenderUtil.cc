@@ -409,7 +409,9 @@ void RenderUtil::Update()
       // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
       rendering::VisualPtr vis = std::dynamic_pointer_cast<rendering::Visual>(node);
-      Entity entityId = std::get<int>(vis->UserData("gazebo-entity"));
+      Entity entityId = kNullEntity;
+      if (vis)
+        entityId = std::get<int>(vis->UserData("gazebo-entity"));
       if (this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
           entityId == this->dataPtr->selectedEntities.back()))
@@ -1120,7 +1122,13 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
-  return this->dataPtr->sceneManager.EntityFromNode(_node);
+  Entity entity = kNullEntity;
+  rendering::VisualPtr vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+
+  if (vis)
+    entity = std::get<int>(vis->UserData("gazebo-entity"));
+
+  return entity; 
 }
 
 /////////////////////////////////////////////////
@@ -1137,7 +1145,10 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
     return;
 
   rendering::VisualPtr vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  Entity entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  Entity entityId = kNullEntity;
+
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
 
   if (entityId == kNullEntity)
     return;
