@@ -1695,3 +1695,50 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
 
   this->RemoveLogsDir();
 }
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogResources)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_resources.sdf");
+
+  // Change environment variable so that downloaded fuel files aren't written
+  // to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
+  const std::string recordPath = this->logDir;
+
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record --record-resources --record-path " + recordPath
+      + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  std::string consolePath = common::joinPaths(recordPath, "server_console.log");
+  EXPECT_TRUE(common::exists(consolePath));
+  std::string statePath = common::joinPaths(recordPath, "state.tlog");
+  EXPECT_TRUE(common::exists(statePath));
+
+  // Recorded models should exist
+  EXPECT_GT(entryCount(recordPath), 2);
+  EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      "models", "X2 Config 1")));
+
+  // Remove artifacts
+  this->RemoveLogsDir();
+}
