@@ -275,6 +275,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
+  // Actor plugins
+  this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
+      _actor->Element());
+
   return actorEntity;
 }
 
