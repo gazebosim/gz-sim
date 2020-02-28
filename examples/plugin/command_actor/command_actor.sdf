@@ -1,21 +1,9 @@
 <?xml version="1.0" ?>
-<!--
-  This demo shows the actor
--->
 <sdf version="1.6">
   <world name="actors">
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-sensors-system.so"
-      name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre</render_engine>
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
@@ -31,7 +19,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -88,21 +76,6 @@
 
       </plugin>
 
-      <!-- Image display -->
-      <plugin filename="ImageDisplay" name="Camera image">
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
-      </plugin>
-
-      <!-- Entity tree -->
-      <plugin filename="EntityTree" name="Entity tree">
-        <ignition-gui>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-      </plugin>
-
     </gui>
 
     <light type="directional" name="sun">
@@ -146,83 +119,17 @@
     </model>
 
     <include>
+      <pose>1 1 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <plugin filename="libCommandActor.so"
+              name="command_actor::CommandActor">
+
+        <!-- From 5 seconds sim time, offset the entire trajectory by pose -->
+        <origin>
+          <time>5</time>
+          <pose>10 10 0 0 0 0</pose>
+        </origin>
+      </plugin>
     </include>
-
-    <include>
-      <name>actor2</name>
-      <pose>10 10 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-    </include>
-
-    <model name="box">
-      <pose>5.0 0 0.7 0 0 0</pose>
-      <link name="box_link">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.3 0.3 0.3 1</ambient>
-            <diffuse>0.3 0.3 0.3 1</diffuse>
-            <specular>0.3 0.5 0.3 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="camera">
-      <static>true</static>
-      <pose>3 -3 10 0 1.57 0</pose>
-      <link name="link">
-        <pose>0.05 0.05 0.05 0 0 0</pose>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </visual>
-        <sensor name="camera" type="camera">
-          <camera>
-            <horizontal_fov>1.047</horizontal_fov>
-            <image>
-              <width>320</width>
-              <height>240</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-          </camera>
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
-          <visualize>true</visualize>
-          <topic>camera</topic>
-        </sensor>
-      </link>
-    </model>
-
   </world>
 </sdf>
