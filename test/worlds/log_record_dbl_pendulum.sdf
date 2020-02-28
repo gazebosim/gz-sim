@@ -27,10 +27,6 @@
     <plugin
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
-      <!-- Path will be automatically changed in integration test. -->
-      <path>/tmp/log</path>
-      <compress>1</compress>
-      <record_resources>1</record_resources>
     </plugin>
 
     <gui fullscreen="0">

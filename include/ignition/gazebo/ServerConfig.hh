@@ -250,13 +250,17 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
-      /// \brief Get whether record path came from command line
-      /// \return Whether record path came from command line
-      public: bool LogRecordPathFromCmdLine() const;
+      /// \brief Get whether to ignore the path specified in SDF.
+      /// \return Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
+      public: bool LogIgnoreSdfPath() const;
 
-      /// \brief Set whether record path came from command line
-      /// \param[in] _fromCmdLine Whether record path came from command line
-      public: void SetLogRecordPathFromCmdLine(bool _fromCmdLine);
+      /// \brief Set whether to ignore the path specified in SDF. Path in SDF
+      /// should be ignored if a record path is specified on the command line,
+      /// for example.
+      /// \param[in] _ignore Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
+      public: void SetLogIgnoreSdfPath(bool _ignore);
 
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
@@ -273,22 +277,6 @@ namespace ignition
       /// \brief Set whether meshes and material files are recorded
       /// \param[in] _recordResources Value to set
       public: void SetLogRecordResources(bool _recordResources);
-
-      /// \brief Get whether to overwrite existing log files
-      /// \return True if may overwrite.
-      public: bool LogRecordOverwrite() const;
-
-      /// \brief Set whether to overwrite existing log files
-      /// \param[in] _overwrite Value to set
-      public: void SetLogRecordOverwrite(bool _overwrite);
-
-      /// \brief Get whether to compress log files
-      /// \return True if should compress.
-      public: bool LogRecordCompress() const;
-
-      /// \brief Set whether to compress log files
-      /// \param[in] _compress Value to set
-      public: void SetLogRecordCompress(bool _compress);
 
       /// \brief Get file path to compress log files to
       /// \return File path to compress log files to

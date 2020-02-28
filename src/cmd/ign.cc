@@ -78,116 +78,143 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   cmpPath += ".zip";
 
   // Initialize console log
-  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
   {
-    recordPathMod = std::string(_recordPath);
-
-    // Update compressed file path to name of recording directory path
-    cmpPath = std::string(recordPathMod);
-    if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
-      "")))
+    if (_playback != nullptr && std::strlen(_playback) > 0)
     {
-      // Remove the separator at end of path
-      cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
     }
-    cmpPath += ".zip";
 
-    // Check if path or compressed file with same prefix exists
-    if (ignition::common::exists(recordPathMod) ||
-      ignition::common::exists(cmpPath))
+    serverConfig.SetUseLogRecord(true);
+
+    // If a record path is specified
+    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
     {
-      // Overwrite if flag specified
-      if (_logOverwrite > 0)
+      recordPathMod = std::string(_recordPath);
+
+      // Update compressed file path to name of recording directory path
+      cmpPath = std::string(recordPathMod);
+      if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
+        "")))
       {
-        bool recordMsg = false, cmpMsg = false;
-        // Remove files before initializing console log files on top of them
-        if (ignition::common::exists(recordPathMod))
-        {
-          recordMsg = true;
-          ignition::common::removeAll(recordPathMod);
-        }
-        if (ignition::common::exists(cmpPath))
-        {
-          cmpMsg = true;
-          ignition::common::removeFile(cmpPath);
-        }
+        // Remove the separator at end of path
+        cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+      }
+      cmpPath += ".zip";
 
-        // Create log file before printing any messages so they can be logged
-        ignLogInit(recordPathMod, "server_console.log");
-
-        if (recordMsg)
+      // Check if path or compressed file with same prefix exists
+      if (ignition::common::exists(recordPathMod) ||
+        ignition::common::exists(cmpPath))
+      {
+        // Overwrite if flag specified
+        if (_logOverwrite > 0)
         {
-          ignwarn << "Log path already exists on disk! Existing files will be "
-            << "overwritten." << std::endl;
-          ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+          bool recordMsg = false;
+          bool cmpMsg = false;
+          // Remove files before initializing console log files on top of them
+          if (ignition::common::exists(recordPathMod))
+          {
+            recordMsg = true;
+            ignition::common::removeAll(recordPathMod);
+          }
+          if (ignition::common::exists(cmpPath))
+          {
+            cmpMsg = true;
+            ignition::common::removeFile(cmpPath);
+          }
+
+          // Create log file before printing any messages so they can be logged
+          ignLogInit(recordPathMod, "server_console.log");
+
+          if (recordMsg)
+          {
+            ignmsg << "Log path already exists on disk! Existing files will "
+              << "be overwritten." << std::endl;
+            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+          }
+          if (cmpMsg)
+          {
+            if (_logCompress > 0)
+            {
+              ignwarn << "Compressed log path already exists on disk! Existing "
+                << "files will be overwritten." << std::endl;
+            }
+            ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
+          }
         }
-
-        if (cmpMsg)
+        // Otherwise rename to unique path
+        else
         {
+          // Remove the separator at end of path
+          if (!std::string(1, recordPathMod.back()).compare(
+            ignition::common::separator("")))
+          {
+            recordPathMod = recordPathMod.substr(0, recordPathMod.length()
+              - 1);
+          }
+
+          std::string recordOrigPrefix = std::string(recordPathMod);
+          int count = 1;
+
+          // Keep renaming until path does not exist for both directory and
+          // compressed file
+          while (ignition::common::exists(recordPathMod) ||
+            ignition::common::exists(cmpPath))
+          {
+            recordPathMod = recordOrigPrefix +  "(" + std::to_string(count++) +
+              ")";
+
+            cmpPath = std::string(recordPathMod);
+            // Remove the separator at end of path
+            if (!std::string(1, cmpPath.back()).compare(
+              ignition::common::separator("")))
+            {
+              cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+            }
+            cmpPath += ".zip";
+          }
+
+          ignLogInit(recordPathMod, "server_console.log");
+          ignwarn << "Log path already exists on disk! "
+            << "Recording instead to [" << recordPathMod << "]" << std::endl;
           if (_logCompress > 0)
           {
-            ignwarn << "Compressed log path already exists on disk! Existing "
-              << "files will be overwritten." << std::endl;
+            ignwarn << "Compressed log path already exists on disk! "
+              << "Recording instead to [" << cmpPath << "]" << std::endl;
           }
-          ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
         }
       }
-      // Otherwise rename to unique path
       else
       {
-        // Remove the separator at end of path
-        if (!std::string(1, recordPathMod.back()).compare(
-          ignition::common::separator("")))
-        {
-          recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
-        }
-        recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
-
-        cmpPath = std::string(recordPathMod);
-        // Remove the separator at end of path
-        if (!std::string(1, cmpPath.back()).compare(
-          ignition::common::separator("")))
-        {
-          cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
-        }
-        cmpPath += ".zip";
-
-        // If compressed file exists, rename again
-        if (ignition::common::exists(cmpPath))
-        {
-          cmpPath = ignition::common::uniqueFilePath(recordPathMod, "zip");
-
-          size_t extIdx = cmpPath.find_last_of('.');
-          recordPathMod = cmpPath.substr(0, extIdx);
-        }
-
         ignLogInit(recordPathMod, "server_console.log");
-        ignwarn << "Log path already exists on disk! "
-          << "Recording instead to [" << recordPathMod << "]" << std::endl;
-        ignwarn << "Compressed log path already exists on disk! "
-          << "Recording instead to [" << cmpPath << "]" << std::endl;
       }
+      // TODO(anyone) In Ignition-D, to be moved to outside and after this
+      //   if-else statement, after all ignLogInit() calls have been finalized,
+      //   so that <path> in SDF will always be ignored in favor of logging both
+      //   console logs and LogRecord recordings to common::ignLogDirectory().
+      //   In Blueprint and Citadel, LogRecord will record to <path> if no
+      //   --record-path is specified on command line.
+      serverConfig.SetLogRecordPath(recordPathMod);
+      serverConfig.SetLogIgnoreSdfPath(true);
     }
+    // Empty record path specified. Use default.
     else
     {
+      // Create log file before printing any messages so they can be logged
       ignLogInit(recordPathMod, "server_console.log");
+      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+             << std::endl;
+
+      serverConfig.SetLogRecordPath(recordPathMod);
     }
-    // TODO(anyone) In Ignition-D, to be moved to outside and after this
-    //   if-else statement, after all ignLogInit() calls have been finalized,
-    //   so that <path> in SDF will always be ignored in favor of logging both
-    //   console logs and LogRecord recordings to common::ignLogDirectory().
-    //   In Blueprint and Citadel, LogRecord will record to <path> if no
-    //   --record-path is specified on command line.
-    serverConfig.SetLogRecordPath(recordPathMod);
-    serverConfig.SetLogRecordPathFromCmdLine(true);
   }
   else
   {
-    ignLogInit(recordPathMod, "server_console.log");
+    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
 
-  serverConfig.SetLogRecordCompress(_logCompress);
-  if (_logCompress)
+  if (_logCompress > 0)
   {
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
@@ -225,24 +252,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetUseLevels(true);
   }
 
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
-    _record > 0 || _recordResources > 0)
-  {
-    if (_playback != nullptr && std::strlen(_playback) > 0)
-    {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
-      return -1;
-    }
-
-    serverConfig.SetUseLogRecord(true);
-    serverConfig.SetLogRecordResources(_recordResources);
-
-    if (!(_recordPath != nullptr && std::strlen(_recordPath) > 0))
-    {
-      ignmsg << "Recording states to default path\n";
-    }
-  }
-
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -254,18 +263,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      // Absolute path
-      std::string playbackStr = std::string(_playback);
-      if (playbackStr.compare(ignition::common::absPath(playbackStr)) == 0)
-      {
-        serverConfig.SetLogPlaybackPath(_playback);
-      }
-      // Relative path
-      else
-      {
-        serverConfig.SetLogPlaybackPath(ignition::common::joinPaths(
-          ignition::common::cwd(), _playback));
-      }
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        std::string(_playback)));
     }
   }
 

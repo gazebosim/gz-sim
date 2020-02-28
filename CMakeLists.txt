@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.13.0)
+project(ignition-gazebo2 VERSION 2.15.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -26,6 +26,12 @@ if(ENABLE_PROFILER)
   add_definitions("-DIGN_PROFILER_ENABLE=1")
 else()
   add_definitions("-DIGN_PROFILER_ENABLE=0")
+endif()
+
+if (UNIX AND NOT APPLE)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+else()
+  set (EXTRA_TEST_LIB_DEPS)
 endif()
 
 #============================================================================

@@ -26,6 +26,7 @@
 #include <set>
 #include <list>
 
+#include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/SystemPaths.hh>
@@ -64,15 +65,12 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: bool Start(const std::string &_logPath = std::string(""),
     const std::string &_cmpPath = std::string(""));
 
-  /// \brief Default directory to record to
-  public: static std::string DefaultRecordPath();
-
   /// \brief Append an extension to the end of a directory path.
   /// \param[in] _dir Path of a directory
   /// \param[in] _ext Extension to append, starting with "."
   /// \return Path with extension appended to the end.
-  public: std::string AppendExtension(const std::string & _dir,
-    const std::string & _ext);
+  public: std::string AppendExtension(const std::string &_dir,
+    const std::string &_ext);
 
   /// \brief Get whether the model meshes and materials are saved when
   /// recording.
@@ -82,14 +80,6 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Set whether to save model meshes and materials when recording.
   /// \param[in] _record True to save model resources when recording.
   public: void SetRecordResources(bool _record);
-
-  /// \brief Get whether to compress log files at the end.
-  /// \return True if compress log files.
-  public: bool Compress() const;
-
-  /// \brief Set whether to compress log files at the end.
-  /// \param[in] _compress True to compress log files.
-  public: void SetCompress(bool _compress);
 
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.
@@ -132,7 +122,7 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: std::unique_ptr<transport::NetworkClock> clock;
 
   /// \brief Name of this world
-  public: std::string worldName;
+  public: std::string worldName{""};
 
   /// \brief SDF of this plugin
   public: std::shared_ptr<const sdf::Element> sdf{nullptr};
@@ -166,20 +156,6 @@ class ignition::gazebo::systems::LogRecordPrivate
 };
 
 bool LogRecordPrivate::started{false};
-
-//////////////////////////////////////////////////
-std::string LogRecordPrivate::DefaultRecordPath()
-{
-  std::string home;
-  common::env(IGN_HOMEDIR, home);
-
-  std::string timestamp = common::systemTimeISO();
-
-  std::string path = common::joinPaths(home,
-    ".ignition", "gazebo", "log", timestamp);
-
-  return path;
-}
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::AppendExtension(const std::string &_dir,
@@ -228,23 +204,24 @@ void LogRecord::Configure(const Entity &_entity,
 
   this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources",
     false).first);
-  this->dataPtr->SetCompress(_sdf->Get<bool>("compress", false).first);
+
+  this->dataPtr->compress = _sdf->Get<bool>("compress", false).first;
+  this->dataPtr->cmpPath = _sdf->Get<std::string>("compress_path", "").first;
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
     auto logPath = _sdf->Get<std::string>("path");
-    // Prepend working directory if path is relative
-    if (this->dataPtr->logPath.compare(0, 1, ignition::common::separator(""))
-        != 0)
+    // Path is initialized by server if record is set from command line options.
+    //   Otherwise, path is loaded from SDF. If a path is not specified in
+    //   SDF, initialize to default here.
+    if (logPath.empty())
     {
-      this->dataPtr->logPath = ignition::common::joinPaths(common::cwd(),
-        this->dataPtr->logPath);
+      logPath = ignLogDirectory();
     }
 
-    // Get directory path from SDF param
-    this->dataPtr->Start(logPath, _sdf->Get<std::string>("compress_path"));
+    this->dataPtr->Start(logPath, this->dataPtr->cmpPath);
   }
   else
   {
@@ -264,7 +241,6 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
       << "Will not start another.\n";
     return true;
   }
-  LogRecordPrivate::started = true;
 
   this->logPath = _logPath;
 
@@ -278,7 +254,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
     this->cmpPath = _cmpPath;
 
   // The ServerConfig takes care of specifying a default log record path.
-  // This if statement should never be reached.
+  // This if-statement is reached if the record plugin is only specified in
+  //   SDF, and a <path> is not specified.
   if (this->logPath.empty() ||
       (common::exists(this->logPath) && !common::isDirectory(this->logPath)))
   {
@@ -286,6 +263,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
       << "Recording will not take place." << std::endl;
     return false;
   }
+
+  LogRecordPrivate::started = true;
 
   if (this->recordResources)
   {
@@ -361,18 +340,6 @@ bool LogRecordPrivate::RecordResources() const
 void LogRecordPrivate::SetRecordResources(const bool _record)
 {
   this->recordResources = _record;
-}
-
-//////////////////////////////////////////////////
-bool LogRecordPrivate::Compress() const
-{
-  return this->compress;
-}
-
-//////////////////////////////////////////////////
-void LogRecordPrivate::SetCompress(bool _compress)
-{
-  this->compress = _compress;
 }
 
 //////////////////////////////////////////////////
@@ -612,6 +579,9 @@ void LogRecord::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &)
 {
   IGN_PROFILE("LogRecord::PreUpdate");
+  // Safe guard to prevent seg faults if recorder could not be started
+  if (!this->dataPtr->instStarted)
+    return;
   this->dataPtr->clock->SetTime(_info.simTime);
 }
 
@@ -620,6 +590,10 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogRecord::PostUpdate");
+
+  // Safe guard to prevent seg faults if recorder could not be started
+  if (!this->dataPtr->instStarted)
+    return;
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
