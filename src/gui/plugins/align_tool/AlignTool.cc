@@ -105,6 +105,9 @@ AlignTool::~AlignTool() = default;
 /////////////////////////////////////////////////
 void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 {
+  if (this->title.empty())
+    this->title = "Align tool";
+
   // For align tool requests
   ignition::gui::App()->findChild
       <ignition::gui::MainWindow *>()->installEventFilter(this);
