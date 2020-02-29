@@ -28,26 +28,30 @@ namespace ignition
 {
 namespace gazebo
 {
-  enum class AlignStatus
+  /// \brief Enumeration of the states within the Align Tool.
+  enum class AlignState
   {
-    HOVER = 0,
-    RESET = 1,
-    ALIGN = 2,
-    NONE = 3
+    /// \brief Indicates the user is currently hovering the mouse over
+    /// an align button
+    HOVER,
+    /// \brief Indicates a reset of the currently placed nodes, only occurs
+    /// on a hover exit if the align button has not been clicked
+    RESET,
+    /// \brief Indicates the user has clicked the align button
+    ALIGN,
+    /// \brief Indicates the user is currently not utilizing the align tool
+    NONE
   };
 
+  /// \brief Enumeration of the axes to be aligned relative to.
   enum class AlignAxis
   {
+    /// \brief Indicates an alignment relative to the x axis
     ALIGN_X = 0,
+    /// \brief Indicates an alignment relative to the y axis
     ALIGN_Y = 1,
+    /// \brief Indicates an alignment relative to the z axis
     ALIGN_Z = 2
-  };
-
-  enum class AlignConfig
-  {
-    ALIGN_MIN,
-    ALIGN_CENTER,
-    ALIGN_MAX
   };
 
   class AlignToolPrivate;
@@ -70,37 +74,61 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    // Documentation inherited
     public: void Update(const UpdateInfo &_info,
         EntityComponentManager &_ecm) override;
 
+    /// \brief Callback to update the axis type.
+    /// \param[in] _mode New axis type
     public slots: void OnAlignAxis(const QString &_mode);
 
+    /// \brief Callback to update the target type.
+    /// \param[in] _target New target type
     public slots: void OnAlignTarget(const QString &_target);
 
-    public slots: void OnReverse(bool _reverse);
+    /// \brief Callback to make whenever a hover state is entered on a button
+    public slots: void OnHoveredEntered();
 
-    public slots: void OnAlignConfig(const QString &_config);
+    /// \brief Callback to make whenever a hover state is exited on a button
+    public slots: void OnHoveredExited();
 
-    public slots: void AddStatus(const QString &_status);
-    
-    public: void AddStatus(const AlignStatus &_status);
+    /// \brief Callback to add a state to the execution queue.
+    /// \param[in] _state New state to add by QString
+    public slots: void AddState(const QString &_state);
 
-    public: void MakeSolid(const rendering::NodePtr &_node);
+    /// \brief Callback to add a state to the execution queue.
+    /// \param[in] _state New state to add by enum AlignState
+    public: void AddState(const AlignState &_state);
 
+    /// \brief Makes the node transparent
+    /// \param[in] _node The node to make transparent
     public: void MakeTransparent(const rendering::NodePtr &_node);
 
+    /// \brief Reset the node to its solid form, intended to be called
+    /// after MakeTransparent
+    /// \param[in] _node The node to make solid
+    public: void MakeSolid(const rendering::NodePtr &_node);
+
+    /// \brief The function call to execute a state from the queue.  This
+    /// function makes rendering calls and should only be executed within
+    /// the render thread
+    public: void Align();
+
+    /// \brief Returns the top level visual of the passed in visual within
+    /// a given scene
+    /// \param[in] _scene The scene to check
+    /// \param[in] _visual The visual to get the top level visual for
     public: rendering::VisualPtr TopLevelVisual(rendering::ScenePtr &_scene,
             rendering::VisualPtr &_visual) const;
-    
+
+    /// \brief Returns the top level node of the passed in node within
+    /// a given scene
+    /// \param[in] _scene The scene to check
+    /// \param[in] _visual The node to get the top level node for
     public: rendering::NodePtr TopLevelNode(rendering::ScenePtr &_scene,
             rendering::NodePtr &_node) const;
 
-    public slots: void OnHoveredEntered();
-    
-    public slots: void OnHoveredExited();
-
-    public: void Align();
-
+    // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \internal
