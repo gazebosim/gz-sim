@@ -48,40 +48,6 @@ ToolBar {
       Layout.topMargin: 15
       font.pointSize: 14
     }
-    /*
-    ToolButton {
-      id: x_min
-      checkable: true
-      ButtonGroup.group: group
-      ToolTip.text: "View from the top"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      Layout.topMargin: 15
-      Layout.leftMargin: 10
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "x_min.png"
-        sourceSize.width: 28;
-        sourceSize.height: 28;
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
-          AlignTool.OnAlignAxis("X")
-          AlignTool.OnAlignConfig("min")
-        }
-      }
-    }
-    */
     ToolButton {
       id: x_center
       Layout.row: 0
@@ -105,7 +71,6 @@ ToolBar {
         hoverEnabled: true
         onEntered: {
           AlignTool.OnAlignAxis("X")
-          AlignTool.OnAlignConfig("center")
           AlignTool.OnHoveredEntered()
         }
         onExited: {
@@ -116,39 +81,6 @@ ToolBar {
         }
       }
     }
-    /*
-    ToolButton {
-      id: x_max
-      checkable: true
-      ButtonGroup.group: group
-      ToolTip.text: "View from the left"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      Layout.topMargin: 15
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "x_max.png"
-        sourceSize.width: 28;
-        sourceSize.height: 28;
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
-          AlignTool.OnAlignAxis("X")
-          AlignTool.OnAlignConfig("max")
-        }
-      }
-    }
-    */
     Text {
       text: "Y:"
       font.weight: Font.Bold
@@ -158,39 +90,6 @@ ToolBar {
       Layout.leftMargin: 25
       font.pointSize: 14
     }
-    /*
-    ToolButton {
-      id: y_min
-      checkable: true
-      ButtonGroup.group: group
-      ToolTip.text: "View from the front"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      Layout.leftMargin: 10
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "y_min.png"
-        sourceSize.width: 28;
-        sourceSize.height: 28;
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
-          AlignTool.OnAlignAxis("Y")
-          AlignTool.OnAlignConfig("min")
-        }
-      }
-    }
-    */
     ToolButton {
       id: y_center
       checkable: true
@@ -213,7 +112,6 @@ ToolBar {
         hoverEnabled: true
         onEntered: {
           AlignTool.OnAlignAxis("Y")
-          AlignTool.OnAlignConfig("center")
           AlignTool.OnHoveredEntered()
         }
         onExited: {
@@ -224,38 +122,6 @@ ToolBar {
         }
       }
     }
-    /*
-    ToolButton {
-      id: y_max
-      checkable: true
-      ButtonGroup.group: group
-      ToolTip.text: "View from the back"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "y_max.png"
-        sourceSize.width: 28;
-        sourceSize.height: 28;
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
-          AlignTool.OnAlignAxis("Y")
-          AlignTool.OnAlignConfig("max")
-        }
-      }
-    }
-    */
     Text {
       text: "Z:"
       font.weight: Font.Bold
@@ -265,39 +131,6 @@ ToolBar {
       Layout.leftMargin: 25
       font.pointSize: 14
     }
-    /*
-    ToolButton {
-      id: z_min
-      checkable: true
-      ButtonGroup.group: group
-      ToolTip.text: "View from the bottom"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      Layout.leftMargin: 10
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "z_min.png"
-        sourceSize.width: 28;
-        sourceSize.height: 28;
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
-          AlignTool.OnAlignAxis("Z")
-          AlignTool.OnAlignConfig("min")
-        }
-      }
-    }
-    */
     ToolButton {
       id: z_center
       checkable: true
@@ -320,7 +153,6 @@ ToolBar {
         hoverEnabled: true
         onEntered: {
           AlignTool.OnAlignAxis("Z")
-          AlignTool.OnAlignConfig("center")
           AlignTool.OnHoveredEntered()
         }
         onExited: {
@@ -331,48 +163,6 @@ ToolBar {
         }
       }
     }
-    /*
-    ToolButton {
-      id: z_max
-      checkable: true
-      ButtonGroup.group: group
-      ToolTip.text: "View from the bottom"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "z_max.png"
-        sourceSize.width: 28;
-        sourceSize.height: 28;
-      }
-      MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: {
-          // TODO: hover object to new location
-        }
-        onExited: {
-          // TODO: move object back to old location if not confirmed
-        }
-        onClicked: {
-          AlignTool.OnAlignAxis("Z")
-          AlignTool.OnAlignConfig("max")
-        }
-      }
-    }
-    CheckBox {
-      text: qsTr("Reverse")
-      Layout.columnSpan: 4
-      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-      Layout.leftMargin: 10
-      checked: false
-      onClicked: {
-        AlignTool.OnReverse(checked)
-      }
-    }
-    */
     RowLayout {
       Layout.columnSpan: 4
       spacing: 10

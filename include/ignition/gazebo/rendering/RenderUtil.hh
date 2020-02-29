@@ -17,9 +17,9 @@
 #ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
-#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <sdf/Sensor.hh>
 
@@ -134,7 +134,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::NodePtr SelectedEntity() const;
 
     /// \brief Get the entities currently selected, in order of selection.
-    /// \return Map of currently selected entities, entity to rendering node id
+    /// \return Vector of currently selected entities
     public: std::vector<Entity> SelectedEntities() const;
 
     /// \brief Clears the set of selected entities and lowlights all of them.
