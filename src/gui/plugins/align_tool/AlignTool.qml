@@ -77,7 +77,7 @@ ToolBar {
           AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.AddStatus("align")
+          AlignTool.AddState("align")
         }
       }
     }
@@ -118,7 +118,7 @@ ToolBar {
           AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.AddStatus("align")
+          AlignTool.AddState("align")
         }
       }
     }
@@ -159,7 +159,7 @@ ToolBar {
           AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.AddStatus("align")
+          AlignTool.AddState("align")
         }
       }
     }
