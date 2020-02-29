@@ -36,9 +36,9 @@ pipelines:
           # - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
           # - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
           - docker/scripts/build_ign.sh ignitionrobotics ign-common ign-common3
+          - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
           - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
           - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
           # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
