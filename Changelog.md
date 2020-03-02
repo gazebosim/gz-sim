@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Depend on ign-rendering4, ign-gui4, ign-sensors4
+    * [Pull Request 540](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/540)
+
 ## Ignition Gazebo 3.x
 
 ### Ignition Gazebo 3.X.X
