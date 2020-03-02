@@ -20,6 +20,7 @@
 #include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
@@ -27,6 +28,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "TransformControl.hh"
 
@@ -50,12 +52,14 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
+  : ignition::gui::Plugin(),
+  dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
 
 /////////////////////////////////////////////////
 TransformControl::~TransformControl() = default;
+
 /////////////////////////////////////////////////
 void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
@@ -64,6 +68,19 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 
   // For transform requests
   this->dataPtr->service = "/gui/transform_mode";
+}
+
+/////////////////////////////////////////////////
+void TransformControl::OnSnapUpdate(
+    double _x, double _y, double _z,
+    double _roll, double _pitch, double _yaw,
+    double _scaleX, double _scaleY, double _scaleZ)
+{
+  auto event = new gui::events::SnapIntervals(
+      math::Vector3d(_x, _y, _z), math::Vector3d(_roll, _pitch, _yaw),
+      math::Vector3d(_scaleX, _scaleY, _scaleZ));
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
 }
 
 /////////////////////////////////////////////////
