@@ -45,9 +45,11 @@
 
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
@@ -60,6 +62,20 @@ namespace ignition
 namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  /// \brief Helper to store selection requests to be handled in the render
+  /// thread by `IgnRenderer::HandleEntitySelection`.
+  struct SelectionHelper
+  {
+    /// \brief Entity to be selected
+    Entity selectEntity{kNullEntity};
+
+    /// \brief Deselect all entities
+    bool deselectAll{false};
+
+    /// \brief True to send an event and notify all widgets
+    bool sendEvent{false};
+  };
+
   //
   /// \brief Helper class for animating a user camera to move to a target entity
   /// todo(anyone) Move this functionality to rendering::Camera class in
@@ -85,8 +101,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
     public: void LookDirection(const rendering::CameraPtr &_camera,
-        const math::Vector3d &_direction, double _duration,
-        std::function<void()> _onAnimationComplete);
+        const math::Vector3d &_direction, const math::Vector3d &_lookAt,
+        double _duration, std::function<void()> _onAnimationComplete);
 
     /// \brief Add time to the animation.
     /// \param[in] _time Time to add in seconds
@@ -164,6 +180,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Helper object to select entities. Only the latest selection
+    /// request is kept.
+    public: SelectionHelper selectionHelper;
+
     /// \brief Target to follow
     public: std::string followTarget;
 
@@ -236,6 +256,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
+
+    /// \brief ID of thread where render calls can be made.
+    public: std::thread::id renderThreadId;
+
+    /// \brief The xyz values by which to snap the object.
+    public: math::Vector3d xyzSnap = math::Vector3d::One;
+
+    /// \brief The rpy values by which to snap the object.
+    public: math::Vector3d rpySnap = {45, 45, 45};
+
+    /// \brief The scale values by which to snap the object.
+    public: math::Vector3d scaleSnap = math::Vector3d::One;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -307,6 +339,8 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  this->dataPtr->renderThreadId = std::this_thread::get_id();
+
   IGN_PROFILE_THREAD_NAME("RenderThread");
   IGN_PROFILE("IgnRenderer::Render");
   if (this->textureDirty)
@@ -333,6 +367,9 @@ void IgnRenderer::Render()
 
   // view control
   this->HandleMouseEvent();
+
+  // Entity selection
+  this->HandleEntitySelection();
 
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
@@ -478,8 +515,29 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
+        std::vector<Entity> selectedEntities =
+          this->dataPtr->renderUtil.SelectedEntities();
+
+        // Look at the origin if no entities are selected
+        math::Vector3d lookAt = math::Vector3d::Zero;
+        if (!selectedEntities.empty())
+        {
+          for (const auto &entity : selectedEntities)
+          {
+            rendering::NodePtr node =
+                this->dataPtr->renderUtil.SceneManager().NodeById(entity);
+
+            if (!node)
+              continue;
+
+            math::Vector3d nodePos = node->WorldPose().Pos();
+            lookAt += nodePos;
+          }
+          lookAt /= selectedEntities.size();
+        }
+
         this->dataPtr->moveToHelper.LookDirection(this->dataPtr->camera,
-            this->dataPtr->viewAngleDirection,
+            this->dataPtr->viewAngleDirection, lookAt,
             0.5, std::bind(&IgnRenderer::OnViewAngleComplete, this));
         this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
@@ -492,6 +550,13 @@ void IgnRenderer::Render()
       }
     }
   }
+
+  if (ignition::gui::App())
+  {
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        new gui::events::Render());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -502,7 +567,6 @@ void IgnRenderer::HandleMouseEvent()
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
 }
-
 
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseContextMenu()
@@ -644,6 +708,46 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::HandleEntitySelection()
+{
+  if (this->dataPtr->selectionHelper.deselectAll)
+  {
+    this->DeselectAllEntities(this->dataPtr->selectionHelper.sendEvent);
+
+    this->dataPtr->selectionHelper = SelectionHelper();
+  }
+  else if (this->dataPtr->selectionHelper.selectEntity != kNullEntity)
+  {
+    auto node = this->dataPtr->renderUtil.SceneManager().NodeById(
+      this->dataPtr->selectionHelper.selectEntity);
+    this->UpdateSelectedEntity(node,
+        this->dataPtr->selectionHelper.sendEvent);
+
+    this->dataPtr->selectionHelper = SelectionHelper();
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::DeselectAllEntities(bool _sendEvent)
+{
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
+  this->dataPtr->renderUtil.DeselectAllEntities();
+
+  if (_sendEvent)
+  {
+    auto deselectEvent = new gui::events::DeselectAllEntities();
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        deselectEvent);
+  }
+}
+
+/////////////////////////////////////////////////
 double IgnRenderer::SnapValue(
     double _coord, double _interval, double _sensitivity) const
 {
@@ -672,10 +776,10 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, double _interval, double _sensitivity)
-    const
+    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+    double _sensitivity) const
 {
-  if (_interval <= 0)
+  if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
   {
     ignerr << "Interval distance must be greater than 0"
         << std::endl;
@@ -688,9 +792,9 @@ void IgnRenderer::SnapPoint(
     return;
   }
 
-  _point.X() = this->SnapValue(_point.X(), _interval, _sensitivity);
-  _point.Y() = this->SnapValue(_point.Y(), _interval, _sensitivity);
-  _point.Z() = this->SnapValue(_point.Z(), _interval, _sensitivity);
+  _point.X() = this->SnapValue(_point.X(), _snapVals.X(), _sensitivity);
+  _point.Y() = this->SnapValue(_point.Y(), _snapVals.Y(), _sensitivity);
+  _point.Z() = this->SnapValue(_point.Z(), _snapVals.Z(), _sensitivity);
 }
 
 /////////////////////////////////////////////////
@@ -722,6 +826,12 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
   // set transform configuration
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
@@ -733,14 +843,12 @@ void IgnRenderer::HandleMouseTransformControl()
   // selected
   if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE ||
       (this->dataPtr->transformControl.Node() &&
-      !this->dataPtr->renderUtil.SelectedEntity()))
+      this->dataPtr->renderUtil.SelectedEntities().empty()))
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
 
     this->dataPtr->transformControl.Detach();
-    this->dataPtr->renderUtil.SetSelectedEntity(
-        rendering::VisualPtr());
   }
   else
   {
@@ -815,7 +923,8 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->transformControl.Stop();
         this->dataPtr->mouseDirty = false;
       }
-      else
+      // Select entity
+      else if (!this->dataPtr->mouseEvent.Dragging())
       {
         rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
               this->dataPtr->mouseEvent.Pos());
@@ -825,7 +934,14 @@ void IgnRenderer::HandleMouseTransformControl()
               this->dataPtr->mouseEvent.Pos());
 
         if (!visual)
+        {
+          // Hit the background, deselect all
+          if (!this->dataPtr->mouseEvent.Dragging())
+          {
+            this->DeselectAllEntities(true);
+          }
           return;
+        }
 
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
@@ -837,9 +953,17 @@ void IgnRenderer::HandleMouseTransformControl()
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (topVis && topVis->Name() != "ground_plane")
           {
-            this->dataPtr->transformControl.Attach(topVis);
-            this->dataPtr->renderUtil.SetSelectedEntity(topVis);
+            // Highlight entity and notify other widgets
+            this->UpdateSelectedEntity(topVis, true);
+
             this->dataPtr->mouseDirty = false;
+            return;
+          }
+          // Don't deselect after dragging, user may be orbiting the camera
+          else if (!this->dataPtr->mouseEvent.Dragging())
+          {
+            // Hit the ground, deselect all
+            this->DeselectAllEntities(true);
             return;
           }
         }
@@ -874,22 +998,38 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_TRANSLATION)
     {
+      Entity nodeId = this->dataPtr->renderUtil.SelectedEntities().front();
+      rendering::NodePtr target =
+          this->dataPtr->renderUtil.SceneManager().NodeById(nodeId);
+      if (!target)
+      {
+        ignwarn << "Failed to find node with ID [" << nodeId << "]"
+                << std::endl;
+        return;
+      }
       this->XYZConstraint(axis);
       if (!this->dataPtr->isStartWorldPosSet)
       {
         this->dataPtr->isStartWorldPosSet = true;
         this->dataPtr->startWorldPos =
-          this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+          target->WorldPosition();
       }
       ignition::math::Vector3d worldPos =
-        this->dataPtr->renderUtil.SelectedEntity()->WorldPosition();
+        target->WorldPosition();
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
         // Translate to world frame for snapping
         distance += this->dataPtr->startWorldPos;
-        SnapPoint(distance);
+        math::Vector3d snapVals = this->XYZSnap();
+
+        // Constrain snap values to a minimum of 1e-4
+        snapVals.X() = std::max(1e-4, snapVals.X());
+        snapVals.Y() = std::max(1e-4, snapVals.Y());
+        snapVals.Z() = std::max(1e-4, snapVals.Z());
+
+        SnapPoint(distance, snapVals);
 
         // Translate back to entity frame
         distance -= this->dataPtr->startWorldPos;
@@ -906,7 +1046,34 @@ void IgnRenderer::HandleMouseTransformControl()
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d currentRot = rotation.Euler();
-        SnapPoint(currentRot, IGN_PI/4);
+        math::Vector3d snapVals = this->RPYSnap();
+
+        if (snapVals.X() <= 1e-4)
+        {
+          snapVals.X() = IGN_PI/4;
+        }
+        else
+        {
+          snapVals.X() = IGN_DTOR(snapVals.X());
+        }
+        if (snapVals.Y() <= 1e-4)
+        {
+          snapVals.Y() = IGN_PI/4;
+        }
+        else
+        {
+          snapVals.Y() = IGN_DTOR(snapVals.Y());
+        }
+        if (snapVals.Z() <= 1e-4)
+        {
+          snapVals.Z() = IGN_PI/4;
+        }
+        else
+        {
+          snapVals.Z() = IGN_DTOR(snapVals.Z());
+        }
+
+        SnapPoint(currentRot, snapVals);
         rotation = math::Quaterniond::EulerToQuaternion(currentRot);
       }
       this->dataPtr->transformControl.Rotate(rotation);
@@ -920,7 +1087,16 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        SnapPoint(scale, 0.5);
+        math::Vector3d snapVals = this->ScaleSnap();
+
+        if (snapVals.X() <= 1e-4)
+          snapVals.X() = 0.1;
+        if (snapVals.Y() <= 1e-4)
+          snapVals.Y() = 0.1;
+        if (snapVals.Z() <= 1e-4)
+          snapVals.Z() = 0.1;
+
+        SnapPoint(scale, snapVals);
       }
       this->dataPtr->transformControl.Scale(scale);
     }
@@ -935,6 +1111,12 @@ void IgnRenderer::HandleMouseViewControl()
 {
   if (!this->dataPtr->mouseDirty)
     return;
+
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
 
   math::Vector3d camWorldPos;
   if (!this->dataPtr->followTarget.empty())
@@ -1051,6 +1233,103 @@ void IgnRenderer::Destroy()
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyz)
+{
+  this->dataPtr->xyzSnap = _xyz;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::XYZSnap() const
+{
+  return this->dataPtr->xyzSnap;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpy)
+{
+  this->dataPtr->rpySnap = _rpy;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::RPYSnap() const
+{
+  return this->dataPtr->rpySnap;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetScaleSnap(const math::Vector3d &_scale)
+{
+  this->dataPtr->scaleSnap = _scale;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::ScaleSnap() const
+{
+  return this->dataPtr->scaleSnap;
+}
+/////////////////////////////////////////////////
+void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
+    bool _sendEvent)
+{
+  if (!_node)
+    return;
+
+  if (this->dataPtr->renderThreadId != std::this_thread::get_id())
+  {
+    ignwarn << "Making render calls from outside the render thread"
+            << std::endl;
+  }
+
+  bool deselectedAll{false};
+
+  // Deselect all if control is not being held
+  if (!(QGuiApplication::keyboardModifiers() & Qt::ControlModifier) &&
+      !this->dataPtr->renderUtil.SelectedEntities().empty())
+  {
+    // Notify other widgets regardless of _sendEvent, because this is a new
+    // decision from this widget
+    this->DeselectAllEntities(true);
+    deselectedAll = true;
+  }
+
+  // Attach control if in a transform mode - control is attached to:
+  // * latest selection
+  // * top-level nodes (model, light...)
+  if (this->dataPtr->transformMode != rendering::TransformMode::TM_NONE)
+  {
+    auto topNode =
+        this->dataPtr->renderUtil.SceneManager().TopLevelNode(_node);
+    if (topNode == _node)
+    {
+      this->dataPtr->transformControl.Attach(_node);
+
+      // When attached, we want only one entity selected
+      // Notify other widgets regardless of _sendEvent, because this is a new
+      // decision from this widget
+      this->DeselectAllEntities(true);
+      deselectedAll = true;
+    }
+    else
+    {
+      this->dataPtr->transformControl.Detach();
+    }
+  }
+
+  // Select new entity
+  this->dataPtr->renderUtil.SetSelectedEntity(_node);
+
+  // Notify other widgets of the currently selected entities
+  if (_sendEvent || deselectedAll)
+  {
+    auto selectEvent = new gui::events::EntitiesSelected(
+        this->dataPtr->renderUtil.SelectedEntities());
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        selectEvent);
+  }
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetTransformMode(const std::string &_mode)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1064,6 +1343,13 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
     this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
     ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
+
+  // Update selected entities if transform control is changed
+  if (!this->dataPtr->renderUtil.SelectedEntities().empty())
+  {
+    Entity entity = this->dataPtr->renderUtil.SelectedEntities().back();
+    this->dataPtr->selectionHelper = {entity, false, false};
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1195,6 +1481,13 @@ math::Vector3d IgnRenderer::ScreenToScene(
   // Set point to be 10m away if no intersection found
   return this->dataPtr->rayQuery->Origin() +
       this->dataPtr->rayQuery->Direction() * 10;
+}
+
+////////////////////////////////////////////////
+void IgnRenderer::RequestSelectionChange(Entity _selectedEntity,
+    bool _deselectAll, bool _sendEvent)
+{
+  this->dataPtr->selectionHelper = {_selectedEntity, _deselectAll, _sendEvent};
 }
 
 /////////////////////////////////////////////////
@@ -1633,6 +1926,9 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       &Scene3D::OnViewAngle, this);
   ignmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -1752,6 +2048,97 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
+{
+  this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRPYSnap(const math::Vector3d &_rpy)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRPYSnap(_rpy);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
+{
+  this->dataPtr->renderThread->ignRenderer.SetScaleSnap(_scale);
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  {
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent)
+    {
+      for (const auto &entity : selectedEvent->Data())
+      {
+        // If the event is from the user, update render util state
+        if (!selectedEvent->FromUser())
+          continue;
+
+        auto node = this->dataPtr->renderUtil->SceneManager().NodeById(entity);
+
+        if (nullptr == node)
+        {
+          // If an unknown entity has been selected, and control is not pressed,
+          // deselect all known selected entities
+          if (!(QGuiApplication::keyboardModifiers() & Qt::ControlModifier))
+          {
+            auto renderWindow =
+                this->PluginItem()->findChild<RenderWindowItem *>();
+            renderWindow->DeselectAllEntities(false);
+          }
+          continue;
+        }
+
+        auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+        renderWindow->UpdateSelectedEntity(entity, false);
+      }
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+  {
+    auto deselectEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+
+    // If the event is from the user, update render util state
+    if (deselectEvent && deselectEvent->FromUser())
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->DeselectAllEntities(false);
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::SnapIntervals::kType)
+  {
+    auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
+    if (snapEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetXYZSnap(snapEvent->XYZ());
+      renderWindow->SetRPYSnap(snapEvent->RPY());
+      renderWindow->SetScaleSnap(snapEvent->Scale());
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::UpdateSelectedEntity(Entity _entity,
+    bool _sendEvent)
+{
+  this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
+      _entity, false, _sendEvent);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
@@ -1769,6 +2156,13 @@ void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
 void RenderWindowItem::SetMoveTo(const std::string &_target)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::DeselectAllEntities(bool _sendEvent)
+{
+  this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
+      kNullEntity, true, _sendEvent);
 }
 
 /////////////////////////////////////////////////
@@ -1828,7 +2222,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
   this->forceActiveFocus();
 
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
@@ -1840,8 +2234,13 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
+  auto event = ignition::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
+
+  // A release at the end of a drag
+  if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE)
+    event.SetDragging(this->dataPtr->mouseEvent.Dragging());
+
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
@@ -1852,11 +2251,12 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
-  auto event = gui::convert(*_e);
-  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
+  auto event = ignition::gui::convert(*_e);
 
   if (!event.Dragging())
     return;
+
+  event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
@@ -1899,6 +2299,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
+    this->DeselectAllEntities(true);
   }
 }
 
@@ -1966,8 +2367,8 @@ void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
 
 ////////////////////////////////////////////////
 void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
-    const math::Vector3d &_direction, double _duration,
-    std::function<void()> _onAnimationComplete)
+    const math::Vector3d &_direction, const math::Vector3d &_lookAt,
+    double _duration, std::function<void()> _onAnimationComplete)
 {
   this->camera = _camera;
   this->poseAnim = std::make_unique<common::PoseAnimation>(
@@ -1977,20 +2378,16 @@ void MoveToHelper::LookDirection(const rendering::CameraPtr &_camera,
   math::Pose3d start = _camera->WorldPose();
 
   // Look at world origin unless there are visuals selected
-  math::Vector3d lookAt = math::Vector3d::Zero;
-
-  // TODO(john) set lookat to be average of selected objects
-
   // Keep current distance to look at target
   math::Vector3d camPos = _camera->WorldPose().Pos();
-  double distance = std::fabs((camPos - lookAt).Length());
+  double distance = std::fabs((camPos - _lookAt).Length());
 
   // Calculate camera position
-  math::Vector3d endPos = lookAt - _direction * distance;
+  math::Vector3d endPos = _lookAt - _direction * distance;
 
   // Calculate camera orientation
   math::Quaterniond endRot =
-    ignition::math::Matrix4d::LookAt(endPos, lookAt).Rotation();
+    ignition::math::Matrix4d::LookAt(endPos, _lookAt).Rotation();
 
   // Move camera to that pose
   common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
