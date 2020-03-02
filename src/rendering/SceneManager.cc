@@ -34,6 +34,7 @@
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
 
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 
 using namespace ignition;
@@ -258,6 +259,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     // material->SetTransparency(_visual.Transparency());
     if (material)
     {
+      // cast shadows
+      material->SetCastShadows(_visual.CastShadows());
+
       geom->SetMaterial(material);
       // todo(anyone) SetMaterial function clones the input material.
       // but does not take ownership of it so we need to destroy it here.
@@ -319,7 +323,9 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::MESH)
   {
-    if (_geom.MeshShape()->Uri().empty())
+    auto fullPath = asFullPath(_geom.MeshShape()->Uri(),
+        _geom.MeshShape()->FilePath());
+    if (fullPath.empty())
     {
       ignerr << "Mesh geometry missing uri" << std::endl;
       return geom;
@@ -327,7 +333,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::MeshDescriptor descriptor;
 
     // Assume absolute path to mesh file
-    descriptor.meshName = _geom.MeshShape()->Uri();
+    descriptor.meshName = fullPath;
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
@@ -629,17 +635,65 @@ void SceneManager::RemoveEntity(Entity _id)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::TopLevelVisual(
+// NOLINTNEXTLINE
     rendering::VisualPtr _visual) const
 {
-  rendering::VisualPtr rootVisual =
+  auto node = this->TopLevelNode(_visual);
+  return std::dynamic_pointer_cast<rendering::Visual>(node);
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr SceneManager::TopLevelNode(
+    const rendering::NodePtr &_node) const
+{
+  rendering::NodePtr rootNode =
       this->dataPtr->scene->RootVisual();
 
-  rendering::VisualPtr visual = std::move(_visual);
-  while (visual && visual->Parent() != rootVisual)
+  rendering::NodePtr node = _node;
+  while (node && node->Parent() != rootNode)
   {
-    visual =
-      std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+    node =
+      std::dynamic_pointer_cast<rendering::Node>(node->Parent());
   }
 
-  return visual;
+  return node;
+}
+
+/////////////////////////////////////////////////
+Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
+{
+  // TODO(louise) On Citadel, set entity ID into visual with SetUserData
+  auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (visual)
+  {
+    auto found = std::find_if(std::begin(this->dataPtr->visuals),
+        std::end(this->dataPtr->visuals),
+        [&](const std::pair<Entity, rendering::VisualPtr> &_item)
+    {
+      return _item.second == visual;
+    });
+
+    if (found != this->dataPtr->visuals.end())
+    {
+      return found->first;
+    }
+  }
+
+  auto light = std::dynamic_pointer_cast<rendering::Light>(_node);
+  if (light)
+  {
+    auto found = std::find_if(std::begin(this->dataPtr->lights),
+        std::end(this->dataPtr->lights),
+        [&](const std::pair<Entity, rendering::LightPtr> &_item)
+    {
+      return _item.second == light;
+    });
+
+    if (found != this->dataPtr->lights.end())
+    {
+      return found->first;
+    }
+  }
+
+  return kNullEntity;
 }

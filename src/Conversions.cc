@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
@@ -53,8 +54,46 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
+
+//////////////////////////////////////////////////
+template<>
+msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
+{
+  msgs::Entity_Type out = msgs::Entity_Type_NONE;
+
+  if (_in == "light") {
+    return msgs::Entity_Type_LIGHT;
+  }
+  else if (_in == "model")
+  {
+    return msgs::Entity_Type_MODEL;
+  }
+  else if (_in == "link")
+  {
+    return msgs::Entity_Type_LINK;
+  }
+  else if (_in == "visual")
+  {
+    return msgs::Entity_Type_VISUAL;
+  }
+  else if (_in == "collision")
+  {
+    return msgs::Entity_Type_COLLISION;
+  }
+  else if (_in == "sensor")
+  {
+    return msgs::Entity_Type_SENSOR;
+  }
+  else if (_in == "joint")
+  {
+    return msgs::Entity_Type_JOINT;
+  }
+
+  return out;
+}
 
 //////////////////////////////////////////////////
 template<>
@@ -116,7 +155,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     auto meshMsg = out.mutable_mesh();
 
     msgs::Set(meshMsg->mutable_scale(), meshSdf->Scale());
-    meshMsg->set_filename(meshSdf->Uri());
+    meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }

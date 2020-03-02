@@ -33,11 +33,13 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -87,9 +89,6 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Name of scene
   public: std::string sceneName = "scene";
-
-  /// \brief Initial Camera pose
-  public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
 
   /// \brief Scene background color
   public: math::Color backgroundColor = math::Color::Black;
@@ -155,11 +154,24 @@ class ignition::gazebo::RenderUtilPrivate
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
-  /// \brief Entity currently being selected.
-  public: rendering::NodePtr selectedEntity{nullptr};
+  /// \brief Currently selected entities, organized by order of selection.
+  public: std::vector<Entity> selectedEntities;
+
+  /// \brief Map of original emissive colors for nodes currently highlighted.
+  public: std::map<std::string, math::Color> originalEmissive;
 
   /// \brief Whether the transform gizmo is being dragged.
   public: bool transformActive{false};
+
+  /// \brief Highlight a node and all its children.
+  /// \param[in] _node Node to be highlighted
+  /// TODO(anyone) On future versions, use a bounding box instead
+  public: void HighlightNode(const rendering::NodePtr &_node);
+
+  /// \brief Restore a highlighted node to normal.
+  /// \param[in] _node Node to be restored.
+  /// TODO(anyone) On future versions, use a bounding box instead
+  public: void LowlightNode(const rendering::NodePtr &_node);
 };
 
 //////////////////////////////////////////////////
@@ -245,6 +257,8 @@ void RenderUtil::Update()
   {
     this->dataPtr->scene->SetAmbientLight(scene.Ambient());
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    if (scene.Grid() && !this->dataPtr->enableSensors)
+      this->ShowGrid();
     // only one scene so break
     break;
   }
@@ -255,12 +269,11 @@ void RenderUtil::Update()
     IGN_PROFILE("RenderUtil::Update Remove");
     for (auto &entity : removeEntities)
     {
-      if (this->dataPtr->selectedEntity &&
-          this->dataPtr->sceneManager.NodeById(entity.first) ==
-          this->dataPtr->selectedEntity)
-      {
-        this->dataPtr->selectedEntity.reset();
-      }
+      auto node = this->dataPtr->sceneManager.NodeById(entity.first);
+      this->dataPtr->selectedEntities.erase(std::remove(
+          this->dataPtr->selectedEntities.begin(),
+          this->dataPtr->selectedEntities.end(), entity.first),
+          this->dataPtr->selectedEntities.end());
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
     }
   }
@@ -349,10 +362,12 @@ void RenderUtil::Update()
       if (!node)
         continue;
 
+      // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
+      Entity entityId = this->EntityFromNode(node->Parent());
       if (this->dataPtr->transformActive &&
-          (node == this->dataPtr->selectedEntity ||
-          node->Parent() == this->dataPtr->selectedEntity))
+          (pose.first == this->dataPtr->selectedEntities.back() ||
+          entityId == this->dataPtr->selectedEntities.back()))
       {
         continue;
       }
@@ -443,18 +458,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -578,18 +597,22 @@ void RenderUtilPrivate::CreateRenderingEntities(
 
     // visuals
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
-              components::Geometry, components::ParentEntity>(
+              components::Geometry,
+              components::CastShadows,
+              components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
             const components::Name *_name,
             const components::Pose *_pose,
             const components::Geometry *_geom,
+            const components::CastShadows *_castShadows,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
+          visual.SetCastShadows(_castShadows->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -856,6 +879,37 @@ void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::ShowGrid()
+{
+  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
+
+  // create gray material
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
+
+  // create grid visual
+  rendering::VisualPtr visual = this->dataPtr->scene->CreateVisual();
+  rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
+  if (!gridGeom)
+  {
+    ignwarn << "Failed to create grid for scene ["
+      << this->dataPtr->scene->Name() << "] on engine ["
+        << this->dataPtr->scene->Engine()->Name() << "]"
+          << std::endl;
+    return;
+  }
+  gridGeom->SetCellCount(20);
+  gridGeom->SetCellLength(1);
+  gridGeom->SetVerticalCellCount(0);
+  visual->AddGeometry(gridGeom);
+  visual->SetLocalPosition(0, 0, 0.015);
+  visual->SetMaterial(gray);
+  root->AddChild(visual);
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::SetEngineName(const std::string &_name)
 {
   this->dataPtr->engineName = _name;
@@ -901,19 +955,159 @@ SceneManager &RenderUtil::SceneManager()
 }
 
 /////////////////////////////////////////////////
+Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
+{
+  return this->dataPtr->sceneManager.EntityFromNode(_node);
+}
+
+/////////////////////////////////////////////////
+// NOLINTNEXTLINE
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
-  this->dataPtr->selectedEntity = std::move(_node);
+  if (!_node)
+    return;
+
+  Entity entityId = this->EntityFromNode(_node);
+
+  if (entityId == kNullEntity)
+    return;
+
+  this->dataPtr->selectedEntities.push_back(entityId);
+  this->dataPtr->HighlightNode(_node);
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::DeselectAllEntities()
+{
+  for (const auto &entity : this->dataPtr->selectedEntities)
+  {
+    auto node = this->dataPtr->sceneManager.NodeById(entity);
+    this->dataPtr->LowlightNode(node);
+  }
+  this->dataPtr->selectedEntities.clear();
+  this->dataPtr->originalEmissive.clear();
 }
 
 /////////////////////////////////////////////////
 rendering::NodePtr RenderUtil::SelectedEntity() const
 {
-  return this->dataPtr->selectedEntity;
+  // Return most recently selected node
+  auto node = this->dataPtr->sceneManager.NodeById(
+      this->dataPtr->selectedEntities.back());
+  return node;
+}
+
+/////////////////////////////////////////////////
+std::vector<Entity> RenderUtil::SelectedEntities() const
+{
+  return this->dataPtr->selectedEntities;
 }
 
 /////////////////////////////////////////////////
 void RenderUtil::SetTransformActive(bool _active)
 {
   this->dataPtr->transformActive = _active;
+}
+
+////////////////////////////////////////////////
+void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
+{
+  if (!_node)
+    return;
+
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    this->HighlightNode(_node->ChildByIndex(n));
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    // If the entity isn't already highlighted, highlight it
+    if (this->originalEmissive.find(vis->Name()) ==
+        this->originalEmissive.end())
+    {
+      this->originalEmissive[vis->Name()] = visMat->Emissive();
+      visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat)
+      continue;
+
+    // If the entity isn't already highlighted, highlight it
+    if (this->originalEmissive.find(geom->Name()) ==
+        this->originalEmissive.end())
+    {
+      this->originalEmissive[geom->Name()] = geomMat->Emissive();
+      geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+    }
+  }
+}
+
+////////////////////////////////////////////////
+void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
+{
+  if (!_node)
+    return;
+
+  for (auto n = 0u; n < _node->ChildCount(); ++n)
+  {
+    this->LowlightNode(_node->ChildByIndex(n));
+  }
+
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  if (nullptr == vis)
+    return;
+
+  // Visual material
+  auto visMat = vis->Material();
+  if (nullptr != visMat)
+  {
+    auto visEmissive = this->originalEmissive.find(vis->Name());
+    if (visEmissive != this->originalEmissive.end())
+    {
+      visMat->SetEmissive(visEmissive->second);
+    }
+    else
+    {
+      ignerr << "Failed to find original material for visual [" << vis->Name()
+             << "]" << std::endl;
+    }
+  }
+
+  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  {
+    auto geom = vis->GeometryByIndex(g);
+
+    // Geometry material
+    auto geomMat = geom->Material();
+    if (nullptr == geomMat)
+    {
+      ignerr << "Geometry missing material during lowlight." << std::endl;
+      continue;
+    }
+
+    auto geomEmissive = this->originalEmissive.find(geom->Name());
+    if (geomEmissive != this->originalEmissive.end())
+    {
+      geomMat->SetEmissive(geomEmissive->second);
+    }
+    else
+    {
+      ignerr << "Failed to find original material for geometry ["
+             << geom->Name() << "]" << std::endl;
+    }
+  }
 }
