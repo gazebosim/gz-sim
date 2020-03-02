@@ -331,6 +331,7 @@ class Cmd
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
+          Process.setproctitle('ign gazebo server')
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
@@ -341,6 +342,7 @@ class Cmd
         guiPid = Process.fork do
           ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
+          Process.setproctitle('ign gazebo gui')
           Importer.runGui(options['gui_config'])
         end
 
