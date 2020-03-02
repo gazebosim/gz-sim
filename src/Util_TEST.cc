@@ -201,3 +201,87 @@ TEST(UtilTest, RemoveParentScopedName)
   EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", ""),
             "world::world_name::light::lightA_name");
 }
+
+/////////////////////////////////////////////////
+TEST(UtilTest, AsFullPath)
+{
+  const std::string relativeUriUnix{"meshes/collision.dae"};
+  const std::string relativeUriWindows{"meshes\\collision.dae"};
+  const std::string absoluteUriUnix{"/path/to/collision.dae"};
+  const std::string absoluteUriWindows{R"(C:\path\to\collision.dae)"};
+  const std::string schemeUri{"https://website.com/collision.dae"};
+
+  // Empty path
+  {
+    const std::string path{""};
+
+    EXPECT_EQ(relativeUriUnix, asFullPath(relativeUriUnix, path));
+    EXPECT_EQ(relativeUriWindows, asFullPath(relativeUriWindows, path));
+    EXPECT_EQ(absoluteUriUnix, asFullPath(absoluteUriUnix, path));
+    EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+  }
+
+  // Data string
+  {
+    const std::string path{"data-string"};
+
+    EXPECT_EQ(relativeUriUnix, asFullPath(relativeUriUnix, path));
+    EXPECT_EQ(relativeUriWindows, asFullPath(relativeUriWindows, path));
+    EXPECT_EQ(absoluteUriUnix, asFullPath(absoluteUriUnix, path));
+    EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+  }
+
+#ifdef _WIN32
+  {
+    // Absolute Windows path
+    const std::string path{R"(C:\abs\path\file)"};
+
+    // Directory
+    EXPECT_EQ("C:\\abs\\path\\meshes\\collision.dae",
+        asFullPath(relativeUriUnix, path));
+    EXPECT_EQ("C:\\abs\\path\\meshes\\collision.dae",
+        asFullPath(relativeUriWindows, path));
+    // TODO(anyone) Support absolute Unix-style URIs on Windows
+    EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, path));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+
+    // File
+    auto filePath = common::joinPaths(path, "file.sdf");
+
+    EXPECT_EQ("C:\\abs\\path\\file\\meshes\\collision.dae",
+        asFullPath(relativeUriUnix, filePath));
+    EXPECT_EQ("C:\\abs\\path\\file\\meshes\\collision.dae",
+        asFullPath(relativeUriWindows, filePath));
+    // TODO(anyone) Support absolute Unix-style URIs on Windows
+    EXPECT_EQ(absoluteUriWindows, asFullPath(absoluteUriWindows, filePath));
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
+  }
+#else
+  {
+    // Absolute Unix path
+    const std::string path{"/abs/path/file"};
+
+    // Directory
+    EXPECT_EQ("/abs/path/meshes/collision.dae",
+        asFullPath(relativeUriUnix, path));
+    EXPECT_EQ("/abs/path/meshes/collision.dae",
+        asFullPath(relativeUriWindows, path));
+    EXPECT_EQ(absoluteUriUnix, asFullPath(absoluteUriUnix, path));
+    // TODO(anyone) Support absolute Windows paths on Unix
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, path));
+
+    // File
+    auto filePath = common::joinPaths(path, "file.sdf");
+
+    EXPECT_EQ("/abs/path/file/meshes/collision.dae",
+        asFullPath(relativeUriUnix, filePath));
+    EXPECT_EQ("/abs/path/file/meshes/collision.dae",
+        asFullPath(relativeUriWindows, filePath));
+    EXPECT_EQ(absoluteUriUnix, asFullPath(absoluteUriUnix, filePath));
+    // TODO(anyone) Support absolute Windows paths on Unix
+    EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
+  }
+#endif
+}

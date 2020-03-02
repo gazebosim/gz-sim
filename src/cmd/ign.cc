@@ -18,9 +18,11 @@
 #include <cstring>
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
+#include <ignition/common/Filesystem.hh>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
@@ -58,13 +60,92 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    const char *_playback, const char *_file)
+    int _logOverwrite, const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  // Path for logs
+  std::string recordPathMod = serverConfig.LogRecordPath();
+
+  // Initialize console log
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
   {
-    ignLogInit(_recordPath, "server_console.log");
+    if (_playback != nullptr && std::strlen(_playback) > 0)
+    {
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
+    }
+
+    serverConfig.SetUseLogRecord(true);
+
+    // If a record path is specified
+    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+    {
+      recordPathMod = std::string(_recordPath);
+
+      // Check if path or compressed file with same prefix exists
+      if (ignition::common::exists(recordPathMod))
+      {
+        // Overwrite if flag specified
+        if (_logOverwrite > 0)
+        {
+          bool recordMsg = false;
+          // Remove files before initializing console log files on top of them
+          if (ignition::common::exists(recordPathMod))
+          {
+            recordMsg = true;
+            ignition::common::removeAll(recordPathMod);
+          }
+
+          // Create log file before printing any messages so they can be logged
+          ignLogInit(recordPathMod, "server_console.log");
+
+          if (recordMsg)
+          {
+            ignmsg << "Log path already exists on disk! Existing files will "
+              << "be overwritten." << std::endl;
+            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+          }
+        }
+        // Otherwise rename to unique path
+        else
+        {
+          // Remove the separator at end of path
+          if (!std::string(1, recordPathMod.back()).compare(
+            ignition::common::separator("")))
+          {
+            recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
+          }
+          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+
+          ignLogInit(recordPathMod, "server_console.log");
+          ignwarn << "Log path already exists on disk! "
+            << "Recording instead to [" << recordPathMod << "]" << std::endl;
+        }
+      }
+      else
+      {
+        ignLogInit(recordPathMod, "server_console.log");
+      }
+      // TODO(anyone) In Ignition-D, to be moved to outside and after this
+      //   if-else statement, after all ignLogInit() calls have been finalized,
+      //   so that <path> in SDF will always be ignored in favor of logging both
+      //   console logs and LogRecord recordings to common::ignLogDirectory().
+      //   In Blueprint and Citadel, LogRecord will record to <path> if no
+      //   --record-path is specified on command line.
+      serverConfig.SetLogRecordPath(recordPathMod);
+      serverConfig.SetLogIgnoreSdfPath(true);
+    }
+    // Empty record path specified. Use default.
+    else
+    {
+      // Create log file before printing any messages so they can be logged
+      ignLogInit(recordPathMod, "server_console.log");
+      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+             << std::endl;
+
+      serverConfig.SetLogRecordPath(recordPathMod);
+    }
   }
   else
   {
@@ -73,7 +154,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
-
 
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -105,26 +185,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetUseLevels(true);
   }
 
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
-  {
-    if (_playback != nullptr && std::strlen(_playback) > 0)
-    {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
-      return -1;
-    }
-
-    serverConfig.SetUseLogRecord(true);
-
-    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
-    {
-      serverConfig.SetLogRecordPath(_recordPath);
-    }
-    else
-    {
-      ignmsg << "Recording states to default path\n";
-    }
-  }
-
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -136,7 +196,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(_playback);
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        std::string(_playback)));
     }
   }
 
@@ -151,7 +212,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -176,17 +237,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   // add import path so we can load custom modules
   app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  // Load configuration file
-  auto configPath = ignition::common::joinPaths(
-      IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-
-  if (!app.LoadConfig(configPath))
-  {
-    return -1;
-  }
+  // Set default config file for Gazebo
+  std::string defaultConfig;
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", "gui.config");
+  app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
+  auto mainWin = app.findChild<ignition::gui::MainWindow *>();
+  auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
   // Let QML files use TmpIface' functions and properties
@@ -227,7 +287,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   // resolved when this while loop can be removed.
   while (!sigKilled && !executed)
   {
-    igndbg << "Requesting list of world names. The server may be busy "
+    igndbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
@@ -241,50 +301,117 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
       ignerr << "Failed to get world names." << std::endl;
   }
 
-  if (!executed || !result)
-    return -1;
+  if (!executed || !result || worldsMsg.data().empty())
+    return false;
 
-  // TODO(anyone) Parallelize this if multiple worlds becomes an important use
-  // case.
   std::vector<ignition::gazebo::GuiRunner *> runners;
-  for (int w = 0; w < worldsMsg.data_size(); ++w)
+
+  // Configuration file from command line
+  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
   {
-    const auto &worldName = worldsMsg.data(w);
-
-    // Request GUI info for each world
-    result = false;
-    service = std::string("/world/" + worldName + "/gui/info");
-
-    igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
-
-    // Request and block
-    ignition::msgs::GUI res;
-    executed = node.Request(service, timeout, res, result);
-
-    if (!executed)
-      ignerr << "Service call timed out for [" << service << "]" << std::endl;
-    else if (!result)
-      ignerr << "Service call failed for [" << service << "]" << std::endl;
-
-    for (int p = 0; p < res.plugin_size(); ++p)
+    if (!app.LoadConfig(_guiConfig))
     {
-      const auto &plugin = res.plugin(p);
-      const auto &fileName = plugin.filename();
-      std::string pluginStr = "<plugin filename='" + fileName + "'>" +
-          plugin.innerxml() + "</plugin>";
-
-      tinyxml2::XMLDocument pluginDoc;
-      pluginDoc.Parse(pluginStr.c_str());
-
-      ignition::gui::App()->LoadPlugin(fileName,
-          pluginDoc.FirstChildElement("plugin"));
+      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+              << std::endl;
     }
 
-    // GUI runner
-    auto runner = new ignition::gazebo::GuiRunner(worldName);
+    // Use the first world name with the config file
+    // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
+    // which makes it complicated to mix configurations across worlds.
+    // We could have a way to use world-agnostic topics like Gazebo-classic's ~
+    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
     runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-      &ignition::gazebo::GuiRunner::OnPluginAdded);
+        &ignition::gazebo::GuiRunner::OnPluginAdded);
     runners.push_back(runner);
+    runner->setParent(ignition::gui::App());
+  }
+  // GUI configuration from SDF (request to server)
+  else
+  {
+    // TODO(anyone) Parallelize this if multiple worlds becomes an important use
+    // case.
+    for (int w = 0; w < worldsMsg.data_size(); ++w)
+    {
+      const auto &worldName = worldsMsg.data(w);
+
+      // Request GUI info for each world
+      result = false;
+      service = std::string("/world/" + worldName + "/gui/info");
+
+      igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
+
+      // Request and block
+      ignition::msgs::GUI res;
+      executed = node.Request(service, timeout, res, result);
+
+      if (!executed)
+        ignerr << "Service call timed out for [" << service << "]" << std::endl;
+      else if (!result)
+        ignerr << "Service call failed for [" << service << "]" << std::endl;
+
+      for (int p = 0; p < res.plugin_size(); ++p)
+      {
+        const auto &plugin = res.plugin(p);
+        const auto &fileName = plugin.filename();
+        std::string pluginStr = "<plugin filename='" + fileName + "'>" +
+            plugin.innerxml() + "</plugin>";
+
+        tinyxml2::XMLDocument pluginDoc;
+        pluginDoc.Parse(pluginStr.c_str());
+
+        app.LoadPlugin(fileName,
+            pluginDoc.FirstChildElement("plugin"));
+      }
+
+      // GUI runner
+      auto runner = new ignition::gazebo::GuiRunner(worldName);
+      runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+          &ignition::gazebo::GuiRunner::OnPluginAdded);
+      runner->setParent(ignition::gui::App());
+      runners.push_back(runner);
+    }
+    mainWin->configChanged();
+  }
+
+  if (runners.empty())
+  {
+    ignerr << "Failed to start a GUI runner." << std::endl;
+    return -1;
+  }
+
+  // If no plugins have been added, load default config file
+  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  if (plugins.empty())
+  {
+    // Check if there's a default config file under
+    // ~/.ignition/gazebo and use that. If there isn't, copy
+    // the installed file there first.
+    if (!ignition::common::exists(defaultConfig))
+    {
+      auto installedConfig = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+        return -1;
+      }
+      else
+      {
+        ignmsg << "Copied installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+      }
+    }
+
+    // Also set ~/.ignition/gazebo/gui.config as the default path
+    if (!app.LoadConfig(defaultConfig))
+    {
+      ignerr << "Failed to load config file[" << _guiConfig << "]."
+             << std::endl;
+      return -1;
+    }
   }
 
   // Run main window.

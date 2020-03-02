@@ -5,6 +5,7 @@ set(tests
   altimeter_system.cc
   apply_joint_force_system.cc
   battery_plugin.cc
+  breadcrumbs.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -22,6 +23,7 @@ set(tests
   logical_camera_system.cc
   magnetometer_system.cc
   model.cc
+  multicopter.cc
   network_handshake.cc
   physics_system.cc
   play_pause.cc
@@ -58,4 +60,9 @@ endif()
 link_directories(${PROJECT_BINARY_DIR}/test)
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
-ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
+ign_build_tests(TYPE INTEGRATION
+  SOURCES
+    ${tests}
+  LIB_DEPS
+    ${EXTRA_TEST_LIB_DEPS}
+)

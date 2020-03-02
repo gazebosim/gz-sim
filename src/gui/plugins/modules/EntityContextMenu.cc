@@ -16,9 +16,13 @@
 */
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/entity.pb.h>
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/gazebo/gui/GuiRunner.hh>
+#include <ignition/gazebo/Conversions.hh>
+#include <ignition/gui/Application.hh>
 #include <ignition/transport/Node.hh>
 
 #include "EntityContextMenu.hh"
@@ -36,6 +40,12 @@ namespace ignition::gazebo
 
     /// \brief Follow service name
     public: std::string followService;
+
+    /// \brief Remove service name
+    public: std::string removeService;
+
+    /// \brief Name of world.
+    public: std::string worldName;
   };
 }
 
@@ -59,10 +69,56 @@ EntityContextMenu::EntityContextMenu()
 
   // For follow service requests
   this->dataPtr->followService = "/gui/follow";
+
+  // For remove service requests
+  this->dataPtr->removeService = "/world/default/remove";
 }
 
 /////////////////////////////////////////////////
 EntityContextMenu::~EntityContextMenu() = default;
+
+/////////////////////////////////////////////////
+void EntityContextMenu::OnRemove(
+  const QString &_data, const QString &_type)
+{
+  if (this->dataPtr->worldName.empty())
+  {
+    auto runners = gui::App()->findChildren<GuiRunner *>();
+    if (runners.empty() || runners[0] == nullptr)
+    {
+      ignerr << "Internal error: no GuiRunner found." << std::endl;
+      return;
+    }
+
+    this->dataPtr->worldName = "default";
+    auto worldNameVariant = runners[0]->property("worldName");
+    if (!worldNameVariant.isValid())
+    {
+      ignwarn << "GuiRunner's worldName not set, using["
+              << this->dataPtr->worldName << "]" << std::endl;
+    }
+    else
+    {
+      this->dataPtr->worldName = worldNameVariant.toString().toStdString();
+    }
+
+    this->dataPtr->removeService =
+      "/world/" + this->dataPtr->worldName + "/remove";
+  }
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_rep, const bool _result)
+  {
+    if (!_result || !_rep.data())
+      ignerr << "Error sending remove request" << std::endl;
+  };
+
+  ignition::msgs::Entity req;
+  req.set_name(_data.toStdString());
+  req.set_type(convert<msgs::Entity_Type>(_type.toStdString()));
+
+  this->dataPtr->node.Request(this->dataPtr->removeService, req, cb);
+}
 
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
@@ -87,7 +143,6 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
   }
-
   else
   {
     ignwarn << "Unknown request [" << request << "]" << std::endl;
