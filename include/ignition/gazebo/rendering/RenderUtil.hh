@@ -128,7 +128,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Get the entity for a given node.
     /// \param[in] _node Node to get the entity for.
     /// \return The entity for that node, or `kNullEntity` for no entity.
-    public: Entity IGN_DEPRECATED(3) EntityFromNode(const rendering::NodePtr &_node);
+    /// \deprecated Use `ignition::rendering::Visual::UserData` instead.
+    public: Entity IGN_DEPRECATED(3)
+        EntityFromNode(const rendering::NodePtr &_node);
 
     /// \brief Get the entity being selected. This will only return the
     /// last entity selected.
