@@ -103,7 +103,6 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "ignition/gazebo/Util.hh"
 #include "Physics.hh"
 
 using namespace ignition;
