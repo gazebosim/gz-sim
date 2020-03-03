@@ -146,6 +146,7 @@
 
     <model name='vehicle_blue'>
       <pose>0 2 0.325 0 -0 0</pose>
+      <self_collide>true</self_collide>
 
       <link name='chassis'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>
@@ -441,7 +442,10 @@
     </model>
 
     <model name="B1">
-      <pose>-1.3 2.35 0.5 0 -0 0</pose>
+       <!-- Setting the pose to
+          <pose> -1.3 2.35 0.5 0 -0 0 </pose>
+        will cause Gazebo to crash because B1 will be in collision with vehicle_blue while in the attached state-->
+      <pose>-1.5 2.35 0.5 0 -0 0</pose>
       <link name='body'>
         <inertial>
           <mass>0.6</mass>
@@ -476,7 +480,7 @@
       </link>
     </model>
     <model name="B2">
-      <pose>-1.3 2 0.5 0 -0 0</pose>
+      <pose>-1.5 2 0.5 0 -0 0</pose>
       <link name='body'>
         <inertial>
           <mass>0.6</mass>
@@ -511,8 +515,7 @@
       </link>
     </model>
     <model name="B3">
-      <self_collide>true</self_collide>
-      <pose>-1.3 1.65 0.5 0 -0 0</pose>
+      <pose>-1.5 1.65 0.5 0 -0 0</pose>
       <link name='body'>
         <inertial>
           <mass>0.6</mass>
