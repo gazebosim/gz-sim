@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2018 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 import QtQuick 2.9
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
@@ -9,12 +25,54 @@ ToolBar {
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
+  // TODO(anyone) enable scale button when support is added in ign-physics
+  // function activateScale() {
+  //   scale.checked = true;
+  //   TransformControl.OnMode("scale");
+  // }
+
+  function activateTranslate() {
+    translate.checked = true;
+    TransformControl.OnMode("translate");
+  }
+
+  function activateRotate() {
+    rotate.checked = true;
+    TransformControl.OnMode("rotate");
+  }
+
+  function activateSelect() {
+    select.checked = true;
+    TransformControl.OnMode("select");
+  }
+
   background: Rectangle {
     color: "transparent"
   }
 
   ButtonGroup {
     id: group
+  }
+
+  // TODO(anyone) enable scale button when support is added in ign-physics
+  // Shortcut {
+  //   sequence: "S"
+  //   onActivated: activateScale()
+  // }
+
+  Shortcut {
+    sequence: "T"
+    onActivated: activateTranslate()
+  }
+
+  Shortcut {
+    sequence: "R"
+    onActivated: activateRotate()
+  }
+
+  Shortcut {
+    sequence: "Esc"
+    onActivated: activateSelect()
   }
 
   RowLayout {
@@ -128,10 +186,15 @@ ToolBar {
         TransformControl.OnMode("rotate")
       }
     }
-    // TODO(anyone) enable scale button when supported is added in ign-physics
+    // TODO(anyone) enable scale button when support is added in ign-physics
     // ToolButton {
+    //   id: scale
     //   text: "S"
     //   checkable: true
+    //   ButtonGroup.group: group
+    //   ToolTip.text: "Scale mode"
+    //   ToolTip.visible: hovered
+    //   ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
     //   contentItem: Image {
     //     fillMode: Image.Pad
     //     horizontalAlignment: Image.AlignHCenter
@@ -145,7 +208,7 @@ ToolBar {
     //    implicitWidth: 48
     //    implicitHeight: 48
 
-    //    readonly property bool square: select.contentItem.width <= select.contentItem.height
+    //    readonly property bool square: scale.contentItem.width <= scale.contentItem.height
 
     //    x: (parent.width - width) / 2
     //    y: (parent.height - height) / 2
@@ -153,9 +216,9 @@ ToolBar {
     //    width: square ? parent.height / 2 : parent.width
     //    height: square ? parent.height / 2 : parent.height
     //    pressed: select.pressed
-    //    anchor: select
-    //    active: select.enabled && (select.down || select.visualFocus || select.hovered || select.checked)
-    //    color: select.Material.rippleColor
+    //    anchor: scale
+    //    active: scale.enabled && (scale.down || scale.visualFocus || scale.hovered || scale.checked)
+    //    color: scale.Material.rippleColor
     //  }
     //   onClicked: {
     //     TransformControl.OnMode("scale")
