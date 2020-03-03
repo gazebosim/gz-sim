@@ -415,7 +415,7 @@ void RenderUtil::Update()
       math::Pose3d trajPose;
       trajPose.Pos() = tf.second["actorPose"].Translation();
       trajPose.Rot() = tf.second["actorPose"].Rotation();
-      actorVisual->SetLocalPose(globalPose + trajPose);
+      actorVisual->SetLocalPose(trajPose + globalPose);
 
       tf.second.erase("actorPose");
       actorMesh->SetSkeletonLocalTransforms(tf.second);
