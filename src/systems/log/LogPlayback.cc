@@ -86,6 +86,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Directory in which to place log file
   public: std::string logPath{""};
 
+  /// \brief Directory to which compressed file is extracted to
+  public: std::string extDest{""};
+
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
 
@@ -105,7 +108,13 @@ LogPlayback::LogPlayback()
 }
 
 //////////////////////////////////////////////////
-LogPlayback::~LogPlayback() = default;
+LogPlayback::~LogPlayback()
+{
+  if (!this->dataPtr->extDest.empty())
+  {
+    common::removeAll(this->dataPtr->extDest);
+  }
+}
 
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
@@ -279,22 +288,29 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 bool LogPlaybackPrivate::ExtractStateAndResources()
 {
-  std::string cmpDest = common::parentPath(this->logPath);
+  // Create a temporary directory to extract compressed file content into
+  this->extDest = std::string(this->logPath);
+  size_t extIdx = this->logPath.find_last_of('.');
+  if (extIdx != std::string::npos)
+    this->extDest = this->logPath.substr(0, extIdx);
+  this->extDest += "_extracted";
+  this->extDest = common::uniqueDirectoryPath(this->extDest);
 
-  if (fuel_tools::Zip::Extract(this->logPath, cmpDest))
+  if (fuel_tools::Zip::Extract(this->logPath, this->extDest))
   {
-    ignmsg << "Extracted recording to [" << cmpDest << "]" << std::endl;
+    ignmsg << "Extracted recording to [" << this->extDest << "]" << std::endl;
 
     // Replace value in variable with the directory of extracted files
     // Assume directory has same name as compressed file, without extension
-    size_t sepIdx = this->logPath.find_last_of('.');
     // Remove extension
-    this->logPath = this->logPath.substr(0, sepIdx);
+    this->logPath = common::joinPaths(this->extDest,
+      common::basename(this->logPath.substr(0, extIdx)));
     return true;
   }
   else
   {
-    ignerr << "Failed to extract recording to [" << cmpDest << "]" << std::endl;
+    ignerr << "Failed to extract recording to [" << this->extDest << "]"
+      << std::endl;
     return false;
   }
 }

@@ -1552,11 +1552,6 @@ TEST_F(LogSystemTest, LogCompress)
   // the decompressed files and not be empty
   EXPECT_TRUE(common::removeFile(newCmpPath));
 
-  // Test that the parent path still contains other files - therefore non-empty
-  // and cannot be removed.
-  std::string decompPath = common::parentPath(newCmpPath);
-  EXPECT_FALSE(common::removeDirectory(decompPath));
-
   this->RemoveLogsDir();
 }
 
