@@ -126,20 +126,11 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
     // account for the difference in thrust, we multiply the forceConstant
     // with the projection of the rotor's vector onto the +z axis of the
     // COM link frame.
-    // TODO(addisu) This needs to be updated in Citadel for frame semantics
     auto axis = _ecm.Component<components::JointAxis>(joint);
     if (nullptr != axis)
     {
       math::Vector3d xyzInComLink;
-      if (axis->Data().UseParentModelFrame())
-      {
-        xyzInComLink = comLinkPose.Rot().Inverse() * axis->Data().Xyz();
-      }
-      else
-      {
-        xyzInComLink = comLinkPose.Rot().Inverse() *
-                        (childLinkPose.Rot() * axis->Data().Xyz());
-      }
+      axis->Data().ResolveXyz(xyzInComLink);
 
       // The projection onto the +z axis is just the z component of the
       // xyzInComLink vector
