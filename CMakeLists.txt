@@ -28,6 +28,12 @@ else()
   add_definitions("-DIGN_PROFILER_ENABLE=0")
 endif()
 
+if (UNIX AND NOT APPLE)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+else()
+  set (EXTRA_TEST_LIB_DEPS)
+endif()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
