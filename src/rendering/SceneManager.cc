@@ -1043,7 +1043,7 @@ rendering::NodePtr SceneManager::TopLevelNode(
 /////////////////////////////////////////////////
 Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
 {
-  // TODO(louise) On Citadel, set entity ID into visual with SetUserData
+  // TODO(anyone) On Dome, set entity ID into node with SetUserData
   auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
   if (visual)
   {

@@ -147,7 +147,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Get the entity for a given node.
     /// \param[in] _node Node to get the entity for.
     /// \return The entity for that node, or `kNullEntity` for no entity.
-    public: Entity IGN_DEPRECATED(3) EntityFromNode(const rendering::NodePtr &_node) const;
+    /// \todo(anyone) Deprecate in favour of
+    /// `ignition::rendering::Node::UserData` once that's available.
+    public: Entity EntityFromNode(const rendering::NodePtr &_node) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
