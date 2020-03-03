@@ -406,10 +406,16 @@ void RenderUtil::Update()
       if (!actorMesh || !actorVisual)
         continue;
 
-      math::Pose3d actorPose;
-      actorPose.Pos() = tf.second["actorPose"].Translation();
-      actorPose.Rot() = tf.second["actorPose"].Rotation();
-      actorVisual->SetLocalPose(actorPose);
+      math::Pose3d globalPose;
+      if (entityPoses.find(tf.first) != entityPoses.end())
+      {
+        globalPose = entityPoses[tf.first];
+      }
+
+      math::Pose3d trajPose;
+      trajPose.Pos() = tf.second["actorPose"].Translation();
+      trajPose.Rot() = tf.second["actorPose"].Rotation();
+      actorVisual->SetLocalPose(trajPose + globalPose);
 
       tf.second.erase("actorPose");
       actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -785,10 +791,9 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   _ecm.Each<components::Actor, components::Pose>(
       [&](const Entity &_entity,
         const components::Actor *,
-        const components::Pose *)->bool
+        const components::Pose *_pose)->bool
       {
-        // TODO(anyone) Support setting actor pose from other systems
-        // this->entityPoses[_entity] = _pose->Data();
+        this->entityPoses[_entity] = _pose->Data();
         this->actorTransforms[_entity] =
               this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
         return true;
