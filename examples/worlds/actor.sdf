@@ -146,12 +146,9 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-    </include>
-
-    <include>
-      <name>actor2</name>
-      <pose>10 10 0 0 0 0</pose>
+      <name>demo_actor</name>
+      <!-- override actor's pose, which has 1m in Z -->
+      <pose>0 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
     </include>
 
