@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.x.x
+
+1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
+    * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
+
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
@@ -96,9 +101,6 @@
 
 1.  Add mutex to protect views from potential concurrent access
     * [Pull Request 435](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/435)
-
-1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
-    * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
 
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
