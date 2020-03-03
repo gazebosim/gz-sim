@@ -230,6 +230,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   }
   this->dataPtr->newSensors.clear();
 
+  // Store the model's SDF DOM
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::ModelSdf(*_model));
+
   return modelEntity;
 }
 
