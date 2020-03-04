@@ -67,9 +67,6 @@ namespace ignition::gazebo
     /// with newly provided information.
     public: bool alignDirty{false};
 
-    /// \brief Flag to indicate if the simulation is currently paused.
-    public: bool paused{false};
-
     /// \brief The current selected entities
     public: std::vector<Entity> selectedEntities;
 
@@ -114,10 +111,9 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void AlignTool::Update(const UpdateInfo &_info,
+void AlignTool::Update(const UpdateInfo &/* _info */,
     EntityComponentManager &_ecm)
 {
-  this->dataPtr->paused = _info.paused;
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
@@ -187,24 +183,18 @@ void AlignTool::OnAlignTarget(const QString &_target)
 /////////////////////////////////////////////////
 void AlignTool::OnHoveredEntered()
 {
-  if (!this->dataPtr->paused)
-  {
-    this->AddState(AlignState::HOVER);
-  }
+  this->AddState(AlignState::HOVER);
 }
 
 /////////////////////////////////////////////////
 void AlignTool::OnHoveredExited()
 {
-  if (!this->dataPtr->paused)
-  {
-    // If no align has occurred, reset entities to start positions,
-    // otherwise, set state back to none
-    if (this->dataPtr->currentState == AlignState::HOVER)
-      this->AddState(AlignState::RESET);
-    else
-      this->AddState(AlignState::NONE);
-  }
+  // If no align has occurred, reset entities to start positions,
+  // otherwise, set state back to none
+  if (this->dataPtr->currentState == AlignState::HOVER)
+    this->AddState(AlignState::RESET);
+  else
+    this->AddState(AlignState::NONE);
 }
 
 /////////////////////////////////////////////////
