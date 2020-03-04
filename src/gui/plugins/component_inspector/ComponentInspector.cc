@@ -101,7 +101,8 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const math::Vector3d &_data)
+void ignition::gazebo::setData(QStandardItem *_item,
+    const math::Vector3d &_data)
 {
   _item->setData(QString("Vector3d"),
       ComponentsModel::RoleNames().key("dataType"));
@@ -448,7 +449,8 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
     else if (typeId == components::ParentEntity::typeId)
     {
-      auto comp = _ecm.Component<components::ParentEntity>(this->dataPtr->entity);
+      auto comp = _ecm.Component<components::ParentEntity>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
