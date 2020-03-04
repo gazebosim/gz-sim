@@ -25,12 +25,6 @@ const Angle Angle::HalfPi = Angle(IGN_PI_2);
 const Angle Angle::TwoPi = Angle(IGN_PI * 2.0);
 
 //////////////////////////////////////////////////
-Angle::Angle()
-{
-  this->value = 0;
-}
-
-//////////////////////////////////////////////////
 Angle::Angle(const double _radian)
 {
   this->value = _radian;
