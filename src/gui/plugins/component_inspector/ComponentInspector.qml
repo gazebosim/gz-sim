@@ -25,7 +25,7 @@ import IgnGazebo 1.0 as IgnGazebo
 Rectangle {
   id: componentInspector
   color: lightGrey
-  Layout.minimumWidth: 250
+  Layout.minimumWidth: 320
   Layout.minimumHeight: 375
   anchors.fill: parent
 
@@ -110,8 +110,8 @@ Rectangle {
           fillMode: Image.Pad
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignVCenter
-          source: lockButton.checked ? "qrc:/Gazebo/images/unlock.svg" :
-                                       "qrc:/Gazebo/images/lock.svg"
+          source: lockButton.checked ? "qrc:/Gazebo/images/lock.svg" :
+                                       "qrc:/Gazebo/images/unlock.svg"
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
@@ -127,7 +127,7 @@ Rectangle {
         id: pauseButton
         checkable: true
         checked: false
-        text: pauseButton.checked ? "\u25B6" : "\u275A\u275A"
+        text: pauseButton.checked ?  "\u275A\u275A" : "\u25B6"
         contentItem: Text {
           text: pauseButton.text
           color: "#b5b5b5"
@@ -145,9 +145,10 @@ Rectangle {
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
+        Layout.minimumWidth: 80
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
-        padding: 3
+        padding: 5
       }
     }
   }

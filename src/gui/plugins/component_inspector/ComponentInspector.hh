@@ -20,9 +20,11 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
 
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
@@ -40,6 +42,7 @@ namespace gazebo
   template <class DataType>
   void setData(QStandardItem *_item, const DataType &_data)
   {
+    // cppcheck-suppress syntaxError
     if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
     {
       std::stringstream ss;
