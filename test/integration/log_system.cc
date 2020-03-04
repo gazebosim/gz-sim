@@ -59,8 +59,7 @@ static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 "-f ";
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
-  "/bin/ign gazebo");
-  //"/bin/ign-gazebo-server");
+  "/bin/ign-gazebo-server");
 #else
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 " ";
@@ -108,8 +107,7 @@ int entryCount(const std::string &_directory)
 
 /////////////////////////////////////////////////
 // Return a list of entries in the directory
-void entryList(const std::string &_directory, std::vector<std::string> &_paths,
-  bool _print=false)
+void entryList(const std::string &_directory, std::vector<std::string> &_paths)
 {
   _paths.clear();
 
@@ -119,8 +117,6 @@ void entryList(const std::string &_directory, std::vector<std::string> &_paths,
   for (auto &entry : std::filesystem::directory_iterator(_directory))
   {
     _paths.push_back(entry.path().string());
-    if (_print)
-      std::cerr << entry.path().string() << std::endl;
   }
 }
 
@@ -1277,9 +1273,12 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(tlogPath));
   EXPECT_TRUE(common::exists(clogPath));
 
-  // TEMP DEBUG on Mac OS
-  std::vector<std::string> tmp_paths;
-  entryList(common::parentPath(this->logDir), tmp_paths, true);
+#ifndef __APPLE__
+  // On OS X, ign-gazebo-server (server_main.cc) is being used as opposed to
+  // ign gazebo. server_main.cc is deprecated and does not have overwrite
+  // renaming implemented. So will always overwrite. Will not test (#) type of
+  // renaming on OS X until ign gazebo is fixed:
+  // https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/25/apple-support-for-ign-command-line-tool
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
@@ -1288,7 +1287,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir + "(1)",
       "server_console.log")));
 
-#ifndef __APPLE__
   // New files were created
   EXPECT_EQ(3, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
@@ -1662,14 +1660,12 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(recordPath));
   EXPECT_TRUE(common::exists(defaultCmpPath));
 
-  // TEMP DEBUG on Mac OS
-  std::vector<std::string> tmp_paths1;
-  entryList(common::parentPath(recordPath), tmp_paths1, true);
-
+#ifndef __APPLE__
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
   // Automatically renamed directory should have been removed by record plugin
   EXPECT_FALSE(common::exists(recordPath + "(1)"));
+#endif
 
   // Compress only, compressed file exists, auto-renamed compressed file
   // e.g. *(1) exists, recorded directory does not
@@ -1680,7 +1676,9 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
     // Test case pre-condition
     EXPECT_TRUE(common::exists(defaultCmpPath));
     EXPECT_FALSE(common::exists(recordPath));
+#ifndef __APPLE__
     EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
+#endif
 
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
@@ -1697,12 +1695,10 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(defaultCmpPath));
   EXPECT_FALSE(common::exists(recordPath));
 
-  // TEMP DEBUG on Mac OS
-  std::vector<std::string> tmp_paths2;
-  entryList(common::parentPath(recordPath), tmp_paths2, true);
-
+#ifndef __APPLE__
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
+#endif
 
   this->RemoveLogsDir();
 }
