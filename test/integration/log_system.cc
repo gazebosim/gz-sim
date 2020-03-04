@@ -59,7 +59,8 @@ static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 "-f ";
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
-  "/bin/ign-gazebo-server");
+  "/bin/ign gazebo");
+  //"/bin/ign-gazebo-server");
 #else
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 " ";
@@ -1649,7 +1650,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
-      + "--record-path " + recordPath
+      + "--record-path " + recordPath + " "
       + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1684,7 +1685,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
-      + "--record-path " + recordPath
+      + "--record-path " + recordPath + " "
       + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1696,6 +1697,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(defaultCmpPath));
   EXPECT_FALSE(common::exists(recordPath));
 
+  // TEMP DEBUG on Mac OS
   std::vector<std::string> tmp_paths2;
   entryList(common::parentPath(recordPath), tmp_paths2, true);
 
