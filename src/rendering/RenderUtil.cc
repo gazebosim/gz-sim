@@ -1126,12 +1126,6 @@ SceneManager &RenderUtil::SceneManager()
 }
 
 /////////////////////////////////////////////////
-MarkerManager &RenderUtil::MarkerManager()
-{
-  return this->dataPtr->markerManager;
-}
-
-/////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
   Entity entity = kNullEntity;
@@ -1141,6 +1135,12 @@ Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
     entity = std::get<int>(vis->UserData("gazebo-entity"));
 
   return entity;
+}
+
+/////////////////////////////////////////////////
+MarkerManager &RenderUtil::MarkerManager()
+{
+  return this->dataPtr->markerManager;
 }
 
 /////////////////////////////////////////////////
@@ -1221,7 +1221,6 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     {
       this->originalEmissive[vis->Name()] = visMat->Emissive();
       visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-      vis->SetMaterial(visMat);
     }
   }
 
@@ -1240,7 +1239,6 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     {
       this->originalEmissive[geom->Name()] = geomMat->Emissive();
       geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-      geom->SetMaterial(geomMat);
     }
   }
 }
@@ -1268,7 +1266,6 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     if (visEmissive != this->originalEmissive.end())
     {
       visMat->SetEmissive(visEmissive->second);
-      vis->SetMaterial(visMat);
     }
     else
     {
@@ -1293,7 +1290,6 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     if (geomEmissive != this->originalEmissive.end())
     {
       geomMat->SetEmissive(geomEmissive->second);
-      geom->SetMaterial(geomMat);
     }
     else
     {
