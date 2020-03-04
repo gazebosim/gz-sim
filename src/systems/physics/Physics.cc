@@ -44,6 +44,7 @@
 #include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/GetBoundingBox.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Link.hh>
 #include <ignition/physics/RemoveEntities.hh>
@@ -247,13 +248,13 @@ class ignition::gazebo::systems::PhysicsPrivate
                      }};
 
   /// \brief AxisAlignedBox equality comparison function.
-  public: std::function<bool(const math::AxisAlignedBox &, const math::AxisAlignedBox&)>
+  public: std::function<bool(const math::AxisAlignedBox &,
+          const math::AxisAlignedBox&)>
           axisAlignedBoxEql { [](const math::AxisAlignedBox &_a,
                                  const math::AxisAlignedBox &_b)
                      {
                        return _a == _b;
                      }};
-
 };
 
 //////////////////////////////////////////////////
@@ -794,7 +795,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
   for (const Entity &entity : entitiesWorldCmd)
   {
-   _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
+    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
   }
 
   // Populate model bounding box
