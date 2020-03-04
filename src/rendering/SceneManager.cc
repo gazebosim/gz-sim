@@ -1018,6 +1018,7 @@ void SceneManager::RemoveEntity(Entity _id)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::TopLevelVisual(
+// NOLINTNEXTLINE
     rendering::VisualPtr _visual) const
 {
   auto node = this->TopLevelNode(_visual);
@@ -1026,12 +1027,12 @@ rendering::VisualPtr SceneManager::TopLevelVisual(
 
 /////////////////////////////////////////////////
 rendering::NodePtr SceneManager::TopLevelNode(
-    rendering::NodePtr _node) const
+    const rendering::NodePtr &_node) const
 {
   rendering::NodePtr rootNode =
       this->dataPtr->scene->RootVisual();
 
-  rendering::NodePtr node = std::move(_node);
+  rendering::NodePtr node = _node;
   while (node && node->Parent() != rootNode)
   {
     node =
@@ -1042,9 +1043,9 @@ rendering::NodePtr SceneManager::TopLevelNode(
 }
 
 /////////////////////////////////////////////////
-Entity SceneManager::EntityFromNode(rendering::NodePtr _node) const
+Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
 {
-  // TODO(louise) On Citadel, set entity ID into visual with SetUserData
+  // TODO(anyone) On Dome, set entity ID into node with SetUserData
   auto visual = std::dynamic_pointer_cast<rendering::Visual>(_node);
   if (visual)
   {
