@@ -408,12 +408,13 @@ void RenderUtil::Update()
 
       // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
-      Entity entityId = this->EntityFromNode(node->Parent());
       auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
       int updateNode = 0;
+      Entity entityId = kNullEntity;
       if (vis)
       {
         updateNode = std::get<int>(vis->UserData("pause-update"));
+        entityId = std::get<int>(vis->UserData("gazebo-entity"));
       }
       if ((this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
@@ -1133,16 +1134,27 @@ MarkerManager &RenderUtil::MarkerManager()
 /////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
-  return this->dataPtr->sceneManager.EntityFromNode(_node);
+  Entity entity = kNullEntity;
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+
+  if (vis)
+    entity = std::get<int>(vis->UserData("gazebo-entity"));
+
+  return entity;
 }
 
 /////////////////////////////////////////////////
+// NOLINTNEXTLINE
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   if (!_node)
     return;
 
-  Entity entityId = this->EntityFromNode(_node);
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  Entity entityId = kNullEntity;
+
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
 
   if (entityId == kNullEntity)
     return;
@@ -1192,8 +1204,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
-    auto child = _node->ChildByIndex(n);
-    this->HighlightNode(child);
+    this->HighlightNode(_node->ChildByIndex(n));
   }
 
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -1242,8 +1253,7 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
-    auto child = _node->ChildByIndex(n);
-    this->LowlightNode(child);
+    this->LowlightNode(_node->ChildByIndex(n));
   }
 
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -1260,6 +1270,11 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
       visMat->SetEmissive(visEmissive->second);
       vis->SetMaterial(visMat);
     }
+    else
+    {
+      ignerr << "Failed to find original material for visual [" << vis->Name()
+             << "]" << std::endl;
+    }
   }
 
   for (auto g = 0u; g < vis->GeometryCount(); ++g)
@@ -1269,13 +1284,21 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     // Geometry material
     auto geomMat = geom->Material();
     if (nullptr == geomMat)
+    {
+      ignerr << "Geometry missing material during lowlight." << std::endl;
       continue;
+    }
 
     auto geomEmissive = this->originalEmissive.find(geom->Name());
     if (geomEmissive != this->originalEmissive.end())
     {
       geomMat->SetEmissive(geomEmissive->second);
       geom->SetMaterial(geomMat);
+    }
+    else
+    {
+      ignerr << "Failed to find original material for geometry ["
+             << geom->Name() << "]" << std::endl;
     }
   }
 }

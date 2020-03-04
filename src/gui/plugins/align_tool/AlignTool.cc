@@ -558,7 +558,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::EntitiesSelected::Type)
+           ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -572,7 +572,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::Type)
+           ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
