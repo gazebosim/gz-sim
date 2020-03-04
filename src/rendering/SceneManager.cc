@@ -17,7 +17,6 @@
 
 
 #include <map>
-#include <variant>
 
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -545,10 +544,10 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   mapAnimNameId[descriptor.meshName] = numAnims++;
 
   rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
+  actorVisual->AddGeometry(actorMesh);
   actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
   actorVisual->SetUserData("pause-update", static_cast<int>(0));
   actorVisual->SetLocalPose(_actor.RawPose());
-  actorVisual->AddGeometry(actorMesh);
 
   this->dataPtr->visuals[_id] = actorVisual;
   this->dataPtr->actors[_id] = actorMesh;
