@@ -798,7 +798,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
   }
 
-  // Populate model bounding box
+  // Populate bounding box info
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computations
   _ecm.Each<components::Model, components::AxisAlignedBox>(
       [&](const Entity &_entity, const components::Model *,
           components::AxisAlignedBox *_bbox)
