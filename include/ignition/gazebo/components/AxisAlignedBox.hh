@@ -42,6 +42,7 @@ namespace components
 {
   /// \brief A component type that contains axis aligned box,
   /// ignition::math::AxisAlignedBox, information.
+  /// The axis aligned box is created from collisions in the entity
   using AxisAlignedBox = Component<ignition::math::AxisAlignedBox,
       class AxisAlignedBoxTag, serializers::AxisAlignedBoxSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AxisAlignedBox",
