@@ -591,3 +591,68 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
     EXPECT_EQ(jDof, jointPosDof[jName]) << jName;
   }
 }
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, GetBoundingBox)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/levels.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  // a map of model name to its axis aligned box
+  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
+
+  // Create a system that records the poses of the 3 boxes
+  Relay testSystem;
+  double dt = 0.0;
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &_info,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Static>(
+        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Static *)->bool
+        {
+          // create axis aligned box to be filled by physics
+          if (_name->Data() == "tile_0")
+          {
+            auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
+            if (!bboxComp)
+              _ecm.CreateComponent(_entity, components::AxisAlignedBox);
+            return true;
+          }
+          return true;
+        });
+    });
+
+  testSystem.OnPostUpdate(
+    [&boxParams, &poses, &dt](const gazebo::UpdateInfo &_info,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      // store models that have axis aligned box computed
+      _ecm.Each<components::Model, components::Name, components::Static,
+        components::AxisAlignedBox>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Static *_static,
+        const components::AxisAlignedBox *_aabb)->bool
+        {
+          bbox[_name->Data()] = _aabb->Data();
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 10;
+  server.Run(true, iters, false);
+
+  EXPECT_EQ(1u, bbox.size());
+  EXPECT_EQ("tile_0", bbox.begin()->first);
+  EXPECT_EQ(ignition::math::AxisAlignedBox(), bbox.begin()->second);
+}

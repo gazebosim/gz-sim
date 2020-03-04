@@ -44,7 +44,8 @@ namespace components
   /// ignition::math::AxisAlignedBox, information.
   using AxisAlignedBox = Component<ignition::math::AxisAlignedBox,
       class AxisAlignedBoxTag, serializers::AxisAlignedBoxSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AxisAlignedBox", AxisAlignedBox)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AxisAlignedBox",
+      AxisAlignedBox)
 }
 }
 }
