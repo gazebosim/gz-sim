@@ -107,7 +107,8 @@ int entryCount(const std::string &_directory)
 
 /////////////////////////////////////////////////
 // Return a list of entries in the directory
-void entryList(const std::string &_directory, std::vector<std::string> &_paths)
+void entryList(const std::string &_directory, std::vector<std::string> &_paths,
+  bool _print=false)
 {
   _paths.clear();
 
@@ -117,6 +118,8 @@ void entryList(const std::string &_directory, std::vector<std::string> &_paths)
   for (auto &entry : std::filesystem::directory_iterator(_directory))
   {
     _paths.push_back(entry.path().string());
+    if (_print)
+      std::cerr << entry.path().string() << std::endl;
   }
 }
 
@@ -1273,6 +1276,10 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(tlogPath));
   EXPECT_TRUE(common::exists(clogPath));
 
+  // TEMP DEBUG on Mac OS
+  std::vector<std::string> tmp_paths;
+  entryList(common::parentPath(this->logDir), tmp_paths, true);
+
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir + "(1)",
@@ -1654,6 +1661,10 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(recordPath));
   EXPECT_TRUE(common::exists(defaultCmpPath));
 
+  // TEMP DEBUG on Mac OS
+  std::vector<std::string> tmp_paths1;
+  entryList(common::parentPath(recordPath), tmp_paths1, true);
+
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
   // Automatically renamed directory should have been removed by record plugin
@@ -1684,6 +1695,9 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   // Original files should stay same as initial condition
   EXPECT_TRUE(common::exists(defaultCmpPath));
   EXPECT_FALSE(common::exists(recordPath));
+
+  std::vector<std::string> tmp_paths2;
+  entryList(common::parentPath(recordPath), tmp_paths2, true);
 
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
