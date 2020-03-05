@@ -1273,6 +1273,13 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(tlogPath));
   EXPECT_TRUE(common::exists(clogPath));
 
+#ifndef __APPLE__
+  // On OS X, ign-gazebo-server (server_main.cc) is being used as opposed to
+  // ign gazebo. server_main.cc is deprecated and does not have overwrite
+  // renaming implemented. So will always overwrite. Will not test (#) type of
+  // renaming on OS X until ign gazebo is fixed:
+  // https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/25/apple-support-for-ign-command-line-tool
+
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir + "(1)",
@@ -1280,7 +1287,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir + "(1)",
       "server_console.log")));
 
-#ifndef __APPLE__
   // New files were created
   EXPECT_EQ(3, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
@@ -1552,11 +1558,6 @@ TEST_F(LogSystemTest, LogCompress)
   // the decompressed files and not be empty
   EXPECT_TRUE(common::removeFile(newCmpPath));
 
-  // Test that the parent path still contains other files - therefore non-empty
-  // and cannot be removed.
-  std::string decompPath = common::parentPath(newCmpPath);
-  EXPECT_FALSE(common::removeDirectory(decompPath));
-
   this->RemoveLogsDir();
 }
 
@@ -1647,7 +1648,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
-      + "--record-path " + recordPath
+      + "--record-path " + recordPath + " "
       + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1659,11 +1660,14 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(recordPath));
   EXPECT_TRUE(common::exists(defaultCmpPath));
 
+#ifndef __APPLE__
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
   // Automatically renamed directory should have been removed by record plugin
   EXPECT_FALSE(common::exists(recordPath + "(1)"));
+#endif
 
+#ifndef __APPLE__
   // Compress only, compressed file exists, auto-renamed compressed file
   // e.g. *(1) exists, recorded directory does not
   {
@@ -1678,7 +1682,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
-      + "--record-path " + recordPath
+      + "--record-path " + recordPath + " "
       + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1692,6 +1696,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
 
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
+#endif
 
   this->RemoveLogsDir();
 }
