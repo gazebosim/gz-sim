@@ -351,18 +351,27 @@ void ComponentInspector::Update(const UpdateInfo &,
       continue;
     }
 
-    // Add component to list
+    // Get component item
     QStandardItem *item;
-    // TODO(louise) Blocking here is not the best idea
-    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-        "AddComponentType",
-        Qt::BlockingQueuedConnection,
-        Q_RETURN_ARG(QStandardItem *, item),
-        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+    auto itemIt = this->dataPtr->componentsModel.items.find(typeId);
+    if (itemIt != this->dataPtr->componentsModel.items.end())
+    {
+      item = itemIt->second;
+    }
+    // Add component to list
+    else
+    {
+      // TODO(louise) Blocking here is not the best idea
+      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+          "AddComponentType",
+          Qt::BlockingQueuedConnection,
+          Q_RETURN_ARG(QStandardItem *, item),
+          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+    }
 
     if (nullptr == item)
     {
-      ignerr << "Failed to create item for component type [" << typeId << "]"
+      ignerr << "Failed to get item for component type [" << typeId << "]"
              << std::endl;
       continue;
     }

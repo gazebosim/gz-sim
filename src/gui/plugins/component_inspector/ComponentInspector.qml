@@ -127,7 +127,7 @@ Rectangle {
         id: pauseButton
         checkable: true
         checked: false
-        text: pauseButton.checked ?  "\u275A\u275A" : "\u25B6"
+        text: pauseButton.checked ? "\u25B6" : "\u275A\u275A"
         contentItem: Text {
           text: pauseButton.text
           color: "#b5b5b5"

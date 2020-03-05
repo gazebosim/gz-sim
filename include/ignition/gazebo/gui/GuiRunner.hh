@@ -20,6 +20,8 @@
 #include <ignition/msgs/serialized.pb.h>
 
 #include <QtCore>
+#include <memory>
+#include <mutex>
 #include <string>
 
 #include <ignition/transport/Node.hh>
@@ -33,7 +35,8 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-/// \brief
+/// \brief Responsible for running GUI systems as new states are received from
+/// the backend.
 class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
@@ -44,6 +47,9 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 
   /// \brief Destructor
   public: ~GuiRunner() override;
+
+  /// \brief Stop receiving state updates.
+  public: void Stop();
 
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
@@ -66,13 +72,16 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   private: gazebo::EntityComponentManager ecm;
 
   /// \brief Transport node.
-  private: transport::Node node;
+  private: std::unique_ptr<transport::Node> node;
 
   /// \brief Topic to request state
   private: std::string stateTopic;
 
   /// \brief Latest update info
   private: UpdateInfo updateInfo;
+
+  /// \brief Protect node destruction.
+  private: std::mutex mutex;
 };
 }
 }
