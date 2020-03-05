@@ -1667,6 +1667,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_FALSE(common::exists(recordPath + "(1)"));
 #endif
 
+#ifndef __APPLE__
   // Compress only, compressed file exists, auto-renamed compressed file
   // e.g. *(1) exists, recorded directory does not
   {
@@ -1676,9 +1677,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
     // Test case pre-condition
     EXPECT_TRUE(common::exists(defaultCmpPath));
     EXPECT_FALSE(common::exists(recordPath));
-#ifndef __APPLE__
     EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
-#endif
 
     // Command line triggers ign.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
@@ -1695,7 +1694,6 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(defaultCmpPath));
   EXPECT_FALSE(common::exists(recordPath));
 
-#ifndef __APPLE__
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
 #endif
