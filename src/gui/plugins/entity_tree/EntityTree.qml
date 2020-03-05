@@ -239,12 +239,10 @@ Rectangle {
 
     IgnGazebo.EntityContextMenu {
       id: entityContextMenu
-      anchors.fill: ma
     }
 
     TableViewColumn {
       role: "entityName"
-      width: parent.width
     }
   }
 }
