@@ -1734,7 +1734,9 @@ TEST_F(LogSystemTest, LogResources)
   EXPECT_TRUE(common::exists(statePath));
 
   // Recorded models should exist
+#ifndef __APPLE__
   EXPECT_GT(entryCount(recordPath), 2);
+#endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
       ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
       "models", "X2 Config 1")));
