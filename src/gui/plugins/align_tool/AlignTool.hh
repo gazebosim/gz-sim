@@ -33,14 +33,14 @@ namespace gazebo
   {
     /// \brief Indicates the user is currently hovering the mouse over
     /// an align button
-    HOVER,
+    HOVER = 0,
     /// \brief Indicates a reset of the currently placed nodes, only occurs
     /// on a hover exit if the align button has not been clicked
-    RESET,
+    RESET = 1,
     /// \brief Indicates the user has clicked the align button
-    ALIGN,
+    ALIGN = 2,
     /// \brief Indicates the user is currently not utilizing the align tool
-    NONE
+    NONE = 3
   };
 
   /// \brief Enumeration of the axes to be aligned relative to.

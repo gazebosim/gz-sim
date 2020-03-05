@@ -41,14 +41,11 @@ namespace ignition::gazebo
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief Mutex to protect angle mode.
-    public: std::mutex mutex;
-
-    /// \brief Align Tool service name.
-    public: std::string service;
-
     /// \brief The service call string for requesting a new pose for an entity.
     public: std::string poseCmdService;
+
+    /// \brief Mutex to protect align tool
+    public: std::mutex mutex;
 
     /// \brief The current world name.
     public: std::string worldName;
@@ -62,10 +59,6 @@ namespace ignition::gazebo
     /// \brief Flag to indicate if the entities to should aligned to the first
     /// or last entity selected.
     public: bool first{true};
-
-    /// \brief Flag to indicate if the rendering thread should update the scene
-    /// with newly provided information.
-    public: bool alignDirty{false};
 
     /// \brief The current selected entities
     public: std::vector<Entity> selectedEntities;
@@ -114,6 +107,7 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
 void AlignTool::Update(const UpdateInfo &/* _info */,
     EntityComponentManager &_ecm)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
@@ -131,6 +125,7 @@ void AlignTool::Update(const UpdateInfo &/* _info */,
 /////////////////////////////////////////////////
 void AlignTool::OnAlignAxis(const QString &_axis)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   std::string newAxis = _axis.toStdString();
   std::transform(newAxis.begin(), newAxis.end(), newAxis.begin(), ::tolower);
 
@@ -159,6 +154,7 @@ void AlignTool::OnAlignAxis(const QString &_axis)
 /////////////////////////////////////////////////
 void AlignTool::OnAlignTarget(const QString &_target)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   std::string newTarget = _target.toStdString();
   std::transform(newTarget.begin(), newTarget.end(),
                  newTarget.begin(), ::tolower);
@@ -183,18 +179,18 @@ void AlignTool::OnAlignTarget(const QString &_target)
 /////////////////////////////////////////////////
 void AlignTool::OnHoveredEntered()
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->AddState(AlignState::HOVER);
 }
 
 /////////////////////////////////////////////////
 void AlignTool::OnHoveredExited()
 {
-  // If no align has occurred, reset entities to start positions,
-  // otherwise, set state back to none
-  if (this->dataPtr->currentState == AlignState::HOVER)
-    this->AddState(AlignState::RESET);
-  else
-    this->AddState(AlignState::NONE);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  // Always reset after an exit, if an align call is made, it
+  // will have updated the prev positions of the entities so a
+  // reset after align will result in no change
+  this->AddState(AlignState::RESET);
 }
 
 /////////////////////////////////////////////////
@@ -202,6 +198,7 @@ void AlignTool::AddState(const QString &_state)
 {
   std::string newState = _state.toStdString();
   std::transform(newState.begin(), newState.end(), newState.begin(), ::tolower);
+
 
   if (newState == "hover")
   {
@@ -461,6 +458,7 @@ void AlignTool::Align()
       msgs::Set(req.mutable_orientation(), vis->WorldRotation());
       this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
       vis->SetUserData("pause-update", static_cast<int>(0));
+      this->dataPtr->prevPositions[i-this->dataPtr->first] = newPos;
     }
     // Hover state has been entered, update visuals to relative visual,
     // prevent RenderUtil from updating the visual to its actual position,
@@ -539,6 +537,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
 
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
     // If there's a state available, pop it from the queue and execute it
     if (!this->dataPtr->states.empty())
     {
