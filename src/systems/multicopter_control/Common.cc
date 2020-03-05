@@ -129,12 +129,15 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
     auto axis = _ecm.Component<components::JointAxis>(joint);
     if (nullptr != axis)
     {
-      math::Vector3d xyzInComLink;
-      axis->Data().ResolveXyz(xyzInComLink);
+      math::Vector3d xyzInJoint;
+      axis->Data().ResolveXyz(xyzInJoint);
+
+      auto xyzInComLink = comLinkPose.Rot().Inverse() *
+          (childLinkPose.Rot() * jointPose.Rot() * xyzInJoint);
 
       // The projection onto the +z axis is just the z component of the
       // xyzInComLink vector
-      rotor.forceConstant *= xyzInComLink[2];
+      rotor.forceConstant *= xyzInComLink.Z();
     }
 
 
