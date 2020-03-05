@@ -37,19 +37,27 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
          << std::endl;
 
+  this->node = std::make_unique<transport::Node>();
   this->RequestState();
 
   // Periodic change updates
-  this->node.Subscribe(stateTopic, &GuiRunner::OnState, this);
+  this->node->Subscribe(this->stateTopic, &GuiRunner::OnState, this);
 }
 
 /////////////////////////////////////////////////
 GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
+void GuiRunner::Stop()
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->node.reset();
+}
+
+/////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
-  this->node.Request(this->stateTopic, &GuiRunner::OnStateService, this);
+  this->node->Request(this->stateTopic, &GuiRunner::OnStateService, this);
 }
 
 /////////////////////////////////////////////////
@@ -82,6 +90,7 @@ void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
 /////////////////////////////////////////////////
 void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
 
