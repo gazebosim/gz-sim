@@ -199,7 +199,6 @@ void AlignTool::AddState(const QString &_state)
   std::string newState = _state.toStdString();
   std::transform(newState.begin(), newState.end(), newState.begin(), ::tolower);
 
-
   if (newState == "hover")
   {
     this->AddState(AlignState::HOVER);
@@ -382,7 +381,7 @@ void AlignTool::Align()
 
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
-    for (unsigned int i = 0; i < scene->VisualCount(); i++)
+    for (auto i = 0u; i < scene->VisualCount(); ++i)
     {
       ignition::rendering::VisualPtr vis = scene->VisualByIndex(i);
       if (!vis)
