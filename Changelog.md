@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.xx.xx (20xx-xx-xx)
+
+1. Add support for setting visual transparency through SDF
+    * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
+
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
