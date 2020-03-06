@@ -767,8 +767,8 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, double _interval,
-    double _sensitivity) const
+    ignition::math::Vector3d &_point, double _interval, double _sensitivity)
+    const
 {
   if (_interval <= 0)
   {
@@ -1044,7 +1044,6 @@ void IgnRenderer::HandleMouseTransformControl()
           this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
-        math::Vector3d snapVals = this->ScaleSnap();
         SnapPoint(scale, 0.5);
       }
       this->dataPtr->transformControl.Scale(scale);
