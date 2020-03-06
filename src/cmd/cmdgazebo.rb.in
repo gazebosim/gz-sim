@@ -76,6 +76,9 @@ COMMANDS = { 'gazebo' =>
   "  --log-overwrite             When recording, overwrite existing files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
   "\n"\
+  "  --log-compress              When recording, compress final log files.  \n"\
+  "                              Only valid if recording is enabled.        \n"\
+  "\n"\
   "  --playback [arg]            Use logging system to play back states.    \n"\
   "                              Argument is path to recorded states.       \n"\
   "\n"\
@@ -163,11 +166,13 @@ class Cmd
       'record' => 0,
       'record-path' => '',
       'log-overwrite' => 0,
+      'log-compress' => 0,
       'playback' => '',
       'run' => 0,
       'server' => 0,
       'verbose' => '1',
-      'gui_config' => ''
+      'gui_config' => '',
+      'physics_engine' => ''
     }
 
     usage = COMMANDS[args[0]]
@@ -212,6 +217,9 @@ class Cmd
       end
       opts.on('--log-overwrite') do
         options['log-overwrite'] = 1
+      end
+      opts.on('--log-compress') do
+        options['log-compress'] = 1
       end
       opts.on('--playback [arg]', String) do |p|
         options['playback'] = p
@@ -328,7 +336,8 @@ class Cmd
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
-                               int, const char *, const char *, const char *)'
+                               int, int, const char *, const char *,
+                               const char *)'
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
@@ -340,16 +349,19 @@ class Cmd
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
+          Process.setproctitle('ign gazebo server')
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['log-overwrite'],
-            options['playback'], options['physics_engine'], options['file'])
+            options['log-compress'], options['playback'],
+            options['physics_engine'], options['file'])
         end
 
         guiPid = Process.fork do
           ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
+          Process.setproctitle('ign gazebo gui')
           Importer.runGui(options['gui_config'])
         end
 
@@ -375,7 +387,8 @@ class Cmd
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['log-overwrite'],
-            options['playback'], options['physics_engine'], options['file'])
+            options['log-compress'], options['playback'],
+            options['physics_engine'], options['file'])
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'
