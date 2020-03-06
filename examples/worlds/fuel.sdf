@@ -145,7 +145,7 @@
 
     <!-- Model with meshes -->
     <model name="Radio">
-      <pose>-4 4 3 0 0 0</pose>
+      <pose>3 -1.5 0 0 0 0</pose>
       <static>true</static>
       <link name="link">
         <collision name="collision">
