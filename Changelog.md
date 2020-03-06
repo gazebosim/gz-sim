@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 3.X.X
 
+1. Support <uri>s from Fuel
+    * [Pull Request 532](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/532)
+
 1. Add support for thermal camera
     * [Pull Request 512](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/512)
     * [Pull Request 513](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/513)
