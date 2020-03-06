@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="ComponentInspector/">
+  <file>Boolean.qml</file>
+  <file>ComponentInspector.qml</file>
+  <file>NoData.qml</file>
+  <file>Pose3d.qml</file>
+  <file>String.qml</file>
+  <file>TypeHeader.qml</file>
+  <file>Vector3d.qml</file>
+</qresource>
+</RCC>
