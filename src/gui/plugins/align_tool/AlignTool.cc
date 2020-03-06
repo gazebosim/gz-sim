@@ -252,13 +252,12 @@ void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
   auto visMat = vis->Material();
   if (nullptr != visMat)
   {
-    // If the entity isn't already highlighted, highlight it
+    // If the entity isn't already transparent, make it transparent
     if (this->dataPtr->originalTransparency.find(vis->Name()) ==
         this->dataPtr->originalTransparency.end())
     {
       this->dataPtr->originalTransparency[vis->Name()] = visMat->Transparency();
       visMat->SetTransparency(visMat->Transparency() + 0.5);
-      vis->SetMaterial(visMat);
     }
   }
 
@@ -278,7 +277,6 @@ void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
       this->dataPtr->originalTransparency[geom->Name()] =
           geomMat->Transparency();
       geomMat->SetTransparency(geomMat->Transparency() + 0.5);
-      geom->SetMaterial(geomMat);
     }
   }
 }
@@ -308,7 +306,6 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
     if (visTransparency != this->dataPtr->originalTransparency.end())
     {
       visMat->SetTransparency(visTransparency->second);
-      vis->SetMaterial(visMat);
     }
   }
 
@@ -326,7 +323,6 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
     if (geomTransparency != this->dataPtr->originalTransparency.end())
     {
       geomMat->SetTransparency(geomTransparency->second);
-      geom->SetMaterial(geomMat);
     }
   }
 }
@@ -344,7 +340,7 @@ void AlignTool::Align()
   {
     ignerr << "Internal error: failed to load engine [" << engineName
 
-      << "]. Grid plugin won't work." << std::endl;
+      << "]. Align tool plugin won't work." << std::endl;
 
     return;
   }
@@ -353,7 +349,7 @@ void AlignTool::Align()
   if (!engine)
   {
     ignerr << "Internal error: failed to load engine [" << engineName
-      << "]. Grid plugin won't work." << std::endl;
+      << "]. Align tool plugin won't work." << std::endl;
     return;
   }
 
