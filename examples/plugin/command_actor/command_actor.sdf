@@ -129,6 +129,15 @@
           <time>5</time>
           <pose>10 10 0 0 0 0</pose>
         </origin>
+
+        <!--
+           At 10 seconds sim time, fix the trajectory pose to a given value.
+           This disables the waypoints from SDF.
+        -->
+        <trajectory_pose>
+          <time>10</time>
+          <pose>-5 -5 1 0 0 0</pose>
+        </trajectory_pose>
       </plugin>
     </include>
   </world>
