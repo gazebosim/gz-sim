@@ -163,6 +163,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
+  /// \brief A map of entity ids and trajectory pose updates.
+  public: std::map<Entity, math::Pose3d> trajectoryPoses;
+
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
 
@@ -246,6 +249,7 @@ void RenderUtil::Update()
   auto newLights = std::move(this->dataPtr->newLights);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
 
   this->dataPtr->newScenes.clear();
@@ -256,6 +260,7 @@ void RenderUtil::Update()
   this->dataPtr->newLights.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
 
   this->dataPtr->markerManager.Update();
@@ -381,7 +386,7 @@ void RenderUtil::Update()
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
-    for (auto &pose : entityPoses)
+    for (const auto &pose : entityPoses)
     {
       auto node = this->dataPtr->sceneManager.NodeById(pose.first);
       if (!node)
@@ -413,8 +418,18 @@ void RenderUtil::Update()
       }
 
       math::Pose3d trajPose;
-      trajPose.Pos() = tf.second["actorPose"].Translation();
-      trajPose.Rot() = tf.second["actorPose"].Rotation();
+      // Trajectory from the ECS
+      if (trajectoryPoses.find(tf.first) != trajectoryPoses.end())
+      {
+        trajPose = trajectoryPoses[tf.first];
+      }
+      // Trajectory from the SDF script
+      else
+      {
+        trajPose.Pos() = tf.second["actorPose"].Translation();
+        trajPose.Rot() = tf.second["actorPose"].Rotation();
+      }
+
       actorVisual->SetLocalPose(trajPose + globalPose);
 
       tf.second.erase("actorPose");
@@ -793,9 +808,18 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Actor *,
         const components::Pose *_pose)->bool
       {
+        // Trajectory origin
         this->entityPoses[_entity] = _pose->Data();
+
+        // Bone poses calculated by ign-common
         this->actorTransforms[_entity] =
               this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+
+        // Trajectory pose set by other systems
+        auto trajPoseComp = _ecm.Component<components::TrajectoryPose>(_entity);
+        if (trajPoseComp)
+          this->trajectoryPoses[_entity] = trajPoseComp->Data();
+
         return true;
       });
 
