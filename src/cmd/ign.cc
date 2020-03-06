@@ -486,11 +486,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
   app.exec();
 
   for (auto runner : runners)
-  {
-    // Destructor is not thread-safe, so we stop the transport before destroying
-    runner->Stop();
     delete runner;
-  }
   runners.clear();
 
   igndbg << "Shutting down ign-gazebo-gui" << std::endl;
