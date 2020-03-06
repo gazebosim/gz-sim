@@ -48,9 +48,6 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \brief Destructor
   public: ~GuiRunner() override;
 
-  /// \brief Stop receiving state updates.
-  public: void Stop();
-
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
   public slots: void OnPluginAdded(const QString &_objectName);
@@ -72,16 +69,13 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   private: gazebo::EntityComponentManager ecm;
 
   /// \brief Transport node.
-  private: std::unique_ptr<transport::Node> node;
+  private: transport::Node node;
 
   /// \brief Topic to request state
   private: std::string stateTopic;
 
   /// \brief Latest update info
   private: UpdateInfo updateInfo;
-
-  /// \brief Protect node destruction.
-  private: std::mutex mutex;
 };
 }
 }
