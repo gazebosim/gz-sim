@@ -60,12 +60,22 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    int _logOverwrite, const char *_playback, const char *_file)
+    int _logOverwrite, int _logCompress,
+    const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
+
+  // Path for compressed log, used to check for duplicates
+  std::string cmpPath = std::string(recordPathMod);
+  if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
+  {
+    // Remove the separator at end of path
+    cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+  }
+  cmpPath += ".zip";
 
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
@@ -83,18 +93,35 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     {
       recordPathMod = std::string(_recordPath);
 
+      // Update compressed file path to name of recording directory path
+      cmpPath = std::string(recordPathMod);
+      if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
+        "")))
+      {
+        // Remove the separator at end of path
+        cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+      }
+      cmpPath += ".zip";
+
       // Check if path or compressed file with same prefix exists
-      if (ignition::common::exists(recordPathMod))
+      if (ignition::common::exists(recordPathMod) ||
+        ignition::common::exists(cmpPath))
       {
         // Overwrite if flag specified
         if (_logOverwrite > 0)
         {
           bool recordMsg = false;
+          bool cmpMsg = false;
           // Remove files before initializing console log files on top of them
           if (ignition::common::exists(recordPathMod))
           {
             recordMsg = true;
             ignition::common::removeAll(recordPathMod);
+          }
+          if (ignition::common::exists(cmpPath))
+          {
+            cmpMsg = true;
+            ignition::common::removeFile(cmpPath);
           }
 
           // Create log file before printing any messages so they can be logged
@@ -106,6 +133,15 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
               << "be overwritten." << std::endl;
             ignmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
+          if (cmpMsg)
+          {
+            if (_logCompress > 0)
+            {
+              ignwarn << "Compressed log path already exists on disk! Existing "
+                << "files will be overwritten." << std::endl;
+            }
+            ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
+          }
         }
         // Otherwise rename to unique path
         else
@@ -114,13 +150,39 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
           if (!std::string(1, recordPathMod.back()).compare(
             ignition::common::separator("")))
           {
-            recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
+            recordPathMod = recordPathMod.substr(0, recordPathMod.length()
+              - 1);
           }
-          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+
+          std::string recordOrigPrefix = std::string(recordPathMod);
+          int count = 1;
+
+          // Keep renaming until path does not exist for both directory and
+          // compressed file
+          while (ignition::common::exists(recordPathMod) ||
+            ignition::common::exists(cmpPath))
+          {
+            recordPathMod = recordOrigPrefix +  "(" + std::to_string(count++) +
+              ")";
+
+            cmpPath = std::string(recordPathMod);
+            // Remove the separator at end of path
+            if (!std::string(1, cmpPath.back()).compare(
+              ignition::common::separator("")))
+            {
+              cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+            }
+            cmpPath += ".zip";
+          }
 
           ignLogInit(recordPathMod, "server_console.log");
           ignwarn << "Log path already exists on disk! "
             << "Recording instead to [" << recordPathMod << "]" << std::endl;
+          if (_logCompress > 0)
+          {
+            ignwarn << "Compressed log path already exists on disk! "
+              << "Recording instead to [" << cmpPath << "]" << std::endl;
+          }
         }
       }
       else
@@ -150,6 +212,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   else
   {
     ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+  }
+
+  if (_logCompress > 0)
+  {
+    serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
