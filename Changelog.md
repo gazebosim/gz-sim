@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.xx.x (20xx-xx-xx)
+
+1. Add support for computing model bounding box in physics system
+    * [Pull Request 546](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/546)
+
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
