@@ -87,7 +87,7 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 bool GridConfig::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::Type)
+  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
