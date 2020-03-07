@@ -39,7 +39,41 @@ Rectangle {
   property double spinMax: 1000000
 
   // Read-only / write
-  property bool readOnly: true
+  property bool readOnly: {
+    var isModel = entityType == "model"
+    var isLight = entityType == "light"
+    return !(isModel || isLight)
+  }
+
+  // X value
+  property double xValue: model.data[0]
+
+  // Y value
+  property double yValue: model.data[1]
+
+  // Z value
+  property double zValue: model.data[2]
+
+  // Roll value
+  property double rollValue: model.data[3]
+
+  // Pitch value
+  property double pitchValue: model.data[4]
+
+  // Yaw value
+  property double yawValue: model.data[5]
+
+  // Send new pose to C++
+  function sendPose(_element, _value) {
+    componentInspector.onPose(
+      xValue,
+      yValue,
+      zValue,
+      rollValue,
+      pitchValue,
+      yawValue
+    );
+  }
 
   /**
    * Used to create a spin box
@@ -52,6 +86,27 @@ Rectangle {
       minimumValue: -spinMax
       maximumValue: spinMax
       decimals: writableSpin.width < 100 ? 2 : 6
+      onEditingFinished: {
+        if (element == 'X') {
+          xValue = value
+        }
+        else if (element == 'Y') {
+          yValue = value
+        }
+        else if (element == 'Z') {
+          zValue = value
+        }
+        else if (element == 'Roll') {
+          rollValue = value
+        }
+        else if (element == 'Pitch') {
+          pitchValue = value
+        }
+        else if (element == 'Yaw') {
+          yawValue = value
+        }
+        sendPose()
+      }
     }
   }
 
@@ -159,6 +214,7 @@ Rectangle {
           Loader {
             anchors.fill: parent
             property double numberValue: model.data[0]
+            property string element: 'X'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
           }
         }
@@ -176,6 +232,7 @@ Rectangle {
           Loader {
             anchors.fill: parent
             property double numberValue: model.data[3]
+            property string element: 'Roll'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
           }
         }
@@ -199,6 +256,7 @@ Rectangle {
           Loader {
             anchors.fill: parent
             property double numberValue: model.data[1]
+            property string element: 'Y'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
           }
         }
@@ -216,6 +274,7 @@ Rectangle {
           Loader {
             anchors.fill: parent
             property double numberValue: model.data[4]
+            property string element: 'Pitch'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
           }
         }
@@ -233,6 +292,7 @@ Rectangle {
           Loader {
             anchors.fill: parent
             property double numberValue: model.data[2]
+            property string element: 'Z'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
           }
         }
@@ -250,6 +310,7 @@ Rectangle {
           Loader {
             anchors.fill: parent
             property double numberValue: model.data[5]
+            property string element: 'Yaw'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
           }
         }
