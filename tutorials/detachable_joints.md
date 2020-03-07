@@ -37,14 +37,15 @@ or child models be in collision in their initial (attached) state.
 
 The system has the following parameters:
 
-* parent_link: Name of the link in the parent model to be used in creating
-a fixed joint with a link in the child model.
+* parent_link: Name of the link in the model containing this system that will be
+used as the parent link in the detachable joint.
 
-* child_model: The child model to which this model will be attached
+* child_model: The name of the model containing the child link in the detachable
+joint.
 
-* child_model_link:  Name of the link in the child model to be used in creating
-a fixed joint with a link in the parent model.
+* child_model_link:  Name of the link in the child_model that will be used
+as the child link in the detachable joint.
 
 * topic (optional): Topic name to be used for detaching connections. If empty,
 a default topic will be created with a pattern
-`/model/<model_name>/detachable_joint/detach`
+`/model/<model_name>/detachable_joint/detach`.
