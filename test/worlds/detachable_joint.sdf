@@ -72,7 +72,7 @@
     </model>
 
 
-  <model name="M3">
+    <model name="M3">
       <pose>10 0 1 0 0 0</pose>
       <link name="body1">
         <inertial>
