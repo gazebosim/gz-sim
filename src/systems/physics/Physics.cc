@@ -341,13 +341,13 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 
   _ecm.EachNew<components::Model, components::Name, components::Pose,
-            components::ParentEntity, components::ModelSdf>(
+            components::ParentEntity, components::InitialModelSdf>(
       [&](const Entity &_entity,
           const components::Model *,
           const components::Name *_name,
           const components::Pose *_pose,
           const components::ParentEntity *_parent,
-          const components::ModelSdf *_modelSdf)->bool
+          const components::InitialModelSdf *_modelSdf)->bool
       {
         // Check if model already exists
         if (this->entityModelMap.find(_entity) != this->entityModelMap.end())
