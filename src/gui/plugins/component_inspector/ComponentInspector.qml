@@ -40,6 +40,11 @@ Rectangle {
   property int itemHeight: 30
 
   /**
+   * Entity type
+   */
+  property string entityType: ComponentInspector.type
+
+  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?
@@ -68,6 +73,13 @@ Rectangle {
     return _model.dataType + '.qml'
   }
 
+  /**
+   * Forward pose changes to C++
+   */
+  function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
+    ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
@@ -85,11 +97,11 @@ Rectangle {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8
-        entityType: ComponentInspector.type
+        entityType: entityType
       }
 
       Label {
-        text: ComponentInspector.type
+        text: entityType
         font.capitalization: Font.Capitalize
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
@@ -158,7 +170,15 @@ Rectangle {
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    model: ComponentsModel
+    model: {
+      try {
+        return ComponentsModel;
+      }
+      catch (e) {
+        // The QML is loaded before we set the context property
+        return null
+      }
+    }
     spacing: 5
 
     delegate: Loader {
