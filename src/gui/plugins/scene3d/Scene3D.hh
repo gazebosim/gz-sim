@@ -239,16 +239,40 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _e The key event to process.
     public: void HandleKeyRelease(QKeyEvent *_e);
 
+    /// \brief Set the XYZ snap values.
+    /// \param[in] _xyz The XYZ snap values
+    public: void SetXYZSnap(const math::Vector3d &_xyz);
+
+    /// \brief Get the XYZ snap values.
+    /// \return XYZ snapping values as a Vector3d
+    public: math::Vector3d XYZSnap() const;
+
+    /// \brief Set the RPY snap values.
+    /// \param[in] _rpy The RPY snap values
+    public: void SetRPYSnap(const math::Vector3d &_rpy);
+
+    /// \brief Get the RPY snap values.
+    /// \return RPY snapping values as a Vector3d
+    public: math::Vector3d RPYSnap() const;
+
+    /// \brief Set the scale snap values.
+    /// \param[in] _scale The scale snap values
+    public: void SetScaleSnap(const math::Vector3d &_scale);
+
+    /// \brief Get the scale snap values.
+    /// \return Scale snapping values as a Vector3d
+    public: math::Vector3d ScaleSnap() const;
+
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point to snap.
-    /// \param[in] _interval Fixed distance interval at which the point is
-    /// snapped.
+    /// \param[in] _snapVals The snapping values to use for each corresponding
+    /// coordinate in _point
     /// \param[in] _sensitivity Sensitivity of a point snapping, in terms of a
     /// percentage of the interval.
     public: void SnapPoint(
                 math::Vector3d &_point,
-                double _interval = 1.0, double _sensitivity = 0.4) const;
+                math::Vector3d &_snapVals, double _sensitivity = 0.4) const;
 
     /// \brief Request entity selection. This queues the selection to be handled
     /// later in the render thread.
@@ -467,6 +491,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _sendEvent True to notify other widgets. This should be true
     /// when the deselection is initiated from this plugin.
     public: void DeselectAllEntities(bool _sendEvent);
+
+    /// \brief Set the XYZ snap values from the user input.
+    /// \param[in] _xyz The XYZ snap values
+    public: void SetXYZSnap(const math::Vector3d &_xyz);
+
+    /// \brief Set the RPY snap values from the user input.
+    /// \param[in] _rpy The RPY snap values
+    public: void SetRPYSnap(const math::Vector3d &_rpy);
+
+    /// \brief Set the scale snap values from the user input.
+    /// \param[in] _scale The scale snap values
+    public: void SetScaleSnap(const math::Vector3d &_scale);
 
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
