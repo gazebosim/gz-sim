@@ -20,6 +20,7 @@
 #include <QEvent>
 #include <utility>
 #include <vector>
+#include <ignition/math/Vector3.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
 
@@ -34,6 +35,56 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 /// more information about events.
 namespace events
 {
+  /// \brief The class for sending and receiving custom snap value events.
+  class SnapIntervals : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _xyz XYZ snapping values.
+    /// \param[in] _rpy RPY snapping values.
+    /// \param[in] _scale Scale snapping values.
+    public: SnapIntervals(
+                const math::Vector3d &_xyz,
+                const math::Vector3d &_rpy,
+                const math::Vector3d &_scale)
+    : QEvent(kType), xyz(_xyz), rpy(_rpy), scale(_scale)
+    {
+    }
+
+    /// \brief Get the XYZ snapping values.
+    /// \return The XYZ snapping values.
+    public: math::Vector3d XYZ() const
+    {
+      return this->xyz;
+    }
+
+    /// \brief Get the RPY snapping values.
+    /// \return The RPY snapping values.
+    public: math::Vector3d RPY() const
+    {
+      return this->rpy;
+    }
+
+    /// \brief Get the scale snapping values.
+    /// \return The scale snapping values.
+    public: math::Vector3d Scale() const
+    {
+      return this->scale;
+    }
+
+    /// \brief The QEvent representing a snap event occurrence.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User);
+
+    /// \brief XYZ snapping values in meters, these values must be positive.
+    private: math::Vector3d xyz;
+
+    /// \brief RPY snapping values in degrees, these values must be positive.
+    private: math::Vector3d rpy;
+
+    /// \brief Scale snapping values - a multiplier of the current size,
+    /// these values must be positive.
+    private: math::Vector3d scale;
+  };
+
   /// \brief Event that notifies when new entities have been selected.
   class EntitiesSelected : public QEvent
   {
