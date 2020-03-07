@@ -35,7 +35,7 @@ namespace components
   using Model = Component<NoData, class ModelTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
 
-  /// \brief A component that hold's the model's initial SDF DOM. This will NOT
+  /// \brief A component that holds the model's initial SDF DOM. This will NOT
   /// be kept in sync with the model once simulation starts.
   using InitialModelSdf = Component<sdf::Model, class ModelTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ModelSdf",
