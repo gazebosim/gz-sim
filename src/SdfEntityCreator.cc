@@ -232,7 +232,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
   // Store the model's SDF DOM
   this->dataPtr->ecm->CreateComponent(
-      modelEntity, components::ModelSdf(*_model));
+      modelEntity, components::InitialModelSdf(*_model));
 
   return modelEntity;
 }
