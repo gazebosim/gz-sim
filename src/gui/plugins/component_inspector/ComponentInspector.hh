@@ -42,8 +42,7 @@ namespace gazebo
   template <class DataType>
   void setData(QStandardItem *_item, const DataType &_data)
   {
-    if constexpr
-        (traits::IsOutStreamable<std::ostream, DataType>::value)  // NOLINT
+    if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
     {
       std::stringstream ss;
       ss << _data;
