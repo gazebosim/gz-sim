@@ -42,6 +42,8 @@ namespace gazebo
   template <class DataType>
   void setData(QStandardItem *_item, const DataType &_data)
   {
+    // cppcheck-suppress syntaxError
+    // cppcheck-suppress unmatchedSuppression
     if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
     {
       std::stringstream ss;
