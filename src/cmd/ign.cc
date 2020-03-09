@@ -18,6 +18,7 @@
 #include <cstring>
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
+#include <ignition/common/Filesystem.hh>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -59,13 +60,92 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    const char *_playback, const char *_file)
+    int _logOverwrite, const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+  // Path for logs
+  std::string recordPathMod = serverConfig.LogRecordPath();
+
+  // Initialize console log
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
   {
-    ignLogInit(_recordPath, "server_console.log");
+    if (_playback != nullptr && std::strlen(_playback) > 0)
+    {
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
+    }
+
+    serverConfig.SetUseLogRecord(true);
+
+    // If a record path is specified
+    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+    {
+      recordPathMod = std::string(_recordPath);
+
+      // Check if path or compressed file with same prefix exists
+      if (ignition::common::exists(recordPathMod))
+      {
+        // Overwrite if flag specified
+        if (_logOverwrite > 0)
+        {
+          bool recordMsg = false;
+          // Remove files before initializing console log files on top of them
+          if (ignition::common::exists(recordPathMod))
+          {
+            recordMsg = true;
+            ignition::common::removeAll(recordPathMod);
+          }
+
+          // Create log file before printing any messages so they can be logged
+          ignLogInit(recordPathMod, "server_console.log");
+
+          if (recordMsg)
+          {
+            ignmsg << "Log path already exists on disk! Existing files will "
+              << "be overwritten." << std::endl;
+            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+          }
+        }
+        // Otherwise rename to unique path
+        else
+        {
+          // Remove the separator at end of path
+          if (!std::string(1, recordPathMod.back()).compare(
+            ignition::common::separator("")))
+          {
+            recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
+          }
+          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+
+          ignLogInit(recordPathMod, "server_console.log");
+          ignwarn << "Log path already exists on disk! "
+            << "Recording instead to [" << recordPathMod << "]" << std::endl;
+        }
+      }
+      else
+      {
+        ignLogInit(recordPathMod, "server_console.log");
+      }
+      // TODO(anyone) In Ignition-D, to be moved to outside and after this
+      //   if-else statement, after all ignLogInit() calls have been finalized,
+      //   so that <path> in SDF will always be ignored in favor of logging both
+      //   console logs and LogRecord recordings to common::ignLogDirectory().
+      //   In Blueprint and Citadel, LogRecord will record to <path> if no
+      //   --record-path is specified on command line.
+      serverConfig.SetLogRecordPath(recordPathMod);
+      serverConfig.SetLogIgnoreSdfPath(true);
+    }
+    // Empty record path specified. Use default.
+    else
+    {
+      // Create log file before printing any messages so they can be logged
+      ignLogInit(recordPathMod, "server_console.log");
+      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+             << std::endl;
+
+      serverConfig.SetLogRecordPath(recordPathMod);
+    }
   }
   else
   {
@@ -74,7 +154,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
-
 
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -106,26 +185,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetUseLevels(true);
   }
 
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
-  {
-    if (_playback != nullptr && std::strlen(_playback) > 0)
-    {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
-      return -1;
-    }
-
-    serverConfig.SetUseLogRecord(true);
-
-    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
-    {
-      serverConfig.SetLogRecordPath(_recordPath);
-    }
-    else
-    {
-      ignmsg << "Recording states to default path\n";
-    }
-  }
-
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
@@ -137,7 +196,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(_playback);
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        std::string(_playback)));
     }
   }
 
