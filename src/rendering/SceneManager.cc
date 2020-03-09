@@ -266,7 +266,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         auto submeshMat = submesh->Material();
         if (submeshMat)
         {
-          submeshMat->SetTransparency(_visual.Transparency());
+          double productAlpha = (1.0-_visual.Transparency()) *
+              (1.0 - submeshMat->Transparency());
+          submeshMat->SetTransparency(1 - productAlpha);
           submeshMat->SetCastShadows(_visual.CastShadows());
         }
       }
