@@ -83,13 +83,16 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.
+  /// \param[in] _ecm Reference to an instance of entity component manager
   public: void LogModelResources(const EntityComponentManager &_ecm);
 
   /// \brief Return true if all the models are saved successfully.
+  /// \param[in] _models List of names of models to save
   /// \return True if all the models are saved successfully.
   public: bool SaveModels(const std::set<std::string> &_models);
 
   /// \brief Return true if all the files are saved successfully.
+  /// \param[in] _files List of absolute paths of files to save
   /// \return True if all the files are saved successfully, and false if
   /// there are errors saving the files.
   public: bool SaveFiles(const std::set<std::string> &_files);
