@@ -42,7 +42,7 @@ void DetachableJoint::Configure(const Entity &_entity,
                EntityComponentManager &_ecm,
                EventManager &/*_eventMgr*/)
 {
-  // Store the pointer to the model this battery is under
+  // Store the pointer to the model this system is under
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
@@ -89,7 +89,7 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  // Setup battery state topic
+  // Setup detach topic
   std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
                              "/detachable_joint/detach"};
   this->topic = _sdf->Get<std::string>("topic", defaultTopic).first;
@@ -160,8 +160,7 @@ void DetachableJoint::PreUpdate(
     if (this->detachRequested && (kNullEntity != this->detachableJointEntity))
     {
       // Detach the models
-      std::cout << "Removing entity: " << this->detachableJointEntity
-                << std::endl;
+      igndbg << "Removing entity: " << this->detachableJointEntity << std::endl;
       _ecm.RequestRemoveEntity(this->detachableJointEntity);
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;
