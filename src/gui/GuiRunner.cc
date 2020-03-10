@@ -22,8 +22,9 @@
 // Include all components so they have first-class support
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
-#include "ignition/gazebo/gui/GuiSystem.hh"
+
+#include "ignition/gazebo/gui/moc_GuiRunner.cpp"
+#include "ignition/gazebo/gui/moc_GuiSystem.cpp"
 
 using namespace ignition;
 using namespace gazebo;
@@ -40,7 +41,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   this->RequestState();
 
   // Periodic change updates
-  this->node.Subscribe(stateTopic, &GuiRunner::OnState, this);
+  this->node.Subscribe(this->stateTopic, &GuiRunner::OnState, this);
 }
 
 /////////////////////////////////////////////////

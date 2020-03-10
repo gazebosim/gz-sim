@@ -33,6 +33,8 @@ Other options for recording:
                      false, in which case it's recorded to the given path with
                      a number appended (i.e. `/tmp/log(1)`, `/tmp/log(2)`...).
 
+* `--log-compress`: Compress the recorded file.
+
 ### From C++ API
 
 All features available through the command line are also available through
