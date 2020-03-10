@@ -59,18 +59,12 @@ set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 VERSION 3.4
-  COMPONENTS
-    profiler
-    events
-    av
-  REQUIRED
-)
+ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events av)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.1)
+ign_find_package(ignition-fuel_tools4 REQUIRED)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
