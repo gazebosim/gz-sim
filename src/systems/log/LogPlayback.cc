@@ -337,6 +337,8 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
   };
 
   // Loop through geometries in world. Prepend log path to URI
+  // TODO(anyone): When merge forward to Citadel, handle actor skin and
+  // animation files
   _ecm.Each<components::Geometry>(
       [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
   {
