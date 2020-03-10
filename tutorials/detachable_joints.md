@@ -13,21 +13,23 @@ vehicle that holds three objects that are later detached from the vehicle. As
 seen in this example, the parent model is the vehicle. The kinematic topology
 is the following.
 
+```
 world---vehicle_blue---B1
                     \
                       ---B2
                       \
                         ---B3
-
+```
 If the objects were each parent models, instead, there would be multiple
 kinematic loops, as shown below.
 
+```
 world---B1---vehicle_blue
      \      /   /
        ---B2   /
        \      /
          ---B3
-
+```
 
 Due to a limitation in the implementation of this system, if detached models
 need to collide with a parent model or other detached models that have the same
