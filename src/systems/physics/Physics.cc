@@ -98,6 +98,7 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -341,13 +342,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 
   _ecm.EachNew<components::Model, components::Name, components::Pose,
-            components::ParentEntity, components::InitialModelSdf>(
+            components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Model *,
           const components::Name *_name,
           const components::Pose *_pose,
-          const components::ParentEntity *_parent,
-          const components::InitialModelSdf *_modelSdf)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // Check if model already exists
         if (this->entityModelMap.find(_entity) != this->entityModelMap.end())
@@ -375,12 +375,17 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         sdf::Model model;
         model.SetName(_name->Data());
         model.SetPose(_pose->Data());
-        model.SetSelfCollide(_modelSdf->Data().SelfCollide());
 
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
           model.SetStatic(staticComp->Data());
+        }
+
+        auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+        if (selfCollideComp && selfCollideComp ->Data())
+        {
+          model.SetSelfCollide(selfCollideComp->Data());
         }
 
         auto modelPtrPhys = worldPtrPhys->ConstructModel(model);

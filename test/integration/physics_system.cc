@@ -30,7 +30,6 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -380,46 +379,34 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
   auto worldEntity = ecm->EntityByComponents(components::World());
   EXPECT_NE(kNullEntity, worldEntity);
 
-  // We won't use the event manager but it's required to create an
-  // SdfEntityCreator
-  gazebo::EventManager dummyEventMgr;
-  gazebo::SdfEntityCreator creator(*ecm, dummyEventMgr);
-
   // Spawn a new model
-  const std::string modelSdf = R"(
-  <sdf version='1.6'>
-    <model name='new_model'>
-      <link name='link'>
-        <inertial>
-          <mass>1.0</mass>
-          <inertia>
-            <ixx>0.4</ixx>
-            <iyy>0.4</iyy>
-            <izz>0.4</izz>
-            <ixy>0.0</ixy>
-            <ixz>0.0</ixz>
-            <iyz>0.0</iyz>
-          </inertia>
-        </inertial>
-      </link>
-    </model>
-  </sdf>
-  )";
+  auto modelEntity = ecm->CreateEntity();
+  ecm->CreateComponent(modelEntity, components::Model());
+  ecm->CreateComponent(modelEntity, components::Pose(math::Pose3d::Zero));
+  ecm->CreateComponent(modelEntity, components::Name("new_model"));
+  ecm->CreateComponent(modelEntity, components::Static(false));
+  ecm->SetParentEntity(modelEntity, worldEntity);
+  ecm->CreateComponent(modelEntity, components::ParentEntity(worldEntity));
 
-  sdf::Root rootSdf;
-  sdf::Errors errors = rootSdf.LoadSdfString(modelSdf);
-  ASSERT_TRUE(errors.empty());
+  auto linkEntity = ecm->CreateEntity();
+  ecm->CreateComponent(linkEntity, components::Link());
+  ecm->CreateComponent(linkEntity, components::CanonicalLink());
+  ecm->CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
+  ecm->CreateComponent(linkEntity, components::Name("link"));
 
-  auto modelEntity = creator.CreateEntities(rootSdf.ModelByIndex(0));
-  creator.SetParent(modelEntity, worldEntity);
+  math::MassMatrix3d massMatrix;
+  massMatrix.SetMass(1.0);
+  massMatrix.SetInertiaMatrix(0.4, 0.4, 0.4, 0, 0, 0);
+  math::Inertiald inertia;
+  inertia.SetMassMatrix(massMatrix);
+  ecm->CreateComponent(linkEntity, components::Inertial(inertia));
+
+  ecm->SetParentEntity(linkEntity, modelEntity);
+  ecm->CreateComponent(linkEntity, components::ParentEntity(modelEntity));
 
   // Check we have a new model
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("new_model")));
-
-  auto linkEntity = ecm->EntityByComponents(
-      components::Link(), components::ParentEntity(modelEntity));
-  EXPECT_NE(kNullEntity, linkEntity);
 
   // Run server and check new model keeps falling due to gravity
   auto poseComp = ecm->Component<components::Pose>(modelEntity);

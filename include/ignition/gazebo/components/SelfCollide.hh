@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_SELFCOLLIDE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_SELFCOLLIDE_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
@@ -29,9 +29,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that identifies an entity as being a model.
-  using Model = Component<NoData, class ModelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
+  /// \brief A component used to hold a model's self collide property.
+  using SelfCollide = Component<bool, class SelfCollideTag>;
+
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SelfCollide",
+                                SelfCollide)
 }
 }
 }
