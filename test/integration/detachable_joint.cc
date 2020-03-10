@@ -176,7 +176,8 @@ TEST_F(DetachableJointTest, StartConnected)
   // Model2 is now detached. It should be falling
   const double expDist =
       0.5 * 9.8 * pow(static_cast<double>(nItersAfterDetach-1) / 1000, 2);
-  // Due to the timing of transport messages, we
+  // Due integration error, we check that the travelled distance is greater than
+  // the expected distance.
   EXPECT_GT(m2Poses.front().Pos().Z() - m2Poses.back().Pos().Z(), expDist);
 }
 
@@ -226,11 +227,11 @@ TEST_F(DetachableJointTest, LinksInSameModel)
   ASSERT_EQ(nIters, b1Poses.size());
   ASSERT_EQ(nIters, b2Poses.size());
 
-  // Model1 is on the ground. It shouldn't move
+  // body1 is on the ground. It shouldn't move
   EXPECT_EQ(b1Poses.front(), b1Poses.back());
 
-  // Model2 is rigidly connected to Model1 which isn't moving so it should
-  // remain at rest.
+  // body2 is connected to body1 with a fixed joint so it should remain at rest
+  // as well.
   EXPECT_EQ(b2Poses.front(), b2Poses.back());
 
   b1Poses.clear();
@@ -247,12 +248,13 @@ TEST_F(DetachableJointTest, LinksInSameModel)
   ASSERT_EQ(nItersAfterDetach, b1Poses.size());
   ASSERT_EQ(nItersAfterDetach, b2Poses.size());
 
-  // Model1 is still on the ground. It shouldn't move
+  // body1 is still on the ground. It shouldn't move
   EXPECT_EQ(b1Poses.front(), b1Poses.back());
 
-  // Model2 is now detached. It should be falling
+  // body2 is now detached. It should be falling
   const double expDist =
-      0.5 * 9.8 * pow(static_cast<double>(nItersAfterDetach-1) / 1000, 2);
-  // Due to the timing of transport messages, we
+      0.5 * 9.81 * pow(static_cast<double>(nItersAfterDetach - 1) / 1000, 2);
+  // Due integration error, we check that the travelled distance is greater than
+  // the expected distance.
   EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
 }
