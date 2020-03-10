@@ -28,12 +28,16 @@
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
+#include <ignition/sensors/ThermalCameraSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
+#include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -65,6 +69,10 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
   public: rendering::ScenePtr scene;
+
+  /// \brief Temperature used by thermal camera. Defaults to temperature at
+  /// sea level
+  public: double ambientTemperature = 288.15;
 
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
@@ -301,7 +309,7 @@ Sensors::~Sensors()
 //////////////////////////////////////////////////
 void Sensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/,
+    EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
   igndbg << "Configuring Sensors system" << std::endl;
@@ -313,6 +321,19 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2));
+
+  // parse sensor-specific data
+  auto worldEntity = _ecm.EntityByComponents(components::World());
+  if (kNullEntity != worldEntity)
+  {
+    // temperature used by thermal camera
+    auto atmosphere = _ecm.Component<components::Atmosphere>(worldEntity);
+    if (atmosphere)
+    {
+      auto atmosphereSdf = atmosphere->Data();
+      this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
+    }
+  }
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
@@ -339,7 +360,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       (_ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
        _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId)))
+       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+       _ecm.HasComponentType(components::ThermalCamera::typeId)))
   {
     igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
@@ -468,6 +490,13 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
     {
       this->dataPtr->cameras[parent] = cameraSensor;
     }
+  }
+
+  // Sensor-specific settings
+  auto thermalSensor = dynamic_cast<sensors::ThermalCameraSensor *>(sensor);
+  if (nullptr != thermalSensor)
+  {
+    thermalSensor->SetAmbientTemperature(this->dataPtr->ambientTemperature);
   }
 
   return sensor->Name();
