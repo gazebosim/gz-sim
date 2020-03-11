@@ -1,4 +1,5 @@
 set (gui_sources
+  Gui.cc
   GuiRunner.cc
   TmpIface.cc
 )
