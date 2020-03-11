@@ -386,7 +386,6 @@ TEST_F(LogSystemTest, LogPaths)
   // Test case 1:
   // A path is specified in SDF.
   // No path specified in C++ API.
-  // LogIgnoreSdfPath is not set.
   // Should take SDF path. State log should be stored here. Console log is not
   // initialized because ign.cc is not triggered.
   {
@@ -436,7 +435,6 @@ TEST_F(LogSystemTest, LogPaths)
 
   // Test case 2:
   // A path is specified in SDF.
-  // No path specified on command line (therefore LogIgnoreSdfPath is not set).
   // State log should be stored in SDF path.
   // Console log should be stored to default timestamp path ignLogDirectory
   // because ign.cc is triggered by command line.
@@ -497,7 +495,6 @@ TEST_F(LogSystemTest, LogPaths)
   // Test case 3:
   // A path is specified in SDF.
   // A different path is specified via C++ API.
-  // LogIgnoreSdfPath is not set (pure C++ API usage).
   // Should store state.tlog to SDF path. Console log is not initialized
   // because ign.cc is not triggered.
   std::string stateLogPath = this->logDir;
@@ -542,7 +539,6 @@ TEST_F(LogSystemTest, LogPaths)
   // Test case 4:
   // A path is specified in SDF.
   // A different path is specified via C++ API.
-  // LogIgnoreSdfPath is set (similar to specifying a path on command line).
   // Should take C++ API path. State log should be stored here. Console log is
   // not initialized because ign.cc is not triggered.
   const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
@@ -562,8 +558,6 @@ TEST_F(LogSystemTest, LogPaths)
 
     // Mock command line arg. Set record path to something different from in SDF
     recordServerConfig.SetLogRecordPath(cppPath);
-    // Set this flag to simulate path being passed in from command line
-    recordServerConfig.SetLogIgnoreSdfPath(true);
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
@@ -1075,7 +1069,6 @@ TEST_F(LogSystemTest, LogOverwrite)
     recordServerConfig.SetSdfFile(recordSdfPath);
     recordServerConfig.SetUseLogRecord(true);
     recordServerConfig.SetLogRecordPath(this->logDir);
-    recordServerConfig.SetLogIgnoreSdfPath(true);
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
