@@ -29,7 +29,15 @@ namespace gui
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
+  /// \brief Run GUI application
+  /// \param[in] _argc Number of command line arguments (Used when running
+  /// without ign-tools. Set to 0 if using ign-tools)
+  /// \param[in] _argv Command line arguments (Used when running without
+  /// ign-tools. Set to nullptr if using ign-tools)
+  /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
+  /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  IGNITION_GAZEBO_VISIBLE int runGui(int _argc, char **_argv,
+                                     const char *_guiConfig);
 }
 }  // namespace gui
 }  // namespace gazebo
