@@ -274,5 +274,5 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
 {
-  return ignition::gazebo::gui::runGui(_guiConfig);
+  return ignition::gazebo::gui::runGui(0, nullptr, _guiConfig);
 }

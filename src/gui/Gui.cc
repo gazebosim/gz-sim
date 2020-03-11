@@ -37,7 +37,7 @@ namespace gui
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
-int runGui(const char *_guiConfig)
+int runGui(int _argc, char **_argv, const char *_guiConfig)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -51,11 +51,8 @@ int runGui(const char *_guiConfig)
   // Temporary transport interface
   auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
-  int argc = 0;
-  char **argv = nullptr;
-
   // Initialize Qt app
-  ignition::gui::Application app(argc, argv);
+  ignition::gui::Application app(_argc, _argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // add import path so we can load custom modules
@@ -232,7 +229,7 @@ int runGui(const char *_guiConfig)
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app.LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load config file[" << _guiConfig << "]."
+      ignerr << "Failed to load config file[" << defaultConfig << "]."
              << std::endl;
       return -1;
     }
