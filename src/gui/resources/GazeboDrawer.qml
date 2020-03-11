@@ -18,6 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Dialogs 1.0
+import QtQuick.Layouts 1.3
 
 /**
  * Custom drawer
@@ -27,7 +28,13 @@ Rectangle {
   anchors.fill: parent
   color: Material.background
 
-  property string saveWorldName: "";
+  property string saveWorldFileUrl: "";
+
+  QtObject {
+    id: sdfGenConfig
+    property bool expandIncludeTags
+    property bool saveFuelModelVersion
+  }
 
   /**
    * Callback for list items
@@ -39,8 +46,8 @@ Rectangle {
         TmpIface.OnNewWorld();
         break
       case "saveWorld":
-        if (saveWorldName.length !== 0)
-          TmpIface.OnSaveWorldAs(saveWorldName)
+        if (saveWorldFileUrl.length !== 0)
+          GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig)
         else
           saveWorldDialog.open();
         break
@@ -70,7 +77,7 @@ Rectangle {
       title: "Load world"
       action: "loadWorld"
       type: "world"
-    }
+    }*/
     ListElement {
       title: "Save world"
       action: "saveWorld"
@@ -81,7 +88,7 @@ Rectangle {
       title: "Save world as..."
       action: "saveWorldAs"
       type: "world"
-    }*/
+    }
 
     // Actions provided by Ignition GUI, with custom titles
     ListElement {
@@ -147,12 +154,53 @@ Rectangle {
     id: saveWorldDialog
     title: "Save world"
     folder: shortcuts.home
-    nameFilters: [ "World files (*.world)" ]
+    nameFilters: [ "World files (*.sdf)" ]
     selectMultiple: false
     selectExisting: false
     onAccepted: {
-      saveWorldName = fileUrl;
-      TmpIface.OnSaveWorldAs(fileUrl);
+      saveWorldFileUrl = fileUrl;
+      sdfGenConfigDialog.open()
+    }
+  }
+
+  Dialog {
+    id: sdfGenConfigDialog
+    modal: true
+    focus: true
+    title: "File save options"
+    parent: ApplicationWindow.overlay
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    width: 400
+    height: 400
+    standardButtons: Dialog.Ok | Dialog.Cancel
+    closePolicy: Popup.CloseOnEscape
+    Frame {
+      anchors.fill: parent
+      ColumnLayout {
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        CheckBox {
+          text: "Expand include tags"
+          Layout.fillWidth: true
+          checked: sdfGenConfig.expandIncludeTags
+          onClicked: {
+            sdfGenConfig.expandIncludeTags = checked
+          }
+        }
+        CheckBox {
+          text: "Save fuel model version"
+          Layout.fillWidth: true
+          checked: sdfGenConfig.saveFuelModelVersion
+          onClicked: {
+            sdfGenConfig.saveFuelModelVersion = checked
+          }
+        }
+      }
+    }
+    onAccepted: {
+      GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig);
     }
   }
 }

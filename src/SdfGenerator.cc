@@ -37,6 +37,26 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace sdf_generator
 {
+  class Benchmark
+  {
+    public: Benchmark(std::string _str) : str(std::move(_str))
+    {
+      tInit = common::Time::SystemTime();
+    }
+
+    public: ~Benchmark()
+    {
+      tFin = common::Time::SystemTime();
+      std::cout
+          << str << " "
+          << (tFin - tInit).FormattedString(common::Time::FormatOption::SECONDS)
+          << std::endl;
+    }
+
+    private: common::Time tInit, tFin;
+    private: std::string str;
+  };
+
   /////////////////////////////////////////////////
   /// \brief Copy sdf::Element from component
   /// \param[in] _comp Component containing an sdf::Element. The component can
@@ -202,6 +222,7 @@ namespace sdf_generator
       const IncludeUriMap &_includeUriMap,
       const msgs::SdfGeneratorConfig &_config)
   {
+    Benchmark bm(__func__);
     sdf::ElementPtr elem = std::make_shared<sdf::Element>();
     sdf::initFile("root.sdf", elem);
     auto worldElem = elem->AddElement("world");

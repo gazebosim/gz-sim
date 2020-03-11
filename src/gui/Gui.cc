@@ -28,6 +28,8 @@
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
+#include "GuiFileHandler.hh"
+
 namespace ignition
 {
 namespace gazebo
@@ -55,6 +57,9 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
   ignition::gui::Application app(_argc, _argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
+  auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
+  guiFileHandler->setParent(app.Engine());
+
   // add import path so we can load custom modules
   app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
@@ -73,6 +78,7 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
   // Let QML files use TmpIface' functions and properties
   auto context = new QQmlContext(app.Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp.get());
+  context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
