@@ -682,7 +682,7 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
     ASSERT_EQ(positions.size(), 2ul);
 
     // First position should be exactly the same
-    EXPECT_EQ(pos0, positions[0]);
+    EXPECT_DOUBLE_EQ(pos0, positions[0]);
 
     // Second position should be different, but close
     EXPECT_NEAR(pos0, positions[1], 0.01);
