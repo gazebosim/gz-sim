@@ -1122,26 +1122,13 @@ SceneManager &RenderUtil::SceneManager()
 }
 
 /////////////////////////////////////////////////
-Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
-{
-  Entity entity = kNullEntity;
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-
-  if (vis)
-    entity = std::get<int>(vis->UserData("gazebo-entity"));
-
-  return entity;
-}
-
-/////////////////////////////////////////////////
 MarkerManager &RenderUtil::MarkerManager()
 {
   return this->dataPtr->markerManager;
 }
 
 /////////////////////////////////////////////////
-// NOLINTNEXTLINE
-void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
+void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;

@@ -144,13 +144,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
 
-    /// \brief Get the entity for a given node.
-    /// \param[in] _node Node to get the entity for.
-    /// \return The entity for that node, or `kNullEntity` for no entity.
-    /// \todo(anyone) Deprecate in favour of
-    /// `ignition::rendering::Node::UserData` once that's available.
-    public: Entity EntityFromNode(const rendering::NodePtr &_node) const;
-
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
     /// \param[out] _scale Geometry scale that will be set based on sdf
@@ -171,10 +164,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
     /// \return Top level visual containining this visual
-    /// \TODO(anyone) Make it const ref when merging forward
     public: rendering::VisualPtr TopLevelVisual(
-        // NOLINTNEXTLINE
-        rendering::VisualPtr _visual) const;
+        const rendering::VisualPtr &_visual) const;
 
     /// \brief Get the top level node for the given node, which
     /// is the ancestor which is a direct child to the root visual.
