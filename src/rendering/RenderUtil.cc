@@ -163,6 +163,15 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
+  /// \brief A map of entity ids and actor animation time.
+  public: std::map<Entity, std::chrono::steady_clock::duration>
+                          actorAnimationTimes;
+
+  /// \brief True to update skeletons manually using bone poses
+  /// (see actorTransforms). False to let render engine update animation
+  /// based on sim time.
+  public: bool actorManualSkeletonUpdate = true;
+
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
 
@@ -247,6 +256,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
+  auto actorAnimationTime = std::move(this->dataPtr->actorAnimationTimes);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -257,6 +267,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
+  this->dataPtr->actorAnimationTimes.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -399,26 +410,34 @@ void RenderUtil::Update()
     }
 
     // update entities' local transformations
-    for (auto &tf : actorTransforms)
+    if (this->dataPtr->actorManualSkeletonUpdate)
     {
-      auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
-      auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
-      if (!actorMesh || !actorVisual)
-        continue;
-
-      math::Pose3d globalPose;
-      if (entityPoses.find(tf.first) != entityPoses.end())
+      for (auto &tf : actorTransforms)
       {
-        globalPose = entityPoses[tf.first];
+        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
+        auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
+        if (!actorMesh || !actorVisual)
+          continue;
+
+        math::Pose3d actorPose;
+        actorPose.Pos() = tf.second["actorPose"].Translation();
+        actorPose.Rot() = tf.second["actorPose"].Rotation();
+        actorVisual->SetLocalPose(actorPose);
+
+        tf.second.erase("actorPose");
+        actorMesh->SetSkeletonLocalTransforms(tf.second);
       }
-
-      math::Pose3d trajPose;
-      trajPose.Pos() = tf.second["actorPose"].Translation();
-      trajPose.Rot() = tf.second["actorPose"].Rotation();
-      actorVisual->SetLocalPose(trajPose + globalPose);
-
-      tf.second.erase("actorPose");
-      actorMesh->SetSkeletonLocalTransforms(tf.second);
+    }
+    else
+    {
+      for (auto &it : this->dataPtr->actorAnimationTimes)
+      {
+        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
+        auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
+        if (!actorMesh || !actorVisual)
+          continue;
+        actorMesh->UpdateSkeletonAnimation(it.second);
+      }
     }
   }
 }
@@ -791,11 +810,21 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   _ecm.Each<components::Actor, components::Pose>(
       [&](const Entity &_entity,
         const components::Actor *,
-        const components::Pose *_pose)->bool
+        const components::Pose *)->bool
       {
-        this->entityPoses[_entity] = _pose->Data();
-        this->actorTransforms[_entity] =
-              this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+        // TODO(anyone) Support setting actor pose from other systems
+        // this->entityPoses[_entity] = _pose->Data();
+
+        if (this->actorManualSkeletonUpdate)
+        {
+          this->actorTransforms[_entity] =
+                this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+        }
+        else
+        {
+//          this->actorAnimationTimes[_entity] =
+//                this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+        }
         return true;
       });
 
