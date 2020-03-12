@@ -620,6 +620,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
   Relay testSystem;
 
   double pos0 = 0.42;
+
+  // cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
@@ -713,6 +715,8 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   Relay testSystem;
 
   double vel0 = 3.0;
+
+  // cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
@@ -776,8 +780,8 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   ASSERT_EQ(velocities.size(), 2ul);
 
   // First velocity should be exactly the same
-  // TODO: we should use EXPECT_EQ but for some reason the
-  //       resulting velocity is 2.9999 instead of 3.0
+  // TODO(anyone): we should use EXPECT_EQ but for some reason the
+  //               resulting velocity is 2.9999 instead of 3.0
   EXPECT_NEAR(vel0, velocities[0], 2e-4);
 
   // Second velocity should be different, but close
