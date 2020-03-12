@@ -22,10 +22,14 @@
 #include <iostream>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/SignalHandler.hh>
+
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
 // Gflag command line argument definitions
@@ -125,6 +129,13 @@ int main(int _argc, char **_argv)
     return 0;
   }
 
+  ignition::common::SignalHandler sigHandler;
+  bool sigKilled = false;
+  sigHandler.AddCallback([&](const int /*_sig*/)
+  {
+    sigKilled = true;
+  });
+
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
   ignerr << "The ign-gazebo-gui tool is deprecated, and is replaced by "
     << "`ign gazebo`\n";
@@ -136,21 +147,21 @@ int main(int _argc, char **_argv)
 
   // Initialize Qt app
   ignition::gui::Application app(_argc, _argv);
+  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // add import path so we can load custom modules
   app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  // Load configuration file
-  auto configPath = ignition::common::joinPaths(
-      IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-
-  if (!app.LoadConfig(configPath))
-  {
-    return -1;
-  }
+  // Set default config file for Gazebo
+  std::string defaultConfig;
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", "gui.config");
+  app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
+  auto mainWin = app.findChild<ignition::gui::MainWindow *>();
+  auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
   // Let QML files use TmpIface' functions and properties
@@ -189,28 +200,37 @@ int main(int _argc, char **_argv)
   // \todo(nkoenig) Async resource download. Search for "Async resource
   // download in `src/Server.cc` for corresponding todo item. This todo is
   // resolved when this while loop can be removed.
-  while (!executed)
+  while (!sigKilled && !executed)
   {
-    igndbg << "Requesting list of world names. The server may be busy "
+    igndbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
 
-  if (!executed)
-    ignerr << "Timed out when getting world names." << std::endl;
-  else if (!result)
-    ignerr << "Failed to get world names." << std::endl;
+  // Only print error message if a sigkill was not received.
+  if (!sigKilled)
+  {
+    if (!executed)
+      ignerr << "Timed out when getting world names." << std::endl;
+    else if (!result)
+      ignerr << "Failed to get world names." << std::endl;
+  }
 
-  if (!executed || !result)
+  if (!executed || !result || worldsMsg.data().empty())
     return -1;
 
+  std::vector<ignition::gazebo::GuiRunner *> runners;
+
+  // GUI configuration from SDF (request to server)
   // TODO(anyone) Parallelize this if multiple worlds becomes an important use
   // case.
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
+    const auto &worldName = worldsMsg.data(w);
+
     // Request GUI info for each world
     result = false;
-    service = std::string("/world/" + worldsMsg.data(w) + "/gui/info");
+    service = std::string("/world/" + worldName + "/gui/info");
 
     igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
@@ -233,14 +253,66 @@ int main(int _argc, char **_argv)
       tinyxml2::XMLDocument pluginDoc;
       pluginDoc.Parse(pluginStr.c_str());
 
-      ignition::gui::App()->LoadPlugin(fileName,
-          pluginDoc.FirstChildElement("plugin"));
+      app.LoadPlugin(fileName, pluginDoc.FirstChildElement("plugin"));
+    }
+
+    // GUI runner
+    auto runner = new ignition::gazebo::GuiRunner(worldName);
+    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+        &ignition::gazebo::GuiRunner::OnPluginAdded);
+    runner->setParent(ignition::gui::App());
+    runners.push_back(runner);
+  }
+  mainWin->configChanged();
+
+  if (runners.empty())
+  {
+    ignerr << "Failed to start a GUI runner." << std::endl;
+    return -1;
+  }
+
+  // If no plugins have been added, load default config file
+  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  if (plugins.empty())
+  {
+    // Check if there's a default config file under
+    // ~/.ignition/gazebo and use that. If there isn't, copy
+    // the installed file there first.
+    if (!ignition::common::exists(defaultConfig))
+    {
+      auto installedConfig = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+        return -1;
+      }
+      else
+      {
+        ignmsg << "Copied installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+      }
+    }
+
+    // Also set ~/.ignition/gazebo/gui.config as the default path
+    if (!app.LoadConfig(defaultConfig))
+    {
+      ignerr << "Failed to load config file[" << defaultConfig << "]."
+             << std::endl;
+      return -1;
     }
   }
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT
   app.exec();
+
+  for (auto runner : runners)
+    delete runner;
+  runners.clear();
 
   igndbg << "Shutting down ign-gazebo-gui" << std::endl;
   return 0;
