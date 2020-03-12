@@ -94,11 +94,11 @@ void help()
   << std::endl
   << "  --record               Use logging system to record states."
   << std::endl
-  << "  --record-path arg      Custom path to put recorded files."
-  << " Arg is path to recorded states."
+  << "  --record-path arg      Implicitly invokes --record, and specifies"
+  << " custom path to put recorded files. Argument is path to recorded states."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
-  << " Arg is path to recorded states."
+  << " Argument is path to recorded states."
   << std::endl
   << "  --seed arg             Start with a given random number seed."
   << " Arg is the random seed (unsigned int)."
@@ -254,7 +254,8 @@ int main(int _argc, char **_argv)
 
     if (!FLAGS_record_path.empty())
     {
-      serverConfig.SetLogRecordPath(FLAGS_record_path);
+      serverConfig.SetLogRecordPath(ignition::common::absPath(
+        FLAGS_record_path));
     }
     else
     {
@@ -273,7 +274,8 @@ int main(int _argc, char **_argv)
     else
     {
       ignmsg << "Playing back states" << FLAGS_playback << std::endl;
-      serverConfig.SetLogPlaybackPath(FLAGS_playback);
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        FLAGS_playback));
     }
   }
 

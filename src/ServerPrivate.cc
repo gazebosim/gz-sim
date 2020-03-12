@@ -201,17 +201,92 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
         if (pluginFileName->GetAsString().find(
             LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
         {
-          // If record plugin already specified in SDF, no need to add
+          // If record plugin already specified in SDF, and record flags are
+          //   specified on command line, replace SDF parameters with those on
+          //   command line. (If none specified on command line, use those in
+          //   SDF.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            // If a custom path is passed in through command line, overwrite
-            //   the path in SDF
+            std::string recordPath = _config.LogRecordPath();
+            std::string cmpPath = _config.LogRecordCompressPath();
+
+            // Set record path
             if (!_config.LogRecordPath().empty())
             {
-              pluginElem->AddAttribute("path", "string", "", false);
-              sdf::ParamPtr recordParam = pluginElem->GetAttribute("path");
-              recordParam->SetFromString(_config.LogRecordPath());
+              bool overwriteSdf = false;
+              // If <path> is specified in SDF, check whether to replace it
+              if (pluginElem->HasElement("path") &&
+                  !pluginElem->Get<std::string>("path").empty())
+              {
+                // If record path came from command line, overwrite SDF <path>
+                if (_config.LogIgnoreSdfPath())
+                {
+                  overwriteSdf = true;
+                }
+                // TODO(anyone) In Ignition-D, remove this. <path> will be
+                //   permanently ignored in favor of common::ignLogDirectory().
+                //   Always overwrite SDF.
+                // Otherwise, record path is same as the default timestamp log
+                //   path. Take the path in SDF <path>.
+                // Deprecated.
+                else
+                {
+                  ignwarn << "--record-path is not specified on command line. "
+                    << "<path> is specified in SDF. Will record to <path>. "
+                    << "Console will be logged to [" << ignLogDirectory()
+                    << "]. Note: In Ignition-D, <path> will be ignored, and "
+                    << "all recordings will be written to default console log "
+                    << "path if no path is specified on command line.\n";
+                  overwriteSdf = false;
+
+                  // Take <path> in SDF
+                  recordPath = pluginElem->Get<std::string>("path");
+
+                  // Update path for compressed file to match record path
+                  cmpPath = std::string(recordPath);
+                  if (!std::string(1, cmpPath.back()).compare(
+                    ignition::common::separator("")))
+                  {
+                    // Remove the separator at end of path
+                    cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
+                  }
+                  cmpPath += ".zip";
+                }
+              }
+              else
+              {
+                overwriteSdf = true;
+              }
+
+              if (overwriteSdf)
+              {
+                sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+                pathElem->SetName("path");
+                pluginElem->AddElementDescription(pathElem);
+                pathElem = pluginElem->GetElement("path");
+                pathElem->AddValue("string", "", false, "");
+                pathElem->Set<std::string>(recordPath);
+              }
             }
+
+            // If compress flag specified on command line, replace in SDF
+            if (!_config.LogRecordCompressPath().empty())
+            {
+              sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+              compressElem->SetName("compress");
+              pluginElem->AddElementDescription(compressElem);
+              compressElem = pluginElem->GetElement("compress");
+              compressElem->AddValue("bool", "false", false, "");
+              compressElem->Set<bool>(true);
+
+              sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+              cPathElem->SetName("compress_path");
+              pluginElem->AddElementDescription(cPathElem);
+              cPathElem = pluginElem->GetElement("compress_path");
+              cPathElem->AddValue("string", "", false, "");
+              cPathElem->Set<std::string>(cmpPath);
+            }
+
             return;
           }
 
@@ -229,7 +304,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     }
   }
 
-  // Add record plugin
+  // A record plugin is not already specified in SDF. Add one.
   sdf::ElementPtr recordElem = worldElem->AddElement("plugin");
   sdf::ParamPtr recordName = recordElem->GetAttribute("name");
   recordName->SetFromString(LoggingPlugin::RecordPluginName());
@@ -239,10 +314,30 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   // Add custom record path
   if (!_config.LogRecordPath().empty())
   {
-    recordElem->AddAttribute("path", "string", "", false);
-    sdf::ParamPtr recordParam = recordElem->GetAttribute("path");
-    recordParam->SetFromString(_config.LogRecordPath());
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    recordElem->AddElementDescription(pathElem);
+    pathElem = recordElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(_config.LogRecordPath());
   }
+
+  // Set whether to compress
+  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+  compressElem->SetName("compress");
+  recordElem->AddElementDescription(compressElem);
+  compressElem = recordElem->GetElement("compress");
+  compressElem->AddValue("bool", "false", false, "");
+  compressElem->Set<bool>(_config.LogRecordCompressPath().empty() ? false :
+    true);
+
+  // Set compress path
+  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+  cPathElem->SetName("compress_path");
+  recordElem->AddElementDescription(cPathElem);
+  cPathElem = recordElem->GetElement("compress_path");
+  cPathElem->AddValue("string", "", false, "");
+  cPathElem->Set<std::string>(_config.LogRecordCompressPath());
 }
 
 //////////////////////////////////////////////////
