@@ -1196,7 +1196,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
-  for (const auto entity: entitiesPositionReset)
+  for (const auto entity : entitiesPositionReset)
   {
     _ecm.RemoveComponent<components::JointPositionReset>(entity);
   }
@@ -1209,7 +1209,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
-  for (const auto entity: entitiesVelocityReset)
+  for (const auto entity : entitiesVelocityReset)
   {
     _ecm.RemoveComponent<components::JointVelocityReset>(entity);
   }
