@@ -45,6 +45,8 @@ using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
+using TP = std::chrono::steady_clock::time_point;
+
 /// \brief Private data class.
 class ignition::gazebo::SceneManagerPrivate
 {
@@ -587,7 +589,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
   this->dataPtr->actorSkeletons[_id] = meshSkel;
 
-  using TP = std::chrono::steady_clock::time_point;
 
   std::vector<common::TrajectoryInfo> trajectories;
   if (_actor.TrajectoryCount() != 0)
@@ -842,18 +843,27 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 }
 
 /////////////////////////////////////////////////
-std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
-    Entity _id, std::chrono::steady_clock::duration _time) const
-{
-  std::map<std::string, math::Matrix4d> allFrames;
+// bool SceneManager::CorrectTime(
+//     const std::vector<common::TrajectoryInfo> &_trajs,
+//     std::chrono::steady_clock::duration &_time) const
+// {
+//
+// }
 
-  if (this->dataPtr->actorTrajectories.find(_id)
-      == this->dataPtr->actorTrajectories.end())
+/////////////////////////////////////////////////
+std::chrono::steady_clock::duration SceneManager::ActorTrajectoryAt(
+    Entity _id,
+    const std::chrono::steady_clock::duration &_time,
+    common::TrajectoryInfo &_traj) const
+{
+  _traj.SetId(-1);
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
   {
-    return allFrames;
+    return _time;
   }
 
-  auto trajs = this->dataPtr->actorTrajectories[_id];
+  auto trajs = trajIt->second;
   bool followTraj = true;
   if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
   {
@@ -861,55 +871,88 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
   }
 
   auto firstTraj = trajs.begin();
-  auto poseFrame = common::PoseKeyFrame(0.0);
 
-  common::TrajectoryInfo traj = trajs[0];
+  _traj = trajs[0];
 
-  using TP = std::chrono::steady_clock::time_point;
+//  using TP = std::chrono::steady_clock::time_point;
   auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
 
   // delay start
-  if (_time < (trajs.begin()->StartTime() - TP(0ms)))
+  auto time = _time;
+  if (time < (trajs.begin()->StartTime() - TP(0ms)))
   {
-    _time = std::chrono::steady_clock::duration(0);
+    time = std::chrono::steady_clock::duration(0);
   }
   else
   {
-    _time -= trajs.begin()->StartTime() - TP(0ms);
+    time -= trajs.begin()->StartTime() - TP(0ms);
   }
 
   bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
             && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
 
-  if (_time >= totalTime && noLoop)
+  if (time >= totalTime && noLoop)
   {
-    _time = totalTime;
+    time = totalTime;
   }
 
-  if (!noLoop || _time <= totalTime)
+//   auto poseFrame = common::PoseKeyFrame(0.0);
+  if (!noLoop || time <= totalTime)
   {
-    while (_time > totalTime)
+    while (time > totalTime)
     {
-      _time = _time - totalTime;
+      time = time - totalTime;
     }
     if (followTraj)
     {
       for (auto &trajectory : trajs)
       {
-        if (trajectory.StartTime() - firstTraj->StartTime() <= _time
-            && trajectory.EndTime() - firstTraj->StartTime() >= _time)
+        if (trajectory.StartTime() - firstTraj->StartTime() <= time
+            && trajectory.EndTime() - firstTraj->StartTime() >= time)
         {
-          traj = trajectory;
-          _time -= traj.StartTime() - firstTraj->StartTime();
+          _traj = trajectory;
+          time -= _traj.StartTime() - firstTraj->StartTime();
 
-          traj.Waypoints()->Time(std::chrono::duration<double>(_time).count());
-          traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
+          _traj.Waypoints()->Time(std::chrono::duration<double>(time).count());
           break;
         }
       }
     }
   }
+  return time;
+}
 
+/////////////////////////////////////////////////
+std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
+    Entity _id, std::chrono::steady_clock::duration _time) const
+{
+  std::map<std::string, math::Matrix4d> allFrames;
+
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
+  {
+    return allFrames;
+  }
+
+  // get the trajectory at input time
+  // The time returned is the time at which the animation should be played
+  common::TrajectoryInfo traj;
+  auto time = this->ActorTrajectoryAt(_id, _time, traj);
+
+  auto trajs = trajIt->second;
+  bool followTraj = true;
+  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
+  {
+    followTraj = false;
+  }
+
+  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
+            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
+
+
+  common::PoseKeyFrame poseFrame(0.0);
+  if (followTraj)
+    traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
   math::Matrix4d rootTf(poseFrame.Rotation());
   rootTf.SetTranslation(poseFrame.Translation());
 
@@ -920,11 +963,11 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     unsigned int animIndex = traj.AnimIndex();
     std::map<std::string, math::Matrix4d> rawFrames;
 
-    double timeSeconds = std::chrono::duration<double>(_time).count();
+    double timeSeconds = std::chrono::duration<double>(time).count();
 
     if (followTraj)
     {
-      double distance = traj.DistanceSoFar(_time);
+      double distance = traj.DistanceSoFar(time);
       if (distance < 0.1)
       {
         rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);

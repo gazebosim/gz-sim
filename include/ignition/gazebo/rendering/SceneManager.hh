@@ -31,6 +31,7 @@
 #include <sdf/Visual.hh>
 
 #include <ignition/common/KeyFrame.hh>
+#include <ignition/common/Animation.hh>
 
 #include <ignition/rendering/RenderTypes.hh>
 
@@ -132,6 +133,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Actor entity's unique id
     /// \return Pointer to requested entity's mesh
     public: rendering::MeshPtr ActorMeshById(Entity _id) const;
+
+    /// \brief Get the trajectory at input time and returns animation time
+    /// associated with the trajectory.
+    /// \param[in] _id Entity's unique id
+    /// \param[in] _time Timepoint for the animation
+    /// \param[out] Trajectory of actor at specified time.
+    /// \return Update time.
+    public: std::chrono::steady_clock::duration ActorTrajectoryAt(
+        Entity _id, const std::chrono::steady_clock::duration &_time,
+        common::TrajectoryInfo &_traj) const;
+
 
     /// \brief Get the animation of actor mesh given an id
     /// \param[in] _id Entity's unique id
