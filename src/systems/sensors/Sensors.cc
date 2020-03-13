@@ -59,7 +59,6 @@ class ignition::gazebo::systems::SensorsPrivate
   public: RenderUtil renderUtil;
 
   /// \brief Unique set of sensor ids
-  // TODO(anyone) Remove element when sensor is deleted
   public: std::set<sensors::SensorId> sensorIds;
 
   /// \brief rendering scene to be managed by the scene manager and used to
@@ -71,6 +70,12 @@ class ignition::gazebo::systems::SensorsPrivate
   /// Value: Pointer to camera
   // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
+
+  /// \brief Maps sensor ID to gazebo entity
+  ///
+  /// Useful for detecting when a sensor Entity has been deleted and trigger
+  /// the destruction of the corresponding ignition::sensors Sensor object
+  public: std::map<sensors::SensorId, Entity> idToEntityMap;
 
   /// \brief Flag to indicate if worker threads are running
   public: std::atomic<bool> running { false };
@@ -148,6 +153,10 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Checks if any Sensor Entity has been removed and performs
+  /// cleanup of the corresponding sensor and map entries.
+  public: void SensorCleanup(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
@@ -288,6 +297,31 @@ void SensorsPrivate::Stop()
 }
 
 //////////////////////////////////////////////////
+void SensorsPrivate::SensorCleanup(const EntityComponentManager &_ecm)
+{
+  std::set<sensors::SensorId> removedSensors;
+  for (auto id : this->sensorIds)
+  {
+    auto entityMapIt = this->idToEntityMap.find(id);
+    // entityMapIt should always be valid
+    if(entityMapIt != this->idToEntityMap.end())
+    {
+      // Check that the entity still exists in gazebo
+      Entity entity = entityMapIt->second;
+      if (_ecm.HasEntity(entity) == false)
+        removedSensors.insert(entityMapIt->first);
+    }
+  }
+  for (const auto &id : removedSensors)
+  {
+    // TODO(anyone) remove entry from this->cameras here
+    this->sensorIds.erase(id);
+    this->sensorManager.Remove(id);
+    this->idToEntityMap.erase(id);
+  }
+}
+
+//////////////////////////////////////////////////
 Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 {
 }
@@ -312,7 +346,7 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
-      std::placeholders::_1, std::placeholders::_2));
+      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
@@ -350,6 +384,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+    // Performs cleanup for removed sensors
+    this->dataPtr->SensorCleanup(_ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
     auto t = common::Time(time.first, time.second);
@@ -403,8 +439,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
-    const std::string &_parentName)
+std::string Sensors::CreateSensor(const Entity &_entity,
+    const sdf::Sensor &_sdf, const std::string &_parentName)
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
   {
@@ -415,6 +451,9 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   // Create within ign-sensors
   auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+
+  // Add to sensorID -> entity map
+  this->dataPtr->idToEntityMap.insert({sensorId, _entity});
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {

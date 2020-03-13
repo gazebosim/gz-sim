@@ -172,9 +172,8 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
   /// The function returns the id of the rendering sensor created.
-  public: std::function<
-      std::string(const sdf::Sensor &, const std::string &)>
-      createSensorCb;
+  public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+      const std::string &)> createSensorCb;
 
   /// \brief Entity currently being selected.
   public: rendering::NodePtr selectedEntity{nullptr};
@@ -367,7 +366,7 @@ void RenderUtil::Update()
          }
 
          std::string sensorName =
-             this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
+             this->dataPtr->createSensorCb(entity, dataSdf, parentNode->Name());
          // Add to the system's scene manager
          if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
          {
@@ -1022,8 +1021,8 @@ void RenderUtil::SetUseCurrentGLContext(bool _enable)
 
 /////////////////////////////////////////////////
 void RenderUtil::SetEnableSensors(bool _enable,
-    std::function<std::string(const sdf::Sensor &, const std::string &)>
-    _createSensorCb)
+    std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+      const std::string &)> _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
   this->dataPtr->createSensorCb = std::move(_createSensorCb);

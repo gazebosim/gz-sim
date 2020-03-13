@@ -104,11 +104,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set whether to create rendering sensors
     /// \param[in] _enable True to create rendering sensors
     /// \param[in] _createSensorCb Callback function for creating the sensors
-    /// The callback function args are: sensor sdf, and parent name, and
-    /// returns the name of the rendering sensor created.
+    /// The callback function args are: sensor entity, sensor sdf
+    /// and parent name, it returns the name of the rendering sensor created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string(const sdf::Sensor &, const std::string &)>
-        _createSensorCb = {});
+        std::string(const gazebo::Entity &, const sdf::Sensor &,
+        const std::string &)> _createSensorCb = {});
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
