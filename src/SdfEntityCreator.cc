@@ -59,6 +59,7 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -423,6 +424,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::Name(_visual->Name()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::CastShadows(_visual->CastShadows()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::VisibilityFlags(_visual->VisibilityFlags()));
 
   if (_visual->Geom())
   {
