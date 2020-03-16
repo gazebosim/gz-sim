@@ -71,11 +71,11 @@ class ignition::gazebo::systems::SensorsPrivate
   // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
 
-  /// \brief Maps sensor ID to gazebo entity
+  /// \brief Maps gazebo entity to its matching sensor ID
   ///
   /// Useful for detecting when a sensor Entity has been deleted and trigger
   /// the destruction of the corresponding ignition::sensors Sensor object
-  public: std::map<sensors::SensorId, Entity> idToEntityMap;
+  public: std::map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
   public: std::atomic<bool> running { false };
@@ -299,26 +299,19 @@ void SensorsPrivate::Stop()
 //////////////////////////////////////////////////
 void SensorsPrivate::SensorCleanup(const EntityComponentManager &_ecm)
 {
-  std::set<sensors::SensorId> removedSensors;
-  for (auto id : this->sensorIds)
-  {
-    auto entityMapIt = this->idToEntityMap.find(id);
-    // entityMapIt should always be valid
-    if(entityMapIt != this->idToEntityMap.end())
-    {
-      // Check that the entity still exists in gazebo
-      Entity entity = entityMapIt->second;
-      if (_ecm.HasEntity(entity) == false)
-        removedSensors.insert(entityMapIt->first);
-    }
-  }
-  for (const auto &id : removedSensors)
-  {
-    // TODO(anyone) remove entry from this->cameras here
-    this->sensorIds.erase(id);
-    this->sensorManager.Remove(id);
-    this->idToEntityMap.erase(id);
-  }
+  _ecm.EachRemoved<components::Camera>(
+      [&](const Entity &_entity,
+          const components::Camera *)->bool
+      {
+        auto idIter = this->entityToIdMap.find(_entity);
+        if (idIter != this->entityToIdMap.end())
+        {
+          this->sensorIds.erase(idIter->second);
+          this->sensorManager.Remove(idIter->second);
+          this->entityToIdMap.erase(idIter);
+        }
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -453,7 +446,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
 
   // Add to sensorID -> entity map
-  this->dataPtr->idToEntityMap.insert({sensorId, _entity});
+  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {
