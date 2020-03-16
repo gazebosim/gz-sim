@@ -373,9 +373,15 @@ namespace ignition
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
 
+    /// \brief Parse plugins from XML configuration file.
+    /// \param[in] _fname Absolute path to the configuration file to parse.
+    /// \return A list of all of the plugins found in the configuration file
     std::list<ServerConfig::PluginInfo>
     ParsePluginsFromFile(const std::string &_fname);
 
+    /// \brief Parse plugins from XML configuration string.
+    /// \param[in] _str XML configuration content to parse
+    /// \return A list of all of the plugins found in the configuration string.
     std::list<ServerConfig::PluginInfo>
     ParsePluginsFromString(const std::string &_str);
     }
