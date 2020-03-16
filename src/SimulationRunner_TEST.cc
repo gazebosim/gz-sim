@@ -1147,7 +1147,7 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
   std::string plugins = R"(
-  <root>
+  <server_config>
     <plugin
       entity_name="default"
       entity_type="world"
@@ -1169,7 +1169,7 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
       name="ignition::gazebo::TestSensorSystem">
       <sensor_key>456</sensor_key>
     </plugin>
-  </root>)";
+  </server_config>)";
 
   // Create a server configuration with plugins
   ServerConfig serverConfig;
