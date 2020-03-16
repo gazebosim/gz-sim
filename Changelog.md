@@ -49,6 +49,11 @@
 
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
+
+1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
+    * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
+
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
@@ -145,9 +150,6 @@
 
 1.  Add mutex to protect views from potential concurrent access
     * [Pull Request 435](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/435)
-
-1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
-    * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
 
 1.  Add `Link::WorldKineticEnergy` for computing total kinetic energy of a link with respect to the world frame.
     * [Pull Request 434](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/434)
