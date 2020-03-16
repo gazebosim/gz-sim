@@ -187,6 +187,7 @@ namespace ignition
           const sdf::ElementPtr &_sdf);
 
       /// \brief Load server plugins for a given entity.
+      /// \param[in] _config Configuration to load plugins from.
       public: void LoadServerPlugins(const ServerConfig &_config);
 
       /// \brief Get whether this is running. When running is true,

@@ -586,7 +586,7 @@ void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 }
 
 /////////////////////////////////////////////////
-std::list<ServerConfig::PluginInfo> Parse(tinyxml2::XMLDocument &_doc)
+std::list<ServerConfig::PluginInfo> Parse(const tinyxml2::XMLDocument &_doc)
 {
   auto ret =  std::list<ServerConfig::PluginInfo>();
   auto _elem = _doc.RootElement();

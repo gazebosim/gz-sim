@@ -880,7 +880,15 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
               << plugin.EntityType() << "]" << std::endl;
     }
 
-    this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+    if (kNullEntity != entity)
+    {
+      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+    }
+    else
+    {
+      ignwarn << "Attempting to attach plugin [" << plugin.Name() <<
+        " to an unknown entity. Plugin won't be loaded" << std::endl;
+    }
   }
 }
 
