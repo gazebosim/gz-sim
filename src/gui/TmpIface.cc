@@ -17,6 +17,9 @@
 
 #include <ignition/common/Console.hh>
 
+#include "ignition/gazebo/gui/TmpIface.hh"
+
+// TODO(anyone) Remove this include when TmpIface.hh is moved to src/gui
 #include "ignition/gazebo/gui/moc_TmpIface.cpp"
 
 using namespace ignition;
