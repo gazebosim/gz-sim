@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_MARKERMANAGER_HH_
 
 #include <memory>
+#include <string>
 
 #include "ignition/rendering/RenderTypes.hh"
 
