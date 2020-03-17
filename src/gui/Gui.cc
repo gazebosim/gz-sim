@@ -124,7 +124,7 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
   }
 
   if (!executed || !result || worldsMsg.data().empty())
-    return false;
+    return -1;
 
   std::vector<ignition::gazebo::GuiRunner *> runners;
 
