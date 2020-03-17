@@ -22,8 +22,17 @@
 // Include all components so they have first-class support
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/gui/GuiRunner.hh"
+#include "ignition/gazebo/gui/GuiSystem.hh"
 
+// CMake AUTOMOC does not generate moc_*.cpp files automatically for headers
+// located in different directories than the containing .cc file. As a temporary
+// workaround, we include moc_*.cpp files here to trigger AUTOMOC to generate
+// the files. When the header files (GuiRunner.hh and GuiSystem.hh) are moved to
+// `src/`, these includes can be removed.
+// TODO(anyone) Remove this include when GuiRunner.hh is moved to src/gui
 #include "ignition/gazebo/gui/moc_GuiRunner.cpp"
+// TODO(anyone) Remove this include when GuiSystem.hh is moved to src/gui
 #include "ignition/gazebo/gui/moc_GuiSystem.cpp"
 
 using namespace ignition;
