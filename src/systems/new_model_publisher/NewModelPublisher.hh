@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,21 +33,9 @@ namespace systems
   // Forward declaration
   class NewModelPublisherPrivate;
 
-  /// \brief Pose publisher system. Attach to an entity to publish the
-  /// transform of its child entities in the form of ignition::msgs::Pose msgs
+  /// \brief New model publisher system. System which publishes a new message
+  /// each time a new model is spawned into the scene.
   /// The following parameters are used by the system:
-  ///
-  /// publish_link_pose         : Set to true to publish link pose
-  /// publish_visual_pose       : Set to true to publish visual pose
-  /// publish_collision_pose    : Set to true to publish collision pose
-  /// publish_sensor_pose       : Set to true to publish sensor pose
-  /// publish_nested_model_pose : Set to true to publish nested model pose. The
-  ///                             pose of the model that contains this system is
-  ///                             also published.
-  /// update_frequency          : Frequency of pose publications in Hz. A
-  ///                             negative frequency publishes as fast as
-  ///                             possible (i.e, at the rate of the simulation
-  ///                             step)
   class IGNITION_GAZEBO_VISIBLE NewModelPublisher
       : public System,
         public ISystemConfigure,
