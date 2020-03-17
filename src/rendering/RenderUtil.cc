@@ -1025,6 +1025,8 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
+  if (this->dataPtr->enableSensors)
+    this->dataPtr->markerManager.SetTopic("/sensors/marker");
   this->dataPtr->markerManager.Init(this->dataPtr->scene);
 }
 

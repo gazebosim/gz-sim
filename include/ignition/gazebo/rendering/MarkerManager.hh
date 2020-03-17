@@ -59,6 +59,10 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \return True on success
   public: bool Init(const ignition::rendering::ScenePtr &_scene);
 
+  /// \brief Set the marker service topic name.
+  /// \param[in] _name Name of service
+  public: void SetTopic(const std::string &_name);
+
   /// \internal
   /// \brief Private data pointer
   private: std::unique_ptr<MarkerManagerPrivate> dataPtr;
