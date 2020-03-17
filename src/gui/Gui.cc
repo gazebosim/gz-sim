@@ -24,9 +24,10 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
+
+#include "Gui.hh"
 
 namespace ignition
 {
