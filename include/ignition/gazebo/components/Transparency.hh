@@ -30,7 +30,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to indicate an entity's transparency value
-  /// e.g. visual entities
+  /// e.g. visual entities. Value is in the range from 0 (opaque) to
+  /// 1 (transparent).
   using Transparency = Component<float, class TransparencyTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Transparency",
       Transparency)
