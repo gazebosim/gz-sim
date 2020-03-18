@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_NEWMODELPUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_NEWMODELPUBLISHER_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_NEWENTITYPUBLISHER_HH_
+#define IGNITION_GAZEBO_SYSTEMS_NEWENTITYPUBLISHER_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
@@ -31,21 +31,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class NewModelPublisherPrivate;
+  class NewEntityPublisherPrivate;
 
   /// \brief New model publisher system. System which publishes a new message
   /// each time a new model is spawned into the scene.
   /// The following parameters are used by the system:
-  class IGNITION_GAZEBO_VISIBLE NewModelPublisher
+  class IGNITION_GAZEBO_VISIBLE NewEntityPublisher
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: NewModelPublisher();
+    public: NewEntityPublisher();
 
     /// \brief Destructor
-    public: ~NewModelPublisher() override = default;
+    public: ~NewEntityPublisher() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -59,7 +59,7 @@ namespace systems
                 const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<NewModelPublisherPrivate> dataPtr;
+    private: std::unique_ptr<NewEntityPublisherPrivate> dataPtr;
   };
   }
 }

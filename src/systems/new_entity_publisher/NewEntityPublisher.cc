@@ -37,26 +37,29 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Model.hh"
-#include "NewModelPublisher.hh"
+#include "NewEntityPublisher.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Private data class for NewModelPublisher
-class ignition::gazebo::systems::NewModelPublisherPrivate
+/// \brief Private data class for NewEntityPublisher
+class ignition::gazebo::systems::NewEntityPublisherPrivate
 {
-  /// \brief Type alias for the graph used to represent the scene graph.
-  public: using SceneGraphType = math::graph::DirectedGraph<
-          std::shared_ptr<google::protobuf::Message>, bool>;
+  /// \brief Ignition communication node.
+  public: transport::Node node;
 
-  /// \brief Keep the id of the world entity so we know how to traverse the
-  /// graph.
-  public: Entity worldEntity{kNullEntity};
+  /// \brief Entity publisher.
+  public: transport::Node::Publisher entityPub;
 
-  /// \brief Keep the name of the world entity so it's easy to create temporary
-  /// scene graphs
-  public: std::string worldName;
+  // /// \brief Keep the id of the world entity so we know how to traverse the
+  // /// graph.
+  // public: Entity worldEntity{kNullEntity};
+
+  // /// \brief Keep the name of the world entity so it's easy to create temporary
+  // /// scene graphs
+  // public: std::string worldName;
+
 
   // /// \brief Initializes internal caches for entities whose poses are to be
   // /// published and their names
@@ -129,35 +132,35 @@ class ignition::gazebo::systems::NewModelPublisherPrivate
 };
 
 //////////////////////////////////////////////////
-NewModelPublisher::NewModelPublisher()
-  : dataPtr(std::make_unique<NewModelPublisherPrivate>())
+NewEntityPublisher::NewEntityPublisher()
+  : dataPtr(std::make_unique<NewEntityPublisherPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-void NewModelPublisher::Configure(const Entity &_entity,
+void NewEntityPublisher::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
-  // World
-  const components::Name *name = _ecm.Component<components::Name>(_entity);
-  if (name == nullptr)
-  {
-    ignerr << "World with id: " << _entity << " has no name. "
-           << "NewModelPublisher cannot create transport topics\n";
-    return;
-  }
+  // // World
+  // const components::Name *name = _ecm.Component<components::Name>(_entity);
+  // if (name == nullptr)
+  // {
+  //   ignerr << "World with id: " << _entity << " has no name. "
+  //          << "NewEntityPublisher cannot create transport topics\n";
+  //   return;
+  // }
 
-  this->dataPtr->worldEntity = _entity;
-  this->dataPtr->worldName = name->Data();
+  // this->dataPtr->worldEntity = _entity;
+  // this->dataPtr->worldName = name->Data();
 }
 
 //////////////////////////////////////////////////
-void NewModelPublisher::PostUpdate(const UpdateInfo &_info,
+void NewEntityPublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NewModelPublisher::PostUpdate");
+  IGN_PROFILE("NewEntityPublisher::PostUpdate");
 
   // // \TODO(anyone) Support rewind
   // if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -180,20 +183,21 @@ void NewModelPublisher::PostUpdate(const UpdateInfo &_info,
           const components::Pose *_poseComp) -> bool
       {
         //ignerr << _entity << std::endl;
-        // if (_nameComp && _poseComp)
-        // {
+        if (_nameComp && _poseComp)
+        {
         //   auto modelMsg = std::make_shared<msgs::Model>();
         //   modelMsg->set_id(_entity);
         //   modelMsg->set_name(_nameComp->Data());
         //   modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
   
-        //   ignerr << _nameComp->Data() << std::endl;
-        // }
+          ignerr << _nameComp->Data() << std::endl;
+        }
+        return true;
       });
 }
 
 // //////////////////////////////////////////////////
-// void NewModelPublisherPrivate::InitializeEntitiesToPublish(
+// void NewEntityPublisherPrivate::InitializeEntitiesToPublish(
 //     const EntityComponentManager &_ecm)
 // {
 //   std::stack<Entity> toCheck;
@@ -263,9 +267,9 @@ void NewModelPublisher::PostUpdate(const UpdateInfo &_info,
 // }
 
 // //////////////////////////////////////////////////
-// void NewModelPublisherPrivate::FillPoses(const EntityComponentManager &_ecm)
+// void NewEntityPublisherPrivate::FillPoses(const EntityComponentManager &_ecm)
 // {
-//   IGN_PROFILE("NewModelPublisher::FillPose");
+//   IGN_PROFILE("NewEntityPublisher::FillPose");
 //   this->poses.clear();
 //   for (const auto &entity : this->entitiesToPublish)
 //   {
@@ -276,9 +280,9 @@ void NewModelPublisher::PostUpdate(const UpdateInfo &_info,
 // }
 
 // //////////////////////////////////////////////////
-// void NewModelPublisherPrivate::PublishPoses(const msgs::Time &_stampMsg)
+// void NewEntityPublisherPrivate::PublishPoses(const msgs::Time &_stampMsg)
 // {
-//   IGN_PROFILE("NewModelPublisher::PublishPoses");
+//   IGN_PROFILE("NewEntityPublisher::PublishPoses");
 //   // publish poses
 //   for (const auto &[entity, pose] : this->poses)
 //   {
@@ -309,10 +313,10 @@ void NewModelPublisher::PostUpdate(const UpdateInfo &_info,
 //   }
 // }
 
-IGNITION_ADD_PLUGIN(NewModelPublisher,
+IGNITION_ADD_PLUGIN(NewEntityPublisher,
                     System,
-                    NewModelPublisher::ISystemConfigure,
-                    NewModelPublisher::ISystemPostUpdate)
+                    NewEntityPublisher::ISystemConfigure,
+                    NewEntityPublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(NewModelPublisher,
-                          "ignition::gazebo::systems::NewModelPublisher")
+IGNITION_ADD_PLUGIN_ALIAS(NewEntityPublisher,
+                          "ignition::gazebo::systems::NewEntityPublisher")
