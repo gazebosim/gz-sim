@@ -69,16 +69,16 @@ namespace ignition
     {
       /// \brief True to pause simulation.
       // cppcheck-suppress unusedStructMember
-      bool pause{false};
+      bool pause{false};  // NOLINT
 
       /// \biref Run a given number of simulation iterations.
       // cppcheck-suppress unusedStructMember
-      uint64_t multiStep{0u};
+      uint64_t multiStep{0u};  // NOLINT
 
       /// \brief Reset simulation back to time zero. Rewinding resets sim time,
       /// real time and iterations.
       // cppcheck-suppress unusedStructMember
-      bool rewind{false};
+      bool rewind{false};  // NOLINT
 
       /// \brief Sim time to jump to. A negative value means don't seek.
       /// Seeking changes sim time but doesn't affect real time.
