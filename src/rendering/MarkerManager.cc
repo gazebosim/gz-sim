@@ -109,6 +109,9 @@ class ignition::gazebo::MarkerManagerPrivate
 
   /// \brief The last marker message received
   public: ignition::msgs::Marker msg;
+
+  /// \brief Topic name for the marker service
+  public: std::string topicName = "/marker";
 };
 
 /////////////////////////////////////////////////
@@ -149,21 +152,35 @@ bool MarkerManager::Init(const ignition::rendering::ScenePtr &_scene)
 
   this->dataPtr->scene = _scene;
 
+  if (this->dataPtr->topicName.empty())
+  {
+    ignerr << "Unable to advertise marker service. Topic name empty.\n";
+    return false;
+  }
+
   // Advertise the list service
-  if (!this->dataPtr->node.Advertise("/marker/list",
+  if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "/list",
       &MarkerManagerPrivate::OnList, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the /marker/list service.\n";
+    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+           << "/list service.\n";
   }
 
   // Advertise to the marker service
-  if (!this->dataPtr->node.Advertise("/marker",
+  if (!this->dataPtr->node.Advertise(this->dataPtr->topicName,
         &MarkerManagerPrivate::OnMarkerMsg, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the /marker service.\n";
+    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+           << " service.\n";
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////
+void MarkerManager::SetTopic(const std::string &_name)
+{
+  this->dataPtr->topicName = _name;
 }
 
 /////////////////////////////////////////////////
@@ -235,12 +252,16 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
                            const rendering::VisualPtr &_visualPtr)
 {
   // Set Visual Scale
-  _visualPtr->SetLocalScale(_msg.scale().x(),
-                            _msg.scale().y(),
-                            _msg.scale().z());
+  if (_msg.has_scale())
+  {
+    _visualPtr->SetLocalScale(_msg.scale().x(),
+                              _msg.scale().y(),
+                              _msg.scale().z());
+  }
 
   // Set Visual Pose
-  _visualPtr->SetLocalPose(convert<math::Pose3d>(_msg.pose()));
+  if (_msg.has_pose())
+    _visualPtr->SetLocalPose(convert<math::Pose3d>(_msg.pose()));
 
   // Set Visual Parent
   if (!_msg.parent().empty())
@@ -262,8 +283,7 @@ void MarkerManagerPrivate::SetVisual(const ignition::msgs::Marker &_msg,
     }
   }
 
-  // Update Marker Visibility
-  _visualPtr->SetVisible(_msg.visibility());
+  // todo(anyone) Update Marker Visibility
 }
 
 /////////////////////////////////////////////////
