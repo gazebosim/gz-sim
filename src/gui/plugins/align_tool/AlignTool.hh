@@ -92,9 +92,8 @@ namespace gazebo
     /// \brief Callback to make whenever a hover state is exited on a button
     public slots: void OnHoveredExited();
 
-    /// \brief Callback to add a state to the execution queue.
-    /// \param[in] _state New state to add by QString
-    public slots: void AddState(const QString &_state);
+    /// \brief Callback to the align state the execution queue.
+    public slots: void OnAlign();
 
     /// \brief Callback to add a state to the execution queue.
     /// \param[in] _state New state to add by enum AlignState

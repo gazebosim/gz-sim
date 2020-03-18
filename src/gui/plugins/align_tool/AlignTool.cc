@@ -25,8 +25,13 @@
 #include <ignition/common/Console.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/rendering.hh>
+#include <ignition/rendering/Visual.hh>
+#include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Material.hh>
 #include <ignition/rendering/RenderTypes.hh>
+#include <ignition/rendering/RenderingIface.hh>
+#include <ignition/rendering/RenderEngine.hh>
+#include <ignition/rendering/Scene.hh>
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/Name.hh"
 
@@ -194,36 +199,9 @@ void AlignTool::OnHoveredExited()
 }
 
 /////////////////////////////////////////////////
-void AlignTool::AddState(const QString &_state)
+void AlignTool::OnAlign()
 {
-  std::string newState = _state.toStdString();
-  std::transform(newState.begin(), newState.end(), newState.begin(), ::tolower);
-
-  if (newState == "hover")
-  {
-    this->AddState(AlignState::HOVER);
-  }
-  else if (newState == "reset")
-  {
-    this->AddState(AlignState::RESET);
-  }
-  else if (newState == "align")
-  {
-    this->AddState(AlignState::ALIGN);
-  }
-  else if (newState == "none")
-  {
-    this->AddState(AlignState::NONE);
-  }
-  else
-  {
-    ignwarn << "Invalid align state: " << newState << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - hover\n";
-    ignwarn << " - reset\n";
-    ignwarn << " - align\n";
-    ignwarn << " - none\n";
-  }
+  this->AddState(AlignState::ALIGN);
 }
 
 /////////////////////////////////////////////////
@@ -270,7 +248,7 @@ void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
     if (nullptr == geomMat)
       continue;
 
-    // If the entity isn't already highlighted, highlight it
+    // If the entity isn't already transparent, make it transparent
     if (this->dataPtr->originalTransparency.find(geom->Name()) ==
         this->dataPtr->originalTransparency.end())
     {
@@ -330,19 +308,23 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
 /////////////////////////////////////////////////
 void AlignTool::Align()
 {
+  if (this->dataPtr->currentState == AlignState::NONE)
+    return;
+
   auto loadedEngNames = rendering::loadedEngines();
   if (loadedEngNames.empty())
+  {
+    ignerr << "Internal error: engine should be loaded at this point."
+      << std::endl;
     return;
+  }
 
   // Assume there is only one engine loaded
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    ignerr << "Internal error: failed to load engine [" << engineName
-
-      << "]. Align tool plugin won't work." << std::endl;
-
-    return;
+    ignwarn << "Found more than one loaded engine "
+      "- using " << engineName << "." << std::endl;
   }
   auto engine = rendering::engine(engineName);
 
@@ -354,8 +336,11 @@ void AlignTool::Align()
   }
 
   if (engine->SceneCount() == 0)
+  {
+    ignerr<< "Internal error: no scenes are available with the loaded engine."
+      << std::endl;
     return;
-
+  }
   // assume there is only one scene
   // load scene
   auto scene = engine->SceneByIndex(0);
@@ -368,6 +353,8 @@ void AlignTool::Align()
 
   if (!scene->IsInitialized() || scene->VisualCount() == 0)
   {
+    ignerr << "Internal error: scene is either not initialized "
+      "or there are no visuals within it." << std::endl;
     return;
   }
 
