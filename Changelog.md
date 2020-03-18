@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 3.X.X
 
+1. Fix duplicate marker services and crash due to unset marker field
+    * [Pull Request 561](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/561)
+
 1. Support <uri>s from Fuel
     * [Pull Request 532](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/532)
 
