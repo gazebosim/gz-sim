@@ -6,5 +6,6 @@
   <file>rotate.png</file>
   <file>scale.png</file>
   <file>magnet.png</file>
+  <file>snap_to_grid.png</file>
 </qresource>
 </RCC>
