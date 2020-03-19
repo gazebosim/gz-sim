@@ -494,7 +494,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Save changed SDF to temporary file
     std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
       "with_record_path.sdf");
-    // TODO(anyone): Does this work on Apple?
     std::ofstream ofs(tmpRecordSdfPath);
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();

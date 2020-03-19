@@ -20,9 +20,9 @@
     <plugin
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
-      <!-- Optional, directories to write recorded files. If unspecified,
-             will record to default. -->
-      <path>/tmp/log</path>
+      <!-- Deprecated: directories to write recorded files.
+           Use --record-path instead. -->
+      <!-- path>/tmp/log</path -->
       <record_resources>1</record_resources>
       <compress>0</compress>
     </plugin>

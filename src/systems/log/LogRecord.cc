@@ -38,9 +38,15 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 
-#include <sdf/World.hh>
+#include <sdf/Collision.hh>
+#include <sdf/Element.hh>
 #include <sdf/Geometry.hh>
+#include <sdf/Link.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
+#include <sdf/Visual.hh>
+#include <sdf/World.hh>
 
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -49,6 +55,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -87,15 +94,10 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: void LogModelResources(const EntityComponentManager &_ecm);
 
   /// \brief Return true if all the models are saved successfully.
-  /// \param[in] _models List of names of models to save
-  /// \return True if all the models are saved successfully.
+  /// \param[in] _models List of absolute paths of model SDFs to save
+  /// \return True if all the models are saved successfully, and false if
+  /// there are errors saving the models.
   public: bool SaveModels(const std::set<std::string> &_models);
-
-  /// \brief Return true if all the files are saved successfully.
-  /// \param[in] _files List of absolute paths of files to save
-  /// \return True if all the files are saved successfully, and false if
-  /// there are errors saving the files.
-  public: bool SaveFiles(const std::set<std::string> &_files);
 
   /// \brief Compress model resource files and state file into one file.
   public: void CompressStateAndResources();
@@ -153,9 +155,6 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief List of saved models if record with resources is enabled.
   public: std::set<std::string> savedModels;
-
-  /// \brief List of saved files if record with resources is enabled.
-  public: std::set<std::string> savedFiles;
 };
 
 bool LogRecordPrivate::started{false};
@@ -190,7 +189,6 @@ LogRecord::~LogRecord()
     if (this->dataPtr->compress)
       this->dataPtr->CompressStateAndResources();
     this->dataPtr->savedModels.clear();
-    this->dataPtr->savedFiles.clear();
 
     ignmsg << "Stopping recording" << std::endl;
   }
@@ -351,65 +349,44 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
   if (!this->recordResources)
     return;
 
-  std::set<std::string> modelNames;
-  std::set<std::string> fileNames;
-  auto addModelResource = [&](const std::string &_uri)
-  {
-    if (_uri.empty())
-      return;
-
-    const std::string modelPrefix = "model://";
-    const std::string filePrefix = "file://";
-    std::string prefix;
-    if (_uri.find(modelPrefix) == 0)
-    {
-      // First directory after prefix is the model name
-      std::string modelName = _uri.substr(modelPrefix.size(),
-        _uri.find('/', modelPrefix.size()) - modelPrefix.size());
-      modelNames.insert(modelName);
-    }
-    else if (_uri.find(filePrefix) == 0 || _uri[0] == '/')
-    {
-      fileNames.insert(_uri);
-    }
-  };
+  std::set<std::string> modelSdfPaths;
 
   // Loop through geometries in world
   _ecm.EachNew<components::Geometry>(
-      [&](const Entity &/*_entity*/,
+      [&](const Entity &_entity,
       const components::Geometry *_geoComp) -> bool
   {
     const sdf::Geometry &geoSdf = _geoComp->Data();
     if (geoSdf.Type() == sdf::GeometryType::MESH)
     {
-      std::string meshUri = gazebo::asFullPath(geoSdf.MeshShape()->Uri(),
-        geoSdf.MeshShape()->FilePath());
-      if (!meshUri.empty())
+      // Geometry component is in visual or collision entity, which should have
+      // link as parent, which has model as parent.
+      Entity linkEntity = _ecm.ParentEntity(_entity);
+      if (linkEntity != kNullEntity)
       {
-        addModelResource(meshUri);
+        Entity modelEntity = _ecm.ParentEntity(linkEntity);
+        if (modelEntity != kNullEntity)
+        {
+          if (_ecm.EntityHasComponentType(modelEntity,
+            components::SourceFilePath::typeId))
+          {
+            const auto * pathComp =
+              _ecm.Component<components::SourceFilePath>(modelEntity);
+
+            const std::string & modelPath = pathComp->Data();
+            if (!modelPath.empty())
+            {
+              modelSdfPaths.insert(modelPath);
+            }
+          }
+        }
       }
     }
 
     return true;
   });
 
-  // Loop through materials in world
-  _ecm.EachNew<components::Material>(
-      [&](const Entity &/*_entity*/,
-      const components::Material *_matComp) -> bool
-  {
-    const sdf::Material &matSdf = _matComp->Data();
-    std::string matUri = matSdf.ScriptUri();
-    if (!matUri.empty())
-    {
-      addModelResource(matUri);
-    }
-
-    return true;
-  });
-
-  if (!this->SaveModels(modelNames) ||
-      !this->SaveFiles(fileNames))
+  if (!this->SaveModels(modelSdfPaths))
   {
     ignwarn << "Failed to save model resources during logging\n";
   }
@@ -421,124 +398,161 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
   if (!this->recordResources)
     return false;
 
-  std::set<std::string> diff;
-  std::set_difference(_models.begin(), _models.end(),
-      this->savedModels.begin(), this->savedModels.end(),
-      std::inserter(diff, diff.begin()));
-
-  for (auto &model : diff)
-  {
-    if (model.empty())
-      continue;
-
-    this->savedModels.insert(model);
-
-    // Look for the specified file in Gazebo model paths
-    std::string srcModelPath = common::findFile(model);
-    if (!srcModelPath.empty())
-    {
-      // Copy file to recording directory
-      std::string destModelPath = common::joinPaths(this->logPath, model);
-      if (!common::copyDirectory(srcModelPath, destModelPath))
-      {
-        ignerr << "Failed to copy model from '" << srcModelPath
-               << "' to '" << destModelPath << "'" << std::endl;
-      }
-    }
-    else
-    {
-      ignwarn << "Model: " << model << " not found, "
-        << "please check the value of env variable GAZEBO_MODEL_PATH\n";
-    }
-  }
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
-{
-  if (!this->recordResources)
-    return false;
-
-  if (_files.empty())
+  if (_models.empty())
     return true;
 
   bool saveError = false;
   std::set<std::string> diff;
-  std::set_difference(_files.begin(), _files.end(),
-      this->savedFiles.begin(),
-      this->savedFiles.end(),
+  std::set_difference(_models.begin(), _models.end(),
+      this->savedModels.begin(),
+      this->savedModels.end(),
       std::inserter(diff, diff.begin()));
+
+  auto convertToRelativePath = [&](const std::string &_uri,
+    const std::string &_modelDir) -> std::string
+  {
+    if (_uri.empty())
+      return _uri;
+
+    std::string rt = _uri;
+
+    const std::string prefix = "file://";
+    if (_uri.compare(0, prefix.length(), prefix) == 0)
+    {
+      // Strip prefix
+      rt = _uri.substr(prefix.length());
+    }
+
+    if (rt[0] == '/')
+    {
+      // If model directory is in the prefix of URI, then this is a valid URI
+      // pointing to a file inside the model directory.
+      if (rt.compare(0, _modelDir.length(), _modelDir) == 0)
+      {
+        // Convert to relative path by truncating the model directory
+        rt = rt.substr(_modelDir.length());
+
+        // Remove extra slashes in front, so this does not get misinterpreted
+        // as absolute path
+        while (rt[0] == '/')
+        {
+          rt = rt.substr(1);
+        }
+        rt = prefix + rt;
+      }
+      else
+      {
+        ignerr << "Saving resource files at URI pointing to outside the model "
+               << "directory is currently not supported [" << rt << "]"
+               << std::endl;
+        saveError = true;
+      }
+    }
+
+    return rt;
+  };
 
   for (auto &file : diff)
   {
     if (file.empty())
       continue;
 
-    this->savedFiles.insert(file);
+    this->savedModels.insert(file);
 
     bool fileFound = false;
     std::string prefix = "file://";
     std::string fileName = file;
 
-    std::string srcPath;
+    std::string modelPath;
     if (fileName.compare(0, prefix.length(), prefix) == 0)
     {
-      // strip prefix
-      fileName = file.substr(prefix.size());
+      // Strip prefix
+      fileName = file.substr(prefix.length());
     }
 
     if (fileName[0] == '/')
     {
       // search in gazebo path
-      srcPath = common::findFile(fileName);
-      if (!srcPath.empty())
+      modelPath = common::findFile(fileName);
+      if (!modelPath.empty())
       {
         fileFound = true;
       }
     }
 
-    // copy resource
-    // NOTE: if file is a mesh, e.g. box.dae, it could contain reference to
-    // to texture files in other directories. A hacky workaround is to copy
-    // entire model dir
+    // Copy resource
+    // TODO(anyone): support shared resources. Currently, the entire model
+    // directory is copied, which ensures that meshes and textures in the
+    // model directory are copied.
     if (fileFound)
     {
-      // HACK! copy entire model dir if mesh
-      // A better way is to get the model's root directory, with a diff to
-      //   environment variable. But for absolute paths in e.g. downloaded
-      //   fuel files in ~/.ignition, that is not possible.
-      size_t meshIdx = fileName.find("/meshes/");
-      if (meshIdx != std::string::npos)
+      std::string srcPath = common::parentPath(modelPath);
+      std::string destPath = common::joinPaths(this->logPath, srcPath);
+      std::string destModelPath = common::joinPaths(this->logPath, modelPath);
+
+      // Read model SDF
+      sdf::Root root;
+      root.Load(modelPath);
+
+      // Look for URIs in SDF and convert them to paths relative to the model
+      // directory
+      for (uint64_t mi = 0; mi < root.ModelCount(); mi++)
       {
-        // Entire path up to meshes directory
-        std::string modelPath = fileName.substr(0, meshIdx);
-        std::string destPath = common::joinPaths(this->logPath, modelPath);
-
-        size_t srcMeshIdx = srcPath.find("/meshes/");
-        srcPath = srcPath.substr(0, srcMeshIdx);
-
-        if (!common::createDirectories(destPath) ||
-            !common::copyDirectory(srcPath, destPath))
+        const sdf::Model * model = root.ModelByIndex(mi);
+        for (uint64_t li = 0; li < model->LinkCount(); li++)
         {
-          ignerr << "Failed to copy model directory from '" << srcPath
-                 << "' to '" << destPath << "'" << std::endl;
-          saveError = true;
+          const sdf::Link * link = model->LinkByIndex(li);
+          for (uint64_t ci = 0; ci < link->CollisionCount(); ci++)
+          {
+            const sdf::Collision * collision = link->CollisionByIndex(ci);
+            const sdf::Geometry * geometry = collision->Geom();
+            const sdf::Mesh * mesh = geometry->MeshShape();
+            if (mesh != nullptr)
+            {
+              // Replace path with relative path
+              std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
+              sdf::ElementPtr meshElem = mesh->Element();
+              if (meshElem->HasElement("uri"))
+              {
+                sdf::ElementPtr uriElem = meshElem->GetElement("uri");
+                uriElem->Set(relPath);
+              }
+            }
+          }
+          for (uint64_t vi = 0; vi < link->VisualCount(); vi++)
+          {
+            const sdf::Visual * visual = link->VisualByIndex(vi);
+            const sdf::Geometry * geometry = visual->Geom();
+            const sdf::Mesh * mesh = geometry->MeshShape();
+            if (mesh != nullptr)
+            {
+              // Replace path with relative path
+              std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
+              sdf::ElementPtr meshElem = mesh->Element();
+              if (meshElem->HasElement("uri"))
+              {
+                sdf::ElementPtr uriElem = meshElem->GetElement("uri");
+                uriElem->Set(relPath);
+              }
+            }
+          }
         }
       }
-      // else copy only the specified file
+
+      // Copy entire model directory
+      if (!common::createDirectories(destPath) ||
+          !common::copyDirectory(srcPath, destPath))
+      {
+        ignerr << "Failed to copy model directory from [" << srcPath
+               << "] to [" << destPath << "]" << std::endl;
+        saveError = true;
+      }
       else
       {
-        srcPath = common::joinPaths(srcPath, fileName);
-        std::string destPath = common::joinPaths(this->logPath, fileName);
-        if (common::createDirectories(common::parentPath(destPath)))
-          common::copyFile(srcPath, destPath);
-        else
-        {
-          ignerr << "Failed to copy file from '" << srcPath
-                 << "' to '" << destPath << "'" << std::endl;
-          saveError = true;
-        }
+        // Overwrite model SDF with newly generated SDF with relative paths
+        std::ofstream ofs(destModelPath);
+        ofs << root.Element()->ToString("").c_str();
+        ofs.close();
       }
     }
     else
