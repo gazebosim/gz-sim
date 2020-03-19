@@ -75,9 +75,6 @@ namespace systems
     /// \brief The model associated with this system.
     private: Model model;
 
-    /// \brief Name of attachment link in the parent model
-    private: std::string parentLinkName;
-
     /// \brief Name of child model
     private: std::string childModelName;
 

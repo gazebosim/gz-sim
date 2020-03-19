@@ -42,7 +42,6 @@ void DetachableJoint::Configure(const Entity &_entity,
                EntityComponentManager &_ecm,
                EventManager &/*_eventMgr*/)
 {
-  // Store the pointer to the model this system is under
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
@@ -53,18 +52,22 @@ void DetachableJoint::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("parent_link"))
   {
-    this->parentLinkName =
-        _sdf->Get<std::string>("parent_link");
-    this->parentLinkEntity =
-        this->model.LinkByName(_ecm, this->parentLinkName);
+    auto parentLinkName = _sdf->Get<std::string>("parent_link");
+    this->parentLinkEntity = this->model.LinkByName(_ecm, parentLinkName);
     if (kNullEntity == this->parentLinkEntity)
     {
-      ignerr << "Link with name " << this->parentLinkName
+      ignerr << "Link with name " << parentLinkName
              << " not found in model " << this->model.Name(_ecm)
              << ". Make sure the parameter 'parent_link' has the "
-             << "correct value." << std::endl;
+             << "correct value. Failed to initialize.\n";
       return;
     }
+  }
+  else
+  {
+    ignerr << "'parent_link' is a required parameter for DetachableJoint. "
+              "Failed to initialize.\n";
+    return;
   }
 
   if (_sdf->HasElement("child_model"))
@@ -74,7 +77,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   else
   {
     ignerr << "'child_model' is a required parameter for DetachableJoint."
-           << std::endl;
+              "Failed to initialize.\n";
     return;
   }
 
@@ -85,7 +88,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   else
   {
     ignerr << "'child_link' is a required parameter for DetachableJoint."
-           << std::endl;
+              "Failed to initialize.\n";
     return;
   }
 
