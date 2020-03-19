@@ -1143,7 +1143,14 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     return;
 
   this->dataPtr->selectedEntities.push_back(entityId);
-  this->dataPtr->HighlightNode(_node);
+  //vis->SetHighlighted(true);
+ 
+  ignition::rendering::WireBoxPtr wireBox = this->dataPtr->scene->CreateWireBox(); 
+  ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
+  ignwarn << "aabb is " << aabb << "\n";
+  wireBox->SetBox(aabb);
+  vis->AddGeometry(wireBox);
+  //this->dataPtr->HighlightNode(_node);
 }
 
 /////////////////////////////////////////////////
@@ -1152,7 +1159,9 @@ void RenderUtil::DeselectAllEntities()
   for (const auto &entity : this->dataPtr->selectedEntities)
   {
     auto node = this->dataPtr->sceneManager.NodeById(entity);
-    this->dataPtr->LowlightNode(node);
+    auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+    //vis->SetHighlighted(false);
+    //this->dataPtr->LowlightNode(node);
   }
   this->dataPtr->selectedEntities.clear();
   this->dataPtr->originalEmissive.clear();
