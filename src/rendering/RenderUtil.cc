@@ -1156,7 +1156,6 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     
     ignition::rendering::WireBoxPtr wireBox = this->dataPtr->scene->CreateWireBox(); 
     ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
-    ignwarn << "aabb is " << aabb << "\n";
     wireBox->SetBox(aabb);
     ignition::rendering::VisualPtr wireBoxVis = this->dataPtr->scene->CreateVisual();
     wireBoxVis->AddGeometry(wireBox);
