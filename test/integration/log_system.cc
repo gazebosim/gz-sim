@@ -245,7 +245,7 @@ class LogSystemTest : public ::testing::Test
   {
     EXPECT_EQ(_sdfRoot.Load(_sdfPath).size(), 0lu);
     EXPECT_GT(_sdfRoot.WorldCount(), 0lu);
-    const sdf::World * sdfWorld = _sdfRoot.WorldByIndex(0);
+    const sdf::World *sdfWorld = _sdfRoot.WorldByIndex(0);
     EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
 
     sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
