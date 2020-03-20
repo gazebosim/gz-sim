@@ -165,6 +165,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and temperature
   public: std::map<Entity, float> entityTemp;
 
+  /// \brief A map of entity ids and wire boxes
+  public: std::map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
+
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
 
@@ -1144,12 +1147,32 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
 
   this->dataPtr->selectedEntities.push_back(entityId);
   //vis->SetHighlighted(true);
- 
-  ignition::rendering::WireBoxPtr wireBox = this->dataPtr->scene->CreateWireBox(); 
-  ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
-  ignwarn << "aabb is " << aabb << "\n";
-  wireBox->SetBox(aabb);
-  vis->AddGeometry(wireBox);
+  if (this->dataPtr->wireBoxes.find(entityId) == this->dataPtr->wireBoxes.end())
+  {
+    rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+    gray->SetAmbient(0.7, 0.7, 0.7);
+    gray->SetDiffuse(0.7, 0.7, 0.7);
+    gray->SetSpecular(0.7, 0.7, 0.7);
+    
+    ignition::rendering::WireBoxPtr wireBox = this->dataPtr->scene->CreateWireBox(); 
+    ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
+    ignwarn << "aabb is " << aabb << "\n";
+    wireBox->SetBox(aabb);
+    ignition::rendering::VisualPtr wireBoxVis = this->dataPtr->scene->CreateVisual();
+    wireBoxVis->AddGeometry(wireBox);
+    wireBoxVis->SetMaterial(gray);
+    vis->AddChild(wireBoxVis);
+    this->dataPtr->wireBoxes.insert(std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
+  }
+  else
+  {
+    ignition::rendering::WireBoxPtr wireBox = this->dataPtr->wireBoxes[entityId];
+    auto visParent = wireBox->Parent();
+    if (visParent)
+    {
+      visParent->SetVisible(true);
+    }
+  }
   //this->dataPtr->HighlightNode(_node);
 }
 
@@ -1162,6 +1185,15 @@ void RenderUtil::DeselectAllEntities()
     auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
     //vis->SetHighlighted(false);
     //this->dataPtr->LowlightNode(node);
+    if (this->dataPtr->wireBoxes.find(entity) != this->dataPtr->wireBoxes.end())
+    {
+      ignition::rendering::WireBoxPtr wireBox = this->dataPtr->wireBoxes[entity];
+      auto visParent = wireBox->Parent();
+      if (visParent)
+      {
+        visParent->SetVisible(false);
+      }
+    }
   }
   this->dataPtr->selectedEntities.clear();
   this->dataPtr->originalEmissive.clear();
