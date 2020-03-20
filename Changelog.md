@@ -5,6 +5,9 @@
 1. Add support for computing model bounding box in physics system
     * [Pull Request 546](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/546)
 
+1. Add support for setting visual transparency through SDF
+    * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
+
 1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
     * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
 
