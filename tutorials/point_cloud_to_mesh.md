@@ -1,3 +1,5 @@
+\page pointcloud
+
 # Converting a Point Cloud to a 3D Model
 
 In this tutorial, you will learn how to convert a point cloud to a 3D model using the open source software CloudCompare.
