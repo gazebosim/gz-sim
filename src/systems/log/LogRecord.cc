@@ -370,13 +370,16 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
           if (_ecm.EntityHasComponentType(modelEntity,
             components::SourceFilePath::typeId))
           {
-            const auto * pathComp =
+            const auto *pathComp =
               _ecm.Component<components::SourceFilePath>(modelEntity);
 
-            const std::string & modelPath = pathComp->Data();
-            if (!modelPath.empty())
+            if (pathComp != nullptr)
             {
-              modelSdfPaths.insert(modelPath);
+              const std::string & modelPath = pathComp->Data();
+              if (!modelPath.empty())
+              {
+                modelSdfPaths.insert(modelPath);
+              }
             }
           }
         }
@@ -408,6 +411,10 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
       this->savedModels.end(),
       std::inserter(diff, diff.begin()));
 
+  // Compare between _uri and _modelDir. If _modelDir is the prefix of _uri,
+  // then remove the prefix portion such that the new URI is a relative path
+  // with respect to _modelDir.
+  // Returns the relative URI wrt _modelDir, if _modelDir is a prefix of _uri.
   auto convertToRelativePath = [&](const std::string &_uri,
     const std::string &_modelDir) -> std::string
   {
@@ -423,6 +430,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
       rt = _uri.substr(prefix.length());
     }
 
+    // If the URI is an absolute path
     if (rt[0] == '/')
     {
       // If model directory is in the prefix of URI, then this is a valid URI
@@ -446,6 +454,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
                << "directory is currently not supported [" << rt << "]"
                << std::endl;
         saveError = true;
+        return _uri;
       }
     }
 
@@ -498,15 +507,15 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
       // directory
       for (uint64_t mi = 0; mi < root.ModelCount(); mi++)
       {
-        const sdf::Model * model = root.ModelByIndex(mi);
+        const sdf::Model *model = root.ModelByIndex(mi);
         for (uint64_t li = 0; li < model->LinkCount(); li++)
         {
-          const sdf::Link * link = model->LinkByIndex(li);
+          const sdf::Link *link = model->LinkByIndex(li);
           for (uint64_t ci = 0; ci < link->CollisionCount(); ci++)
           {
-            const sdf::Collision * collision = link->CollisionByIndex(ci);
-            const sdf::Geometry * geometry = collision->Geom();
-            const sdf::Mesh * mesh = geometry->MeshShape();
+            const sdf::Collision *collision = link->CollisionByIndex(ci);
+            const sdf::Geometry *geometry = collision->Geom();
+            const sdf::Mesh *mesh = geometry->MeshShape();
             if (mesh != nullptr)
             {
               // Replace path with relative path
@@ -521,9 +530,9 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
           }
           for (uint64_t vi = 0; vi < link->VisualCount(); vi++)
           {
-            const sdf::Visual * visual = link->VisualByIndex(vi);
-            const sdf::Geometry * geometry = visual->Geom();
-            const sdf::Mesh * mesh = geometry->MeshShape();
+            const sdf::Visual *visual = link->VisualByIndex(vi);
+            const sdf::Geometry *geometry = visual->Geom();
+            const sdf::Mesh *mesh = geometry->MeshShape();
             if (mesh != nullptr)
             {
               // Replace path with relative path
