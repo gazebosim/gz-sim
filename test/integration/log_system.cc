@@ -1719,11 +1719,14 @@ TEST_F(LogSystemTest, LogResources)
   EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
 
   const std::string recordPath = this->logDir;
+  std::string statePath = common::joinPaths(recordPath, "state.tlog");
 
+#ifndef __APPLE__
+  // Log resources from command line
   {
     // Command line triggers ign.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
-      + "--record --record-resources --record-path " + recordPath
+      + "--record --record-resources --record-path " + recordPath + " "
       + kSdfFileOpt + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1734,16 +1737,51 @@ TEST_F(LogSystemTest, LogResources)
 
   std::string consolePath = common::joinPaths(recordPath, "server_console.log");
   EXPECT_TRUE(common::exists(consolePath));
-  std::string statePath = common::joinPaths(recordPath, "state.tlog");
+  EXPECT_TRUE(common::exists(statePath));
+
+  // Recorded models should exist
+  EXPECT_GT(entryCount(recordPath), 2);
+  EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      "models", "X2 Config 1")));
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+#endif
+
+  // Log resources from C++ API
+  {
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfFile(recordSdfPath);
+
+    // Set record flags
+    recordServerConfig.SetLogRecordPath(recordPath);
+    recordServerConfig.SetLogRecordResources(true);
+
+    // This tells server to call AddRecordPlugin() where flags are passed to
+    //   recorder.
+    recordServerConfig.SetUseLogRecord(true);
+
+    // Run server
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
+  }
+
+  // Console log is not created because ignLogDirectory() is not initialized,
+  // as ign.cc is not executed by command line.
   EXPECT_TRUE(common::exists(statePath));
 
   // Recorded models should exist
 #ifndef __APPLE__
-  EXPECT_GT(entryCount(recordPath), 2);
+  EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
       ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
       "models", "X2 Config 1")));
+
+  // Revert environment variable after test is done
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
 
   // Remove artifacts
   this->RemoveLogsDir();
