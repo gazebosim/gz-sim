@@ -384,7 +384,7 @@ TEST_F(LogSystemTest, LogPaths)
     "log_record_dbl_pendulum.sdf");
 
   // Test case 1:
-  // A path is specified in SDF - a feature deprecated in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
   // No path specified in C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
   // state and console logs because ign.cc is not triggered.
@@ -435,7 +435,7 @@ TEST_F(LogSystemTest, LogPaths)
 #endif
 
   // Test case 2:
-  // A path is specified in SDF - a feature deprecated in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
   // SDF path should be ignored.
   // State log and console log should be stored to default timestamp path
   // ignLogDirectory because ign.cc is triggered by command line.
@@ -495,7 +495,7 @@ TEST_F(LogSystemTest, LogPaths)
   this->CreateLogsDir();
 
   // Test case 3:
-  // A path is specified in SDF - a feature deprecated in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
   // Empty path is specified via C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
   // state and console logs because ign.cc is not triggered.
