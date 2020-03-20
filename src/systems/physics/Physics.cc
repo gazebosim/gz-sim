@@ -321,9 +321,7 @@ void Physics::Configure(const Entity &_entity,
     return;
   }
 
-  auto classNames =
-      physics::FindFeatures3d<PhysicsPrivate::MinimumFeatureList>::From(
-      pluginLoader);
+  auto classNames = pluginLoader.AllPlugins();
   if (classNames.empty())
   {
     ignerr << "No plugins with all required features found in library ["
@@ -349,6 +347,19 @@ void Physics::Configure(const Entity &_entity,
              << pathToLib << "]" << std::endl;
       break;
     }
+
+    auto missingFeatures = ignition::physics::RequestEngine<
+        ignition::physics::FeaturePolicy3d,
+        PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
+
+    std::stringstream msg;
+    msg << "Plugin [" << className << "] misses required features:"
+        << std::endl;
+    for (auto feature : missingFeatures)
+    {
+      msg << "- " << feature << std::endl;
+    }
+    ignwarn << msg.str();
   }
 
   if (nullptr == this->dataPtr->engine)
