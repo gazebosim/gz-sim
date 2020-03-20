@@ -9,6 +9,18 @@ add_subdirectory(plugins)
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
 
+# CMake AUTOMOC does not generate moc_*.cpp files automatically for headers
+# located in different directories than the containing .cc file. For Qt header
+# files in `include/ignition/gazebo/gui`, we use qt5_wrap_cpp instead. There is
+# no need to add entries for Qt header files in `src/gui/`.
+qt5_wrap_cpp(gui_sources
+  ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/GuiSystem.hh
+  # TODO (anyone) Remove when GuiRunner.hh is moved to `src`
+  ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/GuiRunner.hh
+  # TODO (anyone) Remove when TmpIface.hh is moved to `src`
+  ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/TmpIface.hh
+)
+
 ign_add_component(gui
   SOURCES ${gui_sources} resources/gazebo.qrc
   GET_TARGET_NAME gui_target
