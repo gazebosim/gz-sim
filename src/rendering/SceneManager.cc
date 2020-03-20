@@ -255,7 +255,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetMetalness(1.0);
       }
     }
-    else if (_visual.Geom()->Type() == sdf::GeometryType::MESH)
+    else
     {
       // meshes created by mesh loader may have their own materials
       // update/override their properties based on input sdf element values
