@@ -324,8 +324,7 @@ void Physics::Configure(const Entity &_entity,
   auto classNames = pluginLoader.AllPlugins();
   if (classNames.empty())
   {
-    ignerr << "No plugins with all required features found in library ["
-           << pathToLib << "]." << std::endl;
+    ignerr << "No plugins found in library [" << pathToLib << "]." << std::endl;
     return;
   }
 
