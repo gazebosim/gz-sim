@@ -205,8 +205,7 @@ Rectangle {
             if (mouse.button == Qt.RightButton) {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
-              entityContextMenu.open(scopedName, type, parent.x + ma.mouseX,
-                  styleData.index.row * itemHeight + ma.mouseY)
+              entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
               // Prevent plugin's context menu from opening
               mouse.accepted = true
             }
