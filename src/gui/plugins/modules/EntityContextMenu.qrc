@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="IgnGazebo/">
   <file>EntityContextMenu.qml</file>
+  <file>TypeIcon.qml</file>
 </qresource>
 </RCC>

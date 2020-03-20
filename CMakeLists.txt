@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.14.0)
+project(ignition-gazebo2 VERSION 2.15.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -28,11 +28,17 @@ else()
   add_definitions("-DIGN_PROFILER_ENABLE=0")
 endif()
 
+if (UNIX AND NOT APPLE)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+else()
+  set (EXTRA_TEST_LIB_DEPS)
+endif()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED VERSION 8.4)
+ign_find_package(sdformat8 REQUIRED VERSION 8.8)
 
 #--------------------------------------
 # Find ignition-plugin
@@ -62,7 +68,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui2 REQUIRED)
+ign_find_package(ignition-gui2 REQUIRED VERSION 2.1)
 set(IGN_GUI_VER ${ignition-gui2_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS

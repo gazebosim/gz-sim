@@ -21,15 +21,13 @@
 
 #include <string>
 
-#include <ignition/msgs/Utility.hh>
-
-#include <ignition/math/Pose3.hh>
-
-#include <ignition/plugin/RegisterMore.hh>
-
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/fuel_tools/Zip.hh>
+#include <ignition/math/Pose3.hh>
+#include <ignition/msgs/Utility.hh>
+#include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
@@ -48,12 +46,16 @@ using namespace systems;
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
+  /// \brief Extract model resource files and state file from compression.
+  /// \return True if extraction was successful.
+  public: bool ExtractStateAndResources();
+
   /// \brief Start log playback.
   /// \param[in] _logPath Path of recorded state to playback.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(const std::string &_logPath, EntityComponentManager &_ecm);
+  public: bool Start(EntityComponentManager &_ecm);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -75,11 +77,17 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
-  /// \brief
+  /// \brief Pointer to ign-transport Log
   public: std::unique_ptr<transport::log::Log> log;
 
   /// \brief Indicator of whether any playback instance has ever been started
   public: static bool started;
+
+  /// \brief Directory in which to place log file
+  public: std::string logPath{""};
+
+  /// \brief Directory to which compressed file is extracted to
+  public: std::string extDest{""};
 
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
@@ -100,7 +108,13 @@ LogPlayback::LogPlayback()
 }
 
 //////////////////////////////////////////////////
-LogPlayback::~LogPlayback() = default;
+LogPlayback::~LogPlayback()
+{
+  if (!this->dataPtr->extDest.empty())
+  {
+    common::removeAll(this->dataPtr->extDest);
+  }
+}
 
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
@@ -128,6 +142,7 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
+
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
@@ -172,14 +187,28 @@ void LogPlayback::Configure(const Entity &,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  auto logPath = _sdf->Get<std::string>("path");
+  this->dataPtr->logPath = _sdf->Get<std::string>("path");
 
   this->dataPtr->eventManager = &_eventMgr;
+
+  // Prepend working directory if path is relative
+  this->dataPtr->logPath = common::absPath(this->dataPtr->logPath);
+
+  // If path is a file, assume it is a compressed file
+  // (Otherwise assume it is a directory containing recorded files.)
+  if (common::isFile(this->dataPtr->logPath))
+  {
+    if (!this->dataPtr->ExtractStateAndResources())
+    {
+      ignerr << "Cannot play back files.\n";
+      return;
+    }
+  }
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(logPath, _ecm);
+    this->dataPtr->Start(_ecm);
   }
   else
   {
@@ -189,8 +218,7 @@ void LogPlayback::Configure(const Entity &,
 }
 
 //////////////////////////////////////////////////
-bool LogPlaybackPrivate::Start(const std::string &_logPath,
-                               EntityComponentManager &_ecm)
+bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -199,20 +227,14 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     return true;
   }
 
-  if (_logPath.empty())
+  if (this->logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
     return false;
   }
 
-  if (!common::isDirectory(_logPath))
-  {
-    ignerr << "Specified log path [" << _logPath << "] must be a directory.\n";
-    return false;
-  }
-
   // Append file name
-  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   ignmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
@@ -261,6 +283,36 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   this->instStarted = true;
   LogPlaybackPrivate::started = true;
   return true;
+}
+
+//////////////////////////////////////////////////
+bool LogPlaybackPrivate::ExtractStateAndResources()
+{
+  // Create a temporary directory to extract compressed file content into
+  this->extDest = std::string(this->logPath);
+  size_t extIdx = this->logPath.find_last_of('.');
+  if (extIdx != std::string::npos)
+    this->extDest = this->logPath.substr(0, extIdx);
+  this->extDest += "_extracted";
+  this->extDest = common::uniqueDirectoryPath(this->extDest);
+
+  if (fuel_tools::Zip::Extract(this->logPath, this->extDest))
+  {
+    ignmsg << "Extracted recording to [" << this->extDest << "]" << std::endl;
+
+    // Replace value in variable with the directory of extracted files
+    // Assume directory has same name as compressed file, without extension
+    // Remove extension
+    this->logPath = common::joinPaths(this->extDest,
+      common::basename(this->logPath.substr(0, extIdx)));
+    return true;
+  }
+  else
+  {
+    ignerr << "Failed to extract recording to [" << this->extDest << "]"
+      << std::endl;
+    return false;
+  }
 }
 
 //////////////////////////////////////////////////

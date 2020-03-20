@@ -1,6 +1,14 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.XX.X (201X-XX-XX)
+### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
+
+1. Add support for setting visual transparency through SDF
+    * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
+
+1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
+    * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
+
+### Ignition Gazebo 2.15.0 (2020-02-07)
 
 1. Fix seeking back in time in log playback
     * [Pull Request 523](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/523)

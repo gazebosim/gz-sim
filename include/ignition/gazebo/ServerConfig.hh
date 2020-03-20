@@ -250,6 +250,18 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
+      /// \brief Get whether to ignore the path specified in SDF.
+      /// \return Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
+      public: bool LogIgnoreSdfPath() const;
+
+      /// \brief Set whether to ignore the path specified in SDF. Path in SDF
+      /// should be ignored if a record path is specified on the command line,
+      /// for example.
+      /// \param[in] _ignore Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
+      public: void SetLogIgnoreSdfPath(bool _ignore);
+
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
       public: const std::string LogPlaybackPath() const;
@@ -257,6 +269,14 @@ namespace ignition
       /// \brief Set path to recorded states to play back
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
+
+      /// \brief Get file path to compress log files to
+      /// \return File path to compress log files to
+      public: std::string LogRecordCompressPath() const;
+
+      /// \brief Set file path to compress log files to
+      /// \param[in] _path File path to compress log files to
+      public: void SetLogRecordCompressPath(const std::string &_path);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
