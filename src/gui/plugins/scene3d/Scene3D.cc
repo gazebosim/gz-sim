@@ -1190,6 +1190,9 @@ void IgnRenderer::Initialize()
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (nullptr == scene)
+    return;
+
   auto root = scene->RootVisual();
 
   // Camera
