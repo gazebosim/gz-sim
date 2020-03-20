@@ -5,6 +5,10 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 3.x to 4.x
+
+* The CreateSensor function in the Sensors system, as well as the callbacks in gazebo rendering, have a new required function argument for the Entity of the sensor.
+
 ## Ignition Gazebo 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.
