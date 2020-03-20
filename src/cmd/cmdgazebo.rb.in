@@ -105,6 +105,10 @@ COMMANDS = { 'gazebo' =>
   "Environment variables:                                                  \n"\
   "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
   " resources. Can be useful with the -f option to find an SDF file.     \n\n"\
+  "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
+  " locate system plugins.                                               \n\n"\
+  "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
+  " plugins.                                                             \n\n"\
   "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\
   " simulation environment. Role is one of [PRIMARY, SECONDARY]. This is   \n"\
   " deprecated in ign-gazebo2. Please use --network-role instead.        \n\n"\
