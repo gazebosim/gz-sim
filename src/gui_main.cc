@@ -217,7 +217,7 @@ int main(int _argc, char **_argv)
   }
 
   if (!executed || !result || worldsMsg.data().empty())
-    return false;
+    return -1;
 
   std::vector<ignition::gazebo::GuiRunner *> runners;
 

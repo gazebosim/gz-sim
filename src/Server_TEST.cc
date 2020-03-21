@@ -64,6 +64,7 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_FALSE(serverConfig.LogRecordPath().empty());
   EXPECT_FALSE(serverConfig.LogIgnoreSdfPath());
   EXPECT_TRUE(serverConfig.LogPlaybackPath().empty());
+  EXPECT_FALSE(serverConfig.LogRecordResources());
   EXPECT_TRUE(serverConfig.LogRecordCompressPath().empty());
   EXPECT_EQ(0u, serverConfig.Seed());
   EXPECT_EQ(123ms, serverConfig.UpdatePeriod().value_or(123ms));
