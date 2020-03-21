@@ -5,6 +5,9 @@
 1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
     * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
 
+1. Add support for setting visual transparency through SDF
+    * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
+
 1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
     * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
 

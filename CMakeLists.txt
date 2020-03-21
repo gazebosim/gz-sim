@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED VERSION 8.4)
+ign_find_package(sdformat8 REQUIRED VERSION 8.8)
 
 #--------------------------------------
 # Find ignition-plugin
@@ -87,7 +87,7 @@ ign_find_package(ignition-physics1
     dartsim
     dartsim-plugin
   REQUIRED
-  VERSION 1.4)
+  VERSION 1.5)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
