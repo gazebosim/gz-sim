@@ -32,11 +32,15 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
 
+#include <sdf/Geometry.hh>
+#include <sdf/Mesh.hh>
 #include <sdf/Root.hh>
 
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 using namespace ignition;
@@ -56,6 +60,14 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// instance.
   /// \return True if any playback has been started successfully.
   public: bool Start(EntityComponentManager &_ecm);
+
+  /// \brief Replace URIs of resources in components with recorded path.
+  public: void ReplaceResourceURIs(EntityComponentManager &_ecm);
+
+  /// \brief Prepend log path to mesh file path in the SDF element.
+  /// \param[in] _uri URI of mesh in geometry
+  /// \return String of prepended path.
+  public: std::string PrependLogPath(const std::string &_uri);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -97,6 +109,10 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
+
+  /// \brief Flag for backward compatibility with log files recorded in older
+  /// plugin versions that did not record resources. False for older log files.
+  public: bool doReplaceResourceURIs{true};
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -142,7 +158,6 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
-
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
@@ -280,9 +295,139 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     }
   }
 
+  this->ReplaceResourceURIs(_ecm);
+
   this->instStarted = true;
   LogPlaybackPrivate::started = true;
   return true;
+}
+
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
+{
+  // For backward compatibility with log files recorded in older versions of
+  //   plugin, do not prepend resource paths with logPath.
+  if (!this->doReplaceResourceURIs)
+  {
+    return;
+  }
+
+  // Define equality functions for replacing component uri
+  auto uriEqual = [&](const std::string &_s1, const std::string &_s2) -> bool
+  {
+    return (_s1.compare(_s2) == 0);
+  };
+
+  auto geoUriEqual = [&](const sdf::Geometry &_g1,
+    const sdf::Geometry &_g2) -> bool
+  {
+    if (_g1.Type() == sdf::GeometryType::MESH &&
+      _g2.Type() == sdf::GeometryType::MESH)
+    {
+      return uriEqual(_g1.MeshShape()->Uri(), _g2.MeshShape()->Uri());
+    }
+    else
+      return false;
+  };
+
+  auto matUriEqual = [&](const sdf::Material &_m1,
+    const sdf::Material &_m2) -> bool
+  {
+    return uriEqual(_m1.ScriptUri(), _m2.ScriptUri());
+  };
+
+  // Loop through geometries in world. Prepend log path to URI
+  // TODO(anyone): When merge forward to Citadel, handle actor skin and
+  // animation files
+  _ecm.Each<components::Geometry>(
+      [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
+  {
+    sdf::Geometry geoSdf = _geoComp->Data();
+    if (geoSdf.Type() == sdf::GeometryType::MESH)
+    {
+      std::string meshUri = geoSdf.MeshShape()->Uri();
+      std::string newMeshUri;
+      if (!meshUri.empty())
+      {
+        // Make a copy of mesh shape, and change the uri in the new copy
+        sdf::Mesh meshShape = sdf::Mesh(*(geoSdf.MeshShape()));
+        newMeshUri = this->PrependLogPath(meshUri);
+        meshShape.SetUri(newMeshUri);
+        geoSdf.SetMeshShape(meshShape);
+        _geoComp->SetData(geoSdf, geoUriEqual);
+      }
+    }
+
+    return true;
+  });
+
+  // Loop through materials in world. Prepend log path to URI
+  _ecm.Each<components::Material>(
+      [&](const Entity &/*_entity*/, components::Material *_matComp) -> bool
+  {
+    sdf::Material matSdf = _matComp->Data();
+    std::string matUri = matSdf.ScriptUri();
+    std::string newMatUri;
+    if (!matUri.empty())
+    {
+      newMatUri = this->PrependLogPath(matUri);
+      matSdf.SetScriptUri(newMatUri);
+      _matComp->SetData(matSdf, matUriEqual);
+    }
+
+    return true;
+  });
+}
+
+//////////////////////////////////////////////////
+std::string LogPlaybackPrivate::PrependLogPath(const std::string &_uri)
+{
+  // For backward compatibility with log files recorded in older versions of
+  // plugin, do not prepend resource paths with logPath.
+  if (!this->doReplaceResourceURIs)
+  {
+    return std::string(_uri);
+  }
+
+  const std::string filePrefix = "file://";
+
+  // Prepend if path starts with file:// or /, but recorded path has not
+  // already been prepended.
+  if (((_uri.compare(0, filePrefix.length(), filePrefix) == 0) &&
+      (_uri.substr(filePrefix.length()).compare(
+        0, this->logPath.length(), this->logPath) != 0))
+      || _uri[0] == '/')
+  {
+    std::string pathNoPrefix;
+    if (_uri[0] == '/')
+    {
+      pathNoPrefix = std::string(_uri);
+    }
+    else
+    {
+      pathNoPrefix = _uri.substr(filePrefix.length());
+    }
+
+    // Prepend log path to file path
+    std::string pathPrepended = common::joinPaths(this->logPath,
+      pathNoPrefix);
+
+    // For backward compatibility. If prepended record path does not exist,
+    // then do not prepend logPath. Assume recording is from an older version.
+    if (!common::exists(pathPrepended))
+    {
+      this->doReplaceResourceURIs = false;
+      return std::string(_uri);
+    }
+    else
+    {
+      return filePrefix + pathPrepended;
+    }
+  }
+  else
+  {
+    return std::string(_uri);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -438,6 +583,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       ignwarn << "Trying to playback unsupported message type ["
               << msgType << "]" << std::endl;
     }
+    this->dataPtr->ReplaceResourceURIs(_ecm);
     ++iter;
   }
 
