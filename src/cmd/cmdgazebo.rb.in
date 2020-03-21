@@ -73,6 +73,10 @@ COMMANDS = { 'gazebo' =>
   "                              enable console logging to a console.log    \n"\
   "                              file in the specified path.                \n"\
   "\n"\
+  "  --record-resources          Implicitly invokes --record, and records   \n"\
+  "                              meshes and material files, in addition to  \n"\
+  "                              states and console messages.               \n"\
+  "\n"\
   "  --log-overwrite             When recording, overwrite existing files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
   "\n"\
@@ -105,6 +109,10 @@ COMMANDS = { 'gazebo' =>
   "Environment variables:                                                  \n"\
   "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
   " resources. Can be useful with the -f option to find an SDF file.     \n\n"\
+  "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
+  " locate system plugins.                                               \n\n"\
+  "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
+  " plugins.                                                             \n\n"\
   "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\
   " simulation environment. Role is one of [PRIMARY, SECONDARY]. This is   \n"\
   " deprecated in ign-gazebo2. Please use --network-role instead.        \n\n"\
@@ -159,6 +167,7 @@ class Cmd
       'network_secondaries' => 0,
       'record' => 0,
       'record-path' => '',
+      'record-resources' => 0,
       'log-overwrite' => 0,
       'log-compress' => 0,
       'playback' => '',
@@ -207,6 +216,9 @@ class Cmd
       end
       opts.on('--record-path [arg]', String) do |r|
         options['record-path'] = r
+      end
+      opts.on('--record-resources') do
+        options['record-resources'] = 1
       end
       opts.on('--log-overwrite') do
         options['log-overwrite'] = 1
@@ -326,7 +338,7 @@ class Cmd
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
-                               int, int, const char *, const char *)'
+                               int, int, int, const char *, const char *)'
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
@@ -342,8 +354,8 @@ class Cmd
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['record-path'], options['log-overwrite'],
-            options['log-compress'],
+            options['record-path'], options['record-resources'],
+            options['log-overwrite'], options['log-compress'],
             options['playback'], options['file'])
         end
 
@@ -375,8 +387,8 @@ class Cmd
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
-            options['record-path'], options['log-overwrite'],
-            options['log-compress'],
+            options['record-path'], options['record-resources'],
+            options['log-overwrite'], options['log-compress'],
             options['playback'], options['file'])
       # Otherwise run the gui
       else options['gui']
