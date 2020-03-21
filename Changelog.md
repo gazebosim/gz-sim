@@ -2,6 +2,12 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Fix entity tree context menu position
+    * [Pull Request 567](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/567)
+
+1. Fix moving static model with link offset
+    * [Pull Request 566](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/566)
+
 1. Add support for setting visual transparency through SDF
     * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
 
