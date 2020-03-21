@@ -238,6 +238,28 @@ TEST(Vector3dTest, Min)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector3dTest, MaxAbs)
+{
+  math::Vector3d vec1(0.1, 0.2, 0.05);
+  math::Vector3d vec2(-0.2, -0.1, -0.4);
+
+  EXPECT_DOUBLE_EQ(vec1.MaxAbs(), 0.2);
+
+  EXPECT_DOUBLE_EQ(vec2.MaxAbs(), 0.4);
+}
+
+/////////////////////////////////////////////////
+TEST(Vector3dTest, MinAbs)
+{
+  math::Vector3d vec1(0.1, 0.2, -0.05);
+  math::Vector3d vec2(-0.2, -0.1, -0.4);
+
+  EXPECT_DOUBLE_EQ(vec1.MinAbs(), 0.05);
+
+  EXPECT_DOUBLE_EQ(vec2.MinAbs(), 0.1);
+}
+
+/////////////////////////////////////////////////
 TEST(Vector3dTest, Add)
 {
   math::Vector3d vec1(0.1, 0.2, 0.4);
