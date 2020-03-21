@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat8 REQUIRED VERSION 8.4)
+ign_find_package(sdformat8 REQUIRED VERSION 8.8)
 
 #--------------------------------------
 # Find ignition-plugin
