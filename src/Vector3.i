@@ -64,8 +64,8 @@ namespace ignition
       public: void Min(const Vector3<T> &_v);
       public: T Max() const;
       public: T Min() const;
-	  public: T MinAbs() const;
-	  public: T MaxAbs() const;
+      public: T MinAbs() const;
+      public: T MaxAbs() const;
       public: Vector3 operator+(const Vector3<T> &_v) const;
       public: inline Vector3<T> operator+(const T _s) const;
       public: inline Vector3 operator-() const;

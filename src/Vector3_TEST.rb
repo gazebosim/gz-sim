@@ -258,7 +258,7 @@ class Vector3_TEST < Test::Unit::TestCase
            "Vector3 vec1 should equal [0.05, 0.1, 0.2]")
   end
   
-    def test_max_abs
+  def test_max_abs
     vec1 = Ignition::Math::Vector3d.new(0.1, 0.2, 0.05)
 
     assert((vec1.MaxAbs() - 0.2).abs() < 1e-10,
