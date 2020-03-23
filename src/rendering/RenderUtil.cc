@@ -163,14 +163,15 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
-  /// \brief A map of entity ids and actor animation time.
-  public: std::map<Entity, std::chrono::steady_clock::duration>
-                          actorAnimationTimes;
+  /// \brief A map of entity ids and actor animation info.
+  public: std::map<Entity, AnimInfo>
+                          actorAnimationInfo;
+  public: std::string prevAnimName;
 
   /// \brief True to update skeletons manually using bone poses
   /// (see actorTransforms). False to let render engine update animation
   /// based on sim time.
-  public: bool actorManualSkeletonUpdate = true;
+  public: bool actorManualSkeletonUpdate = false;
 
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
@@ -256,7 +257,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
-  auto actorAnimationTime = std::move(this->dataPtr->actorAnimationTimes);
+  auto actorAnimationInfo= std::move(this->dataPtr->actorAnimationInfo);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -267,7 +268,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
-  this->dataPtr->actorAnimationTimes.clear();
+  this->dataPtr->actorAnimationInfo.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -430,13 +431,45 @@ void RenderUtil::Update()
     }
     else
     {
-      for (auto &it : this->dataPtr->actorAnimationTimes)
+      for (auto &it : actorAnimationInfo)
       {
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
         if (!actorMesh || !actorVisual)
           continue;
-        actorMesh->UpdateSkeletonAnimation(it.second);
+        // actorMesh->UpdateSkeletonAnimation(it.second);
+        AnimInfo &info = it.second;
+        if (!info.valid)
+        {
+          ignerr << "invalid animation info" << std::endl;
+          continue;
+        }
+        // if (!actorMesh->SkeletonAnimationEnabled(info.name))
+        // {
+        //   // disable previous anim
+        //   if (!this->dataPtr->prevAnimName.empty())
+        //   {
+        //     actorMesh->SetSkeletonAnimationEnabled(this->dataPtr->prevAnimName,
+        //         false, false, 0.0);
+        //   }
+        //   // disable previous anim
+        //   // actorMesh->SetSkeletonAnimationEnabled(info.name, true, info.loop);
+        //   actorMesh->SetSkeletonAnimationEnabled(info.name, true, info.loop);
+        //   this->dataPtr->prevAnimName = info.name;
+        // }
+        // actorMesh->UpdateSkeletonAnimation(info.time);
+
+        double timeSeconds = std::chrono::duration<double>(info.time).count();
+        std::cerr << "info: " << info.name <<  " " << timeSeconds << std::endl;
+
+        common::PoseKeyFrame poseFrame(0.0);
+        if (info.followTrajectory)
+          info.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
+
+        math::Pose3d actorPose;
+        actorPose.Pos() = poseFrame.Translation();
+        actorPose.Rot() = poseFrame.Rotation();
+        actorVisual->SetLocalPose(actorPose);
       }
     }
   }
@@ -822,8 +855,8 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         }
         else
         {
-//          this->actorAnimationTimes[_entity] =
-//                this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+          this->actorAnimationInfo[_entity] =
+                this->sceneManager.ActorAnimationAt(_entity, this->simTime);
         }
         return true;
       });

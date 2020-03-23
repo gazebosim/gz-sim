@@ -851,28 +851,31 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 // }
 
 /////////////////////////////////////////////////
-std::chrono::steady_clock::duration SceneManager::ActorTrajectoryAt(
+// std::chrono::steady_clock::duration SceneManager::ActorTrajectoryAt(
+AnimInfo SceneManager::ActorTrajectoryAt(
     Entity _id,
-    const std::chrono::steady_clock::duration &_time,
-    common::TrajectoryInfo &_traj) const
+    const std::chrono::steady_clock::duration &_time) const
 {
-  _traj.SetId(-1);
+  // _traj.SetId(-1);
+  // auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  // if (trajIt == this->dataPtr->actorTrajectories.end())
+  // {
+  //   return _time;
+  // }
+
+  AnimInfo info;
   auto trajIt = this->dataPtr->actorTrajectories.find(_id);
   if (trajIt == this->dataPtr->actorTrajectories.end())
-  {
-    return _time;
-  }
+    return info;
 
   auto trajs = trajIt->second;
   bool followTraj = true;
   if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
-  {
     followTraj = false;
-  }
 
   auto firstTraj = trajs.begin();
 
-  _traj = trajs[0];
+  common::TrajectoryInfo traj = trajs[0];
 
 //  using TP = std::chrono::steady_clock::time_point;
   auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
@@ -910,16 +913,48 @@ std::chrono::steady_clock::duration SceneManager::ActorTrajectoryAt(
         if (trajectory.StartTime() - firstTraj->StartTime() <= time
             && trajectory.EndTime() - firstTraj->StartTime() >= time)
         {
-          _traj = trajectory;
-          time -= _traj.StartTime() - firstTraj->StartTime();
+          traj = trajectory;
+          time -= traj.StartTime() - firstTraj->StartTime();
 
-          _traj.Waypoints()->Time(std::chrono::duration<double>(time).count());
+          traj.Waypoints()->Time(std::chrono::duration<double>(time).count());
           break;
         }
       }
     }
   }
-  return time;
+
+  // return time;
+  info.time = time;
+  info.loop = !noLoop;
+  info.followTrajectory = followTraj;
+  info.trajectory = traj;
+  info.valid = true;
+  return info;
+}
+
+/////////////////////////////////////////////////
+AnimInfo SceneManager::ActorAnimationAt(
+    Entity _id, std::chrono::steady_clock::duration _time) const
+{
+  AnimInfo animInfo;
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
+    return animInfo;
+
+  auto skelIt = this->dataPtr->actorSkeletons.find(_id);
+  if (skelIt == this->dataPtr->actorSkeletons.end())
+    return animInfo;
+
+  animInfo = this->ActorTrajectoryAt(_id, _time);
+  // bool followTraj = animInfo.followTrajectory;
+  // bool noLoop = animInfo.loop;
+  // common::TrajectoryInfo traj = animInfo.trajectory;
+  // auto time = animInfo.time;
+
+  auto skel = skelIt->second;
+  unsigned int animIndex = animInfo.trajectory.AnimIndex();
+  animInfo.name = skel->Animation(animIndex)->Name();
+  return animInfo;
 }
 
 /////////////////////////////////////////////////
@@ -936,18 +971,23 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
 
   // get the trajectory at input time
   // The time returned is the time at which the animation should be played
-  common::TrajectoryInfo traj;
-  auto time = this->ActorTrajectoryAt(_id, _time, traj);
+  // common::TrajectoryInfo traj;
+  // auto time = this->ActorTrajectoryAt(_id, _time, traj);
+  AnimInfo animInfo = this->ActorTrajectoryAt(_id, _time);
+  bool followTraj = animInfo.followTrajectory;
+  bool noLoop = animInfo.loop;
+  common::TrajectoryInfo traj = animInfo.trajectory;
+  auto time = animInfo.time;
 
-  auto trajs = trajIt->second;
-  bool followTraj = true;
-  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
-  {
-    followTraj = false;
-  }
+  // auto trajs = trajIt->second;
+  // bool followTraj = true;
+  // if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
+  // {
+  //   followTraj = false;
+  // }
 
-  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
-            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
+  // bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
+  //           && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
 
 
   common::PoseKeyFrame poseFrame(0.0);
