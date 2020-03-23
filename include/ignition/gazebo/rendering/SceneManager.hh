@@ -49,6 +49,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class SceneManagerPrivate;
 
   /// \brief Scene manager class for loading and managing objects in the scene
+  class AnimInfo
+  {
+    public: std::chrono::steady_clock::duration time;
+    public: std::string name;
+    public: bool loop = false;
+    public: bool followTrajectory = false;
+    public: common::TrajectoryInfo trajectory;
+    public: bool valid = false;
+  };
+
+  /// \brief Scene manager class for loading and managing objects in the scene
   class IGNITION_GAZEBO_VISIBLE SceneManager
   {
     /// \brief Constructor
@@ -140,9 +151,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _time Timepoint for the animation
     /// \param[out] Trajectory of actor at specified time.
     /// \return Update time.
-    public: std::chrono::steady_clock::duration ActorTrajectoryAt(
-        Entity _id, const std::chrono::steady_clock::duration &_time,
-        common::TrajectoryInfo &_traj) const;
+    // public: std::chrono::steady_clock::duration ActorTrajectoryAt(
+    //     Entity _id, const std::chrono::steady_clock::duration &_time,
+    //     common::TrajectoryInfo &_traj) const;
+
+
+    public: AnimInfo ActorTrajectoryAt(
+        Entity _id, const std::chrono::steady_clock::duration &_time) const;
 
 
     /// \brief Get the animation of actor mesh given an id
@@ -150,6 +165,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _time Timepoint for the animation
     /// \return Map from the skeleton node name to transforms
     public: std::map<std::string, math::Matrix4d> ActorMeshAnimationAt(
+        Entity _id, std::chrono::steady_clock::duration _time) const;
+
+    public: AnimInfo ActorAnimationAt(
         Entity _id, std::chrono::steady_clock::duration _time) const;
 
     /// \brief Remove an entity by id
