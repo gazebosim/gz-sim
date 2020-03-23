@@ -313,14 +313,18 @@ namespace ignition
       /// \return the element with maximum absolute value
       public: T MaxAbs() const
       {
-        return std::max(std::max(std::abs(this->data[0]), std::abs(this->data[1])), std::abs(this->data[2]));
+        T max = std::max(std::abs(this->data[0]), std::abs(this->data[1]));
+        max = std::max(max, std::abs(this->data[2]));
+        return max;
       }
 
       /// \brief Get the number with the maximum absolute value in the vector
       /// \return the element with minimum absolute value
       public: T MinAbs() const
       {
-        return std::min(std::min(std::abs(this->data[0]), std::abs(this->data[1])), std::abs(this->data[2]));
+        T min = std::min(std::abs(this->data[0]), std::abs(this->data[1]));
+        min = std::min(min, std::abs(this->data[2]));
+        return min;
       }
 
       /// \brief Assignment operator
