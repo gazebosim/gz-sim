@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Update physics state even when paused (not stepping)
+    * [Pull Request 556](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/556)
+
 1. Fix entity tree context menu position
     * [Pull Request 567](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/567)
 
