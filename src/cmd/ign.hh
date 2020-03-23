@@ -44,6 +44,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _networkSecondaries --network-secondaries option
 /// \param[in] _record --record option
 /// \param[in] _recordPath --record-path option
+/// \param[in] _recordResources --record-resources option
 /// \param[in] _logOverwrite --log-overwrite option
 /// \param[in] _logCompress --log-compress option
 /// \param[in] _playback --playback option
@@ -52,7 +53,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
-    const char *_recordPath, int _logOverwrite,
+    const char *_recordPath, int _recordResources, int _logOverwrite,
     int _logCompress, const char *_playback, const char *_file);
 
 /// \brief External hook to run simulation GUI.
