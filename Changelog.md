@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Add support for computing model bounding box in physics system
+    * [Pull Request 546](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/546)
+
 1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
     * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
 

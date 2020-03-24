@@ -87,7 +87,7 @@ ign_find_package(ignition-physics1
     dartsim
     dartsim-plugin
   REQUIRED
-  VERSION 1.5)
+  VERSION 1.6)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
