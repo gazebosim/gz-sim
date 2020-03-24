@@ -93,7 +93,7 @@
       </attenuation>
       <direction>-0.5 0.1 -0.9</direction>
     </light>
-    <!--
+
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -119,27 +119,51 @@
         </visual>
       </link>
     </model>
--->
 
+    <!-- Included model without meshes -->
     <include>
       <pose>-3 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/ocean_floor</uri>
     </include>
-    <!--
+
+    <!-- Included model with meshes -->
     <include>
       <pose>3 -1 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
     </include>
 
+    <!-- Included model with meshes using relative paths -->
     <include>
       <pose>2 5 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Gazebo - relative paths</uri>
     </include>
 
+    <!-- Included actor with meshes using relative paths -->
     <include>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/actor - relative paths</uri>
     </include>
 
--->
+    <!-- Model with meshes -->
+    <model name="Radio">
+      <pose>3 -1.5 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>

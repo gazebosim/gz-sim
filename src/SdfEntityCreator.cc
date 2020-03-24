@@ -59,6 +59,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
@@ -530,6 +531,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::RgbdCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::ThermalCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {

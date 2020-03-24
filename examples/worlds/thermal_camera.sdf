@@ -90,7 +90,6 @@
         <topic>/world/thermal_camera/stats</topic>
       </plugin>
 
-      <!--
       <plugin filename="ImageDisplay" name="Image Display">
         <ignition-gui>
           <title>Thermal camera</title>
@@ -101,7 +100,6 @@
         <topic>thermal_camera</topic>
         <topic_picker>false</topic_picker>
       </plugin>
-      -->
     </gui>
 
     <light type="directional" name="sun">
@@ -282,7 +280,6 @@
       </link>
     </model>
 
-    <!--
     <model name="thermal_camera">
       <pose>4.5 0 0.5 0.0 0.0 3.14</pose>
       <link name="link">
@@ -321,7 +318,6 @@
       </link>
       <static>true</static>
     </model>
-    -->
 
   </world>
 </sdf>

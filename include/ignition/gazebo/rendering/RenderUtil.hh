@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <sdf/Sensor.hh>
 
@@ -120,11 +121,28 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
+    /// \TODO(anyone) Make const ref when merging forward
+    // NOLINTNEXTLINE
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
-    /// \brief Get the entity being selected
-    /// \return Node representing the selected entity
+    /// \brief Get the entity for a given node.
+    /// \param[in] _node Node to get the entity for.
+    /// \return The entity for that node, or `kNullEntity` for no entity.
+    /// \deprecated Use `ignition::rendering::Visual::UserData` instead.
+    public: Entity IGN_DEPRECATED(3)
+        EntityFromNode(const rendering::NodePtr &_node);
+
+    /// \brief Get the entity being selected. This will only return the
+    /// last entity selected.
+    /// \TODO(anyone) Deprecate in favour of SelectedEntities
     public: rendering::NodePtr SelectedEntity() const;
+
+    /// \brief Get the entities currently selected, in order of selection.
+    /// \return Map of currently selected entities, entity to rendering node id
+    public: std::vector<Entity> SelectedEntities() const;
+
+    /// \brief Clears the set of selected entities and lowlights all of them.
+    public: void DeselectAllEntities();
 
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.

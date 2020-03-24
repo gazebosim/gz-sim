@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_MARKERMANAGER_HH_
 
 #include <memory>
+#include <string>
 
 #include "ignition/rendering/RenderTypes.hh"
 
@@ -58,6 +59,10 @@ class IGNITION_GAZEBO_VISIBLE MarkerManager
   /// \param[in] _scene Reference to the scene.
   /// \return True on success
   public: bool Init(const ignition::rendering::ScenePtr &_scene);
+
+  /// \brief Set the marker service topic name.
+  /// \param[in] _name Name of service
+  public: void SetTopic(const std::string &_name);
 
   /// \internal
   /// \brief Private data pointer
