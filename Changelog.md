@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
+    * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
+
 1. Update physics state even when paused (not stepping)
     * [Pull Request 556](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/556)
 
