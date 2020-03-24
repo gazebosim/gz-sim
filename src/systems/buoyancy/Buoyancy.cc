@@ -184,7 +184,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           break;
         case sdf::GeometryType::MESH:
           {
-            std::string file = coll->Data().Geom()->MeshShape()->FilePath();
+            std::string file = coll->Data().Geom()->MeshShape()->Uri();
             if (common::MeshManager::Instance()->IsValidFilename(file))
             {
               const common::Mesh *mesh =
@@ -211,20 +211,23 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       weightedPosSum += volume * pose.Pos();
     }
 
-    // Store the center of volume
-    if (!_ecm.EntityHasComponentType(_entity,
-          components::CenterOfVolume().TypeId()))
+    if (volumeSum > 0)
     {
-      math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
-      _ecm.CreateComponent(_entity, components::CenterOfVolume(
-            weightedPosSum / volumeSum - linkWorldPose.Pos()));
-    }
+      // Store the center of volume
+      if (!_ecm.EntityHasComponentType(_entity,
+            components::CenterOfVolume().TypeId()))
+      {
+        math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
+        _ecm.CreateComponent(_entity, components::CenterOfVolume(
+              weightedPosSum / volumeSum - linkWorldPose.Pos()));
+      }
 
-    // Store the volume
-    if (!_ecm.EntityHasComponentType(_entity,
-          components::Volume().TypeId()))
-    {
-      _ecm.CreateComponent(_entity, components::Volume(volumeSum));
+      // Store the volume
+      if (!_ecm.EntityHasComponentType(_entity,
+            components::Volume().TypeId()))
+      {
+        _ecm.CreateComponent(_entity, components::Volume(volumeSum));
+      }
     }
 
     return true;
