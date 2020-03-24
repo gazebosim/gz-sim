@@ -53,6 +53,14 @@ using namespace systems;
 
 class ignition::gazebo::systems::BuoyancyPrivate
 {
+  /// \brief Get the fluid density based on a pose. This function can be
+  /// used to adjust the fluid density based on the pose of an object in the
+  /// world. This function currently returns a constant value, see the todo
+  /// in the function implementation.
+  /// \param[in] _pose The pose to use when computing the fluid density. The
+  /// pose frame is left undefined because this function currently returns
+  /// a constant value, see the todo in the function implementation.
+  /// \return The fluid density at the givein pose.
   public: double FluidDensity(const math::Pose3d &_pose) const;
 
   /// \brief Model interface
