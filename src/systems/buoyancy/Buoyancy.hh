@@ -40,10 +40,13 @@ namespace systems
   /// stored as components. During each iteration, Archimedes' principle is
   /// applied to each link with a volume and center of volume component.
   ///
+  /// Plane shapes are not handled by this plugin, and will not be affected
+  /// by buoyancy.
+  ///
   /// ## System Parameters
   ///
-  /// * <fluid_density> sets the density of the fluid that surrounds the buoyant
-  /// object.
+  /// * <uniform_fluid_density> sets the density of the fluid that surrounds
+  /// the buoyant object.
   ///
   /// ## Example
   ///
