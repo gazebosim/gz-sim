@@ -53,13 +53,18 @@ using namespace systems;
 
 class ignition::gazebo::systems::BuoyancyPrivate
 {
+  /// \brief Get the fluid density based on a pose. This function can be
+  /// used to adjust the fluid density based on the pose of an object in the
+  /// world. This function currently returns a constant value, see the todo
+  /// in the function implementation.
+  /// \param[in] _pose The pose to use when computing the fluid density. The
+  /// pose frame is left undefined because this function currently returns
+  /// a constant value, see the todo in the function implementation.
+  /// \return The fluid density at the givein pose.
   public: double FluidDensity(const math::Pose3d &_pose) const;
 
   /// \brief Model interface
   public: Entity world{kNullEntity};
-
-  /// \brief Pointer to the gravity component.
-  public: const components::Gravity *gravity{nullptr};
 
   /// \brief The density of the fluid in which the object is submerged in
   /// kg/m^3. Defaults to 1000, the fluid density of water.
@@ -91,22 +96,22 @@ void Buoyancy::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
-  // Store this model.
+  // Store the world.
   this->dataPtr->world = _entity;
 
   // Get the gravity (defined in world frame)
-  this->dataPtr->gravity = _ecm.Component<components::Gravity>(
+  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
       this->dataPtr->world);
-  if (!this->dataPtr->gravity)
+  if (!gravity)
   {
     ignerr << "Unable to get the gravity vector. Make sure this plugin is "
       << "attached to a <world>, not a <model>." << std::endl;
     return;
   }
 
-  if (_sdf->HasElement("fluid_density"))
+  if (_sdf->HasElement("uniform_fluid_density"))
   {
-    this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
+    this->dataPtr->fluidDensity = _sdf->Get<double>("uniform_fluid_density");
   }
 }
 
@@ -115,6 +120,14 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Buoyancy::PreUpdate");
+  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
+      this->dataPtr->world);
+  if (!gravity)
+  {
+    ignerr << "Unable to get the gravity vector. Has gravity been defined?"
+           << std::endl;
+    return;
+  }
 
   // Compute the volume and center of volume for each new link
   _ecm.EachNew<components::Link, components::Inertial>(
@@ -166,8 +179,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           volume = coll->Data().Geom()->CylinderShape()->Shape().Volume();
           break;
         case sdf::GeometryType::PLANE:
-          ignwarn <<
-            "Plane shapes are not supported by the Buoyancy plugin.\n";
+          // Ignore plane shapes. They have no volume and are not expected
+          // to be buoyant.
           break;
         case sdf::GeometryType::MESH:
           {
@@ -239,8 +252,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       // object_density = mass/volume, so the mass term cancels.
       math::Vector3d buoyancy =
         -this->dataPtr->FluidDensity(linkWorldPose) *
-        _volume->Data() *
-        this->dataPtr->gravity->Data();
+        _volume->Data() * gravity->Data();
 
       // Get the offset of the center of volume from the interial frame.
       math::Vector3d offset = _centerOfVolume->Data() -

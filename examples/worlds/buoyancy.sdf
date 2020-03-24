@@ -12,7 +12,7 @@
   To alter a submarine's buoyancy do one or both of the following:
 
   1. Change the submarine's inertia.
-  2. Change the `fluid_density` in the `buoyancy-system` plugin.
+  2. Change the `uniform_fluid_density` in the `buoyancy-system` plugin.
 
   To drive the submarine model:
 
@@ -41,7 +41,7 @@
     <plugin
       filename="libignition-gazebo-buoyancy-system.so"
       name="ignition::gazebo::systems::Buoyancy">
-      <fluid_density>1000</fluid_density>
+      <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
     <gui fullscreen="0">

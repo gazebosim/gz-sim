@@ -79,7 +79,11 @@ function(gz_add_gui_plugin plugin_name)
 endfunction()
 
 add_subdirectory(modules)
+
+# Plugins
 add_subdirectory(entity_tree)
+add_subdirectory(grid_config)
 add_subdirectory(scene3d)
 add_subdirectory(transform_control)
 add_subdirectory(video_recorder)
+add_subdirectory(view_angle)
