@@ -8,6 +8,7 @@ set(tests
   breadcrumbs.cc
   components.cc
   contact_system.cc
+  detachable_joint.cc
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc

@@ -42,6 +42,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/FreeGroup.hh>
+#include <ignition/physics/FixedJoint.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/GetBoundingBox.hh>
@@ -82,6 +83,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
@@ -101,6 +103,7 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -117,6 +120,9 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
+          ignition::physics::AttachFixedJointFeature,
+          ignition::physics::DetachJointFeature,
+          ignition::physics::SetJointTransformFromParentFeature,
           // FreeGroup
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
@@ -307,13 +313,13 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (this->dataPtr->engine)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
+    this->dataPtr->UpdatePhysics(_ecm);
     // Only step if not paused.
     if (!_info.paused)
     {
-      this->dataPtr->UpdatePhysics(_ecm);
       this->dataPtr->Step(_info.dt);
-      this->dataPtr->UpdateSim(_ecm);
     }
+    this->dataPtr->UpdateSim(_ecm);
 
     // Entities scheduled to be removed should be removed from physics after the
     // simulation step. Otherwise, since the to-be-removed entity still shows up
@@ -389,6 +395,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         if (staticComp && staticComp->Data())
         {
           model.SetStatic(staticComp->Data());
+        }
+
+        auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+        if (selfCollideComp && selfCollideComp ->Data())
+        {
+          model.SetSelfCollide(selfCollideComp->Data());
         }
 
         auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
@@ -586,6 +598,72 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           _ecm.ParentEntity(_entity), false));
         return true;
       });
+
+  // Detachable joints
+  _ecm.EachNew<components::DetachableJoint>(
+      [&](const Entity &_entity,
+          const components::DetachableJoint *_jointInfo) -> bool
+      {
+        if (_jointInfo->Data().jointType != "fixed")
+        {
+          ignerr << "Detachable joint type [" << _jointInfo->Data().jointType
+                 << "] is currently not supported" << std::endl;
+          return true;
+        }
+        // Check if joint already exists
+        if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
+        {
+          ignwarn << "Joint entity [" << _entity
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
+          return true;
+        }
+
+        // Check if the link entities exist in the physics engine
+        auto parentLinkPhysIt =
+            this->entityLinkMap.find(_jointInfo->Data().parentLink);
+        if (parentLinkPhysIt == this->entityLinkMap.end())
+        {
+          ignwarn << "DetachableJoint's parent link entity ["
+                  << _jointInfo->Data().parentLink << "] not found in link map."
+                  << std::endl;
+          return true;
+        }
+
+        auto childLinkPhysIt =
+            this->entityLinkMap.find(_jointInfo->Data().childLink);
+        if (childLinkPhysIt == this->entityLinkMap.end())
+        {
+          ignwarn << "DetachableJoint's child link entity ["
+                  << _jointInfo->Data().childLink << "] not found in link map."
+                  << std::endl;
+          return true;
+        }
+
+        const auto poseParent =
+            parentLinkPhysIt->second->FrameDataRelativeToWorld().pose;
+        const auto poseChild =
+            childLinkPhysIt->second->FrameDataRelativeToWorld().pose;
+
+        // Pose of child relative to parent
+        auto poseParentChild = poseParent.inverse() * poseChild;
+        auto jointPtrPhys =
+            childLinkPhysIt->second->AttachFixedJoint(parentLinkPhysIt->second);
+        if (jointPtrPhys.Valid())
+        {
+          // We let the joint be at the origin of the child link.
+          jointPtrPhys->SetTransformFromParent(poseParentChild);
+
+          igndbg << "Creating detachable joint [" << _entity << "]"
+                 << std::endl;
+          this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        }
+        else
+        {
+          ignwarn << "DetachableJoint could not be created." << std::endl;
+        }
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -632,6 +710,18 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           // Remove the model from the physics engine
           modelIt->second->Remove();
           this->entityModelMap.erase(_entity);
+        }
+        return true;
+      });
+
+  _ecm.EachRemoved<components::DetachableJoint>(
+      [&](const Entity &_entity, const components::DetachableJoint *) -> bool
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt != this->entityJointMap.end())
+        {
+          igndbg << "Detaching joint [" << _entity << "]" << std::endl;
+          jointIt->second->Detach();
         }
         return true;
       });
@@ -814,14 +904,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *,
           const components::WorldPoseCmd *_poseCmd)
       {
-        auto modelIt = this->entityModelMap.find(_entity);
-        if (modelIt == this->entityModelMap.end())
-          return true;
-
         // Get canonical link offset
         auto canonicalLink = _ecm.ChildrenByComponents(_entity,
             components::CanonicalLink());
         if (canonicalLink.empty())
+          return true;
+        auto canonicalLinkPhysIt = this->entityLinkMap.find(canonicalLink[0]);
+
+        if (canonicalLinkPhysIt == this->entityLinkMap.end())
           return true;
 
         auto canonicalPoseComp =
@@ -831,7 +921,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
-        auto freeGroup = modelIt->second->FindFreeGroup();
+        auto freeGroup = canonicalLinkPhysIt->second->FindFreeGroup();
         if (freeGroup)
         {
           freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
