@@ -34,6 +34,7 @@
 #include <ignition/physics/FindFeatures.hh>
 #include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
+#include <ignition/physics/RequestFeatures.hh>
 #include <ignition/plugin/Loader.hh>
 #include <ignition/plugin/PluginPtr.hh>
 #include <ignition/plugin/Register.hh>
@@ -120,7 +121,6 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
-          // FreeGroup
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
           ignition::physics::FreeGroupFrameSemantics,
@@ -134,10 +134,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointProperties,
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
-          ignition::physics::SetJointVelocityCommandFeature,
-          ignition::physics::sdf::ConstructSdfCollision,
-          ignition::physics::sdf::ConstructSdfJoint,
-          ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
@@ -325,9 +321,7 @@ void Physics::Configure(const Entity &_entity,
     return;
   }
 
-  auto classNames =
-      physics::FindFeatures3d<PhysicsPrivate::MinimumFeatureList>::From(
-      pluginLoader);
+  auto classNames = pluginLoader.AllPlugins();
   if (classNames.empty())
   {
     ignerr << "No plugins with all required features found in library ["
@@ -353,6 +347,19 @@ void Physics::Configure(const Entity &_entity,
              << pathToLib << "]" << std::endl;
       break;
     }
+
+    auto missingFeatures = ignition::physics::RequestEngine<
+        ignition::physics::FeaturePolicy3d,
+        PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
+
+    std::stringstream msg;
+    msg << "Plugin [" << className << "] misses required features:"
+        << std::endl;
+    for (auto feature : missingFeatures)
+    {
+      msg << "- " << feature << std::endl;
+    }
+    ignwarn << msg.str();
   }
 
   if (nullptr == this->dataPtr->engine)
@@ -662,9 +669,17 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointIt->second->SetForce(i, 0);
+
             // TODO(anyone): Only for diff drive, which does not use
             //   JointForceCmd. Remove when it does.
-            jointIt->second->SetVelocityCommand(i, 0);
+            auto jointVelFeature =
+                physics::RequestFeatures<
+                physics::FeatureList<
+                physics::SetJointVelocityCommandFeature>>::From(jointIt->second);
+            if (jointVelFeature)
+            {
+              jointVelFeature->SetVelocityCommand(i, 0);
+            }
           }
           return true;
         }
@@ -742,45 +757,49 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             jointIt->second->SetForce(i, force->Data()[i]);
           }
         }
-        else
+        // Only set joint velocity if joint force is not set.
+        // If both the cmd and reset components are found, cmd is ignored.
+        else if (velCmd)
         {
-          // Only set joint velocity if joint force is not set.
-          // If both the cmd and reset components are found, cmd is ignored.
-          if (velCmd)
+          auto velocityCmd = velCmd->Data();
+
+          if (velReset)
           {
-              auto velocityCmd = velCmd->Data();
+            ignwarn << "Found both JointVelocityReset and "
+                    << "JointVelocityCmd components for Joint ["
+                    << _name->Data() << "(Entity=" << _entity
+                    << "]). Ignoring JointVelocityCmd component."
+                    << std::endl;
+            return true;
+          }
 
-              if (velReset)
-              {
-                ignwarn << "Found both JointVelocityReset and "
-                        << "JointVelocityCmd components for Joint ["
-                        << _name->Data() << "(Entity=" << _entity
-                        << "]). Ignoring JointVelocityCmd component."
-                        << std::endl;
-              }
-              else
-              {
-                if (velocityCmd.size() !=
-                      jointIt->second->GetDegreesOfFreedom())
-                {
-                  ignwarn << "There is a mismatch in the degrees of freedom"
-                          << " between Joint [" << _name->Data()
-                          << "(Entity=" << _entity<< ")] and its "
-                          << "JointVelocityCmd component. The joint has "
-                          << jointIt->second->GetDegreesOfFreedom()
-                          << " while the component has "
-                          << velocityCmd.size() << ".\n";
-                  }
+          if (velocityCmd.size() != jointIt->second->GetDegreesOfFreedom())
+          {
+            ignwarn << "There is a mismatch in the degrees of freedom"
+                    << " between Joint [" << _name->Data()
+                    << "(Entity=" << _entity<< ")] and its "
+                    << "JointVelocityCmd component. The joint has "
+                    << jointIt->second->GetDegreesOfFreedom()
+                    << " while the component has "
+                    << velocityCmd.size() << ".\n";
+          }
 
-                  std::size_t nDofs = std::min(
-                    velocityCmd.size(),
-                    jointIt->second->GetDegreesOfFreedom());
+          auto jointVelFeature =
+              physics::RequestFeatures<
+              physics::FeatureList<
+              physics::SetJointVelocityCommandFeature>>::From(jointIt->second);
+          if (!jointVelFeature)
+          {
+            return true;
+          }
 
-                  for (std::size_t i = 0; i < nDofs; ++i)
-                  {
-                    jointIt->second->SetVelocityCommand(i, velocityCmd[i]);
-                  }
-              }
+          std::size_t nDofs = std::min(
+            velocityCmd.size(),
+            jointIt->second->GetDegreesOfFreedom());
+
+          for (std::size_t i = 0; i < nDofs; ++i)
+          {
+            jointVelFeature->SetVelocityCommand(i, velocityCmd[i]);
           }
         }
 
