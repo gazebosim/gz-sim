@@ -1158,6 +1158,12 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     ignition::rendering::WireBoxPtr wireBox =
       this->dataPtr->scene->CreateWireBox();
     ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
+    
+    // Transform bounding box from world to local
+    aabb.Min() -= vis->WorldPosition();
+    aabb.Max() -= vis->WorldPosition();
+    aabb.Min() /= vis->WorldScale();
+    aabb.Max() /= vis->WorldScale();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
@@ -1167,6 +1173,7 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     wireBoxVis->SetMaterial(gray);
     vis->AddChild(wireBoxVis);
 
+    // Add wire box to map for setting visibility
     this->dataPtr->wireBoxes.insert(
         std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
   }
