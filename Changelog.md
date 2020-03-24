@@ -5,6 +5,15 @@
 1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
     * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
 
+1. Update physics state even when paused (not stepping)
+    * [Pull Request 556](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/556)
+
+1. Fix entity tree context menu position
+    * [Pull Request 567](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/567)
+
+1. Fix moving static model with link offset
+    * [Pull Request 566](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/566)
+
 1. Add support for setting visual transparency through SDF
     * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
 

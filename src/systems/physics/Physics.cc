@@ -300,13 +300,13 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (this->dataPtr->engine)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
+    this->dataPtr->UpdatePhysics(_ecm);
     // Only step if not paused.
     if (!_info.paused)
     {
-      this->dataPtr->UpdatePhysics(_ecm);
       this->dataPtr->Step(_info.dt);
-      this->dataPtr->UpdateSim(_ecm);
     }
+    this->dataPtr->UpdateSim(_ecm);
 
     // Entities scheduled to be removed should be removed from physics after the
     // simulation step. Otherwise, since the to-be-removed entity still shows up
