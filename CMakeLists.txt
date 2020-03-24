@@ -28,6 +28,12 @@ else()
   add_definitions("-DIGN_PROFILER_ENABLE=0")
 endif()
 
+if (UNIX AND NOT APPLE)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+else()
+  set (EXTRA_TEST_LIB_DEPS)
+endif()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
@@ -53,12 +59,18 @@ set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events av)
+ign_find_package(ignition-common3 VERSION 3.4
+  COMPONENTS
+    profiler
+    events
+    av
+  REQUIRED
+)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools4 REQUIRED)
+ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.1)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
@@ -98,12 +110,13 @@ ign_find_package(ignition-sensors3 REQUIRED
     logical_camera
     magnetometer
     depth_camera
+    thermal_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering3 REQUIRED)
+ign_find_package(ignition-rendering3 REQUIRED VERSION 3.1)
 set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------

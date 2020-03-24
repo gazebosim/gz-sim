@@ -22,6 +22,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -785,6 +786,22 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
             plugin.EntityName())
         {
           entity = sensor;
+          break;
+        }
+      }
+    }
+    else if ("visual" == plugin.EntityType())
+    {
+      // TODO(anyone) Use scoped names for models and worlds too
+      auto visuals = this->entityCompMgr.EntitiesByComponents(
+          components::Visual());
+
+      for (auto visual : visuals)
+      {
+        if (scopedName(visual, this->entityCompMgr, "::", false) ==
+            plugin.EntityName())
+        {
+          entity = visual;
           break;
         }
       }
