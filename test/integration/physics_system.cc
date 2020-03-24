@@ -820,8 +820,10 @@ TEST_F(PhysicsSystemFixture, GetBoundingBox)
           if (_name->Data() == "box1")
           {
             auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
-            if (!bboxComp)
-              _ecm.CreateComponent(_entity, components::AxisAlignedBox());
+            // the test only runs for 1 iteration so the component should be
+            // null in the first iteration.
+            EXPECT_EQ(bboxComp, nullptr);
+            _ecm.CreateComponent(_entity, components::AxisAlignedBox());
             return true;
           }
           return true;
