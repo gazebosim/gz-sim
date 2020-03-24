@@ -431,7 +431,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // \todo(addisu) Create a convenient API for applying forces at offset
   // positions
   const auto totalTorque = torque + cpWorld.Cross(force);
-  Link link(linkEntity);
+  Link link(this->linkEntity);
   link.AddWorldWrench(_ecm, force, totalTorque);
 
   // Debug
