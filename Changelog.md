@@ -2,10 +2,12 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+### Ignition Gazebo 2.16.0 (2020-03-24)
+
 1. Add support for computing model bounding box in physics system
     * [Pull Request 546](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/546)
 
-1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
+1. Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
     * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
 
 1. Update physics state even when paused (not stepping)
@@ -22,6 +24,46 @@
 
 1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
     * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
+
+1. Logging meshes and materials
+    * [Pull Request 367](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/367)
+
+1. List plugin env vars
+    * [Pull Request 560](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/560)
+
+1. Fix protobuf / clang warnings
+    * [Pull Request 555](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/555)
+
+1. Component inspector
+    * [Pull Request 528](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/528)
+
+1. Log compress
+    * [Pull Request 500](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/500)
+
+1. Set process titles
+    * [Pull Request 530](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/530)
+
+1. Add custom user snapping
+    * [Pull Request 493](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/493)
+
+1. Add GUI to configure grid
+    * [Pull Request 507](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/507)
+
+1. Add multiple entity selection to view angle
+    * [Pull Request 531](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/531)
+
+1. Highlight selected entities
+    * [Pull Request 515](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/515)
+
+1. Log record overwrite
+    * [Pull Request 497](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/497)
+
+1. Add copyright to QML files
+    * [Pull Request 527](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/527)
+
+1. Fix shift translation bug
+    * [Pull Request 529](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/529)
+
 
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 
