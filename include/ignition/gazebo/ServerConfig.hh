@@ -270,6 +270,14 @@ namespace ignition
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
+      /// \brief Get whether meshes and material files are recorded
+      /// \return True if resources should be recorded.
+      public: bool LogRecordResources() const;
+
+      /// \brief Set whether meshes and material files are recorded
+      /// \param[in] _recordResources Value to set
+      public: void SetLogRecordResources(bool _recordResources);
+
       /// \brief Get file path to compress log files to
       /// \return File path to compress log files to
       public: std::string LogRecordCompressPath() const;
