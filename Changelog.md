@@ -2,13 +2,11 @@
 
 ### Ignition Gazebo 3.X.X
 
-1. Added Link::AddWorldWrench function that adds a wrench to a link.
-    * [Pull Request 509](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/509)
-
-### Ignition Gazebo 3.0.0 (2019-12-10)
-
 1. Added buoyancy system plugin.
     * [Pull Request 506](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/506)
+
+1. Added Link::AddWorldWrench function that adds a wrench to a link.
+    * [Pull Request 509](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/509)
 
 1. Fix duplicate marker services and crash due to unset marker field
     * [Pull Request 561](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/561)
