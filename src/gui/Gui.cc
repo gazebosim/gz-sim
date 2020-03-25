@@ -24,10 +24,10 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
+#include "Gui.hh"
 #include "GuiFileHandler.hh"
 
 namespace ignition
@@ -129,7 +129,7 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
   }
 
   if (!executed || !result || worldsMsg.data().empty())
-    return false;
+    return -1;
 
   std::vector<ignition::gazebo::GuiRunner *> runners;
 

@@ -56,8 +56,10 @@
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -187,6 +189,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       components::Static(_model->Static()));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::WindMode(_model->EnableWind()));
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
@@ -381,6 +385,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::Name(_visual->Name()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::CastShadows(_visual->CastShadows()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::Transparency(_visual->Transparency()));
 
   if (_visual->Geom())
   {

@@ -22,9 +22,8 @@
 // Include all components so they have first-class support
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
-
-#include "ignition/gazebo/gui/moc_GuiRunner.cpp"
-#include "ignition/gazebo/gui/moc_GuiSystem.cpp"
+#include "ignition/gazebo/gui/GuiRunner.hh"
+#include "ignition/gazebo/gui/GuiSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;

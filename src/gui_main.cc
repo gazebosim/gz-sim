@@ -29,7 +29,8 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Gui.hh"
+
+#include "gui/Gui.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.

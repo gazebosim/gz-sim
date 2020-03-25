@@ -19,9 +19,10 @@
 #include <ignition/common/Filesystem.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
+
+#include "gui/Gui.hh"
 #include "ign.hh"
 
 //////////////////////////////////////////////////
@@ -53,7 +54,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
-    int _logOverwrite, int _logCompress,
+    int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -71,7 +72,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   cmpPath += ".zip";
 
   // Initialize console log
-  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
+    _record > 0 || _recordResources > 0)
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -80,6 +82,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
 
     serverConfig.SetUseLogRecord(true);
+    serverConfig.SetLogRecordResources(_recordResources);
 
     // If a record path is specified
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
