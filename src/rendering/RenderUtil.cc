@@ -1158,10 +1158,13 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     ignition::rendering::WireBoxPtr wireBox =
       this->dataPtr->scene->CreateWireBox();
     ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
-    
+  
     // Transform bounding box from world to local
-    aabb.Min() -= vis->WorldPosition();
-    aabb.Max() -= vis->WorldPosition();
+    ignition::math::Pose3d worldPose = vis->WorldPose();
+    aabb.Min() -= worldPose.Pos();
+    aabb.Max() -= worldPose.Pos();
+    aabb.Min() = worldPose.Rot().Inverse() * aabb.Min();
+    aabb.Max() = worldPose.Rot().Inverse() * aabb.Max();
     aabb.Min() /= vis->WorldScale();
     aabb.Max() /= vis->WorldScale();
     wireBox->SetBox(aabb);
