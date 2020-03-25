@@ -143,7 +143,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   {
     ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
-  
+
   serverConfig.SetLogRecordPath(recordPathMod);
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL

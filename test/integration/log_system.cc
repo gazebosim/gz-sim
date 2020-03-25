@@ -384,10 +384,10 @@ TEST_F(LogSystemTest, LogPaths)
     "log_record_dbl_pendulum.sdf");
 
   // Test case 1:
-  // A path is specified in SDF.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
   // No path specified in C++ API.
-  // Should take SDF path. State log should be stored here. Console log is not
-  // initialized because ign.cc is not triggered.
+  // Should ignore SDF path. No default logging directory is initialized for
+  // state and console logs because ign.cc is not triggered.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -408,10 +408,11 @@ TEST_F(LogSystemTest, LogPaths)
     recordServer.Run(true, 200, false);
   }
 
-  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+  // Check state.tlog is no longer stored to path specified in SDF
+  EXPECT_FALSE(common::exists(common::joinPaths(this->logDir,
       "state.tlog")));
 #ifndef __APPLE__
-  EXPECT_EQ(1, entryCount(this->logDir));
+  EXPECT_EQ(0, entryCount(this->logDir));
 #endif
 
   // Remove artifacts. Recreate new directory
@@ -434,10 +435,10 @@ TEST_F(LogSystemTest, LogPaths)
 #endif
 
   // Test case 2:
-  // A path is specified in SDF.
-  // State log should be stored in SDF path.
-  // Console log should be stored to default timestamp path ignLogDirectory
-  // because ign.cc is triggered by command line.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // SDF path should be ignored.
+  // State log and console log should be stored to default timestamp path
+  // ignLogDirectory because ign.cc is triggered by command line.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -448,7 +449,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Save changed SDF to temporary file
     std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
       "with_record_path.sdf");
-    // TODO(anyone): Does this work on Apple?
     std::ofstream ofs(tmpRecordSdfPath);
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
@@ -463,11 +463,11 @@ TEST_F(LogSystemTest, LogPaths)
     std::cout << output << std::endl;
   }
 
-  // Check state.tlog is stored to path specified in SDF
-  EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
+  // Check state.tlog is no longer stored to path specified in SDF
+  EXPECT_FALSE(common::exists(common::joinPaths(this->logDir,
       "state.tlog")));
 #ifndef __APPLE__
-  EXPECT_EQ(1, entryCount(this->logDir));
+  EXPECT_EQ(0, entryCount(this->logDir));
 
   // Check the diff of list of files in directory, and assume there is
   // a single diff, it being the newly created log directory from the run above.
@@ -485,7 +485,9 @@ TEST_F(LogSystemTest, LogPaths)
   EXPECT_TRUE(common::exists(timestampPath));
   EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
       "server_console.log")));
-  EXPECT_EQ(1, entryCount(timestampPath));
+  EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
+      "state.tlog")));
+  EXPECT_EQ(2, entryCount(timestampPath));
 #endif
 
   // Remove artifacts. Recreate new directory
@@ -493,14 +495,11 @@ TEST_F(LogSystemTest, LogPaths)
   this->CreateLogsDir();
 
   // Test case 3:
-  // A path is specified in SDF.
-  // A different path is specified via C++ API.
-  // Should store state.tlog to SDF path. Console log is not initialized
-  // because ign.cc is not triggered.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // Empty path is specified via C++ API.
+  // Should ignore SDF path. No default logging directory is initialized for
+  // state and console logs because ign.cc is not triggered.
   std::string stateLogPath = this->logDir;
-
-  std::string consoleLogPath = common::joinPaths(this->logsDir, "console");
-  common::createDirectories(consoleLogPath);
 
   {
     // Change log path in SDF to build directory
@@ -525,12 +524,10 @@ TEST_F(LogSystemTest, LogPaths)
     // tlog-journal file
   }
 
-  EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
+  EXPECT_FALSE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
 #ifndef __APPLE__
-  EXPECT_EQ(1, entryCount(stateLogPath));
-  EXPECT_EQ(0, entryCount(consoleLogPath));
+  EXPECT_EQ(0, entryCount(stateLogPath));
 #endif
-  common::removeAll(consoleLogPath);
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();

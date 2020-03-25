@@ -202,20 +202,26 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
         {
           // If record plugin already specified in SDF, and record flags are
-          //   specified on command line, replace SDF parameters with those on
-          //   command line. (If none specified on command line, use those in
-          //   SDF.)
+          //   specified on command line, replace SDF path with the one on
+          //   command line.
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            std::string recordPath = ignLogDirectory();
-            return;
-          }
+            // If playback plugin also specified, do not add a record plugin
+            if (pluginName->GetAsString() ==
+                LoggingPlugin::PlaybackPluginName())
+            {
+              ignwarn << "Both record and playback are specified. "
+                << "Ignoring record.\n";
+              return;
+            }
 
-          // If playback plugin also specified, do not add a record plugin
-          if (pluginName->GetAsString() == LoggingPlugin::PlaybackPluginName())
-          {
-            ignwarn << "Both record and playback are specified. "
-              << "Ignoring record.\n";
+            // Add path to plugin
+            sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+            pathElem->SetName("path");
+            pluginElem->AddElementDescription(pathElem);
+            pathElem = pluginElem->GetElement("path");
+            pathElem->AddValue("string", "", false, "");
+            pathElem->Set<std::string>(_config.LogRecordPath());
             return;
           }
         }
