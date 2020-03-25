@@ -29,7 +29,7 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-ign_add_component(ign SOURCES cmd/ign.cc GET_TARGET_NAME ign_lib_target)
+ign_add_component(ign SOURCES ign.cc GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
   PRIVATE
     ${PROJECT_LIBRARY_TARGET_NAME}

@@ -17,7 +17,7 @@
 
 #include <ignition/common/Console.hh>
 
-#include "ignition/gazebo/gui/moc_TmpIface.cpp"
+#include "ignition/gazebo/gui/TmpIface.hh"
 
 using namespace ignition;
 using namespace gazebo;

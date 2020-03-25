@@ -23,10 +23,13 @@
 #include <string>
 #include <fstream>
 #include <ctime>
+#include <set>
+#include <list>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/SystemPaths.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/fuel_tools/Zip.hh>
 #include <ignition/msgs/Utility.hh>
@@ -35,14 +38,26 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 
+#include <sdf/Collision.hh>
+#include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Link.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
+#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
+#include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo::systems;
@@ -63,6 +78,26 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \return Path with extension appended to the end.
   public: std::string AppendExtension(const std::string &_dir,
     const std::string &_ext);
+
+  /// \brief Get whether the model meshes and materials are saved when
+  /// recording.
+  /// \return True if model meshes and materials are saved when recording.
+  public: bool RecordResources() const;
+
+  /// \brief Set whether to save model meshes and materials when recording.
+  /// \param[in] _record True to save model resources when recording.
+  public: void SetRecordResources(bool _record);
+
+  /// \brief Save model resources while recording a log, such as meshes
+  /// and textures.
+  /// \param[in] _ecm Reference to an instance of entity component manager
+  public: void LogModelResources(const EntityComponentManager &_ecm);
+
+  /// \brief Return true if all the models are saved successfully.
+  /// \param[in] _models List of absolute paths of model SDFs to save
+  /// \return True if all the models are saved successfully, and false if
+  /// there are errors saving the models.
+  public: bool SaveModels(const std::set<std::string> &_models);
 
   /// \brief Compress model resource files and state file into one file.
   public: void CompressStateAndResources();
@@ -112,8 +147,14 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Whether the SDF has already been published
   public: bool sdfPublished{false};
 
+  /// \brief Record with model resources
+  public: bool recordResources{false};
+
   /// \brief Compress log files at the end
   public: bool compress{false};
+
+  /// \brief List of saved models if record with resources is enabled.
+  public: std::set<std::string> savedModels;
 };
 
 bool LogRecordPrivate::started{false};
@@ -147,6 +188,7 @@ LogRecord::~LogRecord()
 
     if (this->dataPtr->compress)
       this->dataPtr->CompressStateAndResources();
+    this->dataPtr->savedModels.clear();
 
     ignmsg << "Stopping recording" << std::endl;
   }
@@ -160,6 +202,9 @@ void LogRecord::Configure(const Entity &_entity,
   this->dataPtr->sdf = _sdf;
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
+
+  this->dataPtr->SetRecordResources(_sdf->Get<bool>("record_resources",
+    false).first);
 
   this->dataPtr->compress = _sdf->Get<bool>("compress", false).first;
   this->dataPtr->cmpPath = _sdf->Get<std::string>("compress_path", "").first;
@@ -222,6 +267,11 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   LogRecordPrivate::started = true;
 
+  if (this->recordResources)
+  {
+    ignmsg << "Resources will be recorded\n";
+  }
+
   // Create log directory
   if (!common::exists(this->logPath))
   {
@@ -279,6 +329,249 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   }
   else
     return false;
+}
+
+//////////////////////////////////////////////////
+bool LogRecordPrivate::RecordResources() const
+{
+  return this->recordResources;
+}
+
+//////////////////////////////////////////////////
+void LogRecordPrivate::SetRecordResources(const bool _record)
+{
+  this->recordResources = _record;
+}
+
+//////////////////////////////////////////////////
+void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
+{
+  if (!this->recordResources)
+    return;
+
+  std::set<std::string> modelSdfPaths;
+
+  // Loop through geometries in world
+  _ecm.EachNew<components::Geometry>(
+      [&](const Entity &_entity,
+      const components::Geometry *_geoComp) -> bool
+  {
+    const sdf::Geometry &geoSdf = _geoComp->Data();
+    if (geoSdf.Type() == sdf::GeometryType::MESH)
+    {
+      // Geometry component is in visual or collision entity, which should have
+      // link as parent, which has model as parent.
+      Entity linkEntity = _ecm.ParentEntity(_entity);
+      if (linkEntity != kNullEntity)
+      {
+        Entity modelEntity = _ecm.ParentEntity(linkEntity);
+        if (modelEntity != kNullEntity)
+        {
+          if (_ecm.EntityHasComponentType(modelEntity,
+            components::SourceFilePath::typeId))
+          {
+            const auto *pathComp =
+              _ecm.Component<components::SourceFilePath>(modelEntity);
+
+            if (pathComp != nullptr)
+            {
+              const std::string & modelPath = pathComp->Data();
+              if (!modelPath.empty())
+              {
+                modelSdfPaths.insert(modelPath);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return true;
+  });
+
+  if (!this->SaveModels(modelSdfPaths))
+  {
+    ignwarn << "Failed to save model resources during logging\n";
+  }
+}
+
+//////////////////////////////////////////////////
+bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
+{
+  if (!this->recordResources)
+    return false;
+
+  if (_models.empty())
+    return true;
+
+  bool saveError = false;
+  std::set<std::string> diff;
+  std::set_difference(_models.begin(), _models.end(),
+      this->savedModels.begin(),
+      this->savedModels.end(),
+      std::inserter(diff, diff.begin()));
+
+  // Compare between _uri and _modelDir. If _modelDir is the prefix of _uri,
+  // then remove the prefix portion such that the new URI is a relative path
+  // with respect to _modelDir.
+  // Returns the relative URI wrt _modelDir, if _modelDir is a prefix of _uri.
+  auto convertToRelativePath = [&](const std::string &_uri,
+    const std::string &_modelDir) -> std::string
+  {
+    if (_uri.empty())
+      return _uri;
+
+    std::string rt = _uri;
+
+    const std::string prefix = "file://";
+    if (_uri.compare(0, prefix.length(), prefix) == 0)
+    {
+      // Strip prefix
+      rt = _uri.substr(prefix.length());
+    }
+
+    // If the URI is an absolute path
+    if (rt[0] == '/')
+    {
+      // If model directory is in the prefix of URI, then this is a valid URI
+      // pointing to a file inside the model directory.
+      if (rt.compare(0, _modelDir.length(), _modelDir) == 0)
+      {
+        // Convert to relative path by truncating the model directory
+        rt = rt.substr(_modelDir.length());
+
+        // Remove extra slashes in front, so this does not get misinterpreted
+        // as absolute path
+        while (rt[0] == '/')
+        {
+          rt = rt.substr(1);
+        }
+        rt = prefix + rt;
+      }
+      else
+      {
+        ignerr << "Saving resource files at URI pointing to outside the model "
+               << "directory is currently not supported [" << rt << "]"
+               << std::endl;
+        saveError = true;
+        return _uri;
+      }
+    }
+
+    return rt;
+  };
+
+  for (auto &file : diff)
+  {
+    if (file.empty())
+      continue;
+
+    this->savedModels.insert(file);
+
+    bool fileFound = false;
+    std::string prefix = "file://";
+    std::string fileName = file;
+
+    std::string modelPath;
+    if (fileName.compare(0, prefix.length(), prefix) == 0)
+    {
+      // Strip prefix
+      fileName = file.substr(prefix.length());
+    }
+
+    if (fileName[0] == '/')
+    {
+      // search in gazebo path
+      modelPath = common::findFile(fileName);
+      if (!modelPath.empty())
+      {
+        fileFound = true;
+      }
+    }
+
+    // Copy resource
+    // TODO(anyone): support shared resources. Currently, the entire model
+    // directory is copied, which ensures that meshes and textures in the
+    // model directory are copied.
+    if (fileFound)
+    {
+      std::string srcPath = common::parentPath(modelPath);
+      std::string destPath = common::joinPaths(this->logPath, srcPath);
+      std::string destModelPath = common::joinPaths(this->logPath, modelPath);
+
+      // Read model SDF
+      sdf::Root root;
+      root.Load(modelPath);
+
+      // Look for URIs in SDF and convert them to paths relative to the model
+      // directory
+      for (uint64_t mi = 0; mi < root.ModelCount(); mi++)
+      {
+        const sdf::Model *model = root.ModelByIndex(mi);
+        for (uint64_t li = 0; li < model->LinkCount(); li++)
+        {
+          const sdf::Link *link = model->LinkByIndex(li);
+          for (uint64_t ci = 0; ci < link->CollisionCount(); ci++)
+          {
+            const sdf::Collision *collision = link->CollisionByIndex(ci);
+            const sdf::Geometry *geometry = collision->Geom();
+            const sdf::Mesh *mesh = geometry->MeshShape();
+            if (mesh != nullptr)
+            {
+              // Replace path with relative path
+              std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
+              sdf::ElementPtr meshElem = mesh->Element();
+              if (meshElem->HasElement("uri"))
+              {
+                sdf::ElementPtr uriElem = meshElem->GetElement("uri");
+                uriElem->Set(relPath);
+              }
+            }
+          }
+          for (uint64_t vi = 0; vi < link->VisualCount(); vi++)
+          {
+            const sdf::Visual *visual = link->VisualByIndex(vi);
+            const sdf::Geometry *geometry = visual->Geom();
+            const sdf::Mesh *mesh = geometry->MeshShape();
+            if (mesh != nullptr)
+            {
+              // Replace path with relative path
+              std::string relPath = convertToRelativePath(mesh->Uri(), srcPath);
+              sdf::ElementPtr meshElem = mesh->Element();
+              if (meshElem->HasElement("uri"))
+              {
+                sdf::ElementPtr uriElem = meshElem->GetElement("uri");
+                uriElem->Set(relPath);
+              }
+            }
+          }
+        }
+      }
+
+      // Copy entire model directory
+      if (!common::createDirectories(destPath) ||
+          !common::copyDirectory(srcPath, destPath))
+      {
+        ignerr << "Failed to copy model directory from [" << srcPath
+               << "] to [" << destPath << "]" << std::endl;
+        saveError = true;
+      }
+      else
+      {
+        // Overwrite model SDF with newly generated SDF with relative paths
+        std::ofstream ofs(destModelPath);
+        ofs << root.Element()->ToString("").c_str();
+        ofs.close();
+      }
+    }
+    else
+    {
+      ignerr << "File: " << file << " not found!" << std::endl;
+      saveError = true;
+    }
+  }
+
+  return !saveError;
 }
 
 //////////////////////////////////////////////////
@@ -353,6 +646,10 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
   _ecm.ChangedState(stateMsg);
   if (!stateMsg.entities().empty())
     this->dataPtr->statePub.Publish(stateMsg);
+
+  // If there are new models loaded, save meshes and textures
+  if (this->dataPtr->RecordResources() && _ecm.HasNewEntities())
+    this->dataPtr->LogModelResources(_ecm);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,

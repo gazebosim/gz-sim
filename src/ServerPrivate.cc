@@ -269,6 +269,18 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               }
             }
 
+            // If resource flag specified on command line, replace in SDF
+            if (_config.LogRecordResources())
+            {
+              sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+              resourceElem->SetName("record_resources");
+              pluginElem->AddElementDescription(resourceElem);
+              resourceElem = pluginElem->GetElement("record_resources");
+              resourceElem->AddValue("bool", "false", false, "");
+              resourceElem->Set<bool>(_config.LogRecordResources()
+                ? true : false);
+            }
+
             // If compress flag specified on command line, replace in SDF
             if (!_config.LogRecordCompressPath().empty())
             {
@@ -321,6 +333,14 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(_config.LogRecordPath());
   }
+
+  // Set whether to record resources
+  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+  resourceElem->SetName("record_resources");
+  recordElem->AddElementDescription(resourceElem);
+  resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->AddValue("bool", "false", false, "");
+  resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
 
   // Set whether to compress
   sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();

@@ -36,8 +36,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// ign-tools. Set to nullptr if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
-  IGNITION_GAZEBO_VISIBLE int runGui(int _argc, char **_argv,
-                                     const char *_guiConfig);
+  int runGui(int _argc, char **_argv, const char *_guiConfig);
 }
 }  // namespace gui
 }  // namespace gazebo
