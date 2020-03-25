@@ -29,6 +29,7 @@
 #include <sdf/Visual.hh>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/Skeleton.hh>
 
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
@@ -164,8 +165,8 @@ class ignition::gazebo::RenderUtilPrivate
                           actorTransforms;
 
   /// \brief A map of entity ids and actor animation info.
-  public: std::map<Entity, AnimInfo>
-                          actorAnimationInfo;
+  public: std::map<Entity, AnimationUpdateData>
+                          actorAnimationData;
   public: std::string prevAnimName;
 
   /// \brief True to update skeletons manually using bone poses
@@ -257,7 +258,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
-  auto actorAnimationInfo= std::move(this->dataPtr->actorAnimationInfo);
+  auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -268,7 +269,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
-  this->dataPtr->actorAnimationInfo.clear();
+  this->dataPtr->actorAnimationData.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -431,41 +432,70 @@ void RenderUtil::Update()
     }
     else
     {
-      for (auto &it : actorAnimationInfo)
+      for (auto &it : actorAnimationData)
       {
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
         if (!actorMesh || !actorVisual)
           continue;
-        // actorMesh->UpdateSkeletonAnimation(it.second);
-        AnimInfo &info = it.second;
-        if (!info.valid)
+
+        AnimationUpdateData &animData = it.second;
+        if (!animData.valid)
         {
-          ignerr << "invalid animation info" << std::endl;
+          ignerr << "invalid animation update data" << std::endl;
           continue;
         }
-        // if (!actorMesh->SkeletonAnimationEnabled(info.name))
-        // {
-        //   // disable previous anim
-        //   if (!this->dataPtr->prevAnimName.empty())
-        //   {
-        //     actorMesh->SetSkeletonAnimationEnabled(this->dataPtr->prevAnimName,
-        //         false, false, 0.0);
-        //   }
-        //   // disable previous anim
-        //   // actorMesh->SetSkeletonAnimationEnabled(info.name, true, info.loop);
-        //   actorMesh->SetSkeletonAnimationEnabled(info.name, true, info.loop);
-        //   this->dataPtr->prevAnimName = info.name;
-        // }
-        // actorMesh->UpdateSkeletonAnimation(info.time);
+        // Enable skeleon animation
+        if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
+        {
+          // disable previous animation
+          if (!this->dataPtr->prevAnimName.empty())
+          {
+            actorMesh->SetSkeletonAnimationEnabled(this->dataPtr->prevAnimName,
+                false, false, 0.0);
+          }
+          // enable requested animation
+          actorMesh->SetSkeletonAnimationEnabled(
+              animData.animationName, true, animData.loop);
 
-        double timeSeconds = std::chrono::duration<double>(info.time).count();
-        std::cerr << "info: " << info.name <<  " " << timeSeconds << std::endl;
+          // Set skeleton root node weight to zero so it is not affected by
+          // the animation being played. This is needed if trajectory animation
+          // is enabled. We need to let the trajectory animation set the
+          // position of the actor instead
+          common::SkeletonPtr skeleton =
+              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
+          if (skeleton)
+          {
+            float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
+            std::map<std::string, float> weights;
+            weights[skeleton->RootNode()->Name()] = rootBoneWeight;
+            actorMesh->SetSkeletonWeights(weights);
+          }
 
+          this->dataPtr->prevAnimName = animData.animationName;
+        }
+        // update skeleton animation by setting animation time.
+        // Note that animation time is different from sim time. An actor can
+        // have multiple animations. Animation time is associated with
+        // current animation that is being played. should be played. It is also
+        // adjusted if interpotate_x is enabled
+        actorMesh->UpdateSkeletonAnimation(animData.time);
+
+        // manually update root transform in order to sync with trajectory
+        // animation
+        if (animData.followTrajectory)
+        {
+          common::SkeletonPtr skeleton =
+              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
+          std::map<std::string, math::Matrix4d> rootTf;
+          rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
+          actorMesh->SetSkeletonLocalTransforms(rootTf);
+        }
+
+        // update actor trajectory animation
         common::PoseKeyFrame poseFrame(0.0);
-        if (info.followTrajectory)
-          info.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
-
+        if (animData.followTrajectory)
+          animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
         math::Pose3d actorPose;
         actorPose.Pos() = poseFrame.Translation();
         actorPose.Rot() = poseFrame.Rotation();
@@ -851,12 +881,13 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         if (this->actorManualSkeletonUpdate)
         {
           this->actorTransforms[_entity] =
-                this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+              this->sceneManager.ActorSkeletonTransformsAt(
+              _entity, this->simTime);
         }
         else
         {
-          this->actorAnimationInfo[_entity] =
-                this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+          this->actorAnimationData[_entity] =
+              this->sceneManager.ActorAnimationAt(_entity, this->simTime);
         }
         return true;
       });
