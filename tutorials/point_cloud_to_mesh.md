@@ -8,7 +8,8 @@ This skill will allow you to turn raw point cloud data into mesh files you can t
 ## Prerequisites
 
 First, you’ll need to have a point cloud already imported.
-You can download the tunnel point cloud used in this tutorial [here](https://www.dropbox.com/s/gfwwrgj8ae8nucu/TutorialExample.zip?dl=0).
+You can download the tunnel point cloud used in this tutorial by clicking [this direct download link](https://ignition-tutorials.s3-us-west-1.amazonaws.com/ign-gazebo/point_cloud_to_mesh/TutorialExample.zip).
+The file is around 100MB; unzip it after downloading.
 
 Next, you’ll need to download CloudCompare.
 This is the software we will be using to convert our point cloud to a mesh.
