@@ -41,6 +41,7 @@ Image {
     // Other specific icons available
     if (entityType == 'collision' ||
         entityType == 'joint' ||
+        entityType == 'light' ||
         entityType == 'link' ||
         entityType == 'model')
     {
