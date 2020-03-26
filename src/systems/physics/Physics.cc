@@ -752,33 +752,13 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
-        LinkAttachPtrType childLinkAttachFeature;
-        auto linkAttachIt = this->entityLinkAttachMap.find(_entity);
-        if (linkAttachIt == this->entityLinkAttachMap.end())
+        auto childLinkAttachFeature = entityCast(_jointInfo->Data().childLink,
+            this->entityLinkMap, this->entityLinkAttachMap);
+        if (!childLinkAttachFeature)
         {
-          auto childLinkPhysIt =
-              this->entityLinkMap.find(_jointInfo->Data().childLink);
-          if (childLinkPhysIt == this->entityLinkMap.end())
-          {
-            ignwarn << "DetachableJoint's child link entity ["
-                    << _jointInfo->Data().childLink << "] not found in link map."
-                    << std::endl;
-            return true;
-          }
-
-          // Check if physics engine supports feature
-          childLinkAttachFeature =
-              physics::RequestFeatures<AttachFeatureList>::From(
-              childLinkPhysIt->second);
-          if (!childLinkAttachFeature)
-          {
-            ignwarn << "Can't process DetachableJoint component, physics engine "
-                    << "missing AttachFixedJointFeature" << std::endl;
-            return true;
-          }
-
-          this->entityLinkAttachMap.insert(std::make_pair(_entity,
-              childLinkAttachFeature));
+          ignwarn << "Can't process DetachableJoint component, physics engine "
+                  << "missing AttachFixedJointFeature" << std::endl;
+          return true;
         }
 
         // Check if the link entities exist in the physics engine
@@ -871,6 +851,12 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
       {
         auto castEntity = entityCast(_entity, this->entityJointMap,
             this->entityJointDetachMap);
+        if (!castEntity)
+        {
+          ignwarn << "Can't process DetachableJoint component, physics engine "
+                  << "missing DetachJointFeature" << std::endl;
+          return true;
+        }
 
         igndbg << "Detaching joint [" << _entity << "]" << std::endl;
         castEntity->Detach();
