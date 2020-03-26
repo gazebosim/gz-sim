@@ -35,7 +35,8 @@ namespace components
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisibilityFlags",
       VisibilityFlags)
 
-  /// \brief This component holds an entity's visibilty mask (camera entities)
+  /// \brief This component holds an entity's visibilty mask
+  /// (camera sensor entities)
   using VisibilityMask = Component<uint32_t, class VisibilityMaskTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisibilityMask",
       VisibilityMask)
