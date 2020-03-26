@@ -15,6 +15,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage battery "Battery": Keep track of battery charge on robot models
 * \subpage debugging "Debugging": Information about debugging Gazebo.
+* \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Ignition Fuel app.
 
 ## License
 

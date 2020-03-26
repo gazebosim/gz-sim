@@ -1,9 +1,9 @@
+\page meshtofuel
+
 # Importing a Mesh to Fuel
 
 This tutorial will explain how to import a mesh to the [Ignition Fuel](app.ignitionrobotics.org) web application.
 Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Ignition GUI.
-
-<!-- does the above sentence answer the question "Why would someone want to know how to do this" ? -->
 
 ## Prerequisites
 
@@ -17,8 +17,6 @@ To save time, we'll use this [Electrical Box model](https://app.ignitionrobotics
 
 ## Model Directory Structure
 
-<!-- this section probably belongs in a separate guide, not in ign-gazebo tutorials. only Fuel-specific addition is the thumbnails folder -->
-
 Fuel expects meshes to be contained inside model directories that follow a specific structure and format.
 Download and unzip the Electrical Box model mentioned above, and you should see the structure of its contents as follows:
 
@@ -26,7 +24,7 @@ Download and unzip the Electrical Box model mentioned above, and you should see 
 Electrical Box
 ├── materials               Directory for textures
     └── textures
-├── meshes                  Directory for COLLADA, STL files
+├── meshes                  Directory for COLLADA, STL, and Wavefront OBJ files
 ├── thumbnails              Directory for preview images
 ├── model.config            Meta data about the model
 └── model.sdf               SDF description of the model
@@ -140,7 +138,7 @@ You can always delete a model by clicking the "Edit model" button and then selec
 
 With your mesh successfully uploaded to Fuel, you can now easily include it in a world SDF file.
 
-Copy [this example world code]() into a text editor and save it as `import_mesh.sdf`. <!--link to raw import_mesh.sdf on bitbucket-->
+Copy [this example world code](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/default/examples/worlds/import_mesh.sdf) into a text editor and save it as `import_mesh.sdf`.
 This is a simple world SDF file, which you can learn more about on the [SDF website](http://sdformat.org/).
 
 Scroll all the way to the bottom of the file until you see the `include` tag section following the `<!-- mesh -->` comment line.
