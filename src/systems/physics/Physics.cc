@@ -56,7 +56,6 @@
 #include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
-#include <ignition/physics/sdf/ConstructVisual.hh>
 #include <ignition/physics/sdf/ConstructWorld.hh>
 
 // SDF
@@ -65,7 +64,6 @@
 #include <sdf/Link.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
-#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -106,7 +104,6 @@
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "Physics.hh"
@@ -143,7 +140,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
-          ignition::physics::sdf::ConstructSdfVisual,
           ignition::physics::sdf::ConstructSdfWorld
           >;
 
