@@ -129,7 +129,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// New features can't be added to this list in minor / patch releases, in
   /// order to maintain backwards compatibility with downstream physics plugins.
   public: using MinimumFeatureList = ignition::physics::FeatureList<
-          ignition::physics::SetJointTransformFromParentFeature,
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
           ignition::physics::FreeGroupFrameSemantics,
@@ -143,7 +142,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointProperties,
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
-          ignition::physics::GetModelBoundingBox,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -184,22 +182,28 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using FreeGroupPtrType = ignition::physics::FreeGroupPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
-  /// \brief Feature list for detachable links.
-  public: using AttachFeatureList = ignition::physics::FeatureList<
+  /// \brief Feature list to process `DetachableJoint` components.
+  public: using DetachableJointFeatureList = ignition::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::AttachFixedJointFeature>;
+            ignition::physics::AttachFixedJointFeature,
+            ignition::physics::DetachJointFeature,
+            ignition::physics::SetJointTransformFromParentFeature>;
 
-  /// \brief Link type with detach feature.
-  public: using LinkAttachPtrType = ignition::physics::LinkPtr<
-            ignition::physics::FeaturePolicy3d, AttachFeatureList>;
+  /// \brief Joint type with detachable joint features.
+  public: using JointDetachableJointPtrType = ignition::physics::JointPtr<
+            ignition::physics::FeaturePolicy3d, DetachableJointFeatureList>;
 
-  /// \brief Feature list for detachable joints.
-  public: using DetachFeatureList = ignition::physics::FeatureList<
-            ignition::physics::DetachJointFeature>;
+  /// \brief Link type with detachable joint features (links to attach to).
+  public: using LinkDetachableJointPtrType = ignition::physics::LinkPtr<
+            ignition::physics::FeaturePolicy3d, DetachableJointFeatureList>;
 
-  /// \brief Joint type with detach feature.
-  public: using JointDetachPtrType = ignition::physics::JointPtr<
-            ignition::physics::FeaturePolicy3d, DetachFeatureList>;
+  /// \brief Feature list for model bounding box.
+  public: using BoundingBoxFeatureList = ignition::physics::FeatureList<
+            ignition::physics::GetModelBoundingBox>;
+
+  /// \brief Model type with bounding box feature.
+  public: using ModelBoundingBoxPtrType = ignition::physics::ModelPtr<
+            ignition::physics::FeaturePolicy3d, BoundingBoxFeatureList>;
 
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -240,6 +244,13 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: std::unordered_map<Entity, ModelPtrType> entityModelMap;
 
+  /// \brief A map between model entity ids in the ECM to Model Entities in
+  /// ign-physics, with bounding box feature.
+  /// All models on this map are also in `entityModelMap`. The difference is
+  /// that here they've been casted for `physics::GetModelBoundingBoxFeature`.
+  public: std::unordered_map<Entity, ModelBoundingBoxPtrType>
+      entityModelBoundingBoxMap;
+
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
@@ -248,7 +259,8 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics, with attach feature.
   /// All links on this map are also in `entityLinkMap`. The difference is
   /// that here they've been casted for `physics::AttachFixedJointFeature`.
-  public: std::unordered_map<Entity, LinkAttachPtrType> entityLinkAttachMap;
+  public: std::unordered_map<Entity, LinkDetachableJointPtrType>
+      entityLinkDetachableJointMap;
 
   /// \brief A map between collision entity ids in the ECM to Shape Entities in
   /// ign-physics.
@@ -266,7 +278,8 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics, with detach feature.
   /// All joints on this map are also in `entityJointMap`. The difference is
   /// that here they've been casted for `physics::DetachJointFeature`.
-  public: std::unordered_map<Entity, JointDetachPtrType> entityJointDetachMap;
+  public: std::unordered_map<Entity, JointDetachableJointPtrType>
+      entityJointDetachableJointMap;
 
   /// \brief A map between model entity ids in the ECM to whether its battery
   /// has drained.
@@ -752,9 +765,10 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
-        auto childLinkAttachFeature = entityCast(_jointInfo->Data().childLink,
-            this->entityLinkMap, this->entityLinkAttachMap);
-        if (!childLinkAttachFeature)
+        auto childLinkDetachableJointFeature = entityCast(
+            _jointInfo->Data().childLink, this->entityLinkMap,
+            this->entityLinkDetachableJointMap);
+        if (!childLinkDetachableJointFeature)
         {
           ignwarn << "Can't process DetachableJoint component, physics engine "
                   << "missing AttachFixedJointFeature" << std::endl;
@@ -775,12 +789,12 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const auto poseParent =
             parentLinkPhysIt->second->FrameDataRelativeToWorld().pose;
         const auto poseChild =
-            childLinkAttachFeature->FrameDataRelativeToWorld().pose;
+            childLinkDetachableJointFeature->FrameDataRelativeToWorld().pose;
 
         // Pose of child relative to parent
         auto poseParentChild = poseParent.inverse() * poseChild;
-        auto jointPtrPhys =
-            childLinkAttachFeature->AttachFixedJoint(parentLinkPhysIt->second);
+        auto jointPtrPhys = childLinkDetachableJointFeature->AttachFixedJoint(
+            parentLinkPhysIt->second);
         if (jointPtrPhys.Valid())
         {
           // We let the joint be at the origin of the child link.
@@ -850,7 +864,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::DetachableJoint *) -> bool
       {
         auto castEntity = entityCast(_entity, this->entityJointMap,
-            this->entityJointDetachMap);
+            this->entityJointDetachableJointMap);
         if (!castEntity)
         {
           ignwarn << "Can't process DetachableJoint component, physics engine "
@@ -1120,12 +1134,17 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *,
           components::AxisAlignedBox *_bbox)
       {
-        auto modelIt = this->entityModelMap.find(_entity);
-        if (modelIt == this->entityModelMap.end())
+        auto bbModel = entityCast(_entity, this->entityModelMap,
+            this->entityModelBoundingBoxMap);
+        if (!bbModel)
+        {
+          ignwarn << "Can't process AxisAlignedBox component, physics engine "
+                  << "missing GetModelBoundingBox" << std::endl;
           return true;
+        }
 
         math::AxisAlignedBox bbox =
-            math::eigen3::convert(modelIt->second->GetAxisAlignedBoundingBox());
+            math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
         auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
             ComponentState::OneTimeChange :
             ComponentState::NoChange;
