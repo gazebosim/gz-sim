@@ -1147,31 +1147,32 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
 
   this->dataPtr->selectedEntities.push_back(entityId);
 
+  rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
+  gray->SetAmbient(0.7, 0.7, 0.7);
+  gray->SetDiffuse(0.7, 0.7, 0.7);
+  gray->SetSpecular(0.7, 0.7, 0.7);
   // If the entity is not found in the existing map, create a wire box
   if (this->dataPtr->wireBoxes.find(entityId) == this->dataPtr->wireBoxes.end())
   {
-    rendering::MaterialPtr gray = this->dataPtr->scene->CreateMaterial();
-    gray->SetAmbient(0.7, 0.7, 0.7);
-    gray->SetDiffuse(0.7, 0.7, 0.7);
-    gray->SetSpecular(0.7, 0.7, 0.7);
-
     ignition::rendering::WireBoxPtr wireBox =
       this->dataPtr->scene->CreateWireBox();
-    ignition::math::AxisAlignedBox aabb = vis->BoundingBox();
-  
+    ignition::math::AxisAlignedBox aabb;
+    ignition::math::AxisAlignedBox aabb2;
+    aabb = vis->LocalBoundingBox();
+    rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
+    ignition::rendering::VisualPtr v = this->dataPtr->scene->CreateVisual();
+    ignition::rendering::WireBoxPtr wireBox2 =
+      this->dataPtr->scene->CreateWireBox();
+    wireBox2->SetBox(aabb2);
+    wireBox2->SetMaterial(gray);
+
     // Transform bounding box from world to local
-    ignition::math::Pose3d worldPose = vis->WorldPose();
-    aabb.Min() -= worldPose.Pos();
-    aabb.Max() -= worldPose.Pos();
-    aabb.Min() = worldPose.Rot().Inverse() * aabb.Min();
-    aabb.Max() = worldPose.Rot().Inverse() * aabb.Max();
-    aabb.Min() /= vis->WorldScale();
-    aabb.Max() /= vis->WorldScale();
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
     ignition::rendering::VisualPtr wireBoxVis =
       this->dataPtr->scene->CreateVisual();
+    wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(gray);
     vis->AddChild(wireBoxVis);
