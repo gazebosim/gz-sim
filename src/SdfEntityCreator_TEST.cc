@@ -27,6 +27,7 @@
 
 #include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -42,6 +43,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -353,6 +355,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   // Check visuals
   unsigned int visualCount{0};
   this->ecm.Each<components::Visual,
+           components::Transparency,
+           components::CastShadows,
            components::Geometry,
            components::Material,
            components::Pose,
@@ -360,6 +364,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
            components::Name>(
     [&](const Entity &_entity,
         const components::Visual *_visual,
+        const components::Transparency *_transparency,
+        const components::CastShadows *_castShadows,
         const components::Geometry *_geometry,
         const components::Material *_material,
         const components::Pose *_pose,
@@ -367,6 +373,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         const components::Name *_name)->bool
     {
       EXPECT_NE(nullptr, _visual);
+      EXPECT_NE(nullptr, _transparency);
+      EXPECT_NE(nullptr, _castShadows);
       EXPECT_NE(nullptr, _geometry);
       EXPECT_NE(nullptr, _material);
       EXPECT_NE(nullptr, _pose);
@@ -384,6 +392,9 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
         EXPECT_EQ(boxLinkEntity, this->ecm.ParentEntity(_entity));
+
+        EXPECT_DOUBLE_EQ(0.0, _transparency->Data());
+        EXPECT_TRUE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -405,6 +416,9 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(cylLinkEntity, _parent->Data());
         EXPECT_EQ(cylLinkEntity, this->ecm.ParentEntity(_entity));
 
+        EXPECT_DOUBLE_EQ(0.0, _transparency->Data());
+        EXPECT_TRUE(_castShadows->Data());
+
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
         EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
@@ -424,6 +438,9 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
+
+        EXPECT_DOUBLE_EQ(0.5, _transparency->Data());
+        EXPECT_FALSE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());

@@ -686,4 +686,29 @@ TEST_F(UserCommandsTest, Pose)
   poseComp = ecm->Component<components::Pose>(sphereEntity);
   ASSERT_NE(nullptr, poseComp);
   EXPECT_NEAR(0.0, poseComp->Data().Pos().Y(), 0.2);
+
+  // Entities move even when paused
+  req.Clear();
+  req.set_id(boxEntity);
+  req.mutable_position()->set_y(500.0);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Check entity has not been moved yet
+  poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(456.0, poseComp->Data().Pos().Y(), 0.2);
+
+  // Run an iteration while in the paused state and check it was moved
+  // Note: server.Run(true, 1, true) does not return so we have to use the async
+  // Run function
+  server.Run(false, 1, true);
+
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(500.0, poseComp->Data().Pos().Y(), 0.2);
 }
