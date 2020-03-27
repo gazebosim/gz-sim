@@ -45,33 +45,33 @@ Rectangle {
     return !(isModel || isLight)
   }
 
-  // X value
-  property double xValue: model.data[0]
+  // Loaded item for X
+  property var xItem: {}
 
-  // Y value
-  property double yValue: model.data[1]
+  // Loaded item for Y
+  property var yItem: {}
 
-  // Z value
-  property double zValue: model.data[2]
+  // Loaded item for Z
+  property var zItem: {}
 
-  // Roll value
-  property double rollValue: model.data[3]
+  // Loaded item for roll
+  property var rollItem: {}
 
-  // Pitch value
-  property double pitchValue: model.data[4]
+  // Loaded item for pitch
+  property var pitchItem: {}
 
-  // Yaw value
-  property double yawValue: model.data[5]
+  // Loaded item for yaw
+  property var yawItem: {}
 
   // Send new pose to C++
-  function sendPose(_element, _value) {
+  function sendPose() {
     componentInspector.onPose(
-      xValue,
-      yValue,
-      zValue,
-      rollValue,
-      pitchValue,
-      yawValue
+      xItem.value,
+      yItem.value,
+      zItem.value,
+      rollItem.value,
+      pitchItem.value,
+      yawItem.value
     );
   }
 
@@ -82,29 +82,11 @@ Rectangle {
     id: writableNumber
     IgnSpinBox {
       id: writableSpin
-      value: numberValue
+      value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
       decimals: writableSpin.width < 100 ? 2 : 6
       onEditingFinished: {
-        if (element == 'X') {
-          xValue = value
-        }
-        else if (element == 'Y') {
-          yValue = value
-        }
-        else if (element == 'Z') {
-          zValue = value
-        }
-        else if (element == 'Roll') {
-          rollValue = value
-        }
-        else if (element == 'Pitch') {
-          pitchValue = value
-        }
-        else if (element == 'Yaw') {
-          yawValue = value
-        }
         sendPose()
       }
     }
@@ -212,10 +194,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: xLoader
             anchors.fill: parent
             property double numberValue: model.data[0]
-            property string element: 'X'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              xItem = xLoader.item
+            }
           }
         }
 
@@ -230,10 +215,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: rollLoader
             anchors.fill: parent
             property double numberValue: model.data[3]
-            property string element: 'Roll'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              rollItem = rollLoader.item
+            }
           }
         }
 
@@ -254,10 +242,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: yLoader
             anchors.fill: parent
             property double numberValue: model.data[1]
-            property string element: 'Y'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              yItem = yLoader.item
+            }
           }
         }
 
@@ -272,10 +263,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: pitchLoader
             anchors.fill: parent
             property double numberValue: model.data[4]
-            property string element: 'Pitch'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              pitchItem = pitchLoader.item
+            }
           }
         }
 
@@ -290,10 +284,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: zLoader
             anchors.fill: parent
             property double numberValue: model.data[2]
-            property string element: 'Z'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              zItem = zLoader.item
+            }
           }
         }
 
@@ -308,10 +305,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: yawLoader
             anchors.fill: parent
             property double numberValue: model.data[5]
-            property string element: 'Yaw'
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              yawItem = yawLoader.item
+            }
           }
         }
       }
