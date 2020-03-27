@@ -278,10 +278,30 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetMetalness(1.0);
       }
     }
-    // TODO(anyone) set transparency)
-    // material->SetTransparency(_visual.Transparency());
+    else
+    {
+      // meshes created by mesh loader may have their own materials
+      // update/override their properties based on input sdf element values
+      auto mesh = std::dynamic_pointer_cast<rendering::Mesh>(geom);
+      for (unsigned int i = 0; i < mesh->SubMeshCount(); ++i)
+      {
+        auto submesh = mesh->SubMeshByIndex(i);
+        auto submeshMat = submesh->Material();
+        if (submeshMat)
+        {
+          double productAlpha = (1.0-_visual.Transparency()) *
+              (1.0 - submeshMat->Transparency());
+          submeshMat->SetTransparency(1 - productAlpha);
+          submeshMat->SetCastShadows(_visual.CastShadows());
+        }
+      }
+    }
+
     if (material)
     {
+      // set transparency
+      material->SetTransparency(_visual.Transparency());
+
       // cast shadows
       material->SetCastShadows(_visual.CastShadows());
 
