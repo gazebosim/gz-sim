@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo2 VERSION 2.15.0)
+project(ignition-gazebo2 VERSION 2.16.0)
 
 #============================================================================
 # Find ignition-cmake
