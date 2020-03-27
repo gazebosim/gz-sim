@@ -249,6 +249,7 @@ ToolBar {
       }
     }
     */
+
     ToolButton {
       id: snap
       text: "N"
