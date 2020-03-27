@@ -196,8 +196,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm, _info);
-  if (_info.dt != std::chrono::steady_clock::duration::zero())
-    this->dataPtr->UpdateRenderingEntities(_ecm);
+  this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
 }
 
