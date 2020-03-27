@@ -1140,12 +1140,10 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
       "server_console.log")));
   EXPECT_EQ(1, entryCount(timestampPath));
-#endif
 
   // Cleanup
   common::removeFile(tmpRecordSdfPath);
   common::removeAll(homeFake);
-#ifndef __APPLE__
   common::removeAll(timestampPath);
 
   // Revert environment variable after test is done
