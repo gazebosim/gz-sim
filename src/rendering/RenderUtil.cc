@@ -1158,9 +1158,8 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     ignition::rendering::WireBoxPtr wireBox =
       this->dataPtr->scene->CreateWireBox();
     ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
-
-    // Transform bounding box from world to local
     wireBox->SetBox(aabb);
+
     // Create visual and add wire box
     ignition::rendering::VisualPtr wireBoxVis =
       this->dataPtr->scene->CreateVisual();
