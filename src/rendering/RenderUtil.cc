@@ -1172,7 +1172,7 @@ void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
     // Create visual and add wire box
     ignition::rendering::VisualPtr wireBoxVis =
       this->dataPtr->scene->CreateVisual();
-    wireBoxVis->SetInheritScale(false);
+    //wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(gray);
     vis->AddChild(wireBoxVis);
