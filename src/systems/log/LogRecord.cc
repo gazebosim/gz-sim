@@ -28,6 +28,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/fuel_tools/Zip.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -51,8 +52,20 @@ class ignition::gazebo::systems::LogRecordPrivate
 {
   /// \brief Start recording
   /// \param[in] _logPath Path to record to.
+  /// \param[in] _cmpPath Path to compress recorded files to.
   /// \return True if any recorder has been started successfully.
-  public: bool Start(const std::string &_logPath = std::string(""));
+  public: bool Start(const std::string &_logPath = std::string(""),
+    const std::string &_cmpPath = std::string(""));
+
+  /// \brief Append an extension to the end of a directory path.
+  /// \param[in] _dir Path of a directory
+  /// \param[in] _ext Extension to append, starting with "."
+  /// \return Path with extension appended to the end.
+  public: std::string AppendExtension(const std::string &_dir,
+    const std::string &_ext);
+
+  /// \brief Compress model resource files and state file into one file.
+  public: void CompressStateAndResources();
 
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
@@ -67,6 +80,9 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Directory in which to place log file
   public: std::string logPath{""};
+
+  /// \brief File path to write compressed file
+  public: std::string cmpPath{""};
 
   /// \brief Clock used to timestamp recorded messages with sim time.
   /// This is not the timestamp on the header, rather a logging-specific stamp.
@@ -95,9 +111,25 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Whether the SDF has already been published
   public: bool sdfPublished{false};
+
+  /// \brief Compress log files at the end
+  public: bool compress{false};
 };
 
 bool LogRecordPrivate::started{false};
+
+//////////////////////////////////////////////////
+std::string LogRecordPrivate::AppendExtension(const std::string &_dir,
+  const std::string &_ext)
+{
+  std::string rv = std::string(_dir);
+  size_t sepIdx = _dir.find_last_of(common::separator(""));
+  // Remove the separator at end of path
+  if (sepIdx == _dir.length() - 1)
+    rv = _dir.substr(0, _dir.length() - 1);
+  rv += _ext;
+  return rv;
+}
 
 //////////////////////////////////////////////////
 LogRecord::LogRecord()
@@ -113,6 +145,9 @@ LogRecord::~LogRecord()
     // Use ign-transport directly
     this->dataPtr->recorder.Stop();
 
+    if (this->dataPtr->compress)
+      this->dataPtr->CompressStateAndResources();
+
     ignmsg << "Stopping recording" << std::endl;
   }
 }
@@ -125,6 +160,9 @@ void LogRecord::Configure(const Entity &_entity,
   this->dataPtr->sdf = _sdf;
 
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
+
+  this->dataPtr->compress = _sdf->Get<bool>("compress", false).first;
+  this->dataPtr->cmpPath = _sdf->Get<std::string>("compress_path", "").first;
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
@@ -139,7 +177,7 @@ void LogRecord::Configure(const Entity &_entity,
       logPath = ignLogDirectory();
     }
 
-    this->dataPtr->Start(logPath);
+    this->dataPtr->Start(logPath, this->dataPtr->cmpPath);
   }
   else
   {
@@ -149,7 +187,8 @@ void LogRecord::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-bool LogRecordPrivate::Start(const std::string &_logPath)
+bool LogRecordPrivate::Start(const std::string &_logPath,
+  const std::string &_cmpPath)
 {
   // Only start one recorder instance
   if (LogRecordPrivate::started)
@@ -160,6 +199,15 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   }
 
   this->logPath = _logPath;
+
+  // Define path for compressed file
+  if (_cmpPath.empty())
+    // This case happens if plugin is enabled only from SDF and no command
+    //   line arguments enable recording plugin. Then compress path is not
+    //   set from Server.
+    this->cmpPath = this->AppendExtension(this->logPath, ".zip");
+  else
+    this->cmpPath = _cmpPath;
 
   // The ServerConfig takes care of specifying a default log record path.
   // This if-statement is reached if the record plugin is only specified in
@@ -231,6 +279,32 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   }
   else
     return false;
+}
+
+//////////////////////////////////////////////////
+void LogRecordPrivate::CompressStateAndResources()
+{
+  if (common::exists(this->cmpPath))
+  {
+    ignmsg << "Removing existing file [" << this->cmpPath << "].\n";
+    common::removeFile(this->cmpPath);
+  }
+
+  // Compress directory
+  if (fuel_tools::Zip::Compress(this->logPath, this->cmpPath))
+  {
+    ignmsg << "Compressed log file and resources to [" << this->cmpPath
+           << "].\nRemoving recorded directory [" << this->logPath << "]."
+           << std::endl;
+    // Remove directory after compressing successfully
+    common::removeAll(this->logPath);
+  }
+  else
+  {
+    ignerr << "Failed to compress log file and resources to ["
+           << this->cmpPath << "]. Keeping recorded directory ["
+           << this->logPath << "]." << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////

@@ -263,6 +263,14 @@ namespace ignition
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
+      /// \brief Get file path to compress log files to
+      /// \return File path to compress log files to
+      public: std::string LogRecordCompressPath() const;
+
+      /// \brief Set file path to compress log files to
+      /// \param[in] _path File path to compress log files to
+      public: void SetLogRecordCompressPath(const std::string &_path);
+
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
       public: unsigned int Seed() const;
