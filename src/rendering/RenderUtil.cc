@@ -167,7 +167,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and actor animation info.
   public: std::map<Entity, AnimationUpdateData>
                           actorAnimationData;
-  public: std::string prevAnimName;
+
+  /// \brief Name of skeleton animation that is currently playing
+  public: std::string skelAnimName;
 
   /// \brief True to update skeletons manually using bone poses
   /// (see actorTransforms). False to let render engine update animation
@@ -445,13 +447,13 @@ void RenderUtil::Update()
           ignerr << "invalid animation update data" << std::endl;
           continue;
         }
-        // Enable skeleon animation
+        // Enable skeleton animation
         if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
         {
-          // disable previous animation
-          if (!this->dataPtr->prevAnimName.empty())
+          // disable current animation
+          if (!this->dataPtr->skelAnimName.empty())
           {
-            actorMesh->SetSkeletonAnimationEnabled(this->dataPtr->prevAnimName,
+            actorMesh->SetSkeletonAnimationEnabled(this->dataPtr->skelAnimName,
                 false, false, 0.0);
           }
           // enable requested animation
@@ -472,7 +474,7 @@ void RenderUtil::Update()
             actorMesh->SetSkeletonWeights(weights);
           }
 
-          this->dataPtr->prevAnimName = animData.animationName;
+          this->dataPtr->skelAnimName= animData.animationName;
         }
         // update skeleton animation by setting animation time.
         // Note that animation time is different from sim time. An actor can

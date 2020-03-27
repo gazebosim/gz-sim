@@ -80,6 +80,8 @@ class ignition::gazebo::SceneManagerPrivate
   /// \brief Helper function to compute actor trajectory at specified tiime
   /// \param[in] _id Actor entity's unique id
   /// \param[in] _time Simulation time
+  /// \return AnimationUpdateData with trajectory related fields filled. It
+  /// also sets the time point in which the animation should be played
   public: AnimationUpdateData ActorTrajectoryAt(
       Entity _id, const std::chrono::steady_clock::duration &_time) const;
 };
@@ -532,14 +534,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-//  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
-//  if (nullptr == actorMesh)
-//  {
-//    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
-//           << std::endl;
-//    return rendering::VisualPtr();
-//  }
-
   unsigned int numAnims = 0;
   std::map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
@@ -865,14 +859,6 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 }
 
 /////////////////////////////////////////////////
-// bool SceneManager::CorrectTime(
-//     const std::vector<common::TrajectoryInfo> &_trajs,
-//     std::chrono::steady_clock::duration &_time) const
-// {
-//
-// }
-
-/////////////////////////////////////////////////
 common::SkeletonPtr SceneManager::ActorSkeletonById(Entity _id) const
 {
   auto it = this->dataPtr->actorSkeletons.find(_id);
@@ -914,6 +900,11 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
     }
     else
     {
+      // logic here is mostly taken from
+      // common::SkeletonAnimation::PoseAtX
+      // We should consider refactoring part of that function to return
+      // PoseAtX for only one skeleton node in addition to the current
+      // function that computes PoseAtX for all skeleton nodes
       common::NodeAnimation *rootNode =
           skel->Animation(animIndex)->NodeAnimationByName(rootNodeName);
       math::Matrix4d lastPos = rootNode->KeyFrame(
@@ -927,7 +918,14 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
         x = lastX;
       while (x > lastX)
         x -= lastX;
+
+      // update animation timepoint for root node
+      // this should be the time that is used in the
+      // SkeletonAnimationEnabled call
       double time = rootNode->TimeAtX(x);
+
+      // get raw skeleton transform for root node. Needed to keep skeleton
+      // animation in sync with trajectory animation
       rawFrame = rootNode->FrameAt(time, animData.loop);
       animData.time = std::chrono::duration_cast<
         std::chrono::steady_clock::duration>(
@@ -937,6 +935,8 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
     math::Matrix4d skinTf = skel->AlignTranslation(animIndex, rootNodeName)
             * rawFrame * skel->AlignRotation(animIndex, rootNodeName);
 
+    // zero out translation since we only need rotation to sync with actor
+    // trajectory animation
     skinTf.SetTranslation(math::Vector3d::Zero);
     animData.rootTransform = skinTf;
   }
