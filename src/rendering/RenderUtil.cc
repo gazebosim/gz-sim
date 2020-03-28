@@ -165,8 +165,7 @@ class ignition::gazebo::RenderUtilPrivate
                           actorTransforms;
 
   /// \brief A map of entity ids and actor animation info.
-  public: std::map<Entity, AnimationUpdateData>
-                          actorAnimationData;
+  public: std::map<Entity, AnimationUpdateData> actorAnimationData;
 
   /// \brief Name of skeleton animation that is currently playing
   public: std::string skelAnimName;
