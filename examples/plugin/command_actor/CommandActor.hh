@@ -53,7 +53,7 @@ namespace command_actor
     /// set.
     private: std::map<int, ignition::math::Pose3d> origins;
 
-    /// \brief Trajecotry poses to change, where the key is the number of
+    /// \brief Trajectory poses to change, where the key is the number of
     /// seconds from beginning of simulation, and the value is the new
     /// trajectory pose to set.
     private: std::map<int, ignition::math::Pose3d> trajPoses;

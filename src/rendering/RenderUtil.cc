@@ -15,7 +15,7 @@
  *
  */
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <sdf/Element.hh>
@@ -154,17 +154,17 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
-  public: std::map<Entity, uint64_t> removeEntities;
+  public: std::unordered_map<Entity, uint64_t> removeEntities;
 
-  /// \brief A map of entity ids and pose updates.
-  public: std::map<Entity, math::Pose3d> entityPoses;
+  /// \brief A unordered_map of entity ids and pose updates.
+  public: std::unordered_map<Entity, math::Pose3d> entityPoses;
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
   /// \brief A map of entity ids and trajectory pose updates.
-  public: std::map<Entity, math::Pose3d> trajectoryPoses;
+  public: std::unordered_map<Entity, math::Pose3d> trajectoryPoses;
 
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
