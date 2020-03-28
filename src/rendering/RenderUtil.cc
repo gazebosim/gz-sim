@@ -494,7 +494,7 @@ void RenderUtil::Update()
             actorMesh->SetSkeletonWeights(weights);
           }
 
-          this->dataPtr->skelAnimName= animData.animationName;
+          this->dataPtr->skelAnimName = animData.animationName;
         }
         // update skeleton animation by setting animation time.
         // Note that animation time is different from sim time. An actor can
