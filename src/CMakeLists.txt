@@ -123,6 +123,7 @@ ign_build_tests(TYPE UNIT
     ${gtest_sources}
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
+    ${EXTRA_TEST_LIB_DEPS}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
 

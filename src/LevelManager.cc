@@ -16,6 +16,7 @@
  */
 
 #include <sdf/Actor.hh>
+#include <sdf/Atmosphere.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
@@ -26,6 +27,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ignition/gazebo/components/Actor.hh"
+#include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Level.hh"
@@ -111,6 +113,13 @@ void LevelManager::ReadLevelPerformerInfo()
   {
     this->runner->entityCompMgr.CreateComponent(this->worldEntity,
         components::Scene(*this->runner->sdfWorld->Scene()));
+  }
+
+  // atmosphere
+  if (this->runner->sdfWorld->Atmosphere())
+  {
+    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+        components::Atmosphere(*this->runner->sdfWorld->Atmosphere()));
   }
 
   // TODO(anyone) This should probably go somewhere else as it is a global
@@ -606,6 +615,9 @@ void LevelManager::UpdateLevelsState()
           });
   }
 
+  // Sort levelsToLoad and levelsToUnload so as to run std::unique on them.
+  std::sort(levelsToLoad.begin(), levelsToLoad.end());
+  std::sort(levelsToUnload.begin(), levelsToUnload.end());
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());
