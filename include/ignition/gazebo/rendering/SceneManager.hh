@@ -179,7 +179,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Entity's unique id
     /// \param[in] _time Simulation time
     /// \return Map from the skeleton node name to transforms
-    public: std::map<std::string, math::Matrix4d> ActorMeshAnimationAt(
+    public: std::map<std::string, math::Matrix4d> IGN_DEPRECATED(4.0)
+        ActorMeshAnimationAt(
         Entity _id, std::chrono::steady_clock::duration _time) const;
 
     /// \brief Get the skeleton local transforms of actor mesh given an id.
