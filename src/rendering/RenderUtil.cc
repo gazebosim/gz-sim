@@ -15,7 +15,7 @@
  *
  */
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <sdf/Element.hh>
@@ -155,17 +155,20 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
-  public: std::map<Entity, uint64_t> removeEntities;
+  public: std::unordered_map<Entity, uint64_t> removeEntities;
 
-  /// \brief A map of entity ids and pose updates.
-  public: std::map<Entity, math::Pose3d> entityPoses;
+  /// \brief A unordered_map of entity ids and pose updates.
+  public: std::unordered_map<Entity, math::Pose3d> entityPoses;
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
+  /// \brief A map of entity ids and trajectory pose updates.
+  public: std::unordered_map<Entity, math::Pose3d> trajectoryPoses;
+
   /// \brief A map of entity ids and actor animation info.
-  public: std::map<Entity, AnimationUpdateData> actorAnimationData;
+  public: std::unordered_map<Entity, AnimationUpdateData> actorAnimationData;
 
   /// \brief Name of skeleton animation that is currently playing
   public: std::string skelAnimName;
@@ -258,6 +261,7 @@ void RenderUtil::Update()
   auto newLights = std::move(this->dataPtr->newLights);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
 
@@ -269,6 +273,7 @@ void RenderUtil::Update()
   this->dataPtr->newLights.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
 
@@ -395,7 +400,7 @@ void RenderUtil::Update()
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
-    for (auto &pose : entityPoses)
+    for (const auto &pose : entityPoses)
     {
       auto node = this->dataPtr->sceneManager.NodeById(pose.first);
       if (!node)
@@ -422,10 +427,26 @@ void RenderUtil::Update()
         if (!actorMesh || !actorVisual)
           continue;
 
-        math::Pose3d actorPose;
-        actorPose.Pos() = tf.second["actorPose"].Translation();
-        actorPose.Rot() = tf.second["actorPose"].Rotation();
-        actorVisual->SetLocalPose(actorPose);
+        math::Pose3d globalPose;
+        if (entityPoses.find(tf.first) != entityPoses.end())
+        {
+          globalPose = entityPoses[tf.first];
+        }
+
+        math::Pose3d trajPose;
+        // Trajectory from the ECS
+        if (trajectoryPoses.find(tf.first) != trajectoryPoses.end())
+        {
+          trajPose = trajectoryPoses[tf.first];
+        }
+        // Trajectory from the SDF script
+        else
+        {
+          trajPose.Pos() = tf.second["actorPose"].Translation();
+          trajPose.Rot() = tf.second["actorPose"].Rotation();
+        }
+
+        actorVisual->SetLocalPose(trajPose + globalPose);
 
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -494,13 +515,29 @@ void RenderUtil::Update()
         }
 
         // update actor trajectory animation
-        common::PoseKeyFrame poseFrame(0.0);
-        if (animData.followTrajectory)
-          animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
-        math::Pose3d actorPose;
-        actorPose.Pos() = poseFrame.Translation();
-        actorPose.Rot() = poseFrame.Rotation();
-        actorVisual->SetLocalPose(actorPose);
+        math::Pose3d globalPose;
+        if (entityPoses.find(it.first) != entityPoses.end())
+        {
+          globalPose = entityPoses[it.first];
+        }
+
+        math::Pose3d trajPose;
+        // Trajectory from the ECS
+        if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
+        {
+          trajPose = trajectoryPoses[it.first];
+        }
+        else
+        {
+          // trajectory from sdf script
+          common::PoseKeyFrame poseFrame(0.0);
+          if (animData.followTrajectory)
+            animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
+          trajPose.Pos() = poseFrame.Translation();
+          trajPose.Rot() = poseFrame.Rotation();
+        }
+
+        actorVisual->SetLocalPose(trajPose + globalPose);
       }
     }
   }
@@ -874,13 +911,14 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   _ecm.Each<components::Actor, components::Pose>(
       [&](const Entity &_entity,
         const components::Actor *,
-        const components::Pose *)->bool
+        const components::Pose *_pose)->bool
       {
-        // TODO(anyone) Support setting actor pose from other systems
-        // this->entityPoses[_entity] = _pose->Data();
+        // Trajectory origin
+        this->entityPoses[_entity] = _pose->Data();
 
         if (this->actorManualSkeletonUpdate)
         {
+          // Bone poses calculated by ign-common
           this->actorTransforms[_entity] =
               this->sceneManager.ActorSkeletonTransformsAt(
               _entity, this->simTime);
@@ -890,6 +928,11 @@ void RenderUtilPrivate::UpdateRenderingEntities(
           this->actorAnimationData[_entity] =
               this->sceneManager.ActorAnimationAt(_entity, this->simTime);
         }
+
+        // Trajectory pose set by other systems
+        auto trajPoseComp = _ecm.Component<components::TrajectoryPose>(_entity);
+        if (trajPoseComp)
+          this->trajectoryPoses[_entity] = trajPoseComp->Data();
         return true;
       });
 

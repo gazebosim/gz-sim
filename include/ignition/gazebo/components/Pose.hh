@@ -40,6 +40,12 @@ namespace components
   using WorldPose = Component<ignition::math::Pose3d, class WorldPoseTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.WorldPose", WorldPose)
+
+  /// \brief A component type that contains pose, ignition::math::Pose3d,
+  /// information within a trajectory.
+  using TrajectoryPose = Component<ignition::math::Pose3d, class TrajectoryPoseTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.TrajectoryPose", TrajectoryPose)
 }
 }
 }
