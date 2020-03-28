@@ -7,7 +7,10 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 3.x to 4.x
 
-* The CreateSensor function in the Sensors system, as well as the callbacks in gazebo rendering, have a new required function argument for the Entity of the sensor.
+* The `RenderUtil::SetEnabledSensors` callback in gazebo rendering has a new
+  required function argument for the Entity of the sensor.
+    * ***Removed*** public: void SetEnableSensors(bool, std::function< std::string(const sdf::Sensor &, const std::string &)>)
+    * ***Replacement*** public: void SetEnableSensors(bool, std::function< std::string(const gazebo::Entity &, const sdf::Sensor &, const std::string &)>)
 
 ## Ignition Gazebo 2.x to 3.x
 
