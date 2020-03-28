@@ -27,13 +27,14 @@ int main()
   // Object to pass custom configuration to the server
   ignition::gazebo::ServerConfig serverConfig;
 
-  // Populate with some configuration, for example, thw SDF file to load
+  // Populate with some configuration, for example, the SDF file to load
   serverConfig.SetSdfFile("shapes.sdf");
 
   // Instantiate server
   ignition::gazebo::Server server(serverConfig);
 
-  // Run
+  // Run the server unpaused for 100 iterations, blocking
   server.Run(true /*blocking*/, 100 /*iterations*/, false /*paused*/);
+
   return 0;
 }
