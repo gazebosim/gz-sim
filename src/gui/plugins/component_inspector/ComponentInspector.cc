@@ -23,6 +23,7 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -348,6 +349,12 @@ void ComponentInspector::Update(const UpdateInfo &,
     if (typeId == components::Light::typeId)
     {
       this->SetType("light");
+      continue;
+    }
+
+    if (typeId == components::Actor::typeId)
+    {
+      this->SetType("actor");
       continue;
     }
 
