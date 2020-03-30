@@ -87,7 +87,7 @@ void BM_Serialize1Component(benchmark::State &_st)
     _st.ResumeTiming();
 
     auto stateMsg = mgr->State();
-    serializedSize = stateMsg.ByteSize();
+    serializedSize = stateMsg.ByteSizeLong();
   }
   _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;
@@ -115,7 +115,7 @@ void BM_Serialize5Component(benchmark::State &_st)
     _st.ResumeTiming();
 
     auto stateMsg = mgr->State();
-    serializedSize = stateMsg.ByteSize();
+    serializedSize = stateMsg.ByteSizeLong();
   }
   _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;
