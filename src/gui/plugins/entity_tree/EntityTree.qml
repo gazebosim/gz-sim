@@ -170,8 +170,8 @@ Rectangle {
 
         IgnGazebo.TypeIcon {
           id: icon
-          height: itemHeight
-          width: itemHeight
+          height: itemHeight - 2
+          width: itemHeight - 2
           entityType: model === null || model.type === undefined ? "" : model.type
         }
 
@@ -205,7 +205,8 @@ Rectangle {
             if (mouse.button == Qt.RightButton) {
               var type = EntityTreeModel.EntityType(styleData.index)
               var scopedName = EntityTreeModel.ScopedName(styleData.index)
-              entityContextMenu.open(scopedName, type, ma.mouseX, ma.mouseY)
+              var posInTree = mapToItem(entityTree, ma.mouseX, ma.mouseY)
+              entityContextMenu.open(scopedName, type, posInTree.x, posInTree.y)
               // Prevent plugin's context menu from opening
               mouse.accepted = true
             }
