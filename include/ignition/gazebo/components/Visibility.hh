@@ -30,12 +30,12 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds an entity's visibilty flags (visual entities)
+  /// \brief This component holds an entity's visibility flags (visual entities)
   using VisibilityFlags = Component<uint32_t, class VisibilityFlagsTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisibilityFlags",
       VisibilityFlags)
 
-  /// \brief This component holds an entity's visibilty mask
+  /// \brief This component holds an entity's visibility mask
   /// (camera sensor entities)
   using VisibilityMask = Component<uint32_t, class VisibilityMaskTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisibilityMask",
