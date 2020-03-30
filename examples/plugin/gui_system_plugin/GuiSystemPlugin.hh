@@ -54,11 +54,11 @@ class GuiSystemPlugin : public ignition::gazebo::GuiSystem
   /// is loaded without any XML configuration.
   public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-  /// \brief GUI systems can overload this fuction to receive updated simulation
+  /// \brief GUI systems can overload this function to receive updated simulation
   /// state. This is called whenever the server sends state updates to the GUI.
   /// \param[in] _info Simulation information such as time.
   /// \param[in] _ecm Entity component manager, which can be used to get the
-  /// latest information about entities and compoennts.
+  /// latest information about entities and components.
   public: void Update(const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm) override;
 
