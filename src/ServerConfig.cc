@@ -218,6 +218,7 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordPath(_cfg->logRecordPath),
             logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
+            logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -248,6 +249,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
+
+  /// \brief Path to compress log files to
+  public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -429,6 +433,18 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::LogRecordCompressPath() const
+{
+  return this->dataPtr->logRecordCompressPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompressPath(const std::string &_path)
+{
+  this->dataPtr->logRecordCompressPath = _path;
 }
 
 /////////////////////////////////////////////////
