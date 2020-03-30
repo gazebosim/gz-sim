@@ -1,6 +1,4 @@
-\page pointcloud
-
-# Converting a Point Cloud to a 3D Model
+\page pointcloud Converting a Point Cloud to a 3D Model
 
 In this tutorial, you will learn how to convert a point cloud to a 3D model using the open source software CloudCompare.
 This skill will allow you to turn raw point cloud data into mesh files you can then use in your Ignition simulations.
