@@ -620,7 +620,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         trajInfo.SetWaypoints(waypoints);
         // Animations are offset by 1 because index 0 is taken by the mesh name
         auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
-        trajInfo.Waypoints()->InterpolateX(animation->InterpolateX());
+        trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
       }
       else
       {
