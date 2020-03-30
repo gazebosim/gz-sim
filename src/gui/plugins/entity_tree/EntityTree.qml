@@ -167,28 +167,12 @@ Rectangle {
         color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? even : odd
         height: itemHeight
 
-        Image {
-          id: icon
-          sourceSize.height: itemHeight
-          sourceSize.width: itemHeight
-          fillMode: Image.PreserveAspectFit
-          horizontalAlignment: Image.AlignHCenter
-          verticalAlignment: Image.AlignLeft
-          source: model === null || model.icon === undefined ? "" : model.icon
 
-          ToolTip {
-            visible: iconMa.containsMouse
-            delay: tooltipDelay
-            text: model === null || model.type === undefined ? "" : model.type
-            y: icon.z - 30
-            enter: null
-            exit: null
-          }
-          MouseArea {
-            id: iconMa
-            anchors.fill: parent
-            hoverEnabled: true
-          }
+        IgnGazebo.TypeIcon {
+          id: icon
+          height: itemHeight
+          width: itemHeight
+          entityType: model === null || model.type === undefined ? "" : model.type
         }
 
         Text {
@@ -239,12 +223,11 @@ Rectangle {
 
     IgnGazebo.EntityContextMenu {
       id: entityContextMenu
-      anchors.fill: ma
     }
 
     TableViewColumn {
       role: "entityName"
-      width: parent.width
+      width: tree.width
     }
   }
 }

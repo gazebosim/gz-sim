@@ -5,9 +5,11 @@
     <file>images/collision.png</file>
     <file>images/joint.png</file>
     <file>images/link.png</file>
+    <file>images/lock.svg</file>
     <file>images/minus.png</file>
     <file>images/model.png</file>
     <file>images/plus.png</file>
+    <file>images/unlock.svg</file>
     <file>images/visual.png</file>
   </qresource>
 </RCC>
