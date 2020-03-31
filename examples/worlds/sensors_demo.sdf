@@ -18,6 +18,10 @@
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
@@ -86,6 +90,9 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/lidar_sensor/stats</topic>
+      </plugin>
+
+      <plugin filename="EntityTree" name="Entity tree">
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
