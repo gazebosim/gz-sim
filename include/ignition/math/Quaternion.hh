@@ -1266,10 +1266,10 @@ namespace ignition
     template<typename T> const Quaternion<T>
       Quaternion<T>::Zero(0, 0, 0, 0);
 
-    /// \typedef Quaternion<double> Quaterniond
+    /// typedef Quaternion<double> as Quaterniond
     typedef Quaternion<double> Quaterniond;
 
-    /// \typedef Quaternion<float> Quaternionf
+    /// typedef Quaternion<float> as Quaternionf
     typedef Quaternion<float> Quaternionf;
     }
   }
