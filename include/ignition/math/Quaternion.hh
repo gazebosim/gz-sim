@@ -821,7 +821,8 @@ namespace ignition
       /// with the ignition::math::equal function for each component of the
       /// quaternions.
       /// \param[in] _qt Quaternion<T> for comparison.
-      /// \return True if each component of both quaternions are equal.
+      /// \return True if each component of both quaternions is within the
+      /// tolerance of 0.001 of its counterpart.
       public: bool operator==(const Quaternion<T> &_qt) const
       {
         return equal(this->qx, _qt.qx, static_cast<T>(0.001)) &&
@@ -830,9 +831,12 @@ namespace ignition
                equal(this->qw, _qt.qw, static_cast<T>(0.001));
       }
 
-      /// \brief Not equal to operator.
+      /// \brief Not equal to operator. A tolerance of 0.001 is used
+      /// with the ignition::math::equal function for each component of the
+      /// quaternions.
       /// \param[in] _qt Quaternion for comparison.
-      /// \return True if any compoent of both quaternions are not equal.
+      /// \return True if any component of both quaternions is not within
+      /// the tolerance of 0.001 of its counterpart.
       public: bool operator!=(const Quaternion<T> &_qt) const
       {
         return !equal(this->qx, _qt.qx, static_cast<T>(0.001)) ||
