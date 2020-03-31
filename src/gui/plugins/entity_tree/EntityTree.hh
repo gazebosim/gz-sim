@@ -68,6 +68,11 @@ namespace gazebo
     /// \return Scoped name of the entity
     public: Q_INVOKABLE QString ScopedName(const QModelIndex &_index) const;
 
+    /// \brief Get the entity ID of a tree item at specified index
+    /// \param[in] _index Model index
+    /// \return Entity ID
+    public: Q_INVOKABLE unsigned int EntityId(const QModelIndex &_index) const;
+
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
   };
@@ -91,6 +96,18 @@ namespace gazebo
 
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
+
+    /// \brief Callback when an entity has been selected. This should be
+    /// called from QML.
+    /// \param[in] _entity Entity being selected.
+    public: Q_INVOKABLE void OnEntitySelectedFromQml(unsigned int _entity);
+
+    /// \brief Callback when all entities have been deselected.
+    /// This should be called from QML.
+    public: Q_INVOKABLE void DeselectAllEntities();
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \internal
     /// \brief Pointer to private data.

@@ -288,3 +288,154 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, nIters, false);
 }
+
+/////////////////////////////////////////////////
+// The test checks that breadcrumbs can be performers
+TEST_F(BreadcrumbsTest, Performer)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/breadcrumbs.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetUseLevels(true);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  Relay testSystem;
+  transport::Node node;
+  auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  auto deploy = node.Advertise<msgs::Empty>(
+      "/model/vehicle_blue/breadcrumbs/B1_perf/deploy");
+
+  const std::size_t iterTestStart = 1000;
+  const std::size_t nIters = iterTestStart + 10000;
+
+  std::optional<math::Pose3d> initialPose;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                             const gazebo::EntityComponentManager &_ecm)
+  {
+    // Deploy a performer breadcrumb on a tile that's on a level, and ensure
+    // that it keeps the tile from being unloaded.
+
+    // Deploy, move outside of the level, check
+    if (_info.iterations == iterTestStart)
+    {
+      msgs::Twist msg;
+      msg.mutable_linear()->set_x(2);
+      cmdVel.Publish(msg);
+      deploy.Publish(msgs::Empty());
+    }
+    else if (_info.iterations == iterTestStart + 1000)
+    {
+      // get the initial pose of the performer while the level is loaded
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+          [&](const Entity &, const components::Model *,
+              const components::Name *_name, const components::Pose *_pose)
+          {
+            if (_name->Data().find("B1_perf") == 0)
+            {
+              initialPose = _pose->Data();
+              return false;
+            }
+            return true;
+          });
+    }
+    else if (_info.iterations == nIters)
+    {
+      math::Pose3d finalPose;
+      // get the final pose of the performer
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+          [&](const Entity &, const components::Model *,
+              const components::Name *_name, const components::Pose *_pose)
+          {
+            if (_name->Data().find("B1_perf") == 0)
+            {
+              finalPose = _pose->Data();
+              return false;
+            }
+
+            return true;
+          });
+      ASSERT_TRUE(initialPose.has_value());
+      std::cout << "Init: " << initialPose->Pos() << " Final: "
+                << finalPose.Pos() << std::endl;
+      EXPECT_NEAR(initialPose->Pos().Z(), finalPose.Pos().Z(), 1e-3);
+    }
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, nIters, false);
+}
+
+/////////////////////////////////////////////////
+// Test that the volume of the performer is set when deploying a performer
+// breadcrumb
+TEST_F(BreadcrumbsTest, PerformerSetVolume)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/breadcrumbs.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetUseLevels(true);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  Relay testSystem;
+  transport::Node node;
+  auto deploy = node.Advertise<msgs::Empty>(
+      "/model/vehicle_blue/breadcrumbs/B1_perf_large_volume/deploy");
+
+  const std::size_t iterTestStart = 1000;
+  const std::size_t nIters = iterTestStart + 2000;
+
+  std::optional<math::Pose3d> initialPose;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                             const gazebo::EntityComponentManager &_ecm)
+  {
+    // Deploy a performer breadcrumb on a tile that's on the default a level,
+    // and check that it causes tile_1 to be loaded since the performer's volume
+    // is large enough to overlap with tile_1.
+
+    // Set pose to tile_2 , check if tile_1 is still loaded
+    if (_info.iterations == iterTestStart)
+    {
+      msgs::Pose req;
+      req.set_name("vehicle_blue");
+      req.mutable_position()->set_x(30);
+      msgs::Boolean rep;
+      bool result;
+      node.Request("/world/breadcrumbs/set_pose", req, 2000, rep, result);
+      EXPECT_TRUE(result);
+    }
+    else if (_info.iterations == iterTestStart + 500)
+    {
+      // Check that tile_1 is unloaded
+      Entity tileEntity = _ecm.EntityByComponents(components::Model(),
+                                                  components::Name("tile_1"));
+      EXPECT_EQ(kNullEntity, tileEntity);
+
+      deploy.Publish(msgs::Empty());
+    }
+    else if (_info.iterations == nIters)
+    {
+      Entity tileEntity = _ecm.EntityByComponents(components::Model(),
+                                                  components::Name("tile_1"));
+      EXPECT_NE(kNullEntity, tileEntity);
+    }
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, nIters, false);
+}
