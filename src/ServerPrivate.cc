@@ -201,25 +201,27 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
         if (pluginFileName->GetAsString().find(
             LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
         {
-          // If record plugin already specified in SDF, no need to add
+          // If record plugin already specified in SDF, and record flags are
+          //   specified on command line, replace SDF path with the one on
+          //   command line.
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            // If a custom path is passed in through command line, overwrite
-            //   the path in SDF
-            if (!_config.LogRecordPath().empty())
+            // If playback plugin also specified, do not add a record plugin
+            if (pluginName->GetAsString() ==
+                LoggingPlugin::PlaybackPluginName())
             {
-              pluginElem->AddAttribute("path", "string", "", false);
-              sdf::ParamPtr recordParam = pluginElem->GetAttribute("path");
-              recordParam->SetFromString(_config.LogRecordPath());
+              ignwarn << "Both record and playback are specified. "
+                << "Ignoring record.\n";
+              return;
             }
-            return;
-          }
 
-          // If playback plugin also specified, do not add a record plugin
-          if (pluginName->GetAsString() == LoggingPlugin::PlaybackPluginName())
-          {
-            ignwarn << "Both record and playback are specified. "
-              << "Ignoring record.\n";
+            // Add path to plugin
+            sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+            pathElem->SetName("path");
+            pluginElem->AddElementDescription(pathElem);
+            pathElem = pluginElem->GetElement("path");
+            pathElem->AddValue("string", "", false, "");
+            pathElem->Set<std::string>(_config.LogRecordPath());
             return;
           }
         }
@@ -229,7 +231,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     }
   }
 
-  // Add record plugin
+  // A record plugin is not already specified in SDF. Add one.
   sdf::ElementPtr recordElem = worldElem->AddElement("plugin");
   sdf::ParamPtr recordName = recordElem->GetAttribute("name");
   recordName->SetFromString(LoggingPlugin::RecordPluginName());
@@ -239,9 +241,12 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   // Add custom record path
   if (!_config.LogRecordPath().empty())
   {
-    recordElem->AddAttribute("path", "string", "", false);
-    sdf::ParamPtr recordParam = recordElem->GetAttribute("path");
-    recordParam->SetFromString(_config.LogRecordPath());
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    recordElem->AddElementDescription(pathElem);
+    pathElem = recordElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(_config.LogRecordPath());
   }
 }
 
@@ -290,4 +295,10 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
   return fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+}
+
+//////////////////////////////////////////////////
+std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
+{
+  return this->FetchResource(_uri.Str());
 }
