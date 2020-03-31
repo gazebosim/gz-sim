@@ -75,6 +75,34 @@ Rectangle {
     );
   }
 
+  // Calculate the maximum number of decimals that fit in a spin
+  function calculateDecimals(_item) {
+    if (_item == undefined)
+      return 0
+
+    // How many characters fit
+    var fits = _item.width / (fontMetrics.maximumCharacterWidth * 0.8)
+
+    // How many non-decimal characters we have
+    var nonDec = _item.value.toFixed(0).toString().length
+
+    // How many characters left for decimals
+    var dec = fits - nonDec - 1
+
+    // TODO(anyone) Elide text if nonDec > fits
+
+    // Limit to 6 decimals, SpinBox doesn't like many
+    dec = Math.max(Math.min(6, dec), 0)
+
+    _item.decimals = dec
+    return dec
+  }
+
+  FontMetrics {
+    id: fontMetrics
+    font.family: "Roboto"
+  }
+
   /**
    * Used to create a spin box
    */
@@ -85,9 +113,13 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: writableSpin.width < 100 ? 2 : 6
+      decimals: calculateDecimals(writableSpin)
       onEditingFinished: {
         sendPose()
+        calculateDecimals(writableSpin)
+      }
+      onWidthChanged: {
+        calculateDecimals(writableSpin)
       }
     }
   }
