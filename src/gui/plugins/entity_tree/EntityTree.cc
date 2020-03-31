@@ -22,6 +22,7 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Level.hh"
@@ -87,6 +88,9 @@ QString entityType(Entity _entity,
 
   if (nullptr != _ecm.Component<components::Sensor>(_entity))
     return QString("sensor");
+
+  if (nullptr != _ecm.Component<components::Actor>(_entity))
+    return QString("actor");
 
   return QString();
 }
