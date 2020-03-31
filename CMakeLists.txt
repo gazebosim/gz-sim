@@ -83,6 +83,7 @@ ign_find_package (Qt5
     Quick
     QuickControls2
   REQUIRED
+  VERSION 3.1
   PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
 
 #--------------------------------------
