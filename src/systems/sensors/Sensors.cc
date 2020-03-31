@@ -75,7 +75,7 @@ class ignition::gazebo::systems::SensorsPrivate
   ///
   /// Useful for detecting when a sensor Entity has been deleted and trigger
   /// the destruction of the corresponding ignition::sensors Sensor object
-  public: std::map<Entity, sensors::SensorId> entityToIdMap;
+  public: std::unordered_map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
   public: std::atomic<bool> running { false };
@@ -153,6 +153,10 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Helper function to remove a sensor from the maps
+  /// \return True if the sensor was removed
+  public: bool RemoveSensor(const Entity &_entity);
 
   /// \brief Checks if any Sensor Entity has been removed and performs
   /// cleanup of the corresponding sensor and map entries.
@@ -297,20 +301,44 @@ void SensorsPrivate::Stop()
 }
 
 //////////////////////////////////////////////////
+bool SensorsPrivate::RemoveSensor(const Entity &_entity)
+{
+  auto idIter = this->entityToIdMap.find(_entity);
+  if (idIter != this->entityToIdMap.end())
+  {
+    this->sensorIds.erase(idIter->second);
+    this->sensorManager.Remove(idIter->second);
+    this->entityToIdMap.erase(idIter);
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
 void SensorsPrivate::SensorCleanup(const EntityComponentManager &_ecm)
 {
   _ecm.EachRemoved<components::Camera>(
       [&](const Entity &_entity,
           const components::Camera *)->bool
       {
-        auto idIter = this->entityToIdMap.find(_entity);
-        if (idIter != this->entityToIdMap.end())
-        {
-          this->sensorIds.erase(idIter->second);
-          this->sensorManager.Remove(idIter->second);
-          this->entityToIdMap.erase(idIter);
-        }
-        return true;
+        return this->RemoveSensor(_entity);
+      });
+  _ecm.EachRemoved<components::DepthCamera>(
+      [&](const Entity &_entity,
+          const components::DepthCamera *)->bool
+      {
+        return this->RemoveSensor(_entity);
+      });
+  _ecm.EachRemoved<components::GpuLidar>(
+      [&](const Entity &_entity,
+          const components::GpuLidar *)->bool
+      {
+        return this->RemoveSensor(_entity);
+      });
+  _ecm.EachRemoved<components::RgbdCamera>(
+      [&](const Entity &_entity,
+          const components::RgbdCamera *)->bool
+      {
+        return this->RemoveSensor(_entity);
       });
 }
 
