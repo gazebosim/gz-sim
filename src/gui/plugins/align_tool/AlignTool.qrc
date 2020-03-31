@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="AlignTool/">
+  <file>AlignTool.qml</file>
+  <file>x_center.png</file>
+  <file>y_center.png</file>
+  <file>z_center.png</file>
+</qresource>
+</RCC>
