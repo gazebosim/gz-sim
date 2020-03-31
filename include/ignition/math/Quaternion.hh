@@ -830,19 +830,6 @@ namespace ignition
                equal(this->qw, _qt.qw, static_cast<T>(0.001));
       }
 
-      /// \brief Equality comparison test with a tolerance parameter.
-      /// The tolerance is used with the ignition::math::equal function for
-      /// each component of the quaternions.
-      /// \param[in] _qt Quaternion<T> for comparison.
-      /// \return True if each component of both quaternions are equal.
-      public: bool Equal(const Quaternion<T> &_qt, const T &_tol) const
-      {
-        return equal<T>(this->qx, _qt.qx, _tol) &&
-               equal<T>(this->qy, _qt.qy, _tol) &&
-               equal<T>(this->qz, _qt.qz, _tol) &&
-               equal<T>(this->qw, _qt.qw, _tol);
-      }
-
       /// \brief Not equal to operator.
       /// \param[in] _qt Quaternion for comparison.
       /// \return True if any compoent of both quaternions are not equal.
@@ -1243,6 +1230,21 @@ namespace ignition
         _q.SetFromEuler(Vector3<T>(*roll, *pitch, *yaw));
 
         return _in;
+      }
+
+      /// \brief Equality comparison test with a tolerance parameter.
+      /// The tolerance is used with the ignition::math::equal function for
+      /// each component of the quaternions.
+      /// \param[in] _q The quaternion to compare against.
+      /// \param[in] _tol equality tolerance.
+      /// \return True if the elements of the quaternions are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Quaternion &_q, const T &_tol) const
+      {
+        return equal(this->qx, _q.qx, _tol) &&
+               equal(this->qy, _q.qy, _tol) &&
+               equal(this->qz, _q.qz, _tol) &&
+               equal(this->qw, _q.qw, _tol);
       }
 
       /// \brief w value of the quaternion

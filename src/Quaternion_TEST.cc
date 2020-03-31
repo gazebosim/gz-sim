@@ -66,8 +66,30 @@ TEST(QuaternionTest, ConstructZero)
 TEST(QuaternionTest, ConstructEuler)
 {
   math::Quaterniond q(0, 1, 2);
-  EXPECT_TRUE(q == math::Quaterniond(math::Vector3d(0, 1, 2)));
   EXPECT_TRUE(q.Equal(math::Quaterniond(math::Vector3d(0, 1, 2)), 1e-6));
+  math::Quaterniond q2(math::Vector3d(0, 1, 2));
+  EXPECT_TRUE(q == q2);
+  EXPECT_TRUE(q.Equal(q2, 1e-6));
+
+  q2.X() += 0.1;
+  EXPECT_FALSE(q.Equal(q2, 1e-6));
+  q2.X() -= 0.1;
+  EXPECT_TRUE(q.Equal(q2, 1e-6));
+
+  q2.Y() += 0.1;
+  EXPECT_FALSE(q.Equal(q2, 1e-6));
+  q2.Y() -= 0.1;
+  EXPECT_TRUE(q.Equal(q2, 1e-6));
+
+  q2.Z() += 0.1;
+  EXPECT_FALSE(q.Equal(q2, 1e-6));
+  q2.Z() -= 0.1;
+  EXPECT_TRUE(q.Equal(q2, 1e-6));
+
+  q2.W() += 0.1;
+  EXPECT_FALSE(q.Equal(q2, 1e-6));
+  q2.W() -= 0.1;
+  EXPECT_TRUE(q.Equal(q2, 1e-6));
 
   // Make sure that singularities are being handled properly.
   // There are an infinite number of equivalent Euler angle

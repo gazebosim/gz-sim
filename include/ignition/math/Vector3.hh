@@ -309,6 +309,24 @@ namespace ignition
         return std::min(std::min(this->data[0], this->data[1]), this->data[2]);
       }
 
+      /// \brief Get the number with the maximum absolute value in the vector
+      /// \return the element with maximum absolute value
+      public: T MaxAbs() const
+      {
+        T max = std::max(std::abs(this->data[0]), std::abs(this->data[1]));
+        max = std::max(max, std::abs(this->data[2]));
+        return max;
+      }
+
+      /// \brief Get the number with the maximum absolute value in the vector
+      /// \return the element with minimum absolute value
+      public: T MinAbs() const
+      {
+        T min = std::min(std::abs(this->data[0]), std::abs(this->data[1]));
+        min = std::min(min, std::abs(this->data[2]));
+        return min;
+      }
+
       /// \brief Assignment operator
       /// \param[in] _v a new value
       /// \return this
