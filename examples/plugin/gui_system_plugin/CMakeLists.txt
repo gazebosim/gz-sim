@@ -6,9 +6,18 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 
+# Find Qt5
+find_package (Qt5
+  COMPONENTS
+    Core
+    Quick
+    QuickControls2
+  REQUIRED
+)
+
 find_package(ignition-gazebo2 REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION-GUI_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IGNITION-GAZEBO_CXX_FLAGS}")
 
 QT5_ADD_RESOURCES(resources_RCC GuiSystemPlugin.qrc)
 
