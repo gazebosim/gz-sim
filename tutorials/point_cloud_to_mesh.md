@@ -20,7 +20,7 @@ After installing, open CloudCompare and import your point cloud file by going to
 Depending on the number of points in your point cloud, this could take several minutes.
 Once loaded, you should see the following tunnel section:
 
-![Opening the point cloud](files/point_cloud_to_mesh/cloudcompare.png)
+![Opening the point cloud](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/cloudcompare.png)
 
 Many 3D scans will be composed of millions, sometimes hundreds of millions of points.
 Converting a scan to a 3D model with that many points would be very difficult due to the number of polygons that would be created and the long processing time necessary to compute the normals.
@@ -34,13 +34,13 @@ We'll still walk through reducing points, however, to make the process quicker.
 
 To reduce the number of points in your cloud, click on the tunnel so a yellow cube outline appears around it, then go to `Edit` > `Subsample`.
 
-![Min. space between points](files/point_cloud_to_mesh/min_space.png)
+![Min. space between points](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/min_space.png)
 
 The number you will need to enter in the `min. space between points` field will vary depending on your point cloud.
 A value of .01 was sufficient to bring our point cloud to an easy-to-manage 1 million points.
 Point count is visible in the `Properties` window on the lower left side of the screen.
 
-![Point count of subsample](files/point_cloud_to_mesh/properties.png)
+![Point count of subsample](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/properties.png)
 
 How many points you reduce down to will largely depend on how long you are willing to wait for the point cloud to be converted into a mesh.
 The more points you start with, the longer it will take to compute the normals and create the mesh.
@@ -48,7 +48,7 @@ The more points you start with, the longer it will take to compute the normals a
 After the operation is complete you’ll have two clouds in your scene: the original point cloud and your subsampled point cloud.
 Most operations in CloudCompare will create new point clouds and keep the original, so make sure that you have the new point cloud selected before running an operation.
 
-![Selecting the new point cloud](files/point_cloud_to_mesh/secondcloud.png)
+![Selecting the new point cloud](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/secondcloud.png)
 
 ### Create a Polygonal Mesh
 
@@ -59,7 +59,7 @@ A normal is essentially the direction a polygon is facing.
 To do this, go to `Edit` > `Normals` > `Compute`.
 You'll see this dialog box:
 
-![Choose Triangulation surface model](files/point_cloud_to_mesh/compute_normals.png)
+![Choose Triangulation surface model](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/compute_normals.png)
 
 You’ll see various options in the dialog box that appears.
 The main thing you’ll want to consider is what `Local surface model` to use.
@@ -72,7 +72,7 @@ Now we get to actually convert our point cloud to a mesh.
 To do this go to `Plugins` > `PoissonRecon`.
 You'll see this dialog box:
 
-![Octree depth and output density selection](files/point_cloud_to_mesh/outputdensity.png)
+![Octree depth and output density selection](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/outputdensity.png)
 
 The value you enter in the `Octree depth` field will determine the polygon count of the created model.
 You may have to run the surface reconstruction a couple times with varying values before you land on a polygon count that is suitable for your needs.
@@ -93,18 +93,18 @@ Our tunnel has turned into a blob shape.
 This is because the mesh that CloudCompare creates will always be water tight even if it has to add polygons where there are no points.
 We just want our tunnels, though, so we need to remove those unnecessary polygons.
 
-![The "blob shape"](files/point_cloud_to_mesh/blob.png)
+![The "blob shape"](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/blob.png)
 
 This is where our scalar field comes in.
 In the mesh's `Properties` window go to `SF display params` and take the left handle in the graph and drag it to the right until it hits the area where the bulk of the scalar field starts.
 
-![Adjusting scalar filed params](files/point_cloud_to_mesh/sf_display.png)
+![Adjusting scalar filed params](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/sf_display.png)
 
 This will display only the polygons that were created from the point cloud and hide the polygons used to make the model watertight.
 The polygons are only hidden however.
 We still need to actually remove them.
 
-![Display original polygons](files/point_cloud_to_mesh/hidden_polygons.png)
+![Display original polygons](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/hidden_polygons.png)
 
 To remove the hidden polygons go to `Edit` > `Scalar fields` > `Filter By Value`.
 
@@ -113,7 +113,7 @@ Hitting export will simply export the mesh within that range.
 Instead, we'll hit `Split` to create two meshes.
 One with the polygons inside our specified range and one containing polygons outside that range.
 
-![Splitting the mesh](files/point_cloud_to_mesh/split.png)
+![Splitting the mesh](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/split.png)
 
 ### The Completed Model
 
@@ -121,6 +121,6 @@ By hitting `Split` we can view the model before exporting by simply going to `Fi
 Remember to have the correct mesh selected (`<mesh_name>.part`) since choosing `Split` will give you two new meshes, plus you will still have your original, complete mesh.
 Your file format will depend on the software you want to use but `.obj` is a widely supported format that should work in most 3D applications.
 
-![The completed mesh](files/point_cloud_to_mesh/complete.png)
+![The completed mesh](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/complete.png)
 
 You can find more information on CloudCompare and a more in depth look at the tools we used in this tutorial on [the CloudCompare website](https://www.cloudcompare.org/) and the [CloudCompare wiki](https://www.cloudcompare.org/doc/wiki/index.php?title=Main_Page).
