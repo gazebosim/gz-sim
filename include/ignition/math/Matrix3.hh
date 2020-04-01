@@ -139,7 +139,7 @@ namespace ignition
         this->data[2][2] = _v22;
       }
 
-      /// \brief Construct Matrix3 from a quaternion.
+      /// \brief Construct 3x3 rotation Matrix from a quaternion.
       /// \param[in] _q Quaternion to set the Matrix3 from.
       public: explicit Matrix3(const Quaternion<T> &_q)
       {
@@ -220,7 +220,7 @@ namespace ignition
         this->SetCol(2, _zAxis);
       }
 
-      /// \brief Set the matrix from an axis and angle.
+      /// \brief Set as a rotation matrix from an axis and angle.
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
       /// \deprecated Use SetFromAxisAngle(const Vector3<T> &, T)
@@ -229,7 +229,7 @@ namespace ignition
         this->SetFromAxisAngle(_axis, _angle);
       }
 
-      /// \brief Set the matrix from an axis and angle.
+      /// \brief Set as a rotation matrix from an axis and angle.
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
       public: void SetFromAxisAngle(const Vector3<T> &_axis, T _angle)
@@ -251,7 +251,7 @@ namespace ignition
         this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
-      /// \brief Set the matrix to represent rotation from
+      /// \brief Set as a rotation matrix to represent rotation from
       /// vector _v1 to vector _v2, so that
       /// _v2.Normalize() == this * _v1.Normalize() holds.
       ///
@@ -264,7 +264,7 @@ namespace ignition
         this->SetFrom2Axes(_v1, _v2);
       }
 
-      /// \brief Set the matrix to represent rotation from
+      /// \brief Set as a rotation matrix to represent rotation from
       /// vector _v1 to vector _v2, so that
       /// _v2.Normalize() == this * _v1.Normalize() holds.
       ///
@@ -495,7 +495,7 @@ namespace ignition
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
-      /// \brief Set the matrix3 from a quaternion.
+      /// \brief Set as a 3x3 rotation matrix from a quaternion.
       /// \param[in] _q Quaternion to set the matrix3 from.
       /// \return Reference to the new matrix3 object.
       public: Matrix3<T> &operator=(const Quaternion<T> &_q)
