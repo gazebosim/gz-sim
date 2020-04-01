@@ -24,9 +24,7 @@
 #include "GuiSystemPlugin.hh"
 
 /////////////////////////////////////////////////
-GuiSystemPlugin::GuiSystemPlugin() : GuiSystem()
-{
-}
+GuiSystemPlugin::GuiSystemPlugin() = default;
 
 /////////////////////////////////////////////////
 GuiSystemPlugin::~GuiSystemPlugin() = default;
