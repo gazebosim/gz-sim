@@ -28,7 +28,6 @@
 #include "ignition/gazebo/Conversions.hh"
 
 #include "GuiFileHandler.hh"
-#include "moc_GuiFileHandler.cpp"
 
 using namespace ignition;
 using namespace gazebo;
