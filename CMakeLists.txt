@@ -92,8 +92,6 @@ ign_find_package(ignition-physics2
   COMPONENTS
     mesh
     sdf
-    dartsim
-    dartsim-plugin
   REQUIRED
 )
 set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
