@@ -20,6 +20,7 @@
 
 #include <ignition/common/URI.hh>
 
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -272,14 +273,15 @@ namespace sdf_generator
           auto modelDir =
               common::parentPath(_modelSdf->Data().Element()->FilePath());
           const std::string modelName =
-              _ecm.Component<components::Name>(_modelEntity)->Data();
+              scopedName(_modelEntity, _ecm, "::", false);
 
           bool modelFromInclude = isModelFromInclude(modelDir, worldDir);
 
           auto uriMapIt = _includeUriMap.find(modelDir);
 
           auto modelConfig = _config.global_model_gen_config();
-          auto modelConfigIt = _config.override_model_gen_configs().find(modelName);
+          auto modelConfigIt =
+              _config.override_model_gen_configs().find(modelName);
           if (modelConfigIt != _config.override_model_gen_configs().end())
           {
             mergeWithOverride(modelConfig, modelConfigIt->second);
