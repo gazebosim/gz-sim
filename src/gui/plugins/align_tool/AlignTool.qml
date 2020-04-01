@@ -54,7 +54,7 @@ ToolBar {
       Layout.column: 1
       checkable: true
       ButtonGroup.group: group
-      ToolTip.text: "Reset View Angle"
+      ToolTip.text: "X Align Center"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
       Layout.topMargin: 15
@@ -96,7 +96,7 @@ ToolBar {
       ButtonGroup.group: group
       Layout.row: 1
       Layout.column: 1
-      ToolTip.text: "View from the right"
+      ToolTip.text: "Y Align Center"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
       contentItem: Image {
@@ -135,7 +135,7 @@ ToolBar {
       id: z_center
       checkable: true
       ButtonGroup.group: group
-      ToolTip.text: "View from the bottom"
+      ToolTip.text: "Z Align Center"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
       Layout.row: 2
