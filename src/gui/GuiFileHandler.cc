@@ -51,7 +51,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
   bool result{false};
   unsigned int timeout{5000};
   this->node.Request(service, timeout, worldsMsg, result);
-  // TODO (addisu) Support saving multiple worlds
+  // TODO(addisu) Support saving multiple worlds
   if (worldsMsg.data_size() > 0)
   {
     const auto &worldName = worldsMsg.data(0);
@@ -66,7 +66,6 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
     msgs::Set(globalConfig->mutable_save_fuel_model_version(),
               _config->property("saveFuelModelVersion").toBool());
 
-    std::cout << globalConfig->DebugString() << std::endl;
     bool serviceCall =
         this->node.Request(sdfGenService, req, timeout, genWorldSdf, result);
     if (serviceCall && result && !genWorldSdf.data().empty())

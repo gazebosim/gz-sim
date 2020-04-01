@@ -55,7 +55,7 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     return false;
 
   // Compare attributes
-  for(std::size_t i=0; i < _elemA->GetAttributeCount(); ++i)
+  for (std::size_t i = 0; i < _elemA->GetAttributeCount(); ++i)
   {
     sdf::ParamPtr attrA = _elemA->GetAttribute(i);
     sdf::ParamPtr attrB = _elemB->GetAttribute(attrA->GetKey());
@@ -390,12 +390,11 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
     EXPECT_EQ("backpack1", inclElem->Get<std::string>("name"));
     inclElem = inclElem->GetNextElement("include");
     EXPECT_EQ("backpack2", inclElem->Get<std::string>("name"));
-    std::string uri = inclElem->Get<std::string>("uri");
+    auto uri = inclElem->Get<std::string>("uri");
     EXPECT_FALSE(uri.empty());
     const std::string version = common::split(uri, "/").back();
     EXPECT_NO_THROW(std::stol(version));
   }
-
 }
 
 /////////////////////////////////////////////////

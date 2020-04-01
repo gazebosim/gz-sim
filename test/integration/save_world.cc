@@ -16,12 +16,12 @@
  */
 
 #include <gtest/gtest.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 #include <tinyxml2.h>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
