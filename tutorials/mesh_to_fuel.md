@@ -33,7 +33,7 @@ The contents of each directory and file are equally as important; each part is c
 
 ### Materials
 
-The `materials` directory is for textures, which must be in `.png` files.
+The `materials` directory is for textures.
 Textures are optional; they provide color or detail to a mesh.
 If you download a mesh online, the texture files should come with it.
 Otherwise, you would have to use a 3D modeling tool to correctly design a texture.
