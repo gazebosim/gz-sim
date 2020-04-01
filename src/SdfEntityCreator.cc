@@ -55,6 +55,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -189,6 +190,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       components::Static(_model->Static()));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::WindMode(_model->EnableWind()));
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::SelfCollide(_model->SelfCollide()));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
 
