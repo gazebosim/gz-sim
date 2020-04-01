@@ -160,7 +160,7 @@ void ExamplesBuild::Build(const std::string &_type)
     // cd build && cmake source
     snprintf(cmd, sizeof(cmd), "cd %s && cmake %s && make",
       tmpBuildDir.c_str(), sourceDir.c_str());
-    ASSERT_EQ(system(cmd), 0);
+    EXPECT_EQ(system(cmd), 0) << base;
 
     // Remove temp dir
     EXPECT_TRUE(common::removeAll(tmpBuildDir));
