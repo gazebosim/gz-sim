@@ -1190,15 +1190,18 @@ void RenderUtil::SetTransformActive(bool _active)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 {
+  ignwarn << "highlight\n";
   if (!_node)
     return;
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
   Entity entityId = kNullEntity;
   if (vis)
     entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  ignwarn << "entity " << entityId << "\n";
   // If the entity is not found in the existing map, create a wire box
   if (this->wireBoxes.find(entityId) == this->wireBoxes.end())
   {
+    ignwarn << "Did not find wire box\n";
     rendering::MaterialPtr gray = this->scene->CreateMaterial();
     gray->SetAmbient(0.2, 0.2, 0.2);
     gray->SetDiffuse(0.2, 0.2, 0.2);
@@ -1212,6 +1215,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     // Create visual and add wire box
     ignition::rendering::VisualPtr wireBoxVis =
       this->scene->CreateVisual();
+    ignwarn << "vis parent " << wireBoxVis << "\n";
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(gray);
@@ -1223,9 +1227,11 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   }
   else
   {
+    ignwarn << "Found wire box\n";
     ignition::rendering::WireBoxPtr wireBox =
       this->wireBoxes[entityId];
     auto visParent = wireBox->Parent();
+    ignwarn << "vis parent " << visParent << "\n";
     if (visParent)
       visParent->SetVisible(true);
   }
@@ -1234,17 +1240,21 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 ////////////////////////////////////////////////
 void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 {
+  ignwarn << "lowlight\n";
   if (!_node)
     return;
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
   Entity entityId = kNullEntity;
   if (vis)
     entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  ignwarn << "entity " << entityId << "\n";
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
+    ignwarn << "Found wire box\n";
     ignition::rendering::WireBoxPtr wireBox =
       this->wireBoxes[entityId];
     auto visParent = wireBox->Parent();
+    ignwarn << "vis parent " << visParent << "\n";
     if (visParent)
       visParent->SetVisible(false);
   }

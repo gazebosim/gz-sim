@@ -61,6 +61,11 @@ namespace ignition::gazebo
     /// \brief The current align state.
     public: AlignState currentState{AlignState::NONE};
 
+    public: AlignConfig config{AlignConfig::ALIGN_MID};
+
+    /// \brief Flag to indicate if the align direction should be reversed.
+    public: bool reverse{false};
+
     /// \brief Flag to indicate if the entities to should aligned to the first
     /// or last entity selected.
     public: bool first{true};
@@ -125,6 +130,40 @@ void AlignTool::Update(const UpdateInfo &/* _info */,
           return true;
         });
   }
+}
+
+/////////////////////////////////////////////////
+void AlignTool::OnAlignConfig(const QString &_config)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::string newConfig = _config.toStdString();
+  std::transform(newConfig.begin(), newConfig.end(), newConfig.begin(), ::tolower);
+
+  if (newConfig == "min")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MIN;
+  }
+  else if (newConfig == "mid")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MID;
+  }
+  else if (newConfig == "max")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MAX;
+  }
+  else
+  {
+    ignwarn << "Invalid align axis config: " << newConfig << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - min\n";
+    ignwarn << " - mid\n";
+    ignwarn << " - max\n";
+  }
+}
+
+void AlignTool::OnReverse(bool _reverse)
+{
+  this->dataPtr->reverse = _reverse;
 }
 
 /////////////////////////////////////////////////
