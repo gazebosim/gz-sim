@@ -153,11 +153,11 @@ namespace events
   class Render : public QEvent
   {
     public: Render()
-        : QEvent(Type)
+        : QEvent(kType)
     {
     }
     /// \brief Unique type for this event.
-    static const QEvent::Type Type = QEvent::Type(QEvent::User + 3);
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 3);
   };
 }  // namespace events
 }

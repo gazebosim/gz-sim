@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 3.X.X
 
+1. Added Link::AddWorldWrench function that adds a wrench to a link.
+    * [Pull Request 509](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/509)
+
 1. Fix duplicate marker services and crash due to unset marker field
     * [Pull Request 561](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/561)
 
@@ -48,6 +51,11 @@
 
 
 ## Ignition Gazebo 2.x
+
+### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
+
+1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
+    * [Pull Request 437](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/437)
 
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 

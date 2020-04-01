@@ -185,6 +185,8 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
+  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  linkVis->SetUserData("pause-update", static_cast<int>(0));
   linkVis->SetLocalPose(_link.RawPose());
   this->dataPtr->visuals[_id] = linkVis;
 
@@ -742,6 +744,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       return light;
   }
 
+  // \todo(anyone) Set entity user data once rendering Node supports it
   light->SetLocalPose(_light.RawPose());
   light->SetDiffuseColor(_light.Diffuse());
   light->SetSpecularColor(_light.Specular());

@@ -648,7 +648,7 @@ namespace ignition
       /// \return True if the view was found, false otherwise.
       private: bool FindView(const std::set<ComponentTypeId> &_types,
           std::map<detail::ComponentTypeKey,
-          detail::View>::iterator &_iter) const;
+          detail::View>::iterator &_iter) const;  // NOLINT
 
       /// \brief Add a new view to the set of stored views.
       /// \param[in] _types The set of component type ids that is the key

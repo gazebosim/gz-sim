@@ -1121,13 +1121,8 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
-  Entity entity = kNullEntity;
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-
-  if (vis)
-    entity = std::get<int>(vis->UserData("gazebo-entity"));
-
-  return entity;
+  // \todo(anyone) Use UserData once rendering Node supports that
+  return this->dataPtr->sceneManager.EntityFromNode(_node);
 }
 
 /////////////////////////////////////////////////
@@ -1143,11 +1138,8 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
   if (!_node)
     return;
 
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  Entity entityId = kNullEntity;
-
-  if (vis)
-    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  // \todo(anyone) Use UserData once rendering Node supports it
+  auto entityId = this->dataPtr->sceneManager.EntityFromNode(_node);
 
   if (entityId == kNullEntity)
     return;
