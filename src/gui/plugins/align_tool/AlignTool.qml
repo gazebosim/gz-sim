@@ -23,7 +23,7 @@ import QtQuick.Controls.Styles 1.4
 
 ToolBar {
   Layout.minimumWidth: 200
-  Layout.minimumHeight: 330
+  Layout.minimumHeight: 370
 
   background: Rectangle {
     color: "transparent"
@@ -37,11 +37,8 @@ ToolBar {
     anchors.fill: parent
     columns: 4
     columnSpacing: 5
-    rowSpacing: 5
     Text {
       text: "X:"
-      Layout.row: 0
-      Layout.column: 0
       font.weight: Font.Bold
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
@@ -49,20 +46,19 @@ ToolBar {
       font.pointSize: 14
     }
     ToolButton {
-      id: x_center
-      Layout.row: 0
-      Layout.column: 1
+      id: x_min
       checkable: true
       ButtonGroup.group: group
-      ToolTip.text: "Reset View Angle"
+      ToolTip.text: "X Align Min"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
       Layout.topMargin: 15
+      Layout.leftMargin: 10
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "x_center.png"
+        source: "x_min.png"
         sourceSize.width: 28;
         sourceSize.height: 28;
       }
@@ -71,6 +67,71 @@ ToolBar {
         hoverEnabled: true
         onEntered: {
           AlignTool.OnAlignAxis("X")
+          AlignTool.OnAlignConfig("min")
+          AlignTool.OnHoveredEntered()
+        }
+        onExited: {
+          AlignTool.OnHoveredExited()
+        }
+        onClicked: {
+          AlignTool.OnAlign()
+        }
+      }
+    }
+    ToolButton {
+      id: x_mid
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "X Align Center"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.topMargin: 15
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "x_mid.png"
+        sourceSize.width: 28;
+        sourceSize.height: 28;
+      }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          AlignTool.OnAlignAxis("X")
+          AlignTool.OnAlignConfig("mid")
+          AlignTool.OnHoveredEntered()
+        }
+        onExited: {
+          AlignTool.OnHoveredExited()
+        }
+        onClicked: {
+          AlignTool.OnAlign()
+        }
+      }
+    }
+    ToolButton {
+      id: x_max
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "X Align Max"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.topMargin: 15
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "x_max.png"
+        sourceSize.width: 28;
+        sourceSize.height: 28;
+      }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          AlignTool.OnAlignAxis("X")
+          AlignTool.OnAlignConfig("max")
           AlignTool.OnHoveredEntered()
         }
         onExited: {
@@ -84,26 +145,23 @@ ToolBar {
     Text {
       text: "Y:"
       font.weight: Font.Bold
-      Layout.row: 1
-      Layout.column: 0
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
       font.pointSize: 14
     }
     ToolButton {
-      id: y_center
+      id: y_min
       checkable: true
       ButtonGroup.group: group
-      Layout.row: 1
-      Layout.column: 1
-      ToolTip.text: "View from the right"
+      ToolTip.text: "Y Align Min"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      Layout.leftMargin: 10
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "y_center.png"
+        source: "y_min.png"
         sourceSize.width: 28;
         sourceSize.height: 28;
       }
@@ -112,6 +170,69 @@ ToolBar {
         hoverEnabled: true
         onEntered: {
           AlignTool.OnAlignAxis("Y")
+          AlignTool.OnAlignConfig("min")
+          AlignTool.OnHoveredEntered()
+        }
+        onExited: {
+          AlignTool.OnHoveredExited()
+        }
+        onClicked: {
+          AlignTool.OnAlign()
+        }
+      }
+    }
+    ToolButton {
+      id: y_mid
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "Y Align Center"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "y_mid.png"
+        sourceSize.width: 28;
+        sourceSize.height: 28;
+      }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          AlignTool.OnAlignAxis("Y")
+          AlignTool.OnAlignConfig("mid")
+          AlignTool.OnHoveredEntered()
+        }
+        onExited: {
+          AlignTool.OnHoveredExited()
+        }
+        onClicked: {
+          AlignTool.OnAlign()
+        }
+      }
+    }
+    ToolButton {
+      id: y_max
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "Y Align Max"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "y_max.png"
+        sourceSize.width: 28;
+        sourceSize.height: 28;
+      }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          AlignTool.OnAlignAxis("Y")
+          AlignTool.OnAlignConfig("max")
           AlignTool.OnHoveredEntered()
         }
         onExited: {
@@ -125,26 +246,23 @@ ToolBar {
     Text {
       text: "Z:"
       font.weight: Font.Bold
-      Layout.row: 2
-      Layout.column: 0
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
       font.pointSize: 14
     }
     ToolButton {
-      id: z_center
+      id: z_min
       checkable: true
       ButtonGroup.group: group
-      ToolTip.text: "View from the bottom"
+      ToolTip.text: "Z Align Min"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      Layout.row: 2
-      Layout.column: 1
+      Layout.leftMargin: 10
       contentItem: Image {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "z_center.png"
+        source: "z_min.png"
         sourceSize.width: 28;
         sourceSize.height: 28;
       }
@@ -153,6 +271,7 @@ ToolBar {
         hoverEnabled: true
         onEntered: {
           AlignTool.OnAlignAxis("Z")
+          AlignTool.OnAlignConfig("min")
           AlignTool.OnHoveredEntered()
         }
         onExited: {
@@ -161,6 +280,78 @@ ToolBar {
         onClicked: {
           AlignTool.OnAlign()
         }
+      }
+    }
+    ToolButton {
+      id: z_mid
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "Z Align Mid"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "z_mid.png"
+        sourceSize.width: 28;
+        sourceSize.height: 28;
+      }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          AlignTool.OnAlignAxis("Z")
+          AlignTool.OnAlignConfig("mid")
+          AlignTool.OnHoveredEntered()
+        }
+        onExited: {
+          AlignTool.OnHoveredExited()
+        }
+        onClicked: {
+          AlignTool.OnAlign()
+        }
+      }
+    }
+    ToolButton {
+      id: z_max
+      checkable: true
+      ButtonGroup.group: group
+      ToolTip.text: "Z Align Max"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "z_max.png"
+        sourceSize.width: 28;
+        sourceSize.height: 28;
+      }
+      MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          AlignTool.OnAlignAxis("Z")
+          AlignTool.OnAlignConfig("max")
+          AlignTool.OnHoveredEntered()
+        }
+        onExited: {
+          AlignTool.OnHoveredExited()
+        }
+        onClicked: {
+          AlignTool.OnAlign()
+        }
+      }
+    }
+    CheckBox {
+      text: qsTr("Reverse")
+      Layout.columnSpan: 4
+      Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+      Layout.leftMargin: 10
+      checked: false
+      onClicked: {
+        AlignTool.OnReverse(checked)
       }
     }
     RowLayout {

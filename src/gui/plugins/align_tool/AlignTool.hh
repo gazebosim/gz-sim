@@ -54,6 +54,13 @@ namespace gazebo
     ALIGN_Z = 2
   };
 
+  enum class AlignConfig
+  {
+    ALIGN_MIN,
+    ALIGN_MID,
+    ALIGN_MAX
+  };
+
   class AlignToolPrivate;
 
   /// \brief Provides buttons for the align tool
@@ -85,6 +92,14 @@ namespace gazebo
     /// \brief Callback to update the target type.
     /// \param[in] _target New target type
     public slots: void OnAlignTarget(const QString &_target);
+
+    /// \brief Callback to update the axis config.
+    /// \param[in] _mode New config type
+    public slots: void OnAlignConfig(const QString &_mode);
+
+    /// \brief Callback to update if the align orientation is reversed.
+    /// \param[in] _reverse The reverse boolean
+    public slots: void OnReverse(bool _reverse);
 
     /// \brief Callback to make whenever a hover state is entered on a button
     public slots: void OnHoveredEntered();
