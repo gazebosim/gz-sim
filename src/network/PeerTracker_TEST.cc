@@ -250,7 +250,7 @@ TEST(PeerTracker, Namespaced)
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   // Trackers should detect peers in the same partition.
   EXPECT_EQ(1u, tracker1.NumPeers());

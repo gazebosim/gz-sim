@@ -59,10 +59,6 @@ methods from the inherited interfaces.
 
 \snippet examples/plugin/system_plugin/SampleSystem.hh header
 
-## Implement Source
-
-Implement the system class as usual.
-
 ## Register Plugin
 
 If the library will only contain one plugin:
@@ -73,6 +69,12 @@ If the library will contain multiple plugins, in one implementation do as
 above, and then for each successive implementation use:
 
 \snippet examples/plugin/system_plugin/SampleSystem2.cc registerSampleSystem2
+
+## Implement Source
+
+Implement the system class as usual, for example:
+
+\snippet examples/plugin/system_plugin/SampleSystem.cc implementSampleSystem
 
 ## Setup the build
 
