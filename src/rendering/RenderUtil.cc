@@ -169,11 +169,18 @@ class ignition::gazebo::RenderUtilPrivate
   //// \brief Flag to indicate whether to create sensors
   public: bool enableSensors = false;
 
+  /// \brief A set containing all the entities with attached rendering sensors
+  public: std::unordered_set<Entity> sensorEntities;
+
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
   /// The function returns the id of the rendering sensor created.
   public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
       const std::string &)> createSensorCb;
+
+  /// \brief Callback function for removing sensors.
+  /// The function arg is the entity id
+  public: std::function<void(const gazebo::Entity &)> removeSensorCb;
 
   /// \brief Entity currently being selected.
   public: rendering::NodePtr selectedEntity{nullptr};
@@ -281,7 +288,6 @@ void RenderUtil::Update()
   }
 
   // remove existing entities
-  // \todo(anyone) Remove sensors
   {
     IGN_PROFILE("RenderUtil::Update Remove");
     for (auto &entity : removeEntities)
@@ -293,6 +299,13 @@ void RenderUtil::Update()
         this->dataPtr->selectedEntity.reset();
       }
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
+      // delete associated sensor, if existing
+      auto sensorEntityIt = this->dataPtr->sensorEntities.find(entity.first);
+      if (sensorEntityIt != this->dataPtr->sensorEntities.end())
+      {
+        this->dataPtr->removeSensorCb(entity.first);
+        this->dataPtr->sensorEntities.erase(sensorEntityIt);
+      }
     }
   }
 
@@ -442,6 +455,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     }
     this->newSensors.push_back(
         std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
+    this->sensorEntities.insert(_entity);
   };
 
   const std::string cameraSuffix{"/image"};
@@ -1026,6 +1040,13 @@ void RenderUtil::SetEnableSensors(bool _enable,
 {
   this->dataPtr->enableSensors = _enable;
   this->dataPtr->createSensorCb = std::move(_createSensorCb);
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetRemoveSensorCb(
+    std::function<void(const gazebo::Entity &)> _removeSensorCb)
+{
+  this->dataPtr->removeSensorCb = std::move(_removeSensorCb);
 }
 
 /////////////////////////////////////////////////
