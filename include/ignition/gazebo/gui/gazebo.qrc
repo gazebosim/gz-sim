@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource prefix="Gazebo/">
     <file>GazeboDrawer.qml</file>
+    <file>images/actor.png</file>
     <file>images/collision.png</file>
     <file>images/joint.png</file>
     <file>images/link.png</file>
