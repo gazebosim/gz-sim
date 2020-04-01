@@ -94,11 +94,11 @@ namespace ignition
     class Matrix3
     {
       /// \brief A Matrix3 initialized to identity.
-      /// This is equivaledn to math::Matrix3<T>(1, 0, 0, 0, 1, 0, 0, 0, 1).
+      /// This is equivalent to math::Matrix3<T>(1, 0, 0, 0, 1, 0, 0, 0, 1).
       public: static const Matrix3<T> Identity;
 
       /// \brief A Matrix3 initialized to zero.
-      /// This is equivaledn to math::Matrix3<T>(0, 0, 0, 0, 0, 0, 0, 0, 0).
+      /// This is equivalent to math::Matrix3<T>(0, 0, 0, 0, 0, 0, 0, 0, 0).
       public: static const Matrix3<T> Zero;
 
       /// \brief Default constructor that initializes the matrix3 to zero.
