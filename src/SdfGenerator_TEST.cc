@@ -351,11 +351,11 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
       ->mutable_save_fuel_model_version()
       ->set_data(true);
 
-    (*this->sdfGenConfig.mutable_override_model_gen_configs())["backpack2"]
-      .mutable_expand_include_tags()
-      ->set_data(false);
-
-    std::cout << "Config: "<< this->sdfGenConfig.DebugString() << std::endl;
+    auto &modelGenConfig =
+        *this->sdfGenConfig.mutable_override_model_gen_configs();
+    modelGenConfig["save_world::backpack2"]
+        .mutable_expand_include_tags()
+        ->set_data(false);
 
     auto elem = std::make_shared<sdf::Element>();
     sdf::initFile("world.sdf", elem);
@@ -375,11 +375,11 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
       ->mutable_save_fuel_model_version()
       ->set_data(false);
 
-    (*this->sdfGenConfig.mutable_override_model_gen_configs())["backpack2"]
-      .mutable_save_fuel_model_version()
-      ->set_data(true);
-
-    std::cout << "Config: "<< this->sdfGenConfig.DebugString() << std::endl;
+    auto &modelGenConfig =
+        *this->sdfGenConfig.mutable_override_model_gen_configs();
+    modelGenConfig["save_world::backpack2"]
+        .mutable_save_fuel_model_version()
+        ->set_data(true);
 
     auto elem = std::make_shared<sdf::Element>();
     sdf::initFile("world.sdf", elem);
@@ -473,7 +473,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
   this->sdfGenConfig.mutable_global_model_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(false);
-  (*this->sdfGenConfig.mutable_override_model_gen_configs())["backpack3"]
+  auto &modelGenConfig =
+      *this->sdfGenConfig.mutable_override_model_gen_configs();
+  modelGenConfig["save_world::backpack3"]
       .mutable_save_fuel_model_version()
       ->set_data(true);
   sdf_generator::updateWorldElement(
@@ -619,7 +621,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
       ->mutable_expand_include_tags()
       ->set_data(false);
   // Model2 is not a Fuel model, so this should have no effect.
-  (*this->sdfGenConfig.mutable_override_model_gen_configs())["model2"]
+  auto &modelGenConfig =
+      *this->sdfGenConfig.mutable_override_model_gen_configs();
+  modelGenConfig["save_world::model2"]
       .mutable_save_fuel_model_version()
       ->set_data(true);
   sdf_generator::updateWorldElement(
@@ -651,7 +655,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
   this->sdfGenConfig.mutable_global_model_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(false);
-  (*this->sdfGenConfig.mutable_override_model_gen_configs())["backpack2"]
+  auto &modelGenConfig =
+      *this->sdfGenConfig.mutable_override_model_gen_configs();
+  modelGenConfig["save_world::backpack2"]
       .mutable_expand_include_tags()
       ->set_data(true);
   sdf_generator::updateWorldElement(
@@ -715,7 +721,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
   this->sdfGenConfig.mutable_global_model_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(true);
-  (*this->sdfGenConfig.mutable_override_model_gen_configs())["backpack2"]
+  auto &modelGenConfig =
+      *this->sdfGenConfig.mutable_override_model_gen_configs();
+  modelGenConfig["save_world::backpack2"]
       .mutable_expand_include_tags()
       ->set_data(false);
   sdf_generator::updateWorldElement(
