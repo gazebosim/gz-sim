@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/Atmosphere.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -58,6 +59,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
@@ -74,6 +76,10 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   /// \brief Keep track of new sensors being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::ElementPtr> newSensors;
+
+  /// \brief Keep track of new visuals being added, so we load their plugins
+  /// only after we have their scoped name.
+  public: std::map<Entity, sdf::ElementPtr> newVisuals;
 };
 
 using namespace ignition;
@@ -145,6 +151,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   {
     this->dataPtr->ecm->CreateComponent(worldEntity,
         components::Scene(*_world->Scene()));
+  }
+
+  // atmosphere
+  if (_world->Atmosphere())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Atmosphere(*_world->Atmosphere()));
   }
 
   // Models
@@ -256,6 +269,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
   }
   this->dataPtr->newSensors.clear();
+
+  // Load visual plugins after model, so we get scoped name.
+  for (const auto &[entity, element] : this->dataPtr->newVisuals)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newVisuals.clear();
 
   return modelEntity;
 }
@@ -437,6 +457,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Material(*_visual->Material()));
   }
 
+  // Keep track of visuals so we can load their plugins after loading the
+  // entire model and having its full scoped name.
+  this->dataPtr->newVisuals[visualEntity] = _visual->Element();
+
   return visualEntity;
 }
 
@@ -511,6 +535,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::RgbdCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::ThermalCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {

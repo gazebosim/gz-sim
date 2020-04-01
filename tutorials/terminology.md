@@ -10,29 +10,29 @@ to developers touching the source code.
 
 * **Entity**: Every "object" in the world, such as models, links,
     collisions, visuals, lights, joints, etc.
-    An entity [is just a numeric ID](https://ignitionrobotics.org/api/gazebo/1.0/namespaceignition_1_1gazebo.html#ad83694d867b0e3a9446b535b5dfd208d),
+    An entity [is just a numeric ID](namespaceignition_1_1gazebo.html#ad83694d867b0e3a9446b535b5dfd208d),
     and may have several components attached to it. Entity IDs are assigned
     at runtime.
 
 * **Component**: Adds a certain functionality or characteristic to an entity.
     For example, pose, name, material, etc.
     Ignition Gazebo comes with various
-    [components](https://ignitionrobotics.org/api/gazebo/1.0/namespaceignition_1_1gazebo_1_1components.html)
+    [components](namespaceignition_1_1gazebo_1_1components.html)
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
     can also create their own by inheriting from the
-    [BaseComponent](https://ignitionrobotics.org/api/gazebo/1.0/classignition_1_1gazebo_1_1components_1_1BaseComponent.html)
+    [BaseComponent](classignition_1_1gazebo_1_1components_1_1BaseComponent.html)
     class or instantiating a template of
-    [Component](https://ignitionrobotics.org/api/gazebo/1.0/classignition_1_1gazebo_1_1components_1_1Component.html).
+    [Component](classignition_1_1gazebo_1_1components_1_1Component.html).
 
 * **System**: Logic that operates on all entities that have a given set of
     components. Systems are plugins that can be loaded at runtime.
     Ignition Gazebo ships with various systems, and downstream develpers can
-    [create their own systems](https://ignitionrobotics.org/api/gazebo/1.0/createsystemplugins.html).
+    [create their own systems](createsystemplugins.html).
 
 * **Entity-component manager**: **ECM** for short. Provides functions for
     querying, creating, removing and updating entities and components.
     See the whole API
-    [here](https://ignitionrobotics.org/api/gazebo/1.0/classignition_1_1gazebo_1_1EntityComponentManager.html).
+    [here](classignition_1_1gazebo_1_1EntityComponentManager.html).
 
 * **Level**: Part of a world, defined by a box volume and the static entities
     inside it. An entity can be present in more than one level, or in none of
@@ -63,7 +63,7 @@ to developers touching the source code.
     the world, while the **primary** runner is keeping all secondaries in sync.
     Worlds that are not split across runners don't have a primary runner.
 
-* **[Event manager](https://ignitionrobotics.org/api/gazebo/1.0/classignition_1_1gazebo_1_1EventManager.html)**:
+* **[Event manager](classignition_1_1gazebo_1_1EventManager.html)**:
     Manages events that can be sent across systems and the server. Plugins can
     create and emit custom
     [Event](https://ignitionrobotics.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
@@ -73,7 +73,7 @@ to developers touching the source code.
     more than 1 world.
     * It has a single ECM with all the entities and components
       relevant to the levels / world / performer being simulated.
-        * â   It's still TBD how to support multiple `<worlds>` in parallel.
+        * It's still TBD how to support multiple `<worlds>` in parallel.
     * It has an event manager.
     * It has a network manager, if simulation is distributed.
     * It loads up a set of systems.
