@@ -660,13 +660,13 @@ namespace ignition
         0, 0, 0,
         0, 0, 0);
 
-    /// \typedef Matrix3<int> Matrix3i
+    /// typedef Matrix3<int> as Matrix3i.
     typedef Matrix3<int> Matrix3i;
 
-    /// \typedef Matrix3<double> Matrix3d
+    /// typedef Matrix3<double> as Matrix3d.
     typedef Matrix3<double> Matrix3d;
 
-    /// \typedef Matrix3<float> Matrix3f
+    /// typedef Matrix3<float> as Matrix3f.
     typedef Matrix3<float> Matrix3f;
     }
   }
