@@ -110,6 +110,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         std::string(const gazebo::Entity &, const sdf::Sensor &,
         const std::string &)> _createSensorCb = {});
 
+    /// \brief Set the callback function for removing the sensors
+    /// \param[in] _removeSensorCb Callback function for removing the sensors
+    /// The callback function arg is the sensor entity to remove
+    public : void SetRemoveSensorCb(
+        std::function<void(const gazebo::Entity &)> _removeSensorCb);
+
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();

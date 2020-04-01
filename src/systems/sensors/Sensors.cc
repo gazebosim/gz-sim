@@ -153,14 +153,6 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
-
-  /// \brief Helper function to remove a sensor from the maps
-  /// \return True if the sensor was removed
-  public: bool RemoveSensor(const Entity &_entity);
-
-  /// \brief Checks if any Sensor Entity has been removed and performs
-  /// cleanup of the corresponding sensor and map entries.
-  public: void SensorCleanup(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
@@ -301,45 +293,15 @@ void SensorsPrivate::Stop()
 }
 
 //////////////////////////////////////////////////
-bool SensorsPrivate::RemoveSensor(const Entity &_entity)
+void Sensors::RemoveSensor(const Entity &_entity)
 {
-  auto idIter = this->entityToIdMap.find(_entity);
-  if (idIter != this->entityToIdMap.end())
+  auto idIter = this->dataPtr->entityToIdMap.find(_entity);
+  if (idIter != this->dataPtr->entityToIdMap.end())
   {
-    this->sensorIds.erase(idIter->second);
-    this->sensorManager.Remove(idIter->second);
-    this->entityToIdMap.erase(idIter);
+    this->dataPtr->sensorIds.erase(idIter->second);
+    this->dataPtr->sensorManager.Remove(idIter->second);
+    this->dataPtr->entityToIdMap.erase(idIter);
   }
-  return true;
-}
-
-//////////////////////////////////////////////////
-void SensorsPrivate::SensorCleanup(const EntityComponentManager &_ecm)
-{
-  _ecm.EachRemoved<components::Camera>(
-      [&](const Entity &_entity,
-          const components::Camera *)->bool
-      {
-        return this->RemoveSensor(_entity);
-      });
-  _ecm.EachRemoved<components::DepthCamera>(
-      [&](const Entity &_entity,
-          const components::DepthCamera *)->bool
-      {
-        return this->RemoveSensor(_entity);
-      });
-  _ecm.EachRemoved<components::GpuLidar>(
-      [&](const Entity &_entity,
-          const components::GpuLidar *)->bool
-      {
-        return this->RemoveSensor(_entity);
-      });
-  _ecm.EachRemoved<components::RgbdCamera>(
-      [&](const Entity &_entity,
-          const components::RgbdCamera *)->bool
-      {
-        return this->RemoveSensor(_entity);
-      });
 }
 
 //////////////////////////////////////////////////
@@ -368,6 +330,8 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  this->dataPtr->renderUtil.SetRemoveSensorCb(
+      std::bind(&Sensors::RemoveSensor, this, std::placeholders::_1));
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
@@ -405,8 +369,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
-    // Performs cleanup for removed sensors
-    this->dataPtr->SensorCleanup(_ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
     auto t = common::Time(time.first, time.second);
