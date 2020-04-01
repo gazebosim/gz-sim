@@ -24,6 +24,7 @@
 #include <fstream>
 #include <ctime>
 
+#include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>
@@ -64,6 +65,9 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
+  /// \brief Directory in which to place log file
+  public: std::string logPath{""};
+
   /// \brief Clock used to timestamp recorded messages with sim time.
   /// This is not the timestamp on the header, rather a logging-specific stamp.
   /// This stamp is used by LogPlayback to step through logs.
@@ -72,7 +76,7 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: std::unique_ptr<transport::NetworkClock> clock;
 
   /// \brief Name of this world
-  public: std::string worldName;
+  public: std::string worldName{""};
 
   /// \brief SDF of this plugin
   public: std::shared_ptr<const sdf::Element> sdf{nullptr};
@@ -120,15 +124,21 @@ void LogRecord::Configure(const Entity &_entity,
 {
   this->dataPtr->sdf = _sdf;
 
-  // Get directory paths from SDF params
-  auto logPath = _sdf->Get<std::string>("path");
-
   this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
+    auto logPath = _sdf->Get<std::string>("path");
+    // Path is initialized by server if record is set from command line options.
+    //   Otherwise, path is loaded from SDF. If a path is not specified in
+    //   SDF, initialize to default here.
+    if (logPath.empty())
+    {
+      logPath = ignLogDirectory();
+    }
+
     this->dataPtr->Start(logPath);
   }
   else
@@ -148,31 +158,26 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
       << "Will not start another.\n";
     return true;
   }
-  LogRecordPrivate::started = true;
+
+  this->logPath = _logPath;
 
   // The ServerConfig takes care of specifying a default log record path.
-  // This if statement should never be reached.
-  if (_logPath.empty() ||
-      (common::exists(_logPath) && !common::isDirectory(_logPath)))
+  // This if-statement is reached if the record plugin is only specified in
+  //   SDF, and a <path> is not specified.
+  if (this->logPath.empty() ||
+      (common::exists(this->logPath) && !common::isDirectory(this->logPath)))
   {
-    ignerr << "Unspecified or invalid log path[" << _logPath << "]. "
+    ignerr << "Unspecified or invalid log path[" << this->logPath << "]. "
       << "Recording will not take place." << std::endl;
     return false;
   }
 
-  // A user could have manually specified a record path. In this case, it's
-  // okay to overwrite existing log files.
-  if (common::exists(_logPath))
-  {
-    ignwarn << "Log path already exists on disk! "
-      << "Recording will overwrite existing state log file, if present."
-      << std::endl;
-  }
+  LogRecordPrivate::started = true;
 
   // Create log directory
-  if (!common::exists(_logPath))
+  if (!common::exists(this->logPath))
   {
-    common::createDirectories(_logPath);
+    common::createDirectories(this->logPath);
   }
 
   // Go up to root of SDF, to record entire SDF file
@@ -186,7 +191,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->sdfMsg.set_data(sdfRoot->ToString(""));
 
   // Use directory basename as topic name, to be able to retrieve at playback
-  std::string sdfTopic = "/" + common::basename(_logPath) + "/sdf";
+  std::string sdfTopic = "/" + common::basename(this->logPath) + "/sdf";
   this->sdfPub = this->node.Advertise(sdfTopic, this->sdfMsg.GetTypeName());
 
   // TODO(louise) Combine with SceneBroadcaster's state topic
@@ -194,9 +199,12 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->statePub = this->node.Advertise<msgs::SerializedStateMap>(stateTopic);
 
   // Append file name
-  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   if (common::exists(dbPath))
+  {
+    ignmsg << "Overwriting existing file [" << dbPath << "]\n";
     common::removeFile(dbPath);
+  }
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Use ign-transport directly
@@ -230,6 +238,9 @@ void LogRecord::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &)
 {
   IGN_PROFILE("LogRecord::PreUpdate");
+  // Safe guard to prevent seg faults if recorder could not be started
+  if (!this->dataPtr->instStarted)
+    return;
   this->dataPtr->clock->SetTime(_info.simTime);
 }
 
@@ -238,6 +249,10 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogRecord::PostUpdate");
+
+  // Safe guard to prevent seg faults if recorder could not be started
+  if (!this->dataPtr->instStarted)
+    return;
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
