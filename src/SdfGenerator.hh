@@ -17,8 +17,11 @@
 #ifndef IGNITION_GAZEBO_SDFGENERATOR_HH_
 #define IGNITION_GAZEBO_SDFGENERATOR_HH_
 
-#include <sdf/Element.hh>
 #include <ignition/msgs/sdf_generator_config.pb.h>
+
+#include <sdf/Element.hh>
+#include <string>
+#include <unordered_map>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -65,7 +68,7 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity Model entity
   /// \returns true if update succeeded.
-  bool updateModelElement(sdf::ElementPtr _elem,
+  bool updateModelElement(const sdf::ElementPtr &_elem,
                           const EntityComponentManager &_ecm,
                           const Entity &_entity);
 
@@ -76,9 +79,9 @@ namespace sdf_generator
   /// \input[in] _entity Model entity
   /// \input[in] _uri Uri of the model
   /// \returns true if update succeeded.
-  bool updateIncludeElement(sdf::ElementPtr _elem,
+  bool updateIncludeElement(const sdf::ElementPtr &_elem,
                             const EntityComponentManager &_ecm,
-                            const Entity &_entity, std::string _uri);
+                            const Entity &_entity, const std::string &_uri);
 
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

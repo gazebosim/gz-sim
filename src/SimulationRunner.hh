@@ -27,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -488,7 +489,7 @@ namespace ignition
       private: std::unique_ptr<Barrier> postUpdateStopBarrier;
 
       /// \brief Map from file paths to Fuel URIs.
-      private : std::unordered_map<std::string, std::string> fuelUriMap;
+      private: std::unordered_map<std::string, std::string> fuelUriMap;
 
       friend class LevelManager;
     };

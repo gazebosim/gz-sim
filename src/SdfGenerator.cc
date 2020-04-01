@@ -38,30 +38,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace sdf_generator
 {
-  class Benchmark
-  {
-    public: Benchmark(std::string _str) : str(std::move(_str))
-    {
-      tInit = common::Time::SystemTime();
-    }
-
-    public: ~Benchmark()
-    {
-      tFin = common::Time::SystemTime();
-      std::cout
-          << str << " "
-          << (tFin - tInit).FormattedString(common::Time::FormatOption::SECONDS)
-          << std::endl;
-    }
-
-    private: common::Time tInit, tFin;
-    private: std::string str;
-  };
-
   /////////////////////////////////////////////////
   /// \brief Copy sdf::Element from component
-  /// \param[in] _comp Component containing an sdf::Element. The component can
-  /// be a DOM object or an sdf::Element
+  /// \param[in] _comp Component containing an sdf::Element. The component has
+  /// to be a DOM object
   /// \param[out] _elem Output sdf::Element
   /// \returns False if the component is nullptr
   template <typename ComponentT>
@@ -69,15 +49,7 @@ namespace sdf_generator
   {
     if (nullptr != _comp)
     {
-      if constexpr (std::is_same<typename ComponentT::Type,
-                                 sdf::ElementPtr>::value)
-      {
-        _elem->Copy(_comp->Data());
-      }
-      else
-      {
-        _elem->Copy(_comp->Data().Element());
-      }
+      _elem->Copy(_comp->Data().Element());
       return true;
     }
     return false;
@@ -94,10 +66,14 @@ namespace sdf_generator
     if (uriSplit.size() > 0)
     {
       try {
-        std::stol(uriSplit.back());
+        // This assumes that model names cannot be purely numerical.
+        auto version = std::stol(uriSplit.back());
+        // We can ignore the returned value since an exception will be thrown if
+        // the conversion failed.
+        static_cast<void>(version);
         uriSplit.pop_back();
         common::URIPath newPath;
-        for (const auto &segment: uriSplit)
+        for (const auto &segment : uriSplit)
         {
           newPath /= segment;
         }
@@ -117,7 +93,7 @@ namespace sdf_generator
   /// \returns True if the source of the model is a separate file that was
   /// included into the world using the `<include>` tag.
   static bool isModelFromInclude(const std::string &_modelDir,
-                                 const std::string _worldDir)
+                                 const std::string &_worldDir)
   {
     // There are several cases to consider here
     // modelDir == "" , worldDir == ""
@@ -223,7 +199,6 @@ namespace sdf_generator
       const IncludeUriMap &_includeUriMap,
       const msgs::SdfGeneratorConfig &_config)
   {
-    Benchmark bm(__func__);
     sdf::ElementPtr elem = std::make_shared<sdf::Element>();
     sdf::initFile("root.sdf", elem);
     auto worldElem = elem->AddElement("world");
@@ -240,8 +215,7 @@ namespace sdf_generator
                           const IncludeUriMap &_includeUriMap,
                           const msgs::SdfGeneratorConfig &_config)
   {
-    const components::WorldSdf *worldSdf =
-        _ecm.Component<components::WorldSdf>(_entity);
+    const auto *worldSdf = _ecm.Component<components::WorldSdf>(_entity);
 
     if (nullptr == worldSdf)
       return false;
@@ -259,7 +233,7 @@ namespace sdf_generator
         toRemove.push_back(modelElem);
       }
     }
-    for (auto e : toRemove)
+    for (const auto &e : toRemove)
     {
       _elem->RemoveChild(e);
     }
@@ -311,7 +285,7 @@ namespace sdf_generator
               // URI may not contain version information.
               // We are assuming here that, for Fuel models, the directory
               // containing the sdf file has the same name as the model version.
-              // TODO (addisu) Verify this assumption
+              // TODO(addisu) Verify this assumption
               uri.Path() /= common::basename(modelDir);
             }
 
@@ -334,11 +308,11 @@ namespace sdf_generator
   }
 
   /////////////////////////////////////////////////
-  bool updateModelElement(sdf::ElementPtr _elem,
+  bool updateModelElement(const sdf::ElementPtr &_elem,
                           const EntityComponentManager &_ecm,
                           const Entity &_entity)
   {
-    if(!copySdf(_ecm.Component<components::ModelSdf>(_entity), _elem))
+    if (!copySdf(_ecm.Component<components::ModelSdf>(_entity), _elem))
       return false;
 
     // Update sdf based current components. Here are the list of components to
@@ -351,7 +325,7 @@ namespace sdf_generator
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
-    // TODO (addisu): Uncomment this for sdformat 1.7
+    // TODO(addisu): Uncomment this for sdformat 1.7
     // sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
     // if (nullptr != relativeTo)
     // {
@@ -362,9 +336,9 @@ namespace sdf_generator
   }
 
   /////////////////////////////////////////////////
-  bool updateIncludeElement(sdf::ElementPtr _elem,
+  bool updateIncludeElement(const sdf::ElementPtr &_elem,
                             const EntityComponentManager &_ecm,
-                            const Entity &_entity, std::string _uri)
+                            const Entity &_entity, const std::string &_uri)
   {
     _elem->GetElement("uri")->Set(_uri);
 
@@ -376,7 +350,7 @@ namespace sdf_generator
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
-    // TODO (addisu): Uncomment this for sdformat 1.7
+    // TODO(addisu): Uncomment this for sdformat 1.7
     // sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
     // if (nullptr != relativeTo)
     // {
