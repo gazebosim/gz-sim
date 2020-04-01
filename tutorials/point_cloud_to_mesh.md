@@ -20,7 +20,7 @@ After installing, open CloudCompare and import your point cloud file by going to
 Depending on the number of points in your point cloud, this could take several minutes.
 Once loaded, you should see the following tunnel section:
 
-![Opening the point cloud](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/cloudcompare.png)
+![Opening the point cloud](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/d4fdfb0b778306ca8b946b7b4cf6bf9887386f3c/tutorials/files/point_cloud_to_mesh/cloudcompare2.png)
 
 Many 3D scans will be composed of millions, sometimes hundreds of millions of points.
 Converting a scan to a 3D model with that many points would be very difficult due to the number of polygons that would be created and the long processing time necessary to compute the normals.
@@ -93,7 +93,7 @@ Our tunnel has turned into a blob shape.
 This is because the mesh that CloudCompare creates will always be water tight even if it has to add polygons where there are no points.
 We just want our tunnels, though, so we need to remove those unnecessary polygons.
 
-![The "blob shape"](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/blob.png)
+![The "blob shape"](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/d4fdfb0b778306ca8b946b7b4cf6bf9887386f3c/tutorials/files/point_cloud_to_mesh/blob2.png)
 
 This is where our scalar field comes in.
 In the mesh's `Properties` window go to `SF display params` and take the left handle in the graph and drag it to the right until it hits the area where the bulk of the scalar field starts.
@@ -104,7 +104,7 @@ This will display only the polygons that were created from the point cloud and h
 The polygons are only hidden however.
 We still need to actually remove them.
 
-![Display original polygons](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/hidden_polygons.png)
+![Display original polygons](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/d4fdfb0b778306ca8b946b7b4cf6bf9887386f3c/tutorials/files/point_cloud_to_mesh/hidden_polygons2.png)
 
 To remove the hidden polygons go to `Edit` > `Scalar fields` > `Filter By Value`.
 
@@ -121,6 +121,6 @@ By hitting `Split` we can view the model before exporting by simply going to `Fi
 Remember to have the correct mesh selected (`<mesh_name>.part`) since choosing `Split` will give you two new meshes, plus you will still have your original, complete mesh.
 Your file format will depend on the software you want to use but `.obj` is a widely supported format that should work in most 3D applications.
 
-![The completed mesh](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/8a240cb209c9bf6bd58d48035ffe4807af0a3712/tutorials/files/point_cloud_to_mesh/complete.png)
+![The completed mesh](https://bitbucket.org/ignitionrobotics/ign-gazebo/raw/d4fdfb0b778306ca8b946b7b4cf6bf9887386f3c/tutorials/files/point_cloud_to_mesh/complete2.png)
 
 You can find more information on CloudCompare and a more in depth look at the tools we used in this tutorial on [the CloudCompare website](https://www.cloudcompare.org/) and the [CloudCompare wiki](https://www.cloudcompare.org/doc/wiki/index.php?title=Main_Page).
