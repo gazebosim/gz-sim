@@ -9,6 +9,10 @@ release will remove the deprecated code.
 
 ### Deprecations
 
+1. **Angle.hh**
+    + All mutator functions that lacked a `Set` prefix have been deprecated
+    and replaced by version with a `Set` prefix.
+
 1. **Matrix3.hh**
     + ***Deprecation:*** public: void Axes(const Vector3<T> &, const Vector3<T> &, const Vector3<T> &)
     + ***Replacement:*** public: void SetAxes(const Vector3<T> &, const Vector3<T> &, const Vector3<T> &)
