@@ -57,6 +57,19 @@ ToolBar {
     TransformControl.OnMode("select");
   }
 
+  function updateSnapValues() {
+    xEntry.value = TransformControl.xSnap();
+    yEntry.value = TransformControl.ySnap();
+    zEntry.value = TransformControl.zSnap();
+    rollEntry.value = TransformControl.rollSnap();
+    pitchEntry.value = TransformControl.pitchSnap();
+    yawEntry.value = TransformControl.yawSnap();
+    // TODO(anyone) enable scale button when support is added in ign-physics
+    // xScaleEntry.value = TransformControl.xScaleSnap()
+    // yScaleEntry.value = TransformControl.yScaleSnap()
+    // zScaleEntry.value = TransformControl.zScaleSnap()
+  }
+
   function windowWidth() {
     return transformControl.Window.window ? (transformControl.Window.window.width) : 0
   }
@@ -71,6 +84,11 @@ ToolBar {
 
   ButtonGroup {
     id: group
+  }
+
+  Connections {
+    target: TransformControl
+    onNewSnapValues: updateSnapValues();
   }
 
   // TODO(anyone) enable scale button when support is added in ign-physics

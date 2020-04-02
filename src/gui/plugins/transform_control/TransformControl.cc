@@ -64,7 +64,7 @@ namespace ignition::gazebo
 
     /// \brief The rpy snap values held for snap to grid.
     public: math::Vector3d rpySnapVals{45.0, 45.0, 45.0};
-    
+
     /// \brief The scale snap values held for snap to grid.
     public: math::Vector3d scaleSnapVals{1.0, 1.0, 1.0};
   };
@@ -105,14 +105,15 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->xyzSnapVals = math::Vector3d(_x, _y, _z);
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
-  
+
   auto event = new gui::events::SnapIntervals(
       this->dataPtr->xyzSnapVals,
       this->dataPtr->rpySnapVals,
       this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
-  //TODO communicate snapping vals back to qml side
+
+  this->newSnapValues();
 }
 
 /////////////////////////////////////////////////
@@ -148,8 +149,12 @@ void TransformControl::SnapToGrid()
 
   double cellLength = this->dataPtr->grid->CellLength();
   this->OnSnapUpdate(cellLength, cellLength, cellLength,
-      this->dataPtr->rpySnapVals.X(), this->dataPtr->rpySnapVals.Y(), this->dataPtr->rpySnapVals.Z(),
-      this->dataPtr->scaleSnapVals.X(), this->dataPtr->scaleSnapVals.Y(), this->dataPtr->scaleSnapVals.Z());
+      this->dataPtr->rpySnapVals.X(),
+      this->dataPtr->rpySnapVals.Y(),
+      this->dataPtr->rpySnapVals.Z(),
+      this->dataPtr->scaleSnapVals.X(),
+      this->dataPtr->scaleSnapVals.Y(),
+      this->dataPtr->scaleSnapVals.Z());
 }
 
 /////////////////////////////////////////////////
@@ -226,6 +231,60 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+double TransformControl::xSnap()
+{
+  return this->dataPtr->xyzSnapVals[0];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::ySnap()
+{
+  return this->dataPtr->xyzSnapVals[1];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::zSnap()
+{
+  return this->dataPtr->xyzSnapVals[2];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::rollSnap()
+{
+  return this->dataPtr->rpySnapVals[0];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::pitchSnap()
+{
+  return this->dataPtr->rpySnapVals[1];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::yawSnap()
+{
+  return this->dataPtr->rpySnapVals[2];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::scaleXSnap()
+{
+  return this->dataPtr->scaleSnapVals[0];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::scaleYSnap()
+{
+  return this->dataPtr->scaleSnapVals[1];
+}
+
+/////////////////////////////////////////////////
+double TransformControl::scaleZSnap()
+{
+  return this->dataPtr->scaleSnapVals[2];
 }
 
 // Register this plugin
