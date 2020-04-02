@@ -165,7 +165,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
 
-  // Store the model's SDF DOM to be used when saving the world to file
+  // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       worldEntity, components::WorldSdf(*_world));
 
