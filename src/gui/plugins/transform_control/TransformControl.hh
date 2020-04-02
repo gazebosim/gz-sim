@@ -85,6 +85,54 @@ namespace gazebo
     /// \brief Callback in Qt thread when the snap to grid button is clicked.
     public slots: void OnSnapToGrid();
 
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set x translational snapping value
+    public slots: double xSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set y translational snapping value
+    public slots: double ySnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set z translational snapping value
+    public slots: double zSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set roll rotational snapping value
+    public slots: double rollSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set pitch rotational snapping value
+    public slots: double pitchSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set yaw rotational snapping value
+    public slots: double yawSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set x scaling snapping value
+    public slots: double scaleXSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set y scaling snapping value
+    public slots: double scaleYSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set z scaling snapping value
+    public slots: double scaleZSnap();
+
+    /// \brief Notify that new snapping values have been set.
+    signals: void newSnapValues();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<TransformControlPrivate> dataPtr;
