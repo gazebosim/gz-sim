@@ -41,8 +41,7 @@ Rectangle {
   // Read-only / write
   property bool readOnly: {
     var isModel = entityType == "model"
-    var isLight = entityType == "light"
-    return !(isModel || isLight)
+    return !(isModel)
   }
 
   // Loaded item for X
@@ -65,6 +64,7 @@ Rectangle {
 
   // Send new pose to C++
   function sendPose() {
+    // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onPose(
       xItem.value,
       yItem.value,
@@ -73,29 +73,6 @@ Rectangle {
       pitchItem.value,
       yawItem.value
     );
-  }
-
-  // Calculate the maximum number of decimals that fit in a spin
-  function calculateDecimals(_item) {
-    if (_item == undefined)
-      return 0
-
-    // How many characters fit
-    var fits = _item.width / (fontMetrics.maximumCharacterWidth * 0.8)
-
-    // How many non-decimal characters we have
-    var nonDec = _item.value.toFixed(0).toString().length
-
-    // How many characters left for decimals
-    var dec = fits - nonDec - 1
-
-    // TODO(anyone) Elide text if nonDec > fits
-
-    // Limit to 6 decimals, SpinBox doesn't like many
-    dec = Math.max(Math.min(6, dec), 0)
-
-    _item.decimals = dec
-    return dec
   }
 
   FontMetrics {
@@ -113,13 +90,9 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: calculateDecimals(writableSpin)
+      decimals: 6
       onEditingFinished: {
         sendPose()
-        calculateDecimals(writableSpin)
-      }
-      onWidthChanged: {
-        calculateDecimals(writableSpin)
       }
     }
   }

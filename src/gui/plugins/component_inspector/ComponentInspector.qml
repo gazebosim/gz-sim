@@ -25,7 +25,7 @@ import IgnGazebo 1.0 as IgnGazebo
 Rectangle {
   id: componentInspector
   color: lightGrey
-  Layout.minimumWidth: 320
+  Layout.minimumWidth: 400
   Layout.minimumHeight: 375
   anchors.fill: parent
 
@@ -97,11 +97,11 @@ Rectangle {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8
-        entityType: entityType
+        entityType: ComponentInspector.type
       }
 
       Label {
-        text: entityType
+        text: ComponentInspector.type
         font.capitalization: Font.Capitalize
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
