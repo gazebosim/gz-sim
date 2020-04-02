@@ -214,7 +214,7 @@ Rectangle {
         }
       }
       CheckBox {
-        text: "Save fuel model version"
+        text: "Save Fuel model versions"
         Layout.fillWidth: true
         checked: sdfGenConfig.saveFuelModelVersion
         onClicked: {
