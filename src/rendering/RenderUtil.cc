@@ -511,7 +511,7 @@ void RenderUtil::Update()
           if (skeleton)
           {
             float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
-            std::map<std::string, float> weights;
+            std::unordered_map<std::string, float> weights;
             weights[skeleton->RootNode()->Name()] = rootBoneWeight;
             actorMesh->SetSkeletonWeights(weights);
           }
@@ -521,8 +521,8 @@ void RenderUtil::Update()
         // update skeleton animation by setting animation time.
         // Note that animation time is different from sim time. An actor can
         // have multiple animations. Animation time is associated with
-        // current animation that is being played. should be played. It is also
-        // adjusted if interpotate_x is enabled
+        // current animation that is being played.  It is also adjusted if
+        // interpotate_x is enabled
         actorMesh->UpdateSkeletonAnimation(animData.time);
 
         // manually update root transform in order to sync with trajectory
