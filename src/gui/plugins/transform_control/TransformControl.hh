@@ -45,6 +45,9 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \brief Sends an event to update the internal snapping values for
     /// translation, rotation, and scaling.
     /// \param[in] _x The snapping distance along the world's x (red) axis
@@ -70,6 +73,12 @@ namespace gazebo
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);
+
+    /// \brief Sets the custom snap values to the grid values.
+    public: void SnapToGrid();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked.
+    public slots: void OnSnapToGrid();
 
     /// \internal
     /// \brief Pointer to private data.
