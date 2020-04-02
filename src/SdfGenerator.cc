@@ -65,7 +65,8 @@ namespace sdf_generator
     auto uriSplit = common::split(common::trimmed(_uri.Path().Str()), "/");
     if (uriSplit.size() > 0)
     {
-      try {
+      try
+      {
         // This assumes that model names cannot be purely numerical.
         auto version = std::stol(uriSplit.back());
         // We can ignore the returned value since an exception will be thrown if
@@ -100,7 +101,7 @@ namespace sdf_generator
     //  - This is the case where the world and the model were loaded from
     //  a string, so the modelFromInclude = false
     // modelDir == "/some/path", worldDir == ""
-    //  - The world was loaded from a string, but the model as included,
+    //  - The world was loaded from a string, but the model was included,
     //  so modelFromInclude = true
     // modelDir == "", worldDir == "/some/path"
     //  - The world was loaded from a file, but the model was loaded from
@@ -164,10 +165,10 @@ namespace sdf_generator
   ///   }
   /// \endcode
   ///
-  /// This function is needed because neither Message::CopyFrom nor
-  /// Message::MergeFrom do what we want. CopyFrom overwrites everything even if
+  /// This function is needed because neither `Message::CopyFrom` nor
+  /// `Message::MergeFrom` do what we want. CopyFrom overwrites everything even if
   /// none of the parameters in overrideConfig are set. MergeFrom gets close,
-  /// but doesn't overrwrite if the parameter in overrideConfig is set to false.
+  /// but doesn't overwrite if the parameter in `_overrideConfig` is set to false.
   ///
   /// \param[in, out] _initialConfig Initial configuration
   /// \param[in] _override Override configuration
@@ -316,7 +317,7 @@ namespace sdf_generator
       return false;
 
     // Update sdf based current components. Here are the list of components to
-    // be update:
+    // be updated:
     // - Pose
     // This list is to be updated as other components become updateable during
     // simulation
