@@ -21,15 +21,12 @@
 
 #include <string>
 
-#include <ignition/msgs/Utility.hh>
-
-#include <ignition/math/Pose3.hh>
-
-#include <ignition/plugin/RegisterMore.hh>
-
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/math/Pose3.hh>
+#include <ignition/msgs/Utility.hh>
+#include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
@@ -40,7 +37,6 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Pose.hh"
-
 
 using namespace ignition;
 using namespace gazebo;
@@ -54,7 +50,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(const std::string &_logPath, EntityComponentManager &_ecm);
+  public: bool Start(EntityComponentManager &_ecm);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -76,11 +72,14 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
-  /// \brief
+  /// \brief Pointer to ign-transport Log
   public: std::unique_ptr<transport::log::Log> log;
 
   /// \brief Indicator of whether any playback instance has ever been started
   public: static bool started;
+
+  /// \brief Directory in which to place log file
+  public: std::string logPath{""};
 
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
@@ -129,12 +128,26 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
+
     // Set current pose to recorded pose
     // Use copy assignment operator
     *_poseComp = components::Pose(msgs::Convert(pose));
 
+    // The ComponentState::OneTimeChange argument forces the
+    // SceneBroadcaster system to publish a message. This parameter used to
+    // be ComponentState::PeriodicChange. The problem with PeriodicChange is
+    // that state updates could be missed by the SceneBroadscaster, which
+    // publishes at 60Hz using the wall clock. If a 60Hz tick
+    // doesn't fall on the same update cycle as this state change then the
+    // GUI will not receive the state information. The result is jumpy
+    // playback.
+    //
+    // \todo(anyone) I don't think using OneTimeChange is necessarily bad, but
+    // it would be nice if other systems could know that log playback is
+    // active/enabled. Then a system could make decisions on how to process
+    // information.
     _ecm.SetChanged(_entity, components::Pose::typeId,
-        ComponentState::PeriodicChange);
+        ComponentState::OneTimeChange);
 
     return true;
   });
@@ -160,14 +173,17 @@ void LogPlayback::Configure(const Entity &,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  auto logPath = _sdf->Get<std::string>("path");
+  this->dataPtr->logPath = _sdf->Get<std::string>("path");
 
   this->dataPtr->eventManager = &_eventMgr;
+
+  // Prepend working directory if path is relative
+  this->dataPtr->logPath = common::absPath(this->dataPtr->logPath);
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(logPath, _ecm);
+    this->dataPtr->Start(_ecm);
   }
   else
   {
@@ -177,8 +193,7 @@ void LogPlayback::Configure(const Entity &,
 }
 
 //////////////////////////////////////////////////
-bool LogPlaybackPrivate::Start(const std::string &_logPath,
-                               EntityComponentManager &_ecm)
+bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -187,20 +202,21 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     return true;
   }
 
-  if (_logPath.empty())
+  if (this->logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
     return false;
   }
 
-  if (!common::isDirectory(_logPath))
+  if (!common::isDirectory(this->logPath))
   {
-    ignerr << "Specified log path [" << _logPath << "] must be a directory.\n";
+    ignerr << "Specified log path [" << this->logPath
+           << "] must be a directory.\n";
     return false;
   }
 
   // Append file name
-  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   ignmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
@@ -266,10 +282,28 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // just playing every single step so we don't miss insertions and deletions.
   auto startTime = _info.simTime - _info.dt;
   auto endTime = _info.simTime;
+
+  bool seekRewind = false;
+  std::set<Entity> entitiesToRemove;
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    // If jumping backwards, check 1 second before
-    startTime = endTime - std::chrono::seconds(1);
+    // Detected jumping back in time. This can be expensive.
+    // To rewind / seek backward in time, we also need to play every single
+    // step from the beginning so we don't miss insertions and deletions
+    // This is because each serialized state is a changed state and not an
+    // absolute state.
+    // todo(anyone) Record absolute states during recording, i.e. key frames,
+    // so that playback can jump to these states without the need to
+    // incrementally build the states from the beginning
+
+    // Create a list of entities to be removed. The list will be updated later
+    // as the log steps forward below
+    seekRewind = true;
+    const auto &entities = _ecm.Entities().Vertices();
+    for (const auto &entity : entities)
+      entitiesToRemove.insert(Entity(entity.first));
+
+    startTime = std::chrono::steady_clock::duration::zero();
   }
 
   this->dataPtr->batch = this->dataPtr->log->QueryMessages(
@@ -298,12 +332,53 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
+
+      // For seeking back in time only:
+      // While stepping, update the list of entities to be removed
+      // so we do not remove any entities that are to be created
+      if (seekRewind)
+      {
+        for (const auto &entIt : msg.entities())
+        {
+          Entity entity{entIt.id()};
+          if (entIt.remove())
+          {
+            entitiesToRemove.insert(entity);
+          }
+          else
+          {
+            entitiesToRemove.erase(entity);
+          }
+        }
+      }
+
       this->dataPtr->Parse(_ecm, msg);
     }
     else if (msgType == "ignition.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
+
+      // For seeking back in time only:
+      // While stepping, update the list of entities to be removed
+      // so we do not remove any entities that are to be created
+      if (seekRewind)
+      {
+        for (const auto &entIt : msg.entities())
+        {
+          const auto &entityMsg = entIt.second;
+          Entity entity{entityMsg.id()};
+          if (entityMsg.remove())
+          {
+            entitiesToRemove.insert(entity);
+          }
+          else
+          {
+            entitiesToRemove.erase(entity);
+          }
+        }
+      }
+
       this->dataPtr->Parse(_ecm, msg);
     }
     else if (msgType == "ignition.msgs.StringMsg")
@@ -321,6 +396,13 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (queuedPose.pose_size() > 0)
   {
     this->dataPtr->Parse(_ecm, queuedPose);
+  }
+
+  // for seek back in time only
+  // remove entities that should not be present in the current time step
+  for (auto entity : entitiesToRemove)
+  {
+    _ecm.RequestRemoveEntity(entity);
   }
 
   // pause playback if end of log is reached
