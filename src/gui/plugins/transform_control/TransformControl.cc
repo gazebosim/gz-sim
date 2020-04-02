@@ -55,6 +55,18 @@ namespace ignition::gazebo
 
     /// \brief Flag for if the snapping values should be set to the grid.
     public: bool snapToGrid{false};
+
+    /// \brief Pointer to grid for snap to grid, assumes only one grid
+    public: rendering::GridPtr grid;
+
+    /// \brief The xyz snap values held for snap to grid.
+    public: math::Vector3d xyzSnapVals{1.0, 1.0, 1.0};
+
+    /// \brief The rpy snap values held for snap to grid.
+    public: math::Vector3d rpySnapVals{45.0, 45.0, 45.0};
+    
+    /// \brief The scale snap values held for snap to grid.
+    public: math::Vector3d scaleSnapVals{1.0, 1.0, 1.0};
   };
 }
 
@@ -90,11 +102,17 @@ void TransformControl::OnSnapUpdate(
     double _roll, double _pitch, double _yaw,
     double _scaleX, double _scaleY, double _scaleZ)
 {
+  this->dataPtr->xyzSnapVals = math::Vector3d(_x, _y, _z);
+  this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
+  this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
+  
   auto event = new gui::events::SnapIntervals(
-      math::Vector3d(_x, _y, _z), math::Vector3d(_roll, _pitch, _yaw),
-      math::Vector3d(_scaleX, _scaleY, _scaleZ));
+      this->dataPtr->xyzSnapVals,
+      this->dataPtr->rpySnapVals,
+      this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
+  //TODO communicate snapping vals back to qml side
 }
 
 /////////////////////////////////////////////////
@@ -120,6 +138,22 @@ void TransformControl::OnSnapToGrid()
 
 /////////////////////////////////////////////////
 void TransformControl::SnapToGrid()
+{
+  if (!this->dataPtr->grid)
+    this->LoadGrid();
+
+  // No grid was found, take no action
+  if (!this->dataPtr->grid)
+    return;
+
+  double cellLength = this->dataPtr->grid->CellLength();
+  this->OnSnapUpdate(cellLength, cellLength, cellLength,
+      this->dataPtr->rpySnapVals.X(), this->dataPtr->rpySnapVals.Y(), this->dataPtr->rpySnapVals.Z(),
+      this->dataPtr->scaleSnapVals.X(), this->dataPtr->scaleSnapVals.Y(), this->dataPtr->scaleSnapVals.Z());
+}
+
+/////////////////////////////////////////////////
+void TransformControl::LoadGrid()
 {
   auto loadedEngNames = rendering::loadedEngines();
   if (loadedEngNames.empty())
@@ -171,8 +205,8 @@ void TransformControl::SnapToGrid()
             vis->GeometryByIndex(j));
       if (grid)
       {
-        ignwarn << "Found grid\n";
-        // TODO extract grid properties and set snapping vals accordingly
+        this->dataPtr->grid = grid;
+        return;
       }
     }
   }
