@@ -49,10 +49,10 @@ Rectangle {
         if (saveWorldFileUrl.length !== 0)
           GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig)
         else
-          saveWorldDialog.open();
+          sdfGenConfigDialog.open();
         break
       case "saveWorldAs":
-        saveWorldDialog.open();
+        sdfGenConfigDialog.open();
         break
       case "loadWorld":
         loadWorldDialog.open();
@@ -159,10 +159,13 @@ Rectangle {
     selectExisting: false
     onAccepted: {
       saveWorldFileUrl = fileUrl;
-      sdfGenConfigDialog.open()
+      dialogButtons.standardButton(Dialog.Ok).enabled = saveWorldFileUrl.length > 0
     }
   }
 
+  /**
+   * Dialog with configurations for SDF generation
+   */
   Dialog {
     id: sdfGenConfigDialog
     modal: true
@@ -171,36 +174,53 @@ Rectangle {
     parent: ApplicationWindow.overlay
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
-    width: 400
-    height: 400
-    standardButtons: Dialog.Ok | Dialog.Cancel
     closePolicy: Popup.CloseOnEscape
-    Frame {
-      anchors.fill: parent
-      ColumnLayout {
-        anchors.left: parent.left
-        anchors.right: parent.right
+    onAccepted: {
+      GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig);
+    }
+    Component.onCompleted: {
+      dialogButtons.standardButton(Dialog.Ok).enabled = false
+    }
+    footer: DialogButtonBox {
+      id: dialogButtons
+      standardButtons: Dialog.Ok | Dialog.Cancel
+    }
+    contentItem: ColumnLayout {
+      id: content
 
-        CheckBox {
-          text: "Expand include tags"
-          Layout.fillWidth: true
-          checked: sdfGenConfig.expandIncludeTags
-          onClicked: {
-            sdfGenConfig.expandIncludeTags = checked
-          }
+      RowLayout {
+        Layout.fillWidth: true
+        Label {
+          text: "Location:"
         }
-        CheckBox {
-          text: "Save fuel model version"
-          Layout.fillWidth: true
-          checked: sdfGenConfig.saveFuelModelVersion
+        TextField {
+          text: saveWorldFileUrl
+          selectByMouse: true
+        }
+        Button {
+          text: "Browse"
           onClicked: {
-            sdfGenConfig.saveFuelModelVersion = checked
+            saveWorldDialog.open()
           }
         }
       }
-    }
-    onAccepted: {
-      GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig);
+
+      CheckBox {
+        text: "Expand include tags"
+        Layout.fillWidth: true
+        checked: sdfGenConfig.expandIncludeTags
+        onClicked: {
+          sdfGenConfig.expandIncludeTags = checked
+        }
+      }
+      CheckBox {
+        text: "Save fuel model version"
+        Layout.fillWidth: true
+        checked: sdfGenConfig.saveFuelModelVersion
+        onClicked: {
+          sdfGenConfig.saveFuelModelVersion = checked
+        }
+      }
     }
   }
 }

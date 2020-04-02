@@ -325,7 +325,7 @@ namespace ignition
       /// added.
       public: void ProcessSystemQueue();
 
-      /// \brief Generate the current world's SDF ormatrepresentation.
+      /// \brief Generate the current world's SDFormat representation.
       /// \param[in] _req Request message with options for saving a world to an
       /// SDFormat file.
       /// \param[out] _res Generated SDFormat string.
@@ -333,7 +333,7 @@ namespace ignition
       public: bool GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
                                     msgs::StringMsg &_res);
 
-      /// \brief Set's the file path to fuel URI map.
+      /// \brief Sets the file path to fuel URI map.
       /// \param[in] _map A populated map of file paths to fuel URIs.
       public: void SetFuelUriMap(
                   const std::unordered_map<std::string, std::string> &_map);
