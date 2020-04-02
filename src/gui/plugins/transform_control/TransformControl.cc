@@ -24,6 +24,14 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+#include <ignition/rendering/Visual.hh>
+#include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Grid.hh>
+#include <ignition/rendering/Material.hh>
+#include <ignition/rendering/RenderTypes.hh>
+#include <ignition/rendering/RenderingIface.hh>
+#include <ignition/rendering/RenderEngine.hh>
+#include <ignition/rendering/Scene.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -44,6 +52,9 @@ namespace ignition::gazebo
 
     /// \brief Transform control service name
     public: std::string service;
+
+    /// \brief Flag for if the snapping values should be set to the grid.
+    public: bool snapToGrid{false};
   };
 }
 
@@ -68,6 +79,9 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 
   // For transform requests
   this->dataPtr->service = "/gui/transform_mode";
+
+  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+      ()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -96,6 +110,88 @@ void TransformControl::OnMode(const QString &_mode)
   ignition::msgs::StringMsg req;
   req.set_data(_mode.toStdString());
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+}
+
+/////////////////////////////////////////////////
+void TransformControl::OnSnapToGrid()
+{
+  this->dataPtr->snapToGrid = true;
+}
+
+/////////////////////////////////////////////////
+void TransformControl::SnapToGrid()
+{
+  auto loadedEngNames = rendering::loadedEngines();
+  if (loadedEngNames.empty())
+    return;
+
+  // assume there is only one engine loaded
+  auto engineName = loadedEngNames[0];
+  if (loadedEngNames.size() > 1)
+  {
+    igndbg << "More than one engine is available. "
+      << "Grid config plugin will use engine ["
+        << engineName << "]" << std::endl;
+  }
+  auto engine = rendering::engine(engineName);
+  if (!engine)
+  {
+    ignerr << "Internal error: failed to load engine [" << engineName
+      << "]. Grid plugin won't work." << std::endl;
+    return;
+  }
+
+  if (engine->SceneCount() == 0)
+    return;
+
+  // assume there is only one scene
+  // load scene
+  auto scene = engine->SceneByIndex(0);
+  if (!scene)
+  {
+    ignerr << "Internal error: scene is null." << std::endl;
+    return;
+  }
+
+  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  {
+    return;
+  }
+
+  // load grid
+  // if gridPtr found, load the existing gridPtr to class
+  for (unsigned int i = 0; i < scene->VisualCount(); ++i)
+  {
+    auto vis = scene->VisualByIndex(i);
+    if (!vis || vis->GeometryCount() == 0)
+      continue;
+    for (unsigned int j = 0; j < vis->GeometryCount(); ++j)
+    {
+      auto grid = std::dynamic_pointer_cast<rendering::Grid>(
+            vis->GeometryByIndex(j));
+      if (grid)
+      {
+        ignwarn << "Found grid\n";
+        // TODO extract grid properties and set snapping vals accordingly
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  {
+    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // rendering calls here
+    if (this->dataPtr->snapToGrid)
+    {
+      this->SnapToGrid();
+      this->dataPtr->snapToGrid = false;
+    }
+  }
+  return QObject::eventFilter(_obj, _event);
 }
 
 // Register this plugin

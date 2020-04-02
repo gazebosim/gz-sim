@@ -302,7 +302,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        snapDialog.open()
+        TransformControl.OnSnapToGrid()
       }
     }
     Dialog {
