@@ -280,7 +280,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _deselectAll True if all entities should be deselected.
     /// \param[in] _sendEvent True to emit an event to other widgets.
     public: void RequestSelectionChange(Entity _selectedEntity,
-        bool _deselectAll, bool _sendEvent);
+        bool _deselectAll);
 
     /// \brief Snaps a value at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
@@ -329,13 +329,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _node The node to be selected.
     /// \param[in] _sendEvent True to notify other widgets. This should be true
     /// when the selection is initiated from this plugin.
-    private: void UpdateSelectedEntity(const rendering::NodePtr &_node,
-        bool _sendEvent);
+    private: void UpdateSelectedEntity(const rendering::NodePtr &_node);
 
     /// \brief Deselect all entities.
     /// \param[in] _sendEvent True to notify other widgets. This should be true
     /// when the deselection is initiated from this plugin.
-    private: void DeselectAllEntities(bool _sendEvent);
+    private: void DeselectAllEntities();
 
     /// \brief Signal fired when context menu event is triggered
     signals: void ContextMenuRequested(QString _entity);
@@ -483,14 +482,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _entity The entity to select.
     /// \param[in] _sendEvent True to notify other widgets. This should be true
     /// when the selection is initiated from this plugin.
-    public: void UpdateSelectedEntity(Entity _entity,
-        bool _sendEvent);
+    public: void UpdateSelectedEntity(Entity _entity);
 
     /// \brief Deselect all the currently selected entities within
     /// the RenderUtil class.
     /// \param[in] _sendEvent True to notify other widgets. This should be true
     /// when the deselection is initiated from this plugin.
-    public: void DeselectAllEntities(bool _sendEvent);
+    public: void DeselectAllEntities();
 
     /// \brief Set the XYZ snap values from the user input.
     /// \param[in] _xyz The XYZ snap values

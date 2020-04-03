@@ -71,9 +71,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Deselect all entities
     bool deselectAll{false};
-
-    /// \brief True to send an event and notify all widgets
-    bool sendEvent{false};
   };
 
   //
@@ -712,7 +709,7 @@ void IgnRenderer::HandleEntitySelection()
 {
   if (this->dataPtr->selectionHelper.deselectAll)
   {
-    this->DeselectAllEntities(this->dataPtr->selectionHelper.sendEvent);
+    this->DeselectAllEntities();
 
     this->dataPtr->selectionHelper = SelectionHelper();
   }
@@ -720,15 +717,14 @@ void IgnRenderer::HandleEntitySelection()
   {
     auto node = this->dataPtr->renderUtil.SceneManager().NodeById(
       this->dataPtr->selectionHelper.selectEntity);
-    this->UpdateSelectedEntity(node,
-        this->dataPtr->selectionHelper.sendEvent);
+    this->UpdateSelectedEntity(node);
 
     this->dataPtr->selectionHelper = SelectionHelper();
   }
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::DeselectAllEntities(bool _sendEvent)
+void IgnRenderer::DeselectAllEntities()
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
@@ -738,13 +734,10 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   this->dataPtr->renderUtil.DeselectAllEntities();
 
-  if (_sendEvent)
-  {
     auto deselectEvent = new gui::events::DeselectAllEntities();
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         deselectEvent);
-  }
 }
 
 /////////////////////////////////////////////////
@@ -938,7 +931,7 @@ void IgnRenderer::HandleMouseTransformControl()
           // Hit the background, deselect all
           if (!this->dataPtr->mouseEvent.Dragging())
           {
-            this->DeselectAllEntities(true);
+            this->DeselectAllEntities();
           }
           return;
         }
@@ -954,7 +947,7 @@ void IgnRenderer::HandleMouseTransformControl()
           if (topVis && topVis->Name() != "ground_plane")
           {
             // Highlight entity and notify other widgets
-            this->UpdateSelectedEntity(topVis, true);
+            this->UpdateSelectedEntity(topVis);
 
             this->dataPtr->mouseDirty = false;
             return;
@@ -963,7 +956,7 @@ void IgnRenderer::HandleMouseTransformControl()
           else if (!this->dataPtr->mouseEvent.Dragging())
           {
             // Hit the ground, deselect all
-            this->DeselectAllEntities(true);
+            this->DeselectAllEntities();
             return;
           }
         }
@@ -1268,8 +1261,7 @@ math::Vector3d IgnRenderer::ScaleSnap() const
   return this->dataPtr->scaleSnap;
 }
 /////////////////////////////////////////////////
-void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
-    bool _sendEvent)
+void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;
@@ -1280,16 +1272,13 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
             << std::endl;
   }
 
-  bool deselectedAll{false};
-
   // Deselect all if control is not being held
   if (!(QGuiApplication::keyboardModifiers() & Qt::ControlModifier) &&
       !this->dataPtr->renderUtil.SelectedEntities().empty())
   {
     // Notify other widgets regardless of _sendEvent, because this is a new
     // decision from this widget
-    this->DeselectAllEntities(true);
-    deselectedAll = true;
+    this->DeselectAllEntities();
   }
 
   // Attach control if in a transform mode - control is attached to:
@@ -1306,8 +1295,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
       // When attached, we want only one entity selected
       // Notify other widgets regardless of _sendEvent, because this is a new
       // decision from this widget
-      this->DeselectAllEntities(true);
-      deselectedAll = true;
+      this->DeselectAllEntities();
     }
     else
     {
@@ -1319,17 +1307,11 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
   // Notify other widgets of the currently selected entities,
-  // if there has been a deselect all event or if control is being held,
-  // always send update
-  if (_sendEvent || deselectedAll ||
-        (QGuiApplication::keyboardModifiers() & Qt::ControlModifier))
-  {
-    auto selectEvent = new gui::events::EntitiesSelected(
-        this->dataPtr->renderUtil.SelectedEntities());
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        selectEvent);
-  }
+  auto selectEvent = new gui::events::EntitiesSelected(
+      this->dataPtr->renderUtil.SelectedEntities());
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      selectEvent);
 }
 
 /////////////////////////////////////////////////
@@ -1351,7 +1333,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
   if (!this->dataPtr->renderUtil.SelectedEntities().empty())
   {
     Entity entity = this->dataPtr->renderUtil.SelectedEntities().back();
-    this->dataPtr->selectionHelper = {entity, false, false};
+    this->dataPtr->selectionHelper = {entity, false};
   }
 }
 
@@ -1488,9 +1470,9 @@ math::Vector3d IgnRenderer::ScreenToScene(
 
 ////////////////////////////////////////////////
 void IgnRenderer::RequestSelectionChange(Entity _selectedEntity,
-    bool _deselectAll, bool _sendEvent)
+    bool _deselectAll)
 {
-  this->dataPtr->selectionHelper = {_selectedEntity, _deselectAll, _sendEvent};
+  this->dataPtr->selectionHelper = {_selectedEntity, _deselectAll};
 }
 
 /////////////////////////////////////////////////
@@ -2093,13 +2075,13 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
           {
             auto renderWindow =
                 this->PluginItem()->findChild<RenderWindowItem *>();
-            renderWindow->DeselectAllEntities(false);
+            renderWindow->DeselectAllEntities();
           }
           continue;
         }
 
         auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-        renderWindow->UpdateSelectedEntity(entity, false);
+        renderWindow->UpdateSelectedEntity(entity);
       }
     }
   }
@@ -2113,7 +2095,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     if (deselectEvent && deselectEvent->FromUser())
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->DeselectAllEntities(false);
+      renderWindow->DeselectAllEntities();
     }
   }
   else if (_event->type() ==
@@ -2134,11 +2116,10 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::UpdateSelectedEntity(Entity _entity,
-    bool _sendEvent)
+void RenderWindowItem::UpdateSelectedEntity(Entity _entity)
 {
   this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
-      _entity, false, _sendEvent);
+      _entity, false);
 }
 
 /////////////////////////////////////////////////
@@ -2162,10 +2143,10 @@ void RenderWindowItem::SetMoveTo(const std::string &_target)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::DeselectAllEntities(bool _sendEvent)
+void RenderWindowItem::DeselectAllEntities()
 {
   this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
-      kNullEntity, true, _sendEvent);
+      kNullEntity, true);
 }
 
 /////////////////////////////////////////////////
@@ -2302,7 +2283,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities(true);
+    this->DeselectAllEntities();
   }
 }
 
