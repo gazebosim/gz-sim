@@ -48,20 +48,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declaration
   class SceneManagerPrivate;
 
-  /// \brief Data structure for updaing skeleton animations
+  /// \brief Data structure for updating skeleton animations
   class AnimationUpdateData
   {
     /// \brief Timepoint in the animation.
     /// Note that animation time is different from sim time. An actor can
     /// have multiple animations. Animation time is associated with
     /// current animation that is being played. This value is also adjusted if
-    /// interpotate_x is enabled
+    /// interpolate_x is enabled
     public: std::chrono::steady_clock::duration time;
 
     /// \brief True if animation is looped
     public: bool loop = false;
 
-    /// \brief True trajectory animation is on
+    /// \brief True if trajectory animation is on
     public: bool followTrajectory = false;
 
     /// \brief Trajectory to be followed
@@ -72,7 +72,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string animationName;
 
     /// \brief Transform of the root node in the skeleton. The actor's
-    /// skeleton's root node transform need to be set if trajectory
+    /// skeleton's root node transform needs to be set if trajectory
     /// animation is enabled. This field is set only if the actor
     /// is not animated by manually using skeleton transforms
     public: math::Matrix4d rootTransform;
@@ -168,7 +168,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to requested entity's mesh
     public: rendering::MeshPtr ActorMeshById(Entity _id) const;
 
-    /// \brief Get a skeleon given an id
+    /// \brief Get a skeleton given an id
     /// \param[in] _id Actor entity's unique id
     /// \return Pointer to requested entity's skeleton
     public: common::SkeletonPtr ActorSkeletonById(Entity _id) const;

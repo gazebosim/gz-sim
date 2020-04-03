@@ -179,6 +179,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief True to update skeletons manually using bone poses
   /// (see actorTransforms). False to let render engine update animation
   /// based on sim time.
+  /// \todo(anyone) Let this be turned on from a component
   public: bool actorManualSkeletonUpdate = false;
 
   /// \brief Mutex to protect updates
@@ -518,11 +519,11 @@ void RenderUtil::Update()
 
           this->dataPtr->skelAnimName = animData.animationName;
         }
-        // update skeleton animation by setting animation time.
+        // Update skeleton animation by setting animation time.
         // Note that animation time is different from sim time. An actor can
         // have multiple animations. Animation time is associated with
-        // current animation that is being played.  It is also adjusted if
-        // interpotate_x is enabled
+        // current animation that is being played. It is also adjusted if
+        // interpotate_x is enabled.
         actorMesh->UpdateSkeletonAnimation(animData.time);
 
         // manually update root transform in order to sync with trajectory
