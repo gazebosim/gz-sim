@@ -87,12 +87,12 @@ TEST_F(RgbdCameraTest, RgbdCameraBox)
 
   ignition::common::Time waitTime = ignition::common::Time(0.001);
   int i = 0;
-  while (i < 300)
+  while (nullptr == depthBuffer && i < 500)
   {
     ignition::common::Time::Sleep(waitTime);
     i++;
   }
-  EXPECT_NE(depthBuffer, nullptr);
+  ASSERT_NE(depthBuffer, nullptr);
 
   // Take into account box of 1 m on each side and 0.05 cm sensor offset
   double expectedRangeAtMidPointBox1 = 2.45;
