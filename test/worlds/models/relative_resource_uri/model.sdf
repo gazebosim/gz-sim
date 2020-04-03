@@ -1,0 +1,41 @@
+<?xml version='1.0'?>
+<sdf version='1.6'>
+  <!-- Note: The meshes in this file do not actually exist.
+  This file is used for testing relative URIs -->
+  <model name='relative_resource_uri'>
+    <pose>0 0 1 0 0 0</pose>
+    <link name='L1'>
+      <visual name='V'>
+        <geometry>
+          <mesh>
+            <uri>meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='V2'>
+        <pose>1 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name='C'>
+        <geometry>
+          <mesh>
+            <uri>meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='C1'>
+        <pose>1 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
+

@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "SdfGenerator.hh"
@@ -196,6 +197,45 @@ namespace sdf_generator
   }
 
   /////////////////////////////////////////////////
+  /// \brief Recursively go through the child elements of the input element and
+  /// update all relative URIs to absolute.
+  ///
+  /// The resulting URI will have a "file://" scheme regardless of whether the
+  /// original URI had the scheme. i.e, absolute URIs without the "file://"
+  /// scheme will also be updated by this function.
+  /// \param[in] _elem Input element to update
+  /// \param[in] _prefixPath Path to be prepended to relative URIs.
+  static void relativeToAbsoluteUri(const sdf::ElementPtr &_elem,
+                                    const std::string &_prefixPath)
+  {
+    if (_elem->HasElement("uri"))
+    {
+      auto uriElem = _elem->GetElement("uri");
+      auto uriStr = uriElem->Get<std::string>();
+      // If the URI starts with "file://", it is assumed to be an
+      // absolute path, so there is no need to update it.
+      if (uriStr.find("file://") == std::string::npos)
+      {
+        if (uriStr[0] != '/')
+        {
+          // relative uri
+          uriStr = common::joinPaths(_prefixPath, uriStr);
+        }
+        uriStr = std::string("file://") + uriStr;
+        uriElem->Set(uriStr);
+      }
+    }
+    else
+    {
+      for (auto child = _elem->GetFirstElement(); child;
+           child = child->GetNextElement())
+      {
+        relativeToAbsoluteUri(child, _prefixPath);
+      }
+    }
+  }
+
+  /////////////////////////////////////////////////
   std::optional<std::string> generateWorld(
       const EntityComponentManager &_ecm, const Entity &_entity,
       const IncludeUriMap &_includeUriMap,
@@ -351,6 +391,17 @@ namespace sdf_generator
     //   relativeTo->Reset();
     // }
     poseElem->Set(poseComp->Data());
+
+    const auto *pathComp =
+      _ecm.Component<components::SourceFilePath>(_entity);
+
+    if (_elem->HasElement("link") && nullptr != pathComp)
+    {
+      // Update relative URIs to use absolute paths. Relative URIs work fine in
+      // included models, but they have to be converted to absolute URIs when
+      // the included model is expanded.
+      relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
+    }
     return true;
   }
 
