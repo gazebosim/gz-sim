@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Added support for removing sensors at runtime
+    * [Pull Request 558](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/558)
+
 1. Support <actor><pose> and <actor><plugin>
     * [Pull Request 542](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/542)
 
