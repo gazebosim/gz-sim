@@ -298,9 +298,24 @@ void Sensors::RemoveSensor(const Entity &_entity)
   auto idIter = this->dataPtr->entityToIdMap.find(_entity);
   if (idIter != this->dataPtr->entityToIdMap.end())
   {
+    // Remove from active sensors as well
+    // Locking mutex to make sure the vector is not being changed while
+    // the rendering thread is iterating over it
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
+      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(idIter->second);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      auto activeSensorIt = std::find(this->dataPtr->activeSensors.begin(),
+          this->dataPtr->activeSensors.end(), rs);
+      if (activeSensorIt != this->dataPtr->activeSensors.end())
+      {
+        this->dataPtr->activeSensors.erase(activeSensorIt);
+      }
+    }
     this->dataPtr->sensorIds.erase(idIter->second);
     this->dataPtr->sensorManager.Remove(idIter->second);
     this->dataPtr->entityToIdMap.erase(idIter);
+
   }
 }
 
