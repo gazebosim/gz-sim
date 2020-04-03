@@ -608,8 +608,6 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 </sdf>
   )";
 
-  std::cout << worldSdf << std::endl;
-
   this->LoadWorldString(worldSdf);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   // There should be three models
@@ -770,6 +768,52 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
   EXPECT_EQ(nullptr, backpack2Model);
 }
 
+/////////////////////////////////////////////////
+TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
+{
+  const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
+                          "/test/worlds/models/relative_resource_uri";
+
+  std::string worldSdf = R"(
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="test_relative_resource">
+    <include>
+      <uri>)" + includeUri + R"(</uri>
+    </include>
+  </world>
+</sdf>
+  )";
+
+  this->LoadWorldString(worldSdf);
+  Entity worldEntity = this->ecm.EntityByComponents(components::World());
+  EXPECT_EQ(1u, this->ecm.EntitiesByComponents(components::Model()).size());
+
+  auto elem = std::make_shared<sdf::Element>();
+  sdf::initFile("world.sdf", elem);
+  this->sdfGenConfig.mutable_global_model_gen_config()
+      ->mutable_expand_include_tags()
+      ->set_data(true);
+  sdf_generator::updateWorldElement(
+      elem, this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
+
+  auto link = elem->GetElement("model")->GetElement("link");
+
+  for (auto elemType : {"visual", "collision"})
+  {
+    std::size_t testCount{0};
+    for (auto testElem = link->GetElement(elemType); testElem;
+         testElem = testElem->GetNextElement(elemType))
+    {
+      auto mesh = testElem->GetElement("geometry")->GetElement("mesh");
+      ASSERT_TRUE(mesh->HasElement("uri"));
+      auto uriStr = mesh->Get<std::string>("uri");
+      EXPECT_EQ(includeUri + "/meshes/box.dae", uriStr);
+      ++testCount;
+    }
+    EXPECT_EQ(2u, testCount);
+  }
+}
 
 using GenerateWorldFixture = ElementUpdateFixture;
 /////////////////////////////////////////////////
