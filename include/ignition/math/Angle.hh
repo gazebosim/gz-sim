@@ -78,7 +78,7 @@ namespace ignition
 
       /// \brief Default constructor that initializes an Angle to zero
       /// radians/degrees.
-      public: Angle();
+      public: Angle() = default;
 
       /// \brief Conversion constructor that initializes an Angle to the
       /// specified radians. This constructor supports implicit conversion
@@ -90,12 +90,12 @@ namespace ignition
       //
       /// \param[in] _radian The radians used to initialize this Angle.
       // cppcheck-suppress noExplicitConstructor
-      public: Angle(const double _radian);
+      public: Angle(double _radian);
 
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.
-      /// \sa SetRadian(double)
-      public: void Radian(double _radian);
+      /// \deprecated Use void SetRadian(double)
+      public: void IGN_DEPRECATED(7) Radian(double _radian);
 
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.
@@ -103,8 +103,8 @@ namespace ignition
 
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
-      /// \sa SetDegree(double)
-      public: void Degree(double _degree);
+      /// \deprecated Use void SetDegree(double)
+      public: void IGN_DEPRECATED(7) Degree(double _degree);
 
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
@@ -233,7 +233,7 @@ namespace ignition
         return _in;
       }
 
-      /// The angle in radians
+      /// The angle in radians, with a default value of zero.
       private: double value{0};
     };
     }

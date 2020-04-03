@@ -49,7 +49,7 @@ int main(int argc, char **argv)
               << "  quaternion_to_euler "
               << "<float_w> <float_x> <float_y> <float_z>\n\n"
               << "Example\n"
-              << "  quaternion_from_euler 0.5 0.5 0.5 0.5"
+              << "  quaternion_to_euler 0.5 0.5 0.5 0.5"
               << std::endl;
     return -1;
   }
@@ -75,7 +75,9 @@ int main(int argc, char **argv)
             << std::endl;
 
   ignition::math::Matrix3d m(q);
+//![constructor]
   ignition::math::Vector3d euler(q.Euler());
+//![constructor]
 
   std::cout << "\nConverting to Euler angles\n";
   printf(" roll  % .6f radians\n"
