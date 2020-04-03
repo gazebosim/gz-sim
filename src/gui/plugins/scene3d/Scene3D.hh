@@ -278,7 +278,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// later in the render thread.
     /// \param[in] _selectedEntity Entity to be selected, or `kNullEntity`.
     /// \param[in] _deselectAll True if all entities should be deselected.
-    /// \param[in] _sendEvent True to emit an event to other widgets.
     public: void RequestSelectionChange(Entity _selectedEntity,
         bool _deselectAll);
 
@@ -480,14 +479,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     ///   to the latest selected node and deselect all others.
     /// Note that this function emits events to update other widgets.
     /// \param[in] _entity The entity to select.
-    /// \param[in] _sendEvent True to notify other widgets. This should be true
-    /// when the selection is initiated from this plugin.
     public: void UpdateSelectedEntity(Entity _entity);
 
     /// \brief Deselect all the currently selected entities within
     /// the RenderUtil class.
-    /// \param[in] _sendEvent True to notify other widgets. This should be true
-    /// when the deselection is initiated from this plugin.
     public: void DeselectAllEntities();
 
     /// \brief Set the XYZ snap values from the user input.
