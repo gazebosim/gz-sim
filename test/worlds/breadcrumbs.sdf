@@ -10,6 +10,97 @@
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/breadcrumbs/control</service>
+        <stats_topic>/world/breadcrumbs/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/breadcrumbs/stats</topic>
+
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
 
     <model name="ground_plane">
       <static>true</static>
@@ -37,8 +128,58 @@
       </link>
     </model>
 
+    <model name="tile_1">
+      <pose>0 0 0.1 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10 10 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10 10 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.0 0.8 0.0 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="tile_2">
+      <pose>10 0 0.1 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10 10 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10 10 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.0 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
     <model name='vehicle_blue'>
-      <pose>0 2 0.325 0 -0 0</pose>
+      <pose>0 2 0.525 0 -0 0</pose>
 
       <link name='chassis'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>
@@ -371,7 +512,126 @@
           </sdf>
         </breadcrumb>
       </plugin>
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+       <max_deployments>3</max_deployments>
+       <performer_volume>
+         <geometry>
+           <box>
+             <size>4 4 2</size>
+           </box>
+         </geometry>
+       </performer_volume>
+       <breadcrumb>
+         <sdf version="1.6">
+          <model name="B1_perf">
+            <pose>-1.2 0 0 0 0 0</pose>
+            <link name='body'>
+              <inertial>
+                <mass>0.6</mass>
+                <inertia>
+                  <ixx>0.017</ixx>
+                  <ixy>0</ixy>
+                  <ixz>0</ixz>
+                  <iyy>0.017</iyy>
+                  <iyz>0</iyz>
+                  <izz>0.009</izz>
+                </inertia>
+              </inertial>
+              <visual name='visual'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+                <material>
+                  <ambient>0.0 1.0 0.0 1</ambient>
+                  <diffuse>0.0 1.0 0.0 1</diffuse>
+                  <specular>0.5 0.5 0.5 1</specular>
+                </material>
+              </visual>
+              <collision name='collision'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+              </collision>
+            </link>
+          </model>
+        </sdf>
+       </breadcrumb>
+      </plugin>
+      <!-- Breadcrumb with large performer volume -->
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+       <max_deployments>3</max_deployments>
+       <performer_volume>
+         <geometry>
+           <box>
+             <size>100 100 2</size>
+           </box>
+         </geometry>
+       </performer_volume>
+       <breadcrumb>
+         <sdf version="1.6">
+          <model name="B1_perf_large_volume">
+            <pose>-1.2 0 0 0 0 0</pose>
+            <link name='body'>
+              <inertial>
+                <mass>0.6</mass>
+                <inertia>
+                  <ixx>0.017</ixx>
+                  <ixy>0</ixy>
+                  <ixz>0</ixz>
+                  <iyy>0.017</iyy>
+                  <iyz>0</iyz>
+                  <izz>0.009</izz>
+                </inertia>
+              </inertial>
+              <visual name='visual'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+                <material>
+                  <ambient>0.0 1.0 0.0 1</ambient>
+                  <diffuse>0.0 1.0 0.0 1</diffuse>
+                  <specular>0.5 0.5 0.5 1</specular>
+                </material>
+              </visual>
+              <collision name='collision'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+              </collision>
+            </link>
+          </model>
+        </sdf>
+       </breadcrumb>
+      </plugin>
     </model>
+    <plugin name="ignition::gazebo" filename="dummy">
+      <performer name="perf1">
+        <ref>vehicle_blue</ref>
+        <geometry>
+          <box>
+            <size>4 4 2</size>
+          </box>
+        </geometry>
+      </performer>
+      <level name="level1">
+        <pose>0 0 2.5 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>10 10 10</size>
+          </box>
+        </geometry>
+        <buffer>2</buffer>
+        <ref>tile_1</ref>
+      </level>
+    </plugin>
   </world>
 </sdf>
 
