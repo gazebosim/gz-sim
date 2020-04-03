@@ -337,6 +337,7 @@ TEST_F(ElementUpdateFixture, ConfigOverrideCopyOrMerge)
   }
 }
 
+/////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, ConfigOverride)
 {
   const std::string worldFile{"test/worlds/save_world.sdf"};

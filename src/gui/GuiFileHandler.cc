@@ -37,6 +37,7 @@ using namespace gazebo::gui;
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
                                  QObject *_config)
 {
+  IGN_PROFILE("GuiFileHandler::SaveWorldAs");
   QUrl url(_fileUrl);
 
   std::string suffix = ".sdf";
