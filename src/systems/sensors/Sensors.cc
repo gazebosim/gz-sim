@@ -323,7 +323,6 @@ void Sensors::RemoveSensor(const Entity &_entity)
     this->dataPtr->sensorIds.erase(idIter->second);
     this->dataPtr->sensorManager.Remove(idIter->second);
     this->dataPtr->entityToIdMap.erase(idIter);
-
   }
 }
 
