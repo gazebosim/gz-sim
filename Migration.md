@@ -9,6 +9,10 @@ release will remove the deprecated code.
 
 ### Deprecations
 
+1. **Angle.hh**
+    + All mutator functions that lacked a `Set` prefix have been deprecated
+    and replaced by version with a `Set` prefix.
+
 1. **Quaternion.hh**
     + ***Deprecation:*** public: void Axis(T, T, T, T)
     + ***Replacement:*** public: void SetFromAxisAngle(T, T, T, T)

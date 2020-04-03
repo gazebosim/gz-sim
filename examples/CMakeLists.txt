@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # Find the Ignition-Math library
-set(IGN_MATH_VER 6)
+set(IGN_MATH_VER 7)
 find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 
 add_executable(angle_example angle_example.cc)
