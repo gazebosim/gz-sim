@@ -4,9 +4,6 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
-1. Added support for removing sensors at runtime
-    * [Pull Request 558](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/558)
-
 1. Support <actor><pose> and <actor><plugin>
     * [Pull Request 542](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/542)
 
@@ -17,7 +14,22 @@
 
 ### Ignition Gazebo 3.X.X
 
-### Ignition Gazebo 3.0.0
+1. Support <uri>s from Fuel
+    * [Pull Request 532](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/532)
+
+1. Add support for thermal camera
+    * [Pull Request 512](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/512)
+    * [Pull Request 513](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/513)
+    * [Pull Request 514](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/514)
+
+### Ignition Gazebo 3.0.0 (2019-12-10)
+
+1. Add example world for collide bitmask feature
+    * [Pull Request 525](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/525)
+
+1. Remove <emissive> sdf element from visuals that do not emit light in the example worlds
+    * [Pull Request 478](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/478)
+    * [Pull Request 480](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/480)
 
 1. Support for sdformat frame semantics
     * [Pull Request 456](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/456)
@@ -46,7 +58,67 @@
 
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.X.X
+### Ignition Gazebo 2.15.0 (2020-02-07)
+
+1. Fix seeking back in time in log playback
+    * [Pull Request 523](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/523)
+
+1. Fix the deprecated ign-gazebo command line
+    * [Pull Request 499](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/499)
+
+1. Always use the latest render texture in scene3d
+    * [Pull Request 518](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/518)
+
+1. Remove redundent messages when levels get unloaded
+    * [Pull Request 522](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/522)
+
+1. View angle plugin
+    * [Pull Request 516](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/516)
+
+1. Support breadcrumb performers
+    * [Pull Request 484](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/484)
+
+1. Drag and drop Fuel object into mouse position
+    * [Pull Request 511](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/511)
+
+1. Add hotkey keybindings
+    * [Pull Request 486](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/486)
+
+### Ignition Gazebo 2.14.0 (2020-01-10)
+
+1. Use Actuator component to communicate between MulticopterVelocityControl and MulticopterMotorModel systems
+    * [Pull Request 498](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/498)
+
+1.  Backport fix to insert multiple lights with same name
+    * [Pull Request 502](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/502)
+
+1.  Get all component types attached to an entity
+    * [Pull Request 494](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/494)
+
+1.  Fix tooltips on entity tree
+    * [Pull Request 496](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/496)
+
+### Ignition Gazebo 2.13.0 (2019-12-17)
+
+1. Add Multicopter velocity controller
+    * [Pull Request 487](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/487)
+
+1. Fix crash when removing an entity being followed
+    * [Pull Request 465](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/465)
+
+1. Add option to right click and remove nodes
+    * [Pull Request 458](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/458)
+
+1. Fix jumpy log playback
+    * [Pull Request 488](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/488)
+
+1. Remove Scene3d Text anchors
+    * [Pull Request 467](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/467)
+
+1. Show grid using SDF file
+    * [Pull Request 461](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/461)
+
+### Ignition Gazebo 2.12.0 (2019-11-25)
 
 1. Parse visual cast shadows and add CastShadows component
     * [Pull Request 453](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/453)

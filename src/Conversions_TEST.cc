@@ -20,6 +20,7 @@
 
 #include <sdf/Actor.hh>
 #include <sdf/Altimeter.hh>
+#include <sdf/Atmosphere.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
@@ -488,6 +489,25 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(newScene.Shadows());
   EXPECT_TRUE(newScene.Grid());
   EXPECT_TRUE(newScene.OriginVisual());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Atmosphere)
+{
+  sdf::Atmosphere atmosphere;
+  atmosphere.SetType(sdf::AtmosphereType::ADIABATIC);
+  atmosphere.SetTemperature(math::Temperature(234.5));
+  atmosphere.SetPressure(88.6);
+
+  auto atmosphereMsg = convert<msgs::Atmosphere>(atmosphere);
+  EXPECT_EQ(msgs::Atmosphere::ADIABATIC, atmosphereMsg.type());
+  EXPECT_DOUBLE_EQ(234.5, atmosphereMsg.temperature());
+  EXPECT_DOUBLE_EQ(88.6, atmosphereMsg.pressure());
+
+  auto newAtmosphere = convert<sdf::Atmosphere>(atmosphereMsg);
+  EXPECT_EQ(sdf::AtmosphereType::ADIABATIC, newAtmosphere.Type());
+  EXPECT_EQ(math::Temperature(234.5), newAtmosphere.Temperature());
+  EXPECT_DOUBLE_EQ(88.6, newAtmosphere.Pressure());
 }
 
 /////////////////////////////////////////////////
