@@ -688,8 +688,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             ignwarn << "There is a mismatch in the degrees of freedom between "
                     << "Joint [" << _name->Data() << "(Entity=" << _entity
                     << ")] and its JointForceCmd component. The joint has "
-                    << force->Data().size() << " while the component has "
-                    << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                    << jointIt->second->GetDegreesOfFreedom() << " while the "
+                    << " component has " << force->Data().size() << ".\n";
           }
           std::size_t nDofs = std::min(force->Data().size(),
                                        jointIt->second->GetDegreesOfFreedom());
@@ -709,8 +709,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               ignwarn << "There is a mismatch in the degrees of freedom between"
                       << " Joint [" << _name->Data() << "(Entity=" << _entity
                       << ")] and its JointVelocityCmd component. The joint has "
-                      << velCmd->Data().size() << " while the component has "
-                      << jointIt->second->GetDegreesOfFreedom() << ".\n";
+                      << jointIt->second->GetDegreesOfFreedom() << " while the "
+                      << " component has " << velCmd->Data().size() << ".\n";
             }
             std::size_t nDofs = std::min(velCmd->Data().size(),
                 jointIt->second->GetDegreesOfFreedom());

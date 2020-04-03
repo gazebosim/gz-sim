@@ -123,6 +123,13 @@
               <normal>0 0 1</normal>
             </plane>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>50</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>
