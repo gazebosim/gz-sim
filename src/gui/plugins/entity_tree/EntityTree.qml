@@ -170,8 +170,8 @@ Rectangle {
 
         IgnGazebo.TypeIcon {
           id: icon
-          height: itemHeight
-          width: itemHeight
+          height: itemHeight - 2
+          width: itemHeight - 2
           entityType: model === null || model.type === undefined ? "" : model.type
         }
 
