@@ -1,7 +1,7 @@
 set (gui_sources
   Gui.cc
-  GuiRunner.cc
   GuiFileHandler.cc
+  GuiRunner.cc
   TmpIface.cc
 )
 

@@ -195,7 +195,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node->Advertise(
       genWorldSdfService, &SimulationRunner::GenerateWorldSdf, this);
 
-  ignmsg << "Serving world sdf generation service on [" << opts.NameSpace()
+  ignmsg << "Serving world SDF generation service on [" << opts.NameSpace()
          << "/" << genWorldSdfService << "]" << std::endl;
 }
 
