@@ -50,9 +50,13 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   bool result{false};
   unsigned int timeout{5000};
-  this->node.Request(service, timeout, worldsMsg, result);
+  bool ret = this->node.Request(service, timeout, worldsMsg, result);
+  if (!ret || !result)
+  {
+    ignerr << "Service call to " << service << " failed. Cannot save world.\n";
+  }
   // TODO(addisu) Support saving multiple worlds
-  if (worldsMsg.data_size() > 0)
+  else if (worldsMsg.data_size() > 0)
   {
     const auto &worldName = worldsMsg.data(0);
     const std::string sdfGenService{std::string("/world/") + worldName +
