@@ -166,9 +166,10 @@ namespace sdf_generator
   /// \endcode
   ///
   /// This function is needed because neither `Message::CopyFrom` nor
-  /// `Message::MergeFrom` do what we want. CopyFrom overwrites everything even if
-  /// none of the parameters in overrideConfig are set. MergeFrom gets close,
-  /// but doesn't overwrite if the parameter in `_overrideConfig` is set to false.
+  /// `Message::MergeFrom` do what we want. CopyFrom overwrites everything even
+  /// if none of the parameters in overrideConfig are set. MergeFrom gets close,
+  /// but doesn't overwrite if the parameter in `_overrideConfig` is set to
+  /// false.
   ///
   /// \param[in, out] _initialConfig Initial configuration
   /// \param[in] _override Override configuration
@@ -224,7 +225,10 @@ namespace sdf_generator
     if (!copySdf(_ecm.Component<components::WorldSdf>(_entity), _elem))
       return false;
 
-    // Remove all models. TODO (addisu) Remove actors as well.
+    // First remove child entities of <world> whose names can be changed during
+    // simulation (eg. models). Then we add them back from the data in the
+    // ECM.
+    // TODO(addisu) Remove actors and lights
     std::vector<sdf::ElementPtr> toRemove;
     if (_elem->HasElement("model"))
     {
@@ -270,7 +274,7 @@ namespace sdf_generator
           else if (uriMapIt != _includeUriMap.end())
           {
             // The fuel URI might have a version number. If it does, we remove
-            // it unless saveFuelModelVersion is set to false.
+            // it unless saveFuelModelVersion is set to true.
             // Check if this is a fuel URI. We assume that it is a fuel URI if
             // the scheme is http or https.
             common::URI uri(uriMapIt->second);
@@ -284,9 +288,23 @@ namespace sdf_generator
               // Find out the model version from the file path. Note that we
               // do this from the file path instead of the Fuel URI because the
               // URI may not contain version information.
+              //
               // We are assuming here that, for Fuel models, the directory
               // containing the sdf file has the same name as the model version.
-              // TODO(addisu) Verify this assumption
+              // For example, if the uri is
+              // https://example.org/1.0/test/models/Backpack
+              // the path to the directory containing the sdf file (modelDir)
+              // will be:
+              // $HOME/.ignition/fuel/example.org/test/models/Backpack/1/
+              // and the basename of the directory is "1", which is the model
+              // version.
+              //
+              // However, if symlinks (or other types of indirection) are used,
+              // the pattern of modelDir will be different. The assumption here
+              // is that regardless of the indirection, the name of the
+              // directory containing the sdf file can be used as the version
+              // number
+              //
               uri.Path() /= common::basename(modelDir);
             }
 

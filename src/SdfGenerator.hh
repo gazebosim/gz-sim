@@ -72,12 +72,12 @@ namespace sdf_generator
                           const EntityComponentManager &_ecm,
                           const Entity &_entity);
 
-  /// \brief Update a sdf::Element of an included model.
+  /// \brief Update a sdf::Element of an included resource.
   /// Intended for internal use.
   /// \input[in, out] _elem sdf::Element to update
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
-  /// \input[in] _entity Model entity
-  /// \input[in] _uri Uri of the model
+  /// \input[in] _entity Entity of included resource
+  /// \input[in] _uri Uri of the resource
   /// \returns true if update succeeded.
   bool updateIncludeElement(const sdf::ElementPtr &_elem,
                             const EntityComponentManager &_ecm,
