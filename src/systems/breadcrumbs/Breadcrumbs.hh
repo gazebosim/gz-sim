@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
+#include <set>
 #include <vector>
 
 #include <sdf/Element.hh>
@@ -60,6 +61,9 @@ namespace systems
   /// deployed. Once this many are deployed, publishing on the deploy topic will
   /// have no effect. If a negative number is set, the maximun deployment will
   /// be unbounded.
+  /// `<performer_volume>`: Geometry that represents the bounding volume of
+  /// the performer. Only `<geometry><box>` is supported currently. When this
+  /// parameter is present, the deployed models will be performers.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
   class IGNITION_GAZEBO_VISIBLE Breadcrumbs
@@ -108,8 +112,17 @@ namespace systems
     /// \brief sdf::Root of the model to be deployed
     private: sdf::Root modelRoot;
 
+    /// \brief Whether the deployed models will be performers
+    private: bool isPerformer{false};
+
+    /// \brief Bounding volume of the performer
+    private: std::optional<sdf::Geometry> performerGeometry;
+
     /// \brief Pending commands
     private: std::vector<bool> pendingCmds;
+
+    /// \brief List of entities that need geometry updates.
+    private: std::set<Entity> pendingGeometryUpdate;
 
     /// \brief Mutex to protect pending commands
     private: std::mutex pendingCmdsMutex;

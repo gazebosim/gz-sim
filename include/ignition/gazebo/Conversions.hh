@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
 #include <ignition/msgs/actor.pb.h>
+#include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/axis.pb.h>
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
@@ -37,6 +38,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/math/Inertial.hh>
 #include <sdf/Actor.hh>
+#include <sdf/Atmosphere.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
@@ -379,6 +381,41 @@ namespace ignition
     /// \return SDF scene.
     template<>
     sdf::Scene convert(const msgs::Scene &_in);
+
+    /// \brief Generic conversion from an SDF atmosphere to another type.
+    /// \param[in] _in SDF atmosphere.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Atmosphere &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF atmosphere to an atmosphere
+    /// message
+    /// \param[in] _in SDF atmosphere.
+    /// \return Atmosphere message.
+    template<>
+    msgs::Atmosphere convert(const sdf::Atmosphere &_in);
+
+    /// \brief Generic conversion from an atmosphere message to another type.
+    /// \param[in] _in Atmosphere message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Atmosphere &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an atmosphere message to an
+    /// atmosphere SDF object.
+    /// \param[in] _in Atmosphere message.
+    /// \return SDF scene.
+    template<>
+    sdf::Atmosphere convert(const msgs::Atmosphere &_in);
+
 
     /// \brief Generic conversion from an SDF Sensor to another type.
     /// \param[in] _in SDF Sensor.
