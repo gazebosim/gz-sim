@@ -179,6 +179,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Entity's unique id
     /// \param[in] _time Simulation time
     /// \return Map from the skeleton node name to transforms
+    /// \deprecated see ActorSkeletonTransformAt
     public: std::map<std::string, math::Matrix4d> IGN_DEPRECATED(4.0)
         ActorMeshAnimationAt(
         Entity _id, std::chrono::steady_clock::duration _time) const;
@@ -196,7 +197,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Use this function to let the render engine handle the actor animation.
     /// by setting the animation name to be played.
     /// \param[in] _id Entity's unique id
-    /// \param[in] _time SimulationTime
+    /// \param[in] _time Simulation time
     /// \return Data needed to update the animation, including the name and
     /// time of animation to play, and trajectory animation info.
     public: AnimationUpdateData ActorAnimationAt(
