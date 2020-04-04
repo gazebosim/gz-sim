@@ -31,6 +31,7 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Skeleton.hh>
+#include <ignition/common/SkeletonAnimation.hh>
 
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
@@ -172,9 +173,6 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief A map of entity ids and actor animation info.
   public: std::unordered_map<Entity, AnimationUpdateData> actorAnimationData;
-
-  /// \brief Name of skeleton animation that is currently playing
-  public: std::string skelAnimName;
 
   /// \brief True to update skeletons manually using bone poses
   /// (see actorTransforms). False to let render engine update animation
@@ -485,7 +483,9 @@ void RenderUtil::Update()
       {
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
-        if (!actorMesh || !actorVisual)
+        auto actorSkel = this->dataPtr->sceneManager.ActorSkeletonById(
+            it.first);
+        if (!actorMesh || !actorVisual || !actorSkel)
         {
           ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
                  << "Skipping skeleton animation update." << std::endl;
@@ -501,12 +501,13 @@ void RenderUtil::Update()
         // Enable skeleton animation
         if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
         {
-          // disable current animation
-          if (!this->dataPtr->skelAnimName.empty())
+          // disable all animations for this actor
+          for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
           {
-            actorMesh->SetSkeletonAnimationEnabled(this->dataPtr->skelAnimName,
-                false, false, 0.0);
+            actorMesh->SetSkeletonAnimationEnabled(
+                actorSkel->Animation(i)->Name(), false, false, 0.0);
           }
+
           // enable requested animation
           actorMesh->SetSkeletonAnimationEnabled(
               animData.animationName, true, animData.loop);
@@ -524,8 +525,6 @@ void RenderUtil::Update()
             weights[skeleton->RootNode()->Name()] = rootBoneWeight;
             actorMesh->SetSkeletonWeights(weights);
           }
-
-          this->dataPtr->skelAnimName = animData.animationName;
         }
         // Update skeleton animation by setting animation time.
         // Note that animation time is different from sim time. An actor can
