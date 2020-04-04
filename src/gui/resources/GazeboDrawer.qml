@@ -28,7 +28,8 @@ Rectangle {
   anchors.fill: parent
   color: Material.background
 
-  property string saveWorldFileUrl: "";
+  // Regex that matches a file:/// style absolute path, with a sdf extension
+  property var fileValidator: /^file:\/\/(\/[\w-]+)+\.sdf$/;
 
   QtObject {
     id: sdfGenConfig
@@ -46,8 +47,8 @@ Rectangle {
         TmpIface.OnNewWorld();
         break
       case "saveWorld":
-        if (saveWorldFileUrl.length !== 0)
-          GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig)
+        if (saveWorldFileText.text.match(fileValidator))
+          GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
         else
           sdfGenConfigDialog.open();
         break
@@ -158,8 +159,7 @@ Rectangle {
     selectMultiple: false
     selectExisting: false
     onAccepted: {
-      saveWorldFileUrl = fileUrl;
-      dialogButtons.standardButton(Dialog.Ok).enabled = saveWorldFileUrl.length > 0
+      saveWorldFileText.text = fileUrl;
     }
   }
 
@@ -176,7 +176,7 @@ Rectangle {
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
     onAccepted: {
-      GuiFileHandler.SaveWorldAs(saveWorldFileUrl, sdfGenConfig);
+      GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig);
     }
     Component.onCompleted: {
       dialogButtons.standardButton(Dialog.Ok).enabled = false
@@ -194,8 +194,16 @@ Rectangle {
           text: "Location:"
         }
         TextField {
-          text: saveWorldFileUrl
+          id: saveWorldFileText
+          text: "file:///"
           selectByMouse: true
+          validator: RegExpValidator {
+            regExp: fileValidator
+          }
+          onTextChanged: {
+            var valid = saveWorldFileText.text.match(fileValidator)
+            dialogButtons.standardButton(Dialog.Ok).enabled = valid
+          }
         }
         Button {
           text: "Browse"
