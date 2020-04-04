@@ -448,7 +448,11 @@ void RenderUtil::Update()
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
         if (!actorMesh || !actorVisual)
+        {
+          ignerr << "Actor with Entity ID '" << tf.first << "'. not found. "
+                 << "Skipping skeleton animation update." << std::endl;
           continue;
+        }
 
         math::Pose3d globalPose;
         if (entityPoses.find(tf.first) != entityPoses.end())
@@ -482,7 +486,11 @@ void RenderUtil::Update()
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
         if (!actorMesh || !actorVisual)
+        {
+          ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
+                 << "Skipping skeleton animation update." << std::endl;
           continue;
+        }
 
         AnimationUpdateData &animData = it.second;
         if (!animData.valid)
