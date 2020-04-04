@@ -551,6 +551,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     std::string animFilename = asFullPath(
         _actor.AnimationByIndex(i)->Filename(),
         _actor.AnimationByIndex(i)->FilePath());
+
     double animScale = _actor.AnimationByIndex(i)->Scale();
 
     std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
