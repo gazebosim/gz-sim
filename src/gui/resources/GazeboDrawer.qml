@@ -29,7 +29,7 @@ Rectangle {
   color: Material.background
 
   // Regex that matches a file:/// style absolute path, with a sdf extension
-  property var fileValidator: /^file:\/\/(\/[\w-]+)+\.sdf$/;
+  property var fileValidator: /^file:\/\/(\/.+)+\.sdf$/;
 
   property bool lastSaveSuccess: false
 
