@@ -7,6 +7,11 @@ release will remove the deprecated code.
 
 ## Ignition Math 6.X to 7.X
 
+### Breaking Changes
+
+  1. Removed the Quaternion integer template `Quaternioni`.
+
+
 ### Deprecations
 
 1. **Angle.hh**
