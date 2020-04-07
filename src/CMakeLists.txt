@@ -24,6 +24,8 @@ if (SWIG_FOUND)
     ruby
     Angle
     GaussMarkovProcess
+    Matrix3
+    Quaternion
     Rand
     Vector2
     Vector3)

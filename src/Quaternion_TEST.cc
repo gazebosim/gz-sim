@@ -66,6 +66,7 @@ TEST(QuaternionTest, ConstructZero)
 TEST(QuaternionTest, ConstructEuler)
 {
   math::Quaterniond q(0, 1, 2);
+  EXPECT_TRUE(q.Equal(math::Quaterniond(math::Vector3d(0, 1, 2)), 1e-6));
   math::Quaterniond q2(math::Vector3d(0, 1, 2));
   EXPECT_TRUE(q == q2);
   EXPECT_TRUE(q.Equal(q2, 1e-6));
@@ -246,23 +247,23 @@ TEST(QuaternionTest, Math)
       math::Quaterniond(0.545456, -0.588972, 0.093284, 0.588972));
 
   math::Quaterniond q1 = q;
-  q1.W(2.0);
+  q1.SetW(2.0);
   EXPECT_TRUE(q1.Log() ==
       math::Quaterniond(0, -0.698401, 0.110616, 0.698401));
 
-  q1.X(0.000000001);
-  q1.Y(0.0);
-  q1.Z(0.0);
-  q1.W(0.0);
+  q1.SetX(0.000000001);
+  q1.SetY(0.0);
+  q1.SetZ(0.0);
+  q1.SetW(0.0);
   EXPECT_TRUE(q1.Exp() == math::Quaterniond(1, 0, 0, 0));
 
   q.Invert();
   EXPECT_TRUE(q == math::Quaterniond(0.110616, 0.698401, -0.110616, -0.698401));
 
-  q.Axis(0, 1, 0, IGN_PI);
+  q.SetFromAxisAngle(0, 1, 0, IGN_PI);
   EXPECT_TRUE(q == math::Quaterniond(6.12303e-17, 0, 1, 0));
 
-  q.Axis(math::Vector3d(1, 0, 0), IGN_PI);
+  q.SetFromAxisAngle(math::Vector3d(1, 0, 0), IGN_PI);
   EXPECT_TRUE(q == math::Quaterniond(0, 1, 0, 0));
 
   q.Set(1, 2, 3, 4);
@@ -281,7 +282,7 @@ TEST(QuaternionTest, Math)
 
   math::Vector3d axis;
   double angle;
-  q.ToAxis(axis, angle);
+  q.AxisAngle(axis, angle);
   EXPECT_TRUE(axis == math::Vector3d(0.371391, 0.557086, 0.742781));
   EXPECT_TRUE(math::equal(angle, 2.77438, 1e-3));
 
@@ -326,24 +327,24 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::equal(4.01, q.Z()));
   EXPECT_TRUE(math::equal(7.68, q.W()));
 
-  q.X(0.0);
-  q.Y(0.0);
-  q.Z(0.0);
-  q.W(0.0);
+  q.SetX(0.0);
+  q.SetY(0.0);
+  q.SetZ(0.0);
+  q.SetW(0.0);
   q.Normalize();
   EXPECT_TRUE(q == math::Quaterniond());
 
-  q.Axis(0, 0, 0, 0);
+  q.SetFromAxisAngle(0, 0, 0, 0);
   EXPECT_TRUE(q == math::Quaterniond());
 
   EXPECT_TRUE(math::Quaterniond::EulerToQuaternion(0.1, 0.2, 0.3) ==
       math::Quaterniond(0.983347, 0.0342708, 0.106021, 0.143572));
 
-  q.X(0.0);
-  q.Y(0.0);
-  q.Z(0.0);
-  q.W(0.0);
-  q.ToAxis(axis, angle);
+  q.SetX(0.0);
+  q.SetY(0.0);
+  q.SetZ(0.0);
+  q.SetW(0.0);
+  q.AxisAngle(axis, angle);
   EXPECT_TRUE(axis == math::Vector3d(1, 0, 0));
   EXPECT_TRUE(math::equal(angle, 0.0, 1e-3));
   {
@@ -407,7 +408,7 @@ TEST(QuaternionTest, Math)
   {
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
-    q.Axis(math::Vector3d(1, 2, 3), 0.3*IGN_PI);
+    q.SetFromAxisAngle(math::Vector3d(1, 2, 3), 0.3*IGN_PI);
     std::cout << "[" << q.W() << ", " << q.X() << ", "
       << q.Y() << ", " << q.Z() << "]\n";
     std::cout << " x [" << q.Inverse().XAxis() << "]\n";
@@ -468,7 +469,7 @@ TEST(QuaternionTest, Math)
     math::Matrix3d matFromQuat(q);
 
     math::Quaterniond quatFromMat(matFromQuat);
-    math::Quaterniond quatFromMat2; quatFromMat2.Matrix(matFromQuat);
+    math::Quaterniond quatFromMat2; quatFromMat2.SetFromMatrix(matFromQuat);
 
     EXPECT_TRUE(q == quatFromMat);
     EXPECT_TRUE(q == quatFromMat2);
@@ -534,16 +535,16 @@ TEST(QuaternionTest, Slerp)
 }
 
 /////////////////////////////////////////////////
-TEST(QuaterniondTest, From2Axes)
+TEST(QuaterniondTest, SetFrom2Axes)
 {
   math::Vector3d v1(1.0, 0.0, 0.0);
   math::Vector3d v2(0.0, 1.0, 0.0);
 
   math::Quaterniond q1;
-  q1.From2Axes(v1, v2);
+  q1.SetFrom2Axes(v1, v2);
 
   math::Quaterniond q2;
-  q2.From2Axes(v2, v1);
+  q2.SetFrom2Axes(v2, v1);
 
   math::Quaterniond q1Correct(sqrt(2)/2, 0, 0, sqrt(2)/2);
   math::Quaterniond q2Correct(sqrt(2)/2, 0, 0, -sqrt(2)/2);
@@ -559,8 +560,8 @@ TEST(QuaterniondTest, From2Axes)
   v1.Set(0.5, 0.5, 0);
   v2.Set(-0.5, 0.5, 0);
 
-  q1.From2Axes(v1, v2);
-  q2.From2Axes(v2, v1);
+  q1.SetFrom2Axes(v1, v2);
+  q2.SetFrom2Axes(v2, v1);
 
   EXPECT_NE(q1, q2);
   EXPECT_EQ(q1Correct, q1);
@@ -573,7 +574,7 @@ TEST(QuaterniondTest, From2Axes)
 
   v1.Set(1, 0, 0);
   v2.Set(-1, 0, 0);
-  q1.From2Axes(v1, v2);
+  q1.SetFrom2Axes(v1, v2);
   q2 = q1 * q1;
   EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
   EXPECT_TRUE(math::equal(q2.X(), 0.0));
@@ -582,7 +583,7 @@ TEST(QuaterniondTest, From2Axes)
 
   v1.Set(0, 1, 0);
   v2.Set(0, -1, 0);
-  q1.From2Axes(v1, v2);
+  q1.SetFrom2Axes(v1, v2);
   q2 = q1 * q1;
   EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
   EXPECT_TRUE(math::equal(q2.X(), 0.0));
@@ -591,7 +592,7 @@ TEST(QuaterniondTest, From2Axes)
 
   v1.Set(0, 0, 1);
   v2.Set(0, 0, -1);
-  q1.From2Axes(v1, v2);
+  q1.SetFrom2Axes(v1, v2);
   q2 = q1 * q1;
   EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
   EXPECT_TRUE(math::equal(q2.X(), 0.0));
@@ -600,7 +601,7 @@ TEST(QuaterniondTest, From2Axes)
 
   v1.Set(0, 1, 1);
   v2.Set(0, -1, -1);
-  q1.From2Axes(v1, v2);
+  q1.SetFrom2Axes(v1, v2);
   q2 = q1 * q1;
   EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
   EXPECT_TRUE(math::equal(q2.X(), 0.0));
