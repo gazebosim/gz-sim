@@ -514,7 +514,7 @@ rendering::NodePtr AlignTool::TopLevelNode(rendering::ScenePtr &_scene,
 /////////////////////////////////////////////////
 bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::Type)
+  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -536,10 +536,10 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 
     // Only update if a valid cast, the data isn't empty, and
     // the command is not from user (sent from backend)
-    if (selectedEvent && !selectedEvent->Data().empty()
-        && !selectedEvent->FromUser())
+    if (selectedEvent && !selectedEvent->Data().empty())
     {
-      this->dataPtr->selectedEntities = selectedEvent->Data();
+      for (const auto &_entity : selectedEvent->Data())
+        this->dataPtr->selectedEntities.push_back(_entity);
     }
   }
   else if (_event->type() ==
