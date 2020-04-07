@@ -44,7 +44,7 @@ namespace ignition
     ///
     /// * Ruby
     ///
-    /// \code{.cc}
+    /// \code{.rb}
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
     /// #
     /// require 'ignition/math'
