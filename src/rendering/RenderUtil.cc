@@ -192,12 +192,10 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Highlight a node and all its children.
   /// \param[in] _node Node to be highlighted
-  /// TODO(anyone) On future versions, use a bounding box instead
   public: void HighlightNode(const rendering::NodePtr &_node);
 
   /// \brief Restore a highlighted node to normal.
   /// \param[in] _node Node to be restored.
-  /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
 };
 
@@ -1194,10 +1192,10 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   // If the entity is not found in the existing map, create a wire box
   if (this->wireBoxes.find(entityId) == this->wireBoxes.end())
   {
-    rendering::MaterialPtr gray = this->scene->CreateMaterial();
-    gray->SetAmbient(0.2, 0.2, 0.2);
-    gray->SetDiffuse(0.2, 0.2, 0.2);
-    gray->SetSpecular(0.2, 0.2, 0.2);
+    rendering::MaterialPtr white = this->scene->CreateMaterial();
+    white->SetAmbient(1.0, 1.0, 1.0);
+    white->SetDiffuse(1.0, 1.0, 1.0);
+    white->SetSpecular(1.0, 1.0, 1.0);
 
     ignition::rendering::WireBoxPtr wireBox =
       this->scene->CreateWireBox();
@@ -1209,7 +1207,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       this->scene->CreateVisual();
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
-    wireBoxVis->SetMaterial(gray);
+    wireBoxVis->SetMaterial(white);
     vis->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
