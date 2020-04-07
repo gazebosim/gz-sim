@@ -95,5 +95,9 @@ TEST(GaussMarkovProcessTest, Noise)
     EXPECT_LT(value, 22);
   }
   // Hand-tuned values that are repeatable given the seed set above.
+#ifdef __APPLE__
+  EXPECT_NEAR(-4.960893, gmp.Value(), 1e-4);
+#else
   EXPECT_NEAR(-4.118732, gmp.Value(), 1e-4);
+#endif
 }
