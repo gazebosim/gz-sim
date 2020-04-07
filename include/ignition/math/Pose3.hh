@@ -77,7 +77,7 @@ namespace ignition
       public: static const Pose3<T> Zero;
 
       /// \brief Default constructor. This initializes the position
-      //component to zero and the quaternion to identity.
+      /// component to zero and the quaternion to identity.
       public: Pose3() = default;
 
       /// \brief Create a Pose3 based on a position and rotation.
