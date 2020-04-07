@@ -50,7 +50,7 @@ namespace ignition
     ///
     /// * Ruby
     ///
-    /// \code{.cc}
+    /// \code{.rb}
     /// # Modify the RUBYLIB environment variable to include the ignition math
     /// # library install path. For example, if you install to /user:
     /// #

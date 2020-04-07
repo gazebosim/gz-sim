@@ -35,30 +35,86 @@ namespace ignition
     template <typename T> class Quaternion;
 
     /// \class Matrix3 Matrix3.hh ignition/math/Matrix3.hh
-    /// \brief A 3x3 matrix class
+    /// \brief A 3x3 matrix class.
+    ///
+    /// The following two type definitions are provided:
+    ///
+    /// * \ref Matrix3i : Equivalent to Matrix3<int>
+    /// * \ref Matrix3f : Equivalent to Matrix3<float>
+    /// * \ref Matrix3d : Equivalent to Matrix3<double>
+    /// ## Examples
+    ///
+    /// * C++
+    ///
+    /// \snippet examples/matrix3_example.cc complete
+    ///
+    /// * Ruby
+    /// \code{.rb}
+    /// # Modify the RUBYLIB environment variable to include the ignition math
+    /// # library install path. For example, if you install to /user:
+    /// #
+    /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
+    /// #
+    /// require 'ignition/math'
+    ///
+    /// # Construct a default matrix3.
+    /// m = Ignition::Math::Matrix3d.new
+    /// printf("The default constructed matrix m has the following "+
+    ///        "values.\n\t" +
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        m.(0, 0), m.(0, 1), m.(0, 2),
+    ///        m.(1, 0), m.(1, 1), m.(1, 2),
+    ///        m.(2, 0), m.(2, 1), m.(2, 2))
+    ///
+    /// # Set the first column of the matrix.
+    /// m.SetCol(0, Ignition::Math::Vector3d.new(3, 4, 5))
+    /// printf("Setting the first column of the matrix m to 3, 4, 5.\n\t" +
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        m.(0, 0), m.(0, 1), m.(0, 2),
+    ///        m.(1, 0), m.(1, 1), m.(1, 2),
+    ///        m.(2, 0), m.(2, 1), m.(2, 2))
+    ///
+    /// # Transpose the matrix.
+    /// t = m.Transposed()
+    /// printf("The transposed matrix t has the values.\n\t"+
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        t.(0, 0), t.(0, 1), t.(0, 2),
+    ///        t.(1, 0), t.(1, 1), t.(1, 2),
+    ///        t.(2, 0), t.(2, 1), t.(2, 2))
+    ///
+    /// # Multiply the two matrices.
+    /// m = m * t
+    /// printf("m * t = " +
+    ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
+    ///        m.(0, 0), m.(0, 1), m.(0, 2),
+    ///        m.(1, 0), m.(1, 1), m.(1, 2),
+    ///        m.(2, 0), m.(2, 1), m.(2, 2))
+    /// \endcode
     template<typename T>
     class Matrix3
     {
-      /// \brief Identity matrix
+      /// \brief A Matrix3 initialized to identity.
+      /// This is equivalent to math::Matrix3<T>(1, 0, 0, 0, 1, 0, 0, 0, 1).
       public: static const Matrix3<T> Identity;
 
-      /// \brief Zero matrix
+      /// \brief A Matrix3 initialized to zero.
+      /// This is equivalent to math::Matrix3<T>(0, 0, 0, 0, 0, 0, 0, 0, 0).
       public: static const Matrix3<T> Zero;
 
-      /// \brief Constructor
+      /// \brief Default constructor that initializes the matrix3 to zero.
       public: Matrix3()
       {
         std::memset(this->data, 0, sizeof(this->data[0][0])*9);
       }
 
-      /// \brief Copy constructor
+      /// \brief Copy constructor.
       /// \param _m Matrix to copy
       public: Matrix3(const Matrix3<T> &_m)
       {
         std::memcpy(this->data, _m.data, sizeof(this->data[0][0])*9);
       }
 
-      /// \brief Constructor
+      /// \brief Construct a matrix3 using nine values.
       /// \param[in] _v00 Row 0, Col 0 value
       /// \param[in] _v01 Row 0, Col 1 value
       /// \param[in] _v02 Row 0, Col 2 value
@@ -83,8 +139,8 @@ namespace ignition
         this->data[2][2] = _v22;
       }
 
-      /// \brief Construct Matrix3 from a quaternion.
-      /// \param[in] _q Quaternion.
+      /// \brief Construct 3x3 rotation Matrix from a quaternion.
+      /// \param[in] _q Quaternion to set the Matrix3 from.
       public: explicit Matrix3(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
@@ -101,9 +157,19 @@ namespace ignition
       }
 
       /// \brief Desctructor
-      public: virtual ~Matrix3() {}
+      public: ~Matrix3() {}
 
-      /// \brief Set values
+      /// \brief Set a single value.
+      /// \param[in] _row row index. _row is clamped to the range [0,2]
+      /// \param[in] _col column index. _col is clamped to the range [0,2]
+      /// \param[in] _v New value.
+      public: void Set(size_t _row, size_t _col, T _v)
+      {
+        this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
+                  [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)] = _v;
+      }
+
+      /// \brief Set values.
       /// \param[in] _v00 Row 0, Col 0 value
       /// \param[in] _v01 Row 0, Col 1 value
       /// \param[in] _v02 Row 0, Col 2 value
@@ -128,23 +194,45 @@ namespace ignition
         this->data[2][2] = _v22;
       }
 
-      /// \brief Set the matrix from three axis (1 per column)
-      /// \param[in] _xAxis The x axis
-      /// \param[in] _yAxis The y axis
-      /// \param[in] _zAxis The z axis
-      public: void Axes(const Vector3<T> &_xAxis,
-                        const Vector3<T> &_yAxis,
-                        const Vector3<T> &_zAxis)
+      /// \brief Set the matrix from three axis (1 per column).
+      /// \param[in] _xAxis The x axis, the first column of the matrix.
+      /// \param[in] _yAxis The y axis, the second column of the matrix.
+      /// \param[in] _zAxis The z axis, the third column of the matrix.
+      /// \deprecated Use SetAxes(const Vector3<T> &, const Vector3<T> &,
+      /// const Vector3<T> &,)
+      public: void IGN_DEPRECATED(7) Axes(const Vector3<T> &_xAxis,
+                  const Vector3<T> &_yAxis,
+                  const Vector3<T> &_zAxis)
       {
-        this->Col(0, _xAxis);
-        this->Col(1, _yAxis);
-        this->Col(2, _zAxis);
+        this->SetAxes(_xAxis, _yAxis, _zAxis);
       }
 
-      /// \brief Set the matrix from an axis and angle
+      /// \brief Set the matrix from three axis (1 per column).
+      /// \param[in] _xAxis The x axis, the first column of the matrix.
+      /// \param[in] _yAxis The y axis, the second column of the matrix.
+      /// \param[in] _zAxis The z axis, the third column of the matrix.
+      public: void SetAxes(const Vector3<T> &_xAxis,
+                           const Vector3<T> &_yAxis,
+                           const Vector3<T> &_zAxis)
+      {
+        this->SetCol(0, _xAxis);
+        this->SetCol(1, _yAxis);
+        this->SetCol(2, _zAxis);
+      }
+
+      /// \brief Set as a rotation matrix from an axis and angle.
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
-      public: void Axis(const Vector3<T> &_axis, T _angle)
+      /// \deprecated Use SetFromAxisAngle(const Vector3<T> &, T)
+      public: void IGN_DEPRECATED(7) Axis(const Vector3<T> &_axis, T _angle)
+      {
+        this->SetFromAxisAngle(_axis, _angle);
+      }
+
+      /// \brief Set as a rotation matrix from an axis and angle.
+      /// \param[in] _axis the axis
+      /// \param[in] _angle ccw rotation around the axis in radians
+      public: void SetFromAxisAngle(const Vector3<T> &_axis, T _angle)
       {
         T c = cos(_angle);
         T s = sin(_angle);
@@ -163,13 +251,26 @@ namespace ignition
         this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
-      /// \brief Set the matrix to represent rotation from
+      /// \brief Set as a rotation matrix to represent rotation from
       /// vector _v1 to vector _v2, so that
       /// _v2.Normalize() == this * _v1.Normalize() holds.
       ///
       /// \param[in] _v1 The first vector
       /// \param[in] _v2 The second vector
-      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
+      /// \deprecated Use SetFrom2Axes(const Vector3<T> &, const Vector3<T> &)
+      public: void IGN_DEPRECATED(7) From2Axes(
+                  const Vector3<T> &_v1, const Vector3<T> &_v2)
+      {
+        this->SetFrom2Axes(_v1, _v2);
+      }
+
+      /// \brief Set as a rotation matrix to represent rotation from
+      /// vector _v1 to vector _v2, so that
+      /// _v2.Normalize() == this * _v1.Normalize() holds.
+      ///
+      /// \param[in] _v1 The first vector
+      /// \param[in] _v2 The second vector
+      public: void SetFrom2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
       {
         const T _v1LengthSquared = _v1.SquaredLength();
         if (_v1LengthSquared <= 0.0)
@@ -203,14 +304,24 @@ namespace ignition
 
         const Vector3<T> cross = _v1.Cross(_v2).Normalize();
 
-        this->Axis(cross, acos(dot));
+        this->SetFromAxisAngle(cross, acos(dot));
       }
 
       /// \brief Set a column.
       /// \param[in] _c The colum index [0, 1, 2]. _col is clamped to the
       /// range [0, 2].
       /// \param[in] _v The value to set in each row of the column.
-      public: void Col(unsigned int _c, const Vector3<T> &_v)
+      /// \deprecated Use SetCol(unsigned int _c, const Vector3<T> &_v)
+      public: void IGN_DEPRECATED(7) Col(unsigned int _c, const Vector3<T> &_v)
+      {
+        this->SetCol(_c, _v);
+      }
+
+      /// \brief Set a column.
+      /// \param[in] _c The colum index [0, 1, 2]. _col is clamped to the
+      /// range [0, 2].
+      /// \param[in] _v The value to set in each row of the column.
+      public: void SetCol(unsigned int _c, const Vector3<T> &_v)
       {
         unsigned int c = clamp(_c, 0u, 2u);
 
@@ -220,15 +331,17 @@ namespace ignition
       }
 
       /// \brief Equal operator. this = _mat
-      /// \param _mat Incoming matrix
-      /// \return itself
+      /// \param _mat Matrix to copy.
+      /// \return This matrix.
       public: Matrix3<T> &operator=(const Matrix3<T> &_mat)
       {
         memcpy(this->data, _mat.data, sizeof(this->data[0][0])*9);
         return *this;
       }
 
-      /// \brief returns the element wise difference of two matrices
+      /// \brief Subtraction operator.
+      /// \param[in] _m Matrix to subtract.
+      /// \return The element wise difference of two matrices.
       public: Matrix3<T> operator-(const Matrix3<T> &_m) const
       {
         return Matrix3<T>(
@@ -243,7 +356,9 @@ namespace ignition
             this->data[2][2] - _m(2, 2));
       }
 
-      /// \brief returns the element wise sum of two matrices
+      /// \brief Addition operation.
+      /// \param[in] _m Matrix to add.
+      /// \return The element wise sum of two matrices
       public: Matrix3<T> operator+(const Matrix3<T> &_m) const
       {
         return Matrix3<T>(
@@ -258,7 +373,9 @@ namespace ignition
             this->data[2][2]+_m(2, 2));
       }
 
-      /// \brief returns the element wise scalar multiplication
+      /// \brief Scalar multiplication operator.
+      /// \param[in] _s Value to multiply.
+      /// \return The element wise scalar multiplication.
       public: Matrix3<T> operator*(const T &_s) const
       {
         return Matrix3<T>(
@@ -269,7 +386,7 @@ namespace ignition
 
       /// \brief Matrix multiplication operator
       /// \param[in] _m Matrix3<T> to multiply
-      /// \return product of this * _m
+      /// \return Product of this * _m
       public: Matrix3<T> operator*(const Matrix3<T> &_m) const
       {
         return Matrix3<T>(
@@ -370,15 +487,15 @@ namespace ignition
             && equal<T>(this->data[2][2], _m(2, 2), _tol);
       }
 
-      /// \brief Equality test operator
-      /// \param[in] _m Matrix3<T> to test
-      /// \return True if equal (using the default tolerance of 1e-6)
+      /// \brief Equality test operator.
+      /// \param[in] _m Matrix3<T> to test.
+      /// \return True if equal (using the default tolerance of 1e-6).
       public: bool operator==(const Matrix3<T> &_m) const
       {
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
-      /// \brief Set the matrix3 from a quaternion
+      /// \brief Set as a 3x3 rotation matrix from a quaternion.
       /// \param[in] _q Quaternion to set the matrix3 from.
       /// \return Reference to the new matrix3 object.
       public: Matrix3<T> &operator=(const Quaternion<T> &_q)
@@ -386,25 +503,25 @@ namespace ignition
         return *this = Matrix3<T>(_q);
       }
 
-      /// \brief Inequality test operator
-      /// \param[in] _m Matrix3<T> to test
-      /// \return True if not equal (using the default tolerance of 1e-6)
+      /// \brief Inequality test operator.
+      /// \param[in] _m Matrix3<T> to test.
+      /// \return True if not equal (using the default tolerance of 1e-6).
       public: bool operator!=(const Matrix3<T> &_m) const
       {
         return !(*this == _m);
       }
 
-      /// \brief Array subscript operator
+      /// \brief Array subscript operator.
       /// \param[in] _row row index. _row is clamped to the range [0,2]
       /// \param[in] _col column index. _col is clamped to the range [0,2]
       /// \return a pointer to the row
-      public: inline const T &operator()(size_t _row, size_t _col) const
+      public: inline T operator()(size_t _row, size_t _col) const
       {
         return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
                          [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
-      /// \brief Array subscript operator
+      /// \brief Array subscript operator.
       /// \param[in] _row row index. _row is clamped to the range [0,2]
       /// \param[in] _col column index. _col is clamped to the range [0,2]
       /// \return a pointer to the row
@@ -414,7 +531,7 @@ namespace ignition
                          [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
-      /// \brief Return the determinant of the matrix
+      /// \brief Return the determinant of the matrix.
       /// \return Determinant of this matrix.
       public: T Determinant() const
       {
@@ -432,7 +549,7 @@ namespace ignition
              + t2 * this->data[0][2];
       }
 
-      /// \brief Return the inverse matrix
+      /// \brief Return the inverse matrix.
       /// \return Inverse of this matrix.
       public: Matrix3<T> Inverse() const
       {
@@ -475,7 +592,7 @@ namespace ignition
         std::swap(this->data[1][2], this->data[2][1]);
       }
 
-      /// \brief Return the transpose of this matrix
+      /// \brief Return the transpose of this matrix.
       /// \return Transpose of this matrix.
       public: Matrix3<T> Transposed() const
       {
@@ -485,10 +602,11 @@ namespace ignition
           this->data[0][2], this->data[1][2], this->data[2][2]);
       }
 
-      /// \brief Stream insertion operator
-      /// \param[in] _out Output stream
-      /// \param[in] _m Matrix to output
-      /// \return the stream
+      /// \brief Stream insertion operator. This operator outputs all
+      /// 9 scalar values in the matrix separated by a single space.
+      /// \param[in, out] _out Output stream.
+      /// \param[in] _m Matrix to output.
+      /// \return The stream.
       public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Matrix3<T> &_m)
       {
@@ -505,10 +623,11 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Stream extraction operator
-      /// \param[in,out] _in input stream
-      /// \param[out] _m Matrix3 to read values into
-      /// \return the stream
+      /// \brief Stream extraction operator. This operator requires 9 space
+      /// separated scalar values, such as "1 2 3 4 5 6 7 8 9".
+      /// \param [in, out] _in Input stream.
+      /// \param [out] _m Matrix3 to read values into.
+      /// \return The stream.
       public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix3<T> &_m)
       {
@@ -541,11 +660,15 @@ namespace ignition
         0, 0, 0,
         0, 0, 0);
 
+    /// typedef Matrix3<int> as Matrix3i.
     typedef Matrix3<int> Matrix3i;
+
+    /// typedef Matrix3<double> as Matrix3d.
     typedef Matrix3<double> Matrix3d;
+
+    /// typedef Matrix3<float> as Matrix3f.
     typedef Matrix3<float> Matrix3f;
     }
   }
 }
-
 #endif
