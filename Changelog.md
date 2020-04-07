@@ -10,6 +10,9 @@
 1. Depend on ign-rendering4, ign-gui4, ign-sensors4
     * [Pull Request 540](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/540)
 
+1. Axis-Aligned Bounding Boxes
+    * [Pull Request 565](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/565)
+
 ## Ignition Gazebo 3.x
 
 ### Ignition Gazebo 3.X.X
