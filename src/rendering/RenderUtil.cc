@@ -1196,6 +1196,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     white->SetAmbient(1.0, 1.0, 1.0);
     white->SetDiffuse(1.0, 1.0, 1.0);
     white->SetSpecular(1.0, 1.0, 1.0);
+    white->SetEmissive(1.0, 1.0, 1.0);
 
     ignition::rendering::WireBoxPtr wireBox =
       this->scene->CreateWireBox();
