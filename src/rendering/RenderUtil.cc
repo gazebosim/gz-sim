@@ -407,12 +407,18 @@ void RenderUtil::Update()
       // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
       auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+      int pauseNodeUpdate = 0;
       Entity entityId = kNullEntity;
       if (vis)
+      {
+        pauseNodeUpdate = std::get<int>(vis->UserData("pause-update"));
         entityId = std::get<int>(vis->UserData("gazebo-entity"));
-      if (this->dataPtr->transformActive &&
+      }
+      if ((this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
-          entityId == this->dataPtr->selectedEntities.back()))
+          entityId == this->dataPtr->selectedEntities.back())) ||
+          pauseNodeUpdate
+          )
       {
         continue;
       }
