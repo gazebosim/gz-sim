@@ -22,7 +22,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 ToolBar {
-  Layout.minimumWidth: 200
+  Layout.minimumWidth: 280
   Layout.minimumHeight: 330
 
   background: Rectangle {
@@ -42,7 +42,6 @@ ToolBar {
       text: "X:"
       Layout.row: 0
       Layout.column: 0
-      font.weight: Font.Bold
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
       Layout.leftMargin: 25
       Layout.topMargin: 15
@@ -83,7 +82,6 @@ ToolBar {
     }
     Text {
       text: "Y:"
-      font.weight: Font.Bold
       Layout.row: 1
       Layout.column: 0
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
@@ -124,7 +122,6 @@ ToolBar {
     }
     Text {
       text: "Z:"
-      font.weight: Font.Bold
       Layout.row: 2
       Layout.column: 0
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
@@ -168,7 +165,6 @@ ToolBar {
       spacing: 10
       Text {
         text: "Relative to:"
-        font.weight: Font.Bold
         Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
         Layout.leftMargin: 15
         Layout.bottomMargin: 5
@@ -189,7 +185,6 @@ ToolBar {
     Text {
       Layout.columnSpan: 4
       text: "Remember to Pause"
-      font.weight: Font.Bold
       Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
     }
   }
