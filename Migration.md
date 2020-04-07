@@ -37,6 +37,12 @@ release will remove the deprecated code.
     + ***Deprecation:*** public: void W(T)
     + ***Replacement:*** public: void SetW(T)
 
+## Ignition Math 5.X to 6.X
+
+### Breaking Changes
+
+  1. Removed the Quaternion integer template `Quaternioni`.
+
 ## Ignition Math 4.X to 5.X
 
 ### Additions
