@@ -7,6 +7,9 @@ find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 add_executable(angle_example angle_example.cc)
 target_link_libraries(angle_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(gauss_markov_process gauss_markov_process_example.cc)
+target_link_libraries(gauss_markov_process ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(vector2_example vector2_example.cc)
 target_link_libraries(vector2_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
