@@ -16,7 +16,7 @@
 */
 
 #include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <iostream>
 #include <ignition/gui/Application.hh>
@@ -61,7 +61,7 @@ namespace ignition::gazebo
     /// \brief The current align state.
     public: AlignState currentState{AlignState::NONE};
 
-    /// \brief Flag to indicate if the entities to should aligned to the first
+    /// \brief Flag to indicate if the entities should be aligned to the first
     /// or last entity selected.
     public: bool first{true};
 
