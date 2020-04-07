@@ -33,8 +33,8 @@ int main(int argc, char **argv)
   // Set the position of a pose to 10, 20, 30
   p.Pos().Set(10, 20, 30);
 
-  // Add two poses together, and store the result in a new pose
-  ignition::math::Pose3d p3 = p + p1;
+  // Combine two poses, and store the result in a new pose
+  ignition::math::Pose3d p3 = p * p1;
   std::cout << "Result of adding two poses together is\n"
    << p3 << std::endl;
 }

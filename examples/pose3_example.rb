@@ -37,7 +37,7 @@ printf("A pose3d(1, 2, 3, 0, 0, IGN_PI) has the following values\n" +
 # Set the position of a pose to 10, 20, 30
 p.Pos().Set(10, 20, 30)
 
-p3 = p + p1
-printf("Result of adding two poses together is\n"+
+p3 = p * p1
+printf("Result of combining two poses is\n"+
         "%f %f %f %f %f %f\n", p3.Pos().X(), p3.Pos().Y(), p3.Pos().Z(),
        p3.Rot().Euler().X(), p3.Rot().Euler().Y(), p3.Rot().Euler().Z())
