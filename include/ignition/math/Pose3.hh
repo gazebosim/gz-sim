@@ -477,10 +477,10 @@ namespace ignition
 
     template<typename T> const Pose3<T> Pose3<T>::Zero(0, 0, 0, 0, 0, 0);
 
-    /// \typedef Pose3<double> Pose3d
+    /// typedef Pose3<double> as Pose3d.
     typedef Pose3<double> Pose3d;
 
-    /// \typedef Pose3<float> Pose3f
+    /// typedef Pose3<float> as Pose3f.
     typedef Pose3<float> Pose3f;
     }
   }
