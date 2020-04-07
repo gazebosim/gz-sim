@@ -17,7 +17,7 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.3
 
 /**
@@ -30,6 +30,8 @@ Rectangle {
 
   // Regex that matches a file:/// style absolute path, with a sdf extension
   property var fileValidator: /^file:\/\/(\/[\w-]+)+\.sdf$/;
+
+  property bool lastSaveSuccess: false
 
   QtObject {
     id: sdfGenConfig
@@ -47,7 +49,7 @@ Rectangle {
         TmpIface.OnNewWorld();
         break
       case "saveWorld":
-        if (saveWorldFileText.text.match(fileValidator))
+        if (lastSaveSuccess)
           GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
         else
           sdfGenConfigDialog.open();
@@ -229,6 +231,46 @@ Rectangle {
           sdfGenConfig.saveFuelModelVersion = checked
         }
       }
+    }
+  }
+
+  Connections {
+    target: GuiFileHandler
+    onNewSaveWorldStatus: {
+      console.log(_msg);
+      lastSaveSuccess = _status
+      if (!_status) {
+        fileSaveFailure.text =  _msg;
+        fileSaveFailure.open();
+      }
+    }
+  }
+
+  /**
+   * Message dialogs for failure messages emitted by GuiFileHandler
+   */
+  Dialog {
+    id: fileSaveFailure
+    property alias text: messageText.text
+    title: "Error when saving world"
+
+    modal: true
+    focus: true
+    parent: ApplicationWindow.overlay
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    standardButtons: StandardButton.Cancel | StandardButton.Retry
+
+    Label {
+      anchors.fill: parent
+      id: messageText
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignVCenter
+    }
+
+    onAccepted: {
+      onAction("saveWorldAs")
     }
   }
 }
