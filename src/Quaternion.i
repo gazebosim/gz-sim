@@ -108,7 +108,6 @@ namespace ignition
       public: inline void SetW(T _v);
     };
 
-    %template(Quaternioni) Quaternion<int>;
     %template(Quaterniond) Quaternion<double>;
     %template(Quaternionf) Quaternion<float>;
   }

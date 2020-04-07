@@ -10,7 +10,7 @@
 1. Added Equal functions with a tolerance parameter to Pose3 and Quaternion.
     * [Pull request 319](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/319)
 
-1. Updates per issue #101 
+1. Updates per issue #101.
     * Quaternion: [Pull request 327](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/327)
     * Matrix3: [Pull request 328](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/328)
 
