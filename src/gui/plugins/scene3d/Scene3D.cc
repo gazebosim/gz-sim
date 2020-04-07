@@ -1318,11 +1318,8 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Select new entity
   this->dataPtr->renderUtil.SetSelectedEntity(_node);
 
-  // Notify other widgets of the currently selected entities,
-  // if there has been a deselect all event or if control is being held,
-  // always send update
-  if (_sendEvent || deselectedAll ||
-        (QGuiApplication::keyboardModifiers() & Qt::ControlModifier))
+  // Notify other widgets of the currently selected entities
+  if (_sendEvent || deselectedAll)
   {
     auto selectEvent = new gui::events::EntitiesSelected(
         this->dataPtr->renderUtil.SelectedEntities());
