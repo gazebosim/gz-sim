@@ -16,7 +16,7 @@
 
   To drive the submarine model:
 
-  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m ignition.msgs.Double  -p "data: 1.2
+  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m ignition.msgs.Double  -p "data: 1.2"
 
 -->
 <sdf version="1.6">
