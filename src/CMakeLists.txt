@@ -23,6 +23,8 @@ if (SWIG_FOUND)
   set(swig_files
     ruby
     Angle
+    GaussMarkovProcess
+    Rand
     Vector2
     Vector3)
 endif()
