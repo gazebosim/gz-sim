@@ -25,6 +25,7 @@ if (SWIG_FOUND)
     Angle
     GaussMarkovProcess
     Matrix3
+    Pose3
     Quaternion
     Rand
     Vector2

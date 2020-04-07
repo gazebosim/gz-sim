@@ -1,6 +1,7 @@
 %include "Angle.i"
 %include "GaussMarkovProcess.i"
 %include "Matrix3.i"
+%include "Pose3.i"
 %include "Quaternion.i"
 %include "Rand.i"
 %include "Vector2.i"

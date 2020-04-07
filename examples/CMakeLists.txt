@@ -16,6 +16,9 @@ target_link_libraries(graph_example ignition-math${IGN_MATH_VER}::ignition-math$
 add_executable(matrix3_example matrix3_example.cc)
 target_link_libraries(matrix3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(pose3_example pose3_example.cc)
+target_link_libraries(pose3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(quaternion_example quaternion_example.cc)
 target_link_libraries(quaternion_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 

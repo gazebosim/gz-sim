@@ -277,7 +277,6 @@ namespace ignition
       private: ignition::math::Material material;
     };
 
-    typedef OrientedBox<int> OrientedBoxi;
     typedef OrientedBox<double> OrientedBoxd;
     typedef OrientedBox<float> OrientedBoxf;
     }

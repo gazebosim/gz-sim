@@ -28,7 +28,7 @@ class Quaternion_TEST < Test::Unit::TestCase
     assert(q.Y() == 0.0,
            "Ignition::Math::Quaterniond default constructor should have Y==0")
     assert(q.Z() == 0.0,
-           "Ignition::Math::Quaterniond default constructor should have Y==0")
+           "Ignition::Math::Quaterniond default constructor should have Z==0")
 
     q1 = Ignition::Math::Quaterniond.new(1, 2, 3, 4)
     assert(q1.W() == 1.0,
