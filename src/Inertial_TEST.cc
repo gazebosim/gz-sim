@@ -476,6 +476,70 @@ TEST(Inertiald_Test, Addition)
     EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size));
     EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
   }
+
+  // Add two cubes with diagonal corners touching at one point
+  //           ┌---------┐
+  //           |         |
+  //           |         |
+  //           |         |
+  //           |         |
+  // ┌---------+---------┘
+  // |         |
+  // |         |
+  // |         |
+  // |         |
+  // └---------┘
+  {
+    // properties of each cube to be added
+    // side length: 1
+    // mass: 6
+    // diagonal moment of inertia values: 1
+    // off-diagonal moment of inertia values: 0
+    const double mass = 6.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
+    EXPECT_EQ(
+        ignition::math::Vector3d::One,
+        cubeMM3.DiagonalMoments());
+    EXPECT_EQ(
+        ignition::math::Vector3d::Zero,
+        cubeMM3.OffDiagonalMoments());
+
+    const math::Inertiald diagonalCubes =
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  0.5, 0.5, 0, 0, 0));
+
+    // lumped mass = 6 + 6 = 12
+    // lumped center of mass at (0, 0, 0)
+    // lumped Moment of inertia:
+    //   for each cube
+    //   [ 1  0  0 ]       [ 0.5^2 + 0.5^2  -0.5*0.5            -0.5*0.5 ]
+    //   [ 0  1  0 ] + 6 * [ -0.5*0.5       0.5^2 + 0.5^2       -0.5*0.5 ]
+    //   [ 0  0  1 ]       [ -0.5*0.5       -0.5*0.5       0.5^2 + 0.5^2 ]
+    //
+    //   [ 1  0  0 ]       [  0.5   -0.25  -0.25 ]
+    //   [ 0  1  0 ] + 6 * [ -0.25   0.5   -0.25 ]
+    //   [ 0  0  1 ]       [ -0.25  -0.25   0.5  ]
+    //
+    //   [ 1  0  0 ]   [  3.0  -1.5  -1.5 ]
+    //   [ 0  1  0 ] + [ -1.5   3.0  -1.5 ]
+    //   [ 0  0  1 ]   [ -1.5  -1.5   3.0 ]
+    //
+    //   [  4.0  -1.5  -1.5 ]
+    //   [ -1.5   4.0  -1.5 ]
+    //   [ -1.5  -1.5   4.0 ]
+    //
+    // then double it to account for both cubes
+    EXPECT_EQ(ignition::math::Pose3d::Zero, diagonalCubes.Pose());
+    EXPECT_DOUBLE_EQ(mass * 2.0, diagonalCubes.MassMatrix().Mass());
+    EXPECT_EQ(
+        ignition::math::Vector3d(8, 8, 8),
+        diagonalCubes.MassMatrix().DiagonalMoments());
+    EXPECT_EQ(
+        ignition::math::Vector3d(-3, -3, -3),
+        diagonalCubes.MassMatrix().OffDiagonalMoments());
+  }
 }
 
 /////////////////////////////////////////////////
