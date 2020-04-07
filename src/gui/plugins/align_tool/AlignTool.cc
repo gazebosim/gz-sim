@@ -539,7 +539,15 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     if (selectedEvent && !selectedEvent->Data().empty())
     {
       for (const auto &_entity : selectedEvent->Data())
+      {
+        // If the element already exists in the selected entities vector,
+        // continue
+        if (std::find(this->dataPtr->selectedEntities.begin(),
+              this->dataPtr->selectedEntities.end(),
+              _entity) != this->dataPtr->selectedEntities.end())
+          continue;
         this->dataPtr->selectedEntities.push_back(_entity);
+      }
     }
   }
   else if (_event->type() ==
