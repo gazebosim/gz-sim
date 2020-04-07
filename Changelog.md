@@ -20,11 +20,23 @@
 
 ### Ignition Math 6.x.x
 
+1. Added a Gauss-Markov Process class.
+    * [Pull request 342](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/342)
+
+1. Fix bug in Inertial addition of off-diagonal moment of inertia terms with pose offsets.
+    * [Pull request 344](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/344)
+
 1. Create FAKE_INSTALL target so example compilation can be tested without doing a real install.
     * Angle: [Pull request 335](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/335)
 
 1. Updating documentation.
     * Angle: [Pull request 325](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/325)
+
+1. GraphAlgorithms: add ToUndirected(DirectedGraph) that copies to an UndirectedGraph.
+    * [Pull request 332](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/332)
+
+1. Doxygen fixes for graph classes
+    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/331)
 
 ### Ignition Math 6.4.0
 
@@ -66,6 +78,14 @@
 ## Ignition Math 5.x
 
 ### Ignition Math 5.x.x
+
+### Ignition Math 5.1.0 (2019-09-11)
+
+1. GraphAlgorithms: add ToUndirected(DirectedGraph) that copies to an UndirectedGraph.
+    * [Pull request 332](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/332)
+
+1. Doxygen fixes for graph classes
+    * [Pull request 331](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/331)
 
 1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
     * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/312)
