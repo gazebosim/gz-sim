@@ -34,8 +34,8 @@ namespace ignition
     ///
     /// The following two type definitions are provided:
     ///
-    /// * \ref Posef
-    /// * \ref Posed
+    /// * \ref Pose3f
+    /// * \ref Pose3d
     /// ## Examples
     ///
     /// * C++
@@ -395,7 +395,7 @@ namespace ignition
       }
 
       /// \brief Round all values to _precision decimal places.
-      /// \param[in] _precision.
+      /// \param[in] _precision Number of decimal places..
       public: void Round(int _precision)
       {
         this->q.Round(_precision);
