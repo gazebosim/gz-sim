@@ -18,6 +18,17 @@ release will remove the deprecated code.
     + All mutator functions that lacked a `Set` prefix have been deprecated
     and replaced by version with a `Set` prefix.
 
+1. **Matrix3.hh**
+    + ***Deprecation:*** public: void Axes(const Vector3<T> &, const Vector3<T> &, const Vector3<T> &)
+    + ***Replacement:*** public: void SetAxes(const Vector3<T> &, const Vector3<T> &, const Vector3<T> &)
+
+    + ***Deprecation:*** public: void Axis(const Vector3<T> &, T)
+    + ***Replacement:*** public: void SetFromAxisAngle(const Vector3<T> &, T)
+    + ***Deprecation:*** public: void From2Axes(const Vector3<T> &, const Vector3<T> &)
+    + ***Replacement:*** public: void SetFrom2Axes(const Vector3<T> &, const Vector3<T> &)
+    + ***Deprecation:*** public: void Col(unsigned int, const Vector3<T> &)
+    + ***Replacement:*** public: void SetCol(unsigned int, const Vector3<T> &)
+
 1. **Quaternion.hh**
     + ***Deprecation:*** public: void Axis(T, T, T, T)
     + ***Replacement:*** public: void SetFromAxisAngle(T, T, T, T)
