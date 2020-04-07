@@ -49,7 +49,7 @@ namespace ignition
     /// \snippet examples/matrix3_example.cc complete
     ///
     /// * Ruby
-    /// \code{.cc}
+    /// \code{.rb}
     /// # Modify the RUBYLIB environment variable to include the ignition math
     /// # library install path. For example, if you install to /user:
     /// #
