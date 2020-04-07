@@ -395,7 +395,7 @@ namespace ignition
       }
 
       /// \brief Round all values to _precision decimal places.
-      /// \param[in] _precision Number of decimal places..
+      /// \param[in] _precision Number of decimal places.
       public: void Round(int _precision)
       {
         this->q.Round(_precision);
