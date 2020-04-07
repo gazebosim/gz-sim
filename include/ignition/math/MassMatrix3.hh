@@ -399,7 +399,7 @@ namespace ignition
       /// \brief Sets Moments of Inertia (MOI) from a Matrix3.
       /// Symmetric component of input matrix is used by averaging
       /// off-axis terms.
-      /// \param[in] Moments of Inertia as a Matrix3
+      /// \param[in] _moi Moments of Inertia as a Matrix3
       /// \return True if the MassMatrix3 is valid.
       /// \deprecated See SetMoi(const Matrix3<T> &_moi)
       public: bool IGN_DEPRECATED(5.0) MOI(const Matrix3<T> &_moi)
