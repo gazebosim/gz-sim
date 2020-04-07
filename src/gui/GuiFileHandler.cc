@@ -23,10 +23,6 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 
-// Include all components so they have first-class support
-#include "ignition/gazebo/components/components.hh"
-#include "ignition/gazebo/Conversions.hh"
-
 #include "GuiFileHandler.hh"
 
 using namespace ignition;
@@ -39,6 +35,9 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 {
   IGN_PROFILE("GuiFileHandler::SaveWorldAs");
   QUrl url(_fileUrl);
+
+  bool status = false;
+  std::stringstream statusMsg;
 
   std::string suffix = ".sdf";
   if (url.fileName().endsWith(".sdf"))
@@ -53,7 +52,8 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
   bool ret = this->node.Request(service, timeout, worldsMsg, result);
   if (!ret || !result)
   {
-    ignerr << "Service call to " << service << " failed. Cannot save world.\n";
+    statusMsg << "Service call to " << service
+                  << " failed. Cannot save world.\n";
   }
   // TODO(addisu) Support saving multiple worlds
   else if (worldsMsg.data_size() > 0)
@@ -79,20 +79,35 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
       if (fs.is_open())
       {
         fs << genWorldSdf.data();
+        status = true;
+        statusMsg << "World saved to " << localPath << "\n";
       }
       else
       {
-        ignerr << "File " << localPath << " could not be opened for saving.\n";
+        statusMsg << "File: " << localPath << " could not be opened for "
+                      << "saving. Please check that the directory containg the "
+                      << "file exists and the correct permissions are set.\n";
       }
     }
     else
     {
       if (!serviceCall)
       {
-        ignerr << "Service call for generating world SDFormat timed out\n";
+        statusMsg << "Service call for generating world SDFormat timed out\n";
       }
-      ignerr << "World could not be saved\n";
+      statusMsg << "Unknown error occured when saving the world. Please check "
+                << "the console output of ign-gazebo\n";
     }
   }
+
+  if (!status)
+  {
+    ignerr << statusMsg.str();
+  }
+  else
+  {
+    ignmsg << statusMsg.str();
+  }
+  emit newSaveWorldStatus(status, QString::fromStdString(statusMsg.str()));
 }
 

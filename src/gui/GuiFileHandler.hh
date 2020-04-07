@@ -46,6 +46,10 @@ class IGNITION_GAZEBO_VISIBLE GuiFileHandler : public QObject
   /// file generation
   public: Q_INVOKABLE void SaveWorldAs(const QString &_fileUrl,
                                        QObject *_config);
+
+  /// \brief Signal for displaying status messages to users
+  signals: void newSaveWorldStatus(bool _status, const QString &_msg);
+
   /// \brief Transport node.
   private: transport::Node node;
 };
