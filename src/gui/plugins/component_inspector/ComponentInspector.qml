@@ -25,7 +25,7 @@ import IgnGazebo 1.0 as IgnGazebo
 Rectangle {
   id: componentInspector
   color: lightGrey
-  Layout.minimumWidth: 320
+  Layout.minimumWidth: 400
   Layout.minimumHeight: 375
   anchors.fill: parent
 
@@ -38,6 +38,11 @@ Rectangle {
    * Height of each item in pixels
    */
   property int itemHeight: 30
+
+  /**
+   * Entity type
+   */
+  property string entityType: ComponentInspector.type
 
   /**
    * Light grey according to theme
@@ -66,6 +71,13 @@ Rectangle {
       return 'NoData.qml'
 
     return _model.dataType + '.qml'
+  }
+
+  /**
+   * Forward pose changes to C++
+   */
+  function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
+    ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
   }
 
   Rectangle {
@@ -158,7 +170,15 @@ Rectangle {
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    model: ComponentsModel
+    model: {
+      try {
+        return ComponentsModel;
+      }
+      catch (e) {
+        // The QML is loaded before we set the context property
+        return null
+      }
+    }
     spacing: 5
 
     delegate: Loader {
