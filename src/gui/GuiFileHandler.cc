@@ -64,10 +64,10 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
     msgs::StringMsg genWorldSdf;
     msgs::SdfGeneratorConfig req;
 
-    auto *globalConfig = req.mutable_global_model_gen_config();
+    auto *globalConfig = req.mutable_global_entity_gen_config();
     msgs::Set(globalConfig->mutable_expand_include_tags(),
               _config->property("expandIncludeTags").toBool());
-    msgs::Set(globalConfig->mutable_save_fuel_model_version(),
+    msgs::Set(globalConfig->mutable_save_fuel_version(),
               _config->property("saveFuelModelVersion").toBool());
 
     bool serviceCall =

@@ -138,14 +138,14 @@ namespace sdf_generator
   /// that can be overriden on a per model basis. The following snippet
   /// demonstrates the intent, even though it won't compile
   /// \code
-  ///   ModelGeneratorConfig initialConfig;
+  ///   EntityGeneratorConfig initialConfig;
   ///   initialConfig.expand_include_tags = true
   ///   initialConfig.save_fuel_model_version = true
   ///
-  ///   ModelGeneratorConfig overrideConfig;
+  ///   EntityGeneratorConfig overrideConfig;
   ///   overrideConfig.expand_include_tags = false;
   ///
-  ///   ModelGeneratorConfig combinedConfig = initialConfig;
+  ///   EntityGeneratorConfig combinedConfig = initialConfig;
   ///   mergeWithOverride(combinedConfig, overrideConfig);
   /// \endcode
   ///
@@ -175,8 +175,8 @@ namespace sdf_generator
   /// \param[in, out] _initialConfig Initial configuration
   /// \param[in] _override Override configuration
   static void mergeWithOverride(
-      msgs::SdfGeneratorConfig::ModelGeneratorConfig &_initialConfig,
-      const msgs::SdfGeneratorConfig::ModelGeneratorConfig &_overrideConfig)
+      msgs::SdfGeneratorConfig::EntityGeneratorConfig &_initialConfig,
+      const msgs::SdfGeneratorConfig::EntityGeneratorConfig &_overrideConfig)
   {
     auto initialDesc = _initialConfig.GetDescriptor();
     auto initialRefl = _initialConfig.GetReflection();
@@ -298,10 +298,10 @@ namespace sdf_generator
 
           auto uriMapIt = _includeUriMap.find(modelDir);
 
-          auto modelConfig = _config.global_model_gen_config();
+          auto modelConfig = _config.global_entity_gen_config();
           auto modelConfigIt =
-              _config.override_model_gen_configs().find(modelName);
-          if (modelConfigIt != _config.override_model_gen_configs().end())
+              _config.override_entity_gen_configs().find(modelName);
+          if (modelConfigIt != _config.override_entity_gen_configs().end())
           {
             mergeWithOverride(modelConfig, modelConfigIt->second);
           }
@@ -323,7 +323,7 @@ namespace sdf_generator
               removeVersionFromUri(uri);
             }
 
-            if (modelConfig.save_fuel_model_version().data())
+            if (modelConfig.save_fuel_version().data())
             {
               // Find out the model version from the file path. Note that we
               // do this from the file path instead of the Fuel URI because the

@@ -269,9 +269,9 @@ TEST_F(ModelElementFixture, ModelComponentUpdate)
 TEST_F(ElementUpdateFixture, ConfigOverrideCopyOrMerge)
 {
   {
-    msgs::SdfGeneratorConfig::ModelGeneratorConfig globalConfig, modelConfig;
+    msgs::SdfGeneratorConfig::EntityGeneratorConfig globalConfig, modelConfig;
     globalConfig.mutable_expand_include_tags()->set_data(true);
-    globalConfig.mutable_save_fuel_model_version()->set_data(true);
+    globalConfig.mutable_save_fuel_version()->set_data(true);
 
     modelConfig.mutable_expand_include_tags()->set_data(false);
 
@@ -308,11 +308,11 @@ TEST_F(ElementUpdateFixture, ConfigOverrideCopyOrMerge)
   }
 
   {
-    msgs::SdfGeneratorConfig::ModelGeneratorConfig globalConfig, modelConfig;
+    msgs::SdfGeneratorConfig::EntityGeneratorConfig globalConfig, modelConfig;
     globalConfig.mutable_expand_include_tags()->set_data(false);
-    globalConfig.mutable_save_fuel_model_version()->set_data(false);
+    globalConfig.mutable_save_fuel_version()->set_data(false);
 
-    modelConfig.mutable_save_fuel_model_version()->set_data(true);
+    modelConfig.mutable_save_fuel_version()->set_data(true);
 
     {
       auto combinedConfig = globalConfig;
@@ -344,16 +344,16 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
   this->LoadWorld(worldFile);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   {
-    this->sdfGenConfig.mutable_global_model_gen_config()
+    this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(true);
 
-    this->sdfGenConfig.mutable_global_model_gen_config()
-      ->mutable_save_fuel_model_version()
+    this->sdfGenConfig.mutable_global_entity_gen_config()
+      ->mutable_save_fuel_version()
       ->set_data(true);
 
     auto &modelGenConfig =
-        *this->sdfGenConfig.mutable_override_model_gen_configs();
+        *this->sdfGenConfig.mutable_override_entity_gen_configs();
     modelGenConfig["save_world::backpack2"]
         .mutable_expand_include_tags()
         ->set_data(false);
@@ -368,18 +368,18 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
   }
 
   {
-    this->sdfGenConfig.mutable_global_model_gen_config()
+    this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(false);
 
-    this->sdfGenConfig.mutable_global_model_gen_config()
-      ->mutable_save_fuel_model_version()
+    this->sdfGenConfig.mutable_global_entity_gen_config()
+      ->mutable_save_fuel_version()
       ->set_data(false);
 
     auto &modelGenConfig =
-        *this->sdfGenConfig.mutable_override_model_gen_configs();
+        *this->sdfGenConfig.mutable_override_entity_gen_configs();
     modelGenConfig["save_world::backpack2"]
-        .mutable_save_fuel_model_version()
+        .mutable_save_fuel_version()
         ->set_data(true);
 
     auto elem = std::make_shared<sdf::Element>();
@@ -418,7 +418,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedExpanded)
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
-  this->sdfGenConfig.mutable_global_model_gen_config()
+  this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(true);
   sdf_generator::updateWorldElement(
@@ -470,13 +470,13 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
-  this->sdfGenConfig.mutable_global_model_gen_config()
+  this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(false);
   auto &modelGenConfig =
-      *this->sdfGenConfig.mutable_override_model_gen_configs();
+      *this->sdfGenConfig.mutable_override_entity_gen_configs();
   modelGenConfig["save_world::backpack3"]
-      .mutable_save_fuel_model_version()
+      .mutable_save_fuel_version()
       ->set_data(true);
   sdf_generator::updateWorldElement(
       elem, this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
@@ -565,9 +565,10 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
-  auto globalModelConfig = this->sdfGenConfig.mutable_global_model_gen_config();
-  globalModelConfig->mutable_expand_include_tags()->set_data(false);
-  globalModelConfig->mutable_save_fuel_model_version()->set_data(true);
+  auto globalEntityConfig =
+      this->sdfGenConfig.mutable_global_entity_gen_config();
+  globalEntityConfig->mutable_expand_include_tags()->set_data(false);
+  globalEntityConfig->mutable_save_fuel_version()->set_data(true);
   sdf_generator::updateWorldElement(
       elem, this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
 
@@ -615,14 +616,14 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
-  this->sdfGenConfig.mutable_global_model_gen_config()
+  this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(false);
   // Model2 is not a Fuel model, so this should have no effect.
   auto &modelGenConfig =
-      *this->sdfGenConfig.mutable_override_model_gen_configs();
+      *this->sdfGenConfig.mutable_override_entity_gen_configs();
   modelGenConfig["save_world::model2"]
-      .mutable_save_fuel_model_version()
+      .mutable_save_fuel_version()
       ->set_data(true);
   sdf_generator::updateWorldElement(
       elem, this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
@@ -650,11 +651,11 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
 
-  this->sdfGenConfig.mutable_global_model_gen_config()
+  this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(false);
   auto &modelGenConfig =
-      *this->sdfGenConfig.mutable_override_model_gen_configs();
+      *this->sdfGenConfig.mutable_override_entity_gen_configs();
   modelGenConfig["save_world::backpack2"]
       .mutable_expand_include_tags()
       ->set_data(true);
@@ -716,11 +717,11 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
 
-  this->sdfGenConfig.mutable_global_model_gen_config()
+  this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(true);
   auto &modelGenConfig =
-      *this->sdfGenConfig.mutable_override_model_gen_configs();
+      *this->sdfGenConfig.mutable_override_entity_gen_configs();
   modelGenConfig["save_world::backpack2"]
       .mutable_expand_include_tags()
       ->set_data(false);
@@ -791,7 +792,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
 
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
-  this->sdfGenConfig.mutable_global_model_gen_config()
+  this->sdfGenConfig.mutable_global_entity_gen_config()
       ->mutable_expand_include_tags()
       ->set_data(true);
   sdf_generator::updateWorldElement(
@@ -824,7 +825,7 @@ TEST_F(GenerateWorldFixture, ModelsInline)
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   // Check with expandIncludeTags = true
   {
-    this->sdfGenConfig.mutable_global_model_gen_config()
+    this->sdfGenConfig.mutable_global_entity_gen_config()
         ->mutable_expand_include_tags()
         ->set_data(true);
     const std::optional<std::string> worldStr = sdf_generator::generateWorld(
@@ -839,7 +840,7 @@ TEST_F(GenerateWorldFixture, ModelsInline)
   }
   // Check with expandIncludeTags = false
   {
-    this->sdfGenConfig.mutable_global_model_gen_config()
+    this->sdfGenConfig.mutable_global_entity_gen_config()
         ->mutable_expand_include_tags()
         ->set_data(false);
     const std::optional<std::string> worldStr = sdf_generator::generateWorld(
