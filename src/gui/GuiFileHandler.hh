@@ -48,6 +48,8 @@ class IGNITION_GAZEBO_VISIBLE GuiFileHandler : public QObject
                                        QObject *_config);
 
   /// \brief Signal for displaying status messages to users
+  /// \param[in] _status New status value. False if saving world failed.
+  /// \param[in] _msg New status message.
   signals: void newSaveWorldStatus(bool _status, const QString &_msg);
 
   /// \brief Transport node.
