@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Add support for visual visibility flags and camera visibility mask
+    * [Pull Request 559](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/559)
+
 1. Support <actor><pose> and <actor><plugin>
     * [Pull Request 542](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/542)
 

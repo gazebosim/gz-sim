@@ -298,6 +298,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
            << std::endl;
   }
 
+  // visibility flags
+  visualVis->SetVisibilityFlags(_visual.VisibilityFlags());
+
   this->dataPtr->visuals[_id] = visualVis;
   if (parent)
     parent->AddChild(visualVis);
