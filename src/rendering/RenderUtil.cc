@@ -1190,16 +1190,18 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   if (vis)
     entityId = std::get<int>(vis->UserData("gazebo-entity"));
   // If the entity is not found in the existing map, create a wire box
-  if (this->wireBoxes.find(entityId) == this->wireBoxes.end())
+  auto wireBoxIt = this->wireBoxes.find(entityId);
+  if (wireBoxIt == this->wireBoxes.end())
   {
     auto white = this->scene->Material("highlight_material");
     if (!white)
+    {
       white = this->scene->CreateMaterial("highlight_material");
-    
-    white->SetAmbient(1.0, 1.0, 1.0);
-    white->SetDiffuse(1.0, 1.0, 1.0);
-    white->SetSpecular(1.0, 1.0, 1.0);
-    white->SetEmissive(1.0, 1.0, 1.0);
+      white->SetAmbient(1.0, 1.0, 1.0);
+      white->SetDiffuse(1.0, 1.0, 1.0);
+      white->SetSpecular(1.0, 1.0, 1.0);
+      white->SetEmissive(1.0, 1.0, 1.0);
+    }
 
     ignition::rendering::WireBoxPtr wireBox =
       this->scene->CreateWireBox();
@@ -1220,8 +1222,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   }
   else
   {
-    ignition::rendering::WireBoxPtr wireBox =
-      this->wireBoxes[entityId];
+    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(true);
