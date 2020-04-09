@@ -165,6 +165,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and temperature
   public: std::map<Entity, float> entityTemp;
 
+  /// \brief A map of entity ids and wire boxes
+  public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
+
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
 
@@ -189,12 +192,10 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Highlight a node and all its children.
   /// \param[in] _node Node to be highlighted
-  /// TODO(anyone) On future versions, use a bounding box instead
   public: void HighlightNode(const rendering::NodePtr &_node);
 
   /// \brief Restore a highlighted node to normal.
   /// \param[in] _node Node to be restored.
-  /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
 };
 
@@ -1184,45 +1185,47 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;
-
-  for (auto n = 0u; n < _node->ChildCount(); ++n)
-  {
-    this->HighlightNode(_node->ChildByIndex(n));
-  }
-
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (nullptr == vis)
-    return;
-
-  // Visual material
-  auto visMat = vis->Material();
-  if (nullptr != visMat)
+  Entity entityId = kNullEntity;
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  // If the entity is not found in the existing map, create a wire box
+  auto wireBoxIt = this->wireBoxes.find(entityId);
+  if (wireBoxIt == this->wireBoxes.end())
   {
-    // If the entity isn't already highlighted, highlight it
-    if (this->originalEmissive.find(vis->Name()) ==
-        this->originalEmissive.end())
+    auto white = this->scene->Material("highlight_material");
+    if (!white)
     {
-      this->originalEmissive[vis->Name()] = visMat->Emissive();
-      visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+      white = this->scene->CreateMaterial("highlight_material");
+      white->SetAmbient(1.0, 1.0, 1.0);
+      white->SetDiffuse(1.0, 1.0, 1.0);
+      white->SetSpecular(1.0, 1.0, 1.0);
+      white->SetEmissive(1.0, 1.0, 1.0);
     }
+
+    ignition::rendering::WireBoxPtr wireBox =
+      this->scene->CreateWireBox();
+    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    wireBox->SetBox(aabb);
+
+    // Create visual and add wire box
+    ignition::rendering::VisualPtr wireBoxVis =
+      this->scene->CreateVisual();
+    wireBoxVis->SetInheritScale(false);
+    wireBoxVis->AddGeometry(wireBox);
+    wireBoxVis->SetMaterial(white, false);
+    vis->AddChild(wireBoxVis);
+
+    // Add wire box to map for setting visibility
+    this->wireBoxes.insert(
+        std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
   }
-
-  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  else
   {
-    auto geom = vis->GeometryByIndex(g);
-
-    // Geometry material
-    auto geomMat = geom->Material();
-    if (nullptr == geomMat)
-      continue;
-
-    // If the entity isn't already highlighted, highlight it
-    if (this->originalEmissive.find(geom->Name()) ==
-        this->originalEmissive.end())
-    {
-      this->originalEmissive[geom->Name()] = geomMat->Emissive();
-      geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-    }
+    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(true);
   }
 }
 
@@ -1231,53 +1234,16 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;
-
-  for (auto n = 0u; n < _node->ChildCount(); ++n)
-  {
-    this->LowlightNode(_node->ChildByIndex(n));
-  }
-
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (nullptr == vis)
-    return;
-
-  // Visual material
-  auto visMat = vis->Material();
-  if (nullptr != visMat)
+  Entity entityId = kNullEntity;
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
-    auto visEmissive = this->originalEmissive.find(vis->Name());
-    if (visEmissive != this->originalEmissive.end())
-    {
-      visMat->SetEmissive(visEmissive->second);
-    }
-    else
-    {
-      ignerr << "Failed to find original material for visual [" << vis->Name()
-             << "]" << std::endl;
-    }
-  }
-
-  for (auto g = 0u; g < vis->GeometryCount(); ++g)
-  {
-    auto geom = vis->GeometryByIndex(g);
-
-    // Geometry material
-    auto geomMat = geom->Material();
-    if (nullptr == geomMat)
-    {
-      ignerr << "Geometry missing material during lowlight." << std::endl;
-      continue;
-    }
-
-    auto geomEmissive = this->originalEmissive.find(geom->Name());
-    if (geomEmissive != this->originalEmissive.end())
-    {
-      geomMat->SetEmissive(geomEmissive->second);
-    }
-    else
-    {
-      ignerr << "Failed to find original material for geometry ["
-             << geom->Name() << "]" << std::endl;
-    }
+    ignition::rendering::WireBoxPtr wireBox =
+      this->wireBoxes[entityId];
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(false);
   }
 }
