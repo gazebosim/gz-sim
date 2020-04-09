@@ -7,6 +7,9 @@
 1. Actor skeleton animation (auto update mode)
     * [Pull Request 579](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/579)
 
+1. Added support for removing sensors at runtime
+    * [Pull Request 558](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/558)
+
 1. Add support for visual visibility flags and camera visibility mask
     * [Pull Request 559](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/559)
 
