@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -544,6 +545,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     _ecm.Each<components::Visual, components::Name, components::Pose,
               components::Geometry,
               components::CastShadows,
+              components::VisibilityFlags,
               components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
@@ -551,6 +553,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Pose *_pose,
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
+            const components::VisibilityFlags *_visibilityFlags,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
@@ -558,6 +561,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
+          visual.SetVisibilityFlags(_visibilityFlags->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -714,6 +718,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
               components::Geometry,
               components::CastShadows,
+              components::VisibilityFlags,
               components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
@@ -721,6 +726,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Pose *_pose,
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
+            const components::VisibilityFlags *_visibilityFlags,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
@@ -728,6 +734,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
+          visual.SetVisibilityFlags(_visibilityFlags->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
