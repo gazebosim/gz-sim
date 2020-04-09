@@ -267,6 +267,11 @@ void SensorsPrivate::RenderThread()
   {
     this->RunOnce();
   }
+
+  // clean up before exiting
+  for (const auto id : this->sensorIds)
+    this->sensorManager.Remove(id);
+
   igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
