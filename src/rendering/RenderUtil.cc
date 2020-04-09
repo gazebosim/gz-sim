@@ -1192,7 +1192,10 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   // If the entity is not found in the existing map, create a wire box
   if (this->wireBoxes.find(entityId) == this->wireBoxes.end())
   {
-    rendering::MaterialPtr white = this->scene->CreateMaterial();
+    auto white = this->scene->Material("highlight_material");
+    if (!white)
+      white = this->scene->CreateMaterial("highlight_material");
+    
     white->SetAmbient(1.0, 1.0, 1.0);
     white->SetDiffuse(1.0, 1.0, 1.0);
     white->SetSpecular(1.0, 1.0, 1.0);
@@ -1208,7 +1211,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       this->scene->CreateVisual();
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
-    wireBoxVis->SetMaterial(white);
+    wireBoxVis->SetMaterial(white, false);
     vis->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
