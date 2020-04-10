@@ -29,27 +29,67 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Pose3 Pose3.hh ignition/math/Pose3.hh
-    /// \brief Encapsulates a position and rotation in three space
+    /// \brief The Pose3 class represents a 3D position and rotation. The
+    /// position  component is a Vector3, and the rotation is a Quaternion.
+    ///
+    /// The following two type definitions are provided:
+    ///
+    /// * \ref Pose3f
+    /// * \ref Pose3d
+    /// ## Examples
+    ///
+    /// * C++
+    ///
+    /// \snippet examples/pose3_example.cc complete
+    ///
+    /// * Ruby
+    ///
+    /// \code{.rb}
+    /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
+    /// #
+    /// require 'ignition/math'
+    ///
+    /// # Construct a default Pose3d.
+    /// p = Ignition::Math::Pose3d.new
+    /// printf("A default Pose3d has the following values\n" +
+    ///        "%f %f %f %f %f %f\n", p.Pos().X(), p.Pos().Y(), p.Pos().Z(),
+    ///        p.Rot().Euler().X(), p.Rot().Euler().Y(), p.Rot().Euler().Z())
+    ///
+    /// # Construct a pose at position 1, 2, 3 with a yaw of PI radians.
+    /// p1 = Ignition::Math::Pose3d.new(1, 2, 3, 0, 0, Math::PI)
+    /// printf("A pose3d(1, 2, 3, 0, 0, IGN_PI) has the following values\n" +
+    ///        "%f %f %f %f %f %f\n", p1.Pos().X(), p1.Pos().Y(), p1.Pos().Z(),
+    ///        p1.Rot().Euler().X(), p1.Rot().Euler().Y(), p1.Rot().Euler().Z())
+    ///
+    /// # Set the position of a pose to 10, 20, 30
+    /// p.Pos().Set(10, 20, 30)
+    ///
+    /// p3 = p * p1
+    /// printf("Result of combining two poses is\n"+
+    ///         "%f %f %f %f %f %f\n", p3.Pos().X(), p3.Pos().Y(), p3.Pos().Z(),
+    ///        p3.Rot().Euler().X(), p3.Rot().Euler().Y(), p3.Rot().Euler().Z())
+    /// \endcode
     template<typename T>
     class Pose3
     {
-      /// \brief math::Pose3<T>(0, 0, 0, 0, 0, 0)
+      /// \brief A Pose3 initialized to zero.
+      /// This is equivalent to math::Pose3<T>(0, 0, 0, 0, 0, 0).
       public: static const Pose3<T> Zero;
 
-      /// \brief Default constructors
-      public: Pose3() : p(0, 0, 0), q(1, 0, 0, 0)
-      {
-      }
+      /// \brief Default constructor. This initializes the position
+      /// component to zero and the quaternion to identity.
+      public: Pose3() = default;
 
-      /// \brief Constructor
-      /// \param[in] _pos A position
-      /// \param[in] _rot A rotation
+      /// \brief Create a Pose3 based on a position and rotation.
+      /// \param[in] _pos The position
+      /// \param[in] _rot The rotation
       public: Pose3(const Vector3<T> &_pos, const Quaternion<T> &_rot)
       : p(_pos), q(_rot)
       {
       }
 
-      /// \brief Constructor
+      /// \brief Create a Pose3 using a 6-tuple consisting of
+      ///  x, y, z, roll, pitch, and yaw.
       /// \param[in] _x x position in meters.
       /// \param[in] _y y position in meters.
       /// \param[in] _z z position in meters.
@@ -61,7 +101,9 @@ namespace ignition
       {
       }
 
-      /// \brief Constructor
+      /// \brief Create a Pose3 using a 7-tuple consisting of
+      /// x, y, z, qw, qx, qy, qz. The first three values are the position
+      /// and the last four the rotation represented as a quaternion.
       /// \param[in] _x x position in meters.
       /// \param[in] _y y position in meters.
       /// \param[in] _z z position in meters.
@@ -74,19 +116,17 @@ namespace ignition
       {
       }
 
-      /// \brief Copy constructor
+      /// \brief Copy constructor.
       /// \param[in] _pose Pose3<T> to copy
       public: Pose3(const Pose3<T> &_pose)
       : p(_pose.p), q(_pose.q)
       {
       }
 
-      /// \brief Destructor
-      public: virtual ~Pose3()
-      {
-      }
+      /// \brief Destructor.
+      public: ~Pose3() {}
 
-      /// \brief Set the pose from a Vector3 and a Quaternion<T>
+      /// \brief Set the pose from a Vector3<T> and a Quaternion<T>
       /// \param[in] _pos The position.
       /// \param[in] _rot The rotation.
       public: void Set(const Vector3<T> &_pos, const Quaternion<T> &_rot)
@@ -95,7 +135,7 @@ namespace ignition
         this->q = _rot;
       }
 
-      /// \brief Set the pose from  pos and rpy vectors
+      /// \brief Set the pose from a position and Euler angles.
       /// \param[in] _pos The position.
       /// \param[in] _rpy The rotation expressed as Euler angles.
       public: void Set(const Vector3<T> &_pos, const Vector3<T> &_rpy)
@@ -104,7 +144,8 @@ namespace ignition
         this->q.Euler(_rpy);
       }
 
-      /// \brief Set the pose from a six tuple.
+      /// \brief Set the pose from a six tuple consisting of
+      ///  x, y, z, roll, pitch, and yaw.
       /// \param[in] _x x position in meters.
       /// \param[in] _y y position in meters.
       /// \param[in] _z z position in meters.
@@ -118,32 +159,33 @@ namespace ignition
       }
 
       /// \brief See if a pose is finite (e.g., not nan)
+      /// \return True if this pose is finite.
       public: bool IsFinite() const
       {
         return this->p.IsFinite() && this->q.IsFinite();
       }
 
-      /// \brief Fix any nan values
+      /// \brief Fix any nan values.
       public: inline void Correct()
       {
         this->p.Correct();
         this->q.Correct();
       }
 
-      /// \brief Get the inverse of this pose
-      /// \return the inverse pose
+      /// \brief Get the inverse of this pose.
+      /// \return The inverse pose.
       public: Pose3<T> Inverse() const
       {
         Quaternion<T> inv = this->q.Inverse();
         return Pose3<T>(inv * (this->p*-1), inv);
       }
 
-      /// \brief Addition operator
+      /// \brief Addition operator.
       /// A is the transform from O to P specified in frame O
       /// B is the transform from P to Q specified in frame P
       /// then, B + A is the transform from O to Q specified in frame O
-      /// \param[in] _pose Pose3<T> to add to this pose
-      /// \return The resulting pose
+      /// \param[in] _pose Pose3<T> to add to this pose.
+      /// \return The resulting pose.
       public: Pose3<T> operator+(const Pose3<T> &_pose) const
       {
         Pose3<T> result;
@@ -154,9 +196,10 @@ namespace ignition
         return result;
       }
 
-      /// \brief Add-Equals operator
-      /// \param[in] _pose Pose3<T> to add to this pose
-      /// \return The resulting pose
+      /// \brief Addition assignment operator.
+      /// \param[in] _pose Pose3<T> to add to this pose.
+      /// \sa operator+(const Pose3<T> &_pose) const.
+      /// \return The resulting pose.
       public: const Pose3<T> &operator+=(const Pose3<T> &_pose)
       {
         this->p = this->CoordPositionAdd(_pose);
@@ -165,29 +208,30 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Negation operator
+      /// \brief Negation operator.
       /// A is the transform from O to P in frame O
       /// then -A is transform from P to O specified in frame P
-      /// \return The resulting pose
+      /// \return The resulting pose.
       public: inline Pose3<T> operator-() const
       {
         return Pose3<T>() - *this;
       }
 
-      /// \brief Subtraction operator
+      /// \brief Subtraction operator.
       /// A is the transform from O to P in frame O
       /// B is the transform from O to Q in frame O
       /// B - A is the transform from P to Q in frame P
-      /// \param[in] _pose Pose3<T> to subtract from this one
-      /// \return The resulting pose
+      /// \param[in] _pose Pose3<T> to subtract from this one.
+      /// \return The resulting pose.
       public: inline Pose3<T> operator-(const Pose3<T> &_pose) const
       {
         return Pose3<T>(this->CoordPositionSub(_pose),
           this->CoordRotationSub(_pose.q));
       }
 
-      /// \brief Subtraction operator
+      /// \brief Subtraction assignment operator.
       /// \param[in] _pose Pose3<T> to subtract from this one
+      /// \sa operator-(const Pose3<T> &_pose) const.
       /// \return The resulting pose
       public: const Pose3<T> &operator-=(const Pose3<T> &_pose)
       {
@@ -197,25 +241,25 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Equality operator
-      /// \param[in] _pose Pose3<T> for comparison
-      /// \return True if equal
+      /// \brief Equality operator.
+      /// \param[in] _pose Pose3<T> for comparison.
+      /// \return True if this pose is equal to the given pose.
       public: bool operator==(const Pose3<T> &_pose) const
       {
         return this->p == _pose.p && this->q == _pose.q;
       }
 
-      /// \brief Inequality operator
-      /// \param[in] _pose Pose3<T> for comparison
-      /// \return True if not equal
+      /// \brief Inequality operator.
+      /// \param[in] _pose Pose3<T> for comparison.
+      /// \return True if this pose is not equal to the  given pose.
       public: bool operator!=(const Pose3<T> &_pose) const
       {
         return this->p != _pose.p || this->q != _pose.q;
       }
 
-      /// \brief Multiplication operator
-      /// \param[in] _pose the other pose
-      /// \return itself
+      /// \brief Multiplication operator.
+      /// \param[in] _pose The pose to mutlipy by.
+      /// \return The resulting pose.
       public: Pose3<T> operator*(const Pose3<T> &_pose) const
       {
         return Pose3<T>(_pose.CoordPositionAdd(*this),  this->q * _pose.q);
@@ -224,6 +268,7 @@ namespace ignition
       /// \brief Multiplication assignment operator. This pose will become
       /// equal to this * _pose.
       /// \param[in] _pose Pose3<T> to multiply to this pose
+      /// \sa operator*(const Pose3<T> &_pose) const
       /// \return The resulting pose
       public: const Pose3<T> &operator*=(const Pose3<T> &_pose)
       {
@@ -231,8 +276,9 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Equal operator
-      /// \param[in] _pose Pose3<T> to copy
+      /// \brief Equal assignment operator.
+      /// \param[in] _pose Pose3<T> to copy.
+      /// \return The resulting pose.
       public: Pose3<T> &operator=(const Pose3<T> &_pose)
       {
         this->p = _pose.p;
@@ -240,9 +286,9 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Add one point to a vector: result = this + pos
+      /// \brief Add one point to a vector: result = this + pos.
       /// \param[in] _pos Position to add to this pose
-      /// \return the resulting position
+      /// \return The resulting position.
       public: Vector3<T> CoordPositionAdd(const Vector3<T> &_pos) const
       {
         Quaternion<T> tmp(0.0, _pos.X(), _pos.Y(), _pos.Z());
@@ -255,9 +301,9 @@ namespace ignition
                           this->p.Z() + tmp.Z());
       }
 
-      /// \brief Add one point to another: result = this + pose
-      /// \param[in] _pose The Pose3<T> to add
-      /// \return The resulting position
+      /// \brief Add one pose to another: result = this + pose.
+      /// \param[in] _pose The Pose3<T> to add.
+      /// \return The resulting position.
       public: Vector3<T> CoordPositionAdd(const Pose3<T> &_pose) const
       {
         Quaternion<T> tmp(static_cast<T>(0),
@@ -285,17 +331,17 @@ namespace ignition
         return Vector3<T>(tmp.X(), tmp.Y(), tmp.Z());
       }
 
-      /// \brief Add one rotation to another: result =  this->q + rot
-      /// \param[in] _rot Rotation to add
-      /// \return The resulting rotation
+      /// \brief Add one rotation to another: result =  this->q + rot.
+      /// \param[in] _rot Rotation to add.
+      /// \return The resulting rotation.
       public: Quaternion<T> CoordRotationAdd(const Quaternion<T> &_rot) const
       {
         return Quaternion<T>(_rot * this->q);
       }
 
-      /// \brief Subtract one rotation from another: result = this->q - rot
-      /// \param[in] _rot The rotation to subtract
-      /// \return The resulting rotation
+      /// \brief Subtract one rotation from another: result = this->q - rot.
+      /// \param[in] _rot The rotation to subtract.
+      /// \return The resulting rotation.
       public: inline Quaternion<T> CoordRotationSub(
                   const Quaternion<T> &_rot) const
       {
@@ -305,8 +351,9 @@ namespace ignition
       }
 
       /// \brief Find the inverse of a pose; i.e., if b = this + a, given b and
-      /// this, find a
-      /// \param[in] _b the other pose
+      /// this, find a.
+      /// \param[in] _b the other pose.
+      // \return The inverse pose.
       public: Pose3<T> CoordPoseSolve(const Pose3<T> &_b) const
       {
         Quaternion<T> qt;
@@ -320,17 +367,18 @@ namespace ignition
         return a;
       }
 
-      /// \brief Reset the pose
+      /// \brief Reset the pose. This sets the position to zero and the
+      /// rotation to identify.
       public: void Reset()
       {
         // set the position to zero
         this->p.Set();
-        this->q = Quaterniond::Identity;
+        this->q.Set(1, 0, 0, 0);
       }
 
-      /// \brief Rotate vector part of a pose about the origin
-      /// \param[in] _q rotation
-      /// \return the rotated pose
+      /// \brief Rotate the vector part of a pose about the origin.
+      /// \param[in] _q rotation.
+      /// \return The rotated pose.
       public: Pose3<T> RotatePositionAboutOrigin(const Quaternion<T> &_q) const
       {
         Pose3<T> a = *this;
@@ -346,8 +394,8 @@ namespace ignition
         return a;
       }
 
-      /// \brief Round all values to _precision decimal places
-      /// \param[in] _precision
+      /// \brief Round all values to _precision decimal places.
+      /// \param[in] _precision Number of decimal places.
       public: void Round(int _precision)
       {
         this->q.Round(_precision);
@@ -426,10 +474,13 @@ namespace ignition
       /// \brief The rotation
       private: Quaternion<T> q;
     };
+
     template<typename T> const Pose3<T> Pose3<T>::Zero(0, 0, 0, 0, 0, 0);
 
-    typedef Pose3<int> Pose3i;
+    /// typedef Pose3<double> as Pose3d.
     typedef Pose3<double> Pose3d;
+
+    /// typedef Pose3<float> as Pose3f.
     typedef Pose3<float> Pose3f;
     }
   }

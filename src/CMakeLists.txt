@@ -26,6 +26,7 @@ if (SWIG_FOUND)
     GaussMarkovProcess
     Helpers
     Matrix3
+    Pose3
     Quaternion
     Rand
     Vector2
