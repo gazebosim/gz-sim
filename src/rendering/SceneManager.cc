@@ -186,6 +186,7 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
   linkVis->SetLocalPose(_link.RawPose());
+  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
   this->dataPtr->visuals[_id] = linkVis;
 
   if (parent)
@@ -296,6 +297,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     ignerr << "Failed to load geometry for visual: " << _visual.Name()
            << std::endl;
   }
+
+  // visibility flags
+  visualVis->SetVisibilityFlags(_visual.VisibilityFlags());
 
   this->dataPtr->visuals[_id] = visualVis;
   if (parent)

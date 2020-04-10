@@ -1200,6 +1200,7 @@ void IgnRenderer::Initialize()
   this->dataPtr->camera->SetImageHeight(this->textureSize.height());
   this->dataPtr->camera->SetAntiAliasing(8);
   this->dataPtr->camera->SetHFOV(M_PI * 0.5);
+  this->dataPtr->camera->SetVisibilityMask(this->visibilityMask);
   // setting the size and calling PreRender should cause the render texture to
   //  be rebuilt
   this->dataPtr->camera->PreRender();
@@ -1887,6 +1888,20 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         renderWindow->SetFollowOffset(offset);
       }
     }
+
+    if (auto elem = _pluginElem->FirstChildElement("visibility_mask"))
+    {
+      uint32_t visibilityMask = 0xFFFFFFFFu;
+      std::stringstream visibilityMaskStr;
+      visibilityMaskStr << std::string(elem->GetText());
+      bool isHex = common::lowercase(
+          visibilityMaskStr.str()).compare(0, 2, "0x") == 0;
+      if (isHex)
+        visibilityMaskStr >> std::hex >> visibilityMask;
+      else
+        visibilityMaskStr >> visibilityMask;
+      renderWindow->SetVisibilityMask(visibilityMask);
+    }
   }
 
   // transform mode
@@ -2215,6 +2230,12 @@ void RenderWindowItem::SetInitCameraPose(const math::Pose3d &_pose)
 void RenderWindowItem::SetWorldName(const std::string &_name)
 {
   this->dataPtr->renderThread->ignRenderer.worldName = _name;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
+{
+  this->dataPtr->renderThread->ignRenderer.visibilityMask = _mask;
 }
 
 /////////////////////////////////////////////////
