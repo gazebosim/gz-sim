@@ -29,6 +29,7 @@ if (SWIG_FOUND)
     Pose3
     Quaternion
     Rand
+    Temperature
     Vector2
     Vector3)
 endif()

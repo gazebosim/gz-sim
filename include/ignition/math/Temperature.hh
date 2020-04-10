@@ -44,299 +44,319 @@ namespace ignition
     /// the conversion functions, such as CelsiusToFahrenheit. Similarly,
     /// most doubles that are returned will be in Kelvin.
     ///
-    /// ## Example usage ##
+    /// ## Examples
     ///
-    /// ### Convert from Kelvin to Celsius ###
+    /// * C++
+    /// \snippet examples/temperature_example.cc complete
     ///
-    ///     double celsius = ignition::math::Temperature::KelvinToCelsius(2.5);
+    /// * Ruby
+    /// \code{.cc}
+    /// # Modify the RUBYLIB environment variable to include the ignition math
+    /// # library install path. For example, if you install to /user:
+    /// #
+    /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
+    /// #
+    /// require 'ignition/math'
     ///
-    /// ### Create and use a Temperature object ###
+    /// celsius = Ignition::Math::Temperature::KelvinToCelsius(2.5);
+    /// printf("2.5Kelvin to Celsius is %f\n", celsius)
     ///
-    ///     ignition::math::Temperature temp(123.5);
-    ///     std::cout << "Temperature in Kelvin = " << temp << std::endl;
-    ///     std::cout << "Temperature in Celsius = "
-    ///               << temp.Celsius() << std::endl;
+    /// temp = Ignition::Math::Temperature.new(123.5)
+    /// printf("Constructed a Temperature object with %f Kelvin\n",
+    ///        temp.Kelvin())
     ///
-    ///     temp += 100.0;
-    ///     std::cout << "Temperature + 100.0 = " << temp << "K" << std::endl;
+    /// printf("Same temperature in Celsius %f\n", temp.Celsius())
     ///
-    ///     ignition::math::Temperature newTemp(temp);
-    ///     newTemp += temp + 23.5;
-    ///     std::cout << "Copied the temp object and added 23.5K. newTemp = "
-    ///               << newTemp.Fahrenheit() << "F" << std::endl;
+    /// temp += 100.0
+    /// printf("Temperature + 100.0 is %fK", temp.Kelvin())
     ///
+    /// newTemp = Ignition::Math::Temperature.new(temp.Kelvin())
+    /// newTemp += temp + 23.5;
+    /// printf("Copied temp and added 23.5K. The new tempurature is %fF\n",
+    ///     newTemp.Fahrenheit());
+    /// \endcode
     class IGNITION_MATH_VISIBLE Temperature
     {
-      /// \brief Default constructor
+      /// \brief Default constructor.
       public: Temperature();
 
-      /// \brief Kelvin value constructor. This is a conversion constructor
-      /// \param[in] _temp Temperature in Kelvin
-      // cppcheck-suppress noExplicitConstructor
-      public: Temperature(const double _temp);
+      /// \brief Default destructor.
+      public: ~Temperature();
 
-      /// \brief Copy constructor
+      /// \brief Kelvin value constructor. This is a conversion constructor,
+      /// and assumes the passed in value is in Kelvin.
+      /// \param[in] _temp Temperature in Kelvin.
+      // cppcheck-suppress noExplicitConstructor
+      public: Temperature(double _temp);
+
+      /// \brief Copy constructor.
       /// \param[in] _temp Temperature object to copy.
       public: Temperature(const Temperature &_temp);
 
-      /// \brief Destructor
-      public: virtual ~Temperature();
+      /// \brief Move constructor.
+      /// \param[in] _temp Temperature object to move.
+      public: Temperature(Temperature &&_temp);
 
-      /// \brief Convert Kelvin to Celsius
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Temperature in Celsius
-      public: static double KelvinToCelsius(const double _temp);
+      /// \brief Convert Kelvin to Celsius.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Temperature in Celsius.
+      public: static double KelvinToCelsius(double _temp);
 
-      /// \brief Convert Kelvin to Fahrenheit
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Temperature in Fahrenheit
-      public: static double KelvinToFahrenheit(const double _temp);
+      /// \brief Convert Kelvin to Fahrenheit.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Temperature in Fahrenheit.
+      public: static double KelvinToFahrenheit(double _temp);
 
-      /// \brief Convert Celsius to Fahrenheit
-      /// \param[in] _temp Temperature in Celsius
-      /// \return Temperature in Fahrenheit
-      public: static double CelsiusToFahrenheit(const double _temp);
+      /// \brief Convert Celsius to Fahrenheit.
+      /// \param[in] _temp Temperature in Celsius.
+      /// \return Temperature in Fahrenheit.
+      public: static double CelsiusToFahrenheit(double _temp);
 
       /// \brief Convert Celsius to Kelvin
       /// \param[in] _temp Temperature in Celsius
       /// \return Temperature in Kelvin
-      public: static double CelsiusToKelvin(const double _temp);
+      public: static double CelsiusToKelvin(double _temp);
 
       /// \brief Convert Fahrenheit to Celsius
       /// \param[in] _temp Temperature in Fahrenheit
       /// \return Temperature in Celsius
-      public: static double FahrenheitToCelsius(const double _temp);
+      public: static double FahrenheitToCelsius(double _temp);
 
       /// \brief Convert Fahrenheit to Kelvin
       /// \param[in] _temp Temperature in Fahrenheit
       /// \return Temperature in Kelvin
-      public: static double FahrenheitToKelvin(const double _temp);
+      public: static double FahrenheitToKelvin(double _temp);
 
-      /// \brief Set the temperature from a Kelvin value
-      /// \param[in] _temp Temperature in Kelvin
-      public: void SetKelvin(const double _temp);
+      /// \brief Set the temperature from a Kelvin value.
+      /// \param[in] _temp Temperature in Kelvin.
+      public: void SetKelvin(double _temp);
 
-      /// \brief Set the temperature from a Celsius value
-      /// \param[in] _temp Temperature in Celsius
-      public: void SetCelsius(const double _temp);
+      /// \brief Set the temperature from a Celsius value.
+      /// \param[in] _temp Temperature in Celsius.
+      public: void SetCelsius(double _temp);
 
-      /// \brief Set the temperature from a Fahrenheit value
-      /// \param[in] _temp Temperature in Fahrenheit
-      public: void SetFahrenheit(const double _temp);
+      /// \brief Set the temperature from a Fahrenheit value.
+      /// \param[in] _temp Temperature in Fahrenheit.
+      public: void SetFahrenheit(double _temp);
 
-      /// \brief Get the temperature in Kelvin
-      /// \return Temperature in Kelvin
+      /// \brief Get the temperature in Kelvin.
+      /// \return Temperature in Kelvin.
       public: double Kelvin() const;
 
-      /// \brief Get the temperature in Celsius
-      /// \return Temperature in Celsius
+      /// \brief Get the temperature in Celsius.
+      /// \return Temperature in Celsius.
       public: double Celsius() const;
 
-      /// \brief Get the temperature in Fahrenheit
-      /// \return Temperature in Fahrenheit
+      /// \brief Get the temperature in Fahrenheit.
+      /// \return Temperature in Fahrenheit.
       public: double Fahrenheit() const;
 
-      /// \brief Accessor operator
-      /// \return Temperature in Kelvin
-      /// \sa Kelvin()
+      /// \brief Accessor operator.
+      /// \return Temperature in Kelvin.
+      /// \sa Kelvin().
       public: double operator()() const;
 
-      /// \brief Assignment operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
-      public: Temperature &operator=(const double _temp);
+      /// \brief Assignment operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Reference to this instance.
+      public: Temperature &operator=(double _temp);
 
-      /// \brief Assignment operator
-      /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \brief Assignment operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Reference to this instance.
       public: Temperature &operator=(const Temperature &_temp);
 
-      /// \brief Addition operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Resulting temperature
-      public: Temperature operator+(const double _temp);
+      /// \brief Move operator.
+      /// \param[in] _temp Temperature object to move.
+      /// \return Reference to this instance.
+      public: Temperature &operator=(Temperature &&_temp);
 
-      /// \brief Addition operator
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \brief Addition operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Resulting temperature.
+      public: Temperature operator+(double _temp);
+
+      /// \brief Addition operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: Temperature operator+(const Temperature &_temp);
 
       /// \brief Addition operator for double type.
-      /// \param[in] _t Temperature in kelvin
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \param[in] _t Temperature in Kelvin.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: friend Temperature operator+(double _t, const Temperature &_temp)
       {
         return _t + _temp.Kelvin();
       }
 
-      /// \brief Addition assignment operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
-      public: const Temperature &operator+=(const double _temp);
+      /// \brief Addition assignment operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Reference to this instance.
+      public: const Temperature &operator+=(double _temp);
 
-      /// \brief Addition assignment operator
-      /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \brief Addition assignment operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Reference to this instance.
       public: const Temperature &operator+=(const Temperature &_temp);
 
-      /// \brief Subtraction operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Resulting temperature
-      public: Temperature operator-(const double _temp);
+      /// \brief Subtraction operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Resulting temperature.
+      public: Temperature operator-(double _temp);
 
-      /// \brief Subtraction operator
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \brief Subtraction operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: Temperature operator-(const Temperature &_temp);
 
       /// \brief Subtraction operator for double type.
-      /// \param[in] _t Temperature in kelvin
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \param[in] _t Temperature in Kelvin.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: friend Temperature operator-(double _t, const Temperature &_temp)
       {
         return _t - _temp.Kelvin();
       }
 
-      /// \brief Subtraction assignment operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
-      public: const Temperature &operator-=(const double _temp);
+      /// \brief Subtraction assignment operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Reference to this instance.
+      public: const Temperature &operator-=(double _temp);
 
-      /// \brief Subtraction assignment operator
-      /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \brief Subtraction assignment operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Reference to this instance.
       public: const Temperature &operator-=(const Temperature &_temp);
 
-      /// \brief Multiplication operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Resulting temperature
-      public: Temperature operator*(const double _temp);
+      /// \brief Multiplication operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Resulting temperature.
+      public: Temperature operator*(double _temp);
 
-      /// \brief Multiplication operator
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \brief Multiplication operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: Temperature operator*(const Temperature &_temp);
 
       /// \brief Multiplication operator for double type.
-      /// \param[in] _t Temperature in kelvin
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \param[in] _t Temperature in Kelvin.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: friend Temperature operator*(double _t, const Temperature &_temp)
       {
         return _t * _temp.Kelvin();
       }
 
-      /// \brief Multiplication assignment operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
-      public: const Temperature &operator*=(const double _temp);
+      /// \brief Multiplication assignment operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Reference to this instance.
+      public: const Temperature &operator*=(double _temp);
 
-      /// \brief Multiplication assignment operator
-      /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \brief Multiplication assignment operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Reference to this instance.
       public: const Temperature &operator*=(const Temperature &_temp);
 
-      /// \brief Division operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Resulting temperature
-      public: Temperature operator/(const double _temp);
+      /// \brief Division operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Resulting temperature.
+      public: Temperature operator/(double _temp);
 
-      /// \brief Division operator
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \brief Division operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: Temperature operator/(const Temperature &_temp);
 
       /// \brief Division operator for double type.
-      /// \param[in] _t Temperature in kelvin
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \param[in] _t Temperature in Kelvin.
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: friend Temperature operator/(double _t, const Temperature &_temp)
       {
         return _t / _temp.Kelvin();
       }
 
-      /// \brief Division assignment operator
-      /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
-      public: const Temperature &operator/=(const double _temp);
+      /// \brief Division assignment operator.
+      /// \param[in] _temp Temperature in Kelvin.
+      /// \return Reference to this instance.
+      public: const Temperature &operator/=(double _temp);
 
-      /// \brief Division assignment operator
-      /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \brief Division assignment operator.
+      /// \param[in] _temp Temperature object.
+      /// \return Reference to this instance.
       public: const Temperature &operator/=(const Temperature &_temp);
 
-      /// \brief Equal to operator
-      /// \param[in] _temp The temperature to compare
-      /// \return true if the temperatures are the same, false otherwise
+      /// \brief Equal to operator.
+      /// \param[in] _temp The temperature to compare.
+      /// \return True if the temperatures are the same, false otherwise.
       public: bool operator==(const Temperature &_temp) const;
 
       /// \brief Equal to operator, where the value of _temp is assumed to
-      /// be in Kelvin
-      /// \param[in] _temp The temperature (in Kelvin) to compare
-      /// \return true if the temperatures are the same, false otherwise
-      public: bool operator==(const double _temp) const;
+      /// be in Kelvin.
+      /// \param[in] _temp The temperature (in Kelvin) to compare.
+      /// \return True if the temperatures are the same, false otherwise.
+      public: bool operator==(double _temp) const;
 
-      /// \brief Inequality to operator
-      /// \param[in] _temp The temperature to compare
-      /// \return false if the temperatures are the same, true otherwise
+      /// \brief Inequality to operator.
+      /// \param[in] _temp The temperature to compare.
+      /// \return False if the temperatures are the same, true otherwise.
       public: bool operator!=(const Temperature &_temp) const;
 
       /// \brief Inequality to operator, where the value of _temp is assumed to
-      /// be in Kelvin
-      /// \param[in] _temp The temperature (in Kelvin) to compare
-      /// \return false if the temperatures are the same, true otherwise
-      public: bool operator!=(const double _temp) const;
+      /// be in Kelvin.
+      /// \param[in] _temp The temperature (in Kelvin) to compare.
+      /// \return False if the temperatures are the same, true otherwise.
+      public: bool operator!=(double _temp) const;
 
-      /// \brief Less than to operator
-      /// \param[in] _temp The temperature to compare
+      /// \brief Less than to operator.
+      /// \param[in] _temp The temperature to compare.
       /// \return True if this is less than _temp.
       public: bool operator<(const Temperature &_temp) const;
 
       /// \brief Less than operator, where the value of _temp is assumed to
-      /// be in Kelvin
-      /// \param[in] _temp The temperature (in Kelvin) to compare
+      /// be in Kelvin.
+      /// \param[in] _temp The temperature (in Kelvin) to compare.
       /// \return True if this is less than _temp.
-      public: bool operator<(const double _temp) const;
+      public: bool operator<(double _temp) const;
 
-      /// \brief Less than or equal to operator
-      /// \param[in] _temp The temperature to compare
+      /// \brief Less than or equal to operator.
+      /// \param[in] _temp The temperature to compare.
       /// \return True if this is less than or equal _temp.
       public: bool operator<=(const Temperature &_temp) const;
 
       /// \brief Less than or equal operator,
-      /// where the value of _temp is assumed to be in Kelvin
-      /// \param[in] _temp The temperature (in Kelvin) to compare
+      /// where the value of _temp is assumed to be in Kelvin.
+      /// \param[in] _temp The temperature (in Kelvin) to compare.
       /// \return True if this is less than or equal to _temp.
-      public: bool operator<=(const double _temp) const;
+      public: bool operator<=(double _temp) const;
 
-      /// \brief Greater than operator
-      /// \param[in] _temp The temperature to compare
+      /// \brief Greater than operator.
+      /// \param[in] _temp The temperature to compare.
       /// \return True if this is greater than _temp.
       public: bool operator>(const Temperature &_temp) const;
 
       /// \brief Greater than operator, where the value of _temp is assumed to
-      /// be in Kelvin
-      /// \param[in] _temp The temperature (in Kelvin) to compare
+      /// be in Kelvin.
+      /// \param[in] _temp The temperature (in Kelvin) to compare.
       /// \return True if this is greater than _temp.
-      public: bool operator>(const double _temp) const;
+      public: bool operator>(double _temp) const;
 
-      /// \brief Greater than or equal to operator
-      /// \param[in] _temp The temperature to compare
+      /// \brief Greater than or equal to operator.
+      /// \param[in] _temp The temperature to compare.
       /// \return True if this is greater than or equal to _temp.
       public: bool operator>=(const Temperature &_temp) const;
 
       /// \brief Greater than equal operator,
-      /// where the value of _temp is assumed to be in Kelvin
-      /// \param[in] _temp The temperature (in Kelvin) to compare
+      /// where the value of _temp is assumed to be in Kelvin.
+      /// \param[in] _temp The temperature (in Kelvin) to compare.
       /// \return True if this is greater than or equal to _temp.
-      public: bool operator>=(const double _temp) const;
+      public: bool operator>=(double _temp) const;
 
-      /// \brief Stream insertion operator
-      /// \param[in] _out the output stream
-      /// \param[in] _temp Temperature to write to the stream
-      /// \return the output stream
+      /// \brief Stream insertion operator.
+      /// \param[in] _out The output stream.
+      /// \param[in] _temp Temperature to write to the stream.
+      /// \return The output stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
                   const ignition::math::Temperature &_temp)
               {
@@ -344,11 +364,11 @@ namespace ignition
                 return _out;
               }
 
-      /// \brief Stream extraction operator
-      /// \param[in] _in the input stream
+      /// \brief Stream extraction operator.
+      /// \param[in] _in the input stream.
       /// \param[in] _temp Temperature to read from to the stream. Assumes
       /// temperature value is in Kelvin.
-      /// \return the input stream
+      /// \return The input stream.
       public: friend std::istream &operator>>(std::istream &_in,
                   ignition::math::Temperature &_temp)
               {

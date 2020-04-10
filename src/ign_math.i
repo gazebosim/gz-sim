@@ -5,5 +5,6 @@
 %include "Pose3.i"
 %include "Quaternion.i"
 %include "Rand.i"
+%include "Temperature.i"
 %include "Vector2.i"
 %include "Vector3.i"

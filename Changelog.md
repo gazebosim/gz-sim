@@ -18,6 +18,9 @@
 1. Removed deprecations.
     * [Pull request 320](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/320)
 
+1. Updated Temperature class documentation, script interface, and added examples.
+    * [Pull request 339](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/339)
+
 ## Ignition Math 6.x
 
 ### Ignition Math 6.x.x
