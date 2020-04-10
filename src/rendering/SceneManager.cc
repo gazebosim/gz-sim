@@ -536,6 +536,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
+  // todo(anyone) create a copy of meshSkel so we don't modify the original
+  // when adding animations!
   common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
   if (nullptr == meshSkel)
   {
@@ -565,21 +567,38 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
     if (extension == "bvh")
     {
-      meshSkel->AddBvhAnimation(animFilename, animScale);
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animFilename)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+        meshSkel->AddBvhAnimation(animFilename, animScale);
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")
     {
-      common::MeshManager::Instance()->Load(animFilename);
-      auto animMesh = common::MeshManager::Instance()->MeshByName(animFilename);
+      // Load the mesh if it has not been loaded before
+      const common::Mesh *animMesh = nullptr;
+      if (!meshManager->HasMesh(animFilename))
+      {
+        animMesh = meshManager->Load(animFilename);
+        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
+        {
+          ignwarn << "File [" << animFilename
+              << "] has more than one animation, but only the 1st one is used."
+              << std::endl;
+        }
+      }
+      animMesh = meshManager->MeshByName(animFilename);
 
       // add the first animation
-      if (animMesh->MeshSkeleton()->AnimationCount() > 1)
-      {
-        ignwarn << "File [" << animFilename
-            << "] has more than one animation, but only the 1st one is used."
-            << std::endl;
-      }
       auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
       if (nullptr == firstAnim)
       {
@@ -593,7 +612,19 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
       // So make sure to give it a unique name
       firstAnim->SetName(animName);
 
-      meshSkel->AddAnimation(firstAnim);
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animName)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+        meshSkel->AddAnimation(firstAnim);
       mapAnimNameId[animName] = numAnims++;
     }
   }

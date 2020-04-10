@@ -310,7 +310,6 @@ void RenderUtil::Update()
     newSensors = std::move(this->dataPtr->newSensors);
     this->dataPtr->newSensors.clear();
   }
-
   this->dataPtr->updateMutex.unlock();
 
   // scene - only one scene is supported for now
@@ -491,6 +490,7 @@ void RenderUtil::Update()
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
       }
+
     }
     else
     {
@@ -585,21 +585,21 @@ void RenderUtil::Update()
         actorVisual->SetLocalPose(trajPose + globalPose);
       }
     }
+  }
 
-    // set visual temperature
-    for (auto &temp : entityTemp)
-    {
-      auto node = this->dataPtr->sceneManager.NodeById(temp.first);
-      if (!node)
-        continue;
+  // set visual temperature
+  for (auto &temp : entityTemp)
+  {
+    auto node = this->dataPtr->sceneManager.NodeById(temp.first);
+    if (!node)
+      continue;
 
-      auto visual =
-          std::dynamic_pointer_cast<rendering::Visual>(node);
-      if (!visual)
-        continue;
+    auto visual =
+        std::dynamic_pointer_cast<rendering::Visual>(node);
+    if (!visual)
+      continue;
 
-      visual->SetUserData("temperature", temp.second);
-    }
+    visual->SetUserData("temperature", temp.second);
   }
 }
 
