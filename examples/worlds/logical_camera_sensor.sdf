@@ -8,7 +8,7 @@
 -->
 <sdf version="1.6">
   <world name="logical_camera_sensor">
-    <physics name="1ms" type="ode">
+    <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
