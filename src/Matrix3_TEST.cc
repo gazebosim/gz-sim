@@ -28,6 +28,12 @@ TEST(Matrix3dTest, Matrix3d)
   {
     math::Matrix3d matrix;
     EXPECT_TRUE(matrix == math::Matrix3d(0, 0, 0, 0, 0, 0, 0, 0, 0));
+    matrix.Set(0, 0, 1);
+    EXPECT_TRUE(matrix == math::Matrix3d(1, 0, 0, 0, 0, 0, 0, 0, 0));
+    matrix.Set(5, 0, 2);
+    EXPECT_TRUE(matrix == math::Matrix3d(1, 0, 0, 0, 0, 0, 2, 0, 0));
+    matrix.Set(5, 5, 3);
+    EXPECT_TRUE(matrix == math::Matrix3d(1, 0, 0, 0, 0, 0, 2, 0, 3));
   }
 
   {
@@ -39,17 +45,17 @@ TEST(Matrix3dTest, Matrix3d)
   }
 
   math::Matrix3d matrix;
-  matrix.Axes(math::Vector3d(1, 1, 1), math::Vector3d(2, 2, 2),
+  matrix.SetAxes(math::Vector3d(1, 1, 1), math::Vector3d(2, 2, 2),
                      math::Vector3d(3, 3, 3));
   EXPECT_TRUE(matrix == math::Matrix3d(1, 2, 3, 1, 2, 3, 1, 2, 3));
 
-  matrix.Axis(math::Vector3d(1, 1, 1), IGN_PI);
+  matrix.SetFromAxisAngle(math::Vector3d(1, 1, 1), IGN_PI);
   EXPECT_TRUE(matrix == math::Matrix3d(1, 2, 2, 2, 1, 2, 2, 2, 1));
 
-  matrix.Col(0, math::Vector3d(3, 4, 5));
+  matrix.SetCol(0, math::Vector3d(3, 4, 5));
   EXPECT_TRUE(matrix == math::Matrix3d(3, 2, 2, 4, 1, 2, 5, 2, 1));
 
-  EXPECT_NO_THROW(matrix.Col(3, math::Vector3d(1, 1, 1)));
+  EXPECT_NO_THROW(matrix.SetCol(3, math::Vector3d(1, 1, 1)));
   EXPECT_TRUE(matrix == math::Matrix3d(3, 2, 1, 4, 1, 1, 5, 2, 1));
 }
 
@@ -335,10 +341,10 @@ TEST(Matrix3dTest, From2Axes)
   math::Vector3d v2(0.0, 1.0, 0.0);
 
   math::Matrix3d m1;
-  m1.From2Axes(v1, v2);
+  m1.SetFrom2Axes(v1, v2);
 
   math::Matrix3d m2;
-  m2.From2Axes(v2, v1);
+  m2.SetFrom2Axes(v2, v1);
 
   math::Matrix3d m1Correct(0, -1, 0,
                            1, 0, 0,
@@ -356,7 +362,7 @@ TEST(Matrix3dTest, From2Axes)
   // rotation about 45 degrees
   v1.Set(1.0, 0.0, 0.0);
   v2.Set(1.0, 1.0, 0.0);
-  m2.From2Axes(v1, v2);
+  m2.SetFrom2Axes(v1, v2);
   // m1 is 90 degrees rotation
   EXPECT_EQ(m1, m2*m2);
 
@@ -364,8 +370,8 @@ TEST(Matrix3dTest, From2Axes)
   v1.Set(0.5, 0.5, 0);
   v2.Set(-0.5, 0.5, 0);
 
-  m1.From2Axes(v1, v2);
-  m2.From2Axes(v2, v1);
+  m1.SetFrom2Axes(v1, v2);
+  m2.SetFrom2Axes(v2, v1);
 
   EXPECT_NE(m1, m2);
   EXPECT_EQ(m1Correct, m1);
@@ -377,24 +383,24 @@ TEST(Matrix3dTest, From2Axes)
   // For zero-length vectors, a unit matrix is returned
   v1.Set(0, 0, 0);
   v2.Set(-0.5, 0.5, 0);
-  m1.From2Axes(v1, v2);
+  m1.SetFrom2Axes(v1, v2);
   EXPECT_EQ(math::Matrix3d::Identity, m1);
 
   // For zero-length vectors, a unit matrix is returned
   v1.Set(-0.5, 0.5, 0);
   v2.Set(0, 0, 0);
-  m1.From2Axes(v1, v2);
+  m1.SetFrom2Axes(v1, v2);
   EXPECT_EQ(math::Matrix3d::Identity, m1);
 
   // Parallel vectors
   v1.Set(1, 0, 0);
   v2.Set(2, 0, 0);
-  m1.From2Axes(v1, v2);
+  m1.SetFrom2Axes(v1, v2);
   EXPECT_EQ(math::Matrix3d::Identity, m1);
 
   // Opposite vectors
   v1.Set(1, 0, 0);
   v2.Set(-2, 0, 0);
-  m1.From2Axes(v1, v2);
+  m1.SetFrom2Axes(v1, v2);
   EXPECT_EQ(math::Matrix3d::Zero - math::Matrix3d::Identity, m1);
 }

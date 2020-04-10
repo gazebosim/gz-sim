@@ -24,6 +24,9 @@ if (SWIG_FOUND)
     ruby
     Angle
     GaussMarkovProcess
+    Matrix3
+    Pose3
+    Quaternion
     Rand
     Temperature
     Vector2
