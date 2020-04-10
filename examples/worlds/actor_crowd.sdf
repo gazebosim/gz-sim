@@ -1,0 +1,3887 @@
+<?xml version="1.0" ?>
+<!--
+  This demo shows a crowd of actors
+-->
+<sdf version="1.6">
+  <world name="actors">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/actors/control</service>
+        <stats_topic>/world/actors/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/actors/stats</topic>
+
+      </plugin>
+
+     <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <name>demo_actor_0_0</name>
+      <pose>-12 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_1</name>
+      <pose>-12 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_2</name>
+      <pose>-12 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_3</name>
+      <pose>-12 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_4</name>
+      <pose>-12 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_5</name>
+      <pose>-12 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_6</name>
+      <pose>-12 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_7</name>
+      <pose>-12 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_8</name>
+      <pose>-12 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_9</name>
+      <pose>-12 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_10</name>
+      <pose>-12 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_11</name>
+      <pose>-12 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_12</name>
+      <pose>-12 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_13</name>
+      <pose>-12 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_14</name>
+      <pose>-12 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_15</name>
+      <pose>-12 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_16</name>
+      <pose>-12 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_17</name>
+      <pose>-12 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_18</name>
+      <pose>-12 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_19</name>
+      <pose>-12 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_20</name>
+      <pose>-12 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_21</name>
+      <pose>-12 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_22</name>
+      <pose>-12 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_23</name>
+      <pose>-12 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_0_24</name>
+      <pose>-12 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_1_0</name>
+      <pose>-11 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_1</name>
+      <pose>-11 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_2</name>
+      <pose>-11 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_3</name>
+      <pose>-11 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_4</name>
+      <pose>-11 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_5</name>
+      <pose>-11 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_6</name>
+      <pose>-11 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_7</name>
+      <pose>-11 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_8</name>
+      <pose>-11 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_9</name>
+      <pose>-11 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_10</name>
+      <pose>-11 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_11</name>
+      <pose>-11 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_12</name>
+      <pose>-11 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_13</name>
+      <pose>-11 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_14</name>
+      <pose>-11 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_15</name>
+      <pose>-11 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_16</name>
+      <pose>-11 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_17</name>
+      <pose>-11 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_18</name>
+      <pose>-11 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_19</name>
+      <pose>-11 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_20</name>
+      <pose>-11 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_21</name>
+      <pose>-11 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_22</name>
+      <pose>-11 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_23</name>
+      <pose>-11 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_1_24</name>
+      <pose>-11 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_2_0</name>
+      <pose>-10 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_1</name>
+      <pose>-10 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_2</name>
+      <pose>-10 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_3</name>
+      <pose>-10 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_4</name>
+      <pose>-10 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_5</name>
+      <pose>-10 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_6</name>
+      <pose>-10 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_7</name>
+      <pose>-10 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_8</name>
+      <pose>-10 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_9</name>
+      <pose>-10 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_10</name>
+      <pose>-10 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_11</name>
+      <pose>-10 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_12</name>
+      <pose>-10 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_13</name>
+      <pose>-10 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_14</name>
+      <pose>-10 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_15</name>
+      <pose>-10 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_16</name>
+      <pose>-10 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_17</name>
+      <pose>-10 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_18</name>
+      <pose>-10 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_19</name>
+      <pose>-10 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_20</name>
+      <pose>-10 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_21</name>
+      <pose>-10 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_22</name>
+      <pose>-10 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_23</name>
+      <pose>-10 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_2_24</name>
+      <pose>-10 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_3_0</name>
+      <pose>-9 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_1</name>
+      <pose>-9 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_2</name>
+      <pose>-9 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_3</name>
+      <pose>-9 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_4</name>
+      <pose>-9 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_5</name>
+      <pose>-9 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_6</name>
+      <pose>-9 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_7</name>
+      <pose>-9 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_8</name>
+      <pose>-9 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_9</name>
+      <pose>-9 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_10</name>
+      <pose>-9 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_11</name>
+      <pose>-9 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_12</name>
+      <pose>-9 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_13</name>
+      <pose>-9 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_14</name>
+      <pose>-9 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_15</name>
+      <pose>-9 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_16</name>
+      <pose>-9 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_17</name>
+      <pose>-9 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_18</name>
+      <pose>-9 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_19</name>
+      <pose>-9 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_20</name>
+      <pose>-9 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_21</name>
+      <pose>-9 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_22</name>
+      <pose>-9 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_23</name>
+      <pose>-9 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_3_24</name>
+      <pose>-9 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_4_0</name>
+      <pose>-8 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_1</name>
+      <pose>-8 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_2</name>
+      <pose>-8 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_3</name>
+      <pose>-8 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_4</name>
+      <pose>-8 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_5</name>
+      <pose>-8 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_6</name>
+      <pose>-8 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_7</name>
+      <pose>-8 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_8</name>
+      <pose>-8 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_9</name>
+      <pose>-8 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_10</name>
+      <pose>-8 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_11</name>
+      <pose>-8 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_12</name>
+      <pose>-8 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_13</name>
+      <pose>-8 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_14</name>
+      <pose>-8 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_15</name>
+      <pose>-8 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_16</name>
+      <pose>-8 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_17</name>
+      <pose>-8 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_18</name>
+      <pose>-8 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_19</name>
+      <pose>-8 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_20</name>
+      <pose>-8 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_21</name>
+      <pose>-8 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_22</name>
+      <pose>-8 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_23</name>
+      <pose>-8 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_4_24</name>
+      <pose>-8 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_5_0</name>
+      <pose>-7 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_1</name>
+      <pose>-7 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_2</name>
+      <pose>-7 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_3</name>
+      <pose>-7 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_4</name>
+      <pose>-7 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_5</name>
+      <pose>-7 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_6</name>
+      <pose>-7 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_7</name>
+      <pose>-7 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_8</name>
+      <pose>-7 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_9</name>
+      <pose>-7 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_10</name>
+      <pose>-7 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_11</name>
+      <pose>-7 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_12</name>
+      <pose>-7 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_13</name>
+      <pose>-7 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_14</name>
+      <pose>-7 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_15</name>
+      <pose>-7 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_16</name>
+      <pose>-7 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_17</name>
+      <pose>-7 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_18</name>
+      <pose>-7 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_19</name>
+      <pose>-7 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_20</name>
+      <pose>-7 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_21</name>
+      <pose>-7 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_22</name>
+      <pose>-7 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_23</name>
+      <pose>-7 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_5_24</name>
+      <pose>-7 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_6_0</name>
+      <pose>-6 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_1</name>
+      <pose>-6 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_2</name>
+      <pose>-6 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_3</name>
+      <pose>-6 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_4</name>
+      <pose>-6 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_5</name>
+      <pose>-6 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_6</name>
+      <pose>-6 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_7</name>
+      <pose>-6 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_8</name>
+      <pose>-6 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_9</name>
+      <pose>-6 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_10</name>
+      <pose>-6 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_11</name>
+      <pose>-6 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_12</name>
+      <pose>-6 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_13</name>
+      <pose>-6 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_14</name>
+      <pose>-6 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_15</name>
+      <pose>-6 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_16</name>
+      <pose>-6 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_17</name>
+      <pose>-6 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_18</name>
+      <pose>-6 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_19</name>
+      <pose>-6 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_20</name>
+      <pose>-6 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_21</name>
+      <pose>-6 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_22</name>
+      <pose>-6 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_23</name>
+      <pose>-6 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_6_24</name>
+      <pose>-6 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_7_0</name>
+      <pose>-5 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_1</name>
+      <pose>-5 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_2</name>
+      <pose>-5 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_3</name>
+      <pose>-5 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_4</name>
+      <pose>-5 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_5</name>
+      <pose>-5 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_6</name>
+      <pose>-5 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_7</name>
+      <pose>-5 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_8</name>
+      <pose>-5 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_9</name>
+      <pose>-5 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_10</name>
+      <pose>-5 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_11</name>
+      <pose>-5 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_12</name>
+      <pose>-5 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_13</name>
+      <pose>-5 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_14</name>
+      <pose>-5 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_15</name>
+      <pose>-5 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_16</name>
+      <pose>-5 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_17</name>
+      <pose>-5 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_18</name>
+      <pose>-5 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_19</name>
+      <pose>-5 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_20</name>
+      <pose>-5 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_21</name>
+      <pose>-5 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_22</name>
+      <pose>-5 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_23</name>
+      <pose>-5 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_7_24</name>
+      <pose>-5 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_8_0</name>
+      <pose>-4 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_1</name>
+      <pose>-4 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_2</name>
+      <pose>-4 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_3</name>
+      <pose>-4 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_4</name>
+      <pose>-4 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_5</name>
+      <pose>-4 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_6</name>
+      <pose>-4 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_7</name>
+      <pose>-4 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_8</name>
+      <pose>-4 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_9</name>
+      <pose>-4 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_10</name>
+      <pose>-4 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_11</name>
+      <pose>-4 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_12</name>
+      <pose>-4 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_13</name>
+      <pose>-4 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_14</name>
+      <pose>-4 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_15</name>
+      <pose>-4 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_16</name>
+      <pose>-4 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_17</name>
+      <pose>-4 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_18</name>
+      <pose>-4 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_19</name>
+      <pose>-4 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_20</name>
+      <pose>-4 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_21</name>
+      <pose>-4 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_22</name>
+      <pose>-4 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_23</name>
+      <pose>-4 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_8_24</name>
+      <pose>-4 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_9_0</name>
+      <pose>-3 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_1</name>
+      <pose>-3 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_2</name>
+      <pose>-3 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_3</name>
+      <pose>-3 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_4</name>
+      <pose>-3 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_5</name>
+      <pose>-3 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_6</name>
+      <pose>-3 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_7</name>
+      <pose>-3 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_8</name>
+      <pose>-3 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_9</name>
+      <pose>-3 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_10</name>
+      <pose>-3 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_11</name>
+      <pose>-3 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_12</name>
+      <pose>-3 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_13</name>
+      <pose>-3 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_14</name>
+      <pose>-3 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_15</name>
+      <pose>-3 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_16</name>
+      <pose>-3 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_17</name>
+      <pose>-3 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_18</name>
+      <pose>-3 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_19</name>
+      <pose>-3 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_20</name>
+      <pose>-3 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_21</name>
+      <pose>-3 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_22</name>
+      <pose>-3 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_23</name>
+      <pose>-3 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_9_24</name>
+      <pose>-3 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_10_0</name>
+      <pose>-2 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_1</name>
+      <pose>-2 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_2</name>
+      <pose>-2 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_3</name>
+      <pose>-2 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_4</name>
+      <pose>-2 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_5</name>
+      <pose>-2 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_6</name>
+      <pose>-2 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_7</name>
+      <pose>-2 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_8</name>
+      <pose>-2 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_9</name>
+      <pose>-2 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_10</name>
+      <pose>-2 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_11</name>
+      <pose>-2 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_12</name>
+      <pose>-2 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_13</name>
+      <pose>-2 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_14</name>
+      <pose>-2 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_15</name>
+      <pose>-2 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_16</name>
+      <pose>-2 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_17</name>
+      <pose>-2 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_18</name>
+      <pose>-2 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_19</name>
+      <pose>-2 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_20</name>
+      <pose>-2 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_21</name>
+      <pose>-2 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_22</name>
+      <pose>-2 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_23</name>
+      <pose>-2 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_10_24</name>
+      <pose>-2 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_11_0</name>
+      <pose>-1 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_1</name>
+      <pose>-1 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_2</name>
+      <pose>-1 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_3</name>
+      <pose>-1 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_4</name>
+      <pose>-1 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_5</name>
+      <pose>-1 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_6</name>
+      <pose>-1 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_7</name>
+      <pose>-1 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_8</name>
+      <pose>-1 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_9</name>
+      <pose>-1 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_10</name>
+      <pose>-1 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_11</name>
+      <pose>-1 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_12</name>
+      <pose>-1 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_13</name>
+      <pose>-1 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_14</name>
+      <pose>-1 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_15</name>
+      <pose>-1 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_16</name>
+      <pose>-1 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_17</name>
+      <pose>-1 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_18</name>
+      <pose>-1 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_19</name>
+      <pose>-1 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_20</name>
+      <pose>-1 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_21</name>
+      <pose>-1 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_22</name>
+      <pose>-1 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_23</name>
+      <pose>-1 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_11_24</name>
+      <pose>-1 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_12_0</name>
+      <pose>0 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_1</name>
+      <pose>0 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_2</name>
+      <pose>0 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_3</name>
+      <pose>0 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_4</name>
+      <pose>0 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_5</name>
+      <pose>0 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_6</name>
+      <pose>0 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_7</name>
+      <pose>0 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_8</name>
+      <pose>0 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_9</name>
+      <pose>0 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_10</name>
+      <pose>0 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_11</name>
+      <pose>0 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_12</name>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_13</name>
+      <pose>0 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_14</name>
+      <pose>0 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_15</name>
+      <pose>0 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_16</name>
+      <pose>0 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_17</name>
+      <pose>0 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_18</name>
+      <pose>0 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_19</name>
+      <pose>0 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_20</name>
+      <pose>0 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_21</name>
+      <pose>0 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_22</name>
+      <pose>0 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_23</name>
+      <pose>0 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_12_24</name>
+      <pose>0 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_13_0</name>
+      <pose>1 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_1</name>
+      <pose>1 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_2</name>
+      <pose>1 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_3</name>
+      <pose>1 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_4</name>
+      <pose>1 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_5</name>
+      <pose>1 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_6</name>
+      <pose>1 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_7</name>
+      <pose>1 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_8</name>
+      <pose>1 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_9</name>
+      <pose>1 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_10</name>
+      <pose>1 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_11</name>
+      <pose>1 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_12</name>
+      <pose>1 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_13</name>
+      <pose>1 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_14</name>
+      <pose>1 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_15</name>
+      <pose>1 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_16</name>
+      <pose>1 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_17</name>
+      <pose>1 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_18</name>
+      <pose>1 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_19</name>
+      <pose>1 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_20</name>
+      <pose>1 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_21</name>
+      <pose>1 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_22</name>
+      <pose>1 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_23</name>
+      <pose>1 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_13_24</name>
+      <pose>1 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_14_0</name>
+      <pose>2 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_1</name>
+      <pose>2 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_2</name>
+      <pose>2 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_3</name>
+      <pose>2 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_4</name>
+      <pose>2 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_5</name>
+      <pose>2 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_6</name>
+      <pose>2 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_7</name>
+      <pose>2 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_8</name>
+      <pose>2 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_9</name>
+      <pose>2 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_10</name>
+      <pose>2 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_11</name>
+      <pose>2 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_12</name>
+      <pose>2 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_13</name>
+      <pose>2 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_14</name>
+      <pose>2 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_15</name>
+      <pose>2 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_16</name>
+      <pose>2 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_17</name>
+      <pose>2 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_18</name>
+      <pose>2 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_19</name>
+      <pose>2 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_20</name>
+      <pose>2 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_21</name>
+      <pose>2 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_22</name>
+      <pose>2 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_23</name>
+      <pose>2 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_14_24</name>
+      <pose>2 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_15_0</name>
+      <pose>3 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_1</name>
+      <pose>3 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_2</name>
+      <pose>3 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_3</name>
+      <pose>3 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_4</name>
+      <pose>3 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_5</name>
+      <pose>3 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_6</name>
+      <pose>3 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_7</name>
+      <pose>3 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_8</name>
+      <pose>3 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_9</name>
+      <pose>3 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_10</name>
+      <pose>3 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_11</name>
+      <pose>3 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_12</name>
+      <pose>3 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_13</name>
+      <pose>3 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_14</name>
+      <pose>3 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_15</name>
+      <pose>3 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_16</name>
+      <pose>3 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_17</name>
+      <pose>3 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_18</name>
+      <pose>3 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_19</name>
+      <pose>3 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_20</name>
+      <pose>3 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_21</name>
+      <pose>3 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_22</name>
+      <pose>3 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_23</name>
+      <pose>3 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_15_24</name>
+      <pose>3 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_16_0</name>
+      <pose>4 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_1</name>
+      <pose>4 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_2</name>
+      <pose>4 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_3</name>
+      <pose>4 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_4</name>
+      <pose>4 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_5</name>
+      <pose>4 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_6</name>
+      <pose>4 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_7</name>
+      <pose>4 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_8</name>
+      <pose>4 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_9</name>
+      <pose>4 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_10</name>
+      <pose>4 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_11</name>
+      <pose>4 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_12</name>
+      <pose>4 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_13</name>
+      <pose>4 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_14</name>
+      <pose>4 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_15</name>
+      <pose>4 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_16</name>
+      <pose>4 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_17</name>
+      <pose>4 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_18</name>
+      <pose>4 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_19</name>
+      <pose>4 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_20</name>
+      <pose>4 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_21</name>
+      <pose>4 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_22</name>
+      <pose>4 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_23</name>
+      <pose>4 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_16_24</name>
+      <pose>4 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_17_0</name>
+      <pose>5 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_1</name>
+      <pose>5 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_2</name>
+      <pose>5 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_3</name>
+      <pose>5 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_4</name>
+      <pose>5 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_5</name>
+      <pose>5 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_6</name>
+      <pose>5 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_7</name>
+      <pose>5 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_8</name>
+      <pose>5 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_9</name>
+      <pose>5 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_10</name>
+      <pose>5 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_11</name>
+      <pose>5 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_12</name>
+      <pose>5 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_13</name>
+      <pose>5 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_14</name>
+      <pose>5 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_15</name>
+      <pose>5 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_16</name>
+      <pose>5 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_17</name>
+      <pose>5 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_18</name>
+      <pose>5 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_19</name>
+      <pose>5 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_20</name>
+      <pose>5 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_21</name>
+      <pose>5 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_22</name>
+      <pose>5 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_23</name>
+      <pose>5 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_17_24</name>
+      <pose>5 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_18_0</name>
+      <pose>6 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_1</name>
+      <pose>6 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_2</name>
+      <pose>6 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_3</name>
+      <pose>6 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_4</name>
+      <pose>6 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_5</name>
+      <pose>6 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_6</name>
+      <pose>6 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_7</name>
+      <pose>6 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_8</name>
+      <pose>6 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_9</name>
+      <pose>6 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_10</name>
+      <pose>6 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_11</name>
+      <pose>6 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_12</name>
+      <pose>6 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_13</name>
+      <pose>6 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_14</name>
+      <pose>6 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_15</name>
+      <pose>6 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_16</name>
+      <pose>6 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_17</name>
+      <pose>6 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_18</name>
+      <pose>6 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_19</name>
+      <pose>6 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_20</name>
+      <pose>6 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_21</name>
+      <pose>6 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_22</name>
+      <pose>6 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_23</name>
+      <pose>6 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_18_24</name>
+      <pose>6 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_19_0</name>
+      <pose>7 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_1</name>
+      <pose>7 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_2</name>
+      <pose>7 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_3</name>
+      <pose>7 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_4</name>
+      <pose>7 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_5</name>
+      <pose>7 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_6</name>
+      <pose>7 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_7</name>
+      <pose>7 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_8</name>
+      <pose>7 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_9</name>
+      <pose>7 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_10</name>
+      <pose>7 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_11</name>
+      <pose>7 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_12</name>
+      <pose>7 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_13</name>
+      <pose>7 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_14</name>
+      <pose>7 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_15</name>
+      <pose>7 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_16</name>
+      <pose>7 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_17</name>
+      <pose>7 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_18</name>
+      <pose>7 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_19</name>
+      <pose>7 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_20</name>
+      <pose>7 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_21</name>
+      <pose>7 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_22</name>
+      <pose>7 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_23</name>
+      <pose>7 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_19_24</name>
+      <pose>7 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_20_0</name>
+      <pose>8 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_1</name>
+      <pose>8 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_2</name>
+      <pose>8 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_3</name>
+      <pose>8 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_4</name>
+      <pose>8 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_5</name>
+      <pose>8 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_6</name>
+      <pose>8 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_7</name>
+      <pose>8 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_8</name>
+      <pose>8 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_9</name>
+      <pose>8 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_10</name>
+      <pose>8 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_11</name>
+      <pose>8 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_12</name>
+      <pose>8 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_13</name>
+      <pose>8 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_14</name>
+      <pose>8 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_15</name>
+      <pose>8 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_16</name>
+      <pose>8 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_17</name>
+      <pose>8 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_18</name>
+      <pose>8 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_19</name>
+      <pose>8 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_20</name>
+      <pose>8 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_21</name>
+      <pose>8 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_22</name>
+      <pose>8 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_23</name>
+      <pose>8 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_20_24</name>
+      <pose>8 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_21_0</name>
+      <pose>9 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_1</name>
+      <pose>9 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_2</name>
+      <pose>9 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_3</name>
+      <pose>9 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_4</name>
+      <pose>9 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_5</name>
+      <pose>9 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_6</name>
+      <pose>9 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_7</name>
+      <pose>9 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_8</name>
+      <pose>9 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_9</name>
+      <pose>9 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_10</name>
+      <pose>9 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_11</name>
+      <pose>9 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_12</name>
+      <pose>9 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_13</name>
+      <pose>9 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_14</name>
+      <pose>9 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_15</name>
+      <pose>9 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_16</name>
+      <pose>9 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_17</name>
+      <pose>9 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_18</name>
+      <pose>9 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_19</name>
+      <pose>9 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_20</name>
+      <pose>9 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_21</name>
+      <pose>9 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_22</name>
+      <pose>9 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_23</name>
+      <pose>9 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_21_24</name>
+      <pose>9 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_22_0</name>
+      <pose>10 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_1</name>
+      <pose>10 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_2</name>
+      <pose>10 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_3</name>
+      <pose>10 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_4</name>
+      <pose>10 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_5</name>
+      <pose>10 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_6</name>
+      <pose>10 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_7</name>
+      <pose>10 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_8</name>
+      <pose>10 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_9</name>
+      <pose>10 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_10</name>
+      <pose>10 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_11</name>
+      <pose>10 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_12</name>
+      <pose>10 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_13</name>
+      <pose>10 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_14</name>
+      <pose>10 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_15</name>
+      <pose>10 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_16</name>
+      <pose>10 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_17</name>
+      <pose>10 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_18</name>
+      <pose>10 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_19</name>
+      <pose>10 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_20</name>
+      <pose>10 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_21</name>
+      <pose>10 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_22</name>
+      <pose>10 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_23</name>
+      <pose>10 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_22_24</name>
+      <pose>10 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_23_0</name>
+      <pose>11 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_1</name>
+      <pose>11 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_2</name>
+      <pose>11 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_3</name>
+      <pose>11 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_4</name>
+      <pose>11 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_5</name>
+      <pose>11 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_6</name>
+      <pose>11 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_7</name>
+      <pose>11 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_8</name>
+      <pose>11 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_9</name>
+      <pose>11 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_10</name>
+      <pose>11 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_11</name>
+      <pose>11 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_12</name>
+      <pose>11 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_13</name>
+      <pose>11 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_14</name>
+      <pose>11 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_15</name>
+      <pose>11 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_16</name>
+      <pose>11 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_17</name>
+      <pose>11 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_18</name>
+      <pose>11 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_19</name>
+      <pose>11 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_20</name>
+      <pose>11 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_21</name>
+      <pose>11 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_22</name>
+      <pose>11 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_23</name>
+      <pose>11 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_23_24</name>
+      <pose>11 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+w
+    <include>
+      <name>demo_actor_24_0</name>
+      <pose>12 -12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_1</name>
+      <pose>12 -11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_2</name>
+      <pose>12 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_3</name>
+      <pose>12 -9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_4</name>
+      <pose>12 -8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_5</name>
+      <pose>12 -7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_6</name>
+      <pose>12 -6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_7</name>
+      <pose>12 -5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_8</name>
+      <pose>12 -4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_9</name>
+      <pose>12 -3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_10</name>
+      <pose>12 -2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_11</name>
+      <pose>12 -1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_12</name>
+      <pose>12 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_13</name>
+      <pose>12 1 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_14</name>
+      <pose>12 2 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_15</name>
+      <pose>12 3 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_16</name>
+      <pose>12 4 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_17</name>
+      <pose>12 5 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_18</name>
+      <pose>12 6 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_19</name>
+      <pose>12 7 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_20</name>
+      <pose>12 8 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_21</name>
+      <pose>12 9 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_22</name>
+      <pose>12 10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_23</name>
+      <pose>12 11 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    <include>
+      <name>demo_actor_24_24</name>
+      <pose>12 12 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+  </world>
+</sdf>
