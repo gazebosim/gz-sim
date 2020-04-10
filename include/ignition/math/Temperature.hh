@@ -177,12 +177,12 @@ namespace ignition
       public: Temperature operator+(double _temp);
 
       /// \brief Addition operator.
-      /// \param[in] _temp Temperature object
-      /// \return Resulting temperature
+      /// \param[in] _temp Temperature object.
+      /// \return Resulting temperature.
       public: Temperature operator+(const Temperature &_temp);
 
       /// \brief Addition operator for double type.
-      /// \param[in] _t Temperature in kelvin.
+      /// \param[in] _t Temperature in Kelvin.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
       public: friend Temperature operator+(double _t, const Temperature &_temp)
@@ -211,7 +211,7 @@ namespace ignition
       public: Temperature operator-(const Temperature &_temp);
 
       /// \brief Subtraction operator for double type.
-      /// \param[in] _t Temperature in kelvin.
+      /// \param[in] _t Temperature in Kelvin.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
       public: friend Temperature operator-(double _t, const Temperature &_temp)
@@ -268,8 +268,8 @@ namespace ignition
       /// \return Resulting temperature.
       public: Temperature operator/(const Temperature &_temp);
 
-      /// \brief Division operator for double type..
-      /// \param[in] _t Temperature in kelvin.
+      /// \brief Division operator for double type.
+      /// \param[in] _t Temperature in Kelvin.
       /// \param[in] _temp Temperature object.
       /// \return Resulting temperature.
       public: friend Temperature operator/(double _t, const Temperature &_temp)
