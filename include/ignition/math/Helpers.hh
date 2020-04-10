@@ -240,39 +240,39 @@ namespace ignition
       return std::max(std::min(_v, _max), _min);
     }
 
-    /// \brief check if a float is NaN
-    /// \param[in] _v the value
-    /// \return true if _v is not a number, false otherwise
+    /// \brief Check if a float is NaN
+    /// \param[in] _v The value to check.
+    /// \return True if _v is not a number, false otherwise.
     inline bool isnan(float _v)
     {
       return (std::isnan)(_v);
     }
 
-    /// \brief check if a double is NaN
-    /// \param[in] _v the value
-    /// \return true if _v is not a number, false otherwise
+    /// \brief Check if a double is NaN.
+    /// \param[in] _v The value to check
+    /// \return True if _v is not a number, false otherwise.
     inline bool isnan(double _v)
     {
       return (std::isnan)(_v);
     }
 
-    /// \brief Fix a nan value.
+    /// \brief Fix a float NaN value.
     /// \param[in] _v Value to correct.
-    /// \return 0 if _v is NaN, _v otherwise.
+    /// \return 0 if _v is NaN or infinite, _v otherwise.
     inline float fixnan(float _v)
     {
       return isnan(_v) || std::isinf(_v) ? 0.0f : _v;
     }
 
-    /// \brief Fix a nan value.
+    /// \brief Fix a double NaN value.
     /// \param[in] _v Value to correct.
-    /// \return 0 if _v is NaN, _v otherwise.
+    /// \return 0 if _v is NaN or is infinite, _v otherwise.
     inline double fixnan(double _v)
     {
       return isnan(_v) || std::isinf(_v) ? 0.0 : _v;
     }
 
-    /// \brief Check if parameter is even.
+    /// \brief Check if an int is even.
     /// \param[in] _v Value to check.
     /// \return True if _v is even.
     inline bool isEven(const int _v)
@@ -280,7 +280,7 @@ namespace ignition
       return !(_v % 2);
     }
 
-    /// \brief Check if parameter is even.
+    /// \brief Check if an unsigned int is even.
     /// \param[in] _v Value to check.
     /// \return True if _v is even.
     inline bool isEven(const unsigned int _v)
@@ -288,7 +288,7 @@ namespace ignition
       return !(_v % 2);
     }
 
-    /// \brief Check if parameter is odd.
+    /// \brief Check if an int is odd.
     /// \param[in] _v Value to check.
     /// \return True if _v is odd.
     inline bool isOdd(const int _v)
@@ -296,7 +296,7 @@ namespace ignition
       return (_v % 2) != 0;
     }
 
-    /// \brief Check if parameter is odd.
+    /// \brief Check if an unsigned int is odd.
     /// \param[in] _v Value to check.
     /// \return True if _v is odd.
     inline bool isOdd(const unsigned int _v)
@@ -328,9 +328,9 @@ namespace ignition
       return sgn(_value);
     }
 
-    /// \brief get mean of vector of values
-    /// \param[in] _values the vector of values
-    /// \return the mean
+    /// \brief Get mean value in a vector of values
+    /// \param[in] _values The vector of values.
+    /// \return The mean value in the provided vector.
     template<typename T>
     inline T mean(const std::vector<T> &_values)
     {
@@ -340,9 +340,9 @@ namespace ignition
       return sum / _values.size();
     }
 
-    /// \brief get variance of vector of values
-    /// \param[in] _values the vector of values
-    /// \return the squared deviation
+    /// \brief Get the variance of a vector of values.
+    /// \param[in] _values The vector of values.
+    /// \return The squared deviation of the vector of values.
     template<typename T>
     inline T variance(const std::vector<T> &_values)
     {
@@ -354,9 +354,9 @@ namespace ignition
       return sum / _values.size();
     }
 
-    /// \brief get the maximum value of vector of values
-    /// \param[in] _values the vector of values
-    /// \return maximum
+    /// \brief Get the maximum value of vector of values.
+    /// \param[in] _values The vector of values.
+    /// \return Maximum value in the vector.
     template<typename T>
     inline T max(const std::vector<T> &_values)
     {
@@ -367,9 +367,9 @@ namespace ignition
       return max;
     }
 
-    /// \brief get the minimum value of vector of values
-    /// \param[in] _values the vector of values
-    /// \return minimum
+    /// \brief Get the minimum value of vector of values.
+    /// \param[in] _values The vector of values.
+    /// \return Minimum value in the vector.
     template<typename T>
     inline T min(const std::vector<T> &_values)
     {
@@ -380,10 +380,11 @@ namespace ignition
       return min;
     }
 
-    /// \brief check if two values are equal, within a tolerance
-    /// \param[in] _a the first value
-    /// \param[in] _b the second value
-    /// \param[in] _epsilon the tolerance
+    /// \brief Check if two values are equal, within a tolerance.
+    /// \param[in] _a The first value.
+    /// \param[in] _b The second value.
+    /// \param[in] _epsilon The tolerance
+    /// \return True if the two values fall within the given tolerance.
     template<typename T>
     inline bool equal(const T &_a, const T &_b,
                       const T &_epsilon = T(1e-6))
@@ -392,10 +393,11 @@ namespace ignition
       return diff <= _epsilon;
     }
 
-    /// \brief inequality test, within a tolerance
-    /// \param[in] _a the first value
-    /// \param[in] _b the second value
-    /// \param[in] _epsilon the tolerance
+    /// \brief Less than or near test, within a tolerance.
+    /// \param[in] _a The first value.
+    /// \param[in] _b The second value.
+    /// \param[in] _epsilon The tolerance.
+    /// \return True if _a < _b + _tol.
     template<typename T>
     inline bool lessOrNearEqual(const T &_a, const T &_b,
                             const T &_epsilon = 1e-6)
@@ -403,10 +405,11 @@ namespace ignition
       return _a < _b + _epsilon;
     }
 
-    /// \brief inequality test, within a tolerance
-    /// \param[in] _a the first value
-    /// \param[in] _b the second value
-    /// \param[in] _epsilon the tolerance
+    /// \brief Greater than or near test, within a tolerance.
+    /// \param[in] _a The first value.
+    /// \param[in] _b The second value.
+    /// \param[in] _epsilon The tolerance.
+    /// \return True if _a > _b - _epsilon.
     template<typename T>
     inline bool greaterOrNearEqual(const T &_a, const T &_b,
                                const T &_epsilon = 1e-6)
@@ -414,10 +417,10 @@ namespace ignition
       return _a > _b - _epsilon;
     }
 
-    /// \brief get value at a specified precision
-    /// \param[in] _a the number
-    /// \param[in] _precision the precision
-    /// \return the value for the specified precision
+    /// \brief Get the value at a specified precision.
+    /// \param[in] _a The number.
+    /// \param[in] _precision The precision.
+    /// \return The value for the specified precision.
     template<typename T>
     inline T precision(const T &_a, const unsigned int &_precision)
     {
@@ -425,9 +428,11 @@ namespace ignition
       return static_cast<T>(std::round(_a * p) / p);
     }
 
-    /// \brief Sort two numbers, such that _a <= _b
-    /// \param[out] _a the first number
-    /// \param[out] _b the second number
+    /// \brief Sort two numbers, such that _a <= _b.
+    /// \param[in, out] _a The first number. This variable will contain the
+    /// lower of the two values after this function completes.
+    /// \param[in, out] _b The second number. This variable will contain the
+    /// higher of the two values after this function completes.
     template<typename T>
     inline void sort2(T &_a, T &_b)
     {
@@ -436,10 +441,13 @@ namespace ignition
         swap(_a, _b);
     }
 
-    /// \brief Sort three numbers, such that _a <= _b <= _c
-    /// \param[out] _a the first number
-    /// \param[out] _b the second number
-    /// \param[out] _c the third number
+    /// \brief Sort three numbers, such that _a <= _b <= _c.
+    /// \param[in,out] _a The first number. This variable will contain the
+    /// lowest of the three values after this function completes.
+    /// \param[in,out] _b The second number. This variable will contain the
+    /// middle of the three values after this function completes.
+    /// \param[in,out] _c The third number. This variable will contain the
+    /// highest of the three values after this function completes.
     template<typename T>
     inline void sort3(T &_a, T &_b, T &_c)
     {
@@ -451,18 +459,18 @@ namespace ignition
       sort2(_a, _b);
     }
 
-    /// \brief Is this a power of 2?
-    /// \param[in] _x the number
-    /// \return true if _x is a power of 2, false otherwise
+    /// \brief Is the parameter a power of 2?
+    /// \param[in] _x The number to check.
+    /// \return True if _x is a power of 2, false otherwise.
     inline bool isPowerOfTwo(unsigned int _x)
     {
       return ((_x != 0) && ((_x & (~_x + 1)) == _x));
     }
 
-    /// \brief Get the smallest power of two that is greater or equal to
-    /// a given value
-    /// \param[in] _x the number
-    /// \return the same value if _x is already a power of two. Otherwise,
+    /// \brief Get the smallest power of two that is greater than or equal to
+    /// a given value.
+    /// \param[in] _x The value which marks the lower bound of the result.
+    /// \return The same value if _x is already a power of two. Otherwise,
     /// it returns the smallest power of two that is greater than _x
     inline unsigned int roundUpPowerOfTwo(unsigned int _x)
     {
@@ -505,9 +513,9 @@ namespace ignition
         return _num + _multiple - remainder;
     }
 
-    /// \brief parse string into an integer
-    /// \param[in] _input the string
-    /// \return an integer, 0 or 0 and a message in the error stream
+    /// \brief Parse string into an integer.
+    /// \param[in] _input The input string.
+    /// \return An integer, or NAN_I if unable to parse the input.
     inline int parseInt(const std::string &_input)
     {
       // Return NAN_I if it is empty
@@ -533,10 +541,10 @@ namespace ignition
       }
     }
 
-    /// \brief parse string into float
-    /// \param _input the string
-    /// \return a floating point number (can be NaN) or 0 with a message in the
-    /// error stream
+    /// \brief parse string into float.
+    /// \param [in] _input The string.
+    /// \return A floating point number (can be NaN) or NAN_D if the
+    /// _input could not be parsed.
     inline double parseFloat(const std::string &_input)
     {
       // Return NAN_D if it is empty
@@ -588,7 +596,7 @@ namespace ignition
 #endif
 
     /// \brief A pairing function that maps two values to a unique third
-    /// value. This is an implement of Szudzik's function.
+    /// value. This is an implementation of Szudzik's function.
     /// \param[in] _a First value, must be a non-negative integer. On
     /// Windows this value is uint16_t. On Linux/OSX this value is uint32_t.
     /// \param[in] _b Second value, must be a non-negative integer. On

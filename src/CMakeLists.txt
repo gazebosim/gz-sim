@@ -24,6 +24,7 @@ if (SWIG_FOUND)
     ruby
     Angle
     GaussMarkovProcess
+    Helpers
     Matrix3
     Pose3
     Quaternion

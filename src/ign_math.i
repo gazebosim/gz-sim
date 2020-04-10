@@ -1,4 +1,5 @@
 %include "Angle.i"
+%include "Helpers.i"
 %include "GaussMarkovProcess.i"
 %include "Matrix3.i"
 %include "Pose3.i"

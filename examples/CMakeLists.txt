@@ -13,6 +13,9 @@ target_link_libraries(gauss_markov_process ignition-math${IGN_MATH_VER}::ignitio
 add_executable(graph_example graph_example.cc)
 target_link_libraries(graph_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
+add_executable(helpers_example helpers_example.cc)
+target_link_libraries(helpers_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
+
 add_executable(matrix3_example matrix3_example.cc)
 target_link_libraries(matrix3_example ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER})
 
