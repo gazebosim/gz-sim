@@ -5,6 +5,18 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 3.x to 4.x
+
+* The `RenderUtil::SetEnabledSensors` callback in gazebo rendering has a new
+  required function argument for the Entity of the sensor.
+    * ***Removed***
+      `public: void SetEnableSensors(bool, std::function<
+          std::string(const sdf::Sensor &, const std::string &)>)`
+    * ***Replacement***
+      `public: void SetEnableSensors(bool, std::function<
+          std::string(const gazebo::Entity &,
+          const sdf::Sensor &, const std::string &)>)`
+
 ## Ignition Gazebo 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.
