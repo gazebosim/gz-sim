@@ -490,7 +490,6 @@ void RenderUtil::Update()
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
       }
-
     }
     else
     {
