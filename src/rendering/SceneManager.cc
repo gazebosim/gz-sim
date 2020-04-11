@@ -606,12 +606,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                 << "]" << std::endl;
         return nullptr;
       }
-      // collada loader loads animations with name that defaults to
-      // "animation0", "animation"1", etc causing conflicts in names
-      // when multiple animations are added to meshSkel.
-      // So make sure to give it a unique name
-      firstAnim->SetName(animName);
-
       // do not add duplicate animation
       // start checking from index 1 since index 0 is reserved by skin mesh
       bool addAnim = true;
@@ -624,7 +618,36 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         }
       }
       if (addAnim)
-        meshSkel->AddAnimation(firstAnim);
+      {
+        // collada loader loads animations with name that defaults to
+        // "animation0", "animation"1", etc causing conflicts in names
+        // when multiple animations are added to meshSkel.
+        // We have to clone the skeleton animation before giving it a unique
+        // name otherwise if mulitple instances of the same animation were added
+        // to meshSkel, changing the name that would also change the name of
+        // other instances of the animation
+        // todo(anyone) cloning efficient. The proper way is probably to update
+        // ign-rendering to allow it to load multiple animations of the same
+        // name
+        common::SkeletonAnimation *skelAnim =
+            new common::SkeletonAnimation(animName);
+        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
+        {
+          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
+          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
+              node->Name());
+          if (!nodeAnim)
+            continue;
+          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
+          {
+            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
+            skelAnim->AddKeyFrame(
+                node->Name(), keyFrame.first, keyFrame.second);
+          }
+        }
+
+        meshSkel->AddAnimation(skelAnim);
+      }
       mapAnimNameId[animName] = numAnims++;
     }
   }
@@ -935,10 +958,12 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
   animData.animationName = skel->Animation(animIndex)->Name();
 
   std::string rootNodeName = skel->RootNode()->Name();
+  double distance = animData.trajectory.DistanceSoFar(animData.time);
   if (animData.followTrajectory)
   {
     math::Matrix4d rawFrame;
-    if (animData.trajectory.Waypoints()->InterpolateX())
+    if (animData.trajectory.Waypoints()->InterpolateX() &&
+        !math::equal(distance, 0.0))
     {
       // logic here is mostly taken from
       // common::SkeletonAnimation::PoseAtX
@@ -950,7 +975,6 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
       math::Matrix4d lastPos = rootNode->KeyFrame(
           rootNode->FrameCount() - 1).second;
       math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
-      double distance = animData.trajectory.DistanceSoFar(animData.time);
       double x = distance;
       if (x < firstPos.Translation().X())
         x = firstPos.Translation().X();
@@ -1034,9 +1058,13 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
 
     if (followTraj)
     {
-      if (traj.Waypoints()->InterpolateX())
+      double distance = traj.DistanceSoFar(time);
+      // check interpolate x.
+      // todo(anyone) there is a problem with PoseAtX that causes
+      // it to go into an infinit loop if the trajectory covers zero distance
+      // e.g. a person standing that does not move in x direction
+      if (traj.Waypoints()->InterpolateX() && !math::equal(distance, 0.0))
       {
-        double distance = traj.DistanceSoFar(time);
         rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
                                         skel->RootNode()->Name());
       }
