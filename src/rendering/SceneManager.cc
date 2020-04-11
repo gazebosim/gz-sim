@@ -975,7 +975,6 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
         std::chrono::steady_clock::duration>(
         std::chrono::duration<double>(time));
     }
-    std::string skinName = skel->NodeNameAnimToSkin(animIndex, rootNodeName);
     math::Matrix4d skinTf = skel->AlignTranslation(animIndex, rootNodeName)
             * rawFrame * skel->AlignRotation(animIndex, rootNodeName);
 
