@@ -687,9 +687,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
         if (animation->InterpolateX())
         {
-          // verify and set interpolattion
           // warn if no x displacement can be interpolated
-          // warn once per mesh
+          // warn only once per mesh
           static std::set<std::string> animInterpolateCheck;
           if (animInterpolateCheck.count(animation->Filename()) == 0)
           {
@@ -708,8 +707,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
             }
             else
             {
-              ignwarn << "Animation has x displacement. "
-                      << "Ignoring <interpolate_x> for animation in '"
+              ignwarn << "Animation has no x displacement. "
+                      << "Ignoring <interpolate_x> for the animation in '"
                       << animation->Filename() << "'." << std::endl;
             }
             animInterpolateCheck.insert(animation->Filename());
