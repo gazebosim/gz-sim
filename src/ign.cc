@@ -55,7 +55,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
-    const char *_playback, const char *_file)
+    const char *_playback, const char *_physicsEngine, const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -262,6 +262,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       serverConfig.SetLogPlaybackPath(ignition::common::absPath(
         std::string(_playback)));
     }
+  }
+
+  if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
+  {
+    serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
   // Create the Gazebo server
