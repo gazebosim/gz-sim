@@ -46,15 +46,31 @@ void CommandActor::Configure(const ignition::gazebo::Entity &_entity,
   ignmsg << "Command actor for entity [" << _entity << "]" << std::endl;
 
   auto sdfClone = _sdf->Clone();
+
+  // Origin demo
   for (auto originElem = sdfClone->GetElement("origin");
        originElem != nullptr;
-       originElem = originElem->GetNextElement())
+       originElem = originElem->GetNextElement("origin"))
   {
     auto pose = originElem->Get<ignition::math::Pose3d>("pose");
     auto time = originElem->Get<int>("time");
 
     this->origins[time] = pose;
     ignmsg << "Stored origin change at [" << time << "] seconds to pose ["
+           << pose << "]" << std::endl;
+  }
+
+  // Trajectory pose demo
+  for (auto trajPoseElem = sdfClone->GetElement("trajectory_pose");
+       trajPoseElem != nullptr;
+       trajPoseElem = trajPoseElem->GetNextElement("trajectory_pose"))
+  {
+    auto pose = trajPoseElem->Get<ignition::math::Pose3d>("pose");
+    auto time = trajPoseElem->Get<int>("time");
+
+    this->trajPoses[time] = pose;
+    ignmsg << "Stored trajectory pose change at [" << time
+           << "] seconds to pose ["
            << pose << "]" << std::endl;
   }
 }
@@ -66,10 +82,9 @@ void CommandActor::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   auto sec = std::chrono::duration_cast<std::chrono::seconds>(
       _info.simTime).count();
 
-  if (sec <= this->lastOriginChange)
-    return;
-
-  if (this->origins.find(sec) != this->origins.end())
+  // Update origins
+  if (sec > this->lastOriginChange &&
+      this->origins.find(sec) != this->origins.end())
   {
     auto poseComp = _ecm.Component<ignition::gazebo::components::Pose>(
         this->entity);
@@ -83,5 +98,29 @@ void CommandActor::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignmsg << "Changing origin to [" << this->origins[sec] << "]" << std::endl;
 
     this->lastOriginChange = sec;
+  }
+
+  // Update trajectory poses
+  if (sec > this->lastTrajPoseChange &&
+      this->trajPoses.find(sec) != this->trajPoses.end())
+  {
+    auto trajPoseComp =
+        _ecm.Component<ignition::gazebo::components::TrajectoryPose>(
+        this->entity);
+    if (nullptr == trajPoseComp)
+    {
+      _ecm.CreateComponent(this->entity,
+          ignition::gazebo::components::TrajectoryPose(this->trajPoses[sec]));
+    }
+    else
+    {
+      *trajPoseComp =
+          ignition::gazebo::components::TrajectoryPose(this->trajPoses[sec]);
+    }
+
+    ignmsg << "Changing trajectory pose to [" << this->trajPoses[sec] << "]"
+           << std::endl;
+
+    this->lastTrajPoseChange = sec;
   }
 }

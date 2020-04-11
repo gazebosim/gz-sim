@@ -45,6 +45,8 @@ using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
+using TP = std::chrono::steady_clock::time_point;
+
 /// \brief Private data class.
 class ignition::gazebo::SceneManagerPrivate
 {
@@ -74,6 +76,14 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::map<Entity, rendering::SensorPtr> sensors;
+
+  /// \brief Helper function to compute actor trajectory at specified tiime
+  /// \param[in] _id Actor entity's unique id
+  /// \param[in] _time Simulation time
+  /// \return AnimationUpdateData with trajectory related fields filled. It
+  /// also sets the time point in which the animation should be played
+  public: AnimationUpdateData ActorTrajectoryAt(
+      Entity _id, const std::chrono::steady_clock::duration &_time) const;
 };
 
 
@@ -526,6 +536,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
+  // todo(anyone) create a copy of meshSkel so we don't modify the original
+  // when adding animations!
   common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
   if (nullptr == meshSkel)
   {
@@ -534,26 +546,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
-  if (nullptr == actorMesh)
-  {
-    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
   unsigned int numAnims = 0;
   std::map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
-
-  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
-  actorVisual->SetLocalPose(_actor.RawPose());
-  actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
-  actorVisual->SetUserData("pause-update", static_cast<int>(0));
-  actorVisual->AddGeometry(actorMesh);
-
-  this->dataPtr->visuals[_id] = actorVisual;
-  this->dataPtr->actors[_id] = actorMesh;
 
   // Load all animations
   for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
@@ -562,6 +557,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     std::string animFilename = asFullPath(
         _actor.AnimationByIndex(i)->Filename(),
         _actor.AnimationByIndex(i)->FilePath());
+
     double animScale = _actor.AnimationByIndex(i)->Scale();
 
     std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
@@ -571,21 +567,38 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
     if (extension == "bvh")
     {
-      meshSkel->AddBvhAnimation(animFilename, animScale);
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animFilename)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+        meshSkel->AddBvhAnimation(animFilename, animScale);
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")
     {
-      common::MeshManager::Instance()->Load(animFilename);
-      auto animMesh = common::MeshManager::Instance()->MeshByName(animFilename);
+      // Load the mesh if it has not been loaded before
+      const common::Mesh *animMesh = nullptr;
+      if (!meshManager->HasMesh(animFilename))
+      {
+        animMesh = meshManager->Load(animFilename);
+        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
+        {
+          ignwarn << "File [" << animFilename
+              << "] has more than one animation, but only the 1st one is used."
+              << std::endl;
+        }
+      }
+      animMesh = meshManager->MeshByName(animFilename);
 
       // add the first animation
-      if (animMesh->MeshSkeleton()->AnimationCount() > 1)
-      {
-        ignwarn << "File [" << animFilename
-            << "] has more than one animation, but only the 1st one is used."
-            << std::endl;
-      }
       auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
       if (nullptr == firstAnim)
       {
@@ -593,13 +606,29 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                 << "]" << std::endl;
         return nullptr;
       }
-      meshSkel->AddAnimation(firstAnim);
+      // collada loader loads animations with name that defaults to
+      // "animation0", "animation"1", etc causing conflicts in names
+      // when multiple animations are added to meshSkel.
+      // So make sure to give it a unique name
+      firstAnim->SetName(animName);
+
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animName)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+        meshSkel->AddAnimation(firstAnim);
       mapAnimNameId[animName] = numAnims++;
     }
   }
   this->dataPtr->actorSkeletons[_id] = meshSkel;
-
-  using TP = std::chrono::steady_clock::time_point;
 
   std::vector<common::TrajectoryInfo> trajectories;
   if (_actor.TrajectoryCount() != 0)
@@ -681,6 +710,26 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   }
 
   this->dataPtr->actorTrajectories[_id] = trajectories;
+
+  // create mesh with animations
+  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(
+      descriptor);
+  if (nullptr == actorMesh)
+  {
+    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
+  actorVisual->SetLocalPose(_actor.RawPose());
+  actorVisual->AddGeometry(actorMesh);
+  actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
+  actorVisual->SetUserData("pause-update", static_cast<int>(0));
+
+  this->dataPtr->visuals[_id] = actorVisual;
+  this->dataPtr->actors[_id] = actorMesh;
+
 
   if (parent)
     parent->AddChild(actorVisual);
@@ -857,74 +906,120 @@ rendering::MeshPtr SceneManager::ActorMeshById(Entity _id) const
 }
 
 /////////////////////////////////////////////////
+common::SkeletonPtr SceneManager::ActorSkeletonById(Entity _id) const
+{
+  auto it = this->dataPtr->actorSkeletons.find(_id);
+  if (it != this->dataPtr->actorSkeletons.end())
+    return it->second;
+
+  return common::SkeletonPtr();
+}
+
+/////////////////////////////////////////////////
+AnimationUpdateData SceneManager::ActorAnimationAt(
+    Entity _id, std::chrono::steady_clock::duration _time) const
+{
+  AnimationUpdateData animData;
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
+    return animData;
+
+  auto skelIt = this->dataPtr->actorSkeletons.find(_id);
+  if (skelIt == this->dataPtr->actorSkeletons.end())
+    return animData;
+
+  animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
+
+  auto skel = skelIt->second;
+  unsigned int animIndex = animData.trajectory.AnimIndex();
+  animData.animationName = skel->Animation(animIndex)->Name();
+
+  std::string rootNodeName = skel->RootNode()->Name();
+  if (animData.followTrajectory)
+  {
+    math::Matrix4d rawFrame;
+    if (animData.trajectory.Waypoints()->InterpolateX())
+    {
+      // logic here is mostly taken from
+      // common::SkeletonAnimation::PoseAtX
+      // We should consider refactoring part of that function to return
+      // PoseAtX for only one skeleton node in addition to the current
+      // function that computes PoseAtX for all skeleton nodes
+      common::NodeAnimation *rootNode =
+          skel->Animation(animIndex)->NodeAnimationByName(rootNodeName);
+      math::Matrix4d lastPos = rootNode->KeyFrame(
+          rootNode->FrameCount() - 1).second;
+      math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+      double distance = animData.trajectory.DistanceSoFar(animData.time);
+      double x = distance;
+      if (x < firstPos.Translation().X())
+        x = firstPos.Translation().X();
+      double lastX = lastPos.Translation().X();
+      if (x > lastX && !animData.loop)
+        x = lastX;
+      while (x > lastX)
+        x -= lastX;
+
+      // update animation timepoint for root node
+      // this should be the time that is used in the
+      // SkeletonAnimationEnabled call
+      double time = rootNode->TimeAtX(x);
+
+      // get raw skeleton transform for root node. Needed to keep skeleton
+      // animation in sync with trajectory animation
+      rawFrame = rootNode->FrameAt(time, animData.loop);
+      animData.time = std::chrono::duration_cast<
+        std::chrono::steady_clock::duration>(
+        std::chrono::duration<double>(time));
+    }
+    else
+    {
+      double timeSeconds = std::chrono::duration<double>(animData.time).count();
+      rawFrame = skel->Animation(animIndex)->NodePoseAt(
+          rootNodeName, timeSeconds, animData.loop);
+    }
+
+    math::Matrix4d skinTf = skel->AlignTranslation(animIndex, rootNodeName)
+            * rawFrame * skel->AlignRotation(animIndex, rootNodeName);
+
+    // zero out translation since we only need rotation to sync with actor
+    // trajectory animation
+    skinTf.SetTranslation(math::Vector3d::Zero);
+    animData.rootTransform = skinTf;
+  }
+
+  return animData;
+}
+
+/////////////////////////////////////////////////
 std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
+    Entity _id, std::chrono::steady_clock::duration _time) const
+{
+  return this->ActorSkeletonTransformsAt(_id, _time);
+}
+
+/////////////////////////////////////////////////
+std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
     Entity _id, std::chrono::steady_clock::duration _time) const
 {
   std::map<std::string, math::Matrix4d> allFrames;
 
-  if (this->dataPtr->actorTrajectories.find(_id)
-      == this->dataPtr->actorTrajectories.end())
+  auto trajIt = this->dataPtr->actorTrajectories.find(_id);
+  if (trajIt == this->dataPtr->actorTrajectories.end())
   {
     return allFrames;
   }
 
-  auto trajs = this->dataPtr->actorTrajectories[_id];
-  bool followTraj = true;
-  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
-  {
-    followTraj = false;
-  }
+  // get the trajectory at input time
+  AnimationUpdateData animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
+  bool followTraj = animData.followTrajectory;
+  bool noLoop = animData.loop;
+  common::TrajectoryInfo traj = animData.trajectory;
+  auto time = animData.time;
 
-  auto firstTraj = trajs.begin();
-  auto poseFrame = common::PoseKeyFrame(0.0);
-
-  common::TrajectoryInfo traj = trajs[0];
-
-  using TP = std::chrono::steady_clock::time_point;
-  auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
-
-  // delay start
-  if (_time < (trajs.begin()->StartTime() - TP(0ms)))
-  {
-    _time = std::chrono::steady_clock::duration(0);
-  }
-  else
-  {
-    _time -= trajs.begin()->StartTime() - TP(0ms);
-  }
-
-  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
-            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
-
-  if (_time >= totalTime && noLoop)
-  {
-    _time = totalTime;
-  }
-
-  if (!noLoop || _time <= totalTime)
-  {
-    while (_time > totalTime)
-    {
-      _time = _time - totalTime;
-    }
-    if (followTraj)
-    {
-      for (auto &trajectory : trajs)
-      {
-        if (trajectory.StartTime() - firstTraj->StartTime() <= _time
-            && trajectory.EndTime() - firstTraj->StartTime() >= _time)
-        {
-          traj = trajectory;
-          _time -= traj.StartTime() - firstTraj->StartTime();
-
-          traj.Waypoints()->Time(std::chrono::duration<double>(_time).count());
-          traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
-          break;
-        }
-      }
-    }
-  }
-
+  common::PoseKeyFrame poseFrame(0.0);
+  if (followTraj)
+    traj.Waypoints()->InterpolatedKeyFrame(poseFrame);
   math::Matrix4d rootTf(poseFrame.Rotation());
   rootTf.SetTranslation(poseFrame.Translation());
 
@@ -935,13 +1030,13 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorMeshAnimationAt(
     unsigned int animIndex = traj.AnimIndex();
     std::map<std::string, math::Matrix4d> rawFrames;
 
-    double timeSeconds = std::chrono::duration<double>(_time).count();
+    double timeSeconds = std::chrono::duration<double>(time).count();
 
     if (followTraj)
     {
       if (traj.Waypoints()->InterpolateX())
       {
-        double distance = traj.DistanceSoFar(_time);
+        double distance = traj.DistanceSoFar(time);
         rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
                                         skel->RootNode()->Name());
       }
@@ -1083,4 +1178,74 @@ Entity SceneManager::EntityFromNode(const rendering::NodePtr &_node) const
   }
 
   return kNullEntity;
+}
+
+/////////////////////////////////////////////////
+AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
+    Entity _id,
+    const std::chrono::steady_clock::duration &_time) const
+{
+  AnimationUpdateData animData;
+  auto trajIt = this->actorTrajectories.find(_id);
+  if (trajIt == this->actorTrajectories.end())
+    return animData;
+
+  auto trajs = trajIt->second;
+  bool followTraj = true;
+  if (1 == trajs.size() && nullptr == trajs[0].Waypoints())
+    followTraj = false;
+
+  auto firstTraj = trajs.begin();
+  common::TrajectoryInfo traj = trajs[0];
+  auto totalTime = trajs.rbegin()->EndTime() - trajs.begin()->StartTime();
+
+  // delay start
+  auto time = _time;
+  if (time < (trajs.begin()->StartTime() - TP(0ms)))
+  {
+    time = std::chrono::steady_clock::duration(0);
+  }
+  else
+  {
+    time -= trajs.begin()->StartTime() - TP(0ms);
+  }
+
+  bool noLoop = trajs.rbegin()->StartTime() != TP(0ms)
+            && trajs.rbegin()->StartTime() == trajs.rbegin()->EndTime();
+
+  if (time >= totalTime && noLoop)
+  {
+    time = totalTime;
+  }
+
+  if (!noLoop || time <= totalTime)
+  {
+    while (time > totalTime)
+    {
+      time = time - totalTime;
+    }
+    if (followTraj)
+    {
+      for (auto &trajectory : trajs)
+      {
+        if (trajectory.StartTime() - firstTraj->StartTime() <= time
+            && trajectory.EndTime() - firstTraj->StartTime() >= time)
+        {
+          traj = trajectory;
+          time -= traj.StartTime() - firstTraj->StartTime();
+
+          traj.Waypoints()->Time(std::chrono::duration<double>(time).count());
+          break;
+        }
+      }
+    }
+  }
+
+  // return time;
+  animData.time = time;
+  animData.loop = !noLoop;
+  animData.followTrajectory = followTraj;
+  animData.trajectory = traj;
+  animData.valid = true;
+  return animData;
 }
