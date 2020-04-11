@@ -684,7 +684,37 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         trajInfo.SetWaypoints(waypoints);
         // Animations are offset by 1 because index 0 is taken by the mesh name
         auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
-        trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
+
+        if (animation->InterpolateX())
+        {
+          // verify and set interpolattion
+          // warn if no x displacement can be interpolated
+          // warn once per mesh
+          static std::set<std::string> animInterpolateCheck;
+          if (animInterpolateCheck.count(animation->Filename()) == 0)
+          {
+            std::string rootNodeName = meshSkel->RootNode()->Name();
+            common::SkeletonAnimation *skelAnim =
+                meshSkel->Animation(trajInfo.AnimIndex());
+            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
+                rootNodeName);
+            math::Matrix4d lastPos = rootNode->KeyFrame(
+                rootNode->FrameCount() - 1).second;
+            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+            if (!math::equal(firstPos.Translation().X(),
+                lastPos.Translation().X()))
+            {
+              trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
+            }
+            else
+            {
+              ignwarn << "Animation has x displacement. "
+                      << "Ignoring <interpolate_x> for animation in '"
+                      << animation->Filename() << "'." << std::endl;
+            }
+            animInterpolateCheck.insert(animation->Filename());
+          }
+        }
       }
       else
       {
@@ -1061,7 +1091,7 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
       double distance = traj.DistanceSoFar(time);
       // check interpolate x.
       // todo(anyone) there is a problem with PoseAtX that causes
-      // it to go into an infinite loop if the trajectory covers zero distance
+      // it to go into an infinite loop if the animation has no x displacement
       // e.g. a person standing that does not move in x direction
       if (traj.Waypoints()->InterpolateX() && !math::equal(distance, 0.0))
       {
