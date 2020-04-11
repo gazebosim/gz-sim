@@ -626,9 +626,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         // name otherwise if mulitple instances of the same animation were added
         // to meshSkel, changing the name that would also change the name of
         // other instances of the animation
-        // todo(anyone) cloning efficient. The proper way is probably to update
-        // ign-rendering to allow it to load multiple animations of the same
-        // name
+        // todo(anyone) cloning is inefficient. The proper way is probably to
+        // update ign-rendering to allow it to load multiple animations of the
+        // same name
         common::SkeletonAnimation *skelAnim =
             new common::SkeletonAnimation(animName);
         for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
@@ -1061,7 +1061,7 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
       double distance = traj.DistanceSoFar(time);
       // check interpolate x.
       // todo(anyone) there is a problem with PoseAtX that causes
-      // it to go into an infinit loop if the trajectory covers zero distance
+      // it to go into an infinite loop if the trajectory covers zero distance
       // e.g. a person standing that does not move in x direction
       if (traj.Waypoints()->InterpolateX() && !math::equal(distance, 0.0))
       {
