@@ -7,6 +7,9 @@
 1. Use interpolate\_x sdf parameter for actor animations
     * [Pull Request 536](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/536)
 
+1. Actor skeleton animation (auto update mode)
+    * [Pull Request 579](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/579)
+
 1. Added support for removing sensors at runtime
     * [Pull Request 558](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/558)
 
