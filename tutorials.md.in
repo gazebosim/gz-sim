@@ -12,6 +12,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage levels "Levels": Load entities on demand in large environments
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes
 * \subpage migrationplugins "Migration from Gazebo-classic: plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
+* \subpage resources "Finding resources": The different ways in which Ignition looks for files
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage battery "Battery": Keep track of battery charge on robot models
 * \subpage debugging "Debugging": Information about debugging Gazebo.
