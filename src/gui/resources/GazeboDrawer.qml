@@ -17,7 +17,8 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs 1.1
+import QtQuick.Layouts 1.3
 
 /**
  * Custom drawer
@@ -27,7 +28,16 @@ Rectangle {
   anchors.fill: parent
   color: Material.background
 
-  property string saveWorldName: "";
+  // Regex that matches a file:/// style absolute path, with a sdf extension
+  property var fileValidator: /^file:\/\/(\/.+)+\.sdf$/;
+
+  property bool lastSaveSuccess: false
+
+  QtObject {
+    id: sdfGenConfig
+    property bool expandIncludeTags
+    property bool saveFuelModelVersion
+  }
 
   /**
    * Callback for list items
@@ -39,13 +49,13 @@ Rectangle {
         TmpIface.OnNewWorld();
         break
       case "saveWorld":
-        if (saveWorldName.length !== 0)
-          TmpIface.OnSaveWorldAs(saveWorldName)
+        if (lastSaveSuccess)
+          GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
         else
-          saveWorldDialog.open();
+          sdfGenConfigDialog.open();
         break
       case "saveWorldAs":
-        saveWorldDialog.open();
+        sdfGenConfigDialog.open();
         break
       case "loadWorld":
         loadWorldDialog.open();
@@ -70,7 +80,7 @@ Rectangle {
       title: "Load world"
       action: "loadWorld"
       type: "world"
-    }
+    }*/
     ListElement {
       title: "Save world"
       action: "saveWorld"
@@ -81,7 +91,7 @@ Rectangle {
       title: "Save world as..."
       action: "saveWorldAs"
       type: "world"
-    }*/
+    }
 
     // Actions provided by Ignition GUI, with custom titles
     ListElement {
@@ -147,12 +157,120 @@ Rectangle {
     id: saveWorldDialog
     title: "Save world"
     folder: shortcuts.home
-    nameFilters: [ "World files (*.world)" ]
+    nameFilters: [ "World files (*.sdf)" ]
     selectMultiple: false
     selectExisting: false
     onAccepted: {
-      saveWorldName = fileUrl;
-      TmpIface.OnSaveWorldAs(fileUrl);
+      saveWorldFileText.text = fileUrl;
+    }
+  }
+
+  /**
+   * Dialog with configurations for SDF generation
+   */
+  Dialog {
+    id: sdfGenConfigDialog
+    modal: true
+    focus: true
+    title: "File save options"
+    parent: ApplicationWindow.overlay
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    onAccepted: {
+      GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig);
+    }
+    Component.onCompleted: {
+      dialogButtons.standardButton(Dialog.Ok).enabled = false
+    }
+    footer: DialogButtonBox {
+      id: dialogButtons
+      standardButtons: Dialog.Ok | Dialog.Cancel
+    }
+    contentItem: ColumnLayout {
+      id: content
+
+      RowLayout {
+        Layout.fillWidth: true
+        Label {
+          text: "Location:"
+        }
+        TextField {
+          id: saveWorldFileText
+          text: "file:///"
+          selectByMouse: true
+          validator: RegExpValidator {
+            regExp: fileValidator
+          }
+          onTextChanged: {
+            var valid = saveWorldFileText.text.match(fileValidator)
+            dialogButtons.standardButton(Dialog.Ok).enabled = valid
+          }
+        }
+        Button {
+          text: "Browse"
+          onClicked: {
+            saveWorldDialog.open()
+          }
+        }
+      }
+
+      CheckBox {
+        text: "Expand include tags"
+        Layout.fillWidth: true
+        checked: sdfGenConfig.expandIncludeTags
+        onClicked: {
+          sdfGenConfig.expandIncludeTags = checked
+        }
+      }
+      CheckBox {
+        text: "Save Fuel model versions"
+        Layout.fillWidth: true
+        checked: sdfGenConfig.saveFuelModelVersion
+        onClicked: {
+          sdfGenConfig.saveFuelModelVersion = checked
+        }
+      }
+    }
+  }
+
+  Connections {
+    target: GuiFileHandler
+    onNewSaveWorldStatus: {
+      console.log(_msg);
+      lastSaveSuccess = _status
+      if (!_status) {
+        fileSaveFailure.text =  _msg;
+        fileSaveFailure.open();
+      }
+    }
+  }
+
+  /**
+   * Message dialogs for failure messages emitted by GuiFileHandler
+   */
+  Dialog {
+    id: fileSaveFailure
+    property alias text: messageText.text
+    title: "Error when saving world"
+
+    modal: true
+    focus: true
+    parent: ApplicationWindow.overlay
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    standardButtons: StandardButton.Cancel | StandardButton.Retry
+
+    Label {
+      anchors.fill: parent
+      id: messageText
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignVCenter
+    }
+
+    onAccepted: {
+      onAction("saveWorldAs")
     }
   }
 }
