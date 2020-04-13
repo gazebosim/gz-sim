@@ -1,5 +1,6 @@
 set (gui_sources
   Gui.cc
+  GuiFileHandler.cc
   GuiRunner.cc
   TmpIface.cc
 )
@@ -9,6 +10,7 @@ add_subdirectory(plugins)
 if(POLICY CMP0100)
   cmake_policy(SET CMP0100 NEW)
 endif()
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # CMake AUTOMOC does not generate moc_*.cpp files automatically for headers
@@ -37,6 +39,7 @@ target_link_libraries(${gui_target}
     ${Qt5Widgets_LIBRARIES}
 )
 
+set(CMAKE_AUTOMOC OFF)
 set(CMAKE_AUTORCC OFF)
 
 install(TARGETS ${gui_target} DESTINATION ${IGN_LIB_INSTALL_DIR})

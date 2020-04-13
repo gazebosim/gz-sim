@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Add ability to save worlds to SDFormat
+    * [Pull Request 545](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/545)
+
 ### Ignition Gazebo 2.16.0 (2020-03-24)
 
 1. Add support for computing model bounding box in physics system

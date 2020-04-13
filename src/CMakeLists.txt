@@ -47,6 +47,7 @@ set (sources
   Link.cc
   Model.cc
   SdfEntityCreator.cc
+  SdfGenerator.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -71,6 +72,7 @@ set (gtest_sources
   Link_TEST.cc
   Model_TEST.cc
   SdfEntityCreator_TEST.cc
+  SdfGenerator_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
