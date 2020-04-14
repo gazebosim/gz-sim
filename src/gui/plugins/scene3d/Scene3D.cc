@@ -2050,8 +2050,8 @@ bool Scene3D::OnShapes(const msgs::StringMsg &_msg,
   //renderWindow->SetModel(msgs::Convert(_msg));
   ignwarn << "Model " << msgs::Convert(_msg) << "\n";
   sdf::Root root;
-  root.Load(msgs::Convert(_msg));
-  rendering::VisualPtr model = this->dataPtr->renderUtil->SceneManager().CreateModel(1000, *(root.ModelByIndex(0), 1));
+  root.LoadSdfString(msgs::Convert(_msg));
+  rendering::VisualPtr model = this->dataPtr->renderUtil->SceneManager().CreateModel(1000, *(root.ModelByIndex(0), this->dataPtr->));
   rootVis->AddChild(model);
   /*
   msgs::EntityFactory req;
