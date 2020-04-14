@@ -184,7 +184,9 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           break;
         case sdf::GeometryType::MESH:
           {
-            std::string file = coll->Data().Geom()->MeshShape()->FilePath();
+            std::string file = asFullPath(
+                coll->Data().Geom()->MeshShape()->Uri(),
+                coll->Data().Geom()->MeshShape()->FilePath());
             if (common::MeshManager::Instance()->IsValidFilename(file))
             {
               const common::Mesh *mesh =
@@ -211,19 +213,14 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       weightedPosSum += volume * pose.Pos();
     }
 
-    // Store the center of volume
-    if (!_ecm.EntityHasComponentType(_entity,
-          components::CenterOfVolume().TypeId()))
+    if (volumeSum > 0)
     {
+      // Store the center of volume
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
       _ecm.CreateComponent(_entity, components::CenterOfVolume(
             weightedPosSum / volumeSum - linkWorldPose.Pos()));
-    }
 
-    // Store the volume
-    if (!_ecm.EntityHasComponentType(_entity,
-          components::Volume().TypeId()))
-    {
+      // Store the volume
       _ecm.CreateComponent(_entity, components::Volume(volumeSum));
     }
 
@@ -235,12 +232,10 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     return;
 
   _ecm.Each<components::Link,
-            components::Inertial,
             components::Volume,
             components::CenterOfVolume>(
       [&](const Entity &_entity,
           const components::Link *,
-          const components::Inertial *_inertial,
           const components::Volume *_volume,
           const components::CenterOfVolume *_centerOfVolume) -> bool
     {
@@ -254,13 +249,11 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         -this->dataPtr->FluidDensity(linkWorldPose) *
         _volume->Data() * gravity->Data();
 
-      // Get the offset of the center of volume from the interial frame.
-      math::Vector3d offset = _centerOfVolume->Data() -
-        _inertial->Data().Pose().Pos();
-      // Convert the offset to the world frame
-      math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(offset);
+      // Convert the center of volume to the world frame
+      math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(
+          _centerOfVolume->Data());
       // Compute the torque that should be applied due to buoyancy and
-      // the volume offset.
+      // the center of volume.
       math::Vector3d torque = offsetWorld.Cross(buoyancy);
 
       // Apply the wrench to the link. This wrench is applied in the

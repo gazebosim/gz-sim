@@ -22,7 +22,7 @@
     <plugin
       filename="libignition-gazebo-buoyancy-system.so"
       name="ignition::gazebo::systems::Buoyancy">
-      <fluid_density>1000</fluid_density>
+      <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
     <gui fullscreen="0">
@@ -547,6 +547,42 @@
       </joint>
 
       <allow_auto_disable>1</allow_auto_disable>
+    </model>
+
+    <model name="duck">
+      <pose>2 0 0 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>3.92</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3.92</iyy>
+            <iyz>0</iyz>
+            <izz>3.92</izz>
+          </inertia>
+          <mass>39</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 0.5</scale>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 0.5</scale>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
     </model>
 
   </world>

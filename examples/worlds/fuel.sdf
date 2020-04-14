@@ -123,7 +123,7 @@
     <!-- Included model without meshes -->
     <include>
       <pose>-3 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/ocean_floor</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base/2</uri>
     </include>
 
     <!-- Included model with meshes -->
