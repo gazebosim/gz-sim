@@ -13,6 +13,11 @@
 
   1. Change the submarine's inertia.
   2. Change the `uniform_fluid_density` in the `buoyancy-system` plugin.
+
+  To drive the submarine model:
+
+  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m ignition.msgs.Double  -p "data: 1.2"
+
 -->
 <sdf version="1.6">
   <world name="buoyancy">
@@ -180,16 +185,16 @@
         </inertial>
 
 
-        <visual name=blade1_visual>
-          <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
+        <visual name="blade1_visual">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade1_collision>
-          <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
+        <collision name="blade1_collision">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
@@ -197,16 +202,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade2_visual>
-          <pose>0.0 0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+        <visual name="blade2_visual">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade2_collision>
-          <pose>0.0 0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+        <collision name="blade2_collision">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
@@ -214,16 +219,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade3_visual>
-          <pose>-0.3433402 -0.0 0 -0.7853981633974483 0 0.0</pose>
+        <visual name="blade3_visual">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade3_collision>
-          <pose>-0.3433402 -0.0 0 -0.7853981633974483 0 0.0</pose>
+        <collision name="blade3_collision">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
@@ -231,16 +236,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade4_visual>
-          <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+        <visual name="blade4_visual">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade4_collision>
-          <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+        <collision name="blade4_collision">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.2 0.05455</size>
@@ -264,6 +269,82 @@
           </limit>
         </axis>
       </joint>
+
+      <plugin
+        filename="libignition-gazebo-apply-joint-force-system.so"
+        name="ignition::gazebo::systems::ApplyJointForce">
+        <joint_name>propeller_joint</joint_name>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0 -0.7071067811865476 -0.7071067811865475</upward>
+        <forward>0 -0.7071067811865475 0.7071067811865476</forward>
+        <link_name>propeller</link_name>
+        <cp>0.35 0 0</cp>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>-0.7071067811865475 0 -0.7071067811865476</upward>
+        <forward>-0.7071067811865476 0 0.7071067811865475</forward>
+        <link_name>propeller</link_name>
+        <cp>0 -0.35 0</cp>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0 0.7071067811865475 -0.7071067811865476</upward>
+        <forward>0 -0.7071067811865476 -0.7071067811865475</forward>
+        <link_name>propeller</link_name>
+        <cp>-0.35 0 0</cp>
+      </plugin>
+
+      <plugin
+        filename="libignition-gazebo-lift-drag-system.so"
+        name="ignition::gazebo::systems::LiftDrag">
+
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0.7071067811865476 0 -0.7071067811865475</upward>
+        <forward>0.7071067811865475 0 0.7071067811865476</forward>
+        <link_name>propeller</link_name>
+        <cp>0 0.35 0</cp>
+      </plugin>
     </model>
 
     <!-- This model should sink -->
@@ -326,16 +407,16 @@
         </inertial>
 
 
-        <visual name=blade1_visual>
-          <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
+        <visual name="blade1_visual">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade1_collision>
-          <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
+        <collision name="blade1_collision">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
@@ -343,16 +424,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade2_visual>
-          <pose>0.0 0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+        <visual name="blade2_visual">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade2_collision>
-          <pose>0.0 0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+        <collision name="blade2_collision">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
@@ -360,16 +441,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade3_visual>
-          <pose>-0.3433402 -0.0 0 -0.7853981633974483 0 0.0</pose>
+        <visual name="blade3_visual">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade3_collision>
-          <pose>-0.3433402 -0.0 0 -0.7853981633974483 0 0.0</pose>
+        <collision name="blade3_collision">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
@@ -377,15 +458,15 @@
           </geometry>
         </collision>
 
-        <visual name=blade4_visual>
-          <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+        <visual name="blade4_visual">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade4_collision>
+        <collision name="blade4_collision">
           <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
@@ -472,16 +553,16 @@
         </inertial>
 
 
-        <visual name=blade1_visual>
-          <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
+        <visual name="blade1_visual">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade1_collision>
-          <pose>0.3433402 0.0 0 0.7853981633974483 0 0.0</pose>
+        <collision name="blade1_collision">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
@@ -489,16 +570,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade2_visual>
-          <pose>0.0 0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+        <visual name="blade2_visual">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade2_collision>
-          <pose>0.0 0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+        <collision name="blade2_collision">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
@@ -506,16 +587,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade3_visual>
-          <pose>-0.3433402 -0.0 0 -0.7853981633974483 0 0.0</pose>
+        <visual name="blade3_visual">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade3_collision>
-          <pose>-0.3433402 -0.0 0 -0.7853981633974483 0 0.0</pose>
+        <collision name="blade3_collision">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
@@ -523,16 +604,16 @@
           </geometry>
         </collision>
 
-        <visual name=blade4_visual>
-          <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+        <visual name="blade4_visual">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>
             </box>
           </geometry>
         </visual>
-        <collision name=blade4_collision>
-          <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+        <collision name="blade4_collision">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
           <geometry>
             <box>
               <size>0.5 0.154178 0.05455</size>

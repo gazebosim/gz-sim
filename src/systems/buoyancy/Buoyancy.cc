@@ -258,24 +258,9 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
       // Apply the wrench to the link. This wrench is applied in the
       // Physics System.
-      msgs::Wrench wrench;
-      msgs::Set(wrench.mutable_force(), buoyancy);
-      msgs::Set(wrench.mutable_torque(), torque);
-      components::ExternalWorldWrenchCmd newWrenchComp(wrench);
+      Link link(_entity);
+      link.AddWorldWrench(_ecm, buoyancy, torque);
 
-      components::ExternalWorldWrenchCmd *currWrenchComp =
-        _ecm.Component<components::ExternalWorldWrenchCmd>(_entity);
-      if (currWrenchComp)
-      {
-        // \todo(nkoenig) This overwrites the current wrench component. When
-        // we added propellers to a vehicle, then we will need to add the
-        // force applied by the propellers to the force applied by buoyancy.
-        *currWrenchComp = newWrenchComp;
-      }
-      else
-      {
-        _ecm.CreateComponent(_entity, newWrenchComp);
-      }
       return true;
   });
 }
