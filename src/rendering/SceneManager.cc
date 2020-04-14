@@ -690,7 +690,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         {
           // warn if no x displacement can be interpolated
           // warn only once per mesh
-          static std::set<std::string> animInterpolateCheck;
+          static std::unordered_set<std::string> animInterpolateCheck;
           if (animInterpolateCheck.count(animation->Filename()) == 0)
           {
             std::string rootNodeName = meshSkel->RootNode()->Name();
