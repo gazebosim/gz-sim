@@ -626,9 +626,10 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         // name otherwise if mulitple instances of the same animation were added
         // to meshSkel, changing the name that would also change the name of
         // other instances of the animation
-        // todo(anyone) cloning is inefficient. The proper way is probably to
-        // update ign-rendering to allow it to load multiple animations of the
-        // same name
+        // todo(anyone) cloning is inefficient and error-prone. We should
+        // add a copy constructor to animation classes in ign-common.
+        // The proper fix is probably to update ign-rendering to allow it to
+        // load multiple animations of the same name
         common::SkeletonAnimation *skelAnim =
             new common::SkeletonAnimation(animName);
         for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
@@ -685,7 +686,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         // Animations are offset by 1 because index 0 is taken by the mesh name
         auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
 
-        if (animation->InterpolateX())
+        if (animation && animation->InterpolateX())
         {
           // warn if no x displacement can be interpolated
           // warn only once per mesh
