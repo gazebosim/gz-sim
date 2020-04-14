@@ -606,12 +606,6 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
                 << "]" << std::endl;
         return nullptr;
       }
-      // collada loader loads animations with name that defaults to
-      // "animation0", "animation"1", etc causing conflicts in names
-      // when multiple animations are added to meshSkel.
-      // So make sure to give it a unique name
-      firstAnim->SetName(animName);
-
       // do not add duplicate animation
       // start checking from index 1 since index 0 is reserved by skin mesh
       bool addAnim = true;
@@ -624,7 +618,37 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         }
       }
       if (addAnim)
-        meshSkel->AddAnimation(firstAnim);
+      {
+        // collada loader loads animations with name that defaults to
+        // "animation0", "animation"1", etc causing conflicts in names
+        // when multiple animations are added to meshSkel.
+        // We have to clone the skeleton animation before giving it a unique
+        // name otherwise if mulitple instances of the same animation were added
+        // to meshSkel, changing the name that would also change the name of
+        // other instances of the animation
+        // todo(anyone) cloning is inefficient and error-prone. We should
+        // add a copy constructor to animation classes in ign-common.
+        // The proper fix is probably to update ign-rendering to allow it to
+        // load multiple animations of the same name
+        common::SkeletonAnimation *skelAnim =
+            new common::SkeletonAnimation(animName);
+        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
+        {
+          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
+          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
+              node->Name());
+          if (!nodeAnim)
+            continue;
+          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
+          {
+            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
+            skelAnim->AddKeyFrame(
+                node->Name(), keyFrame.first, keyFrame.second);
+          }
+        }
+
+        meshSkel->AddAnimation(skelAnim);
+      }
       mapAnimNameId[animName] = numAnims++;
     }
   }
@@ -659,6 +683,38 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
           waypoints[pointTp] = point->Pose();
         }
         trajInfo.SetWaypoints(waypoints);
+        // Animations are offset by 1 because index 0 is taken by the mesh name
+        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
+
+        if (animation && animation->InterpolateX())
+        {
+          // warn if no x displacement can be interpolated
+          // warn only once per mesh
+          static std::unordered_set<std::string> animInterpolateCheck;
+          if (animInterpolateCheck.count(animation->Filename()) == 0)
+          {
+            std::string rootNodeName = meshSkel->RootNode()->Name();
+            common::SkeletonAnimation *skelAnim =
+                meshSkel->Animation(trajInfo.AnimIndex());
+            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
+                rootNodeName);
+            math::Matrix4d lastPos = rootNode->KeyFrame(
+                rootNode->FrameCount() - 1).second;
+            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+            if (!math::equal(firstPos.Translation().X(),
+                lastPos.Translation().X()))
+            {
+              trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
+            }
+            else
+            {
+              ignwarn << "Animation has no x displacement. "
+                      << "Ignoring <interpolate_x> for the animation in '"
+                      << animation->Filename() << "'." << std::endl;
+            }
+            animInterpolateCheck.insert(animation->Filename());
+          }
+        }
       }
       else
       {
@@ -932,17 +988,12 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
   animData.animationName = skel->Animation(animIndex)->Name();
 
   std::string rootNodeName = skel->RootNode()->Name();
+  double distance = animData.trajectory.DistanceSoFar(animData.time);
   if (animData.followTrajectory)
   {
-    double distance = animData.trajectory.DistanceSoFar(animData.time);
     math::Matrix4d rawFrame;
-    if (distance < 0.1)
-    {
-      double timeSeconds = std::chrono::duration<double>(animData.time).count();
-      rawFrame = skel->Animation(animIndex)->NodePoseAt(
-          rootNodeName, timeSeconds, animData.loop);
-    }
-    else
+    if (animData.trajectory.Waypoints()->InterpolateX() &&
+        !math::equal(distance, 0.0))
     {
       // logic here is mostly taken from
       // common::SkeletonAnimation::PoseAtX
@@ -975,6 +1026,13 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
         std::chrono::steady_clock::duration>(
         std::chrono::duration<double>(time));
     }
+    else
+    {
+      double timeSeconds = std::chrono::duration<double>(animData.time).count();
+      rawFrame = skel->Animation(animIndex)->NodePoseAt(
+          rootNodeName, timeSeconds, animData.loop);
+    }
+
     math::Matrix4d skinTf = skel->AlignTranslation(animIndex, rootNodeName)
             * rawFrame * skel->AlignRotation(animIndex, rootNodeName);
 
@@ -1031,14 +1089,18 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
     if (followTraj)
     {
       double distance = traj.DistanceSoFar(time);
-      if (distance < 0.1)
-      {
-        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
-      }
-      else
+      // check interpolate x.
+      // todo(anyone) there is a problem with PoseAtX that causes
+      // it to go into an infinite loop if the animation has no x displacement
+      // e.g. a person standing that does not move in x direction
+      if (traj.Waypoints()->InterpolateX() && !math::equal(distance, 0.0))
       {
         rawFrames = skel->Animation(animIndex)->PoseAtX(distance,
                                         skel->RootNode()->Name());
+      }
+      else
+      {
+        rawFrames = skel->Animation(animIndex)->PoseAt(timeSeconds, !noLoop);
       }
     }
     else

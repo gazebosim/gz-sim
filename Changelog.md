@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Use interpolate\_x sdf parameter for actor animations
+    * [Pull Request 536](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/536)
+
 1. Actor skeleton animation (auto update mode)
     * [Pull Request 579](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/579)
 
