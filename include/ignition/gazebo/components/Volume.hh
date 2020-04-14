@@ -29,7 +29,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// A volume component where the units are m^3.
+  /// \brief A volume component where the units are m^3.
   /// Double value indicates volume of an entity.
   using Volume = Component<double, class VolumeTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Volume", Volume)

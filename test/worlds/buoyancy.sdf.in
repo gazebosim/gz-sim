@@ -550,7 +550,7 @@
     </model>
 
     <model name="duck">
-      <pose>2 0 0 0 0</pose>
+      <pose>2 0 0 0 0 0</pose>
       <link name="link">
         <inertial>
           <inertia>
