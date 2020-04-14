@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <sdf/Root.hh>
+
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/common/KeyFrame.hh>
@@ -309,6 +311,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Follow service
     public: std::string viewAngleService;
+
+    /// \brief Shapes service
+    public: std::string shapesService;
   };
 }
 }
@@ -1353,6 +1358,13 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetModel(const std::string &_model)
+{
+  
+
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
     const std::string &_savePath)
 {
@@ -1927,6 +1939,14 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
 
+  // shapes
+  this->dataPtr->shapesService =
+      "/gui/shapes";
+  this->dataPtr->node.Advertise(this->dataPtr->shapesService,
+      &Scene3D::OnShapes, this);
+  ignmsg << "Shapes service on ["
+         << this->dataPtr->shapesService << "]" << std::endl;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -2013,6 +2033,36 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewAngle(msgs::Convert(_msg));
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnShapes(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  rendering::ScenePtr scene = this->dataPtr->renderUtil->Scene();
+  rendering::VisualPtr rootVis = scene->RootVisual();
+
+  //renderWindow->SetModel(msgs::Convert(_msg));
+  ignwarn << "Model " << msgs::Convert(_msg) << "\n";
+  sdf::Root root;
+  root.Load(msgs::Convert(_msg));
+  rendering::VisualPtr model = this->dataPtr->renderUtil->SceneManager().CreateModel(1000, *(root.ModelByIndex(0), 1));
+  rootVis->AddChild(model);
+  /*
+  msgs::EntityFactory req;
+  req.set_sdf_filename(_drop.toStdString());
+  req.set_allow_renaming(true);
+  msgs::Set(req.mutable_pose(),
+      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+  */
 
   _res.set_data(true);
   return true;
@@ -2142,6 +2192,12 @@ void RenderWindowItem::UpdateSelectedEntity(Entity _entity,
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetModel(const std::string &_model)
+{
+  this->dataPtr->renderThread->ignRenderer.SetModel(_model);
 }
 
 /////////////////////////////////////////////////

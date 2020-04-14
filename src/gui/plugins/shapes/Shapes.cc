@@ -25,6 +25,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
+#include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -77,11 +78,13 @@ void Shapes::OnMode(const QString &_mode)
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting transform mode" << std::endl;
+      ignerr << "Error setting shape" << std::endl;
   };
 
   ignition::msgs::StringMsg req;
-  req.set_data(_mode.toStdString());
+
+  std::string path = std::string(PROJECT_SOURCE_PATH) + "/src/gui/plugins/shapes/" + _mode.toStdString() + ".sdf";
+  req.set_data(path);
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
 

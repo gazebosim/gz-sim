@@ -70,6 +70,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
+        Shapes.OnMode("box")
       }
     }
     ToolButton{
@@ -88,6 +89,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
+        Shapes.OnMode("sphere")
       }
     }
     ToolButton {
@@ -106,6 +108,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
+        Shapes.OnMode("cylinder")
       }
     }
   }

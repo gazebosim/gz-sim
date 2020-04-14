@@ -134,6 +134,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewAngle(const msgs::Vector3d &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a shapes request
+    /// \param[in] _msg Request message to set a new shape.
+    /// \param[in] _res Response data.
+    /// \return True if the request is received.
+    private: bool OnShapes(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -170,6 +177,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
+
+    /// \brief Set the model to hover.
+    /// \param[in] _mode Path to new model to load in for the user.
+    public: void SetModel(const std::string &_model);
 
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
@@ -430,6 +441,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
+
+    /// \brief Set the model to hover.
+    /// \param[in] _mode Path to new model to load in for the user.
+    public: void SetModel(const std::string &_model);
 
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
