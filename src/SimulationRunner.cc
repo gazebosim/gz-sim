@@ -652,10 +652,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update time information. This will update the iteration count, RTF,
     // and other values.
     this->UpdateCurrentInfo();
-    if (!this->currentInfo.paused)
-    {
-      processedIterations++;
-    }
+    processedIterations++;
 
     // If network, wait for network step, otherwise do our own step
     if (this->networkMgr)
