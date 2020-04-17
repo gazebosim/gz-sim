@@ -122,7 +122,7 @@ class ignition::gazebo::systems::PosePublisherPrivate
   public: std::chrono::steady_clock::duration updatePeriod{0};
 
   /// \brief Update period in nanoseconds calculated from the
-  /// static_pose_update_frequency parameter
+  /// static_update_frequency parameter
   public: std::chrono::steady_clock::duration staticUpdatePeriod{0};
 
   /// \brief Cache of entities, their frame names and their child frame names.
@@ -216,14 +216,14 @@ void PosePublisher::Configure(const Entity &_entity,
   }
 
   this->dataPtr->staticPosePublisher =
-    _sdf->Get<bool>("static_pose_publisher",
+    _sdf->Get<bool>("static_publisher",
         this->dataPtr->staticPosePublisher).first;
 
   if (this->dataPtr->staticPosePublisher)
   {
     // update rate for static transforms. Default to same as <update_frequency>
     double staticPoseUpdateFrequency =
-      _sdf->Get<double>("static_pose_update_frequency", updateFrequency).first;
+      _sdf->Get<double>("static_update_frequency", updateFrequency).first;
 
     if (staticPoseUpdateFrequency > 0)
     {

@@ -1,5 +1,3 @@
-syntax: glob
-
 build
 build_*
 .DS_Store
@@ -7,6 +5,4 @@ build_*
 *.swo
 *.qmlc
 .ycm_extra_conf.py
-.git
-.gitignore
 *.orig
