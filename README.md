@@ -2,8 +2,8 @@
 
 **Maintainer:** louise AT openrobotics DOT org
 
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-gazebo.svg)](https://bitbucket.org/ignitionrobotics/ign-gazebo/issues)
-[![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-gazebo.svg)](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests)
+[![GitHub open issues](https://img.shields.io/github/issues-raw/ignitionrobotics/ign-gazebo.svg)](https://github.com/ignitionrobotics/ign-gazebo/issues)
+[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/ignitionrobotics/ign-gazebo.svg)](https://github.com/ignitionrobotics/ign-gazebo/pulls)
 [![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -52,24 +52,24 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 * **Dynamics simulation**: Access multiple high-performance physics engines
 through
-[Ignition Physics](https://bitbucket.org/ignitionrobotics/ign-physics).
+[Ignition Physics](https://github.com/ignitionrobotics/ign-physics).
 
 * **Advanced 3D graphics**: Through
-[Ignition Rendering](https://bitbucket.org/ignitionrobotics/ign-rendering),
+[Ignition Rendering](https://github.com/ignitionrobotics/ign-rendering),
 it's possible to use rendering engines such as OGRE v2 for realistic rendering
 of environments with high-quality lighting, shadows, and textures.
 
 * **Sensors and noise models**: Generate sensor data, optionally with noise,
 from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors,
 force-torque, IMU, GPS, and more, powered by
-[Ignition Sensors](https://bitbucket.org/ignitionrobotics/ign-sensors)
+[Ignition Sensors](https://github.com/ignitionrobotics/ign-sensors)
 
 * **Plugins**: Develop custom plugins for robot, sensor, and
 environment control.
 
 * **Graphical interface**: Create, instrospect and interact with your simulations
 through plugin-based graphical interfaces powered by
-[Ignition GUI](https://bitbucket.org/ignitionrobotics/ign-gui).
+[Ignition GUI](https://github.com/ignitionrobotics/ign-gui).
 
 * **Simulation models**: Access numerous robots including PR2, Pioneer2 DX,
 iRobot Create, and TurtleBot, and construct environments using other physically
@@ -79,7 +79,7 @@ new model using [SDF](http://sdformat.org).
 
 * **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
 Gazebo through socket-based message passing using
-[Ignition Transport](https://bitbucket.org/ignitionrobotics/ign-transport).
+[Ignition Transport](https://github.com/ignitionrobotics/ign-transport).
 
 * **Command line tools**: Extensive command line tools for increased simulation
 introspection and control.
@@ -180,7 +180,7 @@ for dependency installation instructions for each supported operating system.
 1. Clone the repository.
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo -b ign-gazebo2
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo2
     ```
 
 2. Configure and  build.
@@ -222,7 +222,7 @@ You can also generate the documentation from a clone of this repository by follo
 2. Clone the repository
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    git clone https://github.com/ignitionrobotics/ign-gazebo
     ```
 
 3. Configure and build the documentation.
@@ -259,7 +259,7 @@ Follow these steps to run tests and static code analysis in your clone of this r
     make codecheck
     ```
 
-See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
@@ -291,12 +291,12 @@ ign-gazebo
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md?at=default&fileviewer=file-view-default).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CODE_OF_CONDUCT.md?at=default&fileviewer=file-view-default).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -304,4 +304,4 @@ This library uses [Semantic Versioning](https://semver.org/). Additionally, this
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/LICENSE?at=default&fileviewer=file-view-default) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-gazebo/blob/master/LICENSE) file.

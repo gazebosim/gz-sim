@@ -8,7 +8,7 @@ kinematic topology has to be a tree, i.e., kinematic loops are not currently
 supported. This affects the choice of the parent link, and therefore, the
 parent model, which is the model that contains the `DetachableJoint` system.
 
-For example, [detachable_joint.sdf](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/examples/worlds/detachable_joint.sdf)
+For example, [detachable_joint.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/master/examples/worlds/detachable_joint.sdf)
 demonstrates a four wheel vehicle that holds three objects that are later
 detached from the vehicle. As seen in this example, the parent model is the
 vehicle. The kinematic topology is the following.
