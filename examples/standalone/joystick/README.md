@@ -1,7 +1,7 @@
 # Joystick
 
 Standalone program that publishes
-[ignition::msgs::Joy](https://bitbucket.org/ignitionrobotics/ign-msgs/src/default/proto/ignition/msgs/joy.proto)
+[ignition::msgs::Joy](https://github.com/ignitionrobotics/ign-msgs/blob/master/proto/ignition/msgs/joy.proto)
 messages from a joystick device using Ignition Transport.
 
 The mapping of joystick buttons to fields in the message is the same as [this](http://wiki.ros.org/joy).
