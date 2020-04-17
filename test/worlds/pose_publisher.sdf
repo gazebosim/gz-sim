@@ -479,7 +479,7 @@
         <publish_collision_pose>false</publish_collision_pose>
         <publish_visual_pose>false</publish_visual_pose>
         <publish_nested_model_pose>false</publish_nested_model_pose>
-        <static_pose_publisher>true</static_pose_publisher>
+        <static_publisher>true</static_publisher>
         <use_pose_vector_msg>true</use_pose_vector_msg>
       </plugin>
 
@@ -510,8 +510,8 @@
         <publish_collision_pose>false</publish_collision_pose>
         <publish_visual_pose>false</publish_visual_pose>
         <publish_nested_model_pose>false</publish_nested_model_pose>
-        <static_pose_publisher>true</static_pose_publisher>
-        <static_pose_update_frequency>100</static_pose_update_frequency>
+        <static_publisher>true</static_publisher>
+        <static_update_frequency>100</static_update_frequency>
       </plugin>
     </model>
 
