@@ -60,9 +60,9 @@ class ignition::gazebo::systems::PosePublisherPrivate
 
   /// \brief Helper function to collect entity pose data
   /// \param[in] _ecm Immutable reference to the entity component manager
-  /// \param[in] _poses Pose fector to be filled
-  /// \param[in] _staticOnly True to fill static transforms,
-  /// false to fill dynamic transforms
+  /// \param[out] _poses Pose vector to be filled
+  /// \param[in] _static True to fill only static transforms,
+  /// false to fill only dynamic transforms
   public: void FillPoses(const EntityComponentManager &_ecm,
       std::vector<std::pair<Entity, math::Pose3d>> &_poses,
       bool _static);
