@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Add static pose publisher and support pose\_v msg type in pose publisher system
+    * [Pull Request 65](https://github.com/ignitionrobotics/ign-gazebo/pull/65)
+
 1. Add ability to save worlds to SDFormat
     * [Pull Request 545](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/545)
 
