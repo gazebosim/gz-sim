@@ -96,7 +96,7 @@ The binary install method will use pre-built packages which are typically
 available through a package management utility such as [Apt](https://wiki.debian.org/Apt).
 This approach eliminates the need to download and compile source code, and dependencies
 are handled for you. The downside of a binary install is that you won't be able to modify
-the code. See [Source Install](#source-install) for information on
+the code. See [Source Install](#source-install-version-3) for information on
 installing Ignition Gazebo from source.
 
 **Ubuntu Bionic (version 2)**
@@ -274,7 +274,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 
-1. Follow the [source install instruction](#source-install).
+1. Follow the [source install instruction](#source-install-version-3).
 
 2. Run tests.
 
