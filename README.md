@@ -20,33 +20,33 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 # Table of Contents
 
-[Features](#markdown-header-features)
+[Features](#features)
 
-[Install](#markdown-header-install)
+[Install](#install)
 
-* [Binary Install](#markdown-header-binary-install)
+* [Binary Install](#binary-install)
 
-* [Source Install](#markdown-header-source-install)
+* [Source Install](#source-install)
 
-    * [Prerequisites](#markdown-header-prerequisites)
+    * [Prerequisites](#prerequisites)
 
-    * [Building from Source](#markdown-header-building-from-source)
+    * [Building from Source](#building-from-source)
 
-[Usage](#markdown-header-usage)
+[Usage](#usage)
 
-[Documentation](#markdown-header-documentation)
+[Documentation](#documentation)
 
-[Testing](#markdown-header-testing)
+[Testing](#testing)
 
-[Folder Structure](#markdown-header-folder-structure)
+[Folder Structure](#folder-structure)
 
-[Code of Conduct](#markdown-header-code-of-conduct)
+[Code of Conduct](#code-of-conduct)
 
-[Contributing](#markdown-header-code-of-contributing)
+[Contributing](#code-of-contributing)
 
-[Versioning](#markdown-header-versioning)
+[Versioning](#versioning)
 
-[License](#markdown-header-license)
+[License](#license)
 
 # Features
 
@@ -86,9 +86,9 @@ introspection and control.
 
 # Install
 
-We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get up and running as quickly and painlessly as possible.
+We recommend following the [Binary Install](#binary-install) instructions to get up and running as quickly and painlessly as possible.
 
-The [Source Install](#markdown-header-source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
+The [Source Install](#source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
 
 ## Binary Install
 
@@ -96,7 +96,7 @@ The binary install method will use pre-built packages which are typically
 available through a package management utility such as [Apt](https://wiki.debian.org/Apt).
 This approach eliminates the need to download and compile source code, and dependencies
 are handled for you. The downside of a binary install is that you won't be able to modify
-the code. See [Source Install](#markdown-header-source-install) for information on
+the code. See [Source Install](#source-install) for information on
 installing Ignition Gazebo from source.
 
 **Ubuntu Bionic (version 2)**
@@ -167,7 +167,7 @@ for dependency installation instructions for each supported operating system.
 
 ### Building from source
 
-1. Install [prerequisites](#markdown-header-prerequisites)
+1. Install [prerequisites](#prerequisites)
 
 2. Configure gcc8
 
@@ -195,7 +195,7 @@ for dependency installation instructions for each supported operating system.
 
 # Usage
 
-Gazebo can be run from the command line, once [installed](#markdown-header-install), using:
+Gazebo can be run from the command line, once [installed](#install), using:
 
 ```
 ign gazebo
@@ -274,7 +274,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 
-1. Follow the [source install instruction](#markdown-header-source-install).
+1. Follow the [source install instruction](#source-install).
 
 2. Run tests.
 
@@ -288,7 +288,7 @@ Follow these steps to run tests and static code analysis in your clone of this r
     make codecheck
     ```
 
-See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
