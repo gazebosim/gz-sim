@@ -26,7 +26,7 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 * [Binary Install](#binary-install)
 
-* [Source Install](#source-install)
+* [Source Install](#source-install-version-3)
 
     * [Prerequisites](#prerequisites)
 
@@ -42,7 +42,7 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 [Code of Conduct](#code-of-conduct)
 
-[Contributing](#code-of-contributing)
+[Contributing](#contributing)
 
 [Versioning](#versioning)
 
@@ -88,7 +88,7 @@ introspection and control.
 
 We recommend following the [Binary Install](#binary-install) instructions to get up and running as quickly and painlessly as possible.
 
-The [Source Install](#source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
+The [Source Install](#source-install-version-3) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
 
 ## Binary Install
 
@@ -288,7 +288,7 @@ Follow these steps to run tests and static code analysis in your clone of this r
     make codecheck
     ```
 
-See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
