@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
+    * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
+
 1. Add ability to save worlds to SDFormat
     * [BitBucket pull request 545](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/545)
 

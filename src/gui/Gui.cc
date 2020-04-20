@@ -27,7 +27,7 @@
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
-#include "Gui.hh"
+#include "ignition/gazebo/gui/Gui.hh"
 #include "GuiFileHandler.hh"
 
 namespace ignition
@@ -36,10 +36,10 @@ namespace gazebo
 {
 namespace gui
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-//////////////////////////////////////////////////
-int runGui(int _argc, char **_argv, const char *_guiConfig)
+
+std::unique_ptr<ignition::gui::Application> createGui(
+    int _argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -54,34 +54,42 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
   auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
   // Initialize Qt app
-  ignition::gui::Application app(_argc, _argv);
-  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
+  app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
-  guiFileHandler->setParent(app.Engine());
+  guiFileHandler->setParent(app->Engine());
 
   // add import path so we can load custom modules
-  app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Set default config file for Gazebo
   std::string defaultConfig;
-  ignition::common::env(IGN_HOMEDIR, defaultConfig);
-  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", "gui.config");
-  app.SetDefaultConfigPath(defaultConfig);
+  if (nullptr == _defaultGuiConfig)
+  {
+    ignition::common::env(IGN_HOMEDIR, defaultConfig);
+    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+        "gazebo", "gui.config");
+  }
+  else
+  {
+    defaultConfig = _defaultGuiConfig;
+  }
+
+  app->SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto mainWin = app.findChild<ignition::gui::MainWindow *>();
+  auto mainWin = app->findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
   // Let QML files use TmpIface' functions and properties
-  auto context = new QQmlContext(app.Engine()->rootContext());
+  auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp.get());
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
-  QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
+  QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
   auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
   if (gzDrawerItem)
   {
@@ -91,7 +99,7 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
     // Add to main window
     auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
     gzDrawerItem->setParentItem(parentDrawerItem);
-    gzDrawerItem->setParent(app.Engine());
+    gzDrawerItem->setParent(app->Engine());
   }
   else
   {
@@ -129,14 +137,14 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
   }
 
   if (!executed || !result || worldsMsg.data().empty())
-    return -1;
+    return nullptr;
 
-  std::vector<ignition::gazebo::GuiRunner *> runners;
+  std::size_t runnerCount = 0;
 
   // Configuration file from command line
   if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
   {
-    if (!app.LoadConfig(_guiConfig))
+    if (!app->LoadConfig(_guiConfig))
     {
       ignwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
@@ -147,9 +155,9 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
-    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+    runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
         &ignition::gazebo::GuiRunner::OnPluginAdded);
-    runners.push_back(runner);
+    ++runnerCount;
     runner->setParent(ignition::gui::App());
   }
   // GUI configuration from SDF (request to server)
@@ -176,34 +184,37 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
       else if (!result)
         ignerr << "Service call failed for [" << service << "]" << std::endl;
 
-      for (int p = 0; p < res.plugin_size(); ++p)
+      if (_loadPluginsFromSdf)
       {
-        const auto &plugin = res.plugin(p);
-        const auto &fileName = plugin.filename();
-        std::string pluginStr = "<plugin filename='" + fileName + "'>" +
+        for (int p = 0; p < res.plugin_size(); ++p)
+        {
+          const auto &plugin = res.plugin(p);
+          const auto &fileName = plugin.filename();
+          std::string pluginStr = "<plugin filename='" + fileName + "'>" +
             plugin.innerxml() + "</plugin>";
 
-        tinyxml2::XMLDocument pluginDoc;
-        pluginDoc.Parse(pluginStr.c_str());
+          tinyxml2::XMLDocument pluginDoc;
+          pluginDoc.Parse(pluginStr.c_str());
 
-        app.LoadPlugin(fileName,
-            pluginDoc.FirstChildElement("plugin"));
+          app->LoadPlugin(fileName,
+              pluginDoc.FirstChildElement("plugin"));
+        }
       }
 
       // GUI runner
       auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-          &ignition::gazebo::GuiRunner::OnPluginAdded);
+      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
+                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
       runner->setParent(ignition::gui::App());
-      runners.push_back(runner);
+      ++runnerCount;
     }
     mainWin->configChanged();
   }
 
-  if (runners.empty())
+  if (0 == runnerCount)
   {
     ignerr << "Failed to start a GUI runner." << std::endl;
-    return -1;
+    return nullptr;
   }
 
   // If no plugins have been added, load default config file
@@ -222,7 +233,7 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
         ignerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
-        return -1;
+        return nullptr;
       }
       else
       {
@@ -233,26 +244,31 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
     }
 
     // Also set ~/.ignition/gazebo/gui.config as the default path
-    if (!app.LoadConfig(defaultConfig))
+    if (!app->LoadConfig(defaultConfig))
     {
       ignerr << "Failed to load config file[" << defaultConfig << "]."
              << std::endl;
-      return -1;
+      return nullptr;
     }
   }
-
-  // Run main window.
-  // This blocks until the window is closed or we receive a SIGINT
-  app.exec();
-
-  for (auto runner : runners)
-    delete runner;
-  runners.clear();
-
-  igndbg << "Shutting down ign-gazebo-gui" << std::endl;
-  return 0;
+  return app;
 }
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+
+//////////////////////////////////////////////////
+int runGui(int _argc, char **_argv, const char *_guiConfig)
+{
+  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  if (nullptr != app)
+  {
+    // Run main window.
+    // This blocks until the window is closed or we receive a SIGINT
+    app->exec();
+    igndbg << "Shutting down ign-gazebo-gui" << std::endl;
+    return 0;
+  }
+  else
+    return -1;
+}
 }  // namespace gui
 }  // namespace gazebo
 }  // namespace ignition
