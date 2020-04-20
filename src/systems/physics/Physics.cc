@@ -832,7 +832,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         {
           ignwarn << "Can't process DetachableJoint component, physics engine "
                   << "missing AttachFixedJointFeature" << std::endl;
-          return true;
+
+          // Break Each call since no DetachableJoints can be processed
+          return false;
         }
 
         const auto poseParent =
@@ -918,7 +920,9 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
         {
           ignwarn << "Can't process DetachableJoint component, physics engine "
                   << "missing DetachJointFeature" << std::endl;
-          return true;
+
+          // Break Each call since no DetachableJoints can be processed
+          return false;
         }
 
         igndbg << "Detaching joint [" << _entity << "]" << std::endl;
@@ -1185,7 +1189,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         {
           ignwarn << "Can't process AxisAlignedBox component, physics engine "
                   << "missing GetModelBoundingBox" << std::endl;
-          return true;
+
+          // Break Each call since no AxisAlignedBox'es can be processed
+          return false;
         }
 
         math::AxisAlignedBox bbox =
