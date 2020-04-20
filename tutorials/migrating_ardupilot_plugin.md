@@ -20,11 +20,30 @@ fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-igniti
 ## Background
 
 The `ardupilot_gazebo` plugin is used with Gazebo to assist with simulating
-unmanned aerial vehicles (UAVs, aka drones). The plugin works like this...
+unmanned aerial vehicles (UAVs, aka drones). For more information on how to use
+it, check the [ArduPilot
+documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.html).
 
-**TODO: Create, insert, and describe system diagram showing how the plugin
-talks to Gazebo and the external ArduPilot process, and then to QGC or other
-MAVlink stuff.**
+As context to understand what we're migrating, here's a system diagram for how
+the ArduPilot Gazebo plugin works is used:
+
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/add_ardupilot_migration_tutorial2/tutorials/files/ardupilot_diagram.png"/>
+
+*UAV icon credit: By Julian Herzog, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=60965475*
+
+For each UAV model in simulation, there is one instance of ArduPilotPlugin
+loaded into the simulation process. That plugin uses internal simulation APIs
+to retrieve the UAV's current state, which it sends to an external ArduPilot
+process via a custom UDP protocol (it's called Flight Dynamics Model, or FDM).
+The ArduPilot process in turn makes the vehicle state available via the MAVLink
+protocol to other processes, such as QGroundControl (QGC). The user can issue
+commands in QGC like "take off" or "goto waypoint", which are sent via MAVLink
+to ArduPilot, which computes motor commands and sends them to the plugin, which
+passes them onto the vehicle via internal simulation APIs.
+
+To be clear, this structure is pre-existing and widely used in UAV simulation.
+Our contribution in this tutorial is port the plugin from Gazebo to Ignition,
+preserving the rest of the setup.
 
 ## Structure of the migration
 
