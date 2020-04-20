@@ -1,0 +1,8 @@
+# More info:
+# https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+*                     @chapulina
+tutorials/*           @maryaB-osr
+*/rendering/*         @iche033
+src/systems/physics/* @azeey
+src/systems/sensors/* @iche033
