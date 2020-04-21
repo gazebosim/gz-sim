@@ -9,10 +9,9 @@ environment:
   CTEST_OUTPUT_ON_FAILURE: 1
 
 install:
-  - hg summary
-  - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
+  - git clone https://github.com/ignitionrobotics/ign-cmake
   - cd ign-cmake
-  - hg up ign-cmake2
+  - git checkout ign-cmake2
   - md build
   - cd build
   - cmake .. -DBUILD_TESTING:BOOL=False
