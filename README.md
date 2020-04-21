@@ -2,8 +2,8 @@
 
 **Maintainer:** nate AT openrobotics DOT org
 
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-math.svg)](https://bitbucket.org/ignitionrobotics/ign-math/issues)
-[![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-math.svg)](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests)
+[![GitHub open issues](https://img.shields.io/github/issues-raw/ignitionrobotics/ign-math.svg)](https://github.com/ignitionrobotics/ign-math/issues)
+[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/ignitionrobotics/ign-math.svg)](https://github.com/ignitionrobotics/ign-math/pulls)
 [![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -95,7 +95,7 @@ The optional Eigen component of Ignition Math requires:
 1. Clone the repository
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-math
+    git clone https://github.com/ignitionrobotics/ign-math
     ```
 
 2. Configure and build
@@ -112,7 +112,7 @@ The optional Eigen component of Ignition Math requires:
 
 # Usage
 
-Please refer to the [examples directory](https://bitbucket.org/ignitionrobotics/ign-math/raw/default/examples/?at=default).
+Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/master/examples/).
 
 # Documentation
 
@@ -129,7 +129,7 @@ You can also generate the documentation from a clone of this repository by follo
 2. Clone the repository
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-math
+    git clone https://github.com/ignitionrobotics/ign-math
     ```
 
 3. Configure and build the documentation.
@@ -184,12 +184,12 @@ ign-math
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md?at=default&fileviewer=file-view-default).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CODE_OF_CONDUCT.md?at=default&fileviewer=file-view-default).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -197,4 +197,4 @@ This library uses [Semantic Versioning](https://semver.org/). Additionally, this
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-math/src/default/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-math/blob/master/LICENSE) file.
