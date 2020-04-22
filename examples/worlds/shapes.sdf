@@ -104,6 +104,8 @@ Try moving a model:
           <property type="string" key="state">docked</property>
         </ignition-gui>
       </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
+      </plugin>
 
       <!-- Transform Control -->
       <plugin filename="TransformControl" name="Transform Control">

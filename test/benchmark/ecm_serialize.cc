@@ -87,7 +87,11 @@ void BM_Serialize1Component(benchmark::State &_st)
     _st.ResumeTiming();
 
     auto stateMsg = mgr->State();
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+    serializedSize = stateMsg.ByteSizeLong();
+#else
     serializedSize = stateMsg.ByteSize();
+#endif
   }
   _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;
@@ -115,7 +119,11 @@ void BM_Serialize5Component(benchmark::State &_st)
     _st.ResumeTiming();
 
     auto stateMsg = mgr->State();
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+    serializedSize = stateMsg.ByteSizeLong();
+#else
     serializedSize = stateMsg.ByteSize();
+#endif
   }
   _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;

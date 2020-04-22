@@ -40,6 +40,9 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
+#include "ignition/gazebo/components/JointPositionReset.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -676,6 +679,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
   Relay testSystem;
 
   double pos0 = 0.42;
+
+  // cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
@@ -687,21 +692,25 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
       {
         if (_name->Data() == rotatingJointName)
         {
+          auto resetComp =
+              _ecm.Component<components::JointPositionReset>(_entity);
+          auto position = _ecm.Component<components::JointPosition>(_entity);
+
           if (firstRun)
           {
             firstRun = false;
 
-            auto resetComp = _ecm.Component<components::JointPositionReset>(_entity);
-            if (!resetComp)
-            {
-              _ecm.CreateComponent(_entity, components::JointPositionReset({pos0}));
-            }
+            EXPECT_EQ(nullptr, resetComp);
+            _ecm.CreateComponent(_entity,
+                                 components::JointPositionReset({pos0}));
 
-            auto position = _ecm.Component<components::JointPosition>(_entity);
-            if (!position)
-            {
-                _ecm.CreateComponent(_entity, components::JointPosition());
-            }
+            EXPECT_EQ(nullptr, position);
+            _ecm.CreateComponent(_entity, components::JointPosition());
+          }
+          else
+          {
+              EXPECT_EQ(nullptr, resetComp);
+              EXPECT_NE(nullptr, position);
           }
         }
         return true;
@@ -713,9 +722,12 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
   testSystem.OnPostUpdate([&](
     const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.Each<components::Joint, components::Name, components::JointPosition>(
-          [&](const ignition::gazebo::Entity &, const components::Joint *,
-              const components::Name *_name, const components::JointPosition *_pos)
+      _ecm.Each<components::Joint,
+                components::Name, components::JointPosition>(
+          [&](const ignition::gazebo::Entity &,
+              const components::Joint *,
+              const components::Name *_name,
+              const components::JointPosition *_pos)
           {
             if (_name->Data() == rotatingJointName)
             {
@@ -731,10 +743,10 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
     ASSERT_EQ(positions.size(), 2ul);
 
     // First position should be exactly the same
-    ASSERT_NEAR(pos0, positions[0], 1e-4);
+    EXPECT_DOUBLE_EQ(pos0, positions[0]);
 
     // Second position should be different, but close
-    ASSERT_NEAR(pos0, positions[1], 0.01);
+    EXPECT_NEAR(pos0, positions[1], 0.01);
 }
 
 /////////////////////////////////////////////////
@@ -762,6 +774,8 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   Relay testSystem;
 
   double vel0 = 3.0;
+
+  // cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
@@ -773,21 +787,25 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
         {
           if (_name->Data() == rotatingJointName)
           {
+            auto resetComp =
+                _ecm.Component<components::JointVelocityReset>(_entity);
+            auto velocity = _ecm.Component<components::JointVelocity>(_entity);
+
             if (firstRun)
             {
-              firstRun= false;
+              firstRun = false;
 
-              auto resetComp = _ecm.Component<components::JointVelocityReset>(_entity);
-              if (!resetComp)
-              {
-                _ecm.CreateComponent(_entity, components::JointVelocityReset({vel0}));
-              }
+              EXPECT_EQ(nullptr, resetComp);
+              _ecm.CreateComponent(_entity,
+                                   components::JointVelocityReset({vel0}));
 
-              auto velocity = _ecm.Component<components::JointVelocity>(_entity);
-              if (!velocity)
-              {
-                _ecm.CreateComponent(_entity, components::JointVelocity());
-              }
+              EXPECT_EQ(nullptr, velocity);
+              _ecm.CreateComponent(_entity, components::JointVelocity());
+            }
+            else
+            {
+              EXPECT_EQ(nullptr, resetComp);
+              EXPECT_NE(nullptr, velocity);
             }
           }
           return true;
@@ -797,19 +815,23 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   std::vector<double> velocities;
 
   testSystem.OnPostUpdate([&](
-  const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
-  {
-    _ecm.Each<components::Joint, components::Name, components::JointVelocity>(
-      [&](const ignition::gazebo::Entity &, const components::Joint *,
-          const components::Name *_name, const components::JointVelocity *_vel)
-      {
-        if (_name->Data() == rotatingJointName)
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint,
+                components::Name,
+                components::JointVelocity>(
+        [&](const ignition::gazebo::Entity &,
+            const components::Joint *,
+            const components::Name *_name,
+            const components::JointVelocity *_vel)
         {
-          velocities.push_back(_vel->Data()[0]);
-        }
-        return true;
-      });
-  });
+          if (_name->Data() == rotatingJointName)
+          {
+            velocities.push_back(_vel->Data()[0]);
+          }
+          return true;
+        });
+    });
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 2, false);
@@ -817,8 +839,10 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   ASSERT_EQ(velocities.size(), 2ul);
 
   // First velocity should be exactly the same
-  ASSERT_NEAR(vel0, velocities[0], 2e-4);
+  // TODO(anyone): we should use EXPECT_EQ but for some reason the
+  //               resulting velocity is 2.9999 instead of 3.0
+  EXPECT_NEAR(vel0, velocities[0], 2e-4);
 
   // Second velocity should be different, but close
-  ASSERT_NEAR(vel0, velocities[1], 0.05);
+  EXPECT_NEAR(vel0, velocities[1], 0.05);
 }

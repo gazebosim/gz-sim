@@ -32,11 +32,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Joint velocity in SI units (rad/s for revolute, m/s for
-  /// prismatic). The component wraps a std::vector of size equal to the degrees
-  /// of freedom of the joint.
-  using JointVelocityReset = Component<std::vector<double>, class JointVelocityResetTag,
-                                  serializers::VectorDoubleSerializer>;
+  /// \brief Joint velocities in SI units
+  ///        (rad/s for revolute, m/s for prismatic).
+  ///
+  /// The component wraps a std::vector of size equal to the degrees of freedom
+  /// of the joint.
+  using JointVelocityReset = Component<std::vector<double>,
+                                       class JointVelocityResetTag,
+                                       serializers::VectorDoubleSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointVelocityReset", JointVelocityReset)
 }
