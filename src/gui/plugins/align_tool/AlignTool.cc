@@ -32,6 +32,7 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/WireBox.hh>
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/Name.hh"
 
@@ -137,7 +138,8 @@ void AlignTool::OnAlignConfig(const QString &_config)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   std::string newConfig = _config.toStdString();
-  std::transform(newConfig.begin(), newConfig.end(), newConfig.begin(), ::tolower);
+  std::transform(newConfig.begin(), newConfig.end(),
+                 newConfig.begin(), ::tolower);
 
   if (newConfig == "min")
   {
@@ -281,6 +283,11 @@ void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
   for (auto g = 0u; g < vis->GeometryCount(); ++g)
   {
     auto geom = vis->GeometryByIndex(g);
+    auto wireBox = std::dynamic_pointer_cast<rendering::WireBox>(geom);
+
+    // Skip wirebox geometry
+    if (wireBox)
+      continue;
 
     // Geometry material
     auto geomMat = geom->Material();
@@ -329,6 +336,11 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
   for (auto g = 0u; g < vis->GeometryCount(); ++g)
   {
     auto geom = vis->GeometryByIndex(g);
+    auto wireBox = std::dynamic_pointer_cast<rendering::WireBox>(geom);
+
+    // Skip wirebox geometry
+    if (wireBox)
+      continue;
 
     // Geometry material
     auto geomMat = geom->Material();
@@ -444,11 +456,19 @@ void AlignTool::Align()
   int axisIndex = static_cast<int>(this->dataPtr->axis);
   ignition::msgs::Pose req;
 
+  ignition::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
+  ignition::math::Vector3d targetMin = targetBox.Min();
+  ignition::math::Vector3d targetMax = targetBox.Max();
+
   // Index math to avoid iterating through the selected node
   for (unsigned int i = this->dataPtr->first;
        i < selectedList.size() + this->dataPtr->first - 1; i++)
   {
     rendering::VisualPtr vis = selectedList[i];
+
+    ignition::math::AxisAlignedBox box = vis->BoundingBox();
+    ignition::math::Vector3d min = box.Min();
+    ignition::math::Vector3d max = box.Max();
 
     // Check here to see if visual is top level or not, continue if not
     rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
@@ -486,7 +506,33 @@ void AlignTool::Align()
     // and store the current position of the nodes
     else if (this->dataPtr->currentState == AlignState::HOVER)
     {
-      newPos[axisIndex] = relativeVisual->WorldPosition()[axisIndex];
+      double translation = 0.0;
+      if (this->dataPtr->config == AlignConfig::ALIGN_MID)
+      {
+        translation = (targetMin[axisIndex] + (targetMax[axisIndex]
+                                 - targetMin[axisIndex]) / 2) - (min[axisIndex]
+                                 + (max[axisIndex] - min[axisIndex]) / 2);
+      }
+      else
+      {
+        if (this->dataPtr->reverse)
+        {
+          if (this->dataPtr->config == AlignConfig::ALIGN_MIN)
+            translation = targetMin[axisIndex] - max[axisIndex];
+          else if (this->dataPtr->config == AlignConfig::ALIGN_MAX)
+            translation = targetMax[axisIndex] - min[axisIndex];
+        }
+        else
+        {
+          if (this->dataPtr->config == AlignConfig::ALIGN_MIN)
+            translation = targetMin[axisIndex] - min[axisIndex];
+          else if (this->dataPtr->config == AlignConfig::ALIGN_MAX)
+            translation = targetMax[axisIndex] - max[axisIndex];
+        }
+      }
+
+      // Add calculated translation to the chosen index
+      newPos[axisIndex] += translation;
 
       // Store the vis's world positions in a vector
       this->dataPtr->prevPositions.push_back(vis->WorldPosition());
