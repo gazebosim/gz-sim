@@ -1,9 +1,9 @@
 # Joy to Twist
 
 Standalone program that subscribes to
-[ignition::msgs::Joy](https://bitbucket.org/ignitionrobotics/ign-msgs/src/default/proto/ignition/msgs/joy.proto)
+[ignition::msgs::Joy](https://github.com/ignitionrobotics/ign-msgs/blob/master/proto/ignition/msgs/joy.proto)
 messages and converts publishes
-[ignition::msgs::Twist](https://bitbucket.org/ignitionrobotics/ign-msgs/src/default/proto/ignition/msgs/twist.proto)
+[ignition::msgs::Twist](https://github.com/ignitionrobotics/ign-msgs/blob/master/proto/ignition/msgs/twist.proto)
 messages according to user-defined configuration.
 
 ## Build

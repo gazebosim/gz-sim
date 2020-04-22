@@ -1278,7 +1278,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   // ign gazebo. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
   // renaming on OS X until ign gazebo is fixed:
-  // https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/25/apple-support-for-ign-command-line-tool
+  // https://github.com/ignitionrobotics/ign-gazebo/issues/25
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
