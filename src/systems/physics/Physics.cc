@@ -360,7 +360,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         // Check if parent world exists
         // TODO(louise): Support nested models, see
-        // https://bitbucket.org/ignitionrobotics/ign-physics/issues/10
+        // https://github.com/ignitionrobotics/ign-physics/issues/10
         if (this->entityWorldMap.find(_parent->Data())
             == this->entityWorldMap.end())
         {
