@@ -293,8 +293,11 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
       this->rightJoints[0]);
 
   // Abort if the joints were not found or just created.
-  if (!leftPos || !rightPos)
+  if (!leftPos || !rightPos || leftPos->Data().empty() ||
+      rightPos->Data().empty())
+  {
     return;
+  }
 
   this->odom.Update(leftPos->Data()[0], rightPos->Data()[0],
       std::chrono::steady_clock::time_point(_info.simTime));
