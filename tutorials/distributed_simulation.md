@@ -125,7 +125,7 @@ keeps all performers loaded, but performs no physics simulation.
 Stepping happens in 2 stages: the primary update and the secondaries update,
 according to the diagram below:
 
-<img src="https://bytebucket.org/ignitionrobotics/ign-gazebo/raw/default/tutorials/files/distributed_step.png"/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/distributed_step.png"/>
 
 1. The primary publishes a `SimulationStep` message on the `/step` topic,
 containing:
