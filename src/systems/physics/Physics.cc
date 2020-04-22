@@ -696,8 +696,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
-          auto linkMeshFeature = entityCast(_parent->Data(),
-              this->entityLinkMap, this->entityLinkMeshMap);
+          auto linkMeshFeature = entityCast(_parent->Data(), linkPtrPhys,
+              this->entityLinkMeshMap);
           if (!linkMeshFeature)
           {
             ignwarn << "Can't process Mesh geometry, physics engine "
@@ -825,9 +825,19 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
-        auto childLinkDetachableJointFeature = entityCast(
-            _jointInfo->Data().childLink, this->entityLinkMap,
-            this->entityLinkDetachableJointMap);
+        auto childLinkEntity = _jointInfo->Data().childLink;
+
+        // Get child link
+        auto childLinkIt = this->entityLinkMap.find(childLinkEntity);
+        if (childLinkIt == this->entityLinkMap.end())
+        {
+          ignwarn << "Failed to find joint's child link [" << childLinkEntity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto childLinkDetachableJointFeature = entityCast(childLinkEntity,
+            childLinkIt->second, this->entityLinkDetachableJointMap);
         if (!childLinkDetachableJointFeature)
         {
           ignwarn << "Can't process DetachableJoint component, physics engine "
@@ -914,7 +924,15 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.EachRemoved<components::DetachableJoint>(
       [&](const Entity &_entity, const components::DetachableJoint *) -> bool
       {
-        auto castEntity = entityCast(_entity, this->entityJointMap,
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt == this->entityJointMap.end())
+        {
+          ignwarn << "Failed to find joint [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto castEntity = entityCast(_entity, jointIt->second,
             this->entityJointDetachableJointMap);
         if (!castEntity)
         {
@@ -965,7 +983,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
             // TODO(anyone): Only for diff drive, which does not use
             //   JointForceCmd. Remove when it does.
-            auto jointVelFeature = entityCast(_entity, this->entityJointMap,
+            auto jointVelFeature = entityCast(_entity, jointIt->second,
                 this->entityJointVelocityCommandMap);
             if (jointVelFeature)
             {
@@ -1075,7 +1093,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                     << velocityCmd.size() << ".\n";
           }
 
-          auto jointVelFeature = entityCast(_entity, this->entityJointMap,
+          auto jointVelFeature = entityCast(_entity, jointIt->second,
               this->entityJointVelocityCommandMap);
           if (!jointVelFeature)
           {
@@ -1183,7 +1201,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *,
           components::AxisAlignedBox *_bbox)
       {
-        auto bbModel = entityCast(_entity, this->entityModelMap,
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+        {
+          ignwarn << "Failed to find model [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        auto bbModel = entityCast(_entity, modelIt->second,
             this->entityModelBoundingBoxMap);
         if (!bbModel)
         {
