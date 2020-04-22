@@ -2,6 +2,18 @@
 
 ### Ignition Gazebo 3.X.X
 
+1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
+    * [BitBucket pull request 440](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/440)
+
+1. Update physics state even when paused (not stepping)
+    * [BitBucket pull request 556](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/556)
+
+1. Fix entity tree context menu position
+    * [BitBucket pull request 567](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/567)
+
+1. Fix moving static model with link offset
+    * [BitBucket pull request 566](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/566)
+
 1. Added Link::AddWorldWrench function that adds a wrench to a link.
     * [Pull Request 509](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/509)
 
@@ -55,16 +67,16 @@
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
 1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
-    * [Pull Request 440](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/440)
+    * [BitBucket pull request 440](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/440)
 
 1. Update physics state even when paused (not stepping)
-    * [Pull Request 556](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/556)
+    * [BitBucket pull request 556](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/556)
 
 1. Fix entity tree context menu position
-    * [Pull Request 567](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/567)
+    * [BitBucket pull request 567](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/567)
 
 1. Fix moving static model with link offset
-    * [Pull Request 566](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/566)
+    * [BitBucket pull request 566](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/566)
 
 1. Add support for setting visual transparency through SDF
     * [Pull Request 547](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/547)
