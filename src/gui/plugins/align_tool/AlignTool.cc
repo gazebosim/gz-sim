@@ -21,7 +21,6 @@
 #include <iostream>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/gazebo/rendering/RenderUtil.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
