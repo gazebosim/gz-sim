@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat9 REQUIRED)
+ign_find_package(sdformat9 VERSION 9.2 REQUIRED)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
@@ -59,7 +59,7 @@ set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 VERSION 3.4
+ign_find_package(ignition-common3 VERSION 3.5
   COMPONENTS
   profiler
   events

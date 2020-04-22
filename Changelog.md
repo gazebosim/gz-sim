@@ -4,11 +4,26 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Use interpolate\_x sdf parameter for actor animations
+    * [Pull Request 536](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/536)
+
+1. Actor skeleton animation (auto update mode)
+    * [Pull Request 579](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/579)
+
+1. Added support for removing sensors at runtime
+    * [Pull Request 558](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/558)
+
+1. Add support for visual visibility flags and camera visibility mask
+    * [Pull Request 559](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/559)
+
 1. Support <actor><pose> and <actor><plugin>
     * [Pull Request 542](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/542)
 
 1. Depend on ign-rendering4, ign-gui4, ign-sensors4
     * [Pull Request 540](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/540)
+
+1. Axis-Aligned Bounding Boxes
+    * [Pull Request 565](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/565)
 
 ## Ignition Gazebo 3.x
 

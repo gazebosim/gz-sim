@@ -1,9 +1,28 @@
 <?xml version="1.0" ?>
+<!--
+  Demo world to show how to include a model from Ignition Fuel.
+-->
 <sdf version="1.6">
-  <world name="actors">
+  <world name="fuel">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <scene>
+      <ambient>1.0 1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8 1.0</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+    </scene>
+
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
@@ -21,9 +40,9 @@
 
         <engine>ogre2</engine>
         <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_pose>-2 0 2 0 0.5 0</camera_pose>
       </plugin>
 
       <!-- World control -->
@@ -46,8 +65,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/actors/control</service>
-        <stats_topic>/world/actors/stats</stats_topic>
+        <service>/world/fuel/control</service>
+        <stats_topic>/world/fuel/stats</stats_topic>
 
       </plugin>
 
@@ -72,10 +91,8 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/actors/stats</topic>
-
+        <topic>/world/fuel/stats</topic>
       </plugin>
-
     </gui>
 
     <light type="directional" name="sun">
@@ -98,14 +115,14 @@
         <collision name="collision">
           <geometry>
             <plane>
-              <normal>0.0 0.0 1</normal>
+              <normal>0 0 1</normal>
             </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <plane>
-              <normal>0.0 0.0 1</normal>
+              <normal>0 0 1</normal>
               <size>100 100</size>
             </plane>
           </geometry>
@@ -118,27 +135,13 @@
       </link>
     </model>
 
+    <!-- mesh -->
     <include>
-      <pose>1 1 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="libCommandActor.so"
-              name="command_actor::CommandActor">
-
-        <!-- From 5 seconds sim time, offset the entire trajectory by pose -->
-        <origin>
-          <time>5</time>
-          <pose>10 10 0 0 0 0</pose>
-        </origin>
-
-        <!--
-           At 10 seconds sim time, fix the trajectory pose to a given value.
-           This disables the waypoints from SDF.
-        -->
-        <trajectory_pose>
-          <time>10</time>
-          <pose>-5 -5 1 0 0 0</pose>
-        </trajectory_pose>
-      </plugin>
+      <static>true</static>
+      <name>Electrical Box</name>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Electrical Box</uri>
     </include>
+
   </world>
 </sdf>
