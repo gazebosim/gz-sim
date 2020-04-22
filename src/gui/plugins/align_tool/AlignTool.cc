@@ -621,10 +621,18 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 
     // Only update if a valid cast, the data isn't empty, and
     // the command is not from user (sent from backend)
-    if (selectedEvent && !selectedEvent->Data().empty()
-        && !selectedEvent->FromUser())
+    if (selectedEvent && !selectedEvent->Data().empty())
     {
-      this->dataPtr->selectedEntities = selectedEvent->Data();
+      for (const auto &_entity : selectedEvent->Data())
+      {
+        // If the element already exists in the selected entity's
+        // vector, then continue
+        if (std::find(this->dataPtr->selectedEntities.begin(),
+              this->dataPtr->selectedEntities.end(),
+              _entity) != this->dataPtr->selectedEntities.end())
+          continue;
+        this->dataPtr->selectedEntities.push_back(_entity);
+      }
     }
   }
   else if (_event->type() ==

@@ -22,7 +22,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 ToolBar {
-  Layout.minimumWidth: 200
+  Layout.minimumWidth: 280
   Layout.minimumHeight: 370
 
   background: Rectangle {
