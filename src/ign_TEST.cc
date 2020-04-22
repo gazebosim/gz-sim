@@ -26,7 +26,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 // Command line not working on OSX, see
-// https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/25/
+// https://github.com/ignitionrobotics/ign-gazebo/issues/25/
 #ifndef __APPLE__
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
