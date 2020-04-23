@@ -222,6 +222,8 @@ ECS pattern used by Ignition) that we're using:
 #include <ignition/gazebo/components/Pose.hh>
 ```
 
+A great resource to understand the logic under-the-hood of the ECM is the `SdfEntityCreator` class ([header](https://github.com/ignitionrobotics/ign-gazebo/blob/master/include/ignition/gazebo/SdfEntityCreator.hh), [source](https://github.com/ignitionrobotics/ign-gazebo/blob/master/src/SdfEntityCreator.cc)). In fact, this class is responsible to map the content of a SDF file to the entities and components that form the graph handled by the ECM. If you wonder what are the components that you can access by default from the plugin, this class is the best entry point.
+
 Then we include the parts of `ign-gazebo` itself that we're using:
 
 ```cpp
@@ -922,4 +924,3 @@ to your Gazebo plugins to migrate them to Ignition.
 Check out [these
 instructions](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-ignition)
 if you'd like to learn more about using ardupilot_gazebo with Ignition.
-
