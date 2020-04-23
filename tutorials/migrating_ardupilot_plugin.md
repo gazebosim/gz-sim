@@ -914,9 +914,12 @@ plugin once for the entire model and the `ApplyJointForce` plugin once for each 
 </plugin>
 ```
 
-## Building and running the plugin
+## What's next
 
-Now that you're familiar with the changes required by the migration from Gazebo
-to Ignition, you can try building and running the result of migration by
-following [these
-instructions](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-ignition).
+You should be able to apply the same general changes covered in this tutorial
+to your Gazebo plugins to migrate them to Ignition.
+
+Check out [these
+instructions](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-ignition)
+if you'd like to learn more about using ardupilot_gazebo with Ignition.
+
