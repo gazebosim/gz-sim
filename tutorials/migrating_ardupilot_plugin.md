@@ -222,9 +222,18 @@ ECS pattern used by Ignition) that we're using:
 #include <ignition/gazebo/components/Pose.hh>
 ```
 
-A great resource to understand the logic under-the-hood of the ECM is the `SdfEntityCreator` class ([header](https://github.com/ignitionrobotics/ign-gazebo/blob/master/include/ignition/gazebo/SdfEntityCreator.hh), [source](https://github.com/ignitionrobotics/ign-gazebo/blob/master/src/SdfEntityCreator.cc)). In fact, this class is responsible to map the content of a SDF file to the entities and components that form the graph handled by the ECM. If you wonder what are the components that you can access by default from the plugin, this class is the best entry point.
+To better understand the ECS pattern as it is used in Ignition, it's helpful to
+learn about the EntityComponentManager (ECM), which is responsible for managing
+the ECS graph. A great resource to understand the logic under the hood of the
+ECM is the `SdfEntityCreator` class
+([header](https://github.com/ignitionrobotics/ign-gazebo/blob/master/include/ignition/gazebo/SdfEntityCreator.hh),
+[source](https://github.com/ignitionrobotics/ign-gazebo/blob/master/src/SdfEntityCreator.cc)).
+This class is responsible for mapping the content of an SDF file to the
+entities and components that form the graph handled by the ECM. For example, If
+you wonder which components can be accessed by default from the plugin, this
+class is the best entry point.
 
-Then we include the parts of `ign-gazebo` itself that we're using:
+Next we include the parts of `ign-gazebo` itself that we're using:
 
 ```cpp
 // NEW
