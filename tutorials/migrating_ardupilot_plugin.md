@@ -11,11 +11,8 @@ study the migration of one particular `ModelPlugin`,
 this example provides useful tips to others who are migrating their existing
 plugins from Gazebo to Ignition.
 
-The migrated version of the plugin that we're presenting here can be found in
-[this fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition). You can
-try building and running the migrated plugin in Ignition by following the
-[instructions in that
-fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-ignition).
+The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial 
+can be found in [this fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition).
 
 ## Background
 
@@ -923,4 +920,3 @@ Now that you're familiar with the changes required by the migration from Gazebo
 to Ignition, you can try building and running the result of migration by
 following [these
 instructions](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-ignition).
-
