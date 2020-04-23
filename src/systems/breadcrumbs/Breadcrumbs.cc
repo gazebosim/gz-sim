@@ -45,6 +45,16 @@ void Breadcrumbs::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
+  this->maxDeployments =
+      _sdf->Get<int>("max_deployments", this->maxDeployments).first;
+
+  // Exit early if breadcrumbs deployments are not possible.
+  if (this->maxDeployment <= 0)
+  {
+    ignmsg << "Breadcrumbs max deployment is <= 0. Breadcrumbs are disabled."
+      << std::endl;
+  }
+
   this->model = Model(_entity);
 
   if (!_sdf->HasElement("breadcrumb"))
@@ -79,9 +89,6 @@ void Breadcrumbs::Configure(const Entity &_entity,
     ignerr << "Model not found in <breadcrumb>" << std::endl;
     return;
   }
-
-  this->maxDeployments =
-      _sdf->Get<int>("max_deployments", this->maxDeployments).first;
 
   if (_sdf->HasElement("performer_volume"))
   {
