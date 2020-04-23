@@ -3,7 +3,7 @@
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
 1. Disable breadcrumbs if the `max_deployments` == 0.
-    * [Pull Request 545](https://github.com/ignitionrobotics/ign-gazebo/pull-requests/545)
+    * [Pull Request 88](https://github.com/ignitionrobotics/ign-gazebo/pull/88)
 
 1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
     * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
