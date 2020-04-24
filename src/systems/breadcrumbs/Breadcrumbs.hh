@@ -61,6 +61,10 @@ namespace systems
   /// deployed. Once this many are deployed, publishing on the deploy topic will
   /// have no effect. If a negative number is set, the maximun deployment will
   /// be unbounded.
+  /// `<disable_physics_time>`: The time in which the breadcrumb entity's
+  /// dynamics remain enabled. After his specified time, the breadcrumb will
+  /// be made static. If this value is <= 0 or the param is not specified, the
+  /// breadcrumb model's dynamics will not be modified.
   /// `<performer_volume>`: Geometry that represents the bounding volume of
   /// the performer. Only `<geometry><box>` is supported currently. When this
   /// parameter is present, the deployed models will be performers.
@@ -87,6 +91,12 @@ namespace systems
 
     /// \brief Callback to deployment topic
     private: void OnDeploy(const msgs::Empty &_msg);
+
+    /// \brief Make an entity static
+    /// \param[in] _entity Entity to make static
+    /// \param[in] _ecm Entity component manager
+    /// \return True if operation is successful, false otherwise
+    public: bool MakeStatic(Entity _entity, EntityComponentManager &_ecm);
 
     /// \brief Set to true after initialization with valid parameters
     private: bool initialized{false};
@@ -126,6 +136,17 @@ namespace systems
 
     /// \brief Mutex to protect pending commands
     private: std::mutex pendingCmdsMutex;
+
+    /// \brief Time when the entity should be made static after they are spawned
+    private: std::chrono::steady_clock::duration disablePhysicsTime =
+        std::chrono::steady_clock::duration::zero();
+
+    /// \brief A map of auto static entities and time when they are spawned.
+    private: std::unordered_map<Entity, std::chrono::steady_clock::duration>
+        autoStaticEntities;
+
+    /// \brief SDF DOM of a static model with empty link
+    private: sdf::Model staticModelToSpawn;
   };
   }
 }
