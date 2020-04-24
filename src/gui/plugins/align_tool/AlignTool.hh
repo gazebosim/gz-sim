@@ -101,10 +101,10 @@ namespace gazebo
     /// \param[in] _reverse The reverse boolean
     public slots: void OnReverse(bool _reverse);
 
-    /// \brief Callback to make whenever a hover state is entered on a button
+    /// \brief Callback to make whenever a hover state is entered on a button.
     public slots: void OnHoveredEntered();
 
-    /// \brief Callback to make whenever a hover state is exited on a button
+    /// \brief Callback to make whenever a hover state is exited on a button.
     public slots: void OnHoveredExited();
 
     /// \brief Callback to the align state the execution queue.
@@ -117,7 +117,7 @@ namespace gazebo
     /// \brief Updates the node to increase its transparency or reset
     /// back to its original transparency value, an opaque call requires
     /// a previous transparent call, otherwise, no action will be taken
-    /// \param[in] _node The node to update
+    /// \param[in] _node The node to update.
     /// \param[in] _makeTransparent true if updating to increase transparency,
     /// false to set back to original transparency values (make more opaque)
     public: void UpdateTransparency(const rendering::NodePtr &_node,
@@ -125,18 +125,18 @@ namespace gazebo
 
     /// \brief The function call to execute a state from the queue.  This
     /// function makes rendering calls and should only be executed within
-    /// the render thread
+    /// the render thread.
     public: void Align();
 
     /// \brief Returns the top level visual of the passed in visual within
-    /// a given scene
+    /// a given scene.
     /// \param[in] _scene The scene to check
     /// \param[in] _visual The visual to get the top level visual for
     public: rendering::VisualPtr TopLevelVisual(rendering::ScenePtr &_scene,
             rendering::VisualPtr &_visual) const;
 
     /// \brief Returns the top level node of the passed in node within
-    /// a given scene
+    /// a given scene.
     /// \param[in] _scene The scene to check
     /// \param[in] _visual The node to get the top level node for
     public: rendering::NodePtr TopLevelNode(rendering::ScenePtr &_scene,
