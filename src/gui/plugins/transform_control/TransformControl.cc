@@ -27,7 +27,6 @@
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Grid.hh>
-#include <ignition/rendering/Material.hh>
 #include <ignition/rendering/RenderTypes.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/RenderEngine.hh>
