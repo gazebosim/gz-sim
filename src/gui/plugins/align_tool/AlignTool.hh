@@ -115,13 +115,13 @@ namespace gazebo
     public: void AddState(const AlignState &_state);
 
     /// \brief Updates the node to increase its transparency or reset
-    /// back to it's original transparency value, an opaque call requires
-    /// a previous transparent call
+    /// back to its original transparency value, an opaque call requires
+    /// a previous transparent call, otherwise, no action will be taken
     /// \param[in] _node The node to update
-    /// \param[in] _makeOpaque true if updating to transparent, false to
-    /// set back
+    /// \param[in] _makeTransparent true if updating to increase transparency,
+    /// false to set back to original transparency values (make more opaque)
     public: void UpdateTransparency(const rendering::NodePtr &_node,
-        bool _makeOpaque);
+        bool _makeTransparent);
 
     /// \brief The function call to execute a state from the queue.  This
     /// function makes rendering calls and should only be executed within
