@@ -443,6 +443,10 @@ void RenderUtil::Update()
       Entity entityId = kNullEntity;
       if (vis)
       {
+        // Get information from the visual's user data to indicate if
+        // the render thread should pause updating it's true location,
+        // this functionality is needed for temporal placement of a
+        // visual such as an align preview
         updateNode = std::get<int>(vis->UserData("pause-update"));
         entityId = std::get<int>(vis->UserData("gazebo-entity"));
       }

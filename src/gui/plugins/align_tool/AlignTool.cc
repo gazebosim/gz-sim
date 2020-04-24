@@ -162,6 +162,7 @@ void AlignTool::OnAlignConfig(const QString &_config)
   }
 }
 
+/////////////////////////////////////////////////
 void AlignTool::OnReverse(bool _reverse)
 {
   this->dataPtr->reverse = _reverse;
@@ -251,7 +252,8 @@ void AlignTool::AddState(const AlignState &_state)
 }
 
 ////////////////////////////////////////////////
-void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
+void AlignTool::UpdateTransparency(const rendering::NodePtr &_node,
+    bool _makeOpaque)
 {
   if (!_node)
     return;
@@ -259,61 +261,7 @@ void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
-    this->MakeTransparent(child);
-  }
-
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (nullptr == vis)
-    return;
-
-  // Visual material
-  auto visMat = vis->Material();
-  if (nullptr != visMat)
-  {
-    // If the entity isn't already transparent, make it transparent
-    if (this->dataPtr->originalTransparency.find(vis->Name()) ==
-        this->dataPtr->originalTransparency.end())
-    {
-      this->dataPtr->originalTransparency[vis->Name()] = visMat->Transparency();
-      visMat->SetTransparency(visMat->Transparency() + 0.5);
-    }
-  }
-
-  for (auto g = 0u; g < vis->GeometryCount(); ++g)
-  {
-    auto geom = vis->GeometryByIndex(g);
-    auto wireBox = std::dynamic_pointer_cast<rendering::WireBox>(geom);
-
-    // Skip wirebox geometry
-    if (wireBox)
-      continue;
-
-    // Geometry material
-    auto geomMat = geom->Material();
-    if (nullptr == geomMat)
-      continue;
-
-    // If the entity isn't already transparent, make it transparent
-    if (this->dataPtr->originalTransparency.find(geom->Name()) ==
-        this->dataPtr->originalTransparency.end())
-    {
-      this->dataPtr->originalTransparency[geom->Name()] =
-          geomMat->Transparency();
-      geomMat->SetTransparency(geomMat->Transparency() + 0.5);
-    }
-  }
-}
-
-/////////////////////////////////////////////////
-void AlignTool::MakeSolid(const rendering::NodePtr &_node)
-{
-  if (!_node)
-    return;
-
-  for (auto n = 0u; n < _node->ChildCount(); ++n)
-  {
-    auto child = _node->ChildByIndex(n);
-    this->MakeSolid(child);
+    this->UpdateTransparency(child, _makeOpaque);
   }
 
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -326,9 +274,22 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
   {
     auto visTransparency =
         this->dataPtr->originalTransparency.find(vis->Name());
-    if (visTransparency != this->dataPtr->originalTransparency.end())
+    if (_makeOpaque)
     {
-      visMat->SetTransparency(visTransparency->second);
+      if (visTransparency != this->dataPtr->originalTransparency.end())
+      {
+        visMat->SetTransparency(visTransparency->second);
+      }
+    }
+    else
+    {
+      // If the entity isn't already transparent, make it transparent
+      if (visTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[vis->Name()] =
+          visMat->Transparency();
+        visMat->SetTransparency(1.0 - ((1.0 - visMat->Transparency()) * 0.5));
+      }
     }
   }
 
@@ -345,12 +306,25 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
     auto geomMat = geom->Material();
     if (nullptr == geomMat)
       continue;
-
     auto geomTransparency =
         this->dataPtr->originalTransparency.find(geom->Name());
-    if (geomTransparency != this->dataPtr->originalTransparency.end())
+
+    if (_makeOpaque)
     {
-      geomMat->SetTransparency(geomTransparency->second);
+      if (geomTransparency != this->dataPtr->originalTransparency.end())
+      {
+        geomMat->SetTransparency(geomTransparency->second);
+      }
+    }
+    else
+    {
+      // If the entity isn't already transparent, make it transparent
+      if (geomTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[geom->Name()] =
+            geomMat->Transparency();
+        geomMat->SetTransparency(1.0 - ((1.0 - geomMat->Transparency()) * 0.5));
+      }
     }
   }
 }
@@ -419,9 +393,15 @@ void AlignTool::Align()
       ignition::rendering::VisualPtr vis = scene->VisualByIndex(i);
       if (!vis)
         continue;
+
       if (std::get<int>(vis->UserData("gazebo-entity")) ==
           static_cast<int>(entityId))
       {
+        // Check here to see if visual is top level or not, continue if not
+        rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
+        if (topLevelVis != vis)
+          continue;
+
         selectedList.push_back(vis);
       }
     }
@@ -464,6 +444,8 @@ void AlignTool::Align()
        i < selectedList.size() + this->dataPtr->first - 1; i++)
   {
     rendering::VisualPtr vis = selectedList[i];
+    if (!vis)
+      continue;
 
     ignition::math::AxisAlignedBox box = vis->BoundingBox();
     ignition::math::Vector3d min = box.Min();
@@ -476,15 +458,14 @@ void AlignTool::Align()
 
     math::Vector3d newPos = vis->WorldPosition();
 
-    // If a reset is occuring, the user has not clicked align,
-    // so pull all of the previous positions and set
+    // If a reset is occurring, pull all of the previous positions and set
     if (this->dataPtr->currentState == AlignState::RESET)
     {
       // Index offset given the relative node does not get added to the
       // prevPositions vector
       newPos = this->dataPtr->prevPositions[i-this->dataPtr->first];
 
-      this->MakeSolid(vis);
+      this->UpdateTransparency(vis, true /* opaque */);
       vis->SetWorldPosition(newPos);
       vis->SetUserData("pause-update", static_cast<int>(0));
     }
@@ -492,7 +473,7 @@ void AlignTool::Align()
     // make a request to the backend to send the node to the new position
     else if (this->dataPtr->currentState == AlignState::ALIGN)
     {
-      this->MakeSolid(vis);
+      this->UpdateTransparency(vis, true /* opaque */);
       req.set_name(vis->Name());
       msgs::Set(req.mutable_position(), newPos);
       msgs::Set(req.mutable_orientation(), vis->WorldRotation());
@@ -537,7 +518,7 @@ void AlignTool::Align()
       this->dataPtr->prevPositions.push_back(vis->WorldPosition());
 
       // Make the visual transparent and update to new position
-      this->MakeTransparent(vis);
+      this->UpdateTransparency(vis, false /* transparent */);
       vis->SetWorldPosition(newPos);
       vis->SetUserData("pause-update", static_cast<int>(1));
     }

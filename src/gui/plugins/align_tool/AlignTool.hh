@@ -114,14 +114,14 @@ namespace gazebo
     /// \param[in] _state New state to add by enum AlignState
     public: void AddState(const AlignState &_state);
 
-    /// \brief Makes the node transparent
-    /// \param[in] _node The node to make transparent
-    public: void MakeTransparent(const rendering::NodePtr &_node);
-
-    /// \brief Reset the node to its solid form, intended to be called
-    /// after MakeTransparent
-    /// \param[in] _node The node to make solid
-    public: void MakeSolid(const rendering::NodePtr &_node);
+    /// \brief Updates the node to increase its transparency or reset
+    /// back to it's original transparency value, an opaque call requires
+    /// a previous transparent call
+    /// \param[in] _node The node to update
+    /// \param[in] _makeOpaque true if updating to transparent, false to
+    /// set back
+    public: void UpdateTransparency(const rendering::NodePtr &_node,
+        bool _makeOpaque);
 
     /// \brief The function call to execute a state from the queue.  This
     /// function makes rendering calls and should only be executed within
