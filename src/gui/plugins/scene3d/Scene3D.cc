@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <sdf/Root.hh>
+#include <sdf/Model.hh>
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
@@ -208,6 +209,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
 
+    /// \brief Flag for indicating whether we are in shapes mode or not
+    public: bool shapes = false;
+
+    /// \brief Flag for indicating whether the user is currently placing a
+    /// model with the shapes plugin or not
+    public: bool placingModel = false;
+
+    public: std::string model;
+
     /// \brief The pose set during a view angle button press that holds
     /// the pose the camera should assume relative to the entit(y/ies).
     /// The vector (0, 0, 0) indicates to return the camera back to the home
@@ -375,6 +385,9 @@ void IgnRenderer::Render()
 
   // Entity selection
   this->HandleEntitySelection();
+
+  // Model placement
+  this->HandleModelPlacement();
 
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
@@ -556,6 +569,61 @@ void IgnRenderer::Render()
     }
   }
 
+  // Shapes
+  // TODO move shapes functionality here to reside within render thread
+  {
+    IGN_PROFILE("IgnRenderer::Render Shapes");
+    if (this->dataPtr->shapes)
+    {
+      ignwarn << "1\n";
+      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      ignwarn << "2\n";
+      rendering::VisualPtr rootVis = scene->RootVisual();
+      ignwarn << "3\n";
+
+      sdf::Root root;
+      root.LoadSdfString(this->dataPtr->model);
+      ignwarn << "4\n";
+      sdf::Model model2 = *(root.ModelByIndex(0));
+      ignwarn << "6\n";
+      ignwarn << "model name: " << model2.Name() << "\n";
+      for (auto i = 0u; i < root.ModelCount(); i++)
+      {
+        ignwarn << "5\n";
+        sdf::Model model = *(root.ModelByIndex(i));
+        ignwarn << "6\n";
+        ignwarn << "model name: " << model.Name() << "\n";
+        this->dataPtr->renderUtil.SceneManager().CreateModel(1000, model, this->dataPtr->renderUtil.SceneManager().WorldId());
+        for (auto j = 0u; j < model.LinkCount(); j++)
+        {
+          sdf::Link link = *(model.LinkByIndex(j));
+          ignwarn << "link name: " << link.Name() << "\n";
+          this->dataPtr->renderUtil.SceneManager().CreateLink(999, link, 1000);
+          for (auto k = 0u; k < link.VisualCount(); k++)
+          {
+           sdf::Visual visual = *(link.VisualByIndex(k));
+           ignwarn << "visual name: " << visual.Name() << "\n";
+           ignwarn << "geom " << static_cast<int>(visual.Geom()->Type()) << "\n";
+           this->dataPtr->renderUtil.SceneManager().CreateVisual(998, visual, 999);
+          }
+        }
+      }
+      this->dataPtr->placingModel = true;
+      ignwarn << "7\n";
+  /*
+  msgs::EntityFactory req;
+  req.set_sdf_filename(_drop.toStdString());
+  req.set_allow_renaming(true);
+  msgs::Set(req.mutable_pose(),
+      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+  */
+      this->dataPtr->shapes = false;
+    }
+  }
+
   if (ignition::gui::App())
   {
     ignition::gui::App()->sendEvent(
@@ -709,6 +777,48 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       break;
     default:
       break;
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::HandleModelPlacement()
+{
+  if (this->dataPtr->placingModel)
+  {
+    ignwarn << "Getting render window\n"; 
+    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+    ignwarn << "Forcing render window focus\n"; 
+    renderWindow->forceActiveFocus();
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE)
+    {
+      ignwarn << "moving to " << this->ScreenToScene(this->dataPtr->mouseEvent.Pos()) << "\n";
+    }
+    if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT)
+    {
+      // TODO spawn the object with the logic below
+      /*
+      ignition::msgs::Pose req;
+      req.set_name(node->Name());
+      msgs::Set(req.mutable_position(), node->WorldPosition());
+      msgs::Set(req.mutable_orientation(), node->WorldRotation());
+      if (this->dataPtr->poseCmdService.empty())
+      {
+        this->dataPtr->poseCmdService = "/world/" + this->worldName
+            + "/set_pose";
+      }
+      this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
+      ignwarn << "placing at " << this->ScreenToScene(this->dataPtr->mouseEvent.Pos()) << "\n";
+      this->dataPtr->placingModel = false;
+      msgs::EntityFactory req;
+      req.set_sdf_filename(_drop.toStdString());
+      req.set_allow_renaming(true);
+      msgs::Set(req.mutable_pose(),
+        math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+
+      this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+        req, cb);
+      */
+    }
   }
 }
 
@@ -1360,8 +1470,9 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 /////////////////////////////////////////////////
 void IgnRenderer::SetModel(const std::string &_model)
 {
-  
-
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->shapes = true;
+  this->dataPtr->model = _model;
 }
 
 /////////////////////////////////////////////////
@@ -2044,25 +2155,7 @@ bool Scene3D::OnShapes(const msgs::StringMsg &_msg,
 {
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
-  rendering::ScenePtr scene = this->dataPtr->renderUtil->Scene();
-  rendering::VisualPtr rootVis = scene->RootVisual();
-
-  //renderWindow->SetModel(msgs::Convert(_msg));
-  ignwarn << "Model " << msgs::Convert(_msg) << "\n";
-  sdf::Root root;
-  root.LoadSdfString(msgs::Convert(_msg));
-  rendering::VisualPtr model = this->dataPtr->renderUtil->SceneManager().CreateModel(1000, *(root.ModelByIndex(0), this->dataPtr->));
-  rootVis->AddChild(model);
-  /*
-  msgs::EntityFactory req;
-  req.set_sdf_filename(_drop.toStdString());
-  req.set_allow_renaming(true);
-  msgs::Set(req.mutable_pose(),
-      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
-
-  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
-      req, cb);
-  */
+  renderWindow->SetModel(msgs::Convert(_msg));
 
   _res.set_data(true);
   return true;

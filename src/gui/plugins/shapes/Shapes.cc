@@ -86,39 +86,44 @@ void Shapes::OnMode(const QString &_mode)
   std::string sdfString;
   if (_mode == "box")
   {
-    sdfString = " <?xml version="1.0"?>                    \
-                  <sdf version="1.6">                      \
-                    <model name=\"box\">                   \
-                      <pose>0 0 0.5 0 0 0</pose>           \
-                      <link name=\"box_link\">             \
-                        <inertial>                         \
-                          <inertia>                        \
-                            <ixx>1</ixx>                   \
-                            <ixy>0</ixy>                   \
-                            <ixz>0</ixz>                   \
-                            <iyy>1</iyy>                   \
-                            <iyz>0</iyz>                   \
-                            <izz>1</izz>                   \
-                          </inertia>                       \
-                          <mass>1.0</mass>                 \
-                        </inertial>                        \
-                        <collision name=\"box_collision\"> \
-                          <geometry>                       \
-                            <box>                          \
-                              <size>1 1 1</size>           \
-                            </box>                         \
-                          </geometry>                      \
-                        </collision>                       \
-                        <visual name=\"box_visual\">       \
-                          <geometry>                       \
-                            <box>                          \
-                              <size>1 1 1</size>           \
-                            </box>                         \
-                          </geometry>                      \
-                        </visual>                          \
-                      </link>                              \
-                    </model>                               \
-                  </sdf>";
+    sdfString = std::string("<?xml version=\"1.0\"?>"
+                            "<sdf version=\"1.6\">"
+                              "<model name=\"box\">"
+                                "<pose>0 0 0.5 0 0 0</pose>"
+                                "<link name=\"box_link\">"
+                                  "<inertial>"
+                                    "<inertia>"
+                                      "<ixx>1</ixx>"
+                                      "<ixy>0</ixy>"
+                                      "<ixz>0</ixz>"
+                                      "<iyy>1</iyy>"
+                                      "<iyz>0</iyz>"
+                                      "<izz>1</izz>"
+                                    "</inertia>"
+                                    "<mass>1.0</mass>"
+                                  "</inertial>"
+                                  "<collision name=\"box_collision\">"
+                                    "<geometry>"
+                                      "<box>"
+                                        "<size>1 1 1</size>"
+                                      "</box>"
+                                    "</geometry>"
+                                  "</collision>"
+                                  "<visual name=\"box_visual\">"
+                                    "<geometry>"
+                                      "<box>"
+                                        "<size>1 1 1</size>"
+                                      "</box>"
+                                    "</geometry>"
+                                    "<material>"
+                                      "<ambient>1 0 0 1</ambient>"
+                                      "<diffuse>1 0 0 1</diffuse>"
+                                      "<specular>1 0 0 1</specular>"
+                                    "</material>"
+                                  "</visual>"
+                                "</link>"
+                              "</model>"
+                            "</sdf>");
   }
   else if (_mode == "sphere")
   {
@@ -129,7 +134,7 @@ void Shapes::OnMode(const QString &_mode)
   
   }
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/src/gui/plugins/shapes/" + _mode.toStdString() + ".sdf";
-  req.set_data(path);
+  req.set_data(sdfString);
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
 

@@ -90,6 +90,12 @@ void SceneManager::SetWorldId(Entity _id)
 }
 
 /////////////////////////////////////////////////
+Entity SceneManager::WorldId()
+{
+  return this->dataPtr->worldId;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     const sdf::Model &_model, Entity _parentId)
 {
@@ -181,12 +187,14 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
 rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     const sdf::Visual &_visual, Entity _parentId)
 {
+  ignwarn << "1\n";
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
     ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
            << std::endl;
     return rendering::VisualPtr();
   }
+  ignwarn << "2\n";
 
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
@@ -200,6 +208,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     }
     parent = it->second;
   }
+  ignwarn << "3\n";
 
   if (!_visual.Geom())
     return rendering::VisualPtr();
@@ -210,14 +219,17 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
   visualVis->SetLocalPose(_visual.Pose());
+  ignwarn << "4\n";
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
   rendering::GeometryPtr geom =
       this->LoadGeometry(*_visual.Geom(), scale, localPose);
+  ignwarn << "5\n";
 
   if (geom)
   {
+  ignwarn << "6\n";
     /// localPose is currently used to handle the normal vector in plane visuals
     /// In general, this can be used to store any local transforms between the
     /// parent Visual and geometry.
@@ -257,6 +269,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     }
     else
     {
+  ignwarn << "7\n";
       // meshes created by mesh loader may have their own materials
       // update/override their properties based on input sdf element values
       auto mesh = std::dynamic_pointer_cast<rendering::Mesh>(geom);
@@ -312,7 +325,9 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   rendering::GeometryPtr geom{nullptr};
   if (_geom.Type() == sdf::GeometryType::BOX)
   {
+    ignwarn << "Creating box\n";
     geom = this->dataPtr->scene->CreateBox();
+    ignwarn << "Created box\n";
     scale = _geom.BoxShape()->Size();
   }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)

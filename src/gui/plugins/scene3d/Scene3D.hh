@@ -323,6 +323,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle entity selection requests
     private: void HandleEntitySelection();
 
+    /// \brief Handle model placement requests
+    private: void HandleModelPlacement();
+
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
     /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
