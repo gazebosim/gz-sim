@@ -43,6 +43,9 @@ Rectangle {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
+    onEntered: {
+      GzScene3D.OnFocusWindow()
+    }
 
     /**
      * Message to be displayed over the render window
