@@ -37,15 +37,15 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     acceptedButtons: Qt.NoButton
+    onEntered: {
+      GzScene3D.OnFocusWindow()
+    }
   }
 
   RenderWindow {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
-    onEntered: {
-      GzScene3D.OnFocusWindow()
-    }
 
     /**
      * Message to be displayed over the render window
