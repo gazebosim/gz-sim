@@ -96,6 +96,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void OnDropped(const QString &_drop,
         int _mouseX, int _mouseY);
 
+    public slots: void OnFocusWindow();
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
@@ -530,6 +532,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
+
+    // Documentation inherited
+    protected: void hoverMoveEvent(QHoverEvent *_e) override;
 
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;

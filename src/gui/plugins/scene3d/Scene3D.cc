@@ -248,6 +248,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
 
+    /// \brief Name of service for creating entity
+    public: std::string createCmdService;
+
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
@@ -575,6 +578,7 @@ void IgnRenderer::Render()
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->shapes)
     {
+      /*
       ignwarn << "1\n";
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       ignwarn << "2\n";
@@ -608,6 +612,7 @@ void IgnRenderer::Render()
           }
         }
       }
+      */
       this->dataPtr->placingModel = true;
       ignwarn << "7\n";
   /*
@@ -785,16 +790,23 @@ void IgnRenderer::HandleModelPlacement()
 {
   if (this->dataPtr->placingModel)
   {
+    /*
     ignwarn << "Getting render window\n"; 
     auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     ignwarn << "Forcing render window focus\n"; 
     renderWindow->forceActiveFocus();
+    */
+    // check for mouse events
+    //if (!this->dataPtr->mouseDirty)
+    //  return;
     if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE)
     {
       ignwarn << "moving to " << this->ScreenToScene(this->dataPtr->mouseEvent.Pos()) << "\n";
     }
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT)
     {
+      if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+      {
       // TODO spawn the object with the logic below
       /*
       ignition::msgs::Pose req;
@@ -809,15 +821,39 @@ void IgnRenderer::HandleModelPlacement()
       this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
       ignwarn << "placing at " << this->ScreenToScene(this->dataPtr->mouseEvent.Pos()) << "\n";
       this->dataPtr->placingModel = false;
+      */
+      sdf::Root root;
+      root.LoadSdfString(this->dataPtr->model);
+      sdf::Model model = *(root.ModelByIndex(0));
+      math::Pose3d modelPose = model.Pose();
+      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      {
+        if (!_result)
+          ignerr << "Error setting pose" << std::endl;
+      };
+      math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
       msgs::EntityFactory req;
-      req.set_sdf_filename(_drop.toStdString());
+      req.set_sdf(this->dataPtr->model);
       req.set_allow_renaming(true);
       msgs::Set(req.mutable_pose(),
-        math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+      math::Pose3d(pos.X(), pos.Y(), modelPose.Pos().Z(), modelPose.Rot().W(), modelPose.Rot().X(), modelPose.Rot().Y(), modelPose.Rot().Z()));
 
-      this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
-        req, cb);
-      */
+      // TODO get the pose from the sdf string to get z coordinate and pose ...?
+
+      if (this->dataPtr->createCmdService.empty())
+      {
+        this->dataPtr->createCmdService = "/world/" + this->worldName
+            + "/create";
+      }
+      ignwarn << "pose cmd service " << this->dataPtr->createCmdService << "\n";
+      ignwarn << "model string " << this->dataPtr->model << "\n";
+      ignwarn << "placing at " << pos << "\n";
+      this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
+      this->dataPtr->placingModel = false;
+      ignwarn << "Placing model\n";
+      this->dataPtr->mouseDirty = false;
+      }
     }
   }
 }
@@ -1746,6 +1782,7 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   done = true;
 
   this->setAcceptedMouseButtons(Qt::AllButtons);
+  this->setAcceptHoverEvents(true);
   this->setFlag(ItemHasContents);
   this->dataPtr->renderThread = new RenderThread();
 }
@@ -2191,6 +2228,13 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnFocusWindow()
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->forceActiveFocus();
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
   this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
@@ -2367,10 +2411,15 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::hoverMoveEvent(QHoverEvent *_e)
+{
+  math::Vector2i pos = {_e->pos().x(), _e->pos().y()};
+  ignwarn << "pos " << this->ScreenToScene(pos) << "\n";
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
-  this->forceActiveFocus();
-
   auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
@@ -2419,8 +2468,6 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 {
-  this->forceActiveFocus();
-
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
