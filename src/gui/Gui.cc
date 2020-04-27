@@ -34,6 +34,8 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 
@@ -270,5 +272,6 @@ int runGui(int _argc, char **_argv, const char *_guiConfig)
     return -1;
 }
 }  // namespace gui
+}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo
 }  // namespace ignition
