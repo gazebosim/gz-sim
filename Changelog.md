@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Make breadcrumb static after specified time
+    * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)
+
 1. Disable breadcrumbs if the `max_deployments` <= 0.
     * [Pull Request 88](https://github.com/ignitionrobotics/ign-gazebo/pull/88)
 
