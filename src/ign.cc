@@ -22,7 +22,7 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
-#include "gui/Gui.hh"
+#include "ignition/gazebo/gui/Gui.hh"
 #include "ign.hh"
 
 //////////////////////////////////////////////////
