@@ -407,9 +407,6 @@ void IgnRenderer::Render()
   // Entity selection
   this->HandleEntitySelection();
 
-  // Model placement
-  this->HandleModelPlacement();
-
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
   {
@@ -685,6 +682,7 @@ void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->HandleMouseContextMenu();
+  this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
 }
@@ -841,7 +839,8 @@ void IgnRenderer::HandleModelPlacement()
       this->dataPtr->hoverDirty = false;
     }
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
-        this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
+        this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+        !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
     {
       // Delete the generated visuals
       this->DeleteVisualModel();
@@ -854,7 +853,7 @@ void IgnRenderer::HandleModelPlacement()
           [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
       {
         if (!_result)
-          ignerr << "Error setting pose" << std::endl;
+          ignerr << "Error creating model" << std::endl;
       };
       math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
       pos.Z(modelPose.Pos().Z());
