@@ -65,6 +65,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
   {
     ignmsg << "Breadcrumbs max deployment is <= 0. Breadcrumbs are disabled."
       << std::endl;
+    return;
   }
 
   this->model = Model(_entity);

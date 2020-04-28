@@ -118,7 +118,7 @@ level and performer is only simulated at one runner at a time.
 It would be convenient to be able to specify standalone programs in the SDF
 file so they're loaded at the same time as the simulation. For example,
 Gazebo's
-[JoyPlugin](https://bitbucket.org/osrf/gazebo/src/default/plugins/JoyPlugin.hh?fileviewer=file-view-default)
+[JoyPlugin](https://github.com/osrf/gazebo/blob/master/plugins/JoyPlugin.hh)
 is a `WorldPlugin`, but it doesn't need to access any world API, or to run
 in the physics thread, or even to run in the gzserver process. However,
 it was implemented as a plugin because that makes it easier to specify in
