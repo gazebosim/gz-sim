@@ -3,7 +3,7 @@
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
 1. Disable breadcrumbs if the `max_deployments` <= 0.
-    * [Pull Request 545](https://github.com/ignitionrobotics/ign-gazebo/pull-requests/545)
+    * [Pull Request 88](https://github.com/ignitionrobotics/ign-gazebo/pull/88)
 
 1. Add ability to save worlds to SDFormat
     * [Pull Request 545](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/545)
