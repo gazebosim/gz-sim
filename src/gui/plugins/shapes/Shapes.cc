@@ -115,11 +115,6 @@ void Shapes::OnMode(const QString &_mode)
                                         "<size>1 1 1</size>"
                                       "</box>"
                                     "</geometry>"
-                                    "<material>"
-                                      "<ambient>1 0 0 1</ambient>"
-                                      "<diffuse>1 0 0 1</diffuse>"
-                                      "<specular>1 0 0 1</specular>"
-                                    "</material>"
                                   "</visual>"
                                 "</link>"
                               "</model>"
@@ -156,11 +151,6 @@ void Shapes::OnMode(const QString &_mode)
                                         "<radius>0.5</radius>"
                                       "</sphere>"
                                     "</geometry>"
-                                    "<material>"
-                                      "<ambient>1 0 0 1</ambient>"
-                                      "<diffuse>1 0 0 1</diffuse>"
-                                      "<specular>1 0 0 1</specular>"
-                                    "</material>"
                                   "</visual>"
                                 "</link>"
                               "</model>"
@@ -199,17 +189,11 @@ void Shapes::OnMode(const QString &_mode)
                                         "<length>1.0</length>"
                                       "</cylinder>"
                                     "</geometry>"
-                                    "<material>"
-                                      "<ambient>1 0 0 1</ambient>"
-                                      "<diffuse>1 0 0 1</diffuse>"
-                                      "<specular>1 0 0 1</specular>"
-                                    "</material>"
                                   "</visual>"
                                 "</link>"
                               "</model>"
                             "</sdf>");
   }
-  std::string path = std::string(PROJECT_SOURCE_PATH) + "/src/gui/plugins/shapes/" + _mode.toStdString() + ".sdf";
   req.set_data(sdfString);
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }

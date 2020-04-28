@@ -244,6 +244,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
+    public: void NewHoverEvent(const math::Vector2i &_mousePos);
+
     /// \brief Handle key press event for snapping
     /// \param[in] _e The key event to process.
     public: void HandleKeyPress(QKeyEvent *_e);
@@ -327,6 +329,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Handle model placement requests
     private: void HandleModelPlacement();
+
+    private: Entity UniqueId();
+
+    public: math::Vector3d ScreenToPlane(const math::Vector2i &_screenPos)
+        const;
 
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
