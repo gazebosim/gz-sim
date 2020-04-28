@@ -2248,6 +2248,8 @@ void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
 /////////////////////////////////////////////////
 void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
+  this->forceActiveFocus();
+
   auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
@@ -2296,6 +2298,8 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 {
+  this->forceActiveFocus();
+
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
