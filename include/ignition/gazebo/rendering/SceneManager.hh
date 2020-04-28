@@ -68,7 +68,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return World ID
     public: Entity WorldId();
 
-    /// \brief Create a model.
+    /// \brief Create a model
     /// \param[in] _id Unique model id
     /// \param[in] _model Model sdf dom
     /// \param[in] _parentId Parent id
