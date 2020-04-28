@@ -2,6 +2,9 @@
 
 ## Ignition Math 6.x.x
 
+1. Make alpha optional when parsing a Color from an input stream.
+    * [Pull request 106](https://github.com/ignitionrobotics/ign-math/pull/106)
+
 1. Added a Gauss-Markov Process class.
     * [BitBucket pull request 342](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/342)
 

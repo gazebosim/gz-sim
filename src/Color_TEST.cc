@@ -337,6 +337,44 @@ TEST(Color, OperatorStreamOut)
 }
 
 /////////////////////////////////////////////////
+TEST(Color, OperatorStreamIn)
+{
+  math::Color c(0.1f, 0.2f, 0.3f, 0.5f);
+  math::Color test;
+  std::stringstream ss("0.1 0.2 0.3 0.5");
+  ss >> test;
+  EXPECT_EQ(c, test);
+}
+
+/////////////////////////////////////////////////
+TEST(Color, OperatorStreamInWithoutAlpha)
+{
+  math::Color c(0.1f, 0.2f, 0.3f, 1.0f);
+  {
+    math::Color test;
+    std::stringstream ss("0.1 0.2 0.3");
+    ss.exceptions(std::stringstream::failbit);
+    EXPECT_NO_THROW(ss >> test);
+    EXPECT_EQ(c, test);
+  }
+  {
+    math::Color test;
+    std::stringstream ss("0.1  0.2 \t0.3   \t");
+    ss.exceptions(std::stringstream::failbit);
+    EXPECT_NO_THROW(ss >> test);
+    EXPECT_EQ(c, test);
+  }
+
+  {
+    math::Color test(0.5f, 0.6f, 0.7f, 0.8f);
+    std::stringstream ss("0.1  0.2 \t0.3   \t");
+    ss.exceptions(std::stringstream::failbit);
+    EXPECT_NO_THROW(ss >> test);
+    EXPECT_EQ(c, test);
+  }
+}
+
+/////////////////////////////////////////////////
 TEST(Color, HSV)
 {
   math::Color clr;
