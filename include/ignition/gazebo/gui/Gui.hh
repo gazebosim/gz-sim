@@ -34,19 +34,23 @@ namespace gui
 {
   /// \brief Run GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
-  /// without ign-tools. Set to 0 if using ign-tools)
+  /// without ign-tools. Set to 1 if using ign-tools). Note: The object
+  /// referenced by this variable must continue to exist for the lifetime of the
+  /// application.
   /// \param[in] _argv Command line arguments (Used when running without
-  /// ign-tools. Set to nullptr if using ign-tools)
+  /// ign-tools. Set to the name of the application if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
-  IGNITION_GAZEBO_VISIBLE int runGui(int _argc, char **_argv,
+  IGNITION_GAZEBO_VISIBLE int runGui(int &_argc, char **_argv,
                                      const char *_guiConfig);
 
   /// \brief Create a Gazebo GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
-  /// without ign-tools. Set to 0 if using ign-tools)
+  /// without ign-tools. Set to 1 if using ign-tools). Note: The object
+  /// referenced by this variable must continue to exist for the lifetime of the
+  /// application.
   /// \param[in] _argv Command line arguments (Used when running without
-  /// ign-tools. Set to nullptr if using ign-tools)
+  /// ign-tools. Set to the name of the application if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   /// \param[in] _defaultGuiConfig The default GUI configuration file. If no
@@ -57,7 +61,7 @@ namespace gui
   /// \param[in] _loadPluginsFromSdf If true, plugins specified in the world
   /// SDFormat file will get loaded.
   IGNITION_GAZEBO_VISIBLE std::unique_ptr<ignition::gui::Application> createGui(
-      int _argc, char **_argv, const char *_guiConfig,
+      int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 
 }  // namespace gui
