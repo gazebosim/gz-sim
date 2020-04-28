@@ -23,6 +23,8 @@
 
 #include <sdf/Root.hh>
 #include <sdf/Model.hh>
+#include <sdf/Link.hh>
+#include <sdf/Visual.hh>
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
@@ -613,7 +615,7 @@ void IgnRenderer::Render()
               modelId, model,
               this->dataPtr->renderUtil.SceneManager().WorldId());
 
-        this->dataPtr->modelIds.push_back(modelEntityId);
+        this->dataPtr->modelIds.push_back(modelId);
         for (auto j = 0u; j < model.LinkCount(); j++)
         {
           sdf::Link link = *(model.LinkByIndex(j));
@@ -662,6 +664,7 @@ void IgnRenderer::DeleteVisualModel()
   for (auto _id : this->dataPtr->modelIds)
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
   this->dataPtr->modelIds.clear();
+  this->dataPtr->placingModel = false;
 }
 
 /////////////////////////////////////////////////
@@ -830,22 +833,18 @@ void IgnRenderer::HandleModelPlacement()
 {
   if (this->dataPtr->placingModel)
   {
-    if (this->dataPtr->model)
+    if (this->dataPtr->model && this->dataPtr->hoverDirty)
     {
-      if (this->dataPtr->hoverDirty)
-      {
-        math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
-        double z = this->dataPtr->model->WorldPosition().Z();
-        math::Vector3d newPos = {pos.X(), pos.Y(), z};
-        this->dataPtr->model->SetWorldPosition(newPos);
-        this->dataPtr->hoverDirty = false;
-      }
+      math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
+      pos.Z(this->dataPtr->model->WorldPosition().Z());
+      this->dataPtr->model->SetWorldPosition(pos);
+      this->dataPtr->hoverDirty = false;
     }
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
         this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
     {
       // Delete the generated visuals
-      this->DeleteVisualModel()
+      this->DeleteVisualModel();
 
       sdf::Root root;
       root.LoadSdfString(this->dataPtr->modelSdfString);
@@ -2553,6 +2552,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
       _e->accept();
     }
     this->DeselectAllEntities(true);
+    this->dataPtr->renderThread->ignRenderer.DeleteVisualModel();
   }
 }
 

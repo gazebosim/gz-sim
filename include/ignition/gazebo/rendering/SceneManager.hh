@@ -52,11 +52,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Destructor
     public: ~SceneManager();
 
-    /// \brief Set the scene to manage.
+    /// \brief Set the scene to manage
     /// \param[in] _scene Scene pointer.
     public: void SetScene(rendering::ScenePtr _scene);
 
-    /// \brief Get the scene.
+    /// \brief Get the scene
     /// \return Pointer to scene
     public: rendering::ScenePtr Scene() const;
 
@@ -76,7 +76,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateModel(Entity _id,
         const sdf::Model &_model, Entity _parentId = 0);
 
-    /// \brief Create a link.
+    /// \brief Create a link
     /// \param[in] _id Unique link id
     /// \param[in] _link Link sdf dom
     /// \param[in] _parentId Parent id
@@ -84,7 +84,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateLink(Entity _id,
         const sdf::Link &_link, Entity _parentId = 0);
 
-    /// \brief Create a visual.
+    /// \brief Create a visual
     /// \param[in] _id Unique visual id
     /// \param[in] _visual Visual sdf dom
     /// \param[in] _parentId Parent id
@@ -92,7 +92,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
-    /// \brief Create a light.
+    /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
     /// \param[in] _parentId Parent id
@@ -110,17 +110,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);
 
-    /// \brief Check if entity exists.
+    /// \brief Check if entity exists
     /// \param[in] _id Unique entity id
     /// \return true if exists, false otherwise
     public: bool HasEntity(Entity _id) const;
 
-    /// \brief Get a rendering node given an entity id.
+    /// \brief Get a rendering node given an entity id
     /// \param[in] _id Entity's unique id
     /// \return Pointer to requested entity's node
     public: rendering::NodePtr NodeById(Entity _id) const;
 
-    /// \brief Remove an entity by id.
+    /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
 
@@ -129,7 +129,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return The entity for that node, or `kNullEntity` for no entity.
     public: Entity EntityFromNode(const rendering::NodePtr &_node) const;
 
-    /// \brief Load a geometry.
+    /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
     /// \param[out] _scale Geometry scale that will be set based on sdf
     /// \param[out] _localPose Additional local pose to be applied after the
@@ -138,7 +138,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
         math::Vector3d &_scale, math::Pose3d &_localPose);
 
-    /// \brief Load a material.
+    /// \brief Load a material
     /// \param[in] _material Material sdf dom
     /// \return Material object loaded from the sdf dom
     private: rendering::MaterialPtr LoadMaterial(

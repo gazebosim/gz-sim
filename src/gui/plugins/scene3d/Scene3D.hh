@@ -338,7 +338,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: Entity UniqueId();
 
     /// \brief Delete the visuals generated from the shapes plugin.
-    private: void DeleteVisualModel();
+    public: void DeleteVisualModel();
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
