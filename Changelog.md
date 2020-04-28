@@ -5,6 +5,9 @@
 1. Add ability to save worlds to SDFormat
     * [BitBucket pull request 545](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/545)
 
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 95](https://github.com/ignitionrobotics/ign-gazebo/pull/95)
+
 ### Ignition Gazebo 2.16.0 (2020-03-24)
 
 1. Add support for computing model bounding box in physics system
