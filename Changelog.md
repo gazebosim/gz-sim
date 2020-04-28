@@ -16,7 +16,7 @@
     * [BitBucket pull request 513](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/513)
     * [BitBucket pull request 514](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/514)
 
-1. Add window focus upon mouse entering the render window.
+1. Add window focus upon mouse entering the render window
     * [Github pull request 96](https://github.com/ignitionrobotics/ign-gazebo/pull/96)
 
 ### Ignition Gazebo 3.0.0 (2019-12-10)
