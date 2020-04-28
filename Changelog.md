@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 4.X.X
 
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 97](https://github.com/ignitionrobotics/ign-gazebo/pull/97)
+
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
 1. Use interpolate\_x sdf parameter for actor animations
