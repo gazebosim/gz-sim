@@ -589,69 +589,61 @@ void IgnRenderer::Render()
   }
 
   // Shapes
-  // TODO move shapes functionality here to reside within render thread
   {
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->shapes)
     {
-      ignwarn << "1\n";
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
-      ignwarn << "2\n";
       rendering::VisualPtr rootVis = scene->RootVisual();
-      ignwarn << "3\n";
 
       sdf::Root root;
       root.LoadSdfString(this->dataPtr->modelSdfString);
-      ignwarn << "4\n";
-      sdf::Model model2 = *(root.ModelByIndex(0));
-      ignwarn << "6\n";
-      ignwarn << "model name: " << model2.Name() << "\n";
       for (auto i = 0u; i < root.ModelCount(); i++)
       {
-        ignwarn << "5\n";
         sdf::Model model = *(root.ModelByIndex(i));
         model.SetName(ignition::common::Uuid().String());
-        ignwarn << "6\n";
-        ignwarn << "model name: " << model.Name() << "\n";
-        // TODO generate unique entity id
-        Entity modelEntityId = this->UniqueId();
-        ignwarn << "model entity " << modelEntityId << "\n";
-        this->dataPtr->model = this->dataPtr->renderUtil.SceneManager().CreateModel(modelEntityId, model, this->dataPtr->renderUtil.SceneManager().WorldId());
+        Entity modelId = this->UniqueId();
+        if (!modelId)
+        {
+          this->DeleteVisualModel();
+          break;
+        }
+        this->dataPtr->model =
+          this->dataPtr->renderUtil.SceneManager().CreateModel(
+              modelId, model,
+              this->dataPtr->renderUtil.SceneManager().WorldId());
+
         this->dataPtr->modelIds.push_back(modelEntityId);
         for (auto j = 0u; j < model.LinkCount(); j++)
         {
           sdf::Link link = *(model.LinkByIndex(j));
           link.SetName(ignition::common::Uuid().String());
-          ignwarn << "link name: " << link.Name() << "\n";
           Entity linkId = this->UniqueId();
-          ignwarn << "link entity " << linkId << "\n";
-          this->dataPtr->renderUtil.SceneManager().CreateLink(linkId, link, modelEntityId);
+          if (!linkId)
+          {
+            this->DeleteVisualModel();
+            break;
+          }
+          this->dataPtr->renderUtil.SceneManager().CreateLink(
+              linkId, link, modelId);
           this->dataPtr->modelIds.push_back(linkId);
           for (auto k = 0u; k < link.VisualCount(); k++)
           {
            sdf::Visual visual = *(link.VisualByIndex(k));
            visual.SetName(ignition::common::Uuid().String());
-           ignwarn << "visual name: " << visual.Name() << "\n";
-           ignwarn << "geom " << static_cast<int>(visual.Geom()->Type()) << "\n";
            Entity visualId = this->UniqueId();
-           ignwarn << "visual entity " << visualId << "\n";
-           this->dataPtr->renderUtil.SceneManager().CreateVisual(visualId, visual, linkId);
+           if (!visualId)
+           {
+             this->DeleteVisualModel();
+             break;
+           }
+           this->dataPtr->renderUtil.SceneManager().CreateVisual(
+               visualId, visual, linkId);
            this->dataPtr->modelIds.push_back(visualId);
           }
         }
       }
       this->dataPtr->placingModel = true;
-      ignwarn << "7\n";
-  /*
-  msgs::EntityFactory req;
-  req.set_sdf_filename(_drop.toStdString());
-  req.set_allow_renaming(true);
-  msgs::Set(req.mutable_pose(),
-      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
-
-  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
-      req, cb);
-  */
       this->dataPtr->shapes = false;
     }
   }
@@ -662,6 +654,14 @@ void IgnRenderer::Render()
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         new gui::events::Render());
   }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::DeleteVisualModel()
+{
+  for (auto _id : this->dataPtr->modelIds)
+    this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
+  this->dataPtr->modelIds.clear();
 }
 
 /////////////////////////////////////////////////
@@ -830,7 +830,6 @@ void IgnRenderer::HandleModelPlacement()
 {
   if (this->dataPtr->placingModel)
   {
-    ignwarn << "mouse hover pos " << this->dataPtr->mouseHoverPos << "\n";
     if (this->dataPtr->model)
     {
       if (this->dataPtr->hoverDirty)
@@ -845,12 +844,8 @@ void IgnRenderer::HandleModelPlacement()
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
         this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
     {
-      for (auto _id : this->dataPtr->modelIds)
-      {
-        ignwarn << "Removing " << _id << "\n";
-        this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
-      }
-      this->dataPtr->modelIds.clear();
+      // Delete the generated visuals
+      this->DeleteVisualModel()
 
       sdf::Root root;
       root.LoadSdfString(this->dataPtr->modelSdfString);
@@ -863,12 +858,12 @@ void IgnRenderer::HandleModelPlacement()
           ignerr << "Error setting pose" << std::endl;
       };
       math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
+      pos.Z(modelPose.Pos().Z());
       msgs::EntityFactory req;
       req.set_sdf(this->dataPtr->modelSdfString);
       req.set_allow_renaming(true);
-      msgs::Set(req.mutable_pose(),
-      math::Pose3d(pos.X(), pos.Y(), modelPose.Pos().Z(), modelPose.Rot().W(), modelPose.Rot().X(), modelPose.Rot().Y(), modelPose.Rot().Z()));
- 
+      msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
+
       if (this->dataPtr->createCmdService.empty())
       {
         this->dataPtr->createCmdService = "/world/" + this->worldName
@@ -1666,7 +1661,7 @@ math::Vector3d IgnRenderer::ScreenToPlane(
 
   auto result = this->dataPtr->rayQuery->ClosestPoint();
   ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), 0);
- 
+
   if (result)
   {
     math::Vector3d origin = this->dataPtr->rayQuery->Origin();

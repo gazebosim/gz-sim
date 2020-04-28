@@ -96,6 +96,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void OnDropped(const QString &_drop,
         int _mouseX, int _mouseY);
 
+    /// \brief Callback when a focus event is received.
     public slots: void OnFocusWindow();
 
     // Documentation inherited
@@ -180,7 +181,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
 
-    /// \brief Set the model to hover.
+    /// \brief Set the model to hover over the scene.
     /// \param[in] _mode Path to new model to load in for the user.
     public: void SetModel(const std::string &_model);
 
@@ -244,6 +245,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
+    /// \brief New hover event triggered.
+    /// \param[in] _mousePos Mouse hover screen position
     public: void NewHoverEvent(const math::Vector2i &_mousePos);
 
     /// \brief Handle key press event for snapping
@@ -330,8 +333,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle model placement requests
     private: void HandleModelPlacement();
 
+    /// \brief Generate a unique entity id.
+    /// \return The unique entity id
     private: Entity UniqueId();
 
+    /// \brief Delete the visuals generated from the shapes plugin.
+    private: void DeleteVisualModel();
+
+    /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
+    /// ray cast from the given 2D screen coordinates.
+    /// \param[in] _screenPod 2D coordinates on the screen, in pixels.
+    /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToPlane(const math::Vector2i &_screenPos)
         const;
 
