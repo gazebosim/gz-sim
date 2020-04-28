@@ -2,9 +2,6 @@
 
 ### Ignition Gazebo 4.X.X
 
-1. Add window focus upon mouse entering the render window
-    * [Github pull request 97](https://github.com/ignitionrobotics/ign-gazebo/pull/97)
-
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
 1. Use interpolate\_x sdf parameter for actor animations
@@ -27,6 +24,9 @@
 
 1. Axis-Aligned Bounding Boxes
     * [BitBucket pull request 565](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/565)
+
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 97](https://github.com/ignitionrobotics/ign-gazebo/pull/97)
 
 ## Ignition Gazebo 3.x
 
