@@ -2048,6 +2048,13 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnFocusWindow()
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->forceActiveFocus();
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
   this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
@@ -2220,8 +2227,6 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 /////////////////////////////////////////////////
 void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
-  this->forceActiveFocus();
-
   auto event = ignition::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
@@ -2270,8 +2275,6 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 {
-  this->forceActiveFocus();
-
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
