@@ -40,7 +40,7 @@ namespace gui
 {
 
 std::unique_ptr<ignition::gui::Application> createGui(
-    int _argc, char **_argv, const char *_guiConfig,
+    int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
   ignition::common::SignalHandler sigHandler;
@@ -52,12 +52,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
-  // Temporary transport interface
-  auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
   // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+
+  // Temporary transport interface
+  auto tmp = new ignition::gazebo::TmpIface();
+  tmp->setParent(app->Engine());
 
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
@@ -87,7 +89,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Let QML files use TmpIface' functions and properties
   auto context = new QQmlContext(app->Engine()->rootContext());
-  context->setContextProperty("TmpIface", tmp.get());
+  context->setContextProperty("TmpIface", tmp);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
@@ -257,7 +259,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-int runGui(int _argc, char **_argv, const char *_guiConfig)
+int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
   auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
   if (nullptr != app)
