@@ -321,7 +321,7 @@ void LinearBatteryPlugin::PreUpdate(
 
     for (Entity jointEntity : joints)
     {
-      const auto* jointVelocityCmd =
+      const auto *jointVelocityCmd =
         _ecm.Component<components::JointVelocityCmd>(jointEntity);
       if (jointVelocityCmd) {
         for (double jointVel : jointVelocityCmd->Data())
