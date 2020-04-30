@@ -3,7 +3,7 @@
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
 1. Allow battery plugin to work with joint force systems.
-    * [Pull Request xx](https://github.com/ignitionrobotics/ign-gazebo/pull/xx)
+    * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
 
 1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
     * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
