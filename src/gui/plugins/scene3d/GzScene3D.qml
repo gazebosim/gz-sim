@@ -37,6 +37,9 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     acceptedButtons: Qt.NoButton
+    onEntered: {
+      GzScene3D.OnFocusWindow()
+    }
   }
 
   RenderWindow {
