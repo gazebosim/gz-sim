@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-default-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-default-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-default-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-windows7-amd64)
 
 Ignition Math, a component of [Ignition
 Robotics](https://ignitionrobotics.org), provides general purpose math
