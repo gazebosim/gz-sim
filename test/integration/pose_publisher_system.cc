@@ -615,7 +615,6 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
   }
   mutex.unlock();
 
-
   mutex.lock();
   // verify static pose msgs against recorded ones
   for (const auto &staticPoseVMsg : staticPoseVMsgs)

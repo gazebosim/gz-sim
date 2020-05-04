@@ -156,7 +156,6 @@ class ignition::gazebo::systems::PosePublisherPrivate
   /// performance.
   public: ignition::msgs::Pose_V poseVMsg;
 
-
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
   public: bool usePoseV = false;
@@ -497,6 +496,7 @@ void PosePublisherPrivate::PublishPoses(
   ignition::msgs::Pose *msg = nullptr;
   if (this->usePoseV)
     this->poseVMsg.Clear();
+
   for (const auto &[entity, pose] : _poses)
   {
     auto entityIt = this->entitiesToPublish.find(entity);
@@ -504,7 +504,9 @@ void PosePublisherPrivate::PublishPoses(
       continue;
 
     if (this->usePoseV)
+    {
       msg = this->poseVMsg.add_pose();
+    }
     else
     {
       this->poseMsg.Clear();
@@ -515,7 +517,9 @@ void PosePublisherPrivate::PublishPoses(
     // frame_id: parent entity name
     // child_frame_id = entity name
     // pose is the transform from frame_id to child_frame_id
+    IGN_ASSERT(msg != nullptr, "Pose msg is null");
     auto header = msg->mutable_header();
+
     header->mutable_stamp()->CopyFrom(_stampMsg);
     const std::string &frameId = entityIt->second.first;
     const std::string &childFrameId = entityIt->second.second;

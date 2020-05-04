@@ -482,9 +482,7 @@
         <static_publisher>true</static_publisher>
         <use_pose_vector_msg>true</use_pose_vector_msg>
       </plugin>
-
     </model>
-
 
     <model name="test_update_freq">
       <link name="link1"/>
