@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.xx.xx (20XX-XX-XX)
 
+1. Add static pose publisher and support pose\_v msg type in pose publisher system
+    * [Pull Request 65](https://github.com/ignitionrobotics/ign-gazebo/pull/65)
+
 1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
     * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
 
