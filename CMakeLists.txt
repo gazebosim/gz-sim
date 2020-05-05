@@ -52,7 +52,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs4 REQUIRED VERSION 4.7)
+ign_find_package(ignition-msgs4 REQUIRED VERSION 4.8)
 set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
 
 #--------------------------------------
@@ -85,7 +85,7 @@ ign_find_package(ignition-physics1
     mesh
     sdf
   REQUIRED
-  VERSION 1.6)
+  VERSION 1.7)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
