@@ -22,7 +22,7 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
-#include "gui/Gui.hh"
+#include "ignition/gazebo/gui/Gui.hh"
 #include "ign.hh"
 
 //////////////////////////////////////////////////
@@ -282,5 +282,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
 {
-  return ignition::gazebo::gui::runGui(0, nullptr, _guiConfig);
+  // argc and argv are going to be passed to a QApplication. The Qt
+  // documentation has a warning about these:
+  //  "Warning: The data referred to by argc and argv must stay valid for the
+  //  entire lifetime of the QApplication object. In addition, argc must be
+  //  greater than zero and argv must contain at least one valid character
+  //  string."
+  int argc = 1;
+  // Converting a string literal to char * is forbidden as of C++11. It can only
+  // be converted to a const char *. The const cast is here to prevent a warning
+  // since we do need to pass a char* to runGui
+  char *argv = const_cast<char *>("ign-gazebo-gui");
+  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
 }

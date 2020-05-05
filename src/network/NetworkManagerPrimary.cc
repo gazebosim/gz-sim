@@ -207,7 +207,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
   // TODO(anyone) Ideally we'd check the number of connections against the
   // number of expected secondaries, but there's no interface for that
   // on ign-transport yet:
-  // https://bitbucket.org/ignitionrobotics/ign-transport/issues/39
+  // https://github.com/ignitionrobotics/ign-transport/issues/39
   return this->simStepPub.HasConnections();
 }
 

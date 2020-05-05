@@ -373,9 +373,10 @@ void ServerPrivate::CreateEntities()
       std::lock_guard<std::mutex> lock(this->worldsMutex);
       this->worldNames.push_back(world->Name());
     }
-
-    this->simRunners.push_back(std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->config));
+    auto runner = std::make_unique<SimulationRunner>(
+        world, this->systemLoader, this->config);
+    runner->SetFuelUriMap(this->fuelUriMap);
+    this->simRunners.push_back(std::move(runner));
   }
 }
 
@@ -404,5 +405,16 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
-  return fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+  auto path =
+      fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+
+  if (!path.empty())
+  {
+    for (auto &runner : this->simRunners)
+    {
+      runner->AddToFuelUriMap(path, _uri);
+    }
+    fuelUriMap[path] = _uri;
+  }
+  return path;
 }

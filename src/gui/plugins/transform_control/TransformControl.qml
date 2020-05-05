@@ -261,7 +261,7 @@ ToolBar {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "magnet.png"
+        source: "snap.png"
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
