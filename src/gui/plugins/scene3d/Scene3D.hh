@@ -182,7 +182,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetTransformMode(const std::string &_mode);
 
     /// \brief Set the model to hover over the scene.
-    /// \param[in] _mode Path to new model to load in for the user.
+    /// \param[in] _model Sdf string of the model to load in for the user.
     public: void SetModel(const std::string &_model);
 
     /// \brief Set whether to record video
@@ -338,7 +338,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: Entity UniqueId();
 
     /// \brief Delete the visuals generated from the shapes plugin.
-    public: void DeleteVisualModel();
+    public: void TerminateSpawnPreviewModel();
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
@@ -467,7 +467,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetTransformMode(const std::string &_mode);
 
     /// \brief Set the model to hover.
-    /// \param[in] _mode Path to new model to load in for the user.
+    /// \param[in] _model Sdf string of the model to load in for the user.
     public: void SetModel(const std::string &_model);
 
     /// \brief Set whether to record video

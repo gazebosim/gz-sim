@@ -21,9 +21,9 @@
 #include <string>
 #include <vector>
 
-#include <sdf/Root.hh>
-#include <sdf/Model.hh>
 #include <sdf/Link.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
 #include <sdf/Visual.hh>
 
 #include <ignition/common/Animation.hh>
@@ -163,7 +163,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Camera orbit controller
     public: rendering::OrbitViewController viewControl;
 
-    /// \brief Transform controller for models
+    /// \brief Transform controller for 
     public: rendering::TransformController transformControl;
 
     /// \brief Transform space: local or world
@@ -216,7 +216,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: bool viewAngle = false;
 
     /// \brief Flag for indicating whether we are in shapes mode or not
-    public: bool shapes = false;
+    public: bool spawnModelMode = false;
 
     /// \brief Flag for indicating whether the user is currently placing a
     /// model with the shapes plugin or not
@@ -230,7 +230,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief The model generated from the modelSdfString upon the user
     /// clicking a shape in the shapes plugin
-    public: rendering::VisualPtr model = nullptr;
+    public: rendering::VisualPtr spawnPreviewModel = nullptr;
 
     /// \brief A record of the ids currently used by the model generation
     /// for easy deletion of visuals later
@@ -590,7 +590,7 @@ void IgnRenderer::Render()
   // Shapes
   {
     IGN_PROFILE("IgnRenderer::Render Shapes");
-    if (this->dataPtr->shapes)
+    if (this->dataPtr->spawnModelMode)
     {
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
@@ -604,10 +604,10 @@ void IgnRenderer::Render()
         Entity modelId = this->UniqueId();
         if (!modelId)
         {
-          this->DeleteVisualModel();
+          this->TerminateSpawnPreviewModel();
           break;
         }
-        this->dataPtr->model =
+        this->dataPtr->spawnPreviewModel =
           this->dataPtr->renderUtil.SceneManager().CreateModel(
               modelId, model,
               this->dataPtr->renderUtil.SceneManager().WorldId());
@@ -620,7 +620,7 @@ void IgnRenderer::Render()
           Entity linkId = this->UniqueId();
           if (!linkId)
           {
-            this->DeleteVisualModel();
+            this->TerminateSpawnPreviewModel();
             break;
           }
           this->dataPtr->renderUtil.SceneManager().CreateLink(
@@ -633,7 +633,7 @@ void IgnRenderer::Render()
            Entity visualId = this->UniqueId();
            if (!visualId)
            {
-             this->DeleteVisualModel();
+             this->TerminateSpawnPreviewModel();
              break;
            }
            this->dataPtr->renderUtil.SceneManager().CreateVisual(
@@ -643,7 +643,7 @@ void IgnRenderer::Render()
         }
       }
       this->dataPtr->placingModel = true;
-      this->dataPtr->shapes = false;
+      this->dataPtr->spawnModelMode = false;
     }
   }
 
@@ -656,7 +656,7 @@ void IgnRenderer::Render()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::DeleteVisualModel()
+void IgnRenderer::TerminateSpawnPreviewModel()
 {
   for (auto _id : this->dataPtr->modelIds)
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
@@ -829,48 +829,48 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 /////////////////////////////////////////////////
 void IgnRenderer::HandleModelPlacement()
 {
-  if (this->dataPtr->placingModel)
+  if (!this->dataPtr->placingModel)
+    return;
+
+  if (this->dataPtr->spawnPreviewModel && this->dataPtr->hoverDirty)
   {
-    if (this->dataPtr->model && this->dataPtr->hoverDirty)
-    {
-      math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
-      pos.Z(this->dataPtr->model->WorldPosition().Z());
-      this->dataPtr->model->SetWorldPosition(pos);
-      this->dataPtr->hoverDirty = false;
-    }
-    if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
-        this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
-        !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
-    {
-      // Delete the generated visuals
-      this->DeleteVisualModel();
+    math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
+    pos.Z(this->dataPtr->spawnPreviewModel->WorldPosition().Z());
+    this->dataPtr->spawnPreviewModel->SetWorldPosition(pos);
+    this->dataPtr->hoverDirty = false;
+  }
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    // Delete the generated visuals
+    this->TerminateSpawnPreviewModel();
 
-      sdf::Root root;
-      root.LoadSdfString(this->dataPtr->modelSdfString);
-      sdf::Model model = *(root.ModelByIndex(0));
-      math::Pose3d modelPose = model.Pose();
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-      {
-        if (!_result)
-          ignerr << "Error creating model" << std::endl;
-      };
-      math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
-      pos.Z(modelPose.Pos().Z());
-      msgs::EntityFactory req;
-      req.set_sdf(this->dataPtr->modelSdfString);
-      req.set_allow_renaming(true);
-      msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
+    sdf::Root root;
+    root.LoadSdfString(this->dataPtr->modelSdfString);
+    sdf::Model model = *(root.ModelByIndex(0));
+    math::Pose3d modelPose = model.Pose();
+    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    {
+      if (!_result)
+        ignerr << "Error creating model" << std::endl;
+    };
+    math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
+    pos.Z(modelPose.Pos().Z());
+    msgs::EntityFactory req;
+    req.set_sdf(this->dataPtr->modelSdfString);
+    req.set_allow_renaming(true);
+    msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
 
-      if (this->dataPtr->createCmdService.empty())
-      {
-        this->dataPtr->createCmdService = "/world/" + this->worldName
-            + "/create";
-      }
-      this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
-      this->dataPtr->placingModel = false;
-      this->dataPtr->mouseDirty = false;
+    if (this->dataPtr->createCmdService.empty())
+    {
+      this->dataPtr->createCmdService = "/world/" + this->worldName
+          + "/create";
     }
+    this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
+    this->dataPtr->placingModel = false;
+    this->dataPtr->mouseDirty = false;
   }
 }
 
@@ -1523,7 +1523,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 void IgnRenderer::SetModel(const std::string &_model)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->shapes = true;
+  this->dataPtr->spawnModelMode = true;
   this->dataPtr->modelSdfString = _model;
 }
 
@@ -2558,7 +2558,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
       _e->accept();
     }
     this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.DeleteVisualModel();
+    this->dataPtr->renderThread->ignRenderer.TerminateSpawnPreviewModel();
   }
 }
 

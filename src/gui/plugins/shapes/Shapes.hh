@@ -30,9 +30,6 @@ namespace gazebo
 
   /// \brief Provides buttons for adding a box, sphere, or cylinder
   /// to the scene
-  ///
-  /// ## Configuration
-  /// \<service\> : Set the service to receive transform mode requests.
   class Shapes : public ignition::gui::Plugin
   {
     Q_OBJECT

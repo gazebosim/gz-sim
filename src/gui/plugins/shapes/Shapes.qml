@@ -27,36 +27,14 @@ ToolBar {
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
-  property color snapTitle: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade900) :
-    Material.color(Material.Grey, Material.Shade200)
-
-  property color snapItem: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade800) :
-    Material.color(Material.Grey, Material.Shade100)
-
-  function windowWidth() {
-    return transformControl.Window.window ? (transformControl.Window.window.width) : 0
-  }
-
-  function windowHeight() {
-    return transformControl.Window.window ? (transformControl.Window.window.height) : 0
-  }
-
   background: Rectangle {
     color: "transparent"
-  }
-
-  ButtonGroup {
-    id: group
   }
 
   RowLayout {
     spacing: 2
     ToolButton {
       id: box
-      checkable: true
-      checked: true
       ButtonGroup.group: group
       ToolTip.text: "Box"
       ToolTip.visible: hovered
@@ -75,7 +53,6 @@ ToolBar {
     }
     ToolButton{
       id: sphere
-      checkable: true
       ButtonGroup.group: group
       ToolTip.text: "Sphere"
       ToolTip.visible: hovered
@@ -94,7 +71,6 @@ ToolBar {
     }
     ToolButton {
       id: cylinder
-      checkable: true
       ButtonGroup.group: group
       ToolTip.text: "Cylinder"
       ToolTip.visible: hovered
