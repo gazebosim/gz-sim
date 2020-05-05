@@ -163,7 +163,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Camera orbit controller
     public: rendering::OrbitViewController viewControl;
 
-    /// \brief Transform controller for 
+    /// \brief Transform controller for models
     public: rendering::TransformController transformControl;
 
     /// \brief Transform space: local or world
@@ -594,55 +594,8 @@ void IgnRenderer::Render()
     {
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
-
-      sdf::Root root;
-      root.LoadSdfString(this->dataPtr->modelSdfString);
-      for (auto i = 0u; i < root.ModelCount(); i++)
-      {
-        sdf::Model model = *(root.ModelByIndex(i));
-        model.SetName(ignition::common::Uuid().String());
-        Entity modelId = this->UniqueId();
-        if (!modelId)
-        {
-          this->TerminateSpawnPreviewModel();
-          break;
-        }
-        this->dataPtr->spawnPreviewModel =
-          this->dataPtr->renderUtil.SceneManager().CreateModel(
-              modelId, model,
-              this->dataPtr->renderUtil.SceneManager().WorldId());
-
-        this->dataPtr->modelIds.push_back(modelId);
-        for (auto j = 0u; j < model.LinkCount(); j++)
-        {
-          sdf::Link link = *(model.LinkByIndex(j));
-          link.SetName(ignition::common::Uuid().String());
-          Entity linkId = this->UniqueId();
-          if (!linkId)
-          {
-            this->TerminateSpawnPreviewModel();
-            break;
-          }
-          this->dataPtr->renderUtil.SceneManager().CreateLink(
-              linkId, link, modelId);
-          this->dataPtr->modelIds.push_back(linkId);
-          for (auto k = 0u; k < link.VisualCount(); k++)
-          {
-           sdf::Visual visual = *(link.VisualByIndex(k));
-           visual.SetName(ignition::common::Uuid().String());
-           Entity visualId = this->UniqueId();
-           if (!visualId)
-           {
-             this->TerminateSpawnPreviewModel();
-             break;
-           }
-           this->dataPtr->renderUtil.SceneManager().CreateVisual(
-               visualId, visual, linkId);
-           this->dataPtr->modelIds.push_back(visualId);
-          }
-        }
-      }
-      this->dataPtr->placingModel = true;
+      this->dataPtr->placingModel =
+        this->GeneratePreviewModel(this->dataPtr->modelSdfString);
       this->dataPtr->spawnModelMode = false;
     }
   }
@@ -656,7 +609,60 @@ void IgnRenderer::Render()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::TerminateSpawnPreviewModel()
+bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
+{
+  sdf::Root root;
+  root.LoadSdfString(_modelSdfString);
+  for (auto i = 0u; i < root.ModelCount(); i++)
+  {
+    sdf::Model model = *(root.ModelByIndex(i));
+    model.SetName(ignition::common::Uuid().String());
+    Entity modelId = this->UniqueId();
+    if (!modelId)
+    {
+      this->TerminatePreviewModel();
+      return false;
+    }
+    this->dataPtr->spawnPreviewModel =
+      this->dataPtr->renderUtil.SceneManager().CreateModel(
+          modelId, model,
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+
+    this->dataPtr->modelIds.push_back(modelId);
+    for (auto j = 0u; j < model.LinkCount(); j++)
+    {
+      sdf::Link link = *(model.LinkByIndex(j));
+      link.SetName(ignition::common::Uuid().String());
+      Entity linkId = this->UniqueId();
+      if (!linkId)
+      {
+        this->TerminatePreviewModel();
+        return false;
+      }
+      this->dataPtr->renderUtil.SceneManager().CreateLink(
+          linkId, link, modelId);
+      this->dataPtr->modelIds.push_back(linkId);
+      for (auto k = 0u; k < link.VisualCount(); k++)
+      {
+       sdf::Visual visual = *(link.VisualByIndex(k));
+       visual.SetName(ignition::common::Uuid().String());
+       Entity visualId = this->UniqueId();
+       if (!visualId)
+       {
+         this->TerminatePreviewModel();
+         return false;
+       }
+       this->dataPtr->renderUtil.SceneManager().CreateVisual(
+           visualId, visual, linkId);
+       this->dataPtr->modelIds.push_back(visualId);
+      }
+    }
+  }
+  return true;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::TerminatePreviewModel()
 {
   for (auto _id : this->dataPtr->modelIds)
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
@@ -844,7 +850,7 @@ void IgnRenderer::HandleModelPlacement()
       !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
   {
     // Delete the generated visuals
-    this->TerminateSpawnPreviewModel();
+    this->TerminatePreviewModel();
 
     sdf::Root root;
     root.LoadSdfString(this->dataPtr->modelSdfString);
@@ -1660,17 +1666,10 @@ math::Vector3d IgnRenderer::ScreenToPlane(
   auto result = this->dataPtr->rayQuery->ClosestPoint();
   ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), 0);
 
-  if (result)
-  {
-    math::Vector3d origin = this->dataPtr->rayQuery->Origin();
-    math::Vector3d direction = this->dataPtr->rayQuery->Direction();
-    double distance = plane.Distance(origin, direction);
-    return origin + direction * distance;
-  }
-
-  // Set point to be 10m away if no intersection found
-  return this->dataPtr->rayQuery->Origin() +
-      this->dataPtr->rayQuery->Direction() * 10;
+  math::Vector3d origin = this->dataPtr->rayQuery->Origin();
+  math::Vector3d direction = this->dataPtr->rayQuery->Direction();
+  double distance = plane.Distance(origin, direction);
+  return origin + direction * distance;
 }
 
 /////////////////////////////////////////////////
@@ -2142,14 +2141,6 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
 
-  // shapes
-  this->dataPtr->shapesService =
-      "/gui/shapes";
-  this->dataPtr->node.Advertise(this->dataPtr->shapesService,
-      &Scene3D::OnShapes, this);
-  ignmsg << "Shapes service on ["
-         << this->dataPtr->shapesService << "]" << std::endl;
-
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -2236,18 +2227,6 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewAngle(msgs::Convert(_msg));
-
-  _res.set_data(true);
-  return true;
-}
-
-/////////////////////////////////////////////////
-bool Scene3D::OnShapes(const msgs::StringMsg &_msg,
-  msgs::Boolean &_res)
-{
-  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-
-  renderWindow->SetModel(msgs::Convert(_msg));
 
   _res.set_data(true);
   return true;
@@ -2365,6 +2344,17 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetXYZSnap(snapEvent->XYZ());
       renderWindow->SetRPYSnap(snapEvent->RPY());
       renderWindow->SetScaleSnap(snapEvent->Scale());
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::SpawnPreviewModel::kType)
+  {
+    auto spawnPreviewModelEvent =
+      reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
+    if (spawnPreviewModelEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetModel(spawnPreviewModelEvent->ModelSdfString());
     }
   }
 
@@ -2558,7 +2548,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
       _e->accept();
     }
     this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.TerminateSpawnPreviewModel();
+    // TODO(john): Delete model preview on Escape press
   }
 }
 

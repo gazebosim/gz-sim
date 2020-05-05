@@ -64,135 +64,142 @@ void Shapes::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Shapes";
 
-  // For transform requests
-  this->dataPtr->service = "/gui/shapes";
+  // For shapes requests
+  ignition::gui::App()->findChild
+    <ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 void Shapes::OnMode(const QString &_mode)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-      ignerr << "Error setting shape" << std::endl;
-  };
+  std::string modelSdfString = _mode.toStdString();
+  std::transform(modelSdfString.begin(), modelSdfString.end(),
+                 modelSdfString.begin(), ::tolower);
 
-  ignition::msgs::StringMsg req;
+  if (modelSdfString == "box")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"box\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"box_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.167</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.167</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.167</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"box_collision\">"
+                                         "<geometry>"
+                                           "<box>"
+                                             "<size>1 1 1</size>"
+                                           "</box>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"box_visual\">"
+                                         "<geometry>"
+                                           "<box>"
+                                             "<size>1 1 1</size>"
+                                           "</box>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "sphere")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"sphere\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"sphere_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.1</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.1</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.1</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"sphere_collision\">"
+                                         "<geometry>"
+                                           "<sphere>"
+                                             "<radius>0.5</radius>"
+                                           "</sphere>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"sphere_visual\">"
+                                         "<geometry>"
+                                           "<sphere>"
+                                             "<radius>0.5</radius>"
+                                           "</sphere>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "cylinder")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"cylinder\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"cylinder_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.146</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.146</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.125</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"cylinder_collision\">"
+                                         "<geometry>"
+                                           "<cylinder>"
+                                             "<radius>0.5</radius>"
+                                             "<length>1.0</length>"
+                                           "</cylinder>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"cylinder_visual\">"
+                                         "<geometry>"
+                                           "<cylinder>"
+                                             "<radius>0.5</radius>"
+                                             "<length>1.0</length>"
+                                           "</cylinder>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else
+  {
+    ignwarn << "Invalid model string " << modelSdfString << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - box\n";
+    ignwarn << " - sphere\n";
+    ignwarn << " - cylinder\n";
+    return;
+  }
 
-  std::string sdfString;
-  if (_mode == "box")
-  {
-    sdfString = std::string("<?xml version=\"1.0\"?>"
-                            "<sdf version=\"1.6\">"
-                              "<model name=\"box\">"
-                                "<pose>0 0 0.5 0 0 0</pose>"
-                                "<link name=\"box_link\">"
-                                  "<inertial>"
-                                    "<inertia>"
-                                      "<ixx>0.167</ixx>"
-                                      "<ixy>0</ixy>"
-                                      "<ixz>0</ixz>"
-                                      "<iyy>0.167</iyy>"
-                                      "<iyz>0</iyz>"
-                                      "<izz>0.167</izz>"
-                                    "</inertia>"
-                                    "<mass>1.0</mass>"
-                                  "</inertial>"
-                                  "<collision name=\"box_collision\">"
-                                    "<geometry>"
-                                      "<box>"
-                                        "<size>1 1 1</size>"
-                                      "</box>"
-                                    "</geometry>"
-                                  "</collision>"
-                                  "<visual name=\"box_visual\">"
-                                    "<geometry>"
-                                      "<box>"
-                                        "<size>1 1 1</size>"
-                                      "</box>"
-                                    "</geometry>"
-                                  "</visual>"
-                                "</link>"
-                              "</model>"
-                            "</sdf>");
-  }
-  else if (_mode == "sphere")
-  {
-    sdfString = std::string("<?xml version=\"1.0\"?>"
-                            "<sdf version=\"1.6\">"
-                              "<model name=\"sphere\">"
-                                "<pose>0 0 0.5 0 0 0</pose>"
-                                "<link name=\"sphere_link\">"
-                                  "<inertial>"
-                                    "<inertia>"
-                                      "<ixx>0.1</ixx>"
-                                      "<ixy>0</ixy>"
-                                      "<ixz>0</ixz>"
-                                      "<iyy>0.1</iyy>"
-                                      "<iyz>0</iyz>"
-                                      "<izz>0.1</izz>"
-                                    "</inertia>"
-                                    "<mass>1.0</mass>"
-                                  "</inertial>"
-                                  "<collision name=\"sphere_collision\">"
-                                    "<geometry>"
-                                      "<sphere>"
-                                        "<radius>0.5</radius>"
-                                      "</sphere>"
-                                    "</geometry>"
-                                  "</collision>"
-                                  "<visual name=\"sphere_visual\">"
-                                    "<geometry>"
-                                      "<sphere>"
-                                        "<radius>0.5</radius>"
-                                      "</sphere>"
-                                    "</geometry>"
-                                  "</visual>"
-                                "</link>"
-                              "</model>"
-                            "</sdf>");
-  }
-  else if (_mode == "cylinder")
-  {
-    sdfString = std::string("<?xml version=\"1.0\"?>"
-                            "<sdf version=\"1.6\">"
-                              "<model name=\"cylinder\">"
-                                "<pose>0 0 0.5 0 0 0</pose>"
-                                "<link name=\"cylinder_link\">"
-                                  "<inertial>"
-                                    "<inertia>"
-                                      "<ixx>0.146</ixx>"
-                                      "<ixy>0</ixy>"
-                                      "<ixz>0</ixz>"
-                                      "<iyy>0.146</iyy>"
-                                      "<iyz>0</iyz>"
-                                      "<izz>0.125</izz>"
-                                    "</inertia>"
-                                    "<mass>1.0</mass>"
-                                  "</inertial>"
-                                  "<collision name=\"cylinder_collision\">"
-                                    "<geometry>"
-                                      "<cylinder>"
-                                        "<radius>0.5</radius>"
-                                        "<length>1.0</length>"
-                                      "</cylinder>"
-                                    "</geometry>"
-                                  "</collision>"
-                                  "<visual name=\"cylinder_visual\">"
-                                    "<geometry>"
-                                      "<cylinder>"
-                                        "<radius>0.5</radius>"
-                                        "<length>1.0</length>"
-                                      "</cylinder>"
-                                    "</geometry>"
-                                  "</visual>"
-                                "</link>"
-                              "</model>"
-                            "</sdf>");
-  }
-  req.set_data(sdfString);
-  this->dataPtr->node.Request(this->dataPtr->service, req, cb);
+  auto event = new gui::events::SpawnPreviewModel(modelSdfString);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
 }
 
 // Register this plugin

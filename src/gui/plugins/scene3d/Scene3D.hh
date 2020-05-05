@@ -137,13 +137,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewAngle(const msgs::Vector3d &_msg,
         msgs::Boolean &_res);
 
-    /// \brief Callback for a shapes request
-    /// \param[in] _msg Request message to set a new shape.
-    /// \param[in] _res Response data.
-    /// \return True if the request is received.
-    private: bool OnShapes(const msgs::StringMsg &_msg,
-        msgs::Boolean &_res);
-
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -337,8 +330,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return The unique entity id
     private: Entity UniqueId();
 
+    /// \brief Generate a preview of a model.
+    /// \param[in] _modelSdfString The sdf string of the model to be generated
+    /// \return True on success, false if failure
+    public: bool GeneratePreviewModel(const std::string &_modelSdfString);
+
     /// \brief Delete the visuals generated from the shapes plugin.
-    public: void TerminateSpawnPreviewModel();
+    public: void TerminatePreviewModel();
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
