@@ -59,8 +59,10 @@ namespace systems
   /// is ignition.msgs.Empty
   /// `<max_deployments>`: The maximum number of times this breadcrumb can be
   /// deployed. Once this many are deployed, publishing on the deploy topic will
-  /// have no effect. If a negative number is set, the maximun deployment will
-  /// be unbounded.
+  /// have no effect. If a negative number is set, the maximum deployment will
+  /// be unbounded. If a value of zero is used, then the breadcrumb system will
+  /// be disabled. A zero value is useful for situations where SDF files are
+  /// programmatically created.
   /// `<performer_volume>`: Geometry that represents the bounding volume of
   /// the performer. Only `<geometry><box>` is supported currently. When this
   /// parameter is present, the deployed models will be performers.

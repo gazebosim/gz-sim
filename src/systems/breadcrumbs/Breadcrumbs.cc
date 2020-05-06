@@ -48,10 +48,10 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->maxDeployments =
       _sdf->Get<int>("max_deployments", this->maxDeployments).first;
 
-  // Exit early if breadcrumbs deployments are not possible.
-  if (this->maxDeployments <= 0)
+  // Exit early if breadcrumbs deployments are set to zero.
+  if (this->maxDeployments == 0)
   {
-    ignmsg << "Breadcrumbs max deployment is <= 0. Breadcrumbs are disabled."
+    ignmsg << "Breadcrumbs max deployment is == 0. Breadcrumbs are disabled."
       << std::endl;
     return;
   }
