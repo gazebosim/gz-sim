@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 3.X.X
 
+1. Port support for computing model bounding box in physics system
+    * [pull request xxx](https://github.com/ignitionrobotics/ign-gazebo/pull/xxx)
+
 1. Added Link::AddWorldWrench function that adds a wrench to a link.
     * [BitBucket pull request 509](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/509)
 

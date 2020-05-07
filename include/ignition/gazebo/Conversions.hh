@@ -552,6 +552,41 @@ namespace ignition
     /// \return Entity_Type.
     template<>
     msgs::Entity_Type convert(const std::string &_in);
+
+    /// \brief Generic conversion from axis aligned box object to another type.
+    /// \param[in] _in Axis aligned box object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const math::AxisAlignedBox &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a math axis aligned box object to an
+    /// axis aligned box message
+    /// \param[in] _in Axis aligned box message
+    /// \return Axis aligned box message.
+    template<>
+    msgs::AxisAlignedBox convert(const math::AxisAlignedBox &_in);
+
+    /// \brief Generic conversion from an axis aligned box message to another
+    /// type.
+    /// \param[in] _in Axis aligned box message
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::AxisAlignedBox &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an math axis aligned box message to
+    /// an axis aligned box object.
+    /// \param[in] _in Axis aligned box object
+    /// \return Axis aligned box object.
+    template<>
+    math::AxisAlignedBox convert(const msgs::AxisAlignedBox &_in);
     }
   }
 }

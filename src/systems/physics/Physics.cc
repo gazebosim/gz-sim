@@ -26,6 +26,7 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/MeshManager.hh>
+#include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -43,6 +44,7 @@
 #include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/GetBoundingBox.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Link.hh>
 #include <ignition/physics/RemoveEntities.hh>
@@ -71,6 +73,7 @@
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/AxisAlignedBox.hh"
 #include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -129,6 +132,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
           ignition::physics::SetJointVelocityCommandFeature,
+          ignition::physics::GetModelBoundingBox,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -247,6 +251,15 @@ class ignition::gazebo::systems::PhysicsPrivate
                          math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
                          math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
                          math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+                     }};
+
+  /// \brief AxisAlignedBox equality comparison function.
+  public: std::function<bool(const math::AxisAlignedBox &,
+          const math::AxisAlignedBox&)>
+          axisAlignedBoxEql { [](const math::AxisAlignedBox &_a,
+                                 const math::AxisAlignedBox &_b)
+                     {
+                       return _a == _b;
                      }};
 };
 
@@ -881,6 +894,30 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   {
     _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
   }
+
+  // Populate bounding box info
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computations
+  _ecm.Each<components::Model, components::AxisAlignedBox>(
+      [&](const Entity &_entity, const components::Model *,
+          components::AxisAlignedBox *_bbox)
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+        {
+          ignwarn << "Failed to find model [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        math::AxisAlignedBox bbox =
+            math::eigen3::convert(modelIt->second->GetAxisAlignedBoundingBox());
+        auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+            ComponentState::OneTimeChange :
+            ComponentState::NoChange;
+        _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
