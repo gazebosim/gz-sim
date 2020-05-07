@@ -59,8 +59,10 @@ namespace systems
   /// is ignition.msgs.Empty
   /// `<max_deployments>`: The maximum number of times this breadcrumb can be
   /// deployed. Once this many are deployed, publishing on the deploy topic will
-  /// have no effect. If a negative number is set, the maximun deployment will
-  /// be unbounded.
+  /// have no effect. If a negative number is set, the maximum deployment will
+  /// be unbounded. If a value of zero is used, then the breadcrumb system will
+  /// be disabled. A zero value is useful for situations where SDF files are
+  /// programmatically created.
   /// `<disable_physics_time>`: The time in which the breadcrumb entity's
   /// dynamics remain enabled. After his specified time, the breadcrumb will
   /// be made static. If this value is <= 0 or the param is not specified, the

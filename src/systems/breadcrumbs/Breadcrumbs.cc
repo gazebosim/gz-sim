@@ -35,7 +35,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "Breadcrumbs.hh"
@@ -53,19 +52,19 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->maxDeployments =
       _sdf->Get<int>("max_deployments", this->maxDeployments).first;
 
+  // Exit early if breadcrumbs deployments are set to zero.
+  if (this->maxDeployments == 0)
+  {
+    ignmsg << "Breadcrumbs max deployment is == 0. Breadcrumbs are disabled."
+      << std::endl;
+    return;
+  }
+
   double period =
       _sdf->Get<double>("disable_physics_time", 0.0).first;
   this->disablePhysicsTime =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
       std::chrono::duration<double>(period));
-
-  // Exit early if breadcrumbs deployments are not possible.
-  if (this->maxDeployments <= 0)
-  {
-    ignmsg << "Breadcrumbs max deployment is <= 0. Breadcrumbs are disabled."
-      << std::endl;
-    return;
-  }
 
   this->model = Model(_entity);
 
