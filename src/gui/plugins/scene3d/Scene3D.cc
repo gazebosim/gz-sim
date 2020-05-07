@@ -2048,6 +2048,13 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnFocusWindow()
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->forceActiveFocus();
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
   this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
