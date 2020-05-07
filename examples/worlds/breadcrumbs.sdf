@@ -464,6 +464,7 @@
       </plugin>
       <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
        <topic>/B2/deploy</topic>
+       <disable_physics_time>2.0</disable_physics_time>
        <max_deployments>3</max_deployments>
         <breadcrumb>
           <sdf version="1.6">
