@@ -5,6 +5,6 @@
   <file>translate.png</file>
   <file>rotate.png</file>
   <file>scale.png</file>
-  <file>magnet.png</file>
+  <file>snap.png</file>
 </qresource>
 </RCC>

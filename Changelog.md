@@ -5,11 +5,17 @@
 1. Disable breadcrumbs if the `max_deployments` == 0.
     * [Pull Request 88](https://github.com/ignitionrobotics/ign-gazebo/pull/88)
 
+1. Add static pose publisher and support pose\_v msg type in pose publisher system
+    * [Pull Request 65](https://github.com/ignitionrobotics/ign-gazebo/pull/65)
+
 1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
     * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
 
 1. Add ability to save worlds to SDFormat
     * [BitBucket pull request 545](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/545)
+
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 95](https://github.com/ignitionrobotics/ign-gazebo/pull/95)
 
 ### Ignition Gazebo 2.16.0 (2020-03-24)
 
