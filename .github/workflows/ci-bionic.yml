@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Bionic CI
         id: ci
-        uses: ignition-tooling/ubuntu-bionic-ci-action@master
+        uses: ignition-tooling/ubuntu-bionic-ci-action@ign_from_src
         with:
           apt-dependencies: |
             libignition-cmake2-dev
