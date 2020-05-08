@@ -417,7 +417,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
 {
   // Get the namespace, if it exists. Otherwise, use the global namespace
   std::string ns;
-  if (_msg.ns().empty()) {
+  if (!_msg.ns().empty()) {
     ns = _msg.ns();
   }
 

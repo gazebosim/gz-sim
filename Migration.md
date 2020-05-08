@@ -32,8 +32,8 @@ release will remove the deprecated code.
 updated to report its scoped name.
 
 * Log files generated from Ignition Gazebo 1.X are no longer compatible with
-Gazebo 2+ for playback. [Pull request
-#257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
+Gazebo 2+ for playback. [BitBucket pull request
+#257](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/257)
 added an SDF message to the start of log files.
 
 ## Ignition Gazebo 1.0.2 to 1.1.0
