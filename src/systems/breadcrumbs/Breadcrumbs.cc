@@ -24,9 +24,13 @@
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
 
+#include <sdf/parser.hh>
 #include <sdf/Geometry.hh>
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
@@ -45,6 +49,23 @@ void Breadcrumbs::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
+  this->maxDeployments =
+      _sdf->Get<int>("max_deployments", this->maxDeployments).first;
+
+  // Exit early if breadcrumbs deployments are set to zero.
+  if (this->maxDeployments == 0)
+  {
+    ignmsg << "Breadcrumbs max deployment is == 0. Breadcrumbs are disabled."
+      << std::endl;
+    return;
+  }
+
+  double period =
+      _sdf->Get<double>("disable_physics_time", 0.0).first;
+  this->disablePhysicsTime =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+      std::chrono::duration<double>(period));
+
   this->model = Model(_entity);
 
   if (!_sdf->HasElement("breadcrumb"))
@@ -79,9 +100,6 @@ void Breadcrumbs::Configure(const Entity &_entity,
     ignerr << "Model not found in <breadcrumb>" << std::endl;
     return;
   }
-
-  this->maxDeployments =
-      _sdf->Get<int>("max_deployments", this->maxDeployments).first;
 
   if (_sdf->HasElement("performer_volume"))
   {
@@ -120,7 +138,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
+void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Breadcrumbs::PreUpdate");
@@ -150,6 +168,14 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
                << modelToSpawn.Pose() << std::endl;
         Entity entity = this->creator->CreateEntities(&modelToSpawn);
         this->creator->SetParent(entity, this->worldEntity);
+
+        // keep track of entities that are set to auto disable
+        if (!modelToSpawn.Static() &&
+            this->disablePhysicsTime >
+            std::chrono::steady_clock::duration::zero())
+        {
+          this->autoStaticEntities[entity] = _info.simTime;
+        }
 
         if (this->isPerformer)
         {
@@ -210,8 +236,87 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &,
     {
       this->pendingGeometryUpdate.erase(e);
     }
+
+    // make entities static when auto disable period is reached.
+    for (auto it = this->autoStaticEntities.begin();
+        it != this->autoStaticEntities.end();)
+    {
+      auto td = _info.simTime - it->second;
+      if (td > this->disablePhysicsTime)
+      {
+        auto nameComp = _ecm.Component<components::Name>(it->first);
+        if (!this->MakeStatic(it->first, _ecm))
+        {
+          ignerr << "Failed to make breadcrumb '" << nameComp->Data()
+                 << "' static." << std::endl;
+        }
+        else
+        {
+          ignmsg << "Breadcrumb '" << nameComp->Data()
+                 << "' is now static." << std::endl;
+
+        }
+        this->autoStaticEntities.erase(it++);
+      }
+      else
+      {
+        ++it;
+      }
+    }
   }
 }
+
+//////////////////////////////////////////////////
+bool Breadcrumbs::MakeStatic(Entity _entity, EntityComponentManager &_ecm)
+{
+  // make breadcrumb static by spawning a static model and attaching the
+  // breadcrumb to the static model
+  // todo(anyone) Add a feature in ign-physics to support making a model
+  // static
+  if (this->staticModelToSpawn.LinkCount() == 0u)
+  {
+    sdf::ElementPtr staticModelSDF(new sdf::Element);
+    sdf::initFile("model.sdf", staticModelSDF);
+    staticModelSDF->GetAttribute("name")->Set("static_model");
+    staticModelSDF->GetElement("static")->Set(true);
+    sdf::ElementPtr linkElem = staticModelSDF->AddElement("link");
+    linkElem->GetAttribute("name")->Set("static_link");
+    this->staticModelToSpawn.Load(staticModelSDF);
+  }
+
+  auto bcPoseComp = _ecm.Component<components::Pose>(_entity);
+  if (!bcPoseComp)
+    return false;
+  math::Pose3d p = bcPoseComp->Data();
+  this->staticModelToSpawn.SetPose(p);
+
+  auto nameComp = _ecm.Component<components::Name>(_entity);
+  this->staticModelToSpawn.SetName(nameComp->Data() + "__static__");
+
+  Entity staticEntity = this->creator->CreateEntities(&staticModelToSpawn);
+  this->creator->SetParent(staticEntity, this->worldEntity);
+
+  Entity parentLinkEntity = _ecm.EntityByComponents(
+      components::Link(), components::ParentEntity(staticEntity),
+      components::Name("static_link"));
+
+  if (parentLinkEntity == kNullEntity)
+    return false;
+
+  Entity childLinkEntity = _ecm.EntityByComponents(
+      components::CanonicalLink(), components::ParentEntity(_entity));
+
+  if (childLinkEntity == kNullEntity)
+    return false;
+
+  Entity detachableJointEntity = _ecm.CreateEntity();
+  _ecm.CreateComponent(detachableJointEntity,
+      components::DetachableJoint(
+      {parentLinkEntity, childLinkEntity, "fixed"}));
+
+  return true;
+}
+
 
 //////////////////////////////////////////////////
 void Breadcrumbs::OnDeploy(const msgs::Empty &)

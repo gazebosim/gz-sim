@@ -96,6 +96,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void OnDropped(const QString &_drop,
         int _mouseX, int _mouseY);
 
+    /// \brief Callback when the mouse enters the render window to
+    /// focus the window for mouse/key events
+    public slots: void OnFocusWindow();
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
