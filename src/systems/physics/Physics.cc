@@ -132,7 +132,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
           ignition::physics::SetJointVelocityCommandFeature,
-          ignition::physics::GetModelBoundingBox,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -261,6 +260,25 @@ class ignition::gazebo::systems::PhysicsPrivate
                      {
                        return _a == _b;
                      }};
+
+  //////////////////////////////////////////////////
+  // Bounding box
+
+  /// \brief Feature list for model bounding box.
+  public: using BoundingBoxFeatureList = ignition::physics::FeatureList<
+            MinimumFeatureList,
+            ignition::physics::GetModelBoundingBox>;
+
+  /// \brief Model type with bounding box feature.
+  public: using ModelBoundingBoxPtrType = ignition::physics::ModelPtr<
+            ignition::physics::FeaturePolicy3d, BoundingBoxFeatureList>;
+
+  /// \brief A map between model entity ids in the ECM to Model Entities in
+  /// ign-physics, with bounding box feature.
+  /// All models on this map are also in `entityModelMap`. The difference is
+  /// that here they've been casted for `BoundingBoxFeatureList`.
+  public: std::unordered_map<Entity, ModelBoundingBoxPtrType>
+      entityModelBoundingBoxMap;
 };
 
 //////////////////////////////////////////////////
@@ -909,8 +927,17 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
+        auto bbModel = entityCast(_entity, modelIt->second,
+            this->entityModelBoundingBoxMap);
+        if (!bbModel)
+        {
+          ignwarn << "Can't process AxisAlignedBox component, physics engine "
+                  << "missing GetModelBoundingBox" << std::endl;
+          return true;
+        }
+
         math::AxisAlignedBox bbox =
-            math::eigen3::convert(modelIt->second->GetAxisAlignedBoundingBox());
+            math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
         auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
             ComponentState::OneTimeChange :
             ComponentState::NoChange;
