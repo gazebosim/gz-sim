@@ -1,11 +1,11 @@
 repositories:
-  ign-gui:
-    type: git
-    url: https://github.com/ignitionrobotics/ign-gui
-    version: master
   ign-rendering:
     type: git
     url: https://github.com/ignitionrobotics/ign-rendering
+    version: master
+  ign-gui:
+    type: git
+    url: https://github.com/ignitionrobotics/ign-gui
     version: master
   ign-sensors:
     type: git
