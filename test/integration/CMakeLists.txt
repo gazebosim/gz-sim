@@ -32,6 +32,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_include.cc
   touch_plugin.cc
+  triggered_publisher.cc
   user_commands.cc
   log_system.cc
   wind_effects.cc
