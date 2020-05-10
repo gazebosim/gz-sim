@@ -53,7 +53,6 @@ ToolBar {
     }
     ToolButton{
       id: sphere
-      ButtonGroup.group: group
       ToolTip.text: "Sphere"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -71,7 +70,6 @@ ToolBar {
     }
     ToolButton {
       id: cylinder
-      ButtonGroup.group: group
       ToolTip.text: "Cylinder"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval

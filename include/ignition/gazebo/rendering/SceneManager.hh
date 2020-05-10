@@ -66,7 +66,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the world's ID.
     /// \return World ID
-    public: Entity WorldId();
+    public: Entity WorldId() const;
 
     /// \brief Create a model
     /// \param[in] _id Unique model id

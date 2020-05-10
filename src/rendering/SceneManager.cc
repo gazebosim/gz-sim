@@ -90,7 +90,7 @@ void SceneManager::SetWorldId(Entity _id)
 }
 
 /////////////////////////////////////////////////
-Entity SceneManager::WorldId()
+Entity SceneManager::WorldId() const
 {
   return this->dataPtr->worldId;
 }

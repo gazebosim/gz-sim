@@ -225,6 +225,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief The sdf string of the model to be used with the shapes plugin
     public: std::string modelSdfString;
 
+    /// \brief The pose of the preview model
+    public: ignition::math::Pose3d previewModelPose =
+            ignition::math::Pose3d::Zero;
+
     /// \brief The currently hovered mouse position in screen coordinates
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
@@ -613,9 +617,12 @@ bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
 {
   sdf::Root root;
   root.LoadSdfString(_modelSdfString);
+
   for (auto i = 0u; i < root.ModelCount(); i++)
   {
     sdf::Model model = *(root.ModelByIndex(i));
+    if (i == 0)
+      this->dataPtr->previewModelPose = model.Pose();
     model.SetName(ignition::common::Uuid().String());
     Entity modelId = this->UniqueId();
     if (!modelId)
@@ -852,10 +859,7 @@ void IgnRenderer::HandleModelPlacement()
     // Delete the generated visuals
     this->TerminatePreviewModel();
 
-    sdf::Root root;
-    root.LoadSdfString(this->dataPtr->modelSdfString);
-    sdf::Model model = *(root.ModelByIndex(0));
-    math::Pose3d modelPose = model.Pose();
+    math::Pose3d modelPose = this->dataPtr->previewModelPose;
     std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
         [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
     {
@@ -1663,7 +1667,6 @@ math::Vector3d IgnRenderer::ScreenToPlane(
   this->dataPtr->rayQuery->SetFromCamera(
       this->dataPtr->camera, math::Vector2d(nx, ny));
 
-  auto result = this->dataPtr->rayQuery->ClosestPoint();
   ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), 0);
 
   math::Vector3d origin = this->dataPtr->rayQuery->Origin();
