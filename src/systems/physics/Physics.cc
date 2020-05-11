@@ -982,15 +982,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointIt->second->SetForce(i, 0);
-
-            // TODO(anyone): Only for diff drive, which does not use
-            //   JointForceCmd. Remove when it does.
-            auto jointVelFeature = entityCast(_entity, jointIt->second,
-                this->entityJointVelocityCommandMap);
-            if (!force && jointVelFeature)
-            {
-              jointVelFeature->SetVelocityCommand(i, 0);
-            }
           }
           return true;
         }
