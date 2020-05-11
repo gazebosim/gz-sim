@@ -19,6 +19,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage debugging "Debugging": Information about debugging Gazebo.
 * \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Ignition Fuel app.
+* \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation
 
 ## License
 
