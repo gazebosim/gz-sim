@@ -49,6 +49,10 @@ namespace systems
   /// creating a fixed joint with a link in the parent model.
   ///
   /// <topic> (optional): Topic name to be used for detaching connections
+  ///
+  /// <suppress_child_warning> (optional): If true, the system
+  /// will not print a warning message if a child model does not exist yet.
+  /// Otherwise, a warning message is printed. Defaults to false.
 
   class IGNITION_GAZEBO_VISIBLE DetachableJoint
       : public System,
@@ -83,6 +87,9 @@ namespace systems
 
     /// \brief Topic to be used for detaching connections
     private: std::string topic;
+
+    /// \brief Whether to suppress warning about missing child model.
+    private: bool suppressChildWarning{false};
 
     /// \brief Entity of attachment link in the parent model
     private: Entity parentLinkEntity{kNullEntity};
