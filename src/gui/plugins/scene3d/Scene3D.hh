@@ -553,6 +553,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos);
 
+    /// \brief Called when the mouse hovers to a new position.
+    /// \param[in] _hoverPos 2D coordinates of the hovered mouse position on
+    /// the render window.
     public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
 
     /// \brief Slot called when thread is ready to be started
