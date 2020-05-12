@@ -96,6 +96,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void OnDropped(const QString &_drop,
         int _mouseX, int _mouseY);
 
+    /// \brief Callback when the mouse hovers to a new position.
+    /// \param[in] _mouseX x coordinate of the hovered mouse position.
+    /// \param[in] _mouseY y coordinate of the hovered mouse position.
+    public slots: void OnHovered(int _mouseX, int _mouseY);
+
     /// \brief Callback when the mouse enters the render window to
     /// focus the window for mouse/key events
     public slots: void OnFocusWindow();
@@ -240,8 +245,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
     /// \brief New hover event triggered.
-    /// \param[in] _mousePos Mouse hover screen position
-    public: void NewHoverEvent(const math::Vector2i &_mousePos);
+    /// \param[in] _hoverPos Mouse hover screen position
+    public: void NewHoverEvent(const math::Vector2i &_hoverPos);
 
     /// \brief Handle key press event for snapping
     /// \param[in] _e The key event to process.
@@ -548,11 +553,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos);
 
+    public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
+
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
-
-    // Documentation inherited
-    protected: void hoverMoveEvent(QHoverEvent *_e) override;
 
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;

@@ -1635,10 +1635,10 @@ void IgnRenderer::OnViewAngleComplete()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::NewHoverEvent(const math::Vector2i &_mousePos)
+void IgnRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->mouseHoverPos = _mousePos;
+  this->dataPtr->mouseHoverPos = _hoverPos;
   this->dataPtr->hoverDirty = true;
 }
 
@@ -1839,7 +1839,6 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   done = true;
 
   this->setAcceptedMouseButtons(Qt::AllButtons);
-  this->setAcceptHoverEvents(true);
   this->setFlag(ItemHasContents);
   this->dataPtr->renderThread = new RenderThread();
 }
@@ -2236,6 +2235,13 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnHovered(int _mouseX, int _mouseY)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->OnHovered({_mouseX, _mouseY});
+}
+
+/////////////////////////////////////////////////
 void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
@@ -2459,13 +2465,9 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::hoverMoveEvent(QHoverEvent *_e)
+void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
 {
-  math::Vector2i pos = {_e->pos().x(), _e->pos().y()};
-  math::Vector2i oldPos = {_e->oldPos().x(), _e->oldPos().y()};
-  if (pos == oldPos)
-    return;
-  this->dataPtr->renderThread->ignRenderer.NewHoverEvent(pos);
+  this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
 }
 
 /////////////////////////////////////////////////
@@ -2551,7 +2553,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
       _e->accept();
     }
     this->DeselectAllEntities(true);
-    // TODO(john): Delete model preview on Escape press
+    this->dataPtr->renderThread->ignRenderer.TerminatePreviewModel();
   }
 }
 
