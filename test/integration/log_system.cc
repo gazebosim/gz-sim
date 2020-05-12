@@ -245,7 +245,7 @@ class LogSystemTest : public ::testing::Test
   {
     EXPECT_EQ(_sdfRoot.Load(_sdfPath).size(), 0lu);
     EXPECT_GT(_sdfRoot.WorldCount(), 0lu);
-    const sdf::World * sdfWorld = _sdfRoot.WorldByIndex(0);
+    const sdf::World *sdfWorld = _sdfRoot.WorldByIndex(0);
     EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
 
     sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
@@ -494,7 +494,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Save changed SDF to temporary file
     std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
       "with_record_path.sdf");
-    // TODO(anyone): Does this work on Apple?
     std::ofstream ofs(tmpRecordSdfPath);
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
@@ -1698,5 +1697,92 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
 #endif
 
+  this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogResources)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_resources.sdf");
+
+  // Change environment variable so that downloaded fuel files aren't written
+  // to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
+  const std::string recordPath = this->logDir;
+  std::string statePath = common::joinPaths(recordPath, "state.tlog");
+
+#ifndef __APPLE__
+  // Log resources from command line
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record --record-resources --record-path " + recordPath + " "
+      + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  std::string consolePath = common::joinPaths(recordPath, "server_console.log");
+  EXPECT_TRUE(common::exists(consolePath));
+  EXPECT_TRUE(common::exists(statePath));
+
+  // Recorded models should exist
+  EXPECT_GT(entryCount(recordPath), 2);
+  EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      "models", "X2 Config 1")));
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+#endif
+
+  // Log resources from C++ API
+  {
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfFile(recordSdfPath);
+
+    // Set record flags
+    recordServerConfig.SetLogRecordPath(recordPath);
+    recordServerConfig.SetLogRecordResources(true);
+
+    // This tells server to call AddRecordPlugin() where flags are passed to
+    //   recorder.
+    recordServerConfig.SetUseLogRecord(true);
+
+    // Run server
+    Server recordServer(recordServerConfig);
+    recordServer.Run(true, 100, false);
+  }
+
+  // Console log is not created because ignLogDirectory() is not initialized,
+  // as ign.cc is not executed by command line.
+  EXPECT_TRUE(common::exists(statePath));
+
+  // Recorded models should exist
+#ifndef __APPLE__
+  EXPECT_GT(entryCount(recordPath), 1);
+#endif
+  EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      "models", "X2 Config 1")));
+
+  // Revert environment variable after test is done
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+
+  // Remove artifacts
   this->RemoveLogsDir();
 }

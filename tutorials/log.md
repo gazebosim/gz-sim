@@ -29,6 +29,10 @@ separately specified:
 
 Other options for recording:
 
+* `--record-resources`: Models and textures can be recorded, in addition to
+                        states, by specifying this flag. This implicitly
+                        enables `--record` flag.
+
 * `--log-overwrite`: If the record path already exists, overwrite it. Defaults to
                      false, in which case it's recorded to the given path with
                      a number appended (i.e. `/tmp/log(1)`, `/tmp/log(2)`...).
