@@ -216,7 +216,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: bool viewAngle = false;
 
     /// \brief Flag for indicating whether we are in shapes mode or not
-    public: bool spawnModelMode = false;
+    public: bool spawnModel = false;
 
     /// \brief Flag for indicating whether the user is currently placing a
     /// model with the shapes plugin or not
@@ -594,13 +594,13 @@ void IgnRenderer::Render()
   // Shapes
   {
     IGN_PROFILE("IgnRenderer::Render Shapes");
-    if (this->dataPtr->spawnModelMode)
+    if (this->dataPtr->spawnModel)
     {
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
       this->dataPtr->placingModel =
         this->GeneratePreviewModel(this->dataPtr->modelSdfString);
-      this->dataPtr->spawnModelMode = false;
+      this->dataPtr->spawnModel = false;
     }
   }
 
@@ -1533,7 +1533,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 void IgnRenderer::SetModel(const std::string &_model)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->spawnModelMode = true;
+  this->dataPtr->spawnModel = true;
   this->dataPtr->modelSdfString = _model;
 }
 

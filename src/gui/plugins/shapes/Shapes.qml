@@ -35,7 +35,6 @@ ToolBar {
     spacing: 2
     ToolButton {
       id: box
-      ButtonGroup.group: group
       ToolTip.text: "Box"
       ToolTip.visible: hovered
       ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
