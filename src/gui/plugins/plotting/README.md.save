@@ -1,0 +1,36 @@
+## Ignition Plotting
+  
+### Build
+mkdir build
+cd build
+
+
+  
+### Run Gazebo Plugin
+* Run the Testing Publisher
+```bash
+cd publisher/build
+./publisher
+```
+* Run the Plugin
+./run for copying the plugin to $IGN_GUI_PLUGIN_PATH and to run the plot.sdf in ignition gazebo
+```bash
+cd gazebo_plotting/build
+./run
+```
+* Run the Keyboard to control the blue car
+```bash
+cd keyboard/build
+./keyboard ../keyboard.sdf
+```
+done !
+
+
+### Run Gui Plugin
+```bash
+cd gui_plotting/build/
+./run
+```
+
+this will raise the error of undifined symbol as the modification of the Plotting interface is here in the gui plugin and not in the gazebo plugin
+
