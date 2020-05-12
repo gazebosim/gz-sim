@@ -75,18 +75,18 @@ public:
     void InitModel()
     {
         cout << "init model " << endl;
-        QStandardItem* parentItem = this->data_ptr->model->invisibleRootItem();
+//        QStandardItem* parentItem = this->data_ptr->model->invisibleRootItem();
         vector<string> allTopics ;
         this->data_ptr->node.TopicList(allTopics);
 
         cout << "size = " << allTopics.size() << endl;
 
-        for(int i =0 ; i < allTopics.size(); i ++) {
+        for(auto i =0 ; i < allTopics.size(); i ++) {
             // cout << "start topic " << allTopics[i] << endl;
             std::vector<ignition::transport::MessagePublisher> infoMsgs;
             this->data_ptr->node.TopicInfo(allTopics[i],infoMsgs);
             if(infoMsgs.size() == 0) {cout <<"no info found " << endl;    continue;}
-
+            infoMsgs.si
 
             string type = infoMsgs[0].MsgTypeName();
             //            cout << "type=" << type << endl;
@@ -175,7 +175,7 @@ public:
         // unsubscribe from all topics (we need one topic per object for now)
         cout << "start unsubscribe" << endl;
         std::vector<string> subscribedTopics =  this->data_ptr->node.SubscribedTopics();
-        for(int i =0 ; i < subscribedTopics.size(); i++)
+        for(auto i =0 ; i < subscribedTopics.size(); i++)
         {
             if(this->data_ptr->node.Unsubscribe(subscribedTopics[i]))
                 cout << "unsubscribed from " << subscribedTopics[i] << endl;
@@ -186,7 +186,8 @@ public:
     }
 
     // for testing
-    void Print() {
+    void Print()
+    {
 
         std::vector<ignition::transport::MessagePublisher> infoMsgs;
         this->data_ptr->node.TopicInfo(this->data_ptr->topic,infoMsgs);
