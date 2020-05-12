@@ -618,51 +618,54 @@ bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
   sdf::Root root;
   root.LoadSdfString(_modelSdfString);
 
-  for (auto i = 0u; i < root.ModelCount(); i++)
+  if (!root.ModelCount())
   {
-    sdf::Model model = *(root.ModelByIndex(i));
-    if (i == 0)
-      this->dataPtr->previewModelPose = model.Pose();
-    model.SetName(ignition::common::Uuid().String());
-    Entity modelId = this->UniqueId();
-    if (!modelId)
+    this->TerminatePreviewModel();
+    return false;
+  }
+
+  // Only preview first model
+  sdf::Model model = *(root.ModelByIndex(0));
+  this->dataPtr->previewModelPose = model.Pose();
+  model.SetName(ignition::common::Uuid().String());
+  Entity modelId = this->UniqueId();
+  if (!modelId)
+  {
+    this->TerminatePreviewModel();
+    return false;
+  }
+  this->dataPtr->spawnPreviewModel =
+    this->dataPtr->renderUtil.SceneManager().CreateModel(
+        modelId, model,
+        this->dataPtr->renderUtil.SceneManager().WorldId());
+
+  this->dataPtr->modelIds.push_back(modelId);
+  for (auto j = 0u; j < model.LinkCount(); j++)
+  {
+    sdf::Link link = *(model.LinkByIndex(j));
+    link.SetName(ignition::common::Uuid().String());
+    Entity linkId = this->UniqueId();
+    if (!linkId)
     {
       this->TerminatePreviewModel();
       return false;
     }
-    this->dataPtr->spawnPreviewModel =
-      this->dataPtr->renderUtil.SceneManager().CreateModel(
-          modelId, model,
-          this->dataPtr->renderUtil.SceneManager().WorldId());
-
-    this->dataPtr->modelIds.push_back(modelId);
-    for (auto j = 0u; j < model.LinkCount(); j++)
+    this->dataPtr->renderUtil.SceneManager().CreateLink(
+        linkId, link, modelId);
+    this->dataPtr->modelIds.push_back(linkId);
+    for (auto k = 0u; k < link.VisualCount(); k++)
     {
-      sdf::Link link = *(model.LinkByIndex(j));
-      link.SetName(ignition::common::Uuid().String());
-      Entity linkId = this->UniqueId();
-      if (!linkId)
-      {
-        this->TerminatePreviewModel();
-        return false;
-      }
-      this->dataPtr->renderUtil.SceneManager().CreateLink(
-          linkId, link, modelId);
-      this->dataPtr->modelIds.push_back(linkId);
-      for (auto k = 0u; k < link.VisualCount(); k++)
-      {
-       sdf::Visual visual = *(link.VisualByIndex(k));
-       visual.SetName(ignition::common::Uuid().String());
-       Entity visualId = this->UniqueId();
-       if (!visualId)
-       {
-         this->TerminatePreviewModel();
-         return false;
-       }
-       this->dataPtr->renderUtil.SceneManager().CreateVisual(
-           visualId, visual, linkId);
-       this->dataPtr->modelIds.push_back(visualId);
-      }
+     sdf::Visual visual = *(link.VisualByIndex(k));
+     visual.SetName(ignition::common::Uuid().String());
+     Entity visualId = this->UniqueId();
+     if (!visualId)
+     {
+       this->TerminatePreviewModel();
+       return false;
+     }
+     this->dataPtr->renderUtil.SceneManager().CreateVisual(
+         visualId, visual, linkId);
+     this->dataPtr->modelIds.push_back(visualId);
     }
   }
   return true;
