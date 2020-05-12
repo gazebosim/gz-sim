@@ -34,6 +34,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+#include "ignition/gazebo/components/AxisAlignedBox.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -841,4 +842,73 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
 
   // Second velocity should be different, but close
   EXPECT_NEAR(vel0, velocities[1], 0.05);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, GetBoundingBox)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  // a map of model name to its axis aligned box
+  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
+
+  // Create a system that records the bounding box of a model
+  Relay testSystem;
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Static>(
+        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Static *)->bool
+        {
+          // create axis aligned box to be filled by physics
+          if (_name->Data() == "box1")
+          {
+            auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
+            // the test only runs for 1 iteration so the component should be
+            // null in the first iteration.
+            EXPECT_EQ(bboxComp, nullptr);
+            _ecm.CreateComponent(_entity, components::AxisAlignedBox());
+            return true;
+          }
+          return true;
+        });
+    });
+
+  testSystem.OnPostUpdate(
+    [&](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      // store models that have axis aligned box computed
+      _ecm.Each<components::Model, components::Name, components::Static,
+        components::AxisAlignedBox>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Static *,
+        const components::AxisAlignedBox *_aabb)->bool
+        {
+          bbox[_name->Data()] = _aabb->Data();
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 1;
+  server.Run(true, iters, false);
+
+  EXPECT_EQ(1u, bbox.size());
+  EXPECT_EQ("box1", bbox.begin()->first);
+  EXPECT_EQ(ignition::math::AxisAlignedBox(
+      ignition::math::Vector3d(-1.25, -2, 0),
+      ignition::math::Vector3d(-0.25, 2, 1)),
+      bbox.begin()->second);
 }
