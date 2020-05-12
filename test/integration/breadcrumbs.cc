@@ -17,11 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include <sdf/Root.hh>
-#include <sdf/World.hh>
-
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
+
+#include <sdf/Root.hh>
+#include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
