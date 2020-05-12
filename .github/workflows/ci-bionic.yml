@@ -48,4 +48,3 @@ jobs:
             qml-module-qt-labs-settings
             qml-module-qtgraphicaleffects
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
-          source-dependencies: ../.github/ci-bionic/deps.yaml
