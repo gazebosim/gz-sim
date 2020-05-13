@@ -29,7 +29,7 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-ign_add_component(ign SOURCES cmd/ign.cc GET_TARGET_NAME ign_lib_target)
+ign_add_component(ign SOURCES ign.cc GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
   PRIVATE
     ${PROJECT_LIBRARY_TARGET_NAME}
@@ -47,6 +47,7 @@ set (sources
   Link.cc
   Model.cc
   SdfEntityCreator.cc
+  SdfGenerator.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -71,6 +72,7 @@ set (gtest_sources
   Link_TEST.cc
   Model_TEST.cc
   SdfEntityCreator_TEST.cc
+  SdfGenerator_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
@@ -97,6 +99,10 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+if (NOT APPLE)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PRIVATE stdc++fs)
+endif()
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
@@ -119,6 +125,7 @@ ign_build_tests(TYPE UNIT
     ${gtest_sources}
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
+    ${EXTRA_TEST_LIB_DEPS}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
 
@@ -154,7 +161,7 @@ target_link_libraries(ign-gazebo-gui PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   ${Qt5Widgets_LIBRARIES}
 )
 
-# Switch to ign_install_executable when it is fixed (https://bitbucket.org/ignitionrobotics/ign-cmake/issues/29)
+# Switch to ign_install_executable when it is fixed (https://github.com/ignitionrobotics/ign-cmake/issues/29)
 set_target_properties(ign-gazebo-exec
   PROPERTIES VERSION ${PROJECT_VERSION_FULL})
 install (TARGETS ign-gazebo-exec DESTINATION ${IGN_BIN_INSTALL_DIR})

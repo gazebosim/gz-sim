@@ -15,8 +15,10 @@
  *
 */
 
+#include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
@@ -29,6 +31,7 @@
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/math/Angle.hh>
+#include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/common/Console.hh>
@@ -53,8 +56,46 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
+
+//////////////////////////////////////////////////
+template<>
+msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
+{
+  msgs::Entity_Type out = msgs::Entity_Type_NONE;
+
+  if (_in == "light") {
+    return msgs::Entity_Type_LIGHT;
+  }
+  else if (_in == "model")
+  {
+    return msgs::Entity_Type_MODEL;
+  }
+  else if (_in == "link")
+  {
+    return msgs::Entity_Type_LINK;
+  }
+  else if (_in == "visual")
+  {
+    return msgs::Entity_Type_VISUAL;
+  }
+  else if (_in == "collision")
+  {
+    return msgs::Entity_Type_COLLISION;
+  }
+  else if (_in == "sensor")
+  {
+    return msgs::Entity_Type_SENSOR;
+  }
+  else if (_in == "joint")
+  {
+    return msgs::Entity_Type_JOINT;
+  }
+
+  return out;
+}
 
 //////////////////////////////////////////////////
 template<>
@@ -116,7 +157,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     auto meshMsg = out.mutable_mesh();
 
     msgs::Set(meshMsg->mutable_scale(), meshSdf->Scale());
-    meshMsg->set_filename(meshSdf->Uri());
+    meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
@@ -1046,5 +1087,25 @@ gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
   out.simTime = convert<std::chrono::steady_clock::duration>(_in.sim_time());
   out.realTime = convert<std::chrono::steady_clock::duration>(_in.real_time());
   out.dt = convert<std::chrono::steady_clock::duration>(_in.step_size());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
+{
+  msgs::AxisAlignedBox out;
+  msgs::Set(out.mutable_min_corner(), _in.Min());
+  msgs::Set(out.mutable_max_corner(), _in.Max());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
+{
+  math::AxisAlignedBox out;
+  out.Min() = msgs::Convert(_in.min_corner());
+  out.Max() = msgs::Convert(_in.max_corner());
   return out;
 }

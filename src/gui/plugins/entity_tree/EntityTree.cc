@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/Collision.hh"
@@ -34,6 +35,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "EntityTree.hh"
 
@@ -131,19 +133,6 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
       this->roleNames().key("entity"));
   entityItem->setData(_type, this->roleNames().key("type"));
 
-  // TODO(louise) Update icons when available
-  auto icon = _type;
-  if (_type.isEmpty() ||
-      _type == "light" ||
-      _type == "level" ||
-      _type == "sensor" ||
-      _type == "performer")
-  {
-    icon = "visual";
-  }
-  entityItem->setData(QUrl("qrc:/Gazebo/images/" + icon + ".png"),
-      this->roleNames().key("icon"));
-
   parentItem->appendRow(entityItem);
 
   this->entityItems[_entity] = entityItem;
@@ -188,12 +177,62 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 }
 
 /////////////////////////////////////////////////
+QString TreeModel::EntityType(const QModelIndex &_index) const
+{
+  QString type;
+  QStandardItem *item = this->itemFromIndex(_index);
+  if (!item)
+    return type;
+
+  QVariant typeVar  = item->data(this->roleNames().key("type"));
+  if (!typeVar.isValid())
+    return type;
+
+  return typeVar.toString();
+}
+
+/////////////////////////////////////////////////
+QString TreeModel::ScopedName(const QModelIndex &_index) const
+{
+  QString scopedName;
+  QModelIndex idx = _index;
+  while (idx.isValid())
+  {
+    QVariant v = idx.data();
+    if (v.isValid())
+    {
+      QString str = v.toString();
+      if (!str.isEmpty())
+      {
+        scopedName = scopedName.isEmpty() ? str : str + "::" + scopedName;
+      }
+    }
+    idx = idx.parent();
+  }
+  return scopedName;
+}
+
+/////////////////////////////////////////////////
+unsigned int TreeModel::EntityId(const QModelIndex &_index) const
+{
+  Entity entity{kNullEntity};
+  QStandardItem *item = this->itemFromIndex(_index);
+  if (!item)
+    return entity;
+
+  QVariant entityVar  = item->data(this->roleNames().key("entity"));
+  if (!entityVar.isValid())
+    return entity;
+
+  return entityVar.toUInt();
+}
+
+/////////////////////////////////////////////////
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(100, "entityName"),
           std::pair(101, "entity"),
-          std::pair(102, "icon"),
-          std::pair(103, "type")};
+          std::pair(102, "type")};
 }
 
 /////////////////////////////////////////////////
@@ -201,8 +240,8 @@ EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
   // Connect model
-  gui::App()->Engine()->rootContext()->setContextProperty("EntityTreeModel",
-      &this->dataPtr->treeModel);
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+     "EntityTreeModel", &this->dataPtr->treeModel);
 }
 
 /////////////////////////////////////////////////
@@ -213,6 +252,9 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Entity tree";
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -298,6 +340,61 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         Q_ARG(unsigned int, _entity));
     return true;
   });
+}
+
+/////////////////////////////////////////////////
+void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
+{
+  std::vector<Entity> entitySet {_entity};
+  auto event = new gui::events::EntitiesSelected(entitySet, true);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
+}
+
+/////////////////////////////////////////////////
+void EntityTree::DeselectAllEntities()
+{
+  auto event = new gui::events::DeselectAllEntities(true);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
+}
+
+/////////////////////////////////////////////////
+bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  {
+    auto selectedEvent =
+        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+    if (selectedEvent && !selectedEvent->Data().empty())
+    {
+      for (const auto &entity : selectedEvent->Data())
+      {
+        if (entity == kNullEntity)
+          continue;
+
+        QMetaObject::invokeMethod(this->PluginItem(), "onEntitySelectedFromCpp",
+            Qt::QueuedConnection, Q_ARG(QVariant,
+            QVariant(static_cast<unsigned int>(entity))));
+      }
+    }
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+  {
+    auto deselectAllEvent =
+        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+    if (deselectAllEvent)
+    {
+      QMetaObject::invokeMethod(this->PluginItem(), "deselectAllEntities",
+          Qt::QueuedConnection);
+    }
+  }
+
+  // Standard event processing
+  return QObject::eventFilter(_obj, _event);
 }
 
 // Register this plugin

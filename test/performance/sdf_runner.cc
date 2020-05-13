@@ -124,10 +124,10 @@ int main(int _argc, char** _argv)
   ofs << "# Rate: " << FLAGS_z << std::endl;
   ofs << "# Real s, Real ns, sim s, sim ns" << std::endl;
 
-  for (size_t ii = 0; ii < msgs.size(); ++ii)
+  for (auto &msg : msgs)
   {
-    ofs << msgs[ii].real().sec() << ", " << msgs[ii].real().nsec() << ", "
-        << msgs[ii].sim().sec() << ", " << msgs[ii].sim().nsec() << std::endl;
+    ofs << msg.real().sec() << ", " << msg.real().nsec() << ", "
+        << msg.sim().sec() << ", " << msg.sim().nsec() << std::endl;
   }
 
   return 0;

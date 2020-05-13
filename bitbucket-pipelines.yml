@@ -40,11 +40,12 @@ pipelines:
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
-          - make -j4 install
+          - make -j1 install
           - export IGN_CONFIG_PATH=/usr/local/share/ignition
           # run codecheck before tests so flaky tests don't obscure codecheck failures
           - make codecheck
-          - make test ARGS="-VV"
+          - export CTEST_OUTPUT_ON_FAILURE=1
+          - make test
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout -X gcov

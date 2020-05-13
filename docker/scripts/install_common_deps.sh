@@ -18,7 +18,6 @@ sudo apt-get install -y \
   curl \
   git \
   g++-8 \
-  mercurial \
   pkg-config \
 
 sudo apt-get install -y \

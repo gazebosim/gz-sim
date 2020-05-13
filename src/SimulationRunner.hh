@@ -18,6 +18,8 @@
 #define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/log_playback_control.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -25,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -61,6 +64,29 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+
+    /// \brief Helper struct to control world time. It's used to hold
+    /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
+    struct WorldControl
+    {
+      /// \brief True to pause simulation.
+      // cppcheck-suppress unusedStructMember
+      bool pause{false};  // NOLINT
+
+      /// \biref Run a given number of simulation iterations.
+      // cppcheck-suppress unusedStructMember
+      uint64_t multiStep{0u};  // NOLINT
+
+      /// \brief Reset simulation back to time zero. Rewinding resets sim time,
+      /// real time and iterations.
+      // cppcheck-suppress unusedStructMember
+      bool rewind{false};  // NOLINT
+
+      /// \brief Sim time to jump to. A negative value means don't seek.
+      /// Seeking changes sim time but doesn't affect real time.
+      /// It also resets iterations back to zero.
+      std::chrono::steady_clock::duration seek{-1};
+    };
 
     /// \brief Class to hold systems internally
     class SystemInternal
@@ -266,6 +292,16 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief World control service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnPlaybackControl(const msgs::LogPlaybackControl &_req,
+                                            msgs::Boolean &_res);
+
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
       /// \return True if successful.
@@ -288,6 +324,25 @@ namespace ignition
       /// \brief Calls AddSystemToRunner to each system that is pending to be
       /// added.
       public: void ProcessSystemQueue();
+
+      /// \brief Generate the current world's SDFormat representation.
+      /// \param[in] _req Request message with options for saving a world to an
+      /// SDFormat file.
+      /// \param[out] _res Generated SDFormat string.
+      /// \return True if successful.
+      public: bool GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
+                                    msgs::StringMsg &_res);
+
+      /// \brief Sets the file path to fuel URI map.
+      /// \param[in] _map A populated map of file paths to fuel URIs.
+      public: void SetFuelUriMap(
+                  const std::unordered_map<std::string, std::string> &_map);
+
+      /// \brief Add an entry to the file path to Fuel URI map
+      /// \param[in] _path A file path to a resource (model.sdf, mesh, etc).
+      /// \param[in] _uri A fuel URI.
+      public: void AddToFuelUriMap(const std::string &_path,
+                                   const std::string &_uri);
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
@@ -399,11 +454,18 @@ namespace ignition
       /// executed yet.
       private: unsigned int pendingSimIterations{0};
 
+      /// \brief True if user requested to rewind simulation.
+      private: bool requestedRewind{false};
+
+      /// \brief If user asks to seek to a specific sim time, this holds the
+      /// time.s A negative value means there's no request from the user.
+      private: std::chrono::steady_clock::duration requestedSeek{-1};
+
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
 
       /// \brief Buffer of world control messages.
-      private: std::list<msgs::WorldControl> worldControlMsgs;
+      private: std::list<WorldControl> worldControls;
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
@@ -425,6 +487,9 @@ namespace ignition
 
       /// \brief Barrier to signal end of PostUpdate thread execution
       private: std::unique_ptr<Barrier> postUpdateStopBarrier;
+
+      /// \brief Map from file paths to Fuel URIs.
+      private: std::unordered_map<std::string, std::string> fuelUriMap;
 
       friend class LevelManager;
     };

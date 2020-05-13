@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
@@ -54,9 +55,12 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -161,6 +165,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
 
+  // Store the world's SDF DOM to be used when saving the world to file
+  this->dataPtr->ecm->CreateComponent(
+      worldEntity, components::WorldSdf(*_world));
+
   return worldEntity;
 }
 
@@ -182,6 +190,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       components::Static(_model->Static()));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::WindMode(_model->EnableWind()));
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::SelfCollide(_model->SelfCollide()));
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
@@ -228,6 +240,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
   }
   this->dataPtr->newSensors.clear();
+
+  // Store the model's SDF DOM to be used when saving the world to file
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::ModelSdf(*_model));
 
   return modelEntity;
 }
@@ -370,6 +386,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::Pose(_visual->Pose()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Name(_visual->Name()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::CastShadows(_visual->CastShadows()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::Transparency(_visual->Transparency()));
 
   if (_visual->Geom())
   {

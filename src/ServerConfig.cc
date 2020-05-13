@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -185,7 +187,25 @@ void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
 class ignition::gazebo::ServerConfigPrivate
 {
   /// \brief Default constructor.
-  public: ServerConfigPrivate() = default;
+  public: ServerConfigPrivate()
+  {
+    std::string home;
+    common::env(IGN_HOMEDIR, home);
+
+    this->timestamp = IGN_SYSTEM_TIME();
+
+    // Set a default log record path
+    this->logRecordPath = common::joinPaths(home,
+        ".ignition", "gazebo", "log", common::timeToIso(this->timestamp));
+
+    // If directory already exists, do not overwrite. This could potentially
+    // happen if multiple simulation instances are started in rapid
+    // succession.
+    if (common::exists(this->logRecordPath))
+    {
+      this->logRecordPath = common::uniqueDirectoryPath(this->logRecordPath);
+    }
+  }
 
   /// \brief Copy constructor.
   /// \param[in] _cfg Configuration to copy.
@@ -197,8 +217,12 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
+            logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
+            logRecordResources(_cfg->logRecordResources),
+            logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
+            physicsEngine(_cfg->physicsEngine),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -225,12 +249,25 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
 
+  /// TODO(anyone) Deprecate in public APIs in Ignition-D, remove in Ignition-E
+  /// \brief Whether log record path is specified from command line
+  public: bool logIgnoreSdfPath{false};
+
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
+
+  /// \brief Record meshes and material files
+  public: bool logRecordResources{false};
+
+  /// \brief Path to compress log files to
+  public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
+
+  /// \brief File containing physics engine plugin. If empty, DART will be used.
+  public: std::string physicsEngine = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -243,6 +280,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief The given random seed.
   public: unsigned int seed = 0;
+
+  /// \brief Timestamp that marks when this ServerConfig was created.
+  public: std::chrono::time_point<std::chrono::system_clock> timestamp;
 };
 
 //////////////////////////////////////////////////
@@ -392,6 +432,18 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
+bool ServerConfig::LogIgnoreSdfPath() const
+{
+  return this->dataPtr->logIgnoreSdfPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogIgnoreSdfPath(bool _ignore)
+{
+  this->dataPtr->logIgnoreSdfPath = _ignore;
+}
+
+/////////////////////////////////////////////////
 const std::string ServerConfig::LogPlaybackPath() const
 {
   return this->dataPtr->logPlaybackPath;
@@ -401,6 +453,30 @@ const std::string ServerConfig::LogPlaybackPath() const
 void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::LogRecordResources() const
+{
+  return this->dataPtr->logRecordResources;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordResources(bool _recordResources)
+{
+  this->dataPtr->logRecordResources = _recordResources;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::LogRecordCompressPath() const
+{
+  return this->dataPtr->logRecordCompressPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompressPath(const std::string &_path)
+{
+  this->dataPtr->logRecordCompressPath = _path;
 }
 
 /////////////////////////////////////////////////
@@ -429,6 +505,18 @@ void ServerConfig::SetResourceCache(const std::string &_path)
 }
 
 /////////////////////////////////////////////////
+const std::string &ServerConfig::PhysicsEngine() const
+{
+  return this->dataPtr->physicsEngine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetPhysicsEngine(const std::string &_physicsEngine)
+{
+  this->dataPtr->physicsEngine = _physicsEngine;
+}
+
+/////////////////////////////////////////////////
 void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 {
   this->dataPtr->plugins.push_back(_info);
@@ -445,4 +533,11 @@ ServerConfig &ServerConfig::operator=(const ServerConfig &_cfg)
 {
   this->dataPtr = std::make_unique<ServerConfigPrivate>(_cfg.dataPtr);
   return *this;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::time_point<std::chrono::system_clock> &
+ServerConfig::Timestamp() const
+{
+  return this->dataPtr->timestamp;
 }

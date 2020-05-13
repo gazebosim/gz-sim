@@ -1,0 +1,6 @@
+module IgnGazebo
+
+plugin EntityContextMenu
+
+EntityContextMenu 1.0 qrc:/IgnGazebo/EntityContextMenu.qml
+TypeIcon 1.0 qrc:/IgnGazebo/TypeIcon.qml

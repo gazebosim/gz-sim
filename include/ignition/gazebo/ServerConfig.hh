@@ -250,6 +250,18 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
+      /// \brief Get whether to ignore the path specified in SDF.
+      /// \return Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
+      public: bool LogIgnoreSdfPath() const;
+
+      /// \brief Set whether to ignore the path specified in SDF. Path in SDF
+      /// should be ignored if a record path is specified on the command line,
+      /// for example.
+      /// \param[in] _ignore Whether to ignore the path specified in SDF
+      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
+      public: void SetLogIgnoreSdfPath(bool _ignore);
+
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
       public: const std::string LogPlaybackPath() const;
@@ -257,6 +269,22 @@ namespace ignition
       /// \brief Set path to recorded states to play back
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
+
+      /// \brief Get whether meshes and material files are recorded
+      /// \return True if resources should be recorded.
+      public: bool LogRecordResources() const;
+
+      /// \brief Set whether meshes and material files are recorded
+      /// \param[in] _recordResources Value to set
+      public: void SetLogRecordResources(bool _recordResources);
+
+      /// \brief Get file path to compress log files to
+      /// \return File path to compress log files to
+      public: std::string LogRecordCompressPath() const;
+
+      /// \brief Set file path to compress log files to
+      /// \param[in] _path File path to compress log files to
+      public: void SetLogRecordCompressPath(const std::string &_path);
 
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
@@ -286,6 +314,14 @@ namespace ignition
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
 
+      /// \brief Physics engine plugin library to load.
+      /// \return File containing physics engine library.
+      public: const std::string &PhysicsEngine() const;
+
+      /// \brief Set the physics engine plugin library.
+      /// \param[in] _physicsEngine File containing physics engine library.
+      public: void SetPhysicsEngine(const std::string &_physicsEngine);
+
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.
       /// \param[in] _info Information about the plugin to load.
@@ -300,6 +336,14 @@ namespace ignition
       /// \param[in] _cfg ServerConfig to copy.
       /// \return Reference to this class.
       public: ServerConfig &operator=(const ServerConfig &_cfg);
+
+      /// \brief Get the timestamp of this ServerConfig. This is the system
+      /// time when this ServerConfig was created. The timestamp is used
+      /// internally to create log file paths so that both state and console
+      /// logs are co-located.
+      /// \return Time when this ServerConfig was created.
+      public: const std::chrono::time_point<std::chrono::system_clock> &
+              Timestamp() const;
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;

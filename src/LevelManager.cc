@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Wind.hh"
@@ -88,6 +89,10 @@ void LevelManager::ReadLevelPerformerInfo()
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::MagneticField(this->runner->sdfWorld->MagneticField()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::PhysicsEnginePlugin(
+      this->runner->serverConfig.PhysicsEngine()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 
@@ -147,6 +152,10 @@ void LevelManager::ReadLevelPerformerInfo()
   // Load world plugins.
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
       this->runner->sdfWorld->Element());
+
+  // Store the world's SDF DOM to be used when saving the world to file
+  this->runner->entityCompMgr.CreateComponent(
+      worldEntity, components::WorldSdf(*this->runner->sdfWorld));
 }
 
 /////////////////////////////////////////////////
@@ -566,6 +575,9 @@ void LevelManager::UpdateLevelsState()
           });
   }
 
+  // Sort levelsToLoad and levelsToUnload so as to run std::unique on them.
+  std::sort(levelsToLoad.begin(), levelsToLoad.end());
+  std::sort(levelsToUnload.begin(), levelsToUnload.end());
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());

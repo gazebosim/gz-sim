@@ -4,7 +4,7 @@
 -->
 <sdf version="1.6">
   <world name="shapes">
-    <physics name="1ms" type="ode">
+    <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
@@ -41,6 +41,14 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+
+        <!-- user camera will follow the box as it rolls downhill -->
+        <camera_follow>
+          <p_gain>0.05</p_gain>
+          <target>box</target>
+          <world_frame>true</world_frame>
+          <offset>-6 6 6</offset>
+        </camera_follow>
       </plugin>
 
       <!-- World control -->
@@ -83,6 +91,15 @@
         <iterations>true</iterations>
         <topic>/world/shapes/stats</topic>
 
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <title>Entity tree</title>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
       </plugin>
 
     </gui>

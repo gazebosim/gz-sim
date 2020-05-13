@@ -42,6 +42,7 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
+DEFINE_bool(record_resources, false, "Record meshes and material files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 DEFINE_uint32(seed, 0, "Start with a given random number seed");
 
@@ -94,11 +95,14 @@ void help()
   << std::endl
   << "  --record               Use logging system to record states."
   << std::endl
-  << "  --record-path arg      Custom path to put recorded files."
-  << " Arg is path to recorded states."
+  << "  --record-path arg      Implicitly invokes --record, and specifies"
+  << " custom path to put recorded files. Argument is path to recorded states."
+  << std::endl
+  << "  --record-resources     Implicitly invokes --record, and records"
+  << " meshes and material files."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
-  << " Arg is path to recorded states."
+  << " Argument is path to recorded states."
   << std::endl
   << "  --seed arg             Start with a given random number seed."
   << " Arg is the random seed (unsigned int)."
@@ -242,7 +246,7 @@ int main(int _argc, char **_argv)
     serverConfig.SetUseLevels(true);
   }
 
-  if (!FLAGS_record_path.empty() || FLAGS_record)
+  if (!FLAGS_record_path.empty() || FLAGS_record || FLAGS_record_resources)
   {
     if (!FLAGS_playback.empty())
     {
@@ -251,10 +255,12 @@ int main(int _argc, char **_argv)
     }
 
     serverConfig.SetUseLogRecord(true);
+    serverConfig.SetLogRecordResources(FLAGS_record_resources);
 
     if (!FLAGS_record_path.empty())
     {
-      serverConfig.SetLogRecordPath(FLAGS_record_path);
+      serverConfig.SetLogRecordPath(ignition::common::absPath(
+        FLAGS_record_path));
     }
     else
     {
@@ -273,7 +279,8 @@ int main(int _argc, char **_argv)
     else
     {
       ignmsg << "Playing back states" << FLAGS_playback << std::endl;
-      serverConfig.SetLogPlaybackPath(FLAGS_playback);
+      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+        FLAGS_playback));
     }
   }
 

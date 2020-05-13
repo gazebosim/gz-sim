@@ -24,7 +24,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 // File copied from
-// https://bitbucket.org/ignitionrobotics/ign-gui/raw/default/test/integration/ExamplesBuild_TEST.cc
+// https://github.com/ignitionrobotics/ign-gui/raw/master/test/integration/ExamplesBuild_TEST.cc
 
 using namespace ignition;
 
@@ -160,7 +160,7 @@ void ExamplesBuild::Build(const std::string &_type)
     // cd build && cmake source
     snprintf(cmd, sizeof(cmd), "cd %s && cmake %s && make",
       tmpBuildDir.c_str(), sourceDir.c_str());
-    ASSERT_EQ(system(cmd), 0);
+    EXPECT_EQ(system(cmd), 0) << base;
 
     // Remove temp dir
     EXPECT_TRUE(common::removeAll(tmpBuildDir));

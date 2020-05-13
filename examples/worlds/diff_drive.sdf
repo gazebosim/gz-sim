@@ -18,7 +18,7 @@
 <sdf version="1.6">
   <world name="diff_drive">
 
-    <physics name="1ms" type="ode">
+    <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
@@ -319,6 +319,7 @@
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
+        <odom_publish_frequency>1</odom_publish_frequency>
       </plugin>
 
     </model>
