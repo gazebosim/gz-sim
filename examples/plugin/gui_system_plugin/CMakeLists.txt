@@ -8,7 +8,7 @@ project(GuiSystemPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(ignition-gazebo2 REQUIRED COMPONENTS gui)
+find_package(ignition-gazebo3 REQUIRED COMPONENTS gui)
 
 QT5_ADD_RESOURCES(resources_RCC ${PROJECT_NAME}.qrc)
 
@@ -17,5 +17,5 @@ add_library(${PROJECT_NAME} SHARED
   ${resources_RCC}
 )
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE ignition-gazebo2::gui
+  PRIVATE ignition-gazebo3::gui
 )
