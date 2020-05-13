@@ -110,14 +110,14 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
 TEST(CompareElements, CompareWithDuplicateElements)
 {
   const std::string m1Sdf = R"(
-  <sdf version="1.6">
+  <sdf version="1.7">
     <model name="M1">
       <pose>0 0 0 0 0 0 0</pose>
     </model>
   </sdf>
   )";
   const std::string m1CompTestSdf = R"(
-  <sdf version="1.6">
+  <sdf version="1.7">
     <model name="M1">
       <pose>0 0 0 0 0 0 0</pose>
       <pose>0 0 0 0 0 0 0</pose>
@@ -159,7 +159,13 @@ class ElementUpdateFixture : public ::testing::Test
 
   public: virtual void LoadWorld(const std::string &_path)
   {
-    this->root.Load(common::joinPaths(PROJECT_SOURCE_PATH, _path));
+    auto errors = this->root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+        _path));
+    EXPECT_TRUE(errors.empty()) << _path;
+
+    for (auto error : errors)
+      igndbg << error.Message() << std::endl;
+
     ASSERT_EQ(1u, root.WorldCount());
     this->world = root.WorldByIndex(0);
     ASSERT_NE(nullptr, this->world);
@@ -168,7 +174,12 @@ class ElementUpdateFixture : public ::testing::Test
 
   public: virtual void LoadWorldString(const std::string &_worldSdf)
   {
-    this->root.LoadSdfString(_worldSdf);
+    auto errors = this->root.LoadSdfString(_worldSdf);
+    EXPECT_TRUE(errors.empty()) << _worldSdf;
+
+    for (auto error : errors)
+      igndbg << error.Message() << std::endl;
+
     ASSERT_EQ(1u, root.WorldCount());
     this->world = root.WorldByIndex(0);
     ASSERT_NE(nullptr, this->world);
@@ -530,16 +541,11 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
       // Thes following two URIs are valid, but have a trailing '/'
       "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/",
       "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/1/",
-      // Thes following two URIs are invalid, and will not be saved
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/"
-      "notInt",
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/"
-      "notInt/",
   };
 
   std::string worldSdf = R"(
 <?xml version="1.0" ?>
-<sdf version="1.6">
+<sdf version="1.7">
   <world name="invalid_uris">
     <include>
       <uri>)" + fuelUris[0] + R"(</uri>
@@ -548,14 +554,6 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
     <include>
       <uri>)" + fuelUris[1] + R"(</uri>
       <name>backpack2</name>
-    </include>
-    <include>
-      <uri>)" + fuelUris[2] + R"(</uri>
-      <name>backpack3</name>
-    </include>
-    <include>
-      <uri>)" + fuelUris[3] + R"(</uri>
-      <name>backpack3</name>
     </include>
   </world>
 </sdf>
@@ -594,7 +592,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 
   std::string worldSdf = R"(
 <?xml version="1.0" ?>
-<sdf version="1.6">
+<sdf version="1.7">
   <world name="nonfuel_uris">
     <include>
       <uri>)" + includeUris[0] + R"(</uri>
@@ -604,7 +602,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
       <uri>)" + includeUris[1] + R"(</uri>
       <name>model2</name>
     </include>
-    <model name="model3"/>
+    <model name="model3">
+      <link name="link3"/>
+    </model>
   </world>
 </sdf>
   )";
@@ -777,7 +777,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
 
   std::string worldSdf = R"(
 <?xml version="1.0" ?>
-<sdf version="1.6">
+<sdf version="1.7">
   <world name="test_relative_resource">
     <include>
       <uri>)" + includeUri + R"(</uri>
