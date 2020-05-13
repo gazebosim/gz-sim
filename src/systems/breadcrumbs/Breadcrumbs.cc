@@ -254,7 +254,6 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         {
           ignmsg << "Breadcrumb '" << nameComp->Data()
                  << "' is now static." << std::endl;
-
         }
         this->autoStaticEntities.erase(it++);
       }
