@@ -998,6 +998,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (jointIt == this->entityJointMap.end())
           return true;
 
+        auto force = _ecm.Component<components::JointForceCmd>(_entity);
+
         // Model is out of battery
         if (this->entityOffMap[_ecm.ParentEntity(_entity)])
         {
@@ -1005,15 +1007,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointIt->second->SetForce(i, 0);
-
-            // TODO(anyone): Only for diff drive, which does not use
-            //   JointForceCmd. Remove when it does.
-            auto jointVelFeature = entityCast(_entity, jointIt->second,
-                this->entityJointVelocityCommandMap);
-            if (jointVelFeature)
-            {
-              jointVelFeature->SetVelocityCommand(i, 0);
-            }
           }
           return true;
         }
@@ -1071,7 +1064,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             }
         }
 
-        auto force = _ecm.Component<components::JointForceCmd>(_entity);
         auto velCmd = _ecm.Component<components::JointVelocityCmd>(_entity);
 
         if (force)

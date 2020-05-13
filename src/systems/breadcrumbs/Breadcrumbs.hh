@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include <sdf/Element.hh>
