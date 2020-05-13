@@ -232,7 +232,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->batteryEntity = _ecm.CreateEntity();
     // Initialize with initial voltage
     _ecm.CreateComponent(this->dataPtr->batteryEntity,
-      components::BatterySoC());
+        components::BatterySoC(this->dataPtr->soc));
     _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
       batteryName));
     _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
@@ -321,7 +321,7 @@ void LinearBatteryPlugin::PreUpdate(
 
     for (Entity jointEntity : joints)
     {
-      const auto* jointVelocityCmd =
+      const auto *jointVelocityCmd =
         _ecm.Component<components::JointVelocityCmd>(jointEntity);
       if (jointVelocityCmd) {
         for (double jointVel : jointVelocityCmd->Data())
@@ -380,8 +380,9 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
     this->dataPtr->battery->Update();
 
     // Update component
-    auto batteryComp =
+    auto *batteryComp =
       _ecm.Component<components::BatterySoC>(this->dataPtr->batteryEntity);
+
     batteryComp->Data() = this->dataPtr->StateOfCharge();
   }
 }
