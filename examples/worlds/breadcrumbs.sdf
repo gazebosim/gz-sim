@@ -17,7 +17,7 @@
 <sdf version="1.6">
   <world name="breadcrumbs">
 
-    <physics name="1ms" type="ode">
+    <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
@@ -464,6 +464,7 @@
       </plugin>
       <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
        <topic>/B2/deploy</topic>
+       <disable_physics_time>2.0</disable_physics_time>
        <max_deployments>3</max_deployments>
         <breadcrumb>
           <sdf version="1.6">

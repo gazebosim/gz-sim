@@ -22,6 +22,7 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
@@ -70,6 +71,9 @@ namespace ignition::gazebo
     /// \brief World entity
     public: Entity worldEntity{kNullEntity};
 
+    /// \brief Name of the world
+    public: std::string worldName;
+
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
 
@@ -78,6 +82,9 @@ namespace ignition::gazebo
 
     /// \brief Whether updates are currently paused.
     public: bool paused{false};
+
+    /// \brief Transport node for making command requests
+    public: transport::Node node;
   };
 }
 
@@ -462,6 +469,9 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::Name>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
+
+      if (this->dataPtr->entity == this->dataPtr->worldEntity)
+        this->dataPtr->worldName = comp->Data();
     }
     else if (typeId == components::ParentEntity::typeId)
     {
@@ -648,6 +658,26 @@ void ComponentInspector::SetPaused(bool _paused)
 {
   this->dataPtr->paused = _paused;
   this->PausedChanged();
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
+    double _pitch, double _yaw)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+        ignerr << "Error setting pose" << std::endl;
+  };
+
+  ignition::msgs::Pose req;
+  req.set_id(this->dataPtr->entity);
+  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
+  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
+  auto poseCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_pose";
+  this->dataPtr->node.Request(poseCmdService, req, cb);
 }
 
 // Register this plugin
