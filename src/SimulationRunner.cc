@@ -28,6 +28,7 @@
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
 #include "network/NetworkManagerPrimary.hh"
+#include "SdfGenerator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -190,6 +191,13 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   ignmsg << "World [" << _world->Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
+
+  std::string genWorldSdfService{"generate_world_sdf"};
+  this->node->Advertise(
+      genWorldSdfService, &SimulationRunner::GenerateWorldSdf, this);
+
+  ignmsg << "Serving world SDF generation service on [" << opts.NameSpace()
+         << "/" << genWorldSdfService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -1130,4 +1138,35 @@ bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
   _res.CopyFrom(this->guiMsg);
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
+                                        msgs::StringMsg &_res)
+{
+  // TODO(addisu) This is not thread-safe. Wait until it is safe to access the
+  // ECM.
+  Entity world = this->entityCompMgr.EntityByComponents(components::World());
+  std::optional<std::string> genString = sdf_generator::generateWorld(
+      this->entityCompMgr, world, this->fuelUriMap, _req);
+  if (genString.has_value())
+  {
+    _res.set_data(*genString);
+    return true;
+  }
+  return false;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetFuelUriMap(
+    const std::unordered_map<std::string, std::string> &_map)
+{
+  this->fuelUriMap = _map;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::AddToFuelUriMap(const std::string &_path,
+                                       const std::string &_uri)
+{
+  this->fuelUriMap[_path] = _uri;
 }
