@@ -98,18 +98,6 @@ class ignition::gazebo::systems::WheelSlipPrivate
 bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
                             sdf::ElementPtr _sdf)
 {
-  // GZ_ASSERT(_model, "WheelSlipPlugin model pointer is NULL");
-  // GZ_ASSERT(_sdf, "WheelSlipPlugin sdf pointer is NULL");
-
-  // auto world = _model->GetWorld();
-  // GZ_ASSERT(world, "world pointer is NULL");
-  // {
-  //   ignition::math::Vector3d gravity = world->Gravity();
-  //   ignition::math::Quaterniond initialModelRot =
-  //       _model->WorldPose().Rot();
-  //   this->dataPtr->initialGravityDirection =
-  //       initialModelRot.RotateVectorReverse(gravity.Normalized());
-  // }
   const std::string modelName = this->model.Name(_ecm);
 
   if (!_sdf->HasElement("wheel"))
@@ -175,27 +163,6 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
     auto collision = collisions.front();
 
-    // if (collision == nullptr)
-    // {
-    //   ignerr << "Could not find collision in link named [" << linkName
-    //         << "] in model [" << modelName << "]"
-    //         << std::endl;
-    //   continue;
-    // }
-
-    // auto surface = collision->Data().GetSurface();
-    // auto odeSurface =
-    //   boost::dynamic_pointer_cast<physics::ODESurfaceParams>(surface);
-    // if (odeSurface == nullptr)
-    // {
-    //   ignerr << "Could not find ODE Surface "
-    //         << "in collision named [" << collision->GetName()
-    //         << "] in link named [" << linkName
-    //         << "] in model [" << _model->GetScopedName() << "]"
-    //         << std::endl;
-    //   continue;
-    // }
-
     params.collision = collision;
 
     auto joints =
@@ -209,57 +176,17 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
             << std::endl;
       continue;
     }
-    // auto joint = joints.front();
-    // if (joint == nullptr)
-    // {
-    //   ignerr << "Could not find parent joint for link named [" << linkName
-    //         << "] in model [" << _model->GetScopedName() << "]"
-    //         << std::endl;
-    //   continue;
-    // }
+
     params.joint = joints.front();
 
     if (params.wheelRadius <= 0)
     {
-      // get collision shape and extract radius if it is a cylinder or sphere
-      // auto shape = collision->GetShape();
-      // if (shape->HasType(physics::Base::CYLINDER_SHAPE))
-      // {
-      //   auto cyl = boost::dynamic_pointer_cast<physics::CylinderShape>(shape);
-      //   if (cyl != nullptr)
-      //   {
-      //     params.wheelRadius = cyl->GetRadius();
-      //   }
-      // }
-      // else if (shape->HasType(physics::Base::SPHERE_SHAPE))
-      // {
-      //   auto sphere = boost::dynamic_pointer_cast<physics::SphereShape>(shape);
-      //   if (sphere != nullptr)
-      //   {
-      //     params.wheelRadius = sphere->GetRadius();
-      //   }
-      // }
-      // else
-      // {
-      //   ignerr << "A positive wheel radius was not specified in the"
-      //         << " [wheel_radius] parameter, and the the wheel radius"
-      //         << " could not be identified automatically because a"
-      //         << " sphere or cylinder collision shape could not be found."
-      //         << " Skipping link [" << linkName << "]."
-      //         << std::endl;
-      //   continue;
-      // }
-
-      // if that still didn't work, skip this link
-      if (params.wheelRadius <= 0)
-      {
-        ignerr << "Found wheel radius [" << params.wheelRadius
-              << "], which is not positive"
-              << " in link named [" << linkName
-              << "] in model [" << modelName << "]"
-              << std::endl;
-        continue;
-      }
+      ignerr << "Found wheel radius [" << params.wheelRadius
+            << "], which is not positive"
+            << " in link named [" << linkName
+            << "] in model [" << modelName << "]"
+            << std::endl;
+      continue;
     }
 
     if (params.wheelNormalForce <= 0)
@@ -288,11 +215,6 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 /////////////////////////////////////////////////
 void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 {
-  // Get slip data so it can be published later
-  // std::map<std::string, ignition::math::Vector3d> slips;
-  // this->GetSlips(slips);
-
-  // std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   for (const auto &linkSurface : this->mapLinkSurfaceParams)
   {
     const auto &params = linkSurface.second;
@@ -300,21 +222,8 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     // get user-defined normal force constant
     double force = params.wheelNormalForce;
 
-    // get link angular velocity parallel to joint axis
-    // ignition::math::Vector3d wheelAngularVelocity;
-    // auto link = linkSurface.first.lock();
-    // if (link)
-    //   wheelAngularVelocity = link->WorldAngularVel();
-
-    // ignition::math::Vector3d jointAxis;
     auto joint = params.joint;
-    // if (joint)
-    //   jointAxis = joint->GlobalAxis(0);
 
-    // double spinAngularVelocity = wheelAngularVelocity.Dot(jointAxis);
-    // TODO This actually gets the difference between the wheel and body
-    // velocities. It would be better to compute the absolute wheel velocity
-    // using the commented code.
     auto spinAngularVelocityComp =
         _ecm.Component<components::JointVelocity>(joint);
 
@@ -343,8 +252,6 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     double slip1 = speed / force * params.slipComplianceLateral;
     double slip2 = speed / force * params.slipComplianceLongitudinal;
 
-    std::cout << "slip1: " << slip1 << " slip2: " << slip2 <<std::endl;
-
     math::Vector2d slipCmd;
     slipCmd.X() = slip1;
     slipCmd.Y() = slip2;
@@ -361,16 +268,6 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     {
       _ecm.CreateComponent(params.collision, newSlipCmdComp);
     }
-
-    // Try to publish slip data for this wheel
-    // if (link)
-    // {
-    //   msgs::Vector3d msg;
-    //   auto name = link->GetName();
-    //   msg = msgs::Convert(slips[name]);
-    //   if (params.slipPub)
-    //     params.slipPub->Publish(msg);
-    // }
   }
 }
 //////////////////////////////////////////////////
