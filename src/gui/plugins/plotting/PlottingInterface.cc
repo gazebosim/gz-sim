@@ -21,6 +21,10 @@ PlottingInterface :: PlottingInterface(Transport *_transport) : QObject()
     this->transport = _transport;
 }
 
+PlottingInterface::~PlottingInterface()
+{
+}
+
 Q_INVOKABLE void PlottingInterface :: setTopic(QString _topic)
 {
     this->transport->SetTopic(_topic.toStdString());

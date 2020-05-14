@@ -31,7 +31,7 @@ class TransportPrivate
     /// \brief double value if we subscribe to a topic with double msg
     public: double doubleValue;
     /// \brief type of subscribed msg (int or float or double)
-    public: std::string type ;
+    public: std::string type;
     /// \brief supported types to subscribe (int , float ,double)
     public: std::vector<std::string> supportedTypes;
 };
@@ -51,27 +51,26 @@ Transport :: Transport() : data_ptr(new TransportPrivate)
 Transport :: ~Transport()
 {
     this->Unsubscribe();
-    this->data_ptr.~unique_ptr();
 }
 
 /// \brief make the model from the available topics and messages
 void Transport :: InitModel()
 {
-    std::vector<std::string> allTopics ;
+    std::vector<std::string> allTopics;
     this->data_ptr->node.TopicList(allTopics);
 
-    for(unsigned int i =0 ; i < allTopics.size(); i ++) {
+    for (unsigned int i = 0; i < allTopics.size(); i++) {
         // cout << "start topic " << allTopics[i] << endl;
         std::vector<ignition::transport::MessagePublisher> infoMsgs;
-        this->data_ptr->node.TopicInfo(allTopics[i],infoMsgs);
-        if(infoMsgs.size() == 0)
+        this->data_ptr->node.TopicInfo(allTopics[i], infoMsgs);
+        if (infoMsgs.size() == 0)
             continue;
 
         std::string type = infoMsgs[0].MsgTypeName();
 
         // check if the msg type is one of the supported types
         bool supported = false;
-        for(unsigned int j =0 ; j < this->data_ptr->supportedTypes.size(); j++)
+        for (unsigned int j =0 ; j < this->data_ptr->supportedTypes.size(); j++)
         {
             if (type == this->data_ptr->supportedTypes[j])
             {
@@ -79,18 +78,17 @@ void Transport :: InitModel()
                 break;
             }
         }
-        if(supported)
+        if (supported)
         {
             // substr 14 to remove " ignition.msgs. "
             this->data_ptr->model->AddTopic(QString::fromStdString(allTopics[i]) , QString::fromStdString(type.substr(14)) );
         }
     }
-
 }
 /// \brief param[in] _index : subscribe to the topic of the selected item which has _index
-void Transport :: Subscribe( QModelIndex _index )
+void Transport :: Subscribe(QModelIndex _index)
 {
-    QString topic = this->data_ptr->model->TopicName(_index );
+    QString topic = this->data_ptr->model->TopicName(_index);
     this->SetTopic(topic.toStdString());
 }
 
@@ -102,62 +100,51 @@ QStandardItemModel* Transport :: GetModel()
 
 /// \brief get the published value according to the topic's msg type, wrap it in QVariant to send to javascript
 QVariant Transport :: GetValue() {
-    if(this->data_ptr->type == FLOAT)
+    if (this->data_ptr->type == FLOAT)
         return QVariant(this->data_ptr->floatValue);
-    if(this->data_ptr->type == INT)
+    if (this->data_ptr->type == INT)
         return QVariant(this->data_ptr->intValue);
-    if(this->data_ptr->type == DOUBLE)
+    if (this->data_ptr->type == DOUBLE)
         return QVariant(this->data_ptr->doubleValue);
     else
         return QVariant();
 }
 
 /// \brief callback to subscribe to topic with float msg
-void Transport :: FloatCallback(const ignition::msgs::Float& _msg)
+void Transport :: FloatCallback(const ignition::msgs::Float &_msg)
 {
     this->data_ptr->type = FLOAT;
     this->data_ptr->floatValue = _msg.data();
 }
 /// \brief callback to subscribe to topic with int msg
-void Transport :: Int32Callback(const ignition::msgs::Int32& _msg)
+void Transport :: Int32Callback(const ignition::msgs::Int32 &_msg)
 {
     this->data_ptr->type = INT;
     this->data_ptr->intValue = _msg.data();
 }
 /// \brief callback to subscribe to topic with double msg
-void Transport :: DoubleCallback(const ignition::msgs::Double& _msg)
+void Transport :: DoubleCallback(const ignition::msgs::Double &_msg)
 {
     this->data_ptr->type = DOUBLE;
     this->data_ptr->doubleValue = _msg.data();
 }
 
 /// \brief set the topic to register
-void Transport :: SetTopic(std::string _topic)
+void Transport :: SetTopic(const std::string &_topic)
 {
     this->Unsubscribe();
     this->data_ptr->topic = _topic;
-
     this->Subscribe();
-    this->Print();
 }
 
 /// \brief unsubscribe from the subscribed topics
 void Transport :: Unsubscribe()
 {
-    std::vector<std::string> subscribedTopics =  this->data_ptr->node.SubscribedTopics();
-    for(unsigned int i =0 ; i < subscribedTopics.size(); i++)
+    std::vector<std::string> subscribedTopics = this->data_ptr->node.SubscribedTopics();
+    for (unsigned int i = 0; i < subscribedTopics.size(); i++)
     {
         this->data_ptr->node.Unsubscribe(subscribedTopics[i]);
     }
-}
-
-// for testing
-void Transport :: Print()
-{
-    std::vector<ignition::transport::MessagePublisher> infoMsgs;
-    this->data_ptr->node.TopicInfo(this->data_ptr->topic,infoMsgs);
-    if(infoMsgs.size() == 0)
-        return;
 }
 
 /// \brief subscribe to the topic in data_ptr->topic
@@ -165,25 +152,25 @@ void Transport :: Subscribe()
 {
     // get the typeMsg of the topic to know which callback to assign
     std::vector<ignition::transport::MessagePublisher> infoMsgs;
-    this->data_ptr->node.TopicInfo(this->data_ptr->topic,infoMsgs);
+    this->data_ptr->node.TopicInfo(this->data_ptr->topic, infoMsgs);
     // if no publishers assigned yet to that topic , return
-    if(infoMsgs.size() == 0)
+    if (infoMsgs.size() == 0)
     {
         this->data_ptr->type = NONE;
         return;
     }
     // get any of the publishers (we assume that all publishers of the topic will be the same)
     std::string msgType = infoMsgs[0].MsgTypeName();
-    if(msgType == "ignition.msgs.Float")
+    if (msgType == "ignition.msgs.Float")
     {
-        this->data_ptr->node.Subscribe(this->data_ptr->topic,&Transport::FloatCallback,this);
+        this->data_ptr->node.Subscribe(this->data_ptr->topic, &Transport::FloatCallback, this);
     }
     else if (msgType == "ignition.msgs.Double")
     {
-        this->data_ptr->node.Subscribe(this->data_ptr->topic,&Transport::DoubleCallback,this);
+        this->data_ptr->node.Subscribe(this->data_ptr->topic, &Transport::DoubleCallback, this);
     }
     else if (msgType == "ignition.msgs.Int32")
     {
-        this->data_ptr->node.Subscribe(this->data_ptr->topic,&Transport::Int32Callback,this);
+        this->data_ptr->node.Subscribe(this->data_ptr->topic, &Transport::Int32Callback, this);
     }
 }

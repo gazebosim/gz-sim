@@ -24,11 +24,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/MessageInfo.hh>
 #include <ignition/transport/Publisher.hh>
-
-#include <QVariant>
-#include <QStandardItem>
-#include <QStandardItemModel>
-
 #include "TopicsModel.hh"
 
 #define NONE "none"
@@ -44,7 +39,7 @@ class Transport
     private: std::unique_ptr<TransportPrivate> data_ptr;
 
     /// \brief Constructor
-    public: Transport() ;
+    public: Transport();
 
     /// \brief Destructor
     public: ~Transport();
@@ -53,7 +48,7 @@ class Transport
     public: void InitModel();
 
     /// \brief param[in] _index : subscribe to the topic of the selected item which has _index
-    public: void Subscribe( QModelIndex _index );
+    public: void Subscribe(QModelIndex _index);
 
     /// \brief get the Model of the topics and msgs
     public: QStandardItemModel *GetModel();
@@ -71,12 +66,10 @@ class Transport
     public: void DoubleCallback(const ignition::msgs::Double &_msg);
 
     /// \brief set the topic to register
-    public: void SetTopic(std::string _topic);
+    public: void SetTopic(const std::string &_topic);
 
     /// \brief unsubscribe from the subscribed topics
     public: void Unsubscribe();
-
-    public: void Print();
 
     /// \brief subscribe to the topic in data_ptr->topic
     public: void Subscribe();

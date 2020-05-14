@@ -25,24 +25,24 @@
 #define TOPIC_KEY "topic"
 
 /// \brief Model for the TreeView in the Qml
-class TopicsModel : public QStandardItemModel {
-
+class TopicsModel : public QStandardItemModel
+{
     /// \brief Constructor
-    public : TopicsModel() ;
+    public: TopicsModel() ;
     /// \brief add topic to the model with no children
-    public : QStandardItem* AddTopic(QString _topic);
+    public: QStandardItem* AddTopic(QString _topic);
 
     /// \brief add _topic to the model with child _msg
-    public : QStandardItem* AddTopic(QString _topic, QString _msg);
+    public: QStandardItem* AddTopic(QString _topic, QString _msg);
 
     /// \brief factory method for creating an item
-    public : QStandardItem* FactoryItem(QString _topic);
+    public: QStandardItem* FactoryItem(QString _topic);
 
     /// \brief get the topic name from its _index in the Model
-    public : QString TopicName(QModelIndex _index);
+    public: QString TopicName(QModelIndex _index);
 
     /// \brief roles of the model. to be accessed via javascript
-    public : QHash<int, QByteArray> roleNames() const override;
+    public: QHash<int, QByteArray> roleNames() const override;
 };
 
 

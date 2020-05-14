@@ -18,15 +18,14 @@
 
 #include "Plotting.hh"
 
-namespace ignition::gazebo {
-
+namespace ignition::gazebo
+{
     class PlottingPrivate
     {
-        /// \brief Transport Object for Subscribing and Publishing Topics with Msgs
-        public: Transport *transport;
-        /// \brief Interface to communicate with Qml
-        public: PlottingInterface *plottingIface;
-
+      /// \brief Transport Object for Subscribing and Publishing Topics with Msgs
+      public: Transport *transport;
+      /// \brief Interface to communicate with Qml
+      public: PlottingInterface *plottingIface;
     };
 }
 
@@ -35,8 +34,8 @@ using namespace gazebo;
 
 Plotting ::Plotting ()  : GuiSystem() , data_ptr(new PlottingPrivate)
 {
-    this->pose=0;
-    this->time=0;
+    this->pose = 0;
+    this->time = 0;
     this->data_ptr->transport = new Transport();
     this->data_ptr->plottingIface = new PlottingInterface(this->data_ptr->transport);
 
@@ -44,31 +43,30 @@ Plotting ::Plotting ()  : GuiSystem() , data_ptr(new PlottingPrivate)
         "TopicsModel", this->data_ptr->transport->GetModel());
 
     ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-                "PlottingIface",this->data_ptr->plottingIface);
+                "PlottingIface", this->data_ptr->plottingIface);
 }
 
-Plotting ::~Plotting ()
+Plotting ::~Plotting()
 {
-    delete this->data_ptr->transport;
     delete this->data_ptr->plottingIface;
-    this->data_ptr.~unique_ptr();
+    delete this->data_ptr->transport;
 }
 
 void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info, ignition::gazebo::EntityComponentManager &_ecm)
 {
-    if(_info.paused)
+    if (_info.paused)
         return;
 
     int realTime = _info.realTime.count()/1000000000;
 
     // get the blue car entity by its name
     auto CarEntity = _ecm.EntityByComponents(components::Name("vehicle_blue"));
-    if(!CarEntity)
+    if (!CarEntity)
         return;
 
 //    // get the position component of the car entity
     auto _pose = _ecm.Component<components::Pose>(CarEntity);
-    if(!_pose)
+    if (!_pose)
         return;
 
     this->pose = _pose->Data().Pos().X();
@@ -83,8 +81,8 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info, ignition::gaze
 
 void Plotting ::UpdateGui()
 {
-    this->data_ptr->plottingIface->emitPlotting(0,this->time,this->pose);
-    this->data_ptr->plottingIface->emitPlotting(1,this->time,this->data_ptr->transport->GetValue());
+    this->data_ptr->plottingIface->emitPlotting(0, this->time,this->pose);
+    this->data_ptr->plottingIface->emitPlotting(1, this->time,this->data_ptr->transport->GetValue());
 
     // cout << "time:" << this->time << "  " << this->data_ptr->transport->GetValue().toFloat() << endl;
 }

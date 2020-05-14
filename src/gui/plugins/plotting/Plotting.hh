@@ -30,32 +30,32 @@
 
 namespace ignition {
 
-    namespace gazebo {
+namespace gazebo {
 
-        class PlottingPrivate ;
+class PlottingPrivate;
 
 
-        class Plotting : public ignition::gazebo::GuiSystem
-        {
-            Q_OBJECT
-            /// \brief Constructor
-            public: Plotting ();
-            /// \brief Destructor
-            public: ~Plotting ();
+class Plotting : public ignition::gazebo::GuiSystem
+{
+    Q_OBJECT
+    /// \brief Constructor
+    public: Plotting();
+    /// \brief Destructor
+    public: ~Plotting();
 
-            /// \brief data_ptr holds Abstraction data of PlottingPrivate
-            private: std::unique_ptr<PlottingPrivate> data_ptr;
-            /// \brief get called every simulation iteration to access entities and thier components
-            public: void Update(const ignition::gazebo::UpdateInfo &_info,ignition::gazebo::EntityComponentManager &_ecm) override;
+    /// \brief data_ptr holds Abstraction data of PlottingPrivate
+    private: std::unique_ptr<PlottingPrivate> data_ptr;
+    /// \brief get called every simulation iteration to access entities and thier components
+    public: void Update(const ignition::gazebo::UpdateInfo &_info, ignition::gazebo::EntityComponentManager &_ecm) override;
 
-            /// \brief x position of the car
-            public : float pose;
-            /// \brief plotting real time
-            public : float time;
-            /// \brief send data to Qml to plot
-            public: void UpdateGui();
-        };
-    }
+    /// \brief x position of the car
+    public: float pose;
+    /// \brief plotting real time
+    public: float time;
+    /// \brief send data to Qml to plot
+    public: void UpdateGui();
+};
+}
 }
 
 #endif

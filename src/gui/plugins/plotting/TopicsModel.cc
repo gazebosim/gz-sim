@@ -26,7 +26,6 @@ QStandardItem* TopicsModel :: AddTopic(QString _topic)
     QStandardItem *item = this->FactoryItem(_topic);
     QStandardItem *parent = this->invisibleRootItem();
     parent->appendRow(item);
-
     return item;
 }
 
@@ -36,7 +35,6 @@ QStandardItem* TopicsModel :: AddTopic(QString _topic, QString _msg)
     QStandardItem *msgItem = FactoryItem(_msg);
     QStandardItem *parent = this->AddTopic(_topic);
     parent->appendRow(msgItem);
-
     return msgItem;
 }
 
@@ -44,7 +42,7 @@ QStandardItem* TopicsModel :: AddTopic(QString _topic, QString _msg)
 QStandardItem* TopicsModel :: FactoryItem(QString _topic)
 {
     QStandardItem *item = new QStandardItem(_topic);
-    item->setData(QVariant(_topic),this->roleNames().key(TOPIC_KEY));
+    item->setData(QVariant(_topic), this->roleNames().key(TOPIC_KEY));
     return item;
 }
 
@@ -52,7 +50,7 @@ QStandardItem* TopicsModel :: FactoryItem(QString _topic)
 QString TopicsModel :: TopicName(QModelIndex _index)
 {
     QStandardItem *item = this->itemFromIndex(_index);
-    if(! item)
+    if (!item)
         return "";
 
     QString topic = item->data(this->roleNames().key(TOPIC_KEY)).toString();
@@ -62,7 +60,7 @@ QString TopicsModel :: TopicName(QModelIndex _index)
 //////////////////////////////////////////////////
 QHash<int, QByteArray> TopicsModel :: roleNames() const
 {
-    QHash<int,QByteArray> roles;
+    QHash<int, QByteArray> roles;
     roles[50] = TOPIC_KEY;
     return roles;
 }

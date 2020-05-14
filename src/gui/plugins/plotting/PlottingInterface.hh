@@ -29,7 +29,10 @@ class PlottingInterface : public QObject
     private: Transport *transport;
 
     /// \brief Constructor
-    public: PlottingInterface(Transport *_transport);
+    public: explicit PlottingInterface(Transport *_transport);
+
+    /// \brief Destructor
+    public: ~PlottingInterface();
 
     /// \brief set a topic to subscribe to it (just used for testing);
     public: Q_INVOKABLE void setTopic(QString _topic);
@@ -42,7 +45,7 @@ class PlottingInterface : public QObject
     void emitPlotting(int _chart, float _x , QVariant _y);
 
 signals :
-    void plot(int _chart,float _x , QVariant _y);
+    void plot(int _chart, float _x, QVariant _y);
 };
 
 #endif
