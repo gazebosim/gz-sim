@@ -39,7 +39,8 @@ Image {
     var entityImage = 'visual'
 
     // Other specific icons available
-    if (entityType == 'collision' ||
+    if (entityType == 'actor' ||
+        entityType == 'collision' ||
         entityType == 'joint' ||
         entityType == 'light' ||
         entityType == 'link' ||
