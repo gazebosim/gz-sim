@@ -16,6 +16,7 @@
 */
 
 #include <numeric>
+#include <limits>
 #include <deque>
 #include "ignition/math/RollingMean.hh"
 
