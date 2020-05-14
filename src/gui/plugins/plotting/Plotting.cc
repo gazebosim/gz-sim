@@ -1,21 +1,39 @@
+/*
+ * Copyright (C) 2020 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 #include <ignition/plugin/Register.hh>
 
-#include "GazeboPlotting.hh"
-using namespace ignition::gui;
-using namespace ignition::gazebo;
+#include "Plotting.hh"
 
-class GazeboPlottingPrivate
-{
-public:
-    /// \brief Transport Object for Subscribing and Publishing Topics with Msgs
-    Transport* transport;
-    /// \brief Interface to communicate with Qml
-    PlottingInterface* plottingIface;
+namespace ignition::gazebo {
 
-};
+    class PlottingPrivate
+    {
+        /// \brief Transport Object for Subscribing and Publishing Topics with Msgs
+        public: Transport *transport;
+        /// \brief Interface to communicate with Qml
+        public: PlottingInterface *plottingIface;
 
+    };
+}
 
-GazeboPlotting ::GazeboPlotting ()  : GuiSystem() , data_ptr(new GazeboPlottingPrivate)
+using namespace ignition;
+using namespace gazebo;
+
+Plotting ::Plotting ()  : GuiSystem() , data_ptr(new PlottingPrivate)
 {
     this->pose=0;
     this->time=0;
@@ -29,14 +47,14 @@ GazeboPlotting ::GazeboPlotting ()  : GuiSystem() , data_ptr(new GazeboPlottingP
                 "PlottingIface",this->data_ptr->plottingIface);
 }
 
-GazeboPlotting ::~GazeboPlotting ()
+Plotting ::~Plotting ()
 {
     delete this->data_ptr->transport;
     delete this->data_ptr->plottingIface;
     this->data_ptr.~unique_ptr();
 }
 
-void GazeboPlotting ::Update(const ignition::gazebo::UpdateInfo &_info, ignition::gazebo::EntityComponentManager &_ecm)
+void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info, ignition::gazebo::EntityComponentManager &_ecm)
 {
     if(_info.paused)
         return;
@@ -59,20 +77,19 @@ void GazeboPlotting ::Update(const ignition::gazebo::UpdateInfo &_info, ignition
         return;
 
     this->time = realTime;
-//    cout <<"ray2 time= " <<  this->time << endl;
     this->UpdateGui();
 }
 
 
-void GazeboPlotting ::UpdateGui()
+void Plotting ::UpdateGui()
 {
     this->data_ptr->plottingIface->emitPlotting(0,this->time,this->pose);
     this->data_ptr->plottingIface->emitPlotting(1,this->time,this->data_ptr->transport->GetValue());
 
-    cout << "time:" << this->time << "  " << this->data_ptr->transport->GetValue().toFloat() << endl;
+    // cout << "time:" << this->time << "  " << this->data_ptr->transport->GetValue().toFloat() << endl;
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(GazeboPlotting ,
+IGNITION_ADD_PLUGIN(ignition::gazebo::Plotting ,
                     ignition::gazebo::GuiSystem,
                     ignition::gui::Plugin)

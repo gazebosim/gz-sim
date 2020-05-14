@@ -44,7 +44,7 @@ GridLayout
 
 
         rowDelegate: Rectangle {
-            color: (styleData.selected)? "#b55400" : (styleData.row % 2 == 0) ? "white" : "grey"
+            color: (styleData.selected)? "red" : (styleData.row % 2 == 0) ? "white" : "grey"
             height: 50
         }
 
