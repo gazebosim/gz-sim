@@ -589,7 +589,9 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  EXPECT_FALSE(*server.AddSystem(mockSystemPlugin.value()));
+  auto result = server.AddSystem(mockSystemPlugin.value());
+  EXPECT_TRUE(result.has_value());
+  EXPECT_FALSE(result.value());
   EXPECT_EQ(3u, *server.SystemCount());
 
   // Stop the server
