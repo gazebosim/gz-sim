@@ -384,12 +384,11 @@ namespace sdf_generator
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
-    // TODO(addisu): Uncomment this for sdformat 1.7
-    // sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
-    // if (nullptr != relativeTo)
-    // {
-    //   relativeTo->Reset();
-    // }
+    sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
+    if (nullptr != relativeTo)
+    {
+      relativeTo->Reset();
+    }
     poseElem->Set(poseComp->Data());
 
     const auto *pathComp =
@@ -420,12 +419,11 @@ namespace sdf_generator
     auto poseElem = _elem->GetElement("pose");
 
     // Remove all attributes of poseElem
-    // TODO(addisu): Uncomment this for sdformat 1.7
-    // sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
-    // if (nullptr != relativeTo)
-    // {
-    //   relativeTo->Reset();
-    // }
+    sdf::ParamPtr relativeTo = poseElem->GetAttribute("relative_to");
+    if (nullptr != relativeTo)
+    {
+      relativeTo->Reset();
+    }
     poseElem->Set(poseComp->Data());
     return true;
   }
