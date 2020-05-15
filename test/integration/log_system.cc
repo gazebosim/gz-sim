@@ -355,6 +355,8 @@ TEST_F(LogSystemTest, LogDefaults)
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
+
+#ifndef __APPLE__
   this->CreateLogsDir();
 
   // Test case 2:
@@ -367,7 +369,6 @@ TEST_F(LogSystemTest, LogDefaults)
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
       "log");
-#ifndef __APPLE__
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
   entryList(logPath, entriesBefore);
@@ -1196,12 +1197,10 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
       "server_console.log")));
   EXPECT_EQ(1, entryCount(timestampPath));
-#endif
 
   // Cleanup
   common::removeFile(tmpRecordSdfPath);
   common::removeAll(homeFake);
-#ifndef __APPLE__
   common::removeAll(timestampPath);
 
   // Revert environment variable after test is done
