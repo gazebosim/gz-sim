@@ -161,10 +161,6 @@ class ElementUpdateFixture : public ::testing::Test
   {
     auto errors = this->root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
         _path));
-    EXPECT_TRUE(errors.empty()) << _path;
-
-    for (auto error : errors)
-      igndbg << error.Message() << std::endl;
 
     ASSERT_EQ(1u, root.WorldCount());
     this->world = root.WorldByIndex(0);
@@ -175,10 +171,6 @@ class ElementUpdateFixture : public ::testing::Test
   public: virtual void LoadWorldString(const std::string &_worldSdf)
   {
     auto errors = this->root.LoadSdfString(_worldSdf);
-    EXPECT_TRUE(errors.empty()) << _worldSdf;
-
-    for (auto error : errors)
-      igndbg << error.Message() << std::endl;
 
     ASSERT_EQ(1u, root.WorldCount());
     this->world = root.WorldByIndex(0);
@@ -541,6 +533,11 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
       // Thes following two URIs are valid, but have a trailing '/'
       "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/",
       "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/1/",
+      // Thes following two URIs are invalid, and will not be saved
+      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/"
+      "notInt",
+      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/"
+      "notInt/",
   };
 
   std::string worldSdf = R"(
@@ -554,6 +551,14 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
     <include>
       <uri>)" + fuelUris[1] + R"(</uri>
       <name>backpack2</name>
+    </include>
+    <include>
+      <uri>)" + fuelUris[2] + R"(</uri>
+      <name>backpack3</name>
+    </include>
+    <include>
+      <uri>)" + fuelUris[3] + R"(</uri>
+      <name>backpack3</name>
     </include>
   </world>
 </sdf>
