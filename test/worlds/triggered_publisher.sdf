@@ -87,7 +87,7 @@
             }
         </match>
       </input>
-      <output type="ignition.msgs.Empty" topic="/out_7_0"/>
+      <output type="ignition.msgs.Empty" topic="/out_7"/>
     </plugin>
     <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Pose" topic="/in_8">

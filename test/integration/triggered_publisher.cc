@@ -277,7 +277,6 @@ TEST_F(TriggeredPublisherTest, FieldMatchersWithRepeatedFieldsUsePartialMatches)
         ++recvCount;
       });
   node.Subscribe("/out_7", msgCb);
-  server->Run(true, 100, false);
 
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
