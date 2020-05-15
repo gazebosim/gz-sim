@@ -54,13 +54,9 @@ using namespace gazebo;
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
-#ifdef __APPLE__
-static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
-"-f ";
-static const std::string kIgnCommand(
-  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
-  "/bin/ign-gazebo-server");
-#else
+// TODO(anyone) Support command line options for OSX, see
+// https://github.com/ignitionrobotics/ign-gazebo/issues/25
+#ifndef __APPLE__
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 " ";
 static const std::string kIgnCommand(
@@ -375,7 +371,6 @@ TEST_F(LogSystemTest, LogDefaults)
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
   entryList(logPath, entriesBefore);
-#endif
 
   {
     // Command line triggers ign.cc, which handles initializing ignLogDirectory
@@ -388,7 +383,6 @@ TEST_F(LogSystemTest, LogDefaults)
     std::cout << output << std::endl;
   }
 
-#ifndef __APPLE__
   // Check the diff of list of files and assume there is a single diff, it
   // being the newly created log directory from the run above.
   EXPECT_EQ(nEntries + 1, entryCount(logPath));
@@ -476,7 +470,6 @@ TEST_F(LogSystemTest, LogPaths)
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
   entryList(logPath, entriesBefore);
-#endif
 
   // Test case 2:
   // A path is specified in SDF.
@@ -511,7 +504,6 @@ TEST_F(LogSystemTest, LogPaths)
   // Check state.tlog is stored to path specified in SDF
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
       "state.tlog")));
-#ifndef __APPLE__
   EXPECT_EQ(1, entryCount(this->logDir));
 
   // Check the diff of list of files in directory, and assume there is
@@ -620,7 +612,6 @@ TEST_F(LogSystemTest, LogPaths)
   EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
 #ifndef __APPLE__
   EXPECT_EQ(1, entryCount(cppPath));
-#endif
   EXPECT_FALSE(common::exists(sdfPath));
 
   // Remove artifacts. Recreate new directory
@@ -642,13 +633,11 @@ TEST_F(LogSystemTest, LogPaths)
   }
 
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir, "state.tlog")));
-#ifndef __APPLE__
   // \FIXME Apple uses deprecated command line, so some options don't work
   // correctly.
   EXPECT_TRUE(common::exists(common::joinPaths(this->logDir,
     "server_console.log")));
   EXPECT_EQ(2, entryCount(this->logDir));
-#endif
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
@@ -685,7 +674,6 @@ TEST_F(LogSystemTest, LogPaths)
     std::cout << output << std::endl;
   }
 
-#ifndef __APPLE__
   // \FIXME Apple uses deprecated command line, so some options don't work
   // correctly.
   EXPECT_TRUE(common::exists(common::joinPaths(cliPath, "state.tlog")));
@@ -1161,7 +1149,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
   entryList(logPath, entriesBefore);
-#endif
 
   std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
     "with_record_path.sdf");
@@ -1192,7 +1179,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   // State log file still exists
   EXPECT_TRUE(common::exists(tlogPath));
 
-#ifndef __APPLE__
   // Check the diff of list of files and assume there is a single diff, it
   // being the newly created log directory from the run above.
   EXPECT_EQ(nEntries + 1, entryCount(logPath));
@@ -1217,7 +1203,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   common::removeAll(homeFake);
 #ifndef __APPLE__
   common::removeAll(timestampPath);
-#endif
 
   // Revert environment variable after test is done
   EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
@@ -1241,7 +1226,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(tlogPath));
   EXPECT_TRUE(common::exists(clogPath));
 
-#ifndef __APPLE__
   // No new files were created
   EXPECT_EQ(2, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
@@ -1250,7 +1234,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
   // Update timestamp for next test
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
-#endif
 
   // Test case 5:
   // Path exists, no --log-overwrite, should create new files by command-line
@@ -1272,7 +1255,6 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(tlogPath));
   EXPECT_TRUE(common::exists(clogPath));
 
-#ifndef __APPLE__
   // On OS X, ign-gazebo-server (server_main.cc) is being used as opposed to
   // ign gazebo. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
@@ -1632,6 +1614,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
       recordPath);
 
+#ifndef __APPLE__
   // Compress only, both recorded directory and compressed file exist
   {
     // Create compressed file
@@ -1659,7 +1642,6 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(recordPath));
   EXPECT_TRUE(common::exists(defaultCmpPath));
 
-#ifndef __APPLE__
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
   // Automatically renamed directory should have been removed by record plugin
