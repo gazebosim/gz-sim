@@ -39,7 +39,7 @@ namespace systems
   /// on an output topic in response to an input message that matches user
   /// specified criteria.
   ///
-  /// System Parameters
+  /// ## System Parameters
   ///
   /// `<input>` The tag contains the input message type, topic and matcher
   /// information.
@@ -54,7 +54,7 @@ namespace systems
   ///         comparison must succeed or fail in order to trigger an output
   ///         message. A "positive" value triggers a match when a comparison
   ///         succeeds. A "negative" value triggers a match when a comparson
-  ///         fails.
+  ///         fails. The default value is "positive"
   ///     * `field`: If specified, specified, only this field inside the input
   ///         message is compared for a match.
   ///   * Value: String used to construct the protobuf message against which
@@ -74,13 +74,16 @@ namespace systems
   ///
   /// Examples:
   /// 1. Any receipt of a Boolean messages on the input topic triggers an event
+  /// \code{.xml}
   ///    <plugin>
   ///      <input type="ignition.msgs.Boolean" topic="/input_topic"/>
   ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
+  /// \endcode
   ///
   /// 2. Exact match: An output is triggered when a Boolean message with a value
   ///    of "true" is received
+  /// \code{.xml}
   ///    <plugin>
   ///      <input type="ignition.msgs.Boolean" topic="/input_topic">
   ///        <match>
@@ -89,8 +92,10 @@ namespace systems
   ///      </input>
   ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
+  /// \endcode
   ///
   /// 3. Field match: An output is triggered when a specific field matches
+  /// \code{.xml}
   ///    <plugin>
   ///      <input type="ignition.msgs.Vector2d" topic="/input_topic">
   ///        <match field="x">1.0</match>
@@ -98,6 +103,27 @@ namespace systems
   ///      </input>
   ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
+  /// \endcode
+  ///
+  /// The `logic_type` attribute can be used to negate a match. That is, to
+  /// trigger an output when the input does not equal the value in <match>
+  /// For example, the following will trigger an ouput when the input does not
+  /// equal 1 AND does not equal 2.
+  /// \code{.xml}
+  ///    <plugin>
+  ///      <input type="ignition.msgs.Int32" topic="/input_topic">
+  ///        <match logic_type="negative">1</match>
+  ///        <match logic_type="negative">2</match>
+  ///      </input>
+  ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///    </plugin>
+  /// \endcode
+  ///
+  /// ### Repeated Fields
+  /// Repeated fields can be fully or partially matched. To do a full match
+  /// with a, the
+  /// `field` attribute must be set to the containing field of the repeated
+  /// field. For example, to do a full match of an ignition.msgs.Int32_V,
   class IGNITION_GAZEBO_VISIBLE TriggeredPublisher : public System,
                                                      public ISystemConfigure
   {

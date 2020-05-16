@@ -31,17 +31,34 @@ using namespace systems;
 /// \brief Base class for input matchers.
 class systems::InputMatcher
 {
-  /// \brief Match input message against the match criteria.
-  /// \param[in] _input Input message
-  /// \return True if the input matches the match criteria.
-  public: virtual bool Match(const transport::ProtoMsg &_input) const = 0;
+  /// \brief Constructor
+  /// \param[in] _msgType Input message type
+  public: InputMatcher(const std::string &_msgType);
 
   /// \brief Destructor
   public: virtual ~InputMatcher() = default;
 
+  /// \brief Match input message against the match criteria.
+  /// \param[in] _input Input message
+  /// \return True if the input matches the match criteria.
+  public: bool Match(const transport::ProtoMsg &_input) const;
+
+  /// \brief Match input message against the match criteria. Subclasses should
+  /// override this
+  /// \param[in] _input Input message
+  /// \return True if the input matches the match criteria.
+  public: virtual bool DoMatch(const transport::ProtoMsg &_input) const = 0;
+
   /// \brief Checks if the matcher is in a valid state.
   /// \return True if the matcher is in a valid state.
   public: virtual bool IsValid() const;
+
+  /// \brief Helper function that checks if two messages have the same type
+  /// \input[in] _matcher Matcher message
+  /// \input[in] _input Input message
+  /// \return True if the two message types match
+  public: static bool CheckTypeMatch(const transport::ProtoMsg &_matcher,
+                                     const transport::ProtoMsg &_input);
 
   /// \brief Factory function for creating matchers.
   /// \param[in] _msgType Input message type (eg. ignition.msgs.Boolean)
@@ -52,16 +69,23 @@ class systems::InputMatcher
   public: static std::unique_ptr<InputMatcher> Create(
               const std::string &_msgType, const sdf::ElementPtr &_matchElem);
 
+  /// \brief Protobuf message for matching against input
+  protected: std::unique_ptr<transport::ProtoMsg> matchMsg;
+
   /// \brief State of the matcher
   protected: bool valid{false};
 };
 
 //////////////////////////////////////////////////
-/// \brief Matches any input message
+/// \brief Matches any input message of the specified type
 class AnyMatcher : public InputMatcher
 {
+  /// \brief Constructor
+  /// \param[in] _msgType Input message type
+  public: AnyMatcher(const std::string &_msgType);
+
   // Documentation inherited
-  public: bool Match(const transport::ProtoMsg &_input) const override;
+  public: bool DoMatch(const transport::ProtoMsg &_input) const override;
 };
 
 
@@ -83,10 +107,7 @@ class FullMatcher : public InputMatcher
                       const std::string &_matchString);
 
   // Documentation inherited
-  public: bool Match(const transport::ProtoMsg &_input) const override;
-
-  /// \brief Protobuf message for matching against input
-  protected: std::unique_ptr<transport::ProtoMsg> matchMsg;
+  public: bool DoMatch(const transport::ProtoMsg &_input) const override;
 
   /// \brief Logic type of this matcher
   protected: const bool logicType;
@@ -112,15 +133,22 @@ class FieldMatcher : public InputMatcher
                        const std::string &_fieldString);
 
   // Documentation inherited
-  public: bool Match(const transport::ProtoMsg &_input) const override;
+  public: bool DoMatch(const transport::ProtoMsg &_input) const override;
+
+  /// \brief Helper function to find a subfield inside the message based on the
+  /// given field name.
+  /// \param[in] _msg The message containing the subfield
+  /// \param[in] _fieldName Field name inside the message. Each period ('.')
+  /// character is used to indicate a subfield.
+  /// \param[out] _fieldDesc Field descriptors found while traversing the
+  /// message to find the field
+  /// \param[out] _subMsg Submessage of the field that corresponds to the field
+  /// name
   protected: static bool FindFieldSubMessage(
                  transport::ProtoMsg *_msg, const std::string &_fieldName,
                  std::vector<const google::protobuf::FieldDescriptor *>
                      &_fieldDesc,
                  transport::ProtoMsg **_subMsg);
-
-  /// \brief Protobuf message for matching against input
-  protected: std::unique_ptr<transport::ProtoMsg> matchMsg;
 
   /// \brief Logic type of this matcher
   protected: const bool logicType;
@@ -131,44 +159,85 @@ class FieldMatcher : public InputMatcher
   /// \brief Field descriptor of the field compared by this matcher
   protected: std::vector<const google::protobuf::FieldDescriptor *>
                  fieldDescMatcher;
+
+  protected: google::protobuf::util::DefaultFieldComparator comparator;
+  protected: mutable google::protobuf::util::MessageDifferencer diff;
 };
 
 //////////////////////////////////////////////////
-bool AnyMatcher::Match(const transport::ProtoMsg &) const
+InputMatcher::InputMatcher(const std::string &_msgType)
+    : matchMsg(msgs::Factory::New(_msgType))
+{
+}
+
+//////////////////////////////////////////////////
+bool InputMatcher::Match( const transport::ProtoMsg &_input) const
+{
+  if (!CheckTypeMatch(*this->matchMsg, _input))
+  {
+    return false;
+  }
+  return this->DoMatch(_input);
+}
+
+//////////////////////////////////////////////////
+bool InputMatcher::CheckTypeMatch(const transport::ProtoMsg &_matcher,
+                                  const transport::ProtoMsg &_input)
+{
+  const auto *matcherDesc = _matcher.GetDescriptor();
+  const auto *inputDesc = _input.GetDescriptor();
+  if (matcherDesc != inputDesc)
+  {
+    ignerr << "Received message has a different type than configured in "
+           << "<input>. Expected [" << matcherDesc->full_name() << "] got ["
+           << inputDesc->full_name() << "]\n";
+    return false;
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
+AnyMatcher::AnyMatcher(const std::string &_msgType) : InputMatcher(_msgType)
+{
+  this->valid = (nullptr == this->matchMsg || !this->matchMsg->IsInitialized());
+}
+
+//////////////////////////////////////////////////
+bool AnyMatcher::DoMatch(const transport::ProtoMsg &) const
 {
   return true;
 }
 
 //////////////////////////////////////////////////
 FullMatcher::FullMatcher(const std::string &_msgType, bool _logicType,
-                                               const std::string &_matchString)
-    : matchMsg(msgs::Factory::New(_msgType, _matchString)),
-      logicType(_logicType)
+                         const std::string &_matchString)
+    : InputMatcher(_msgType), logicType(_logicType)
 {
-  if (nullptr != matchMsg)
-    this->valid = true;
+  if (nullptr == this->matchMsg || !this->matchMsg->IsInitialized())
+    return;
+
+  this->valid = google::protobuf::TextFormat::ParseFromString(
+      _matchString, this->matchMsg.get());
 }
 
 //////////////////////////////////////////////////
-bool FullMatcher::Match(
-    const transport::ProtoMsg &_input) const
+bool FullMatcher::DoMatch(const transport::ProtoMsg &_input) const
 {
   return this->logicType ==
          google::protobuf::util::MessageDifferencer::ApproximatelyEquals(
              *this->matchMsg, _input);
 }
+
 //////////////////////////////////////////////////
 FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
                            const std::string &_fieldName,
                            const std::string &_fieldString)
-    : matchMsg(msgs::Factory::New(_msgType)),
+    : InputMatcher(_msgType),
       logicType(_logicType),
       fieldName(_fieldName)
 {
-  if (nullptr == this->matchMsg)
-  {
+  if (nullptr == this->matchMsg || !this->matchMsg->IsInitialized())
     return;
-  }
 
   transport::ProtoMsg *matcherSubMsg{nullptr};
   FindFieldSubMessage(this->matchMsg.get(), _fieldName, this->fieldDescMatcher,
@@ -197,8 +266,19 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
     return;
   }
 
+  this->comparator.set_float_comparison(
+      google::protobuf::util::DefaultFieldComparator::APPROXIMATE);
+
+  this->diff.set_field_comparator(&comparator);
+  this->diff.set_scope(google::protobuf::util::MessageDifferencer::PARTIAL);
+  this->diff.set_repeated_field_comparison(
+      google::protobuf::util::MessageDifferencer::AS_SET);
+  this->diff.set_message_field_comparison(
+      google::protobuf::util::MessageDifferencer::EQUIVALENT);
+
   this->valid = true;
 }
+
 //////////////////////////////////////////////////
 bool FieldMatcher::FindFieldSubMessage(
     transport::ProtoMsg *_msg, const std::string &_fieldName,
@@ -252,12 +332,13 @@ bool FieldMatcher::FindFieldSubMessage(
 }
 
 //////////////////////////////////////////////////
-bool FieldMatcher::Match(
+bool FieldMatcher::DoMatch(
     const transport::ProtoMsg &_input) const
 {
   google::protobuf::util::DefaultFieldComparator comp;
 
-  auto *reflection = this->matchMsg->GetReflection();
+  auto *matcherRefl = this->matchMsg->GetReflection();
+  auto *inputRefl = _input.GetReflection();
   const transport::ProtoMsg *subMsgMatcher = this->matchMsg.get();
   const transport::ProtoMsg *subMsgInput = &_input;
   for (std::size_t i = 0; i < this->fieldDescMatcher.size() - 1; ++i)
@@ -266,25 +347,21 @@ bool FieldMatcher::Match(
     if (fieldDesc->is_repeated())
     {
       subMsgMatcher =
-          &reflection->GetRepeatedMessage(*subMsgMatcher, fieldDesc, 0);
+          &matcherRefl->GetRepeatedMessage(*subMsgMatcher, fieldDesc, 0);
       subMsgInput =
-          &reflection->GetRepeatedMessage(*subMsgInput, fieldDesc, 0);
+          &inputRefl->GetRepeatedMessage(*subMsgInput, fieldDesc, 0);
     }
     else
     {
-      subMsgMatcher = &reflection->GetMessage(*subMsgMatcher, fieldDesc);
-      subMsgInput = &reflection->GetMessage(*subMsgInput, fieldDesc);
+      subMsgMatcher = &matcherRefl->GetMessage(*subMsgMatcher, fieldDesc);
+      subMsgInput = &inputRefl->GetMessage(*subMsgInput, fieldDesc);
     }
   }
 
-  google::protobuf::util::MessageDifferencer diff;
-  diff.set_scope(google::protobuf::util::MessageDifferencer::PARTIAL);
-  diff.set_repeated_field_comparison(
-      google::protobuf::util::MessageDifferencer::AS_SET);
   return this->logicType ==
-         diff.CompareWithFields(*subMsgMatcher, *subMsgInput,
-                                {this->fieldDescMatcher.back()},
-                                {this->fieldDescMatcher.back()});
+         this->diff.CompareWithFields(*subMsgMatcher, *subMsgInput,
+                                      {this->fieldDescMatcher.back()},
+                                      {this->fieldDescMatcher.back()});
 }
 
 //////////////////////////////////////////////////
@@ -299,7 +376,7 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 {
   if (nullptr == _matchElem)
   {
-    return std::make_unique<AnyMatcher>();
+    return std::make_unique<AnyMatcher>(_msgType);
   }
 
   std::unique_ptr<InputMatcher> matcher{nullptr};
@@ -321,14 +398,14 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
     }
     if (matcher == nullptr || !matcher->IsValid())
     {
-      ignerr << "Matcher type could not be created from:\n"
+      ignerr << "Matcher for input type [" << _msgType
+             << "] could not be created from:\n"
              << inputMatchString << std::endl;
       return nullptr;
     }
   }
   return matcher;
 }
-
 
 //////////////////////////////////////////////////
 TriggeredPublisher::~TriggeredPublisher()
@@ -340,6 +417,7 @@ TriggeredPublisher::~TriggeredPublisher()
     this->workerThread.join();
   }
 }
+
 //////////////////////////////////////////////////
 void TriggeredPublisher::Configure(const Entity &,
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -415,7 +493,7 @@ void TriggeredPublisher::Configure(const Entity &,
   }
   else
   {
-    ignerr << "No input specified" << std::endl;
+    ignerr << "No ouptut specified" << std::endl;
     return;
   }
 
@@ -484,7 +562,14 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
   return std::all_of(this->matchers.begin(), this->matchers.end(),
                      [&](const auto &matcher)
                      {
-                       return matcher->Match(_inputMsg);
+                       try
+                       {
+                         return matcher->Match(_inputMsg);
+                       } catch (const google::protobuf::FatalException &_err)
+                       {
+                          ignerr << _err.what() << std::endl;
+                          return false;
+                       }
                      });
 }
 

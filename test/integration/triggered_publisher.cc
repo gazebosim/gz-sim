@@ -83,11 +83,34 @@ TEST_F(TriggeredPublisherTest, EmptyInputEmptyOutput)
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
   {
-    inputPub.Publish(msgs::Empty());
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
     server->Run(true, 10, false);
   }
 
   EXPECT_EQ(pubCount, recvCount);
+}
+
+/////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest, WrongInputMessageTypeDoesNotMatch)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Boolean>("/in_0");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_0", msgCb);
+
+  const std::size_t pubCount{10};
+  for (std::size_t i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Boolean()));
+    server->Run(true, 10, false);
+  }
+
+  EXPECT_EQ(0u, recvCount);
 }
 
 /////////////////////////////////////////////////
@@ -106,7 +129,7 @@ TEST_F(TriggeredPublisherTest, InputMessagesTriggerOutputs)
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
   {
-    inputPub.Publish(msgs::Empty());
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
     server->Run(true, 10, false);
   }
 
@@ -137,7 +160,7 @@ TEST_F(TriggeredPublisherTest, MultipleOutputsForOneInput)
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
   {
-    inputPub.Publish(msgs::Empty());
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
     server->Run(true, 10, false);
   }
 
@@ -165,11 +188,11 @@ TEST_F(TriggeredPublisherTest, ExactMatchBooleanInputs)
   {
     if (i < trueCount)
     {
-      inputPub.Publish(msgs::Convert(true));
+      EXPECT_TRUE(inputPub.Publish(msgs::Convert(true)));
     }
     else
     {
-      inputPub.Publish(msgs::Convert(false));
+      EXPECT_TRUE(inputPub.Publish(msgs::Convert(false)));
     }
     server->Run(true, 100, false);
   }
@@ -195,7 +218,8 @@ TEST_F(TriggeredPublisherTest, MatcherWithNegativeLogicType)
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
   {
-    inputPub.Publish(msgs::Convert(static_cast<int32_t>(i - pubCount / 2)));
+    EXPECT_TRUE(inputPub.Publish(
+        msgs::Convert(static_cast<int32_t>(i - pubCount / 2))));
     server->Run(true, 100, false);
   }
   // The matcher filters out 0 so we expect 9 output messages from the 10 inputs
@@ -218,7 +242,8 @@ TEST_F(TriggeredPublisherTest, MultipleMatchersAreAnded)
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
   {
-    inputPub.Publish(msgs::Convert(static_cast<int32_t>(i - pubCount / 2)));
+    EXPECT_TRUE(inputPub.Publish(
+        msgs::Convert(static_cast<int32_t>(i - pubCount / 2))));
     server->Run(true, 100, false);
   }
   // The matcher filters out negative numbers and the input is [-5,4], so we
@@ -253,7 +278,7 @@ TEST_F(TriggeredPublisherTest, FieldMatchers)
   for (int i = 0; i < pubCount; ++i)
   {
     msg.set_y(static_cast<double>(i));
-    inputPub.Publish(msg);
+    EXPECT_TRUE(inputPub.Publish(msg));
     server->Run(true, 100, false);
   }
 
@@ -292,7 +317,7 @@ TEST_F(TriggeredPublisherTest, FieldMatchersWithRepeatedFieldsUsePartialMatches)
     auto *other = poseMsg.mutable_header()->add_data();
     other->set_key("other_key");
     other->add_value("other_value");
-    inputPub.Publish(poseMsg);
+    EXPECT_TRUE(inputPub.Publish(poseMsg));
     server->Run(true, 100, false);
   }
 
@@ -336,7 +361,7 @@ TEST_F(TriggeredPublisherTest,
     auto *other = poseMsg.mutable_header()->add_data();
     other->set_key("other_key");
     other->add_value("other_value");
-    inputPub.Publish(poseMsg);
+    EXPECT_TRUE(inputPub.Publish(poseMsg));
     server->Run(true, 100, false);
   }
 
@@ -345,6 +370,29 @@ TEST_F(TriggeredPublisherTest,
   // repeated fields use partial matching, the matcher will match one of the
   // inputs.
   EXPECT_EQ(1u, recvCount);
+}
+TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedSubFieldExpected)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_7");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_7", msgCb);
+  server->Run(true, 100, false);
+
+  const int pubCount{10};
+  msgs::Empty msg;
+  for (int i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msg));
+    server->Run(true, 100, false);
+  }
+
+  EXPECT_EQ(0u, recvCount);
 }
 
 /////////////////////////////////////////////////
@@ -370,11 +418,36 @@ TEST_F(TriggeredPublisherTest,
   for (int i = 0; i < pubCount; ++i)
   {
     msg.add_data(i);
-    inputPub.Publish(msg);
+    EXPECT_TRUE(inputPub.Publish(msg));
     server->Run(true, 100, false);
   }
 
   // The input contains an increasing sets of sequences, {0}, {0,1}, {0,1,2}...
   // The matcher only matches {0,1}
   EXPECT_EQ(1u, recvCount);
+}
+
+TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedFieldExpected)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Int32>("/in_9");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_9", msgCb);
+  server->Run(true, 100, false);
+
+  const int pubCount{10};
+  msgs::Int32 msg;
+  for (int i = 0; i < pubCount; ++i)
+  {
+    msg.set_data(i);
+    EXPECT_TRUE(inputPub.Publish(msg));
+    server->Run(true, 100, false);
+  }
+
+  EXPECT_EQ(0u, recvCount);
 }
