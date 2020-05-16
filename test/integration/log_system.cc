@@ -1595,10 +1595,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, LogCompressCmdLine)
 {
-#ifdef __APPLE__
-  return;
-#endif
-
+#ifndef __APPLE__
   // Create temp directory to store log
   this->CreateLogsDir();
 
@@ -1679,6 +1676,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
 
   this->RemoveLogsDir();
+#endif
 }
 
 /////////////////////////////////////////////////
