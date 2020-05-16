@@ -1595,6 +1595,10 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, LogCompressCmdLine)
 {
+#ifdef __APPLE__
+  return;
+#endif
+
   // Create temp directory to store log
   this->CreateLogsDir();
 
@@ -1613,7 +1617,6 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
       recordPath);
 
-#ifndef __APPLE__
   // Compress only, both recorded directory and compressed file exist
   {
     // Create compressed file
@@ -1645,9 +1648,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
   // Automatically renamed directory should have been removed by record plugin
   EXPECT_FALSE(common::exists(recordPath + "(1)"));
-#endif
 
-#ifndef __APPLE__
   // Compress only, compressed file exists, auto-renamed compressed file
   // e.g. *(1) exists, recorded directory does not
   {
@@ -1676,7 +1677,6 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
 
   // An automatically renamed file should have been created
   EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(2).zip")));
-#endif
 
   this->RemoveLogsDir();
 }
