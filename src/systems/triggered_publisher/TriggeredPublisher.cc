@@ -252,8 +252,11 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
     return;
 
   transport::ProtoMsg *matcherSubMsg{nullptr};
-  FindFieldSubMessage(this->matchMsg.get(), _fieldName, this->fieldDescMatcher,
-                      &matcherSubMsg);
+  if (!FindFieldSubMessage(this->matchMsg.get(), _fieldName,
+                          this->fieldDescMatcher, &matcherSubMsg))
+  {
+    return;
+  }
 
   if (this->fieldDescMatcher.empty())
   {
@@ -330,7 +333,8 @@ bool FieldMatcher::FindFieldSubMessage(
       auto *reflection = (*_subMsg)->GetReflection();
       if (fieldDesc->is_repeated())
       {
-        *_subMsg = reflection->AddMessage(*_subMsg, fieldDesc);
+        ignerr << "Matching subfields of repeated messages is not supported\n";
+        return false;
       }
       else
       {
@@ -357,10 +361,9 @@ bool FieldMatcher::DoMatch(
     auto *fieldDesc = this->fieldDescMatcher[i];
     if (fieldDesc->is_repeated())
     {
-      subMsgMatcher =
-          &matcherRefl->GetRepeatedMessage(*subMsgMatcher, fieldDesc, 0);
-      subMsgInput =
-          &inputRefl->GetRepeatedMessage(*subMsgInput, fieldDesc, 0);
+      // This should not happen since the matching subfields of repeated fields
+      // is not allowed and this matcher shouldn't have been created.
+      ignerr << "Matching subfields of repeated messages is not supported\n";
     }
     else
     {

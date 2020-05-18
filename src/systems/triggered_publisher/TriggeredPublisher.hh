@@ -44,7 +44,7 @@ namespace systems
   /// `<input>` The tag contains the input message type, topic and matcher
   /// information.
   ///   * Attributes:
-  ///     * `type`: Input message type (eg. ignition.msgs.Boolean)
+  ///     * `type`: Input message type (eg. `ignition.msgs.Boolean`)
   ///     * `topic`: Input message topic name
   ///
   /// `<input><match>`: Contains configuration for matchers. Multiple <match>
@@ -55,6 +55,7 @@ namespace systems
   ///         message. A "positive" value triggers a match when a comparison
   ///         succeeds. A "negative" value triggers a match when a comparson
   ///         fails. The default value is "positive"
+  ///     * `tol`: Tolerance for floating point comparisons.
   ///     * `field`: If specified, specified, only this field inside the input
   ///         message is compared for a match.
   ///   * Value: String used to construct the protobuf message against which
@@ -66,7 +67,7 @@ namespace systems
   /// tags are possible. A message will be published on each output topic for
   /// each input that matches.
   ///   * Attributes:
-  ///     * `type`: Output message type (eg. ignition.msgs.Boolean)
+  ///     * `type`: Output message type (eg. `ignition.msgs.Boolean`)
   ///     * `topic`: Output message topic name
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
@@ -81,7 +82,7 @@ namespace systems
   ///    </plugin>
   /// \endcode
   ///
-  /// 2. Exact match: An output is triggered when a Boolean message with a value
+  /// 2. Full match: An output is triggered when a Boolean message with a value
   ///    of "true" is received
   /// \code{.xml}
   ///    <plugin>
@@ -120,10 +121,38 @@ namespace systems
   /// \endcode
   ///
   /// ### Repeated Fields
-  /// Repeated fields can be fully or partially matched. To do a full match
-  /// with a, the
-  /// `field` attribute must be set to the containing field of the repeated
-  /// field. For example, to do a full match of an ignition.msgs.Int32_V,
+  /// When a field matcher is used with repeated fields, the content of the
+  /// repeated field is treated as a set and the comparison operator is set
+  /// containment. For example, the `data` field of `ignition.msgs.Int32_V` is a
+  /// repeated Int32 message. To match an input that contains the values 1 and 2
+  /// the following matcher can be used:
+  /// \code{.xml}
+  ///  <plugin>
+  ///    <input type="ignition.msgs.Int32_V" topic="/input_topic">
+  ///      <match field="data">1</match>
+  ///      <match field="data">2</match>
+  ///    </input>
+  ///    <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///  </plugin>
+  /// \endcode
+  /// To match an Int32_V message with the exact contents {1, 2}, the full
+  /// matcher is used instead
+  /// \code{.xml}
+  /// <plugin>
+  ///   <input type="ignition.msgs.Int32_V" topic="/input_topic">
+  ///     <match>
+  ///        data: 1
+  ///        data: 2
+  ///     </match>
+  ///   </input>
+  ///   <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  /// </plugin>
+  /// \endcode
+  ///
+  /// ### Limitations
+  /// The current implementation of this system does not support specifying a
+  /// subfield of a repeated field in the "field" attribute. i.e, if
+  /// `field="f1.f2"`, `f1` cannot be a repeated field.
   class IGNITION_GAZEBO_VISIBLE TriggeredPublisher : public System,
                                                      public ISystemConfigure
   {

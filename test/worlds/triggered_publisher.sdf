@@ -137,6 +137,12 @@
       <output type="ignition.msgs.Empty" topic="/out_11"/>
     </plugin>
 
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Header" topic="/in_12">
+        <match field="data.value">"value1"</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_12"/>
+    </plugin>
 
     <!-- The following systems are used for testing invalid configuration. They don't have actual tests -->
     <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">

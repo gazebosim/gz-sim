@@ -495,6 +495,35 @@ TEST_F(TriggeredPublisherTest, FieldMatchersAcceptToleranceParam)
   EXPECT_EQ(3u, recvCount);
 }
 
+TEST_F(TriggeredPublisherTest, SubfieldsOfRepeatedFieldsNotSupported)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Header>("/in_12");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_12", msgCb);
+  server->Run(true, 100, false);
+
+  const int pubCount{10};
+  for (int i = 0; i < pubCount; ++i)
+  {
+    msgs::Header msg;
+    auto *data = msg.add_data();
+    data->set_key("key1");
+    data->add_value("value1");
+
+    EXPECT_TRUE(inputPub.Publish(msg));
+    server->Run(true, 100, false);
+  }
+
+  // Subfields of repeated fiealds are not supported, so no output should be
+  // triggered.
+  EXPECT_EQ(0u, recvCount);
+}
 
 TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedFieldExpected)
 {
