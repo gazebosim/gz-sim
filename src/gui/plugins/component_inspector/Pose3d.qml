@@ -39,7 +39,46 @@ Rectangle {
   property double spinMax: 1000000
 
   // Read-only / write
-  property bool readOnly: true
+  property bool readOnly: {
+    var isModel = entityType == "model"
+    return !(isModel)
+  }
+
+  // Loaded item for X
+  property var xItem: {}
+
+  // Loaded item for Y
+  property var yItem: {}
+
+  // Loaded item for Z
+  property var zItem: {}
+
+  // Loaded item for roll
+  property var rollItem: {}
+
+  // Loaded item for pitch
+  property var pitchItem: {}
+
+  // Loaded item for yaw
+  property var yawItem: {}
+
+  // Send new pose to C++
+  function sendPose() {
+    // TODO(anyone) There's a loss of precision when these values get to C++
+    componentInspector.onPose(
+      xItem.value,
+      yItem.value,
+      zItem.value,
+      rollItem.value,
+      pitchItem.value,
+      yawItem.value
+    );
+  }
+
+  FontMetrics {
+    id: fontMetrics
+    font.family: "Roboto"
+  }
 
   /**
    * Used to create a spin box
@@ -48,10 +87,13 @@ Rectangle {
     id: writableNumber
     IgnSpinBox {
       id: writableSpin
-      value: numberValue
+      value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax
       maximumValue: spinMax
-      decimals: writableSpin.width < 100 ? 2 : 6
+      decimals: 6
+      onEditingFinished: {
+        sendPose()
+      }
     }
   }
 
@@ -157,9 +199,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: xLoader
             anchors.fill: parent
             property double numberValue: model.data[0]
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              xItem = xLoader.item
+            }
           }
         }
 
@@ -174,9 +220,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: rollLoader
             anchors.fill: parent
             property double numberValue: model.data[3]
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              rollItem = rollLoader.item
+            }
           }
         }
 
@@ -197,9 +247,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: yLoader
             anchors.fill: parent
             property double numberValue: model.data[1]
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              yItem = yLoader.item
+            }
           }
         }
 
@@ -214,9 +268,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: pitchLoader
             anchors.fill: parent
             property double numberValue: model.data[4]
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              pitchItem = pitchLoader.item
+            }
           }
         }
 
@@ -231,9 +289,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: zLoader
             anchors.fill: parent
             property double numberValue: model.data[2]
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              zItem = zLoader.item
+            }
           }
         }
 
@@ -248,9 +310,13 @@ Rectangle {
           Layout.fillWidth: true
           height: 40
           Loader {
+            id: yawLoader
             anchors.fill: parent
             property double numberValue: model.data[5]
             sourceComponent: readOnly ? readOnlyNumber : writableNumber
+            onLoaded: {
+              yawItem = yawLoader.item
+            }
           }
         }
       }

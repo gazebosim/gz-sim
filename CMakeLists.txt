@@ -53,7 +53,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED)
+ign_find_package(ignition-msgs5 REQUIRED VERSION 5.2)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
@@ -92,8 +92,6 @@ ign_find_package(ignition-physics2
   COMPONENTS
     mesh
     sdf
-    dartsim
-    dartsim-plugin
   REQUIRED
 )
 set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})

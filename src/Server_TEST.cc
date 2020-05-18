@@ -69,6 +69,7 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_EQ(0u, serverConfig.Seed());
   EXPECT_EQ(123ms, serverConfig.UpdatePeriod().value_or(123ms));
   EXPECT_TRUE(serverConfig.ResourceCache().empty());
+  EXPECT_TRUE(serverConfig.PhysicsEngine().empty());
   EXPECT_TRUE(serverConfig.Plugins().empty());
 
   gazebo::Server server(serverConfig);
@@ -581,6 +582,12 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 
   // Run the server to test whether we can add systems while system is running
   server.Run(false, 0, false);
+
+  IGN_SLEEP_MS(500);
+
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
+
   EXPECT_EQ(3u, *server.SystemCount());
 
   gazebo::SystemLoader systemLoader;
@@ -588,11 +595,16 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  EXPECT_FALSE(*server.AddSystem(mockSystemPlugin.value()));
+  auto result = server.AddSystem(mockSystemPlugin.value());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_FALSE(result.value());
   EXPECT_EQ(3u, *server.SystemCount());
 
   // Stop the server
   std::raise(SIGTERM);
+
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////

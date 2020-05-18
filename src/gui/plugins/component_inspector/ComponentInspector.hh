@@ -190,6 +190,16 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
+    /// \brief Callback in Qt thread when pose changes.
+    /// \param[in] _x X
+    /// \param[in] _y Y
+    /// \param[in] _z Z
+    /// \param[in] _roll Roll
+    /// \param[in] _pitch Pitch
+    /// \param[in] _yaw Yaw
+    public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
+        double _roll, double _pitch, double _yaw);
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 

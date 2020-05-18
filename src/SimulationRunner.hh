@@ -19,6 +19,7 @@
 
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/log_playback_control.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -26,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -323,6 +325,25 @@ namespace ignition
       /// added.
       public: void ProcessSystemQueue();
 
+      /// \brief Generate the current world's SDFormat representation.
+      /// \param[in] _req Request message with options for saving a world to an
+      /// SDFormat file.
+      /// \param[out] _res Generated SDFormat string.
+      /// \return True if successful.
+      public: bool GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
+                                    msgs::StringMsg &_res);
+
+      /// \brief Sets the file path to fuel URI map.
+      /// \param[in] _map A populated map of file paths to fuel URIs.
+      public: void SetFuelUriMap(
+                  const std::unordered_map<std::string, std::string> &_map);
+
+      /// \brief Add an entry to the file path to Fuel URI map
+      /// \param[in] _path A file path to a resource (model.sdf, mesh, etc).
+      /// \param[in] _uri A fuel URI.
+      public: void AddToFuelUriMap(const std::string &_path,
+                                   const std::string &_uri);
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -466,6 +487,9 @@ namespace ignition
 
       /// \brief Barrier to signal end of PostUpdate thread execution
       private: std::unique_ptr<Barrier> postUpdateStopBarrier;
+
+      /// \brief Map from file paths to Fuel URIs.
+      private: std::unordered_map<std::string, std::string> fuelUriMap;
 
       friend class LevelManager;
     };

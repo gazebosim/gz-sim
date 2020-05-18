@@ -153,7 +153,8 @@ class LevelManagerFixture : public ::testing::Test
                             "/test/worlds/levels.sdf");
     serverConfig.SetUseLevels(true);
 
-    server = std::make_unique<gazebo::Server>(serverConfig);
+    EXPECT_EQ(nullptr, this->server);
+    this->server = std::make_unique<gazebo::Server>(serverConfig);
 
     Relay testSystem;
     // Check entities loaded on the default level
