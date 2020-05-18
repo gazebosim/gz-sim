@@ -392,7 +392,17 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 
   std::unique_ptr<InputMatcher> matcher{nullptr};
 
-  const auto logicType = _matchElem->Get<bool>("logic_type", true).first;
+  const auto logicTypeStr =
+      _matchElem->Get<std::string>("logic_type", "positive").first;
+  if (logicTypeStr != "positive" && logicTypeStr != "negative")
+  {
+    ignerr << "Unrecognized logic_type attribute [" << logicTypeStr
+           << "] in matcher for input message type [" << _msgType << "]\n";
+    return nullptr;
+  }
+
+  const bool logicType = logicTypeStr == "positive";
+
   auto inputMatchString = common::trimmed(_matchElem->Get<std::string>());
   if (!inputMatchString.empty())
   {

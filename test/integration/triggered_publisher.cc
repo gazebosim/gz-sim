@@ -203,17 +203,25 @@ TEST_F(TriggeredPublisherTest, ExactMatchBooleanInputs)
 }
 
 /////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest, MatcherWithNegativeLogicType)
+TEST_F(TriggeredPublisherTest, MatchersWithLogicTypeAttribute)
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Int32>("/in_4");
-  std::size_t recvCount{0};
-  auto msgCb = std::function<void(const msgs::Empty &)>(
-      [&recvCount](const auto &)
-      {
-        ++recvCount;
-      });
-  node.Subscribe("/out_4", msgCb);
+  std::size_t recvCount[2]{0, 0};
+
+  auto cbCreator = [](std::size_t &_counter)
+  {
+    return std::function<void(const msgs::Empty &)>(
+        [&_counter](const msgs::Empty &)
+        {
+          ++_counter;
+        });
+  };
+
+  auto msgCb0 = cbCreator(recvCount[0]);
+  auto msgCb1 = cbCreator(recvCount[1]);
+  node.Subscribe("/out_4_0", msgCb0);
+  node.Subscribe("/out_4_1", msgCb1);
 
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
@@ -222,8 +230,12 @@ TEST_F(TriggeredPublisherTest, MatcherWithNegativeLogicType)
         msgs::Convert(static_cast<int32_t>(i - pubCount / 2))));
     server->Run(true, 100, false);
   }
-  // The matcher filters out 0 so we expect 9 output messages from the 10 inputs
-  EXPECT_EQ(9u, recvCount);
+  // The negative matcher filters out 0 so we expect 9 output messages from the
+  // 10 inputs
+  EXPECT_EQ(9u, recvCount[0]);
+
+  // The positive matcher only accepts the input value 0
+  EXPECT_EQ(1u, recvCount[1]);
 }
 
 /////////////////////////////////////////////////
