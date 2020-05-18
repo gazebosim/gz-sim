@@ -131,7 +131,7 @@ TEST(CmdLine, ResourcePath)
       << output;
 
   // Correct path
-  auto path =std::string("IGN_GAZEBO_RESOURCE_PATH=") +
+  auto path = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds ";
 
   output = customExecStr(path + cmd);
@@ -139,7 +139,7 @@ TEST(CmdLine, ResourcePath)
       << output;
 
   // Several paths
-  path =std::string("IGN_GAZEBO_RESOURCE_PATH=banana:") +
+  path = std::string("IGN_GAZEBO_RESOURCE_PATH=banana:") +
     PROJECT_SOURCE_PATH + "/test/worlds:orange ";
 
   output = customExecStr(path + cmd);
