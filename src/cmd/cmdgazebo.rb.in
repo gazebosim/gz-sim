@@ -326,12 +326,19 @@ class Cmd
         # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
         else
-          configPathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
-          # todo: IGN_GAZEBO_RESOURCE_PATH is colon separated.
-          if !configPathEnv.nil? &&
-              File.exists?(File.join(configPathEnv, options['file']))
-            path = File.join(configPathEnv, options['file'])
-          else
+          resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+          if !resourcePathEnv.nil?
+            resourcePaths = resourcePathEnv.split(':')
+            for resourcePath in resourcePaths
+              filePath = File.join(resourcePath, options['file'])
+              if File.exists?(filePath)
+                path = filePath
+                break
+              end
+            end
+          end
+
+          if path.nil?
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
             if !File.exists?(path)
