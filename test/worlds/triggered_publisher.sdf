@@ -107,24 +107,38 @@
       <output type="ignition.msgs.Empty" topic="/out_8"/>
     </plugin>
 
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Int32_V" topic="/in_9">
+        <match>data: 0, data: 1</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_9"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Float" topic="/in_10">
+        <match tol="0.15">data: 0.5</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_10"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Pose" topic="/in_11">
+        <match field="position.z" tol="0.15">0.5</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_11"/>
+    </plugin>
+
 
     <!-- The following systems are used for testing invalid configuration. They don't have actual tests -->
     <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
-      <input type="ignition.msgs.Int32_V" topic="/invalid_topic">
+      <input type="ignition.msgs.NonExtentType" topic="/invalid_input_0">
         <match>data: 0, data: 1</match>
       </input>
-      <output type="ignition.msgs.Empty" topic="/invalid_topic"/>
+      <output type="ignition.msgs.Empty" topic="/invalid_output_0"/>
     </plugin>
 
     <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
-      <input type="ignition.msgs.NonExtentType" topic="/invalid_topic">
-        <match>data: 0, data: 1</match>
-      </input>
-      <output type="ignition.msgs.Empty" topic="/invalid_topic"/>
-    </plugin>
-
-    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
-      <input type="ignition.msgs.Empty" topic="/invalid_topic"/>
+      <input type="ignition.msgs.Empty" topic="/invalid_input_1"/>
     </plugin>
     <!-- End invalid configuration -->
   </world>

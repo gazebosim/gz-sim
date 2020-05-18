@@ -328,49 +328,6 @@ TEST_F(TriggeredPublisherTest, FieldMatchersWithRepeatedFieldsUsePartialMatches)
   EXPECT_EQ(1u, recvCount);
 }
 
-/////////////////////////////////////////////////
-/// Tests that field matchers can be used to do a full match with repeated
-/// fields by specifying the containing field of the repeated field in the
-/// "field" attribute and setting the desired values of the repeated field in
-/// the value of the <match> tag.
-TEST_F(TriggeredPublisherTest,
-       FieldMatchersWithRepeatedFieldsInValueUseFullMatches)
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Pose>("/in_7");
-  std::size_t recvCount{0};
-  auto msgCb = std::function<void(const msgs::Empty &)>(
-      [&recvCount](const auto &)
-      {
-        ++recvCount;
-      });
-  node.Subscribe("/out_7", msgCb);
-  server->Run(true, 100, false);
-
-  const int pubCount{10};
-  for (int i = 0; i < pubCount; ++i)
-  {
-    msgs::Pose poseMsg;
-    auto *frame = poseMsg.mutable_header()->add_data();
-    frame->set_key("frame_id");
-    frame->add_value(std::string("frame") + std::to_string(i));
-
-    auto *time = poseMsg.mutable_header()->mutable_stamp();
-    time->set_sec(10);
-
-    auto *other = poseMsg.mutable_header()->add_data();
-    other->set_key("other_key");
-    other->add_value("other_value");
-    EXPECT_TRUE(inputPub.Publish(poseMsg));
-    server->Run(true, 100, false);
-  }
-
-  // The matcher filters out frame ids that are not frame0, so we expect 1
-  // output. Even though the data field contains other key-value pairs, since
-  // repeated fields use partial matching, the matcher will match one of the
-  // inputs.
-  EXPECT_EQ(1u, recvCount);
-}
 TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedSubFieldExpected)
 {
   transport::Node node;
@@ -393,6 +350,49 @@ TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedSubFieldExpected)
   }
 
   EXPECT_EQ(0u, recvCount);
+}
+
+/////////////////////////////////////////////////
+/// Tests that field matchers can be used to do a full match with repeated
+/// fields by specifying the containing field of the repeated field in the
+/// "field" attribute and setting the desired values of the repeated field in
+/// the value of the <match> tag.
+TEST_F(TriggeredPublisherTest,
+       FieldMatchersWithRepeatedFieldsInValueUseFullMatches)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Pose>("/in_8");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_8", msgCb);
+  server->Run(true, 100, false);
+
+  const int pubCount{10};
+  for (int i = 0; i < pubCount; ++i)
+  {
+    msgs::Pose poseMsg;
+    auto *frame = poseMsg.mutable_header()->add_data();
+    frame->set_key("frame_id");
+    frame->add_value("frame0");
+
+    if (i < 5)
+    {
+      auto *other = poseMsg.mutable_header()->add_data();
+      other->set_key("other_key");
+      other->add_value("other_value");
+    }
+    EXPECT_TRUE(inputPub.Publish(poseMsg));
+    server->Run(true, 100, false);
+  }
+
+  // Since the field specified in "field" is not a repeated field, a full match
+  // is required to trigger an output. Only the first 5 input messages have the
+  // second "data" entry, so the expected recvCount is 5.
+  EXPECT_EQ(5u, recvCount);
 }
 
 /////////////////////////////////////////////////
@@ -427,10 +427,67 @@ TEST_F(TriggeredPublisherTest,
   EXPECT_EQ(1u, recvCount);
 }
 
+TEST_F(TriggeredPublisherTest, FullMatchersAcceptToleranceParam)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Float>("/in_10");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_10", msgCb);
+  server->Run(true, 100, false);
+
+  const int pubCount{10};
+  msgs::Float msg;
+  for (int i = 0; i < pubCount; ++i)
+  {
+    msg.set_data(static_cast<float>(i)* 0.1);
+    EXPECT_TRUE(inputPub.Publish(msg));
+    server->Run(true, 100, false);
+  }
+
+  // The input contains the sequence {0, 0.1, 0.2, ...}, the matcher is set to
+  // match 0.5 with a tolerance of 0.15, so it should match {0.4, 0.5, 0.6}
+  EXPECT_EQ(3u, recvCount);
+}
+
+TEST_F(TriggeredPublisherTest, FieldMatchersAcceptToleranceParam)
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Pose>("/in_11");
+  std::size_t recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_11", msgCb);
+  server->Run(true, 100, false);
+
+  const int pubCount{10};
+  msgs::Pose msg;
+  for (int i = 0; i < pubCount; ++i)
+  {
+    msg.mutable_position()->set_x(0.1);
+    msg.mutable_position()->set_z(static_cast<float>(i)* 0.1);
+    EXPECT_TRUE(inputPub.Publish(msg));
+    server->Run(true, 100, false);
+  }
+
+  // The input contains the sequence {0, 0.1, 0.2, ...} in position.z, the
+  // matcher is set to match 0.5 with a tolerance of 0.15, so it should match
+  // {0.4, 0.5, 0.6}
+  EXPECT_EQ(3u, recvCount);
+}
+
+
 TEST_F(TriggeredPublisherTest, WrongInputWhenRepeatedFieldExpected)
 {
   transport::Node node;
-  auto inputPub = node.Advertise<msgs::Int32>("/in_9");
+  auto inputPub = node.Advertise<msgs::Int32>("/invalid_topic");
   std::size_t recvCount{0};
   auto msgCb = std::function<void(const msgs::Empty &)>(
       [&recvCount](const auto &)

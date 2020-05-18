@@ -53,6 +53,8 @@ class systems::InputMatcher
   /// \return True if the matcher is in a valid state.
   public: virtual bool IsValid() const;
 
+  public: void SetTolerance(double _tol);
+
   /// \brief Helper function that checks if two messages have the same type
   /// \input[in] _matcher Matcher message
   /// \input[in] _input Input message
@@ -74,6 +76,9 @@ class systems::InputMatcher
 
   /// \brief State of the matcher
   protected: bool valid{false};
+
+  protected: google::protobuf::util::DefaultFieldComparator comparator;
+  protected: mutable google::protobuf::util::MessageDifferencer diff;
 };
 
 //////////////////////////////////////////////////
@@ -159,15 +164,18 @@ class FieldMatcher : public InputMatcher
   /// \brief Field descriptor of the field compared by this matcher
   protected: std::vector<const google::protobuf::FieldDescriptor *>
                  fieldDescMatcher;
-
-  protected: google::protobuf::util::DefaultFieldComparator comparator;
-  protected: mutable google::protobuf::util::MessageDifferencer diff;
 };
 
 //////////////////////////////////////////////////
 InputMatcher::InputMatcher(const std::string &_msgType)
     : matchMsg(msgs::Factory::New(_msgType))
 {
+  this->comparator.set_float_comparison(
+      google::protobuf::util::DefaultFieldComparator::APPROXIMATE);
+
+  this->diff.set_field_comparator(&this->comparator);
+  // this->diff.set_message_field_comparison(
+  //     google::protobuf::util::MessageDifferencer::EQUIVALENT);
 }
 
 //////////////////////////////////////////////////
@@ -178,6 +186,12 @@ bool InputMatcher::Match( const transport::ProtoMsg &_input) const
     return false;
   }
   return this->DoMatch(_input);
+}
+
+void InputMatcher::SetTolerance(double _tol)
+{
+  this->comparator.SetDefaultFractionAndMargin(
+      std::numeric_limits<double>::min(), _tol);
 }
 
 //////////////////////////////////////////////////
@@ -223,9 +237,7 @@ FullMatcher::FullMatcher(const std::string &_msgType, bool _logicType,
 //////////////////////////////////////////////////
 bool FullMatcher::DoMatch(const transport::ProtoMsg &_input) const
 {
-  return this->logicType ==
-         google::protobuf::util::MessageDifferencer::ApproximatelyEquals(
-             *this->matchMsg, _input);
+  return this->logicType == this->diff.Compare(*this->matchMsg, _input);
 }
 
 //////////////////////////////////////////////////
@@ -244,7 +256,16 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
                       &matcherSubMsg);
 
   if (this->fieldDescMatcher.empty())
+  {
     return;
+  }
+  else if (this->fieldDescMatcher.back()->is_repeated())
+  {
+    this->diff.set_scope(google::protobuf::util::MessageDifferencer::PARTIAL);
+    this->diff.set_repeated_field_comparison(
+        google::protobuf::util::MessageDifferencer::AS_SET);
+  }
+
   if (nullptr == matcherSubMsg)
     return;
 
@@ -265,16 +286,6 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
     ignerr << "Creating Field matcher failed: " << _err.what() << std::endl;
     return;
   }
-
-  this->comparator.set_float_comparison(
-      google::protobuf::util::DefaultFieldComparator::APPROXIMATE);
-
-  this->diff.set_field_comparator(&comparator);
-  this->diff.set_scope(google::protobuf::util::MessageDifferencer::PARTIAL);
-  this->diff.set_repeated_field_comparison(
-      google::protobuf::util::MessageDifferencer::AS_SET);
-  this->diff.set_message_field_comparison(
-      google::protobuf::util::MessageDifferencer::EQUIVALENT);
 
   this->valid = true;
 }
@@ -403,6 +414,9 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
              << inputMatchString << std::endl;
       return nullptr;
     }
+
+    const auto tol = _matchElem->Get<double>("tol", 1e-8).first;
+    matcher->SetTolerance(tol);
   }
   return matcher;
 }
