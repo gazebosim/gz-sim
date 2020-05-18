@@ -247,7 +247,7 @@ ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringM
 The following is a world file that could be an instance of the world shown in
 the figure
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/06.png/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/06.png"/>
 
 ```xml
 <?xml version="1.0" ?>
