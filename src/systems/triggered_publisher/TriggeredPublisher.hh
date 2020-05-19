@@ -160,7 +160,7 @@ namespace systems
     public: TriggeredPublisher() = default;
 
     /// \brief Destructor
-    public: ~TriggeredPublisher();
+    public: ~TriggeredPublisher() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,

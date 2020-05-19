@@ -53,6 +53,8 @@ class systems::InputMatcher
   /// \return True if the matcher is in a valid state.
   public: virtual bool IsValid() const;
 
+  /// \brief Set the float comparison tolerance
+  /// \param[in] _tol Tolerance for float comparisons
   public: void SetTolerance(double _tol);
 
   /// \brief Helper function that checks if two messages have the same type
@@ -77,7 +79,13 @@ class systems::InputMatcher
   /// \brief State of the matcher
   protected: bool valid{false};
 
+  /// \brief Field comparator used by MessageDifferencer. This is where
+  /// tolerance for float comparisons is set
   protected: google::protobuf::util::DefaultFieldComparator comparator;
+
+  /// \brief MessageDifferencer used for comparing input to matcher. This is
+  /// mutable because MessageDifferencer::CompareWithFields is not a const
+  /// function
   protected: mutable google::protobuf::util::MessageDifferencer diff;
 };
 
@@ -87,7 +95,7 @@ class AnyMatcher : public InputMatcher
 {
   /// \brief Constructor
   /// \param[in] _msgType Input message type
-  public: AnyMatcher(const std::string &_msgType);
+  public: explicit AnyMatcher(const std::string &_msgType);
 
   // Documentation inherited
   public: bool DoMatch(const transport::ProtoMsg &_input) const override;
@@ -174,12 +182,10 @@ InputMatcher::InputMatcher(const std::string &_msgType)
       google::protobuf::util::DefaultFieldComparator::APPROXIMATE);
 
   this->diff.set_field_comparator(&this->comparator);
-  // this->diff.set_message_field_comparison(
-  //     google::protobuf::util::MessageDifferencer::EQUIVALENT);
 }
 
 //////////////////////////////////////////////////
-bool InputMatcher::Match( const transport::ProtoMsg &_input) const
+bool InputMatcher::Match(const transport::ProtoMsg &_input) const
 {
   if (!CheckTypeMatch(*this->matchMsg, _input))
   {
@@ -284,9 +290,9 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
       return;
     }
   }
-  catch (const std::exception &_err)
+  catch (const std::exception &err)
   {
-    ignerr << "Creating Field matcher failed: " << _err.what() << std::endl;
+    ignerr << "Creating Field matcher failed: " << err.what() << std::endl;
     return;
   }
 
@@ -587,14 +593,14 @@ void TriggeredPublisher::DoWork()
 bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 {
   return std::all_of(this->matchers.begin(), this->matchers.end(),
-                     [&](const auto &matcher)
+                     [&](const auto &_matcher)
                      {
                        try
                        {
-                         return matcher->Match(_inputMsg);
-                       } catch (const google::protobuf::FatalException &_err)
+                         return _matcher->Match(_inputMsg);
+                       } catch (const google::protobuf::FatalException &err)
                        {
-                          ignerr << _err.what() << std::endl;
+                          ignerr << err.what() << std::endl;
                           return false;
                        }
                      });
