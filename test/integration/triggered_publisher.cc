@@ -74,7 +74,8 @@ bool waitUntil(int _timeoutMs, Pred _pred)
   auto tStart = steady_clock::now();
   auto sleepDur = milliseconds(std::min(100, _timeoutMs));
   auto waitDuration = milliseconds(_timeoutMs);
-  while (duration_cast<milliseconds>(steady_clock::now() - tStart) < waitDuration)
+  while (duration_cast<milliseconds>(steady_clock::now() - tStart) <
+         waitDuration)
   {
     if (_pred())
     {
