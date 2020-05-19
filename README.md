@@ -26,7 +26,7 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 * [Binary Install](#binary-install)
 
-* [Source Install](#source-install-version-3)
+* [Source Install](#source-install)
 
     * [Prerequisites](#prerequisites)
 
@@ -88,7 +88,7 @@ introspection and control.
 
 We recommend following the [Binary Install](#binary-install) instructions to get up and running as quickly and painlessly as possible.
 
-The [Source Install](#source-install-version-3) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
+The [Source Install](#source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
 
 ## Binary Install
 
@@ -96,10 +96,10 @@ The binary install method will use pre-built packages which are typically
 available through a package management utility such as [Apt](https://wiki.debian.org/Apt).
 This approach eliminates the need to download and compile source code, and dependencies
 are handled for you. The downside of a binary install is that you won't be able to modify
-the code. See [Source Install](#source-install-version-3) for information on
+the code. See [Source Install](#source-install) for information on
 installing Ignition Gazebo from source.
 
-**Ubuntu Bionic (version 2)**
+**Ubuntu Bionic**
 
 1. Configure package repositories.
 
@@ -125,7 +125,7 @@ installing Ignition Gazebo from source.
     sudo apt-get install libignition-gazebo4-dev
     ```
 
-## Source Install (version 3)
+## Source Install
 
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
@@ -274,7 +274,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 
-1. Follow the [source install instruction](#source-install-version-3).
+1. Follow the [source install instruction](#source-install).
 
 2. Run tests.
 

@@ -361,4 +361,3 @@ the figure
 </world>
 </sdf>
 ```
-

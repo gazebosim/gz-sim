@@ -16,6 +16,7 @@
 */
 
 #include <ignition/msgs/atmosphere.pb.h>
+#include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/entity.pb.h>
@@ -32,6 +33,7 @@
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/math/Angle.hh>
+#include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Temperature.hh>
 
@@ -1240,5 +1242,25 @@ gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
   out.simTime = convert<std::chrono::steady_clock::duration>(_in.sim_time());
   out.realTime = convert<std::chrono::steady_clock::duration>(_in.real_time());
   out.dt = convert<std::chrono::steady_clock::duration>(_in.step_size());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
+{
+  msgs::AxisAlignedBox out;
+  msgs::Set(out.mutable_min_corner(), _in.Min());
+  msgs::Set(out.mutable_max_corner(), _in.Max());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
+{
+  math::AxisAlignedBox out;
+  out.Min() = msgs::Convert(_in.min_corner());
+  out.Max() = msgs::Convert(_in.max_corner());
   return out;
 }

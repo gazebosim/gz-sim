@@ -45,6 +45,14 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
+    /// \brief Callback to retrieve existing grid. Should only be called
+    /// within the render thread.  If no grid is found, the grid pointer
+    /// is not updated.
+    public: void LoadGrid();
+
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \brief Sends an event to update the internal snapping values for
     /// translation, rotation, and scaling.
     /// \param[in] _x The snapping distance along the world's x (red) axis
@@ -70,6 +78,60 @@ namespace gazebo
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);
+
+    /// \brief Sets the custom snap values to the grid values.
+    public: void SnapToGrid();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked.
+    public slots: void OnSnapToGrid();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set x translational snapping value
+    public slots: double xSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set y translational snapping value
+    public slots: double ySnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set z translational snapping value
+    public slots: double zSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set roll rotational snapping value
+    public slots: double rollSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set pitch rotational snapping value
+    public slots: double pitchSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set yaw rotational snapping value
+    public slots: double yawSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set x scaling snapping value
+    public slots: double scaleXSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set y scaling snapping value
+    public slots: double scaleYSnap();
+
+    /// \brief Callback in Qt thread when the snap to grid button is clicked
+    /// in order to update custom snap values menu.
+    /// \return The set z scaling snapping value
+    public slots: double scaleZSnap();
+
+    /// \brief Notify that new snapping values have been set.
+    signals: void newSnapValues();
 
     /// \internal
     /// \brief Pointer to private data.
