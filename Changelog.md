@@ -1,6 +1,6 @@
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X
+### Ignition Gazebo 3.1.0 (2020-05-19)
 
 1. Port support for computing model bounding box in physics system
     * [pull request 127](https://github.com/ignitionrobotics/ign-gazebo/pull/127)
