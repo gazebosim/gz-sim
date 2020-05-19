@@ -114,7 +114,7 @@ class FullMatcher : public InputMatcher
   /// return false.
   /// \param[in] _matchString String used to construct the protobuf message
   /// against which input messages are matched. This is the human-readable
-  /// representation of a protobuf message as used by `ign topic` for pulishing
+  /// representation of a protobuf message as used by `ign topic` for publishing
   /// messages
   public: FullMatcher(const std::string &_msgType, bool _logicType,
                       const std::string &_matchString);
@@ -140,7 +140,7 @@ class FieldMatcher : public InputMatcher
   /// \param[in] _fieldString String used to construct the protobuf message
   /// against which the specified field in the input messages are matched. This
   /// is the human-readable representation of a protobuf message as used by `ign
-  /// topic` for pulishing messages
+  /// topic` for publishing messages
   public: FieldMatcher(const std::string &_msgType, bool _logicType,
                        const std::string &_fieldName,
                        const std::string &_fieldString);
@@ -477,7 +477,18 @@ void TriggeredPublisher::Configure(const Entity &,
   {
     auto inputElem = sdfClone->GetElement("input");
     this->inputMsgType = inputElem->Get<std::string>("type");
+    if (this->inputMsgType.empty())
+    {
+      ignerr << "Input message type cannot be empty\n";
+      return;
+    }
+
     this->inputTopic = inputElem->Get<std::string>("topic");
+    if (this->inputTopic.empty())
+    {
+      ignerr << "Input topic cannot be empty\n";
+      return;
+    }
 
     if (inputElem->HasElement("match"))
     {
@@ -519,6 +530,11 @@ void TriggeredPublisher::Configure(const Entity &,
     {
       OutputInfo info;
       info.msgType = outputElem->Get<std::string>("type");
+      if (info.msgType.empty())
+      {
+        ignerr << "Output message type cannot be empty\n";
+        continue;
+      }
       info.topic = outputElem->Get<std::string>("topic");
       if (info.topic.empty())
       {
@@ -531,7 +547,16 @@ void TriggeredPublisher::Configure(const Entity &,
       {
         info.pub =
             this->node.Advertise(info.topic, info.msgData->GetTypeName());
-        this->outputInfo.push_back(std::move(info));
+        if (info.pub.Valid())
+        {
+          this->outputInfo.push_back(std::move(info));
+        }
+        else
+        {
+          ignerr << "Output publisher could not be created for topic ["
+                 << info.topic << "] with message type [" << info.msgType
+                 << "]\n";
+        }
       }
       else
       {
@@ -559,7 +584,13 @@ void TriggeredPublisher::Configure(const Entity &,
           this->newMatchSignal.notify_one();
         }
       });
-  this->node.Subscribe(this->inputTopic, msgCb);
+  if (!this->node.Subscribe(this->inputTopic, msgCb))
+  {
+    ignerr << "Input subscriber could not be created for topic ["
+           << this->inputTopic << "] with message type [" << this->inputMsgType
+           << "]\n";
+    return;
+  }
 
   std::stringstream ss;
   ss << "TriggeredPublisher subscribed on " << this->inputTopic

@@ -61,7 +61,7 @@ namespace systems
   ///   * Value: String used to construct the protobuf message against which
   ///       input messages are matched. This is the human-readable
   ///       representation of a protobuf message as used by `ign topic` for
-  ///       pulishing messages
+  ///       publishing messages
   ///
   /// `<output>`: Contains configuration for output messages: Multiple <output>
   /// tags are possible. A message will be published on each output topic for
@@ -71,10 +71,10 @@ namespace systems
   ///     * `topic`: Output message topic name
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
-  ///     `ign topic` for pulishing messages
+  ///     `ign topic` for publishing messages
   ///
   /// Examples:
-  /// 1. Any receipt of a Boolean messages on the input topic triggers an event
+  /// 1. Any receipt of a Boolean messages on the input topic triggers an output
   /// \code{.xml}
   ///    <plugin>
   ///      <input type="ignition.msgs.Boolean" topic="/input_topic"/>
