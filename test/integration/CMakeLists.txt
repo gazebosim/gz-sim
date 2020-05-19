@@ -8,6 +8,7 @@ set(tests
   breadcrumbs.cc
   components.cc
   contact_system.cc
+  detachable_joint.cc
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
@@ -27,6 +28,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc

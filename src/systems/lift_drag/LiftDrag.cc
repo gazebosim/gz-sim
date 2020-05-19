@@ -24,6 +24,7 @@
 
 #include <sdf/Element.hh>
 
+#include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -429,23 +430,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   //
   // \todo(addisu) Create a convenient API for applying forces at offset
   // positions
-  msgs::Wrench wrench;
-  msgs::Set(wrench.mutable_force(), force);
   const auto totalTorque = torque + cpWorld.Cross(force);
-  msgs::Set(wrench.mutable_torque(), totalTorque);
-
-  components::ExternalWorldWrenchCmd newWrenchComp(wrench);
-
-  auto currWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(this->linkEntity);
-  if (currWrenchComp)
-  {
-    *currWrenchComp = newWrenchComp;
-  }
-  else
-  {
-    _ecm.CreateComponent(this->linkEntity, newWrenchComp);
-  }
+  Link link(this->linkEntity);
+  link.AddWorldWrench(_ecm, force, totalTorque);
 
   // Debug
   // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();
