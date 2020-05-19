@@ -278,21 +278,13 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
   if (nullptr == matcherSubMsg)
     return;
 
-  try
+  bool result = google::protobuf::TextFormat::ParseFieldValueFromString(
+      _fieldString, this->fieldDescMatcher.back(), matcherSubMsg);
+  if (!result)
   {
-    bool result = google::protobuf::TextFormat::ParseFieldValueFromString(
-        _fieldString, this->fieldDescMatcher.back(), matcherSubMsg);
-    if (!result)
-    {
-      ignerr << "Failed to parse matcher string ["
-             << _fieldString << "] for field [" << this->fieldName
-             << "] of input message type [" << _msgType << "]\n";
-      return;
-    }
-  }
-  catch (const std::exception &err)
-  {
-    ignerr << "Creating Field matcher failed: " << err.what() << std::endl;
+    ignerr << "Failed to parse matcher string [" << _fieldString
+           << "] for field [" << this->fieldName << "] of input message type ["
+           << _msgType << "]\n";
     return;
   }
 
@@ -310,42 +302,65 @@ bool FieldMatcher::FindFieldSubMessage(
   // If fieldMsgType is nullptr, then this is not a composite message and we
   // shouldn't be using a FieldMatcher
   if (nullptr == fieldMsgType)
+  {
+    ignerr << "FieldMatcher with field name [" << _fieldName
+           << "] cannot be used because the input message type ["
+           << fieldMsgType->full_name() << "] does not have any fields\n";
     return false;
+  }
 
   *_subMsg = _msg;
 
   auto fieldNames = common::split(_fieldName, ".");
+  if (fieldNames.empty())
+  {
+    ignerr << "Empty field attribute for input message type ["
+           << fieldMsgType->full_name() << "]\n";
+    return false;
+  }
+
   for (std::size_t i = 0; i < fieldNames.size(); ++i)
   {
     auto fieldDesc = fieldMsgType->FindFieldByName(fieldNames[i]);
 
     if (nullptr == fieldDesc)
-      break;
+    {
+      ignerr << "Field name [" << fieldNames[i]
+             << "] could not be found in message type ["
+             << fieldMsgType->full_name() << "].\n";
+      return false;
+    }
 
     _fieldDesc.push_back(fieldDesc);
 
-    if (google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE !=
-        fieldDesc->cpp_type())
-    {
-      break;
-    }
-    fieldMsgType = fieldDesc->message_type();
-
-    if (nullptr == fieldMsgType)
-      break;
-
     if (i < fieldNames.size() - 1)
     {
+      if (google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE !=
+          fieldDesc->cpp_type())
+      {
+        ignerr << "Subfield [" << fieldNames[i+1]
+          << "] could not be found in Submessage type ["
+          << fieldDesc->full_name() << "].\n";
+        return false;
+      }
+
       auto *reflection = (*_subMsg)->GetReflection();
       if (fieldDesc->is_repeated())
       {
-        ignerr << "Matching subfields of repeated messages is not supported\n";
+        ignerr
+            << "Field matcher for field name [" << _fieldName
+            << "] could not be created because the field [" << fieldDesc->name()
+            << "] is a repeated message type. Matching subfields of repeated "
+            << "messages is not supported.\n";
         return false;
       }
       else
       {
         *_subMsg = reflection->MutableMessage(*_subMsg, fieldDesc);
       }
+
+      // Update fieldMsgType for next iteration
+      fieldMsgType = fieldDesc->message_type();
     }
   }
 
@@ -507,20 +522,22 @@ void TriggeredPublisher::Configure(const Entity &,
       info.topic = outputElem->Get<std::string>("topic");
       if (info.topic.empty())
       {
-        ignerr << "Topic cannot be empty\n";
+        ignerr << "Output topic cannot be empty\n";
         continue;
       }
-      info.msgData =
-          msgs::Factory::New(info.msgType, outputElem->Get<std::string>());
+      const std::string msgStr = outputElem->Get<std::string>();
+      info.msgData = msgs::Factory::New(info.msgType, msgStr);
       if (nullptr != info.msgData)
       {
-        info.pub = this->node.Advertise(info.topic, info.msgType);
+        info.pub =
+            this->node.Advertise(info.topic, info.msgData->GetTypeName());
         this->outputInfo.push_back(std::move(info));
       }
       else
       {
-        ignerr << "Unable to create message of type[" << info.msgType
-          << "] with data[" << info.msgData << "].\n";
+        ignerr << "Unable to create message of type [" << info.msgType
+               << "] with data [" << msgStr << "] when creating output"
+               << " publisher on topic " << info.topic << ".\n";
       }
     }
   }
