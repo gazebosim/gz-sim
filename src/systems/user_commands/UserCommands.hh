@@ -45,6 +45,12 @@ namespace systems
   /// * **Request type*: ignition.msgs.EntityFactory
   /// * **Response type*: ignition.msgs.Boolean
   ///
+  /// # Spawn multiple entities
+  ///
+  /// * **Service**: `/world/<world name>/create_multiple`
+  /// * **Request type*: ignition.msgs.EntityFactory_V
+  /// * **Response type*: ignition.msgs.Boolean
+  ///
   /// Try some examples described on examples/worlds/empty.sdf
   class IGNITION_GAZEBO_VISIBLE UserCommands:
     public System,
