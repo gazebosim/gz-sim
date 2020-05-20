@@ -157,6 +157,14 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: bool CreateService(const msgs::EntityFactory &_req,
       msgs::Boolean &_res);
 
+  /// \brief Callback for multiple create service
+  /// \param[in] _req Request containing one or more entity descriptions.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the entities will be successfully spawned.
+  /// \return True if successful.
+  public: bool CreateServiceMultiple(
+              const msgs::EntityFactory_V &_req, msgs::Boolean &_res);
+
   /// \brief Callback for remove service
   /// \param[in] _req Request containing identification of entity to be removed.
   /// \param[in] _res True if message successfully received and queued.
@@ -215,6 +223,11 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(createService,
       &UserCommandsPrivate::CreateService, this->dataPtr.get());
 
+  // Create service for EntityFactory_V
+  std::string createServiceMultiple{"/world/" + worldName + "/create_multiple"};
+  this->dataPtr->node.Advertise(createServiceMultiple,
+      &UserCommandsPrivate::CreateServiceMultiple, this->dataPtr.get());
+
   ignmsg << "Create service on [" << createService << "]" << std::endl;
 
   // Remove service
@@ -263,6 +276,25 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
   }
 
   // TODO(louise) Clear redo list
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::CreateServiceMultiple(
+    const msgs::EntityFactory_V &_req, msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->pendingMutex);
+  for (int i = 0; i < _req.data_size(); ++i)
+  {
+    const msgs::EntityFactory &msg = _req.data(i);
+    // Create command and push it to queue
+    auto msgCopy = msg.New();
+    msgCopy->CopyFrom(msg);
+    auto cmd = std::make_unique<CreateCommand>(msgCopy, this->iface);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
 }
 
 //////////////////////////////////////////////////
