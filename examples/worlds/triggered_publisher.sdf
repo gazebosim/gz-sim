@@ -1,4 +1,10 @@
 <?xml version="1.0" ?>
+<!--
+Ignition Gazebo Trigger Publisher demo
+
+Send the command:
+  ign topic -t "/start" -m ignition.msgs.Twist -p " "
+-->
 <sdf version="1.6">
   <world name="triggered_publisher">
 
@@ -22,6 +28,10 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-altimeter-system.so"
+      name="ignition::gazebo::systems::Altimeter">
+    </plugin>
 
     <gui fullscreen="0">
 
@@ -37,7 +47,7 @@
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_pose>3 -9 9 0 0.6 1.3</camera_pose>
       </plugin>
 
       <!-- World control -->
@@ -103,7 +113,7 @@
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
-      <direction>-0.5 0.1 -0.9</direction>
+      <direction>0.05 -0.1 -0.9</direction>
     </light>
 
     <model name="ground_plane">
@@ -133,7 +143,7 @@
     </model>
 
     <model name='vehicle_blue'>
-      <pose>0 2 0.325 0 -0 0</pose>
+      <pose>0 0 0.325 0 -0 0</pose>
 
       <link name='chassis'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>
@@ -409,17 +419,115 @@
         <wheel_radius>0.3</wheel_radius>
         <topic>cmd_vel</topic>
       </plugin>
-      <plugin filename="libignition-gazebo-triggered_publisher-system.so" name="ignition::gazebo::systems::triggered_publisher">
-        <input type="ignition.msgs.Boolean" topic="move">
-          <match>
-              data: "true"
-          </match>
-        </input>
-        <output type="ignition.msgs.Twist" topic="/cmd_vel">
-            linear: {x: 1.5}
-        </output>
+    </model>
+
+    <model name="trigger">
+      <pose>3 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="body">
+        <visual name="v1">
+          <geometry>
+            <box><size>0.1 10 0.01</size></box>
+          </geometry>
+        </visual>
+        <collision name="c1">
+          <geometry>
+            <box><size>0.1 10 0.01</size></box>
+          </geometry>
+        </collision>
+        <sensor name='sensor_contact' type='contact'>
+          <contact>
+            <collision>c1</collision>
+          </contact>
+        </sensor>
+      </link>
+      <plugin
+        filename="libignition-gazebo-touchplugin-system.so"
+        name="ignition::gazebo::systems::TouchPlugin">
+        <target>vehicle_blue</target>
+        <namespace>trigger</namespace>
+        <time>0.001</time>
+        <enabled>true</enabled>
+      </plugin>
+      <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
+        <parent_link>body</parent_link>
+        <child_model>box1</child_model>
+        <child_link>box_body</child_link>
+        <topic>/box1/detach</topic>
+      </plugin>
+      <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
+        <parent_link>body</parent_link>
+        <child_model>box2</child_model>
+        <child_link>box_body</child_link>
+        <topic>/box2/detach</topic>
       </plugin>
     </model>
+
+    <model name="box1">
+      <pose>3 0 8 0 0 0</pose>
+      <link name="box_body">
+        <visual name="v1">
+          <geometry>
+            <box><size>1 1 1</size></box>
+          </geometry>
+          <material>
+            <diffuse>0.8 0.2 0.2 1</diffuse>
+            <specular>1.0 0 0 1</specular>
+          </material>
+        </visual>
+        <collision name="c1">
+          <geometry>
+            <box><size>1 1 1</size></box>
+          </geometry>
+        </collision>
+
+        <sensor name="altimeter_sensor" type="altimeter">
+          <topic>/altimeter</topic>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="box2">
+      <pose>8 0 5 0 0 0</pose>
+      <link name="box_body">
+        <visual name="v1">
+          <geometry>
+            <box><size>1 1 1</size></box>
+          </geometry>
+          <material>
+            <diffuse>0.2 0.8 0.2 1</diffuse>
+            <specular>1.0 0 0 1</specular>
+          </material>
+        </visual>
+        <collision name="c1">
+          <geometry>
+            <box><size>1 1 1</size></box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/start"/>
+      <output type="ignition.msgs.Twist" topic="/cmd_vel">
+          linear: {x: 3}
+      </output>
+    </plugin>
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Boolean" topic="/trigger/touched">
+        <match>data: true</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/box1/detach"/>
+    </plugin>
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Altimeter" topic="/altimeter">
+        <match field="vertical_position" tol="0.2">-7.5</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/box2/detach"/>
+    </plugin>
 </world>
 </sdf>
 
