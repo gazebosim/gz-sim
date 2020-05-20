@@ -94,7 +94,7 @@
         </visual>
       </link>
 
-      <link name="axel">
+      <link name="axle">
         <pose>0 0.35 0  0 0 0</pose>
 
         <inertial>
@@ -169,8 +169,8 @@
         </visual>
       </link>
 
-      <joint type="revolute" name="axel_wheel">
-        <parent>axel</parent>
+      <joint type="revolute" name="axle_wheel">
+        <parent>axle</parent>
         <child>wheel</child>
         <axis>
           <xyz>0 0 1</xyz>
@@ -188,7 +188,7 @@
 
       <joint type="revolute" name="steer">
         <parent>upright</parent>
-        <child>axel</child>
+        <child>axle</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
