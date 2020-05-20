@@ -2,13 +2,16 @@
 
 ### Ignition Gazebo 2.xx.xx (2020-xx-xx)
 
+1. Add TriggeredPublisher system
+    * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/139)
+
+1. DetachableJoint system: Add option to suppress warning about missing child model
+    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
+
 ### Ignition Gazebo 2.17.0 (2020-05-13)
 
 1. Allow battery plugin to work with joint force systems.
     * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
-
-1. DetachableJoint system: Add option to suppress warning about missing child model
-    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
 
 1. Make breadcrumb static after specified time
     * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)
