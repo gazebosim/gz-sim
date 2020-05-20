@@ -47,6 +47,9 @@ namespace systems
   ///
   /// # Spawn multiple entities
   ///
+  /// This service can spawn multiple entities in the same iteration,
+  /// thereby eliminating simulation steps between entity spawn times.
+  ///
   /// * **Service**: `/world/<world name>/create_multiple`
   /// * **Request type*: ignition.msgs.EntityFactory_V
   /// * **Response type*: ignition.msgs.Boolean
