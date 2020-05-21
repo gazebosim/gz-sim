@@ -192,7 +192,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       //   In Blueprint and Citadel, LogRecord will record to <path> if no
       //   --record-path is specified on command line.
       serverConfig.SetLogRecordPath(recordPathMod);
-      serverConfig.SetLogIgnoreSdfPath(true);
     }
     // Empty record path specified. Use default.
     else
