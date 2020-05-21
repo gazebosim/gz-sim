@@ -1,5 +1,10 @@
 ## Ignition Gazebo 3.x
 
+### Ignition Gazebo 3.2.0 (2020-05-20)
+
+1. Merge ign-gazebo2 to ign-gazebo3
+    * [pull request 149](https://github.com/ignitionrobotics/ign-gazebo/pull/149)
+
 ### Ignition Gazebo 3.1.0 (2020-05-19)
 
 1. Port support for computing model bounding box in physics system
