@@ -626,7 +626,7 @@ bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
 
   // Only preview first model
   sdf::Model model = *(root.ModelByIndex(0));
-  this->dataPtr->previewModelPose = model.Pose();
+  this->dataPtr->previewModelPose = model.RawPose();
   model.SetName(ignition::common::Uuid().String());
   Entity modelId = this->UniqueId();
   if (!modelId)
