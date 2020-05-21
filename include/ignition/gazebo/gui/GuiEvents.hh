@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
+#include <string>
 #include <utility>
 #include <vector>
 #include <ignition/math/Vector3.hh>
@@ -158,6 +159,27 @@ namespace events
     }
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 3);
+  };
+
+  /// \brief Event called to spawn a preview model.  Used in shapes plugin.
+  class SpawnPreviewModel : public QEvent
+  {
+    public: explicit SpawnPreviewModel(std::string &_modelSdfString)
+        : QEvent(kType), modelSdfString(_modelSdfString)
+    {
+    }
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 4);
+
+    /// \brief Get the sdf string of the model.
+    /// \return The model sdf string
+    public: std::string ModelSdfString() const
+    {
+      return this->modelSdfString;
+    }
+
+    /// \brief The sdf string of the model to be previewed.
+    std::string modelSdfString;
   };
 }  // namespace events
 }
