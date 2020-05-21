@@ -273,13 +273,17 @@ class LogSystemTest : public ::testing::Test
 
   // Run the server to record, passing in compress flag.
   // \param[in] _recordSdfRoot SDF Root element of the world to load
+  // \param[in] _recordPath Path for SDF state file
   // \param[in] _cmpPath Path for compressed file
   public: void RunCompress(sdf::Root &_recordSdfRoot,
-    const std::string &_cmpPath)
+    const std::string &_recordPath, const std::string &_cmpPath)
   {
     // Pass changed SDF to server
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfString(_recordSdfRoot.Element()->ToString(""));
+
+    // Set record path
+    recordServerConfig.SetLogRecordPath(_recordPath);
 
     // Set compress path
     recordServerConfig.SetLogRecordCompressPath(_cmpPath);
@@ -450,8 +454,6 @@ TEST_F(LogSystemTest, LogPaths)
 #ifndef __APPLE__
   EXPECT_EQ(0, entryCount(this->logDir));
 #endif
-
-  return;
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
@@ -1560,7 +1562,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_TRUE(common::exists(recordPath));
     EXPECT_FALSE(common::exists(defaultCmpPath));
 
-    this->RunCompress(recordSdfRoot, defaultCmpPath);
+    this->RunCompress(recordSdfRoot, recordPath, defaultCmpPath);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1572,11 +1574,11 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_FALSE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(defaultCmpPath));
 
-    this->RunCompress(recordSdfRoot, defaultCmpPath);
+    this->RunCompress(recordSdfRoot, recordPath, defaultCmpPath);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
-  EXPECT_FALSE(common::exists(recordPath));
+  EXPECT_FALSE(common::exists(recordPath)) << recordPath;
 
   this->RemoveLogsDir();
 }
@@ -1606,7 +1608,7 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
   // Compress only, both recorded directory and compressed file exist
   {
     // Create compressed file
-    this->RunCompress(recordSdfRoot, defaultCmpPath);
+    this->RunCompress(recordSdfRoot, recordPath, defaultCmpPath);
 
     // Recreate recording directory so that it exists
     common::createDirectories(recordPath);
