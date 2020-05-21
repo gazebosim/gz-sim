@@ -105,6 +105,12 @@ void SceneManager::SetWorldId(Entity _id)
 }
 
 /////////////////////////////////////////////////
+Entity SceneManager::WorldId() const
+{
+  return this->dataPtr->worldId;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     const sdf::Model &_model, Entity _parentId)
 {

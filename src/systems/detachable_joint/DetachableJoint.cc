@@ -97,6 +97,10 @@ void DetachableJoint::Configure(const Entity &_entity,
                              "/detachable_joint/detach"};
   this->topic = _sdf->Get<std::string>("topic", defaultTopic).first;
 
+  this->suppressChildWarning =
+      _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
+          .first;
+
   this->validConfig = true;
 }
 
@@ -151,7 +155,7 @@ void DetachableJoint::PreUpdate(
                 << " could not be found.\n";
       }
     }
-    else
+    else if (!this->suppressChildWarning)
     {
       ignwarn << "Child Model " << this->childModelName
               << " could not be found.\n";

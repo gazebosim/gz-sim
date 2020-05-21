@@ -70,12 +70,18 @@
 
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.xx.xx (2020-xx-xx)
+### Ignition Gazebo 2.18.0 (2020-05-20)
+
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+    * [Pull Request 146](https://github.com/ignitionrobotics/ign-gazebo/pull/146)
 
 ### Ignition Gazebo 2.17.0 (2020-05-13)
 
 1. Allow battery plugin to work with joint force systems.
     * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
+
+1. DetachableJoint system: Add option to suppress warning about missing child model
+    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
 
 1. Make breadcrumb static after specified time
     * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)
