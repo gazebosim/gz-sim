@@ -366,7 +366,7 @@ TEST_F(BreadcrumbsTest, Performer)
             return true;
           });
       ASSERT_TRUE(initialPose.has_value());
-      std::cout << "Init: " << initialPose->Pos() << " Final: "
+      igndbg << "Init: " << initialPose->Pos() << " Final: "
                 << finalPose.Pos() << std::endl;
       EXPECT_NEAR(initialPose->Pos().Z(), finalPose.Pos().Z(), 1e-3);
     }
