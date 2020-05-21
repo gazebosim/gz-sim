@@ -204,9 +204,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           // If record plugin already specified in SDF, and record flags are
           //   specified on command line, replace SDF parameters with those on
           //   command line. (If none specified on command line, use those in
-          //   SDF.)
+          //   SDF - except for the record path.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
+            // Explicitly allowing empty record paths through, always override
+            // <path>
             sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
             pathElem->SetName("path");
             pluginElem->AddElementDescription(pathElem);
@@ -244,6 +246,14 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               cPathElem->Set<std::string>(_config.LogRecordCompressPath());
             }
 
+            return;
+          }
+
+          // If playback plugin also specified, do not add a record plugin
+          if (pluginName->GetAsString() == LoggingPlugin::PlaybackPluginName())
+          {
+            ignwarn << "Both record and playback are specified. "
+              << "Ignoring record.\n";
             return;
           }
         }
