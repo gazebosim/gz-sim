@@ -1,6 +1,6 @@
 \page triggeredpublisher Triggered Publisher
 
-The TriggeredPublisher system publishes a user specified message on an output
+The `TriggeredPublisher` system publishes a user specified message on an output
 topic in response to an input message that matches user specified criteria. The
 system works by checking the input against a set of Matchers. Matchers
 contain string representations of protobuf messages which are compared for
@@ -12,12 +12,14 @@ cause a box to fall from its initial position by detaching a detachable joint
 in response to the motion of a vehicle. The tutorial also covers how Triggered
 Publisher systems can be chained together by showing how the falling of the box
 can trigger another box to fall. The finished world SDFormat file for this
-tutorial can be found in `examples/worlds/triggered_publisher.sdf`
+tutorial can be found in 
+[examples/worlds/triggered_publisher.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
 
 We will use the differential drive vehicle from
-`/examples/worlds/diff_drive.sdf`, but modify the input topic of the
-`DiffDrive` system to `cmd_vel`. A snippet of the change to the `DiffDrive`
-system is shown below:
+[examples/worlds/diff_drive.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/diff_drive.sdf), 
+but modify the input topic of the `DiffDrive` system to `cmd_vel`. A snippet of 
+the change to the `DiffDrive` system is shown below:
+
 \code{.xml} 
   <model name='vehicle_blue'>
     ...
@@ -36,7 +38,7 @@ system is shown below:
   </model>
 \endcode
 
-The first TriggeredPublisher we create will demonstrate how we can send
+The first `TriggeredPublisher` we create will demonstrate how we can send
 a predetermined `Twist` message to the `DiffDrive` vehicle in response to
 a "start" message from the user:
 
@@ -49,18 +51,19 @@ a "start" message from the user:
 </plugin>
 \endcode
 
-The `<input>` tag sets up the TriggeredPublisher to subscribe to the topic
+The `<input>` tag sets up the `TriggeredPublisher` to subscribe to the topic
 `/start` with a message type of `ignition.msgs.Empty`. The `<output>` tag
 specifies the topic of the output and the actual data to be published. The data
 is expressed in the human-readable form of Google Protobuf messages. This is
 the same format used by `ign topic` for publishing messages.
 
-Since the TriggeredPublisher only deals with ignition topics, it can be
+Since the `TriggeredPublisher` only deals with Ignition topics, it can be
 anywhere a `<plugin>` tag is allowed. For this example, we will put it under
 `<world>`.
 
-Next we will create a trigger that causes a box to fall when the `DiffDrive` vehicle crosses a contact sensor on the ground. To do this, 
-we first create the falling box model and call it `box1`
+Next we will create a trigger that causes a box to fall when the `DiffDrive` 
+vehicle crosses a contact sensor on the ground. To do this, we first create the 
+falling box model and call it `box1`
 
 \code{.xml}
 <model name="box1">
@@ -84,7 +87,10 @@ we first create the falling box model and call it `box1`
 </model>
 \endcode
 
-For now, the model will only contain a single link with a `<visual>` and a `<collision>`. Next, we create a model named "trigger" that contains the contact sensor, the TouchPlugin and DetachableJoint systems as well as visuals indicating where the sensor is on the ground.
+For now, the model will only contain a single link with a `<visual>` and a 
+`<collision>`. Next, we create a model named "trigger" that contains the 
+contact sensor, the `TouchPlugin` and `DetachableJoint` systems as well as visuals 
+indicating where the sensor is on the ground.
 
 \code{.xml}
 
@@ -138,10 +144,19 @@ For now, the model will only contain a single link with a `<visual>` and a `<col
 </world>
 \endcode
 
-The `DetachableJoint` system creates a fixed joint between the link "body" in `trigger` and the link "box_body" in `box1`.
-The model `trigger` is a static model, hence, `box1` will remain fixed in space as long as it is attached to `trigger`. The `DetachableJoint` system subscribes to the `/box1/detach` topic and, on receipt of a message, will break the fixed joint and lets `box1` fall to the ground. 
+The `DetachableJoint` system creates a fixed joint between the link "body" in 
+`trigger` and the link "box_body" in `box1`.  The model `trigger` is a static 
+model, hence, `box1` will remain fixed in space as long as it is attached to 
+`trigger`. The `DetachableJoint` system subscribes to the `/box1/detach` topic 
+and, on receipt of a message, will break the fixed joint and lets `box1` fall 
+to the ground. 
 
-When the vehicle runs over the contact sensor associated with `c1`, the TouchPlugin will publish a message on `/trigger/touched`. We will use this as our trigger to send a message to `/box1/detach`. The TouchPlugin publishes only when there is contact, so we can trigger on any received message. However, to demonstrate the use of matchers, we will only trigger when the Boolean input message is `true`
+When the vehicle runs over the contact sensor associated with `c1`, the 
+`TouchPlugin` will publish a message on `/trigger/touched`. We will use this as 
+our trigger to send a message to `/box1/detach`. The `TouchPlugin` publishes 
+only when there is contact, so we can trigger on any received message. However, 
+to demonstrate the use of matchers, we will only trigger when the Boolean input 
+message is `true`
 
 \code{.xml}
 <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
@@ -152,7 +167,9 @@ When the vehicle runs over the contact sensor associated with `c1`, the TouchPlu
 </plugin>
 \endcode
 
-Finally, we will use an Altimeter sensor to detect when `box1` has fallen to the ground to cause another box to fall. We will add the Altimeter sensor to the link "box_body" in `box1`
+Finally, we will use an Altimeter sensor to detect when `box1` has fallen to 
+the ground to cause another box to fall. We will add the Altimeter sensor to 
+the link "box_body" in `box1`
 
 \code{.xml}
 
@@ -181,7 +198,8 @@ Finally, we will use an Altimeter sensor to detect when `box1` has fallen to the
   </world>
 \endcode
 
-We will call the second falling box `box2` and it will contain the same types of visuals and collisions as in box1.
+We will call the second falling box `box2` and it will contain the same types 
+of visuals and collisions as in box1.
 \code{.xml}
 <model name="box2">
   <pose>5 0 8 0 0 0</pose>
@@ -189,7 +207,8 @@ We will call the second falling box `box2` and it will contain the same types of
 </model>
 \endcode
 
-Again, we'll make use of the `DetachableJoint` system to attach `box2` to the static model `trigger` by adding the following to `trigger` 
+Again, we'll make use of the `DetachableJoint` system to attach `box2` to the 
+static model `trigger` by adding the following to `trigger` 
 
 \code{.xml}
 <model name="trigger">
@@ -203,9 +222,18 @@ Again, we'll make use of the `DetachableJoint` system to attach `box2` to the st
 </model>
 \endcode
 
-Similar to what we did for `box1`, we need to publish to `/box2/detach` when our desired trigger occurs. To setup our trigger, we observe that the altimeter publishes an `ignition.msgs.Altimeter` message that contains a `vertical_position` field. Since we do not necessarily care about the values of the other fields inside `ignition.msgs.Altimeter`, we will create a TriggeredPublisher matcher that matches a specific field.
+Similar to what we did for `box1`, we need to publish to `/box2/detach` when 
+our desired trigger occurs. To setup our trigger, we observe that the altimeter 
+publishes an `ignition.msgs.Altimeter` message that contains a 
+`vertical_position` field. Since we do not necessarily care about the values of 
+the other fields inside `ignition.msgs.Altimeter`, we will create a 
+`TriggeredPublisher` matcher that matches a specific field.
 
-The value of the `vertical_position` field will be the altitude of the link that it is associated with relative to its starting altitude. When `box1` falls to the ground, the value of the altimeter will read about -7.5. However, since we do not know the exact value and an exact comparison of floating point numbers is not advised, we will set a tolerance of 0.2.
+The value of the `vertical_position` field will be the altitude of the link 
+that it is associated with relative to its starting altitude. When `box1` falls 
+to the ground, the value of the altimeter will read about -7.5. However, since 
+we do not know the exact value and an exact comparison of floating point 
+numbers is not advised, we will set a tolerance of 0.2.
 
 \code{.xml}
 <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
@@ -216,7 +244,12 @@ The value of the `vertical_position` field will be the altitude of the link that
 </plugin>
 \endcode
 
-We can now run the simulation and from the command line publish the start message
+We can now run the simulation and from the command line by running
+```
+ign gazebo -r triggered_publisher.sdf
+```
+
+and publish the start message
 ```
 ign topic -t "/start" -m ignition.msgs.Empty -p " "
 ```

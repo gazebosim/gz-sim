@@ -187,7 +187,7 @@ InputMatcher::InputMatcher(const std::string &_msgType)
 //////////////////////////////////////////////////
 bool InputMatcher::Match(const transport::ProtoMsg &_input) const
 {
-  if (!CheckTypeMatch(*this->matchMsg, _input))
+  if (!this->CheckTypeMatch(*this->matchMsg, _input))
   {
     return false;
   }
