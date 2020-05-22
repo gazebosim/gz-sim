@@ -3,7 +3,12 @@
 Ignition Gazebo Trigger Publisher demo
 
 Send the command:
-  ign topic -t "/start" -m ignition.msgs.Twist -p " "
+  ign topic -t "/start" -m ignition.msgs.Empty -p " "
+
+The vehicle should start moving while the two boxes remain floating. When the
+vehicle crosses the line on the ground, the first box should start falling. The
+moment the box hits the ground, the second box should start falling.
+
 -->
 <sdf version="1.6">
   <world name="triggered_publisher">
