@@ -109,9 +109,8 @@ void VideoRecorder::OnSave(const QString &_url, const QString &_format)
   std::string format = _format.toStdString();
 
   bool urlHasFormat = path.substr(path.find_last_of(".") + 1) == format;
-  if(!urlHasFormat) {
+  if (!urlHasFormat) 
       path = path + "." + format;
-  }
   
   bool result = common::moveFile(this->dataPtr->filename, path);
 
