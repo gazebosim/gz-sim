@@ -275,12 +275,12 @@ class LogSystemTest : public ::testing::Test
   // \param[in] _recordSdfRoot SDF Root element of the world to load
   // \param[in] _recordPath Path for SDF state file
   // \param[in] _cmpPath Path for compressed file
-  public: void RunCompress(sdf::Root &_recordSdfRoot,
+  public: void RunCompress(const std::string &_recordSdfPath,
     const std::string &_recordPath, const std::string &_cmpPath)
   {
     // Pass changed SDF to server
     ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(_recordSdfRoot.Element()->ToString(""));
+    recordServerConfig.SetSdfFile(_recordSdfPath);
 
     // Set record path
     recordServerConfig.SetLogRecordPath(_recordPath);
@@ -404,6 +404,9 @@ TEST_F(LogSystemTest, LogDefaults)
   EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
       "state.tlog")));
   EXPECT_EQ(2, entryCount(timestampPath));
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
 #endif
 
   // Revert environment variable after test is done
@@ -572,7 +575,7 @@ TEST_F(LogSystemTest, LogPaths)
   this->CreateLogsDir();
 
   // Test case 4:
-  // A path is specified in SDF.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
   // A different path is specified via C++ API.
   // Should take C++ API path. State log should be stored here. Console log is
   // not initialized because ign.cc is not triggered.
@@ -638,7 +641,7 @@ TEST_F(LogSystemTest, LogPaths)
   this->CreateLogsDir();
 
   // Test case 6:
-  // A path is specified in SDF.
+  // A path is specified in SDF - a feature removed in Ignition Dome.
   // A path is specified by --record-path on command line.
   // Path in SDF should be ignored. Both state and console logs should be
   // stored to --record-path path.
@@ -695,18 +698,13 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       std::string(PROJECT_SOURCE_PATH), "test", "worlds",
       "log_record_dbl_pendulum.sdf");
 
-    // Change log path in SDF to build directory
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        this->logDir);
-    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
-
-    // Pass changed SDF to server
     ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-    Server recordServer(recordServerConfig);
+    recordServerConfig.SetSdfFile(recordSdfPath);
+    recordServerConfig.SetUseLogRecord(true);
+    recordServerConfig.SetLogRecordPath(this->logDir);
 
     // Run for a few seconds to record different poses
+    Server recordServer(recordServerConfig);
     recordServer.Run(true, 1000, false);
   }
 
@@ -1022,14 +1020,10 @@ TEST_F(LogSystemTest, LogOverwrite)
 
   // Record something to create some files
   {
-    // Change log path in SDF to build directory
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        this->logDir);
-
-    // Pass changed SDF to server
     ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    recordServerConfig.SetSdfFile(recordSdfPath);
+    recordServerConfig.SetUseLogRecord(true);
+    recordServerConfig.SetLogRecordPath(this->logDir);
 
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
@@ -1057,45 +1051,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   // Test case 1:
   // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
   // default behavior whenever the specified path already exists.
-  // Path is set by SDF.
   {
-    EXPECT_TRUE(common::exists(this->logDir));
-
-    // Change log path in SDF to build directory
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        this->logDir);
-
-    // Pass changed SDF to server
-    ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-
-    // Run for a few seconds to record different poses
-    Server recordServer(recordServerConfig);
-    recordServer.Run(true, 100, false);
-  }
-
-  // Log files still exist
-  EXPECT_TRUE(common::exists(tlogPath));
-  EXPECT_TRUE(common::exists(clogPath));
-
-#ifndef __APPLE__
-  // No new files were created
-  EXPECT_EQ(2, entryCount(this->logsDir));
-  EXPECT_EQ(2, entryCount(this->logDir));
-
-  // Test timestamp is newer
-  EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
-  // Update timestamp for next test
-  tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
-#endif
-
-  // Test case 2:
-  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
-  // default behavior whenever the specified path already exists.
-  // Path is set by C++ API.
-  {
-    // Pass SDF file to server
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfFile(recordSdfPath);
     recordServerConfig.SetUseLogRecord(true);
@@ -1119,86 +1075,8 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_GT(std::filesystem::last_write_time(tlogStdPath), tlogPrevTime);
   // Update timestamp for next test
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
-#endif
 
-  // Test case 3:
-  // Path exists, no overwrite flag. LogRecord.cc should still overwrite by
-  // default behavior whenever the specified path already exists.
-  // Path is set by SDF.
-  // Server is run from command line, ign.cc should initialize new default
-  // timestamp directory, where console log should be recorded. State log should
-  // be recorded to the path in SDF.
-
-  // Change environment variable so that test files aren't written to $HOME
-  std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
-  std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
-
-  // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
-      "log");
-#ifndef __APPLE__
-  int nEntries = entryCount(logPath);
-  std::vector<std::string> entriesBefore;
-  entryList(logPath, entriesBefore);
-
-  std::string tmpRecordSdfPath = common::joinPaths(this->logsDir,
-    "with_record_path.sdf");
-
-  {
-    // Change log path in SDF to build directory
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        this->logDir);
-    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
-
-    // Save changed SDF to temporary file
-    // TODO(anyone): Does this work on Apple?
-    std::ofstream ofs(tmpRecordSdfPath);
-    ofs << recordSdfRoot.Element()->ToString("").c_str();
-    ofs.close();
-
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
-      + tmpRecordSdfPath;
-    std::cout << "Running command [" << cmd << "]" << std::endl;
-
-    // Run
-    std::string output = customExecStr(cmd);
-    std::cout << output << std::endl;
-  }
-
-  // State log file still exists
-  EXPECT_TRUE(common::exists(tlogPath));
-
-  // Check the diff of list of files and assume there is a single diff, it
-  // being the newly created log directory from the run above.
-  EXPECT_EQ(nEntries + 1, entryCount(logPath));
-  std::vector<std::string> entriesAfter;
-  entryList(logPath, entriesAfter);
-  std::vector<std::string> entriesDiff;
-  entryDiff(entriesBefore, entriesAfter, entriesDiff);
-  EXPECT_EQ(1ul, entriesDiff.size());
-  // This should be $HOME/.ignition/..., default path
-  std::string timestampPath = entriesDiff[0];
-
-  EXPECT_FALSE(timestampPath.empty());
-  EXPECT_EQ(0, timestampPath.compare(0, logPath.length(), logPath));
-  EXPECT_TRUE(common::exists(timestampPath));
-  EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
-      "server_console.log")));
-  EXPECT_EQ(1, entryCount(timestampPath));
-
-  // Cleanup
-  common::removeFile(tmpRecordSdfPath);
-  common::removeAll(homeFake);
-  common::removeAll(timestampPath);
-
-  // Revert environment variable after test is done
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
-
-  // Test case 4:
+  // Test case 2:
   // Path exists, command line --log-overwrite, should overwrite by
   // command-line logic in ign.cc
   {
@@ -1226,7 +1104,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   // Update timestamp for next test
   tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
 
-  // Test case 5:
+  // Test case 3:
   // Path exists, no --log-overwrite, should create new files by command-line
   // logic in ign.cc
   {
@@ -1436,14 +1314,10 @@ TEST_F(LogSystemTest, LogCompress)
         std::string(PROJECT_SOURCE_PATH), "test", "worlds",
         "log_record_dbl_pendulum.sdf");
 
-    // Change log path in SDF to build directory
-    sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        recordPath);
-
-    // Pass changed SDF to server
     ServerConfig recordServerConfig;
-    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    recordServerConfig.SetSdfFile(recordSdfPath);
+    recordServerConfig.SetUseLogRecord(true);
+    recordServerConfig.SetLogRecordPath(recordPath);
 
     // Set compress flag
     recordServerConfig.SetLogRecordCompressPath(defaultCmpPath);
@@ -1548,11 +1422,6 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
       std::string(PROJECT_SOURCE_PATH), "test", "worlds",
       "log_record_dbl_pendulum.sdf");
 
-  // Change log path in SDF to build directory
-  sdf::Root recordSdfRoot;
-  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-      recordPath);
-
   // Compress + overwrite, recorded directory exists, compressed file does not
   {
     // Create recording directory so that it exists
@@ -1562,7 +1431,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_TRUE(common::exists(recordPath));
     EXPECT_FALSE(common::exists(defaultCmpPath));
 
-    this->RunCompress(recordSdfRoot, recordPath, defaultCmpPath);
+    this->RunCompress(recordSdfPath, recordPath, defaultCmpPath);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1574,7 +1443,7 @@ TEST_F(LogSystemTest, LogCompressOverwrite)
     EXPECT_FALSE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(defaultCmpPath));
 
-    this->RunCompress(recordSdfRoot, recordPath, defaultCmpPath);
+    this->RunCompress(recordSdfPath, recordPath, defaultCmpPath);
   }
 
   EXPECT_TRUE(common::exists(defaultCmpPath));
@@ -1600,15 +1469,10 @@ TEST_F(LogSystemTest, LogCompressCmdLine)
       std::string(PROJECT_SOURCE_PATH), "test", "worlds",
       "log_record_dbl_pendulum.sdf");
 
-  // Change log path in SDF to build directory
-  sdf::Root recordSdfRoot;
-  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-      recordPath);
-
   // Compress only, both recorded directory and compressed file exist
   {
     // Create compressed file
-    this->RunCompress(recordSdfRoot, recordPath, defaultCmpPath);
+    this->RunCompress(recordSdfPath, recordPath, defaultCmpPath);
 
     // Recreate recording directory so that it exists
     common::createDirectories(recordPath);
