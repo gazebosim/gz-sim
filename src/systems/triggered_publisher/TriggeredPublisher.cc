@@ -579,7 +579,7 @@ void TriggeredPublisher::Configure(const Entity &,
         {
           {
             std::lock_guard<std::mutex> lock(this->publishCountMutex);
-            ++publishCount;
+            ++this->publishCount;
           }
           this->newMatchSignal.notify_one();
         }
