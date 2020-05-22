@@ -53,7 +53,7 @@ namespace gazebo
 
     /// \brief Callback to update the size of the arrows
     /// \param[in] _size size of the arrows in meters
-    public slots: void UpdateSize(int _size);
+    public slots: void UpdateLength(double _length);
 
     /// \brief Callback when checkbox is clicked.
     /// \param[in] _checked indicates show or hide arrows

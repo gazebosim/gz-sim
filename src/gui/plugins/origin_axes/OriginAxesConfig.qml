@@ -38,9 +38,8 @@ GridLayout {
 
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
-    id: showgrid
     Layout.columnSpan: 2
-    text: qsTr("Show/Hide Grid")
+    text: qsTr("Show/Hide Axes")
     checked: true
     onClicked: {
       OriginAxesConfig.OnShow(checked)
@@ -63,7 +62,6 @@ GridLayout {
 
   Text {
     Layout.columnSpan: 1
-    id: vercelltext
     color: "dimgrey"
     text: "Size(meters):"
     Layout.fillWidth: true
@@ -71,11 +69,13 @@ GridLayout {
 
   IgnSpinBox {
     Layout.columnSpan: 1
-    id: verticalCellCount
+    id: axesLength
     maximumValue: 100
     minimumValue: 1
     value: 1
-    onEditingFinished: OriginAxesConfig.UpdateSize(verticalCellCount.value)
+    decimals: 2
+    stepSize: 0.5
+    onEditingFinished: OriginAxesConfig.UpdateLength(axesLength.value)
     Layout.fillWidth: true
   }
   // Right spacer
