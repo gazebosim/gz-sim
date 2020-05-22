@@ -56,7 +56,7 @@ namespace systems
   ///         succeeds. A "negative" value triggers a match when a comparson
   ///         fails. The default value is "positive"
   ///     * `tol`: Tolerance for floating point comparisons.
-  ///     * `field`: If specified, specified, only this field inside the input
+  ///     * `field`: If specified, only this field inside the input
   ///         message is compared for a match.
   ///   * Value: String used to construct the protobuf message against which
   ///       input messages are matched. This is the human-readable
@@ -230,4 +230,3 @@ namespace systems
 }
 
 #endif
-
