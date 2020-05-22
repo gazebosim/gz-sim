@@ -404,6 +404,9 @@ TEST_F(LogSystemTest, LogDefaults)
   EXPECT_TRUE(common::exists(common::joinPaths(timestampPath,
       "state.tlog")));
   EXPECT_EQ(2, entryCount(timestampPath));
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
 #endif
 
   // Revert environment variable after test is done

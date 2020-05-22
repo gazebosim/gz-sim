@@ -207,14 +207,29 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           //   SDF - except for the record path.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            // Explicitly allowing empty record paths through, always override
-            // <path>
-            sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-            pathElem->SetName("path");
-            pluginElem->AddElementDescription(pathElem);
-            pathElem = pluginElem->GetElement("path");
-            pathElem->AddValue("string", "", false, "");
-            pathElem->Set<std::string>(_config.LogRecordPath());
+            // Strip any <path> specified in SDF - tag ignored since Ignition-D
+            // TODO(anyone) Specify paths below in a Component instead of
+            // injecting SDF, so as to not confuse the <path> specified by user
+            // stripped here, and the one injected below. With Components,
+            // would not need to strip user-specified <path>, can simply
+            // ignore it when setting component values.
+            sdf::ElementPtr userPathElem = pluginElem->GetElement("path");
+            if (userPathElem != nullptr)
+            {
+              pluginElem->RemoveChild(userPathElem);
+            }
+
+            if (!_config.LogRecordPath().empty())
+            {
+              // Explicitly allowing empty record paths through, always override
+              // <path>
+              sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+              pathElem->SetName("path");
+              pluginElem->AddElementDescription(pathElem);
+              pathElem = pluginElem->GetElement("path");
+              pathElem->AddValue("string", "", false, "");
+              pathElem->Set<std::string>(_config.LogRecordPath());
+            }
 
             // If resource flag specified on command line, replace in SDF
             if (_config.LogRecordResources())
