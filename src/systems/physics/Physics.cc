@@ -769,8 +769,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               this->entityLinkMeshMap);
           if (!linkMeshFeature)
           {
-            ignwarn << "Can't process Mesh geometry, physics engine "
-                    << "missing AttachMeshShapeFeature" << std::endl;
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to process mesh geometries, but the physics "
+                     << "engine doesn't support feature "
+                     << "[AttachMeshShapeFeature]. Meshes will be ignored."
+                     << std::endl;
+              informed = true;
+            }
             return true;
           }
 
@@ -785,8 +792,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               this->entityLinkCollisionMap);
           if (!linkCollisionFeature)
           {
-            ignwarn << "Can't process Collision entity, physics engine "
-                    << "missing ConstructSdfCollision feature" << std::endl;
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to process collisions, but the physics "
+                     << "engine doesn't support feature "
+                     << "[ConstructSdfCollision]. Collisions will be ignored."
+                     << std::endl;
+              informed = true;
+            }
             return true;
           }
 
@@ -838,8 +852,14 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             this->entityModelJointMap);
         if (!modelJointFeature)
         {
-          ignwarn << "Can't process Joint entity, physics engine "
-                  << "missing Joint features." << std::endl;
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to process joints, but the physics "
+                   << "engine doesn't support joint features. "
+                   << "Joints will be ignored." << std::endl;
+            informed = true;
+          }
 
           // Break Each call since no joints can be processed
           return false;
@@ -932,8 +952,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             childLinkIt->second, this->entityLinkDetachableJointMap);
         if (!childLinkDetachableJointFeature)
         {
-          ignwarn << "Can't process DetachableJoint component, physics engine "
-                  << "missing AttachFixedJointFeature" << std::endl;
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to create a detachable joint, but the physics"
+                   << " engine doesn't support feature "
+                   << "[AttachFixedJointFeature]. Detachable joints will be "
+                   << "ignored." << std::endl;
+            informed = true;
+          }
 
           // Break Each call since no DetachableJoints can be processed
           return false;
@@ -1035,8 +1062,15 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
             this->entityJointDetachableJointMap);
         if (!castEntity)
         {
-          ignwarn << "Can't process DetachableJoint component, physics engine "
-                  << "missing DetachJointFeature" << std::endl;
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to detach a joint, but the physics "
+                   << "engine doesn't support feature "
+                   << "[DetachJointFeature]. Joint won't be detached."
+                   << std::endl;
+            informed = true;
+          }
 
           // Break Each call since no DetachableJoints can be processed
           return false;
@@ -1220,8 +1254,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             this->entityLinkForceMap);
         if (!linkForceFeature)
         {
-          ignwarn << "Can't process ExternalWorldWrenchCmd, physics engine "
-                  << "missing AddLinkExternalForceTorque feature" << std::endl;
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to apply a wrench, but the physics "
+                   << "engine doesn't support feature "
+                   << "[AddLinkExternalForceTorque]. Wrench will be ignored."
+                   << std::endl;
+            informed = true;
+          }
 
           // Break Each call since no ExternalWorldWrenchCmd's can be processed
           return false;
@@ -1318,8 +1359,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             this->entityModelBoundingBoxMap);
         if (!bbModel)
         {
-          ignwarn << "Can't process AxisAlignedBox component, physics engine "
-                  << "missing GetModelBoundingBox" << std::endl;
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to get a bounding box, but the physics "
+                   << "engine doesn't support feature "
+                   << "[GetModelBoundingBox]. Bounding box won't be populated."
+                   << std::endl;
+            informed = true;
+          }
 
           // Break Each call since no AxisAlignedBox'es can be processed
           return false;
@@ -1781,8 +1829,15 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       this->entityWorldCollisionMap);
   if (!worldCollisionFeature)
   {
-    ignwarn << "Can't process contacts, physics engine "
-            << "missing collision features." << std::endl;
+    static bool informed{false};
+    if (!informed)
+    {
+      igndbg << "Attempting process contacts, but the physics "
+             << "engine doesn't support collision features. "
+             << "Contacts won't be computed."
+             << std::endl;
+      informed = true;
+    }
     return;
   }
 
