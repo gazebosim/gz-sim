@@ -772,8 +772,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to process mesh geometries, but the physics "
-                     << "engine doesn't support feature "
+              igndbg << "Attempting to process mesh geometries, but the physics"
+                     << " engine doesn't support feature "
                      << "[AttachMeshShapeFeature]. Meshes will be ignored."
                      << std::endl;
               informed = true;
@@ -804,7 +804,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
-          collisionPtrPhys = linkCollisionFeature->ConstructCollision(collision);
+          collisionPtrPhys =
+              linkCollisionFeature->ConstructCollision(collision);
         }
 
         this->entityCollisionMap.insert(
@@ -1845,8 +1846,8 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // two colliding entities and other data about the contact such as the
   // position. This map groups contacts so that it is easy to query all the
   // contacts of one entity.
-  using EntityContactMap =
-      std::unordered_map<Entity, std::deque<const WorldShapeType::ContactPoint *>>;
+  using EntityContactMap = std::unordered_map<Entity,
+      std::deque<const WorldShapeType::ContactPoint *>>;
 
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
