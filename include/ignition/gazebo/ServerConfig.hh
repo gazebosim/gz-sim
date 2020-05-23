@@ -261,6 +261,22 @@ namespace ignition
       /// \param[in] _playbackPath Path to recorded states
       public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
+      /// \brief Get whether meshes and material files are recorded
+      /// \return True if resources should be recorded.
+      public: bool LogRecordResources() const;
+
+      /// \brief Set whether meshes and material files are recorded
+      /// \param[in] _recordResources Value to set
+      public: void SetLogRecordResources(bool _recordResources);
+
+      /// \brief Get file path to compress log files to
+      /// \return File path to compress log files to
+      public: std::string LogRecordCompressPath() const;
+
+      /// \brief Set file path to compress log files to
+      /// \param[in] _path File path to compress log files to
+      public: void SetLogRecordCompressPath(const std::string &_path);
+
       /// \brief The given random seed.
       /// \return The random seed or 0 if not specified.
       public: unsigned int Seed() const;
@@ -288,6 +304,14 @@ namespace ignition
       /// indicates that the default value will be used, which is currently
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
+
+      /// \brief Physics engine plugin library to load.
+      /// \return File containing physics engine library.
+      public: const std::string &PhysicsEngine() const;
+
+      /// \brief Set the physics engine plugin library.
+      /// \param[in] _physicsEngine File containing physics engine library.
+      public: void SetPhysicsEngine(const std::string &_physicsEngine);
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.
