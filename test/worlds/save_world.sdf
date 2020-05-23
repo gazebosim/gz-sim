@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="save_world">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+
+    <model name="inlineM1">
+      <pose>10 0 0 0 0 0</pose>
+      <link name="body"/>
+    </model>
+
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack</uri>
+      <name>backpack1</name>
+      <pose>1 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack</uri>
+      <name>backpack2</name>
+      <pose>1 2 3 0.1 0.2 0.3</pose>
+    </include>
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/1</uri>
+      <name>backpack3</name>
+      <pose>2 0 0 0.1 0.2 0.3</pose>
+    </include>
+
+  </world>
+</sdf>

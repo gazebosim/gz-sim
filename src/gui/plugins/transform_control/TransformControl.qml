@@ -57,6 +57,19 @@ ToolBar {
     TransformControl.OnMode("select");
   }
 
+  function updateSnapValues() {
+    xEntry.value = TransformControl.xSnap();
+    yEntry.value = TransformControl.ySnap();
+    zEntry.value = TransformControl.zSnap();
+    rollEntry.value = TransformControl.rollSnap();
+    pitchEntry.value = TransformControl.pitchSnap();
+    yawEntry.value = TransformControl.yawSnap();
+    // TODO(anyone) enable scale button when support is added in ign-physics
+    // xScaleEntry.value = TransformControl.xScaleSnap()
+    // yScaleEntry.value = TransformControl.yScaleSnap()
+    // zScaleEntry.value = TransformControl.zScaleSnap()
+  }
+
   function windowWidth() {
     return transformControl.Window.window ? (transformControl.Window.window.width) : 0
   }
@@ -71,6 +84,11 @@ ToolBar {
 
   ButtonGroup {
     id: group
+  }
+
+  Connections {
+    target: TransformControl
+    onNewSnapValues: updateSnapValues();
   }
 
   // TODO(anyone) enable scale button when support is added in ign-physics
@@ -261,12 +279,48 @@ ToolBar {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "magnet.png"
+        source: "snap.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      // Almost an exact copy from upstream, adding `checked`
+      background: Ripple {
+        implicitWidth: 48
+        implicitHeight: 48
+
+        readonly property bool square: snap.contentItem.width <= snap.contentItem.height
+
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+        clip: !square
+        width: square ? parent.height / 2 : parent.width
+        height: square ? parent.height / 2 : parent.height
+        pressed: snap.pressed
+        anchor: snap
+        active: snap.enabled && (snap.down || snap.visualFocus || snap.hovered || snap.checked)
+        color: snap.Material.rippleColor
+      }
+      onClicked: {
+        snapDialog.open()
+      }
+    }
+    ToolButton {
+      id: gridSnap
+      text: "N"
+      checkable: false
+      ToolTip.text: "Set snap values to grid"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "snap_to_grid.png"
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
       onClicked: {
-        snapDialog.open()
+        TransformControl.OnSnapToGrid()
       }
     }
     Dialog {
@@ -274,7 +328,7 @@ ToolBar {
       parent: transformControl.Window.window ? transformControl.Window.window.contentItem : transformControl
       x: (windowWidth() - width) / 2
       y: (windowHeight() - height) / 2
-      width: 330
+      width: 360
       height: 250
       modal: true
       focus: true
