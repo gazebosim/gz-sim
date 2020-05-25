@@ -107,8 +107,9 @@ void VideoRecorder::OnSave(const QString &_url, const QString &_format)
 {
   std::string path = QUrl(_url).toLocalFile().toStdString();
   std::string format = _format.toStdString();
+  format = format.substr(2);
 
-  bool urlHasFormat = path.substr(path.find_last_of(".") + 1) == format;
+  bool urlHasFormat = path.substr(path.find_last_of(".") + 1) != path;
   if (!urlHasFormat) 
       path = path + "." + format;
   
