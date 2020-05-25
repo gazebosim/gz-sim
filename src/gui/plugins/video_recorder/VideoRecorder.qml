@@ -39,7 +39,7 @@ ToolBar {
         selectExisting: false
         nameFilters: [ "*.mp4", "*.ogv" ]
         onAccepted: {
-          VideoRecorder.OnSave(fileDialog.fileUrl, recordMenu.saveFormat)
+          VideoRecorder.OnSave(fileDialog.fileUrl, fileDialog.selectedNameFilter)
           close()
         }
         onRejected: {
@@ -71,11 +71,9 @@ ToolBar {
     Menu {
       id: recordMenu
       y: record.height
-      property string saveFormat
       MenuItem {
         text: "mp4"
         onTriggered: {
-          recordMenu.saveFormat = "mp4"
           fileDialog.selectedNameFilter = "*.mp4"
           VideoRecorder.OnStart("mp4")
           animation.start()
@@ -84,7 +82,6 @@ ToolBar {
       MenuItem {
         text: "ogv"
         onTriggered: {
-          recordMenu.saveFormat = "ogv"
           fileDialog.selectedNameFilter = "*.ogv"
           VideoRecorder.OnStart("ogv")
           animation.start()
