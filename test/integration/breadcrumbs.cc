@@ -20,6 +20,9 @@
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
 
+#include <sdf/Root.hh>
+#include <sdf/World.hh>
+
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
@@ -438,4 +441,91 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, nIters, false);
+}
+
+/////////////////////////////////////////////////
+// The test verifies breadcrumbs physics is disabled using disable_physics_time
+TEST_F(BreadcrumbsTest, DeployDisablePhysics)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/breadcrumbs.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  Relay testSystem;
+  transport::Node node;
+  auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  auto deployB2 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B2/deploy");
+
+  std::size_t iterTestStart = 1000;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
+                              const gazebo::EntityComponentManager &_ecm)
+  {
+    // Start moving the vehicle
+    // After 1000 iterations, stop the vehicle, spawn a breadcrumb
+    // Check the pose of the breadcrumb
+    if (_info.iterations == iterTestStart)
+    {
+      msgs::Twist msg;
+      msg.mutable_linear()->set_x(0.5);
+      cmdVel.Publish(msg);
+    }
+    else if (_info.iterations == iterTestStart + 1000)
+    {
+      // Stop vehicle
+      cmdVel.Publish(msgs::Twist());
+    }
+    else if (_info.iterations == iterTestStart + 1200)
+    {
+      // Deploy
+      deployB2.Publish(msgs::Empty());
+    }
+    else if (_info.iterations == iterTestStart + 2000)
+    {
+      // Check pose
+      Entity vehicleBlue = _ecm.EntityByComponents(
+          components::Model(), components::Name("vehicle_blue"));
+      ASSERT_NE(vehicleBlue, kNullEntity);
+
+      auto poseVehicle = _ecm.Component<components::Pose>(vehicleBlue);
+      ASSERT_NE(poseVehicle , nullptr);
+
+      EXPECT_GT(poseVehicle->Data().Pos().X(), 0.4);
+
+      // The first breadcrumb
+      Entity b2 = _ecm.EntityByComponents(components::Model(),
+                                          components::Name("B2_0"));
+      ASSERT_NE(b2, kNullEntity);
+      auto poseB2 = _ecm.Component<components::Pose>(b2);
+
+      ASSERT_NE(poseB2, nullptr);
+
+      // check pose of breadcrumb
+      auto poseDiff = poseVehicle->Data().Inverse() * poseB2->Data();
+      EXPECT_NEAR(-2.2, poseDiff.Pos().X(), 1e-2);
+      EXPECT_NEAR(0.0, poseDiff.Pos().Y(), 1e-2);
+
+      // Verify that the breadcrumb stopped falling after 0.5s.
+      sdf::Root root;
+      root.Load(sdfFile);
+      const sdf::World *world = root.WorldByIndex(0);
+      double gz = world->Gravity().Z();
+      double z0 = 2.0;
+      double t = 0.5;
+      double z = z0 + gz/2*t*t;
+      EXPECT_NEAR(z, poseDiff.Pos().Z(), 1e-2);
+    }
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterTestStart + 2001, false);
 }

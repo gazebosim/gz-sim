@@ -88,6 +88,27 @@ TEST_F(BatteryPluginTest, SingleBattery)
     [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
+
+      // Check a battery exists
+      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+
+      // Find the battery entity
+      Entity batEntity = ecm->EntityByComponents(components::Name(
+        "linear_battery"));
+      EXPECT_NE(kNullEntity, batEntity);
+
+      // Find the battery component
+      EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
+        components::BatterySoC::typeId));
+      auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+
+      // Check voltage is never zero.
+      // This check is here to guarantee that components::BatterySoC in
+      // the LinearBatteryPlugin is not zero when created. If
+      // components::BatterySoC is zero on start, then the Physics plugin
+      // can disable a joint. This in turn can prevent the joint from
+      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      EXPECT_GT(batComp->Data(), 0);
     };
 
   // Start server
