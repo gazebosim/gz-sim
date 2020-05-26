@@ -105,6 +105,7 @@
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -128,6 +129,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using MinimumFeatureList = ignition::physics::FeatureList<
           ignition::physics::SetShapeFrictionPyramidSlipCompliance,
           // FreeGroup
+
           ignition::physics::FindFreeGroupFeature,
           ignition::physics::SetFreeGroupWorldPose,
           ignition::physics::FreeGroupFrameSemantics,
