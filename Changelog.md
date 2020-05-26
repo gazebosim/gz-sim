@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.XX.XX (20XX-XX-XX)
+
+1. Allow renaming breadcrumb models if there is a name conflict
+    * [Pull Request 155](https://github.com/ignitionrobotics/ign-gazebo/pull/155)
+
 ### Ignition Gazebo 2.18.0 (2020-05-20)
 
 1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
