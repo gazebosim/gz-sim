@@ -655,6 +655,58 @@
         </sdf>
        </breadcrumb>
       </plugin>
+
+      <!-- Two Breadcrumbs containing a breadcrumb model that is already spawned (B1).-->
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+       <max_deployments>3</max_deployments>
+       <allow_renaming>false</allow_renaming>
+       <topic>/no_rename_deploy</topic>
+       <breadcrumb>
+         <sdf version="1.6">
+          <model name="B1">
+            <pose>-10 0 0 0 0 0</pose>
+            <link name='body'>
+              <inertial>
+                <mass>0.6</mass>
+                <inertia>
+                  <ixx>0.017</ixx>
+                  <ixy>0</ixy>
+                  <ixz>0</ixz>
+                  <iyy>0.017</iyy>
+                  <iyz>0</iyz>
+                  <izz>0.009</izz>
+                </inertia>
+              </inertial>
+            </link>
+          </model>
+        </sdf>
+       </breadcrumb>
+      </plugin>
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+        <max_deployments>3</max_deployments>
+        <allow_renaming>true</allow_renaming>
+        <topic>/rename_deploy</topic>
+        <breadcrumb>
+          <sdf version="1.6">
+            <model name="B1">
+              <pose>-20 0 0 0 0 0</pose>
+              <link name='body'>
+                <inertial>
+                  <mass>0.6</mass>
+                  <inertia>
+                    <ixx>0.017</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <iyy>0.017</iyy>
+                    <iyz>0</iyz>
+                    <izz>0.009</izz>
+                  </inertia>
+                </inertial>
+              </link>
+            </model>
+          </sdf>
+        </breadcrumb>
+      </plugin>
     </model>
     <plugin name="ignition::gazebo" filename="dummy">
       <performer name="perf1">
