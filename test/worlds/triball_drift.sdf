@@ -170,9 +170,9 @@
             </sphere>
           </geometry>
           <material>
-            <ambient>0.2 0.2 1.0 1</ambient>
-            <diffuse>0.2 0.2 1.0 1</diffuse>
-            <specular>0.2 0.2 1.0 1</specular>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
           </material>
         </visual>
 
