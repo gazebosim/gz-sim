@@ -35,6 +35,38 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
+  /// \brief A system system that publishes on a topic when a performer enters
+  /// or leaves a specified region.
+  ///
+  /// A performer is detected when a performer's volume, which is
+  /// represented by an ignition::math::AxisAlignedBox, intersects with the
+  /// PerformerDetector's region, which is also represented by an
+  /// ignition::math::AxisAlignedBox. When a performer is detected, the system
+  /// publishes an ignition.msgs.Pose message with the pose of the detected
+  /// performer with respect to the model containing the PerformerDetector. The
+  /// name and id fields of the Pose message will be set to the name and the
+  /// entity of the detected performer respectively. The header of the Pose
+  /// message contains the time stamp of detection. The `data` field of the
+  /// header will contain the key "frame_id" with a value set to the name of
+  /// the model containing the PerformerDetector system and the key "state" with
+  /// a value set to "1" if the performer is entering the detector's region and
+  /// "0" if the performer is leaving the region.
+  ///
+  /// The PerformerDetector has to be attached to a <model> and it's region is
+  /// centered on the containing model's origin.
+  ///
+  /// The system does not assume that levels are enabled, but it does require
+  /// performers to be specified.
+  ///
+  /// ## System parameters
+  ///
+  /// `<topic>`: Custom topic to be used for publishing when a performer is
+  /// detected. If not set, the default topic with the following pattern would
+  /// be used "/model/<model_name>/performer_detector/status". The topic type
+  /// is ignition.msgs.Pose
+  /// `<geometry>`: Detection region. Currently, only the `<box>` geometry is
+  /// supported. The position of the geometry is derived from the pose of the
+  /// containing model.
 
   class IGNITION_GAZEBO_VISIBLE PerformerDetector
       : public System,
