@@ -56,8 +56,6 @@ void PerformerDetector::Configure(const Entity &_entity,
 
   this->detectorName = this->model.Name(_ecm);
 
-  auto modelPose = _ecm.Component<components::Pose>(_entity)->Data();
-
   auto sdfClone = _sdf->Clone();
   bool hasGeometry{false};
   if (sdfClone->HasElement("geometry"))
@@ -101,56 +99,57 @@ void PerformerDetector::PostUpdate(
   if (_info.paused)
     return;
 
-  if (this->initialized)
+  if (!this->initialized)
   {
-    auto modelPose =
-        _ecm.Component<components::Pose>(this->model.Entity())->Data();
-
-    // Double negative because AxisAlignedBox does not currently have operator+
-    // that takes a position
-    auto region = this->detectorGeometry - (-modelPose.Pos());
-
-    _ecm.Each<components::Performer, components::Geometry,
-              components::ParentEntity>(
-        [&](const Entity &_entity, const components::Performer *,
-            const components::Geometry *_geometry,
-            const components::ParentEntity *_parent) -> bool
-        {
-          auto pose = _ecm.Component<components::Pose>(_parent->Data())->Data();
-          auto name = _ecm.Component<components::Name>(_parent->Data())->Data();
-          const math::Pose3d relPose = modelPose.Inverse() * pose;
-
-          // We assume the geometry contains a box.
-          auto perfBox = _geometry->Data().BoxShape();
-          if (nullptr == perfBox)
-          {
-            ignerr << "Internal error: geometry of performer [" << _entity
-                   << "] missing box." << std::endl;
-            return true;
-          }
-
-          math::AxisAlignedBox performerVolume{
-              pose.Pos() - perfBox->Size() / 2,
-              pose.Pos() + perfBox->Size() / 2};
-
-          bool alreadyDetected = this->IsAlreadyDetected(_entity);
-          if (region.Intersects(performerVolume))
-          {
-            if (!alreadyDetected)
-            {
-              this->AddToDetected(_entity);
-              this->Publish(_entity, name, true, relPose, _info.simTime);
-            }
-          }
-          else if (alreadyDetected)
-          {
-            this->RemoveFromDetected(_entity);
-            this->Publish(_entity, name, false, relPose, _info.simTime);
-          }
-
-          return true;
-        });
+    return;
   }
+
+  auto modelPose =
+      _ecm.Component<components::Pose>(this->model.Entity())->Data();
+
+  // Double negative because AxisAlignedBox does not currently have operator+
+  // that takes a position
+  auto region = this->detectorGeometry - (-modelPose.Pos());
+
+  _ecm.Each<components::Performer, components::Geometry,
+            components::ParentEntity>(
+      [&](const Entity &_entity, const components::Performer *,
+          const components::Geometry *_geometry,
+          const components::ParentEntity *_parent) -> bool
+      {
+        auto pose = _ecm.Component<components::Pose>(_parent->Data())->Data();
+        auto name = _ecm.Component<components::Name>(_parent->Data())->Data();
+        const math::Pose3d relPose = modelPose.Inverse() * pose;
+
+        // We assume the geometry contains a box.
+        auto perfBox = _geometry->Data().BoxShape();
+        if (nullptr == perfBox)
+        {
+          ignerr << "Internal error: geometry of performer [" << _entity
+                 << "] missing box." << std::endl;
+          return true;
+        }
+
+        math::AxisAlignedBox performerVolume{pose.Pos() - perfBox->Size() / 2,
+                                             pose.Pos() + perfBox->Size() / 2};
+
+        bool alreadyDetected = this->IsAlreadyDetected(_entity);
+        if (region.Intersects(performerVolume))
+        {
+          if (!alreadyDetected)
+          {
+            this->AddToDetected(_entity);
+            this->Publish(_entity, name, true, relPose, _info.simTime);
+          }
+        }
+        else if (alreadyDetected)
+        {
+          this->RemoveFromDetected(_entity);
+          this->Publish(_entity, name, false, relPose, _info.simTime);
+        }
+
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////

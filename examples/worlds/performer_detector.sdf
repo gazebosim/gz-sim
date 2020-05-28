@@ -6,6 +6,10 @@
     To move the vehicle:
 
       ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}"
+
+    Then, echo the PerformerDetector's topic to see when the vehicle is detected
+
+      ign topic -e -t /performer_detector
 -->
 
 <sdf version="1.6">
