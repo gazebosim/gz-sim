@@ -1276,7 +1276,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-
+  
+  // Update model pose
   _ecm.Each<components::Model, components::WorldPoseCmd>(
       [&](const Entity &_entity, const components::Model *,
           const components::WorldPoseCmd *_poseCmd)
