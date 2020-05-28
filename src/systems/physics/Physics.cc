@@ -107,6 +107,7 @@
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/VelocityCmd.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "Physics.hh"
@@ -1322,6 +1323,22 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _ecm.SetChanged(_entity, components::Pose::typeId, state);
           }
         }
+
+        return true;
+      });
+
+  // Update model velocity
+  _ecm.Each<components::Model, components::VelocityCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::VelocityCmd *_velocityCmd)
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+          return true;
+
+        auto model = modelIt->second;
+        model->SetWorldLinearVelocity(math::eigen3::convert(_velocityCmd->Data()));
+        model->SetWorldAngularVelocity(math::eigen3::convert(_velocityCmd->Data()));
 
         return true;
       });
