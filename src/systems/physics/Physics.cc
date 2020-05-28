@@ -74,6 +74,7 @@
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
 #include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -94,6 +95,7 @@
 #include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -107,7 +109,6 @@
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/VelocityCmd.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "Physics.hh"
@@ -1330,15 +1331,18 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   // Update model velocity
   _ecm.Each<components::Model, components::VelocityCmd>(
       [&](const Entity &_entity, const components::Model *,
-          const components::VelocityCmd *_velocityCmd)
+          const components::AngularVelocityCmd *_angularVelocityCmd,
+          const components::LinearVelocityCmd *_linearVelocityCmd)
       {
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt == this->entityModelMap.end())
           return true;
 
         auto model = modelIt->second;
-        model->SetWorldLinearVelocity(math::eigen3::convert(_velocityCmd->Data()));
-        model->SetWorldAngularVelocity(math::eigen3::convert(_velocityCmd->Data()));
+        model->SetWorldLinearVelocity(
+          math::eigen3::convert(_linearVelocityCmd->Data()));
+        model->SetWorldAngularVelocity(
+          math::eigen3::convert(_angularVelocityCmd->Data()));
 
         return true;
       });
