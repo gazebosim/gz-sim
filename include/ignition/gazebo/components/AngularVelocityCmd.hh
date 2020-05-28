@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_VELOCITYCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_VELOCITYCMD_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_ANGULARVELOCITYCMD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_ANGULARVELOCITYCMD_HH_
 
 #include <ignition/math/Vector3.hh>
 
@@ -33,13 +33,22 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains commanded velocity of an
-  /// entity in the world frame represented by ignition::math::Vector3d.
-  using VelocityCmd = Component<math::Vector3d, class VelocityCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VelocityCmd",
-      VelocityCmd)
+  /// \brief A component type that contains angular velocity cmd of an entity
+  /// represented by ignition::math::Vector3d.
+  using AngularVelocityCmd =
+    Component<math::Vector3d, class AngularVelocityCmdTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("
+    ign_gazebo_components.AngularVelocityCmd", AngularVelocityCmd)
+
+  /// \brief A component type that contains angular velocity cmd of an entity in the
+  /// world frame represented by ignition::math::Vector3d.
+  using WorldAngularVelocityCmd =
+      Component<math::Vector3d, class WorldAngularVelocityCmdTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+    "ign_gazebo_components.WorldAngularVelocityCmd", WorldAngularVelocityCmd)
 }
 }
 }
 }
+
 #endif
