@@ -14,26 +14,45 @@
  * limitations under the License.
  *
  */
+
 #include <ignition/msgs/odometry.pb.h>
+
+#include <mutex>
 
 #include <ignition/common/Profiler.hh>
 
 #include <ignition/math/DiffDriveOdometry.hh>
 #include <ignition/math/Quaternion.hh>
+
 #include <ignition/plugin/Register.hh>
+
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
+
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "DiffDrive.hh"
+#include "SpeedLimiter.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
+
+/// \brief Velocity command.
+struct Commands
+{
+  /// \brief Linear velocity.
+  double lin;
+
+  /// \brief Angular velocity.
+  double ang;
+
+  Commands() : lin(0.0), ang(0.0) {}
+};
 
 class ignition::gazebo::systems::DiffDrivePrivate
 {
@@ -46,6 +65,13 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
   public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &_ecm);
+
+  /// \brief Update the linear and angular velocities.
+  /// \param[in] _info System update information.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
@@ -92,6 +118,24 @@ class ignition::gazebo::systems::DiffDrivePrivate
 
   /// \brief Diff drive odometry message publisher.
   public: transport::Node::Publisher odomPub;
+
+  /// \brief Linear velocity limiter.
+  public: std::unique_ptr<SpeedLimiter> limiterLin;
+
+  /// \brief Angular velocity limiter.
+  public: std::unique_ptr<SpeedLimiter> limiterAng;
+
+  /// \brief Previous control command.
+  public: Commands last0Cmd;
+
+  /// \brief Previous control command to last0Cmd.
+  public: Commands last1Cmd;
+
+  /// \brief Last target velocity requested.
+  public: msgs::Twist targetVel;
+
+  /// \brief A mutex to protect the target velocity command.
+  public: std::mutex mutex;
 };
 
 //////////////////////////////////////////////////
@@ -143,6 +187,57 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelSeparation).first;
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
       this->dataPtr->wheelRadius).first;
+
+  // Parse speed limiter parameters.
+  bool hasVelocityLimits     = false;
+  bool hasAccelerationLimits = false;
+  bool hasJerkLimits         = false;
+  double minVel   = 0;
+  double maxVel   = 0;
+  double minAccel = 0;
+  double maxAccel = 0;
+  double minJerk  = 0;
+  double maxJerk  = 0;
+
+  if (_sdf->HasElement("min_velocity"))
+  {
+    minVel = _sdf->Get<double>("min_velocity");
+    hasVelocityLimits = true;
+  }
+  if (_sdf->HasElement("max_velocity"))
+  {
+    maxVel = _sdf->Get<double>("max_velocity");
+    hasVelocityLimits = true;
+  }
+  if (_sdf->HasElement("min_acceleration"))
+  {
+    minAccel = _sdf->Get<double>("min_acceleration");
+    hasAccelerationLimits = true;
+  }
+  if (_sdf->HasElement("max_acceleration"))
+  {
+    maxAccel = _sdf->Get<double>("max_acceleration");
+    hasAccelerationLimits = true;
+  }
+  if (_sdf->HasElement("min_jerk"))
+  {
+    minJerk = _sdf->Get<double>("min_jerk");
+    hasJerkLimits = true;
+  }
+  if (_sdf->HasElement("max_jerk"))
+  {
+    maxJerk = _sdf->Get<double>("max_jerk");
+    hasJerkLimits = true;
+  }
+
+  // Instantiate the speed limiters.
+  this->dataPtr->limiterLin = std::make_unique<SpeedLimiter>(
+    hasVelocityLimits, hasAccelerationLimits, hasJerkLimits,
+    minVel, maxVel, minAccel, maxAccel, minJerk, maxJerk);
+
+  this->dataPtr->limiterAng = std::make_unique<SpeedLimiter>(
+    hasVelocityLimits, hasAccelerationLimits, hasJerkLimits,
+    minVel, maxVel, minAccel, maxAccel, minJerk, maxJerk);
 
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
   if (odomFreq > 0)
@@ -272,6 +367,7 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
+  this->dataPtr->UpdateVelocity(_info, _ecm);
   this->dataPtr->UpdateOdometry(_info, _ecm);
 }
 
@@ -344,15 +440,42 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
+void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
-  auto linVel = _msg.linear().x();
-  auto angVel = _msg.angular().z();
+  IGN_PROFILE("DiffDrive::UpdateVelocity");
 
+  double linVel;
+  double angVel;
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    linVel = this->targetVel.linear().x();
+    angVel = this->targetVel.angular().z();
+  }
+
+  const double dt = std::chrono::duration<double>(_info.dt).count();
+
+  // Limit the target velocity if needed.
+  this->limiterLin->Limit(linVel, this->last0Cmd.lin, this->last1Cmd.lin, dt);
+  this->limiterAng->Limit(angVel, this->last0Cmd.ang, this->last1Cmd.ang, dt);
+
+  // Update history of commands.
+  this->last1Cmd = last0Cmd;
+  this->last0Cmd.lin = linVel;
+  this->last0Cmd.ang = angVel;
+
+  // Convert the target velocities to joint velocities.
   this->rightJointSpeed =
-      (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
+    (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
   this->leftJointSpeed =
     (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
+}
+
+//////////////////////////////////////////////////
+void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->targetVel = _msg;
 }
 
 IGNITION_ADD_PLUGIN(DiffDrive,
