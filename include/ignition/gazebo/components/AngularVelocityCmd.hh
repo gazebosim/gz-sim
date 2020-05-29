@@ -37,8 +37,8 @@ namespace components
   /// represented by ignition::math::Vector3d.
   using AngularVelocityCmd =
     Component<math::Vector3d, class AngularVelocityCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("
-    ign_gazebo_components.AngularVelocityCmd", AngularVelocityCmd)
+  IGN_GAZEBO_REGISTER_COMPONENT(
+    "ign_gazebo_components.AngularVelocityCmd", AngularVelocityCmd)
 
   /// \brief A component type that contains angular velocity cmd of an entity in the
   /// world frame represented by ignition::math::Vector3d.
