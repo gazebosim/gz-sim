@@ -25,6 +25,7 @@ set(tests
   model.cc
   multicopter.cc
   network_handshake.cc
+  performer_detector.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
