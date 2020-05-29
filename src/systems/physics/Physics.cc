@@ -67,7 +67,6 @@
 #include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
 #include <sdf/Surface.hh>
-#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
