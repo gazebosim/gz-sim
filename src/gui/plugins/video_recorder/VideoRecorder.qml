@@ -37,7 +37,6 @@ ToolBar {
         title: "Save the recorded video"
         folder: shortcuts.home
         selectExisting: false
-        nameFilters: [ "*.mp4", "*.ogv" ]
         onAccepted: {
           VideoRecorder.OnSave(fileDialog.fileUrl, fileDialog.selectedNameFilter)
           close()
@@ -74,7 +73,8 @@ ToolBar {
       MenuItem {
         text: "mp4"
         onTriggered: {
-          fileDialog.selectedNameFilter = "*.mp4"
+          fileDialog.nameFilters = [ "*.mp4" ]
+          fileDialog.selectedNameFilter = ".mp4"
           VideoRecorder.OnStart("mp4")
           animation.start()
         }
@@ -82,7 +82,8 @@ ToolBar {
       MenuItem {
         text: "ogv"
         onTriggered: {
-          fileDialog.selectedNameFilter = "*.ogv"
+          fileDialog.nameFilters = [ "*.ogv" ]
+          fileDialog.selectedNameFilter = ".ogv"
           VideoRecorder.OnStart("ogv")
           animation.start()
         }
