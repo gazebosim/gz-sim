@@ -2,6 +2,9 @@
 
 ## Ignition Math 6.x.x
 
+1. Add operator + for AxisAlignedBox and Vector3.
+    * [Pull request 122](https://github.com/ignitionrobotics/ign-math/pull/122)
+
 1. Make alpha optional when parsing a Color from an input stream.
     * [Pull request 106](https://github.com/ignitionrobotics/ign-math/pull/106)
 
