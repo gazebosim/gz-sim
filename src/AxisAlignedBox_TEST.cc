@@ -209,6 +209,17 @@ TEST(AxisAlignedBoxTest, Minus)
 }
 
 /////////////////////////////////////////////////
+TEST(AxisAlignedBoxTest, Plus)
+{
+  AxisAlignedBox box1(1, 2, 3, 4, 5, 6);
+  Vector3d add(1, 1, 1);
+
+  AxisAlignedBox box2 = box1 + add;
+  EXPECT_EQ(box2.Min(), box1.Min() + add);
+  EXPECT_EQ(box2.Max(), box1.Max() + add);
+}
+
+/////////////////////////////////////////////////
 TEST(AxisAlignedBoxTest, PlusEmpty)
 {
   AxisAlignedBox box1;

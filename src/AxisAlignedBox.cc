@@ -159,6 +159,12 @@ AxisAlignedBox AxisAlignedBox::operator-(const Vector3d &_v)
 }
 
 //////////////////////////////////////////////////
+AxisAlignedBox AxisAlignedBox::operator+(const Vector3d &_v)
+{
+  return AxisAlignedBox(this->dataPtr->min + _v, this->dataPtr->max + _v);
+}
+
+//////////////////////////////////////////////////
 bool AxisAlignedBox::Intersects(const AxisAlignedBox &_box) const
 {
   // Check the six separating planes.
