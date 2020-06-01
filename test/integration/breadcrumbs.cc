@@ -529,3 +529,48 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, iterTestStart + 2001, false);
 }
+
+/////////////////////////////////////////////////
+// The test verifies that if allow_renaming is true, the Breadcrumb system
+// renames spawned models if a model with the same name exists.
+TEST_F(BreadcrumbsTest, AllowRenaming)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/breadcrumbs.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  transport::Node node;
+  auto deployB1 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
+  auto noRenameDeploy =
+      node.Advertise<msgs::Empty>("/no_rename_deploy");
+  auto renameDeploy =
+      node.Advertise<msgs::Empty>("/rename_deploy");
+
+  server.Run(true, 1, false);
+  deployB1.Publish(msgs::Empty());
+  server.Run(true, 100, false);
+  EXPECT_TRUE(server.HasEntity("B1_0"));
+
+  // Deploying via "/no_rename_deploy" will try to spawn B1_0, but since the
+  // model already exists, the spawn should fail.
+  auto curEntityCount = server.EntityCount().value();
+  noRenameDeploy.Publish(msgs::Empty());
+  server.Run(true, 100, false);
+  EXPECT_EQ(curEntityCount, server.EntityCount().value());
+
+  // Deploying via "/rename_deploy" will try to spawn B1_0, but since the
+  // model already exists, it will spawn B1_0_1 instead.
+  renameDeploy.Publish(msgs::Empty());
+  server.Run(true, 100, false);
+  EXPECT_TRUE(server.HasEntity("B1_0_1"));
+}
