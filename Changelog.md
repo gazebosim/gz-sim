@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.XX (20XX-XX-XX)
 
+1. Use updated model names for spawned models when generating SDFormat
+    * [Pull Request 166](https://github.com/ignitionrobotics/ign-gazebo/pull/166)
+
 1. Allow renaming breadcrumb models if there is a name conflict
     * [Pull Request 155](https://github.com/ignitionrobotics/ign-gazebo/pull/155)
 
