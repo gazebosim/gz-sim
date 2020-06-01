@@ -416,9 +416,10 @@ class ignition::gazebo::systems::PhysicsPrivate
               ignition::physics::FeaturePolicy3d,
                 WorldVelocityCommandFeatureList>;
 
-  /// \brief A map between free group entity ids in the ECM to FreeGroup Entities in
-  /// ign-physics, with velocity command feature.
-  /// All FreeGroup on this map are casted for `WorldVelocityCommandFeatureList`.
+  /// \brief A map between free group entity ids in the ECM
+  /// to FreeGroup Entities in ign-physics, with velocity command feature.
+  /// All FreeGroup on this map are casted for
+  /// `WorldVelocityCommandFeatureList`.
   public: std::unordered_map<Entity, FreeGroupVelocityCmdPtrType>
       entityWorldVelocityCommandMap;
 
@@ -1296,7 +1297,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-  
+
   // Update model pose
   _ecm.Each<components::Model, components::WorldPoseCmd>(
       [&](const Entity &_entity, const components::Model *,
@@ -1371,7 +1372,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-  
+
   // Update model linear velocity
   _ecm.Each<components::Model, components::LinearVelocityCmd>(
       [&](const Entity &_entity, const components::Model *,

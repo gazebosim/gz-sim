@@ -35,7 +35,8 @@ namespace components
 {
   /// \brief A component type that contains linear velocity of an entity
   /// represented by ignition::math::Vector3d.
-  using LinearVelocityCmd = Component<math::Vector3d, class LinearVelocityCmdTag>;
+  using LinearVelocityCmd = Component<
+    math::Vector3d, class LinearVelocityCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.LinearVelocityCmd", LinearVelocityCmd)
 
