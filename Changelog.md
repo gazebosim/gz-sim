@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.XX (20XX-XX-XX)
 
+1. Allow joint force commands (JointForceCmd) to dscharge a battery.
+    * [Pull Request XX](https://github.com/ignitionrobotics/ign-gazebo/pull/XX)
+
 1. Allow renaming breadcrumb models if there is a name conflict
     * [Pull Request 155](https://github.com/ignitionrobotics/ign-gazebo/pull/155)
 

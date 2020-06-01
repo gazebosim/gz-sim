@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -312,7 +313,7 @@ void LinearBatteryPlugin::PreUpdate(
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
-  // // Start draining the battery if the robot has started moving
+  // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
   {
     const std::vector<Entity> joints = _ecm.ChildrenByComponents(
@@ -323,10 +324,25 @@ void LinearBatteryPlugin::PreUpdate(
     {
       const auto *jointVelocityCmd =
         _ecm.Component<components::JointVelocityCmd>(jointEntity);
-      if (jointVelocityCmd) {
+      if (jointVelocityCmd)
+      {
         for (double jointVel : jointVelocityCmd->Data())
         {
           if (fabsf(static_cast<float>(jointVel)) > 0)
+          {
+            this->dataPtr->startDraining = true;
+            return;
+          }
+        }
+      }
+
+      const auto *jointForceCmd =
+        _ecm.Component<components::JointForceCmd>(jointEntity);
+      if (jointForceCmd)
+      {
+        for (double jointForce : jointForceCmd->Data())
+        {
+          if (fabsf(static_cast<float>(jointForce)) > 0)
           {
             this->dataPtr->startDraining = true;
             return;
