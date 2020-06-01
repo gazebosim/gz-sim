@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
@@ -65,6 +66,9 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->disablePhysicsTime =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
       std::chrono::duration<double>(period));
+
+  this->allowRenaming =
+      _sdf->Get<bool>("allow_renaming", this->allowRenaming).first;
 
   this->model = Model(_entity);
 
@@ -161,8 +165,42 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           this->numDeployments < this->maxDeployments)
       {
         sdf::Model modelToSpawn = *this->modelRoot.ModelByIndex(0);
-        modelToSpawn.SetName(modelToSpawn.Name() + "_" +
-                             std::to_string(this->numDeployments));
+        std::string desiredName =
+            modelToSpawn.Name() + "_" + std::to_string(this->numDeployments);
+
+        std::vector<std::string> modelNames;
+        _ecm.Each<components::Name, components::Model>(
+            [&modelNames](const Entity &, const components::Name *_name,
+                          const components::Model *)
+            {
+              modelNames.push_back(_name->Data());
+              return true;
+            });
+
+        // Check if there's a model with the same name.
+        auto it = std::find(modelNames.begin(), modelNames.end(), desiredName);
+        if (it != modelNames.end())
+        {
+          if (!this->allowRenaming)
+          {
+            ignwarn << "Entity named [" << desiredName
+                    << "] already exists and "
+                    << "[allow_renaming] is false. Entity not spawned."
+                    << std::endl;
+            return;
+          }
+
+          std::string newName = desiredName;
+          int counter = 0;
+          while (std::find(modelNames.begin(), modelNames.end(), newName) !=
+                 modelNames.end())
+          {
+            newName = desiredName + "_" + std::to_string(++counter);
+          }
+          desiredName = newName;
+        }
+
+        modelToSpawn.SetName(desiredName);
         modelToSpawn.SetPose(poseComp->Data() * modelToSpawn.Pose());
         ignmsg << "Deploying " << modelToSpawn.Name() << " at "
                << modelToSpawn.Pose() << std::endl;
