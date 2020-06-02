@@ -376,9 +376,13 @@ namespace sdf_generator
 
     // Update sdf based current components. Here are the list of components to
     // be updated:
+    // - Name
     // - Pose
     // This list is to be updated as other components become updateable during
     // simulation
+    auto *nameComp = _ecm.Component<components::Name>(_entity);
+    _elem->GetAttribute("name")->Set(nameComp->Data());
+
     auto *poseComp = _ecm.Component<components::Pose>(_entity);
 
     auto poseElem = _elem->GetElement("pose");

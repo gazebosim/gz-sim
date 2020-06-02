@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.XX.XX (20XX-XX-XX)
 
+1. Use updated model names for spawned models when generating SDFormat
+    * [Pull Request 166](https://github.com/ignitionrobotics/ign-gazebo/pull/166)
+
 1. Allow joint force commands (JointForceCmd) to dscharge a battery.
     * [Pull Request 165](https://github.com/ignitionrobotics/ign-gazebo/pull/165)
 
