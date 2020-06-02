@@ -18,12 +18,13 @@
 #include <ignition/msgs/stringmsg.pb.h>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
 
 #include <sdf/Root.hh>
+#include <sdf/parser.hh>
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
@@ -34,8 +35,6 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "InsertModel.hh"
-
-namespace filesys = std::filesystem;
 
 namespace ignition::gazebo
 {
@@ -49,6 +48,8 @@ namespace ignition::gazebo
 
     /// \brief Transform control service name
     public: std::string service;
+  
+    std::vector<LocalModel> localModels;
   };
 }
 
@@ -65,6 +66,68 @@ InsertModel::InsertModel()
 /////////////////////////////////////////////////
 InsertModel::~InsertModel() = default;
 
+void InsertModel::FindLocalModels(const std::string &_path)
+{
+  std::string path = _path;
+  // Recurse if directory
+  if (common::isDirectory(path))
+  {
+    for (common::DirIter file(path); file != common::DirIter(); ++file)
+    {
+      std::string current(*file);
+      this->FindLocalModels(current);
+    }
+  }
+  else if (common::isFile(path))
+  {
+    common::changeToUnixPath(path);
+    std::string::size_type index = path.rfind("/");
+    std::string fileName = path.substr(index+1);
+    // If we have found model.config, extract thumbnail and sdf
+    if (fileName == "model.config")
+    {
+      LocalModel model;
+      model.configPath = path;
+      std::string modelPath = path.substr(0, index);
+      std::string thumbnailPath = modelPath + "/thumbnails";
+
+      std::string sdfPath = sdf::getModelFilePath(modelPath);
+      model.sdfPath = sdfPath;
+      // Get first thumbnail image found
+      if (common::exists(thumbnailPath))
+      {
+        for (common::DirIter file(thumbnailPath); file != common::DirIter(); ++file)
+        {
+          std::string current(*file);
+          if (common::isFile(current))
+          {
+            std::string::size_type thumbnailIndex = current.rfind("/");
+            std::string thumbnailFileName = current.substr(thumbnailIndex + 1);
+            std::string::size_type thumbnailExtensionIndex = thumbnailFileName.rfind(".");
+            std::string thumbnailFileExtension = thumbnailFileName.substr(thumbnailExtensionIndex + 1);
+            if (thumbnailFileExtension == "png" ||
+                thumbnailFileExtension == "jpg" || 
+                thumbnailFileExtension == "jpeg")
+            {
+              model.thumbnailPath = current;
+              break;
+            }
+          }
+        }
+      }
+      this->dataPtr->localModels.push_back(model);
+    }
+  }
+}
+
+void InsertModel::FindLocalModels(const std::vector<std::string> &_paths)
+{
+  for (const auto &path : _paths)
+  {
+    this->FindLocalModels(path);
+  }
+}
+
 /////////////////////////////////////////////////
 void InsertModel::LoadConfig(const tinyxml2::XMLElement *)
 {
@@ -76,63 +139,12 @@ void InsertModel::LoadConfig(const tinyxml2::XMLElement *)
     <ignition::gui::MainWindow *>()->installEventFilter(this);
 
   ignwarn << "Starting up\n";
-  // TODO recursively search paths for model.config
-  //std::experimental::filesystem::recursive_directory_iterator
-  //  iter();
 
-  //std::string path = filesys::path("/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models", root-directory="");
-  std::string path = filesys::path("/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models");
-  //std::string path = filesys::path("test");
-
+  std::string path = "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models";
+  std::vector<std::string> paths;
+  paths.push_back(path);
  
-  ignwarn << "Current path is " << filesys::current_path() << std::endl;
-  //std::cout << "Absolute path is " << filesys::absolute(path) << "\n";
-
-  std::vector<std::string> listOfFiles;
-  try
-  {
-    if (filesys::exists(path) && filesys::is_directory(path))
-    {
-      ignwarn << "path exists and is valid\n";
-      filesys::recursive_directory_iterator iter(path);
-      ignwarn << "1\n";
-      filesys::recursive_directory_iterator end;
-      /*
-      ignwarn << "2\n";
-      while (iter != end)
-      {
-        ignwarn << "3\n";
-        if (filesys::is_directory(iter->path()))
-        {
-          iter.disable_recursion_pending();
-        ignwarn << "3.2\n";
-        }
-        else
-        {
-          listOfFiles.push_back(iter->path().string());
-        ignwarn << "3.4\n";
-        }
-        std::error_code ec;
-        ignwarn << "3.6\n";
-        iter.increment(ec);
-        ignwarn << "3.8\n";
-        if (ec)
-        {
-          ignerr << "Error while accessing : " << iter->path().string() << " :: " << ec.message() << "\n";
-        }
-      }
-      */
-    }
-  }
-  catch (std::system_error &e)
-  {
-    ignerr << "Exception :: " << e.what();
-  }
-  ignwarn << "Found files:\n";
-  for (auto &i : listOfFiles)
-  {
-    ignwarn << i << "\n";
-  }
+  this->FindLocalModels(paths);
 }
 
 /////////////////////////////////////////////////
@@ -148,7 +160,7 @@ void InsertModel::OnMode(const QString &_mode)
   {
     // TODO load sdf string from path here
     std::ifstream nameFileout;
-    nameFileout.open("/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/Vent/1/model.sdf");
+    nameFileout.open(this->dataPtr->localModels[0].sdfPath);
     std::string line;
     modelSdfString = "";
     while (std::getline(nameFileout, line))

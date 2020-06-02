@@ -47,9 +47,19 @@ namespace gazebo
     /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);
 
+    public: void FindLocalModels(const std::vector<std::string> &_paths);
+    public: void FindLocalModels(const std::string &_path);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<InsertModelPrivate> dataPtr;
+  };
+
+  struct LocalModel
+  {
+    std::string configPath = "";
+    std::string sdfPath = "";
+    std::string thumbnailPath = "";
   };
 }
 }
