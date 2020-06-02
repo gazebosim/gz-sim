@@ -98,6 +98,8 @@ Server::Server(const ServerConfig &_config)
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
 
+  this->dataPtr->AddResourcePaths();
+
   sdf::Errors errors;
 
   // Load a world if specified. Check SDF string first, then SDF file
@@ -118,7 +120,7 @@ Server::Server(const ServerConfig &_config)
   else if (!_config.SdfFile().empty())
   {
     common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    systemPaths.SetFilePathEnv(this->dataPtr->kResourcePathEnv);
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
     ignmsg << "Loading SDF world file[" << filePath << "].\n";

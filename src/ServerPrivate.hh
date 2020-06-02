@@ -89,6 +89,12 @@ namespace ignition
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResource(const std::string &_uri);
 
+      /// \brief Add resource paths based on latest environment variables.
+      /// This will update the SDF and Ignition environment variables based
+      /// on kResourcesPathEnv, and optionally add more paths to the list.
+      /// \param[in] _paths Optional paths to add.
+      public: void AddResourcePaths(const std::vector<std::string> &_paths = {});
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -97,6 +103,16 @@ namespace ignition
       /// \param[out] _res Response containing the names of all the worlds.
       /// \return True if successful.
       private: bool WorldsService(ignition::msgs::StringMsg_V &_res);
+
+      /// \brief Callback for add resource paths service.
+      /// \param[out] _req Request containing the paths to be added.
+      private: void AddResourcePathsService(
+          const ignition::msgs::StringMsg_V &_req);
+
+      /// \brief Callback for get resource paths service.
+      /// \param[out] _res Response filled with all current paths.
+      /// \return True if successful.
+      private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
@@ -134,6 +150,13 @@ namespace ignition
       /// \brief Map from file paths to fuel URIs. This is set and updated by
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
+
+      /// \brief Name of environment variable holding resource paths.
+      public: const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
+
+      /// \brief Environment variable used by SDFormat to find URIs inside
+      /// <include>s.
+      public: const std::string kSdfPathEnv{"SDF_PATH"};
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
