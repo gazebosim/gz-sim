@@ -14,7 +14,7 @@
 
   Listen to battery state:
 
-    ign topic -et /model/lift_drag_demo_model/battery/linear_batty/state
+    ign topic -et /model/lift_drag_demo_model/battery/linear_battery/state
 -->
 <sdf version="1.6">
   <world name="lift_drag">
