@@ -30,7 +30,10 @@
 
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X
+### Ignition Gazebo 3.2.0 (2020-05-20)
+
+1. Merge ign-gazebo2 to ign-gazebo3
+    * [pull request 149](https://github.com/ignitionrobotics/ign-gazebo/pull/149)
 
 ### Ignition Gazebo 3.1.0 (2020-05-19)
 
@@ -62,6 +65,9 @@
     * [BitBucket pull request 512](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/512)
     * [BitBucket pull request 513](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/513)
     * [BitBucket pull request 514](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/514)
+
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 96](https://github.com/ignitionrobotics/ign-gazebo/pull/96)
 
 ### Ignition Gazebo 3.0.0 (2019-12-10)
 
@@ -99,12 +105,18 @@
 
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.xx.xx (2020-xx-xx)
+### Ignition Gazebo 2.18.0 (2020-05-20)
+
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+    * [Pull Request 146](https://github.com/ignitionrobotics/ign-gazebo/pull/146)
 
 ### Ignition Gazebo 2.17.0 (2020-05-13)
 
 1. Allow battery plugin to work with joint force systems.
     * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
+
+1. DetachableJoint system: Add option to suppress warning about missing child model
+    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
 
 1. Make breadcrumb static after specified time
     * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)
