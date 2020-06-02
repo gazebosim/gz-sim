@@ -17,12 +17,13 @@
 #include <ignition/msgs/odometry.pb.h>
 
 #include <mutex>
-#include <ignition/common/Profiler.hh>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/math/DiffDriveOdometry.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
+
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
