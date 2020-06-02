@@ -192,12 +192,12 @@ void DiffDrive::Configure(const Entity &_entity,
   bool hasVelocityLimits     = false;
   bool hasAccelerationLimits = false;
   bool hasJerkLimits         = false;
-  double minVel   = 0;
-  double maxVel   = 0;
-  double minAccel = 0;
-  double maxAccel = 0;
-  double minJerk  = 0;
-  double maxJerk  = 0;
+  double minVel              = std::numeric_limits<double>::min();
+  double maxVel              = std::numeric_limits<double>::max();
+  double minAccel            = std::numeric_limits<double>::min();;
+  double maxAccel            = std::numeric_limits<double>::max();
+  double minJerk             = std::numeric_limits<double>::min();;
+  double maxJerk             = std::numeric_limits<double>::max();
 
   if (_sdf->HasElement("min_velocity"))
   {

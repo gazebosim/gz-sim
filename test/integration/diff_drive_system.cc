@@ -156,23 +156,21 @@ TEST_P(DiffDriveTest, PublishCmd)
 
   msgs::Twist msg;
 
-  // Avoid wheel slip by limiting acceleration
+  // Avoid wheel slip by limiting acceleration (1 m/s^2)
+  // and max velocity (0.5 m/s).
+  // See <max_velocity< and <max_aceleration> parameters
+  // in "/test/worlds/diff_drive.sdf".
   Relay velocityRamp;
-  const double desiredLinVel = 0.5;
+  const double desiredLinVel = 10.5;
   const double desiredAngVel = 0.2;
-  const double linAccel = 1;
-  const double angAccel = 1;
   velocityRamp.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info,
+      [&](const gazebo::UpdateInfo &/*_info*/,
           const gazebo::EntityComponentManager &)
       {
-        double dt = std::chrono::duration<double>(_info.dt).count();
-        double nextLinVel = msg.linear().x() + dt * linAccel;
-        double nextAngVel = msg.angular().z() + dt * angAccel;
         msgs::Set(msg.mutable_linear(),
-                  math::Vector3d(std::min(nextLinVel, desiredLinVel), 0, 0));
+                  math::Vector3d(desiredLinVel, 0, 0));
         msgs::Set(msg.mutable_angular(),
-                  math::Vector3d(0.0, 0, std::min(nextAngVel, desiredAngVel)));
+                  math::Vector3d(0.0, 0, desiredAngVel));
         pub.Publish(msg);
       });
 
