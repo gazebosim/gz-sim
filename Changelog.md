@@ -1,6 +1,6 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.XX.XX (20XX-XX-XX)
+### Ignition Gazebo 2.19.0 (2020-06-02)
 
 1. Use updated model names for spawned models when generating SDFormat
     * [Pull Request 166](https://github.com/ignitionrobotics/ign-gazebo/pull/166)
