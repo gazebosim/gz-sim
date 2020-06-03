@@ -1,8 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="InsertModel/">
   <file>InsertModel.qml</file>
-  <file>box.png</file>
-  <file>sphere.png</file>
-  <file>cylinder.png</file>
 </qresource>
 </RCC>
