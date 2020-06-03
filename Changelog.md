@@ -1,9 +1,12 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.XX.XX (20XX-XX-XX)
+### Ignition Gazebo 2.19.0 (2020-06-02)
 
 1. Use updated model names for spawned models when generating SDFormat
     * [Pull Request 166](https://github.com/ignitionrobotics/ign-gazebo/pull/166)
+
+1. Allow joint force commands (JointForceCmd) to dscharge a battery.
+    * [Pull Request 165](https://github.com/ignitionrobotics/ign-gazebo/pull/165)
 
 1. Allow renaming breadcrumb models if there is a name conflict
     * [Pull Request 155](https://github.com/ignitionrobotics/ign-gazebo/pull/155)
