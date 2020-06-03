@@ -21,11 +21,17 @@
 #include <string>
 #include <vector>
 
+#include <sdf/Link.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
+#include <sdf/Visual.hh>
+
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/Uuid.hh>
 #include <ignition/common/VideoEncoder.hh>
 
 #include <ignition/plugin/Register.hh>
@@ -136,6 +142,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate if mouse event is dirty
     public: bool mouseDirty = false;
 
+    /// \brief Flag to indicate if hover event is dirty
+    public: bool hoverDirty = false;
+
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
@@ -206,6 +215,31 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
 
+    /// \brief Flag for indicating whether we are in shapes mode or not
+    public: bool spawnModel = false;
+
+    /// \brief Flag for indicating whether the user is currently placing a
+    /// model with the shapes plugin or not
+    public: bool placingModel = false;
+
+    /// \brief The sdf string of the model to be used with the shapes plugin
+    public: std::string modelSdfString;
+
+    /// \brief The pose of the preview model
+    public: ignition::math::Pose3d previewModelPose =
+            ignition::math::Pose3d::Zero;
+
+    /// \brief The currently hovered mouse position in screen coordinates
+    public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
+
+    /// \brief The model generated from the modelSdfString upon the user
+    /// clicking a shape in the shapes plugin
+    public: rendering::VisualPtr spawnPreviewModel = nullptr;
+
+    /// \brief A record of the ids currently used by the model generation
+    /// for easy deletion of visuals later
+    public: std::vector<Entity> modelIds;
+
     /// \brief The pose set during a view angle button press that holds
     /// the pose the camera should assume relative to the entit(y/ies).
     /// The vector (0, 0, 0) indicates to return the camera back to the home
@@ -235,6 +269,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Name of service for setting entity pose
     public: std::string poseCmdService;
+
+    /// \brief Name of service for creating entity
+    public: std::string createCmdService;
 
     /// \brief The starting world pose of a clicked visual.
     public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
@@ -309,6 +346,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Follow service
     public: std::string viewAngleService;
+
+    /// \brief Shapes service
+    public: std::string shapesService;
   };
 }
 }
@@ -551,6 +591,19 @@ void IgnRenderer::Render()
     }
   }
 
+  // Shapes
+  {
+    IGN_PROFILE("IgnRenderer::Render Shapes");
+    if (this->dataPtr->spawnModel)
+    {
+      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      rendering::VisualPtr rootVis = scene->RootVisual();
+      this->dataPtr->placingModel =
+        this->GeneratePreviewModel(this->dataPtr->modelSdfString);
+      this->dataPtr->spawnModel = false;
+    }
+  }
+
   if (ignition::gui::App())
   {
     ignition::gui::App()->sendEvent(
@@ -560,10 +613,92 @@ void IgnRenderer::Render()
 }
 
 /////////////////////////////////////////////////
+bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
+{
+  sdf::Root root;
+  root.LoadSdfString(_modelSdfString);
+
+  if (!root.ModelCount())
+  {
+    this->TerminatePreviewModel();
+    return false;
+  }
+
+  // Only preview first model
+  sdf::Model model = *(root.ModelByIndex(0));
+  this->dataPtr->previewModelPose = model.RawPose();
+  model.SetName(ignition::common::Uuid().String());
+  Entity modelId = this->UniqueId();
+  if (!modelId)
+  {
+    this->TerminatePreviewModel();
+    return false;
+  }
+  this->dataPtr->spawnPreviewModel =
+    this->dataPtr->renderUtil.SceneManager().CreateModel(
+        modelId, model,
+        this->dataPtr->renderUtil.SceneManager().WorldId());
+
+  this->dataPtr->modelIds.push_back(modelId);
+  for (auto j = 0u; j < model.LinkCount(); j++)
+  {
+    sdf::Link link = *(model.LinkByIndex(j));
+    link.SetName(ignition::common::Uuid().String());
+    Entity linkId = this->UniqueId();
+    if (!linkId)
+    {
+      this->TerminatePreviewModel();
+      return false;
+    }
+    this->dataPtr->renderUtil.SceneManager().CreateLink(
+        linkId, link, modelId);
+    this->dataPtr->modelIds.push_back(linkId);
+    for (auto k = 0u; k < link.VisualCount(); k++)
+    {
+     sdf::Visual visual = *(link.VisualByIndex(k));
+     visual.SetName(ignition::common::Uuid().String());
+     Entity visualId = this->UniqueId();
+     if (!visualId)
+     {
+       this->TerminatePreviewModel();
+       return false;
+     }
+     this->dataPtr->renderUtil.SceneManager().CreateVisual(
+         visualId, visual, linkId);
+     this->dataPtr->modelIds.push_back(visualId);
+    }
+  }
+  return true;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::TerminatePreviewModel()
+{
+  for (auto _id : this->dataPtr->modelIds)
+    this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
+  this->dataPtr->modelIds.clear();
+  this->dataPtr->placingModel = false;
+}
+
+/////////////////////////////////////////////////
+Entity IgnRenderer::UniqueId()
+{
+  auto timeout = 100000u;
+  for (auto i = 0u; i < timeout; ++i)
+  {
+    Entity id = std::numeric_limits<uint64_t>::max() - i;
+    if (!this->dataPtr->renderUtil.SceneManager().HasEntity(id))
+      return id;
+  }
+  return kNullEntity;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->HandleMouseContextMenu();
+  this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
 }
@@ -704,6 +839,51 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       break;
     default:
       break;
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::HandleModelPlacement()
+{
+  if (!this->dataPtr->placingModel)
+    return;
+
+  if (this->dataPtr->spawnPreviewModel && this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
+    pos.Z(this->dataPtr->spawnPreviewModel->WorldPosition().Z());
+    this->dataPtr->spawnPreviewModel->SetWorldPosition(pos);
+    this->dataPtr->hoverDirty = false;
+  }
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    // Delete the generated visuals
+    this->TerminatePreviewModel();
+
+    math::Pose3d modelPose = this->dataPtr->previewModelPose;
+    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    {
+      if (!_result)
+        ignerr << "Error creating model" << std::endl;
+    };
+    math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
+    pos.Z(modelPose.Pos().Z());
+    msgs::EntityFactory req;
+    req.set_sdf(this->dataPtr->modelSdfString);
+    req.set_allow_renaming(true);
+    msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
+
+    if (this->dataPtr->createCmdService.empty())
+    {
+      this->dataPtr->createCmdService = "/world/" + this->worldName
+          + "/create";
+    }
+    this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
+    this->dataPtr->placingModel = false;
+    this->dataPtr->mouseDirty = false;
   }
 }
 
@@ -1354,6 +1534,14 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetModel(const std::string &_model)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->spawnModel = true;
+  this->dataPtr->modelSdfString = _model;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
     const std::string &_savePath)
 {
@@ -1451,6 +1639,14 @@ void IgnRenderer::OnViewAngleComplete()
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->mouseHoverPos = _hoverPos;
+  this->dataPtr->hoverDirty = true;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
     const math::Vector2d &_drag)
 {
@@ -1458,6 +1654,29 @@ void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
   this->dataPtr->mouseEvent = _e;
   this->dataPtr->drag += _drag;
   this->dataPtr->mouseDirty = true;
+}
+
+/////////////////////////////////////////////////
+math::Vector3d IgnRenderer::ScreenToPlane(
+    const math::Vector2i &_screenPos) const
+{
+  // Normalize point on the image
+  double width = this->dataPtr->camera->ImageWidth();
+  double height = this->dataPtr->camera->ImageHeight();
+
+  double nx = 2.0 * _screenPos.X() / width - 1.0;
+  double ny = 1.0 - 2.0 * _screenPos.Y() / height;
+
+  // Make a ray query
+  this->dataPtr->rayQuery->SetFromCamera(
+      this->dataPtr->camera, math::Vector2d(nx, ny));
+
+  ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), 0);
+
+  math::Vector3d origin = this->dataPtr->rayQuery->Origin();
+  math::Vector3d direction = this->dataPtr->rayQuery->Direction();
+  double distance = plane.Distance(origin, direction);
+  return origin + direction * distance;
 }
 
 /////////////////////////////////////////////////
@@ -2034,6 +2253,13 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
 }
 
 /////////////////////////////////////////////////
+void Scene3D::OnHovered(int _mouseX, int _mouseY)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->OnHovered({_mouseX, _mouseY});
+}
+
+/////////////////////////////////////////////////
 void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
 {
   if (_drop.toStdString().empty())
@@ -2147,6 +2373,17 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetScaleSnap(snapEvent->Scale());
     }
   }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::SpawnPreviewModel::kType)
+  {
+    auto spawnPreviewModelEvent =
+      reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
+    if (spawnPreviewModelEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetModel(spawnPreviewModelEvent->ModelSdfString());
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
@@ -2164,6 +2401,12 @@ void RenderWindowItem::UpdateSelectedEntity(Entity _entity,
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
   this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetModel(const std::string &_model)
+{
+  this->dataPtr->renderThread->ignRenderer.SetModel(_model);
 }
 
 /////////////////////////////////////////////////
@@ -2243,6 +2486,12 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
 {
   this->dataPtr->renderThread->ignRenderer.visibilityMask = _mask;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
+{
+  this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
 }
 
 /////////////////////////////////////////////////
@@ -2328,6 +2577,7 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
       _e->accept();
     }
     this->DeselectAllEntities(true);
+    this->dataPtr->renderThread->ignRenderer.TerminatePreviewModel();
   }
 }
 
