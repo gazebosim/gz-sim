@@ -22,36 +22,27 @@ import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
-ToolBar {
+Rectangle {
   id: insertmodel
+  color: "transparent"
   Layout.minimumWidth: 200
   Layout.minimumHeight: 500
+  anchors.fill: parent
+  GridView {
+    id: gridView
+    anchors.fill: parent
 
-  Component {
-    id: localModel
-    Item {
-      width: 100
-      height: 100
+    model: LocalModelList
+    delegate: Rectangle {
+      width: gridView.cellWidth
+      height: gridView.cellHeight
+      color: "transparent"
       Image {
         anchors.fill: parent
-        source: "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/Phone/1/thumbnails/1.png"
-      }
-      Text {
-        text: "Phone"
-      }
-    }
-  }
-  ListView {
-    anchors.fill: parent
-    id: view
-    ScrollBar.vertical: ScrollBar {}
-    model: LocalModelList
-    spacing: 10
-    delegate:
-    Rectangle {
-      width: 300
-      height: 30
-      color: "#FF0000"
-    }
-  }
+        anchors.margins: 5
+        source: model.thumbnail
+        fillMode: Image.PreserveAspectFit
+     }
+   }
+ }
 }
