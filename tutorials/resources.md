@@ -59,7 +59,7 @@ GUI plugins may be loaded through:
 Ignition will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
-2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/blob/master/src/systems/)
+2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/master/src/gui/plugins)
 3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
 4. `~/.ignition/gui/plugins`
 5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/3.0/namespaceignition_1_1gui_1_1plugins.html)
@@ -71,8 +71,8 @@ uses a plugin architecture and its physics engines are
 built as plugins that are loaded at run time using
 [Ignition Plugin](https://ignitionrobotics.org/libs/plugin).
 
-At the moment, Ignition Physics will only look for physics engine plugin
-shared libraries installed within its `<install_prefix>/lib` directory.
+See the [Physics engines](physics.html)
+tutorial for more details.
 
 ### Rendering engines
 
@@ -116,12 +116,15 @@ Top-level entities such as models, lights and actors may be loaded through:
 
 Ignition will look for URIs (path / URL) in the following, in order:
 
-1. All paths on the `SDF_PATH` environment variable (if path is URI,
-   scheme is stripped)
+1. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if
+   path is URI, scheme is stripped)
 2. Current running path / absolute path
 3. [Ignition Fuel](https://app.ignitionrobotics.org/fuel/models)
     1. Cache (i.e. `$HOME/.ignition/fuel`)
     2. Web server
+
+> \* The `SDF_PATH` environment variable also works in some scenarious, but
+    it's not recommended when using Ignition Gazebo.
 
 ## Meshes
 
@@ -135,8 +138,11 @@ Mesh files may be loaded through:
 Ignition will look for URIs (path / URL) in the following, in order:
 
 1. Current running path / absolute path
-2. All paths on the `IGN_FILE_PATH` environment variable (if path is URI,
-   scheme is stripped)
+2. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if path
+   is URI, scheme is stripped)
+
+> \* The `IGN_FILE_PATH` environment variable also works in some scenarious, but
+    it's not recommended when using Ignition Gazebo.
 
 ### GUI configuration
 
