@@ -25,64 +25,33 @@ import QtQuick.Controls.Styles 1.4
 ToolBar {
   id: insertmodel
   Layout.minimumWidth: 200
-  Layout.minimumHeight: 100
+  Layout.minimumHeight: 500
 
-  background: Rectangle {
-    color: "transparent"
+  Component {
+    id: localModel
+    Item {
+      width: 100
+      height: 100
+      Image {
+        anchors.fill: parent
+        source: "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/Phone/1/thumbnails/1.png"
+      }
+      Text {
+        text: "Phone"
+      }
+    }
   }
-
-  RowLayout {
-    spacing: 2
-    ToolButton {
-      id: box
-      ToolTip.text: "Box"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "box.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
-      }
-      onClicked: {
-        InsertModel.OnMode("box")
-      }
-    }
-    ToolButton{
-      id: sphere
-      ToolTip.text: "Sphere"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "sphere.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
-      }
-      onClicked: {
-        InsertModel.OnMode("sphere")
-      }
-    }
-    ToolButton {
-      id: cylinder
-      ToolTip.text: "Cylinder"
-      ToolTip.visible: hovered
-      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-      contentItem: Image {
-        fillMode: Image.Pad
-        horizontalAlignment: Image.AlignHCenter
-        verticalAlignment: Image.AlignVCenter
-        source: "cylinder.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
-      }
-      onClicked: {
-        InsertModel.OnMode("cylinder")
-      }
+  ListView {
+    anchors.fill: parent
+    id: view
+    ScrollBar.vertical: ScrollBar {}
+    model: LocalModelList
+    spacing: 10
+    delegate:
+    Rectangle {
+      width: 300
+      height: 30
+      color: "#FF0000"
     }
   }
 }

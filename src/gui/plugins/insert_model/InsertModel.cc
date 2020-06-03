@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -48,19 +49,47 @@ namespace ignition::gazebo
 
     /// \brief Transform control service name
     public: std::string service;
-  
-    std::vector<LocalModel> localModels;
+ 
+    public: ListModel listModel;
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
 
+ListModel::ListModel() : QStandardItemModel()
+{
+}
+
+void ListModel::AddLocalModel(LocalModel &_model)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("ListModel::AddLocalModel");
+  QStandardItem *parentItem{nullptr};
+  
+  parentItem = this->invisibleRootItem();
+
+  auto localModel = new QStandardItem("name");
+  localModel->setData(QString::fromStdString(_model.thumbnailPath), this->roleNames().key("thumbnail"));
+
+  parentItem->appendRow(localModel);
+
+  ignwarn << "model " << _model.sdfPath << "\n";
+}
+
+QHash<int, QByteArray> ListModel::roleNames() const
+{
+  return {std::pair(100, "thumbnail")};
+}
+
 /////////////////////////////////////////////////
 InsertModel::InsertModel()
   : ignition::gui::Plugin(),
   dataPtr(std::make_unique<InsertModelPrivate>())
 {
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+      "LocalModelList", &this->dataPtr->listModel
+      );
 }
 
 /////////////////////////////////////////////////
@@ -115,7 +144,7 @@ void InsertModel::FindLocalModels(const std::string &_path)
           }
         }
       }
-      this->dataPtr->localModels.push_back(model);
+      this->dataPtr->listModel.AddLocalModel(model);
     }
   }
 }
@@ -160,7 +189,7 @@ void InsertModel::OnMode(const QString &_mode)
   {
     // TODO load sdf string from path here
     std::ifstream nameFileout;
-    nameFileout.open(this->dataPtr->localModels[0].sdfPath);
+    //nameFileout.open(this->dataPtr->localModels[0].sdfPath);
     std::string line;
     modelSdfString = "";
     while (std::getline(nameFileout, line))

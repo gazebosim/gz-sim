@@ -28,6 +28,26 @@ namespace gazebo
 {
   class InsertModelPrivate;
 
+  struct LocalModel
+  {
+    std::string configPath = "";
+    std::string sdfPath = "";
+    std::string thumbnailPath = "";
+  };
+
+  class ListModel : public QStandardItemModel
+  {
+    Q_OBJECT
+
+    public: explicit ListModel();
+
+    public: ~ListModel() override = default;
+
+    public slots: void AddLocalModel(LocalModel &_model);
+
+    public: QHash<int, QByteArray> roleNames() const override;
+  };
+
   /// \brief Provides buttons for adding a box, sphere, or cylinder
   /// to the scene
   class InsertModel : public ignition::gui::Plugin
@@ -53,13 +73,6 @@ namespace gazebo
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<InsertModelPrivate> dataPtr;
-  };
-
-  struct LocalModel
-  {
-    std::string configPath = "";
-    std::string sdfPath = "";
-    std::string thumbnailPath = "";
   };
 }
 }
