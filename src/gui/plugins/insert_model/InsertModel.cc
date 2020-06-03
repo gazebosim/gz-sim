@@ -47,6 +47,7 @@ namespace ignition::gazebo
     /// \brief Transform control service name
     public: std::string service;
 
+    /// \brief The grid model that the qml gridview reflects
     public: GridModel gridModel;
   };
 }
@@ -54,10 +55,12 @@ namespace ignition::gazebo
 using namespace ignition;
 using namespace gazebo;
 
+/////////////////////////////////////////////////
 GridModel::GridModel() : QStandardItemModel()
 {
 }
 
+/////////////////////////////////////////////////
 void GridModel::AddLocalModel(LocalModel &_model)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
@@ -77,6 +80,7 @@ void GridModel::AddLocalModel(LocalModel &_model)
   parentItem->appendRow(localModel);
 }
 
+/////////////////////////////////////////////////
 QHash<int, QByteArray> GridModel::roleNames() const
 {
   return {
@@ -98,6 +102,7 @@ InsertModel::InsertModel()
 /////////////////////////////////////////////////
 InsertModel::~InsertModel() = default;
 
+/////////////////////////////////////////////////
 void InsertModel::FindLocalModels(const std::string &_path)
 {
   std::string path = _path;
@@ -112,7 +117,7 @@ void InsertModel::FindLocalModels(const std::string &_path)
   }
   else if (common::isFile(path))
   {
-    common::changeToUnixPath(path);
+    // TODO(john): some logic might be needed here for windows compatibility
     std::string::size_type index = path.rfind("/");
     std::string fileName = path.substr(index+1);
     // If we have found model.config, extract thumbnail and sdf
@@ -121,10 +126,11 @@ void InsertModel::FindLocalModels(const std::string &_path)
       LocalModel model;
       model.configPath = path;
       std::string modelPath = path.substr(0, index);
-      std::string thumbnailPath = modelPath + "/thumbnails";
+      std::string thumbnailPath = common::joinPaths(modelPath, "thumbnails");
 
+      std::string configFileName = common::joinPaths(modelPath, "model.config");
       tinyxml2::XMLDocument doc;
-      doc.LoadFile((modelPath + "/model.config").c_str());
+      doc.LoadFile(configFileName.c_str());
       auto modelXml = doc.FirstChildElement("model");
       if (modelXml)
       {
@@ -144,6 +150,7 @@ void InsertModel::FindLocalModels(const std::string &_path)
           std::string current(*file);
           if (common::isFile(current))
           {
+            // TODO(john): some logic might be needed here for windows compatibility
             std::string::size_type thumbnailIndex = current.rfind("/");
             std::string thumbnailFileName = current.substr(thumbnailIndex + 1);
             std::string::size_type thumbnailExtensionIndex =
@@ -165,12 +172,11 @@ void InsertModel::FindLocalModels(const std::string &_path)
   }
 }
 
+/////////////////////////////////////////////////
 void InsertModel::FindLocalModels(const std::vector<std::string> &_paths)
 {
   for (const auto &path : _paths)
-  {
     this->FindLocalModels(path);
-  }
 }
 
 /////////////////////////////////////////////////
