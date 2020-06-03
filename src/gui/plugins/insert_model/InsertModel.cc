@@ -157,9 +157,11 @@ void InsertModel::FindLocalModels(const std::string &_path)
               thumbnailFileName.rfind(".");
             std::string thumbnailFileExtension =
               thumbnailFileName.substr(thumbnailExtensionIndex + 1);
-            if (thumbnailFileExtension == "png" ||
-                thumbnailFileExtension == "jpg" ||
-                thumbnailFileExtension == "jpeg")
+            // The standard image types QML supports
+            if (thumbnailFileExtension == "png"  ||
+                thumbnailFileExtension == "jpg"  ||
+                thumbnailFileExtension == "jpeg" ||
+                thumbnailFileExtension == "svg")
             {
               model.thumbnailPath = current;
               break;
