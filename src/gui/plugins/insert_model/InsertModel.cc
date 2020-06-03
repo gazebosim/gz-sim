@@ -16,13 +16,10 @@
 */
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
-#include <fstream>
-#include <iostream>
 
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
 
-#include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Filesystem.hh>
@@ -49,35 +46,38 @@ namespace ignition::gazebo
 
     /// \brief Transform control service name
     public: std::string service;
- 
-    public: ListModel listModel;
+
+    public: GridModel gridModel;
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
 
-ListModel::ListModel() : QStandardItemModel()
+GridModel::GridModel() : QStandardItemModel()
 {
 }
 
-void ListModel::AddLocalModel(LocalModel &_model)
+void GridModel::AddLocalModel(LocalModel &_model)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("ListModel::AddLocalModel");
+  IGN_PROFILE("GridModel::AddLocalModel");
   QStandardItem *parentItem{nullptr};
-  
+
   parentItem = this->invisibleRootItem();
 
   auto localModel = new QStandardItem(QString::fromStdString(_model.name));
-  localModel->setData(QString::fromStdString(_model.thumbnailPath), this->roleNames().key("thumbnail"));
-  localModel->setData(QString::fromStdString(_model.name), this->roleNames().key("name"));
-  localModel->setData(QString::fromStdString(_model.sdfPath), this->roleNames().key("sdf"));
+  localModel->setData(QString::fromStdString(_model.thumbnailPath),
+                      this->roleNames().key("thumbnail"));
+  localModel->setData(QString::fromStdString(_model.name),
+                      this->roleNames().key("name"));
+  localModel->setData(QString::fromStdString(_model.sdfPath),
+                      this->roleNames().key("sdf"));
 
   parentItem->appendRow(localModel);
 }
 
-QHash<int, QByteArray> ListModel::roleNames() const
+QHash<int, QByteArray> GridModel::roleNames() const
 {
   return {
     std::pair(100, "thumbnail"),
@@ -92,8 +92,7 @@ InsertModel::InsertModel()
   dataPtr(std::make_unique<InsertModelPrivate>())
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "LocalModelList", &this->dataPtr->listModel
-      );
+      "LocalModelList", &this->dataPtr->gridModel);
 }
 
 /////////////////////////////////////////////////
@@ -133,23 +132,26 @@ void InsertModel::FindLocalModels(const std::string &_path)
         if (modelName)
           model.name = modelName->GetText();
       }
-      
+
       std::string sdfPath = sdf::getModelFilePath(modelPath);
       model.sdfPath = sdfPath;
       // Get first thumbnail image found
       if (common::exists(thumbnailPath))
       {
-        for (common::DirIter file(thumbnailPath); file != common::DirIter(); ++file)
+        for (common::DirIter file(thumbnailPath);
+             file != common::DirIter(); ++file)
         {
           std::string current(*file);
           if (common::isFile(current))
           {
             std::string::size_type thumbnailIndex = current.rfind("/");
             std::string thumbnailFileName = current.substr(thumbnailIndex + 1);
-            std::string::size_type thumbnailExtensionIndex = thumbnailFileName.rfind(".");
-            std::string thumbnailFileExtension = thumbnailFileName.substr(thumbnailExtensionIndex + 1);
+            std::string::size_type thumbnailExtensionIndex =
+              thumbnailFileName.rfind(".");
+            std::string thumbnailFileExtension =
+              thumbnailFileName.substr(thumbnailExtensionIndex + 1);
             if (thumbnailFileExtension == "png" ||
-                thumbnailFileExtension == "jpg" || 
+                thumbnailFileExtension == "jpg" ||
                 thumbnailFileExtension == "jpeg")
             {
               model.thumbnailPath = current;
@@ -158,7 +160,7 @@ void InsertModel::FindLocalModels(const std::string &_path)
           }
         }
       }
-      this->dataPtr->listModel.AddLocalModel(model);
+      this->dataPtr->gridModel.AddLocalModel(model);
     }
   }
 }
@@ -181,10 +183,12 @@ void InsertModel::LoadConfig(const tinyxml2::XMLElement *)
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
 
-  std::string path = "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models";
+  // TODO(john): create vector of paths from IGN_GAZEBO_RESOURCE_PATH here
+  std::string path =
+    "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models";
   std::vector<std::string> paths;
   paths.push_back(path);
- 
+
   this->FindLocalModels(paths);
 }
 
@@ -200,7 +204,7 @@ void InsertModel::OnMode(const QString &_sdfPath)
   std::string modelSdfString = "";
   while (std::getline(nameFileout, line))
     modelSdfString += line + "\n";
-  
+
   auto event = new gui::events::SpawnPreviewModel(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),

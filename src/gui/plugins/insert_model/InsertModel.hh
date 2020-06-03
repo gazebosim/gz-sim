@@ -19,6 +19,8 @@
 #define IGNITION_GAZEBO_GUI_INSERT_MODEL_HH_
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <ignition/gui/Plugin.hh>
 
@@ -28,6 +30,7 @@ namespace gazebo
 {
   class InsertModelPrivate;
 
+  /// \brief Local model used to update the GridModel
   struct LocalModel
   {
     std::string configPath = "";
@@ -36,21 +39,28 @@ namespace gazebo
     std::string name = "";
   };
 
-  class ListModel : public QStandardItemModel
+  /// \brief Provides a model by which the insert model qml plugin pulls
+  /// and updates from
+  class GridModel : public QStandardItemModel
   {
     Q_OBJECT
 
-    public: explicit ListModel();
+    /// \brief Constructor
+    public: explicit GridModel();
 
-    public: ~ListModel() override = default;
+    /// \brief Destructor
+    public: ~GridModel() override = default;
 
+    /// \brief Add a local model to the grid view.
+    /// param[in] _model The local model to be added
     public slots: void AddLocalModel(LocalModel &_model);
 
+    // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
   };
 
-  /// \brief Provides buttons for adding a box, sphere, or cylinder
-  /// to the scene
+  /// \brief Provides interface for communicating to backend for generation
+  /// of local models
   class InsertModel : public ignition::gui::Plugin
   {
     Q_OBJECT
@@ -68,7 +78,14 @@ namespace gazebo
     /// \param[in] _mode New transform mode
     public slots: void OnMode(const QString &_mode);
 
+    /// \brief Recursively searches the provided paths for all model.config's
+    /// and populates a vector of local models with the information
+    /// \param[in] _paths The paths to search
     public: void FindLocalModels(const std::vector<std::string> &_paths);
+
+    /// \brief Recursively searches the provided path for all model.config's
+    /// and populates a vector of local models with the information
+    /// \param[in] _path The path to search
     public: void FindLocalModels(const std::string &_path);
 
     /// \internal
