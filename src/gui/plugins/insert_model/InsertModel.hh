@@ -33,6 +33,7 @@ namespace gazebo
     std::string configPath = "";
     std::string sdfPath = "";
     std::string thumbnailPath = "";
+    std::string name = "";
   };
 
   class ListModel : public QStandardItemModel

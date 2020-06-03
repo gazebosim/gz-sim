@@ -69,17 +69,21 @@ void ListModel::AddLocalModel(LocalModel &_model)
   
   parentItem = this->invisibleRootItem();
 
-  auto localModel = new QStandardItem("name");
+  auto localModel = new QStandardItem(QString::fromStdString(_model.name));
   localModel->setData(QString::fromStdString(_model.thumbnailPath), this->roleNames().key("thumbnail"));
+  localModel->setData(QString::fromStdString(_model.name), this->roleNames().key("name"));
+  localModel->setData(QString::fromStdString(_model.sdfPath), this->roleNames().key("sdf"));
 
   parentItem->appendRow(localModel);
-
-  ignwarn << "model " << _model.sdfPath << "\n";
 }
 
 QHash<int, QByteArray> ListModel::roleNames() const
 {
-  return {std::pair(100, "thumbnail")};
+  return {
+    std::pair(100, "thumbnail"),
+    std::pair(101, "name"),
+    std::pair(102, "sdf"),
+  };
 }
 
 /////////////////////////////////////////////////
@@ -120,6 +124,16 @@ void InsertModel::FindLocalModels(const std::string &_path)
       std::string modelPath = path.substr(0, index);
       std::string thumbnailPath = modelPath + "/thumbnails";
 
+      tinyxml2::XMLDocument doc;
+      doc.LoadFile((modelPath + "/model.config").c_str());
+      auto modelXml = doc.FirstChildElement("model");
+      if (modelXml)
+      {
+        auto modelName = modelXml->FirstChildElement("name");
+        if (modelName)
+          model.name = modelName->GetText();
+      }
+      
       std::string sdfPath = sdf::getModelFilePath(modelPath);
       model.sdfPath = sdfPath;
       // Get first thumbnail image found
@@ -167,8 +181,6 @@ void InsertModel::LoadConfig(const tinyxml2::XMLElement *)
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
 
-  ignwarn << "Starting up\n";
-
   std::string path = "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models";
   std::vector<std::string> paths;
   paths.push_back(path);
@@ -177,43 +189,18 @@ void InsertModel::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void InsertModel::OnMode(const QString &_mode)
+void InsertModel::OnMode(const QString &_sdfPath)
 {
-  std::string modelSdfString = _mode.toStdString();
-  std::transform(modelSdfString.begin(), modelSdfString.end(),
-                 modelSdfString.begin(), ::tolower);
+  std::string modelSdfPath = _sdfPath.toStdString();
 
+  // Parse the sdf from the path
+  std::ifstream nameFileout;
+  nameFileout.open(modelSdfPath);
+  std::string line;
+  std::string modelSdfString = "";
+  while (std::getline(nameFileout, line))
+    modelSdfString += line + "\n";
   
-
-  if (modelSdfString == "box")
-  {
-    // TODO load sdf string from path here
-    std::ifstream nameFileout;
-    //nameFileout.open(this->dataPtr->localModels[0].sdfPath);
-    std::string line;
-    modelSdfString = "";
-    while (std::getline(nameFileout, line))
-    {
-      modelSdfString += line + "\n";
-    }
-    std::cout << modelSdfString;
-  }
-  else if (modelSdfString == "sphere")
-  {
-  }
-  else if (modelSdfString == "cylinder")
-  {
-  }
-  else
-  {
-    ignwarn << "Invalid model string " << modelSdfString << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - box\n";
-    ignwarn << " - sphere\n";
-    ignwarn << " - cylinder\n";
-    return;
-  }
-
   auto event = new gui::events::SpawnPreviewModel(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),

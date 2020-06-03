@@ -39,10 +39,27 @@ Rectangle {
       color: "transparent"
       Image {
         anchors.fill: parent
-        anchors.margins: 5
+        anchors.margins: 1
         source: model.thumbnail
         fillMode: Image.PreserveAspectFit
-     }
+      }
+      MouseArea {
+        anchors.fill: parent
+        onClicked: {
+          print(model.name)
+          InsertModel.OnMode(model.sdf);
+        }
+      }
+      Text {
+        text: model.name
+        width: parent.width
+        height: parent.height
+        minimumPointSize: 5
+        font.pointSize: 60
+        fontSizeMode: Text.Fit
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+      }
    }
  }
 }
