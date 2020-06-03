@@ -51,8 +51,7 @@ namespace gazebo
 
     /// \brief Callback when user selects a path to save the recorded video
     /// \param[in] _url Path of the file to save the recorded video
-    /// \param[in] _format Format of the file to save the recorded video
-    public slots: void OnSave(const QString &_url, const QString &_format);
+    public slots: void OnSave(const QString &_url);
 
     /// \brief Callback when user cancels saving the recorded video
     public slots: void OnCancel();
