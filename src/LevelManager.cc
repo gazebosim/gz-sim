@@ -132,19 +132,19 @@ void LevelManager::ReadLevelPerformerInfo()
     }
   }
 
-  if (this->useLevels)
+  if (pluginElem == nullptr)
   {
-    if (pluginElem == nullptr)
+    if (this->useLevels)
     {
       ignerr << "Could not find a plugin tag with name " << kPluginName
              << ". Levels and distributed simulation will not work.\n";
     }
-    else
-    {
-      this->ReadPerformers(pluginElem);
-      if (this->useLevels)
-        this->ReadLevels(pluginElem);
-    }
+  }
+  else
+  {
+    this->ReadPerformers(pluginElem);
+    if (this->useLevels)
+      this->ReadLevels(pluginElem);
   }
 
   this->ConfigureDefaultLevel();
