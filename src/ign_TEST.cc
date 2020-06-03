@@ -119,6 +119,33 @@ TEST(CmdLine, Gazebo)
         << output;
   }
 }
+
+/////////////////////////////////////////////////
+TEST(CmdLine, ResourcePath)
+{
+  std::string cmd = kIgnCommand + " -s -r -v 4 --iterations 1 plugins.sdf";
+
+  // No path
+  std::string output = customExecStr(cmd);
+  EXPECT_NE(output.find("Unable to find file plugins.sdf"), std::string::npos)
+      << output;
+
+  // Correct path
+  auto path = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
+    PROJECT_SOURCE_PATH + "/test/worlds ";
+
+  output = customExecStr(path + cmd);
+  EXPECT_EQ(output.find("Unable to find file plugins.sdf"), std::string::npos)
+      << output;
+
+  // Several paths
+  path = std::string("IGN_GAZEBO_RESOURCE_PATH=banana:") +
+    PROJECT_SOURCE_PATH + "/test/worlds:orange ";
+
+  output = customExecStr(path + cmd);
+  EXPECT_EQ(output.find("Unable to find file plugins.sdf"), std::string::npos)
+      << output;
+}
 #endif
 
 /////////////////////////////////////////////////

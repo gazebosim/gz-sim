@@ -202,26 +202,67 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
             LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
         {
           // If record plugin already specified in SDF, and record flags are
-          //   specified on command line, replace SDF path with the one on
-          //   command line.
+          //   specified on command line, replace SDF parameters with those on
+          //   command line. (If none specified on command line, use those in
+          //   SDF - except for the record path.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            // If playback plugin also specified, do not add a record plugin
-            if (pluginName->GetAsString() ==
-                LoggingPlugin::PlaybackPluginName())
+            // TODO(anyone) Specify paths below in a Component instead of
+            // injecting SDF, so as to not confuse the <path> specified by user
+            // stripped here, and the one injected below. With Components,
+            // would not need to strip user-specified <path>, can simply
+            // ignore it when setting component values.
+
+            if (!_config.LogRecordPath().empty())
             {
-              ignwarn << "Both record and playback are specified. "
-                << "Ignoring record.\n";
-              return;
+              // Explicitly allowing empty record paths through, always override
+              // <path>
+              sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+              pathElem->SetName("record_path");
+              pluginElem->AddElementDescription(pathElem);
+              pathElem = pluginElem->GetElement("record_path");
+              pathElem->AddValue("string", "", false, "");
+              pathElem->Set<std::string>(_config.LogRecordPath());
             }
 
-            // Add path to plugin
-            sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-            pathElem->SetName("path");
-            pluginElem->AddElementDescription(pathElem);
-            pathElem = pluginElem->GetElement("path");
-            pathElem->AddValue("string", "", false, "");
-            pathElem->Set<std::string>(_config.LogRecordPath());
+            // If resource flag specified on command line, replace in SDF
+            if (_config.LogRecordResources())
+            {
+              sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+              resourceElem->SetName("record_resources");
+              pluginElem->AddElementDescription(resourceElem);
+              resourceElem = pluginElem->GetElement("record_resources");
+              resourceElem->AddValue("bool", "false", false, "");
+              resourceElem->Set<bool>(_config.LogRecordResources()
+                ? true : false);
+            }
+
+            // If compress flag specified on command line, replace in SDF
+            if (!_config.LogRecordCompressPath().empty())
+            {
+              sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+              compressElem->SetName("compress");
+              pluginElem->AddElementDescription(compressElem);
+              compressElem = pluginElem->GetElement("compress");
+              compressElem->AddValue("bool", "false", false, "");
+              compressElem->Set<bool>(true);
+
+              sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+              cPathElem->SetName("compress_path");
+              pluginElem->AddElementDescription(cPathElem);
+              cPathElem = pluginElem->GetElement("compress_path");
+              cPathElem->AddValue("string", "", false, "");
+              cPathElem->Set<std::string>(_config.LogRecordCompressPath());
+            }
+
+            return;
+          }
+
+          // If playback plugin also specified, do not add a record plugin
+          if (pluginName->GetAsString() == LoggingPlugin::PlaybackPluginName())
+          {
+            ignwarn << "Both record and playback are specified. "
+              << "Ignoring record.\n";
             return;
           }
         }
@@ -242,12 +283,37 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   if (!_config.LogRecordPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("record_path");
     recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("path");
+    pathElem = recordElem->GetElement("record_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(_config.LogRecordPath());
   }
+
+  // Set whether to record resources
+  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+  resourceElem->SetName("record_resources");
+  recordElem->AddElementDescription(resourceElem);
+  resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->AddValue("bool", "false", false, "");
+  resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
+
+  // Set whether to compress
+  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+  compressElem->SetName("compress");
+  recordElem->AddElementDescription(compressElem);
+  compressElem = recordElem->GetElement("compress");
+  compressElem->AddValue("bool", "false", false, "");
+  compressElem->Set<bool>(_config.LogRecordCompressPath().empty() ? false :
+    true);
+
+  // Set compress path
+  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+  cPathElem->SetName("compress_path");
+  recordElem->AddElementDescription(cPathElem);
+  cPathElem = recordElem->GetElement("compress_path");
+  cPathElem->AddValue("string", "", false, "");
+  cPathElem->Set<std::string>(_config.LogRecordCompressPath());
 }
 
 //////////////////////////////////////////////////
@@ -263,9 +329,10 @@ void ServerPrivate::CreateEntities()
       std::lock_guard<std::mutex> lock(this->worldsMutex);
       this->worldNames.push_back(world->Name());
     }
-
-    this->simRunners.push_back(std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->config));
+    auto runner = std::make_unique<SimulationRunner>(
+        world, this->systemLoader, this->config);
+    runner->SetFuelUriMap(this->fuelUriMap);
+    this->simRunners.push_back(std::move(runner));
   }
 }
 
@@ -294,7 +361,18 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
-  return fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+  auto path =
+      fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+
+  if (!path.empty())
+  {
+    for (auto &runner : this->simRunners)
+    {
+      runner->AddToFuelUriMap(path, _uri);
+    }
+    fuelUriMap[path] = _uri;
+  }
+  return path;
 }
 
 //////////////////////////////////////////////////

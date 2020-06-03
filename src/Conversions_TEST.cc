@@ -627,6 +627,28 @@ TEST(Conversions, UpdateInfo)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, AxisAlignedbox)
+{
+  math::AxisAlignedBox aabb;
+  aabb.Min() = math::Vector3d(-1, -2, -3);
+  aabb.Max() = math::Vector3d(1, 2, 3);
+
+  auto aabbMsg = convert<msgs::AxisAlignedBox>(aabb);
+  auto min = msgs::Convert(aabbMsg.min_corner());
+  auto max = msgs::Convert(aabbMsg.max_corner());
+  EXPECT_EQ(math::Vector3d(-1, -2, -3), min);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), max);
+
+  msgs::AxisAlignedBox aabbMsg2;
+  msgs::Set(aabbMsg2.mutable_min_corner(), math::Vector3d(2, 3, 4));
+  msgs::Set(aabbMsg2.mutable_max_corner(), math::Vector3d(20, 30, 40));
+
+  auto aabb2 = convert<math::AxisAlignedBox>(aabbMsg2);
+  EXPECT_EQ(math::Vector3d(2, 3, 4), aabb2.Min());
+  EXPECT_EQ(math::Vector3d(20, 30, 40), aabb2.Max());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Actor)
 {
   sdf::Animation anim;

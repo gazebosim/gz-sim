@@ -25,6 +25,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -135,6 +136,10 @@ namespace ignition
 
       /// \brief Client used to download resources from Ignition Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
+
+      /// \brief Map from file paths to fuel URIs. This is set and updated by
+      /// Server. It is used in the SDFormat world generator when saving worlds
+      public: std::unordered_map<std::string, std::string> fuelUriMap;
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

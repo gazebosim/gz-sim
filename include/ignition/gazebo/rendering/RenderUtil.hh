@@ -95,7 +95,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetAmbientLight(const math::Color &_ambient);
 
     /// \brief Show grid view in the scene
-    /// \param[in] _scene Pointer to the scene object
     public: void ShowGrid();
 
     /// \brief Show origin axes view in the scene
@@ -137,7 +136,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::NodePtr IGN_DEPRECATED(4) SelectedEntity() const;
 
     /// \brief Get the entities currently selected, in order of selection.
-    /// \return Map of currently selected entities, entity to rendering node id
+    /// \return Vector of currently selected entities
     public: std::vector<Entity> SelectedEntities() const;
 
     /// \brief Clears the set of selected entities and lowlights all of them.

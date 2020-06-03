@@ -1265,6 +1265,33 @@ TEST_P(SimulationRunnerTest, GuiInfo)
   EXPECT_EQ(plugin.innerxml().find("<deletion_topic>"), std::string::npos);
 }
 
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, GenerateWorldSdf)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  msgs::SdfGeneratorConfig req;
+  msgs::StringMsg genWorldSdf;
+  EXPECT_TRUE(runner.GenerateWorldSdf(req, genWorldSdf));
+  EXPECT_FALSE(genWorldSdf.data().empty());
+
+  sdf::Root newRoot;
+  newRoot.LoadSdfString(genWorldSdf.data());
+  ASSERT_EQ(1u, newRoot.WorldCount());
+
+  const auto* world = newRoot.WorldByIndex(0);
+  EXPECT_EQ(3u, world->ModelCount());
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(ServerRepeat, SimulationRunnerTest,
