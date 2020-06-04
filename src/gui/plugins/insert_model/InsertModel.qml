@@ -40,13 +40,12 @@ Rectangle {
       Image {
         anchors.fill: parent
         anchors.margins: 1
-        source: model.thumbnail
+        source: model.thumbnail == "" ? "NoThumbnail.png" : model.thumbnail
         fillMode: Image.PreserveAspectFit
       }
       MouseArea {
         anchors.fill: parent
         onClicked: {
-          print(model.name)
           InsertModel.OnMode(model.sdf);
         }
       }

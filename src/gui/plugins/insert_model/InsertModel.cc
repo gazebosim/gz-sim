@@ -117,30 +117,29 @@ void InsertModel::FindLocalModels(const std::string &_path)
   }
   else if (common::isFile(path))
   {
-    // TODO(john): some logic might be needed here for windows compatibility
-    std::string::size_type index = path.rfind("/");
-    std::string fileName = path.substr(index+1);
+    std::string fileName = common::basename(path);
+
     // If we have found model.config, extract thumbnail and sdf
     if (fileName == "model.config")
     {
       LocalModel model;
       model.configPath = path;
-      std::string modelPath = path.substr(0, index);
+      std::string modelPath = common::parentPath(path);
       std::string thumbnailPath = common::joinPaths(modelPath, "thumbnails");
-
       std::string configFileName = common::joinPaths(modelPath, "model.config");
       tinyxml2::XMLDocument doc;
       doc.LoadFile(configFileName.c_str());
       auto modelXml = doc.FirstChildElement("model");
+
       if (modelXml)
       {
         auto modelName = modelXml->FirstChildElement("name");
         if (modelName)
           model.name = modelName->GetText();
       }
-
       std::string sdfPath = sdf::getModelFilePath(modelPath);
       model.sdfPath = sdfPath;
+
       // Get first thumbnail image found
       if (common::exists(thumbnailPath))
       {
@@ -150,9 +149,7 @@ void InsertModel::FindLocalModels(const std::string &_path)
           std::string current(*file);
           if (common::isFile(current))
           {
-            // TODO(john): some logic might be needed here for windows compatibility
-            std::string::size_type thumbnailIndex = current.rfind("/");
-            std::string thumbnailFileName = current.substr(thumbnailIndex + 1);
+            std::string thumbnailFileName = common::basename(current);
             std::string::size_type thumbnailExtensionIndex =
               thumbnailFileName.rfind(".");
             std::string thumbnailFileExtension =
