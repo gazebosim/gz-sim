@@ -165,6 +165,8 @@ void DiffDrive::Configure(const Entity &_entity,
 
   std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/odometry"};
+  if (_sdf->HasElement("odom_topic"))
+    odomTopic = _sdf->Get<std::string>("odom_topic");
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
