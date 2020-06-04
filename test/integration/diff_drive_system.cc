@@ -27,7 +27,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 #define tol 10e-4
 
@@ -47,47 +47,6 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
   }
 };
 
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
-};
-
-
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, PublishCmd)
 {
@@ -101,7 +60,7 @@ TEST_P(DiffDriveTest, PublishCmd)
   EXPECT_FALSE(*server.Running(0));
 
   // Create a system that records the vehicle poses
-  Relay testSystem;
+  test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
   testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
@@ -157,7 +116,7 @@ TEST_P(DiffDriveTest, PublishCmd)
   msgs::Twist msg;
 
   // Avoid wheel slip by limiting acceleration
-  Relay velocityRamp;
+  test::Relay velocityRamp;
   const double desiredLinVel = 0.5;
   const double desiredAngVel = 0.2;
   const double linAccel = 1;
@@ -238,7 +197,7 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
   server.SetUpdatePeriod(0ns);
 
   // Create a system that records the vehicle poses
-  Relay testSystem;
+  test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
   testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
