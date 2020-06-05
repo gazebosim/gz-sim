@@ -16,30 +16,32 @@
  */
 
 #include <ignition/msgs/battery_state.pb.h>
+#include <ignition/msgs/boolean.pb.h>
 
-#include <string>
 #include <functional>
+#include <mutex>
+#include <string>
+
+#include <ignition/common/Battery.hh>
+#include <ignition/common/Profiler.hh>
+#include <ignition/common/Util.hh>
 
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
-
-#include <ignition/common/Util.hh>
-#include <ignition/common/Battery.hh>
-#include <ignition/common/Profiler.hh>
 
 #include <sdf/Element.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Model.hh"
 
 #include "LinearBatteryPlugin.hh"
 
@@ -55,6 +57,14 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Get the current state of charge of the battery.
   /// \return State of charge of the battery in range [0.0, 1.0].
   public: double StateOfCharge() const;
+
+  /// \brief Callback executed to start recharging.
+  /// \param[in] _req This value should be true.
+  public: void OnEnableRecharge(const ignition::msgs::Boolean &_req);
+
+  /// \brief Callback executed to stop recharging.
+  /// \param[in] _req This value should be true.
+  public: void OnDisableRecharge(const ignition::msgs::Boolean &_req);
 
   /// \brief Name of model, only used for printing warning when battery drains.
   public: std::string modelName;
@@ -107,9 +117,6 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
 
-  /// \brief SoC threshold for enabling recharge
-  public: double socThreshold{0.0};
-
   /// \brief Battery current for a historic time window
   public: std::deque<double> iList;
 
@@ -138,6 +145,9 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Battery state of charge message publisher
   public: transport::Node::Publisher statePub;
+
+  /// \brief Mutex to protect "startCharging".
+  public: std::mutex mutex;
 };
 
 /////////////////////////////////////////////////
@@ -204,26 +214,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   if (_sdf->HasElement("smooth_current_tau"))
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
 
-  if (_sdf->HasElement("enable_recharge"))
-  {
-    auto isCharging = _sdf->Get<bool>("enable_recharge");
-    if (isCharging)
-    {
-      if (_sdf->HasElement("charging_time") &&
-        _sdf->HasElement("soc_threshold"))
-        {
-          this->dataPtr->tCharge = _sdf->Get<double>("charging_time");
-          this->dataPtr->socThreshold = _sdf->Get<double>("soc_threshold");
-        }
-      else
-      {
-        ignerr << "No <charging_time> or <soc_threshold> specified."
-                  "Both are required to enable recharge.\n";
-        return;
-      }
-    }
-  }
-
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
     auto batteryName = _sdf->Get<std::string>("battery_name");
@@ -233,7 +223,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->batteryEntity = _ecm.CreateEntity();
     // Initialize with initial voltage
     _ecm.CreateComponent(this->dataPtr->batteryEntity,
-        components::BatterySoC(this->dataPtr->soc));
+      components::BatterySoC(this->dataPtr->soc));
     _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
       batteryName));
     _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
@@ -250,6 +240,31 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   {
     ignerr << "No <battery_name> or <voltage> specified. Both are required.\n";
     return;
+  }
+
+  if (_sdf->HasElement("enable_recharge"))
+  {
+    auto isCharging = _sdf->Get<bool>("enable_recharge");
+    if (isCharging)
+    {
+      if (_sdf->HasElement("charging_time"))
+        this->dataPtr->tCharge = _sdf->Get<double>("charging_time");
+      else
+      {
+        ignerr << "No <charging_time> specified. "
+                  "Parameter required to enable recharge.\n";
+        return;
+      }
+      std::string enableRechargeService = this->dataPtr->modelName +
+        "/" + _sdf->Get<std::string>("battery_name") + "/recharge/start";
+      std::string disableRechargeService = this->dataPtr->modelName +
+        "/" + _sdf->Get<std::string>("battery_name") + "/recharge/stop";
+
+      this->dataPtr->node.Advertise(enableRechargeService,
+        &LinearBatteryPluginPrivate::OnEnableRecharge, this->dataPtr.get());
+      this->dataPtr->node.Advertise(disableRechargeService,
+        &LinearBatteryPluginPrivate::OnDisableRecharge, this->dataPtr.get());
+    }
   }
 
   // Consumer-specific
@@ -308,11 +323,30 @@ double LinearBatteryPluginPrivate::StateOfCharge() const
 }
 
 //////////////////////////////////////////////////
+void LinearBatteryPluginPrivate::OnEnableRecharge(
+  const ignition::msgs::Boolean &/*_req*/)
+{
+  igndbg << "Request for start charging received" << std::endl;
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->startCharging = true;
+}
+
+//////////////////////////////////////////////////
+void LinearBatteryPluginPrivate::OnDisableRecharge(
+  const ignition::msgs::Boolean &/*_req*/)
+{
+  igndbg << "Request for stop charging received" << std::endl;
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->startCharging = false;
+}
+
+//////////////////////////////////////////////////
 void LinearBatteryPlugin::PreUpdate(
   const ignition::gazebo::UpdateInfo &/*_info*/,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
+  this->dataPtr->startDraining = false;
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
   {
@@ -370,7 +404,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  if (!this->dataPtr->startDraining)
+  if (!this->dataPtr->startDraining && !this->dataPtr->startCharging)
     return;
 
   // Find the time at which battery starts to drain
@@ -421,10 +455,14 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   msg.set_charge(this->dataPtr->q);
   msg.set_capacity(this->dataPtr->c);
   msg.set_percentage(this->dataPtr->soc);
-  if (this->dataPtr->startDraining)
+  if (this->dataPtr->startCharging)
+    msg.set_power_supply_status(msgs::BatteryState::CHARGING);
+  else if (this->dataPtr->startDraining)
     msg.set_power_supply_status(msgs::BatteryState::DISCHARGING);
-  else
+  else if (this->dataPtr->StateOfCharge() > 0.9)
     msg.set_power_supply_status(msgs::BatteryState::FULL);
+  else
+    msg.set_power_supply_status(msgs::BatteryState::NOT_CHARGING);
   this->dataPtr->statePub.Publish(msg);
 }
 
@@ -455,14 +493,8 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   // compute charging current
   auto iCharge = this->dataPtr->c / this->dataPtr->tCharge;
 
-  // charging criteria
-  if (this->dataPtr->StateOfCharge() < this->dataPtr->socThreshold)
-    this->dataPtr->startCharging = true;
-  if (this->dataPtr->StateOfCharge() >= 0.9)
-    this->dataPtr->startCharging = false;
-
   // add charging current to battery
-  if (this->dataPtr->startCharging)
+  if (this->dataPtr->startCharging && this->dataPtr->StateOfCharge() < 0.9)
     this->dataPtr->iraw -= iCharge;
 
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
@@ -500,7 +532,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
     igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
            << std::endl;
     igndbg << "charging status: " << std::boolalpha
-      << this->dataPtr->startCharging << std::endl;
+           << this->dataPtr->startCharging << std::endl;
     igndbg << "charging current: " << iCharge << std::endl;
     igndbg << "voltage: " << voltage << std::endl;
     igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
