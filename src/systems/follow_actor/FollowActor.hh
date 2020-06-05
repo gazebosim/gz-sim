@@ -43,7 +43,8 @@ namespace systems
   /// <min_distance>: Distance in meters to keep from target's origin.
   ///
   /// <max_distance>: Distance in meters from target's origin when to stop
-  ///                 following.
+  ///                 following. When the actor is back within range it starts
+  ///                 following again.
   ///
   /// <velocity>: Actor's velocity in m/s
   ///

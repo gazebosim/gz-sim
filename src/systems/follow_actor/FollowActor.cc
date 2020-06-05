@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,9 @@ class ignition::gazebo::systems::FollowActorPrivate
 
   /// \brief Time of the last update.
   public: std::chrono::steady_clock::duration lastUpdate{0};
+
+  /// \brief True if currently following
+  public: bool following{true};
 };
 
 //////////////////////////////////////////////////
@@ -144,6 +147,7 @@ void FollowActor::Configure(const Entity &_entity,
   {
     *animationNameComp = components::AnimationName(animationName);
   }
+  // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(_entity,
       components::AnimationName::typeId, ComponentState::OneTimeChange);
 
@@ -229,12 +233,21 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
   // Stop following if too far from target
   if (dir.Length() > this->dataPtr->maxDistance)
   {
-    ignmsg << "Target [" << this->dataPtr->targetEntity
-           <<  "] too far, actor [" << this->dataPtr->actorEntity
-           <<"] stopped following" << std::endl;
-    this->dataPtr->targetEntity = kNullEntity;
-
+    if (this->dataPtr->following)
+    {
+      ignmsg << "Target [" << this->dataPtr->targetEntity
+             <<  "] too far, actor [" << this->dataPtr->actorEntity
+             <<"] stopped following" << std::endl;
+      this->dataPtr->following = false;
+    }
     return;
+  }
+  if (!this->dataPtr->following)
+  {
+    ignmsg << "Target [" << this->dataPtr->targetEntity
+           <<  "] within range, actor [" << this->dataPtr->actorEntity
+           <<"] started following" << std::endl;
+    this->dataPtr->following = true;
   }
 
   dir.Normalize();
@@ -253,6 +266,7 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
 
   // Update actor root pose
   *trajPoseComp = components::TrajectoryPose(actorPose);
+  // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(this->dataPtr->actorEntity,
       components::TrajectoryPose::typeId, ComponentState::OneTimeChange);
 
@@ -265,6 +279,7 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
     std::chrono::duration<double>(distanceTraveled *
     this->dataPtr->animationXVel));
   *animTimeComp = components::AnimationTime(animTime);
+  // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(this->dataPtr->actorEntity,
       components::AnimationTime::typeId, ComponentState::OneTimeChange);
 }
