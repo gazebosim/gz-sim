@@ -27,7 +27,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 #define tol 10e-4
 
