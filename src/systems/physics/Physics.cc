@@ -745,7 +745,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         sdf::Collision collision = _collElement->Data();
         collision.SetRawPose(_pose->Data());
         collision.SetPoseRelativeTo("");
-        uint16_t collideBitmask = collision.Surface()->Contact()->CollideBitmask();
+        auto collideBitmask = collision.Surface()->Contact()->CollideBitmask();
 
         ShapePtrType collisionPtrPhys;
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
