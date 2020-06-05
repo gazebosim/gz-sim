@@ -18,8 +18,8 @@
 #include <ignition/msgs/battery_state.pb.h>
 #include <ignition/msgs/boolean.pb.h>
 
+#include <atomic>
 #include <functional>
-#include <mutex>
 #include <string>
 
 #include <ignition/common/Battery.hh>
@@ -112,7 +112,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: double soc{1.0};
 
   /// \brief Recharge status
-  public: bool startCharging{false};
+  public: std::atomic_bool startCharging{false};
 
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
@@ -145,9 +145,6 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Battery state of charge message publisher
   public: transport::Node::Publisher statePub;
-
-  /// \brief Mutex to protect "startCharging".
-  public: std::mutex mutex;
 };
 
 /////////////////////////////////////////////////
@@ -327,7 +324,6 @@ void LinearBatteryPluginPrivate::OnEnableRecharge(
   const ignition::msgs::Boolean &/*_req*/)
 {
   igndbg << "Request for start charging received" << std::endl;
-  std::lock_guard<std::mutex> lock(this->mutex);
   this->startCharging = true;
 }
 
@@ -336,7 +332,6 @@ void LinearBatteryPluginPrivate::OnDisableRecharge(
   const ignition::msgs::Boolean &/*_req*/)
 {
   igndbg << "Request for stop charging received" << std::endl;
-  std::lock_guard<std::mutex> lock(this->mutex);
   this->startCharging = false;
 }
 
