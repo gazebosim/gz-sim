@@ -1,9 +1,13 @@
 ## Ignition Gazebo 2.x
 
+
 ### Ignition Gazebo 2.XX.XX (2020-XX-XX)
 
 1. Fix segfault in the Breadcrumbs system
     * [Pull Request 180](https://github.com/ignitionrobotics/ign-gazebo/pull/180)
+
+1. Added an `<odom_topic>` element to the DiffDrive system so that a custom odometry topic can be used.
+    * [Pull Request 179](https://github.com/ignitionrobotics/ign-gazebo/pull/179)
 
 ### Ignition Gazebo 2.19.0 (2020-06-02)
 
