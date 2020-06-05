@@ -245,7 +245,8 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
 
     std::set<Entity> processedEntities;
-    for (const auto &e : this->pendingGeometryUpdate) {
+    for (const auto &e : this->pendingGeometryUpdate)
+    {
       Entity perf = _ecm.EntityByComponents(components::Performer(),
                                             components::ParentEntity(e));
       if (perf == kNullEntity)
@@ -282,16 +283,15 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       auto td = _info.simTime - it->second;
       if (td > this->disablePhysicsTime)
       {
-        auto nameComp = _ecm.Component<components::Name>(it->first);
+        auto name = _ecm.Component<components::Name>(it->first)->Data();
         if (!this->MakeStatic(it->first, _ecm))
         {
-          ignerr << "Failed to make breadcrumb '" << nameComp->Data()
+          ignerr << "Failed to make breadcrumb '" << name
                  << "' static." << std::endl;
         }
         else
         {
-          ignmsg << "Breadcrumb '" << nameComp->Data()
-                 << "' is now static." << std::endl;
+          ignmsg << "Breadcrumb '" << name << "' is now static." << std::endl;
         }
         this->autoStaticEntities.erase(it++);
       }
