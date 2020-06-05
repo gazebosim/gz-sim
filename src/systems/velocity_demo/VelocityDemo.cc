@@ -20,6 +20,7 @@
 
 #include <ignition/math/DiffDriveOdometry.hh>
 #include <ignition/math/Quaternion.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -51,29 +52,11 @@ class ignition::gazebo::systems::VelocityDemoPrivate
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  /// \brief Entity of the left joint
-  public: std::vector<Entity> leftJoints;
-
-  /// \brief Entity of the right joint
-  public: std::vector<Entity> rightJoints;
-
-  /// \brief Name of left joint
-  public: std::vector<std::string> leftJointNames;
-
-  /// \brief Name of right joint
-  public: std::vector<std::string> rightJointNames;
-
   /// \brief Calculated speed of left joint
-  public: double leftJointSpeed{0};
+  public: math::Vector3d angularVelocity{0, 0, 0};
 
   /// \brief Calculated speed of right joint
-  public: double rightJointSpeed{0};
-
-  /// \brief Distance between wheels
-  public: double wheelSeparation{1.0};
-
-  /// \brief Wheel radius
-  public: double wheelRadius{0.2};
+  public: math::Vector3d linearVelocity{0, 0, 0};
 
   /// \brief Model interface
   public: Model model{kNullEntity};
@@ -124,20 +107,6 @@ void VelocityDemo::Configure(const Entity &_entity,
   // Ugly, but needed because the sdf::Element::GetElement is not a const
   // function and _sdf is a const shared pointer to a const sdf::Element.
   auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
-  while (sdfElem)
-  {
-    this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("left_joint");
-  }
-  sdfElem = ptr->GetElement("right_joint");
-  while (sdfElem)
-  {
-    this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("right_joint");
-  }
 
   this->dataPtr->wheelSeparation = _sdf->Get<double>("wheel_separation",
       this->dataPtr->wheelSeparation).first;
@@ -216,11 +185,14 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     // Update wheel velocity
     auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+    ignwarn << "Left joint speed: " << vel->Data()[0] << std::endl;
 
     if (vel == nullptr)
     {
       _ecm.CreateComponent(
           joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
+      ignwarn << "Left joint speed: " << this->dataPtr->leftJointSpeed << std::endl;
+
     }
     else
     {
@@ -232,15 +204,18 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     // Update wheel velocity
     auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+    ignwarn << "Right joint speed: " << vel->Data()[0] << std::endl;
 
     if (vel == nullptr)
     {
       _ecm.CreateComponent(joint,
           components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
+      ignwarn << "Right joint speed: " << this->dataPtr->rightJointSpeed << std::endl;
     }
     else
     {
       *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
+      ignwarn << "Right joint speed: " << this->dataPtr->rightJointSpeed << std::endl;
     }
   }
 
@@ -346,13 +321,15 @@ void VelocityDemoPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_in
 //////////////////////////////////////////////////
 void VelocityDemoPrivate::OnCmdVel(const msgs::Twist &_msg)
 {
-  auto linVel = _msg.linear().x();
-  auto angVel = _msg.angular().z();
+  // auto linVel = _msg.linear().x();
+  // auto angVel = _msg.angular().z();
+  this->linearVelocity = _msg.linear();
+  this->angularVelocity = _msg.angular();
 
-  this->rightJointSpeed =
-      (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
-  this->leftJointSpeed =
-    (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
+  // this->rightJointSpeed =
+  //     (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
+  // this->leftJointSpeed =
+  //   (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
 }
 
 IGNITION_ADD_PLUGIN(VelocityDemo,
