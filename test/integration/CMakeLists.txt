@@ -14,6 +14,7 @@ set(tests
   entity_erase.cc
   events.cc
   examples_build.cc
+  follow_actor_system.cc
   imu_system.cc
   joint_controller_system.cc
   lift_drag_system.cc
