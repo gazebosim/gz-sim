@@ -40,6 +40,9 @@ Rectangle {
     onEntered: {
       GzScene3D.OnFocusWindow()
     }
+    onPositionChanged: {
+      GzScene3D.OnHovered(mouseArea.mouseX, mouseArea.mouseY);
+    }
   }
 
   RenderWindow {

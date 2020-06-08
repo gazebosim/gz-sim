@@ -53,7 +53,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED)
+ign_find_package(ignition-msgs5 REQUIRED VERSION 5.3)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
@@ -61,9 +61,9 @@ set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 # Always use the profiler component to get the headers, regardless of status.
 ign_find_package(ignition-common3 VERSION 3.5
   COMPONENTS
-  profiler
-  events
-  av
+    profiler
+    events
+    av
   REQUIRED
 )
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
@@ -91,8 +91,6 @@ ign_find_package(ignition-physics2
   COMPONENTS
     mesh
     sdf
-    dartsim
-    dartsim-plugin
   REQUIRED
 )
 set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})

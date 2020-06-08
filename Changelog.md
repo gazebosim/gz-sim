@@ -30,7 +30,33 @@
 
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X
+### Ignition Gazebo 3.2.0 (2020-05-20)
+
+1. Merge ign-gazebo2 to ign-gazebo3
+    * [pull request 149](https://github.com/ignitionrobotics/ign-gazebo/pull/149)
+
+### Ignition Gazebo 3.1.0 (2020-05-19)
+
+1. Port support for computing model bounding box in physics system
+    * [pull request 127](https://github.com/ignitionrobotics/ign-gazebo/pull/127)
+
+1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
+    * [BitBucket pull request 440](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/440)
+
+1. Update physics state even when paused (not stepping)
+    * [BitBucket pull request 556](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/556)
+
+1. Fix entity tree context menu position
+    * [BitBucket pull request 567](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/567)
+
+1. Fix moving static model with link offset
+    * [BitBucket pull request 566](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/566)
+
+1. Added Link::AddWorldWrench function that adds a wrench to a link.
+    * [BitBucket pull request 509](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/509)
+
+1. Fix duplicate marker services and crash due to unset marker field
+    * [BitBucket pull request 561](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/561)
 
 1. Support <uri>s from Fuel
     * [BitBucket pull request 532](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/532)
@@ -39,6 +65,9 @@
     * [BitBucket pull request 512](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/512)
     * [BitBucket pull request 513](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/513)
     * [BitBucket pull request 514](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/514)
+
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 96](https://github.com/ignitionrobotics/ign-gazebo/pull/96)
 
 ### Ignition Gazebo 3.0.0 (2019-12-10)
 
@@ -75,6 +104,99 @@
 
 
 ## Ignition Gazebo 2.x
+
+### Ignition Gazebo 2.18.0 (2020-05-20)
+
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+    * [Pull Request 146](https://github.com/ignitionrobotics/ign-gazebo/pull/146)
+
+### Ignition Gazebo 2.17.0 (2020-05-13)
+
+1. Allow battery plugin to work with joint force systems.
+    * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
+
+1. DetachableJoint system: Add option to suppress warning about missing child model
+    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
+
+1. Make breadcrumb static after specified time
+    * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)
+
+1. Disable breadcrumbs if the `max_deployments` == 0.
+    * [Pull Request 88](https://github.com/ignitionrobotics/ign-gazebo/pull/88)
+
+1. Add static pose publisher and support pose\_v msg type in pose publisher system
+    * [Pull Request 65](https://github.com/ignitionrobotics/ign-gazebo/pull/65)
+
+1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
+    * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
+
+1. Add ability to save worlds to SDFormat
+    * [BitBucket pull request 545](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/545)
+
+1. Add window focus upon mouse entering the render window
+    * [Github pull request 95](https://github.com/ignitionrobotics/ign-gazebo/pull/95)
+
+### Ignition Gazebo 2.16.0 (2020-03-24)
+
+1. Add support for computing model bounding box in physics system
+    * [BitBucket pull request 546](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/546)
+
+1. Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
+    * [BitBucket pull request 440](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/440)
+
+1. Update physics state even when paused (not stepping)
+    * [BitBucket pull request 556](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/556)
+
+1. Fix entity tree context menu position
+    * [BitBucket pull request 567](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/567)
+
+1. Fix moving static model with link offset
+    * [BitBucket pull request 566](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/566)
+
+1. Add support for setting visual transparency through SDF
+    * [BitBucket pull request 547](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/547)
+
+1. Add `JointPositionReset` and `JointVelocityReset` components to reset the joint state.
+    * [BitBucket pull request 437](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/437)
+
+1. Logging meshes and materials
+    * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/367)
+
+1. List plugin env vars
+    * [BitBucket pull request 560](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/560)
+
+1. Fix protobuf / clang warnings
+    * [BitBucket pull request 555](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/555)
+
+1. Component inspector
+    * [BitBucket pull request 528](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/528)
+
+1. Log compress
+    * [BitBucket pull request 500](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/500)
+
+1. Set process titles
+    * [BitBucket pull request 530](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/530)
+
+1. Add custom user snapping
+    * [BitBucket pull request 493](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/493)
+
+1. Add GUI to configure grid
+    * [BitBucket pull request 507](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/507)
+
+1. Add multiple entity selection to view angle
+    * [BitBucket pull request 531](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/531)
+
+1. Highlight selected entities
+    * [BitBucket pull request 515](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/515)
+
+1. Log record overwrite
+    * [BitBucket pull request 497](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/497)
+
+1. Add copyright to QML files
+    * [BitBucket pull request 527](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/527)
+
+1. Fix shift translation bug
+    * [BitBucket pull request 529](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/529)
 
 ### Ignition Gazebo 2.15.0 (2020-02-07)
 

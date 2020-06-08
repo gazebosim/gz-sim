@@ -1,12 +1,12 @@
 \page meshtofuel Importing a Mesh to Fuel
 
-This tutorial will explain how to import a mesh to the [Ignition Fuel](app.ignitionrobotics.org) web application.
+This tutorial will explain how to import a mesh to the [Ignition Fuel](https://app.ignitionrobotics.org) web application.
 Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Ignition GUI.
 
 ## Prerequisites
 
 To import meshes to Fuel, you need to have a user account.
-Go to [app.ignitionrobotics.org](app.ignitionrobotics.org) and click Login in the top right corner of the screen, then click Sign Up.
+Go to [app.ignitionrobotics.org](https://app.ignitionrobotics.org) and click Login in the top right corner of the screen, then click Sign Up.
 Once you verify your email address, your account will be ready.
 
 You'll need a mesh ready before trying to import to Fuel.
