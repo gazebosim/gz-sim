@@ -159,6 +159,8 @@
 
         <visual name="sphere_visual">
           <pose>0.32 0.32 0.32 0 0 0</pose>
+          <transparency>0.5</transparency>
+          <cast_shadows>false</cast_shadows>
           <geometry>
             <sphere>
               <radius>1.2</radius>

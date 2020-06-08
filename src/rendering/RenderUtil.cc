@@ -60,6 +60,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -244,8 +245,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->simTime = _info.simTime;
 
   this->dataPtr->CreateRenderingEntities(_ecm, _info);
-  if (_info.dt != std::chrono::steady_clock::duration::zero())
-    this->dataPtr->UpdateRenderingEntities(_ecm);
+  this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
 }
@@ -696,6 +696,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     _ecm.Each<components::Visual, components::Name, components::Pose,
               components::Geometry,
               components::CastShadows,
+              components::Transparency,
               components::VisibilityFlags,
               components::ParentEntity>(
         [&](const Entity &_entity,
@@ -704,6 +705,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Pose *_pose,
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
+            const components::Transparency *_transparency,
             const components::VisibilityFlags *_visibilityFlags,
             const components::ParentEntity *_parent)->bool
         {
@@ -712,6 +714,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
+          visual.SetTransparency(_transparency->Data());
           visual.SetVisibilityFlags(_visibilityFlags->Data());
 
           // Optional components
@@ -869,6 +872,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
               components::Geometry,
               components::CastShadows,
+              components::Transparency,
               components::VisibilityFlags,
               components::ParentEntity>(
         [&](const Entity &_entity,
@@ -877,6 +881,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Pose *_pose,
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
+            const components::Transparency *_transparency,
             const components::VisibilityFlags *_visibilityFlags,
             const components::ParentEntity *_parent)->bool
         {
@@ -885,6 +890,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
+          visual.SetTransparency(_transparency->Data());
           visual.SetVisibilityFlags(_visibilityFlags->Data());
 
           // Optional components
@@ -1023,13 +1029,34 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // Trajectory origin
         this->entityPoses[_entity] = _pose->Data();
 
-        if (this->actorManualSkeletonUpdate)
+        auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
+        auto animNameComp = _ecm.Component<components::AnimationName>(_entity);
+
+        // Animation time set through ECM so ign-rendering can calculate bone
+        // transforms
+        if (animTimeComp && animNameComp)
         {
-          // Bone poses calculated by ign-common
+          auto skel = this->sceneManager.ActorSkeletonById(_entity);
+          if (nullptr != skel)
+          {
+            AnimationUpdateData animData;
+            animData.loop = true;
+            animData.followTrajectory = true;
+            animData.animationName = animNameComp->Data();
+            animData.time = animTimeComp->Data();
+            animData.rootTransform = skel->RootNode()->Transform();
+            animData.valid = true;
+            this->actorAnimationData[_entity] = animData;
+          }
+        }
+        // Bone poses calculated by ign-common
+        else if (this->actorManualSkeletonUpdate)
+        {
           this->actorTransforms[_entity] =
               this->sceneManager.ActorSkeletonTransformsAt(
               _entity, this->simTime);
         }
+        // Trajectory info from SDF so ign-rendering can calculate bone poses
         else
         {
           this->actorAnimationData[_entity] =
@@ -1206,6 +1233,8 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
+  if (this->dataPtr->enableSensors)
+    this->dataPtr->markerManager.SetTopic("/sensors/marker");
   this->dataPtr->markerManager.Init(this->dataPtr->scene);
 }
 

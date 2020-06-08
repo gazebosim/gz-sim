@@ -218,7 +218,10 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordPath(_cfg->logRecordPath),
             logIgnoreSdfPath(_cfg->logIgnoreSdfPath),
             logPlaybackPath(_cfg->logPlaybackPath),
+            logRecordResources(_cfg->logRecordResources),
+            logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
+            physicsEngine(_cfg->physicsEngine),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -249,9 +252,18 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
 
+  /// \brief Record meshes and material files
+  public: bool logRecordResources{false};
+
+  /// \brief Path to compress log files to
+  public: std::string logRecordCompressPath = "";
+
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
+
+  /// \brief File containing physics engine plugin. If empty, DART will be used.
+  public: std::string physicsEngine = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -432,6 +444,30 @@ void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 }
 
 /////////////////////////////////////////////////
+bool ServerConfig::LogRecordResources() const
+{
+  return this->dataPtr->logRecordResources;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordResources(bool _recordResources)
+{
+  this->dataPtr->logRecordResources = _recordResources;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::LogRecordCompressPath() const
+{
+  return this->dataPtr->logRecordCompressPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordCompressPath(const std::string &_path)
+{
+  this->dataPtr->logRecordCompressPath = _path;
+}
+
+/////////////////////////////////////////////////
 unsigned int ServerConfig::Seed() const
 {
   return this->dataPtr->seed;
@@ -454,6 +490,18 @@ const std::string &ServerConfig::ResourceCache() const
 void ServerConfig::SetResourceCache(const std::string &_path)
 {
   this->dataPtr->resourceCache = _path;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::PhysicsEngine() const
+{
+  return this->dataPtr->physicsEngine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetPhysicsEngine(const std::string &_physicsEngine)
+{
+  this->dataPtr->physicsEngine = _physicsEngine;
 }
 
 /////////////////////////////////////////////////
