@@ -33,7 +33,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -60,47 +60,6 @@ class DetachableJointTest : public ::testing::Test
   }
 
   public: std::unique_ptr<Server> server;
-};
-
-
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
 };
 
 /////////////////////////////////////////////////
@@ -135,9 +94,9 @@ TEST_F(DetachableJointTest, StartConnected)
   };
 
   std::vector<math::Pose3d> m1Poses, m2Poses;
-  Relay testSystem1;
+  test::Relay testSystem1;
   testSystem1.OnPostUpdate(poseRecorder("M1", m1Poses));
-  Relay testSystem2;
+  test::Relay testSystem2;
   testSystem2.OnPostUpdate(poseRecorder("M2", m2Poses));
 
   this->server->AddSystem(testSystem1.systemPtr);
@@ -213,9 +172,9 @@ TEST_F(DetachableJointTest, LinksInSameModel)
   };
 
   std::vector<math::Pose3d> b1Poses, b2Poses;
-  Relay testSystem1;
+  test::Relay testSystem1;
   testSystem1.OnPostUpdate(poseRecorder("body1", b1Poses));
-  Relay testSystem2;
+  test::Relay testSystem2;
   testSystem2.OnPostUpdate(poseRecorder("body2", b2Poses));
 
   this->server->AddSystem(testSystem1.systemPtr);
