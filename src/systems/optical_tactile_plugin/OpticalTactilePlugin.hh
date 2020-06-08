@@ -34,6 +34,16 @@ namespace systems
     // Forward declaration
     class OpticalTactilePluginPrivate;
 
+    /// \brief Plugin that implements an optical tactile sensor
+    ///
+    /// It requires that contact sensors be placed in at least one link on the
+    /// model on which this plugin is attached.
+    ///
+    /// Parameters:
+    /// 
+    /// <enabled> Set this to true so the plugin works from the start and doesn't
+    ///           need to be enabled.
+
     class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
         public System,
         public ISystemConfigure,
