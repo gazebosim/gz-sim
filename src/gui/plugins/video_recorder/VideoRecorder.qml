@@ -83,8 +83,16 @@ ToolBar {
         rows: 2
         flow: GridLayout.TopToBottom
         anchors.fill: parent
-        Label { text: "File extension doesn't correspond with video encoding."; font.pixelSize: 20 }
-        Label { text: "Click 'Abort' to change the name or 'Save' to continue."; font.pixelSize: 20 }
+
+        Label {
+          text: "File extension doesn't correspond with video encoding."
+          font.pixelSize: 20
+        }
+
+        Label {
+          text: "Click 'Abort' to change the name or 'Save' to continue."
+          font.pixelSize: 20
+        }
       }
 
       onAccepted: {
