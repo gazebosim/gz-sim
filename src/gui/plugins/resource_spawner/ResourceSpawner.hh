@@ -39,7 +39,7 @@ namespace gazebo
     /// \brief The absolute path to the sdf corresponding to the local model
     std::string sdfPath = "";
 
-    /// \brief The absolute path to the thumbnail of the local model, will
+    /// \brief The absolute path to the thumbnail of the local model, will be
     /// empty if no thumbnail is found
     std::string thumbnailPath = "";
   };
@@ -84,7 +84,7 @@ namespace gazebo
     public slots: void OnResourceSpawn(const QString &_sdfPath);
 
     /// \brief Loads a local model from an absolute path to a model.config,
-    /// returns if no model.config is passed in
+    /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
     public: void LoadLocalModel(const std::string &_path);
 

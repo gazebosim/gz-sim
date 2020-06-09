@@ -98,7 +98,7 @@ ResourceSpawner::~ResourceSpawner() = default;
 void ResourceSpawner::LoadLocalModel(const std::string &_path)
 {
   std::string fileName = common::basename(_path);
-  if (common::isFile(_path) && fileName != "model.config")
+  if (!common::isFile(_path) || fileName != "model.config")
     return;
 
   // If we have found model.config, extract thumbnail and sdf
@@ -157,13 +157,19 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
     for (common::DirIter file(path); file != common::DirIter(); ++file)
     {
       std::string currentPath(*file);
-      std::string modelConfigPath =
-        common::joinPaths(currentPath, "model.config");
-      if (common::isFile(modelConfigPath))
-        this->LoadLocalModel(modelConfigPath);
+      if (common::isDirectory(currentPath))
+      {
+        std::string modelConfigPath =
+          common::joinPaths(currentPath, "model.config");
+          this->LoadLocalModel(modelConfigPath);
+      }
+      else
+      {
+        this->LoadLocalModel(currentPath);
+      }
     }
   }
-  else if (common::isFile(path))
+  else
   {
     this->LoadLocalModel(path);
   }
