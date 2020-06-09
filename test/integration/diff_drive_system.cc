@@ -219,6 +219,16 @@ TEST_P(DiffDriveTest, PublishCmd)
   EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
   EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
   EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
+
+  // Max velocities/accelerations expectations.
+  // Moving time.
+  double t = 3.0;
+  double d = poses[3999].Pos().Distance(poses[1000].Pos());
+  const double v0 = 0;
+  double v = d / t;
+  double a = (v - v0) / t;
+  EXPECT_LT(v, 0.5);
+  EXPECT_LT(a, 1);
 }
 
 /////////////////////////////////////////////////
