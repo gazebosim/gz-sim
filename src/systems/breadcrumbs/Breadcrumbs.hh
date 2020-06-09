@@ -71,6 +71,10 @@ namespace systems
   /// `<performer_volume>`: Geometry that represents the bounding volume of
   /// the performer. Only `<geometry><box>` is supported currently. When this
   /// parameter is present, the deployed models will be performers.
+  /// `<allow_renaming>`: If true, the deployed model will be renamed if another
+  /// model with the same name already exists in the world. If false and there
+  /// is another model with the same name, the breadcrumb will not be deployed.
+  /// Defaults to false.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
   class IGNITION_GAZEBO_VISIBLE Breadcrumbs
@@ -127,6 +131,10 @@ namespace systems
 
     /// \brief Whether the deployed models will be performers
     private: bool isPerformer{false};
+
+    /// \brief Whether the deployed model should be renamed if a model with the
+    /// same name already exists
+    private: bool allowRenaming{false};
 
     /// \brief Bounding volume of the performer
     private: std::optional<sdf::Geometry> performerGeometry;
