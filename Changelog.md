@@ -1,7 +1,11 @@
 ## Ignition Gazebo 2.x
 
 
-### Ignition Gazebo 2.XX.XX (2020-XX-XX)
+### Ignition Gazebo 2.20.0 (2020-06-09)
+
+1. Updated battery model to stop battery drain when there is no joint
+   velocity/force command, and added a recharging trigger.
+    * [Pull Request 183](https://github.com/ignitionrobotics/ign-gazebo/pull/183)
 
 1. Fix segfault in the Breadcrumbs system
     * [Pull Request 180](https://github.com/ignitionrobotics/ign-gazebo/pull/180)
