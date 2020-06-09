@@ -118,22 +118,21 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
     msgs::Twist msg;
 
     // Avoid wheel slip by limiting acceleration
+    // Avoid wheel slip by limiting acceleration (1 m/s^2)
+    // and max velocity (0.5 m/s).
+    // See <max_velocity< and <max_aceleration> parameters
+    // in "/test/worlds/diff_drive.sdf".
     test::Relay velocityRamp;
-    const double desiredLinVel = 0.5;
+    const double desiredLinVel = 10.5;
     const double desiredAngVel = 0.2;
-    const double linAccel = 1;
-    const double angAccel = 1;
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &_info,
+        [&](const gazebo::UpdateInfo &/*_info*/,
             const gazebo::EntityComponentManager &)
         {
-          double dt = std::chrono::duration<double>(_info.dt).count();
-          double nextLinVel = msg.linear().x() + dt * linAccel;
-          double nextAngVel = msg.angular().z() + dt * angAccel;
           msgs::Set(msg.mutable_linear(),
-              math::Vector3d(std::min(nextLinVel, desiredLinVel), 0, 0));
+                    math::Vector3d(desiredLinVel, 0, 0));
           msgs::Set(msg.mutable_angular(),
-              math::Vector3d(0.0, 0, std::min(nextAngVel, desiredAngVel)));
+                    math::Vector3d(0.0, 0, desiredAngVel));
           pub.Publish(msg);
         });
 
@@ -183,6 +182,16 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
     EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
     EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
     EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
+
+    // Max velocities/accelerations expectations.
+    // Moving time.
+    double t = 3.0;
+    double d = poses[3999].Pos().Distance(poses[1000].Pos());
+    const double v0 = 0;
+    double v = d / t;
+    double a = (v - v0) / t;
+    EXPECT_LT(v, 0.5);
+    EXPECT_LT(a, 1);
   }
 };
 
@@ -202,7 +211,6 @@ TEST_P(DiffDriveTest, PublishCmdCustomTopics)
       "/test/worlds/diff_drive_custom_topics.sdf",
       "/model/foo/cmdvel", "/model/bar/odom");
 }
-
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, SkidPublishCmd)

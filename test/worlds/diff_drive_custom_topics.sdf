@@ -228,6 +228,8 @@
         <wheel_radius>0.3</wheel_radius>
         <topic>/model/foo/cmdvel</topic>
         <odom_topic>/model/bar/odom</odom_topic>
+        <max_acceleration>1</max_acceleration>
+        <max_velocity>0.5</max_velocity>
         <!-- no odom_publisher_frequency defaults to 50 Hz -->
       </plugin>
 

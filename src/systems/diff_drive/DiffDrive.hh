@@ -17,8 +17,9 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 #define IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 
-#include <ignition/gazebo/System.hh>
 #include <memory>
+
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
@@ -97,4 +98,3 @@ namespace systems
 }
 
 #endif
-
