@@ -24,10 +24,10 @@
 
 #include "../plugins/MockSystem.hh"
 
-namespace ignition
-{
-namespace gazebo
-{
+
+using namespace ignition;
+using namespace gazebo;
+
 namespace test
 {
 /// \brief Helper class to be used in internal tests. It allows registering
@@ -98,7 +98,5 @@ class Relay
   /// \brief Used to load the system.
   private: SystemLoader loader;
 };
-}
-}
 }
 #endif
