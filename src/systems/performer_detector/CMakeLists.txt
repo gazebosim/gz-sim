@@ -1,7 +1,6 @@
-gz_add_system(diff-drive
+gz_add_system(performer-detector
   SOURCES
-    DiffDrive.cc
-    SpeedLimiter.cc
+  PerformerDetector.cc
   PUBLIC_LINK_LIBS
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )

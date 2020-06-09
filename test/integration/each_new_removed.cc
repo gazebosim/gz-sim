@@ -28,7 +28,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace std::chrono_literals;
@@ -45,42 +45,6 @@ class EachNewRemovedFixture : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
       (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
-};
-
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = this->systemLoader.LoadPlugin(
-        "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
-  }
-
-  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-
-  private: gazebo::SystemLoader systemLoader;
-  private: gazebo::MockSystem *mockSystem;
 };
 
 /////////////////////////////////////////////////
@@ -103,7 +67,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
   gazebo::Entity e1 = gazebo::kNullEntity;
   gazebo::Entity e2 = gazebo::kNullEntity;
 
-  Relay entityCreator;
+  gazebo::test::Relay entityCreator;
   entityCreator.OnPreUpdate(
     [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
     {
@@ -118,7 +82,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
       }
   });
 
-  Relay entityRemover;
+  gazebo::test::Relay entityRemover;
   entityRemover.OnPreUpdate(
     [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
     {
@@ -163,7 +127,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
     return counterImpl;
   };
 
-  Relay entityCounter;
+  gazebo::test::Relay entityCounter;
   entityCounter.OnPreUpdate(counterFunc(preCount));
   entityCounter.OnUpdate(counterFunc(updateCount));
   entityCounter.OnPostUpdate(counterFunc(postCount));
