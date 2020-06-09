@@ -38,6 +38,9 @@ namespace ignition::gazebo
 {
   class ResourceSpawnerPrivate
   {
+    /// \brief Ignition communication node.
+    public: transport::Node node;
+
     /// \brief The grid model that the qml gridview reflects
     public: GridModel gridModel;
   };
@@ -185,8 +188,18 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
 
-  std::string path =
-    "/home/john/ignition-models";
+  msgs::StringMsg_V res;
+  bool result;
+  bool executed = this->dataPtr->node.Request("/gazebo/get_resource_paths", 5000, res, result);
+  if (!executed || !result || res.data_size() < 1)
+  {
+    ignwarn << "IGN_GAZEBO_RESOURCE_PATH not found."   \
+               "Set this environment variable to the " \
+               "path where your models are located.\n";
+    return;
+  }
+
+  std::string path = res.data(0);
   this->FindLocalModels(path);
 }
 
