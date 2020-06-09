@@ -22,6 +22,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/common/Time.hh>
 
 #include <sdf/Element.hh>
 
@@ -34,6 +35,12 @@
 
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
+
+#include <ignition/transport.hh>
+#include <ignition/math.hh>
+#include <ignition/msgs.hh>
+
+#include <google/protobuf/message.h>
 
 #include "OpticalTactilePlugin.hh"
 
@@ -63,13 +70,19 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
     public: void FilterOutCollisions(const EntityComponentManager &_ecm,
                                   const std::vector<Entity> &_entities);
 
+    /// \brief Visualize the sensor's data using the Marker message
+    public: void VisualizeSensorData(std::vector<ignition::msgs::Vector3d> &positions);
+
+    /// \brief Interpolates contact data
+    public: void InterpolateData(const ignition::msgs::Contact &contactMsg);
+
     /// \brief Resolution of the sensor in mm.
     public: double resolution;
 
     /// \brief Model interface.
     public: Model model{kNullEntity};
 
-    /// \brief Transport node to keep services alive.
+    /// \brief Transport node to visualize data on Gazebo.
     public: transport::Node node;
 
     /// \brief Publisher that publishes the sensors' contacts.
@@ -96,6 +109,14 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
     /// \brief Name of the model in which the sensor(s) is attached.
     public: std::string modelName;
     
+    /// \brief Message for visualizing contact positions
+    public: ignition::msgs::Marker positionMarkerMsg;
+
+    /// \brief Message for visualizing contact forces
+    public: ignition::msgs::Marker forceMarkerMsg;
+
+    /// \brief Position interpolated from the Contact messages
+    public: std::vector<ignition::msgs::Vector3d> interpolatedPosition;
 
 };
 
@@ -114,7 +135,6 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
     else 
     {
         this->resolution = _sdf->Get<double>("resolution");
-        igndbg << "Sensor resolution: " << this->resolution << " mm" << std::endl;
     }
 
     // Get all the sensors
@@ -162,9 +182,15 @@ void OpticalTactilePluginPrivate::Update(const UpdateInfo &_info,
         {
             for (const auto &contact : contacts->Data().contact())
             {
-                ignmsg << "Collision between Entity " << contact.collision1().id()
-                << " and " << contact.collision2().id() << std::endl;
+                // Interpolate data returned by the Contact message
+                this->InterpolateData(contact);
+
+                // Visualize interpolated data
+                this->VisualizeSensorData(this->interpolatedPosition);
+
             }
+
+            //ignition::common::Time::Sleep(ignition::common::Time(0.1));
         }
     }
 }
@@ -194,6 +220,46 @@ void OpticalTactilePluginPrivate::FilterOutCollisions(const EntityComponentManag
 }
 
 //////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::InterpolateData(const ignition::msgs::Contact &contact)
+{
+    // Delete old positions
+    this->interpolatedPosition.clear();
+
+    // Add new ones and interpolate
+    for (int index = 0; index < contact.position_size(); ++index)
+    {
+        this->interpolatedPosition.push_back(contact.position(index));
+    }
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::VisualizeSensorData(std::vector<ignition::msgs::Vector3d> &positions)
+{
+    // Delete previous shapes already in simulation
+    this->positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+    this->forceMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+    this->node.Request("/marker",this->positionMarkerMsg);
+    this->node.Request("/marker",this->forceMarkerMsg);
+
+    // Add the new ones
+    this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+    this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+    for (int index = 0; index < positions.size(); ++index)
+    {
+        this->positionMarkerMsg.set_id(index);
+        this->forceMarkerMsg.set_id(index);
+
+        ignition::msgs::Set(this->positionMarkerMsg.mutable_pose(),
+                        ignition::math::Pose3d(positions[index].x(), positions[index].y(), positions[index].z(), 0, 0, 0));
+        ignition::msgs::Set(this->forceMarkerMsg.mutable_pose(),
+                        ignition::math::Pose3d(positions[index].x(), positions[index].y(), positions[index].z(), 0, 0, 0));
+
+        this->node.Request("/marker",this->positionMarkerMsg);
+        this->node.Request("/marker",this->forceMarkerMsg);
+    }
+}
+
+//////////////////////////////////////////////////
 OpticalTactilePlugin::OpticalTactilePlugin()
             : System(), dataPtr(std::make_unique<OpticalTactilePluginPrivate>())
 {
@@ -209,6 +275,51 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     igndbg << "OpticalTactilePlugin::Configure" << std::endl;
     this->dataPtr->sdfConfig = _sdf->Clone();
     this->dataPtr->model = Model(_entity);
+
+    // Configure Marker messages for position and force of the contacts
+    // Blue spheres for positions
+    // Red cylinders for forces
+
+    // Create the marker message
+    this->dataPtr->positionMarkerMsg.set_ns("positions");
+    this->dataPtr->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+    this->dataPtr->positionMarkerMsg.set_type(ignition::msgs::Marker::SPHERE);
+    this->dataPtr->positionMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+
+    this->dataPtr->forceMarkerMsg.set_ns("forces");
+    this->dataPtr->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+    this->dataPtr->forceMarkerMsg.set_type(ignition::msgs::Marker::CYLINDER);
+    this->dataPtr->forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+
+    // Set material properties 
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+    this->dataPtr->positionMarkerMsg.mutable_lifetime()->set_sec(2);
+    this->dataPtr->positionMarkerMsg.mutable_lifetime()->set_nsec(0);
+
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+    this->dataPtr->forceMarkerMsg.mutable_lifetime()->set_sec(2);
+    this->dataPtr->forceMarkerMsg.mutable_lifetime()->set_nsec(0);
+
+    // Set scales
+    ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
+                        ignition::math::Vector3d(0.20, 0.20, 0.20));
+
+    ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
+                        ignition::math::Vector3d(0.05, 0.05, 0.7));
 }
 
 //////////////////////////////////////////////////
