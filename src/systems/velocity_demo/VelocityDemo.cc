@@ -105,7 +105,7 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   auto angularVel = _ecm.Component<components::AngularVelocityCmd>(model);
   ignwarn << "Model angular velocity: " << angularVel->Data()[0] << ", "
     << angularVel->Data()[1] << ", " << angularVel->Data()[2] << std::endl;
-   
+
   if (angularVel == nullptr)
   {
     _ecm.CreateComponent(
@@ -116,7 +116,8 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   }
   else
   {
-    *angularVel = components::AngularVelocityCmd({this->dataPtr->angularVelocity});
+    *angularVel = components::AngularVelocityCmd(
+      {this->dataPtr->angularVelocity});
     ignwarn << "Model angular velocity: " << this->dataPtr->angularVelocity[0]
       << this->dataPtr->angularVelocity[1] << this->dataPtr->angularVelocity[2]
       << std::endl;
@@ -167,4 +168,5 @@ IGNITION_ADD_PLUGIN(VelocityDemo,
                     VelocityDemo::ISystemPreUpdate,
                     VelocityDemo::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(VelocityDemo, "ignition::gazebo::systems::VelocityDemo")
+IGNITION_ADD_PLUGIN_ALIAS(VelocityDemo,
+                          "ignition::gazebo::systems::VelocityDemo")
