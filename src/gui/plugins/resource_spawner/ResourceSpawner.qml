@@ -31,34 +31,38 @@ Rectangle {
   GridView {
     id: gridView
     anchors.fill: parent
-
     model: LocalModelList
     delegate: Rectangle {
       width: gridView.cellWidth
       height: gridView.cellHeight
       color: "transparent"
-      Image {
-        anchors.fill: parent
-        anchors.margins: 1
-        source: model.thumbnail == "" ? "NoThumbnail.png" : model.thumbnail
-        fillMode: Image.PreserveAspectFit
-      }
-      MouseArea {
-        anchors.fill: parent
-        onClicked: {
-          ResourceSpawner.OnResourceSpawn(model.sdf);
-        }
-      }
-      Text {
-        text: model.name
+      Pane {
         width: parent.width
         height: parent.height
-        minimumPointSize: 5
-        font.pointSize: 60
-        fontSizeMode: Text.Fit
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
+        Material.elevation: 6
+        Image {
+          anchors.fill: parent
+          anchors.margins: 1
+          source: model.thumbnail == "" ? "NoThumbnail.png" : model.thumbnail
+          fillMode: Image.PreserveAspectFit
+        }
+        MouseArea {
+          anchors.fill: parent
+          onClicked: {
+            ResourceSpawner.OnResourceSpawn(model.sdf);
+          }
+        }
+        Text {
+          text: model.name
+          color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+          width: parent.width
+          height: parent.height
+          font.pointSize: 12
+          elide: Text.ElideRight
+          anchors.bottom: parent.bottom
+          anchors.horizontalCenter: parent.horizontalCenter
+        }
       }
-   }
- }
+    }
+  }
 }
