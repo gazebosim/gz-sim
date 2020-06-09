@@ -1,5 +1,18 @@
 ## Ignition Gazebo 2.x
 
+
+### Ignition Gazebo 2.20.0 (2020-06-09)
+
+1. Updated battery model to stop battery drain when there is no joint
+   velocity/force command, and added a recharging trigger.
+    * [Pull Request 183](https://github.com/ignitionrobotics/ign-gazebo/pull/183)
+
+1. Fix segfault in the Breadcrumbs system
+    * [Pull Request 180](https://github.com/ignitionrobotics/ign-gazebo/pull/180)
+
+1. Added an `<odom_topic>` element to the DiffDrive system so that a custom odometry topic can be used.
+    * [Pull Request 179](https://github.com/ignitionrobotics/ign-gazebo/pull/179)
+
 ### Ignition Gazebo 2.19.0 (2020-06-02)
 
 1. Use updated model names for spawned models when generating SDFormat
