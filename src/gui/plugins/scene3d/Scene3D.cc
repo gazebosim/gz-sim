@@ -596,6 +596,10 @@ void IgnRenderer::Render()
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->spawnModel)
     {
+      // Terminate any pre-existing visualized models
+      this->TerminatePreviewModel();
+
+      // Generate preview model
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
       this->dataPtr->placingModel =
