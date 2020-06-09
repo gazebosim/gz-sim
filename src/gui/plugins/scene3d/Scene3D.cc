@@ -596,9 +596,6 @@ void IgnRenderer::Render()
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->spawnModel)
     {
-      // Terminate any pre-existing visualized models
-      this->TerminatePreviewModel();
-
       // Generate preview model
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
@@ -619,6 +616,9 @@ void IgnRenderer::Render()
 /////////////////////////////////////////////////
 bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
 {
+  // Terminate any pre-existing visualized models
+  this->TerminatePreviewModel();
+
   sdf::Root root;
   root.LoadSdfString(_modelSdfString);
 
