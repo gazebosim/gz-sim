@@ -23,7 +23,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 Rectangle {
-  id: insertmodel
+  id: resourceSpawner
   color: "transparent"
   Layout.minimumWidth: 200
   Layout.minimumHeight: 500
@@ -46,7 +46,7 @@ Rectangle {
       MouseArea {
         anchors.fill: parent
         onClicked: {
-          InsertModel.OnMode(model.sdf);
+          ResourceSpawner.OnResourceSpawn(model.sdf);
         }
       }
       Text {

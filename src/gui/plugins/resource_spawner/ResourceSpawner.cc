@@ -32,21 +32,12 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
-#include "InsertModel.hh"
+#include "ResourceSpawner.hh"
 
 namespace ignition::gazebo
 {
-  class InsertModelPrivate
+  class ResourceSpawnerPrivate
   {
-    /// \brief Ignition communication node.
-    public: transport::Node node;
-
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
-    /// \brief Transform control service name
-    public: std::string service;
-
     /// \brief The grid model that the qml gridview reflects
     public: GridModel gridModel;
   };
@@ -83,7 +74,8 @@ void GridModel::AddLocalModel(LocalModel &_model)
 /////////////////////////////////////////////////
 QHash<int, QByteArray> GridModel::roleNames() const
 {
-  return {
+  return
+  {
     std::pair(100, "thumbnail"),
     std::pair(101, "name"),
     std::pair(102, "sdf"),
@@ -91,114 +83,108 @@ QHash<int, QByteArray> GridModel::roleNames() const
 }
 
 /////////////////////////////////////////////////
-InsertModel::InsertModel()
+ResourceSpawner::ResourceSpawner()
   : ignition::gui::Plugin(),
-  dataPtr(std::make_unique<InsertModelPrivate>())
+  dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "LocalModelList", &this->dataPtr->gridModel);
 }
 
 /////////////////////////////////////////////////
-InsertModel::~InsertModel() = default;
+ResourceSpawner::~ResourceSpawner() = default;
 
 /////////////////////////////////////////////////
-void InsertModel::FindLocalModels(const std::string &_path)
+void ResourceSpawner::LoadLocalModel(const std::string &_path)
+{
+  std::string fileName = common::basename(_path);
+  if (common::isFile(_path) && fileName != "model.config")
+    return;
+
+  // If we have found model.config, extract thumbnail and sdf
+  LocalModel model;
+  std::string modelPath = common::parentPath(_path);
+  std::string thumbnailPath = common::joinPaths(modelPath, "thumbnails");
+  std::string configFileName = common::joinPaths(modelPath, "model.config");
+  tinyxml2::XMLDocument doc;
+  doc.LoadFile(configFileName.c_str());
+  auto modelXml = doc.FirstChildElement("model");
+
+  if (modelXml)
+  {
+    auto modelName = modelXml->FirstChildElement("name");
+    if (modelName)
+      model.name = modelName->GetText();
+  }
+  std::string sdfPath = sdf::getModelFilePath(modelPath);
+  model.sdfPath = sdfPath;
+
+  // Get first thumbnail image found
+  if (common::exists(thumbnailPath))
+  {
+    for (common::DirIter file(thumbnailPath);
+         file != common::DirIter(); ++file)
+    {
+      std::string current(*file);
+      if (common::isFile(current))
+      {
+        std::string thumbnailFileName = common::basename(current);
+        std::string::size_type thumbnailExtensionIndex =
+          thumbnailFileName.rfind(".");
+        std::string thumbnailFileExtension =
+          thumbnailFileName.substr(thumbnailExtensionIndex + 1);
+        // The standard image types QML supports
+        if (thumbnailFileExtension == "png"  ||
+            thumbnailFileExtension == "jpg"  ||
+            thumbnailFileExtension == "jpeg" ||
+            thumbnailFileExtension == "svg")
+        {
+          model.thumbnailPath = current;
+          break;
+        }
+      }
+    }
+  }
+  this->dataPtr->gridModel.AddLocalModel(model);
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::FindLocalModels(const std::string &_path)
 {
   std::string path = _path;
-  // Recurse if directory
   if (common::isDirectory(path))
   {
     for (common::DirIter file(path); file != common::DirIter(); ++file)
     {
-      std::string current(*file);
-      this->FindLocalModels(current);
+      std::string currentPath(*file);
+      std::string modelConfigPath = common::joinPaths(currentPath, "model.config");
+      if (common::isFile(modelConfigPath))
+        this->LoadLocalModel(modelConfigPath);
     }
   }
   else if (common::isFile(path))
   {
-    std::string fileName = common::basename(path);
-
-    // If we have found model.config, extract thumbnail and sdf
-    if (fileName == "model.config")
-    {
-      LocalModel model;
-      model.configPath = path;
-      std::string modelPath = common::parentPath(path);
-      std::string thumbnailPath = common::joinPaths(modelPath, "thumbnails");
-      std::string configFileName = common::joinPaths(modelPath, "model.config");
-      tinyxml2::XMLDocument doc;
-      doc.LoadFile(configFileName.c_str());
-      auto modelXml = doc.FirstChildElement("model");
-
-      if (modelXml)
-      {
-        auto modelName = modelXml->FirstChildElement("name");
-        if (modelName)
-          model.name = modelName->GetText();
-      }
-      std::string sdfPath = sdf::getModelFilePath(modelPath);
-      model.sdfPath = sdfPath;
-
-      // Get first thumbnail image found
-      if (common::exists(thumbnailPath))
-      {
-        for (common::DirIter file(thumbnailPath);
-             file != common::DirIter(); ++file)
-        {
-          std::string current(*file);
-          if (common::isFile(current))
-          {
-            std::string thumbnailFileName = common::basename(current);
-            std::string::size_type thumbnailExtensionIndex =
-              thumbnailFileName.rfind(".");
-            std::string thumbnailFileExtension =
-              thumbnailFileName.substr(thumbnailExtensionIndex + 1);
-            // The standard image types QML supports
-            if (thumbnailFileExtension == "png"  ||
-                thumbnailFileExtension == "jpg"  ||
-                thumbnailFileExtension == "jpeg" ||
-                thumbnailFileExtension == "svg")
-            {
-              model.thumbnailPath = current;
-              break;
-            }
-          }
-        }
-      }
-      this->dataPtr->gridModel.AddLocalModel(model);
-    }
+    this->LoadLocalModel(path);
   }
 }
 
 /////////////////////////////////////////////////
-void InsertModel::FindLocalModels(const std::vector<std::string> &_paths)
-{
-  for (const auto &path : _paths)
-    this->FindLocalModels(path);
-}
-
-/////////////////////////////////////////////////
-void InsertModel::LoadConfig(const tinyxml2::XMLElement *)
+void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "InsertModel";
+    this->title = "Resource Spawner";
 
   // For shapes requests
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
 
-  // TODO(john): create vector of paths from IGN_GAZEBO_RESOURCE_PATH here
   std::string path =
-    "/home/john/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models";
-  std::vector<std::string> paths;
-  paths.push_back(path);
-
-  this->FindLocalModels(paths);
+    "/home/john/ignition-models";
+  this->FindLocalModels(path);
 }
 
 /////////////////////////////////////////////////
-void InsertModel::OnMode(const QString &_sdfPath)
+void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
   std::string modelSdfPath = _sdfPath.toStdString();
 
@@ -217,5 +203,5 @@ void InsertModel::OnMode(const QString &_sdfPath)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::InsertModel,
+IGNITION_ADD_PLUGIN(ignition::gazebo::ResourceSpawner,
                     ignition::gui::Plugin)

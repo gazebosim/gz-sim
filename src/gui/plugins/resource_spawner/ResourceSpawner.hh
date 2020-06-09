@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_INSERT_MODEL_HH_
-#define IGNITION_GAZEBO_GUI_INSERT_MODEL_HH_
+#ifndef IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
+#define IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
 
 #include <memory>
 #include <string>
@@ -28,18 +28,23 @@ namespace ignition
 {
 namespace gazebo
 {
-  class InsertModelPrivate;
+  class ResourceSpawnerPrivate;
 
   /// \brief Local model used to update the GridModel
   struct LocalModel
   {
-    std::string configPath = "";
-    std::string sdfPath = "";
-    std::string thumbnailPath = "";
+    /// \brief The name of the local model
     std::string name = "";
+
+    /// \brief The absolute path to the sdf corresponding to the local model
+    std::string sdfPath = "";
+
+    /// \brief The absolute path to the thumbnail of the local model, will
+    /// empty if no thumbnail is found
+    std::string thumbnailPath = "";
   };
 
-  /// \brief Provides a model by which the insert model qml plugin pulls
+  /// \brief Provides a model by which the resource spawner qml plugin pulls
   /// and updates from
   class GridModel : public QStandardItemModel
   {
@@ -61,27 +66,27 @@ namespace gazebo
 
   /// \brief Provides interface for communicating to backend for generation
   /// of local models
-  class InsertModel : public ignition::gui::Plugin
+  class ResourceSpawner : public ignition::gui::Plugin
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: InsertModel();
+    public: ResourceSpawner();
 
     /// \brief Destructor
-    public: ~InsertModel() override;
+    public: ~ResourceSpawner() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief Callback in Qt thread when mode changes.
-    /// \param[in] _mode New transform mode
-    public slots: void OnMode(const QString &_mode);
+    /// \brief Callback when a resource is selected.
+    /// \param[in] _sdfPath The absolute path to the resource's sdf file
+    public slots: void OnResourceSpawn(const QString &_sdfPath);
 
-    /// \brief Recursively searches the provided paths for all model.config's
-    /// and populates a vector of local models with the information
-    /// \param[in] _paths The paths to search
-    public: void FindLocalModels(const std::vector<std::string> &_paths);
+    /// \brief Loads a local model from an absolute path to a model.config,
+    /// returns if no model.config is passed in
+    /// \param[in] _path The path to search
+    public: void LoadLocalModel(const std::string &_path);
 
     /// \brief Recursively searches the provided path for all model.config's
     /// and populates a vector of local models with the information
@@ -90,7 +95,7 @@ namespace gazebo
 
     /// \internal
     /// \brief Pointer to private data.
-    private: std::unique_ptr<InsertModelPrivate> dataPtr;
+    private: std::unique_ptr<ResourceSpawnerPrivate> dataPtr;
   };
 }
 }
