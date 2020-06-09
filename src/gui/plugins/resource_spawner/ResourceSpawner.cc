@@ -157,7 +157,8 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
     for (common::DirIter file(path); file != common::DirIter(); ++file)
     {
       std::string currentPath(*file);
-      std::string modelConfigPath = common::joinPaths(currentPath, "model.config");
+      std::string modelConfigPath =
+        common::joinPaths(currentPath, "model.config");
       if (common::isFile(modelConfigPath))
         this->LoadLocalModel(modelConfigPath);
     }
