@@ -40,8 +40,8 @@ namespace systems
   /// \brief A plugin for simulating battery usage
   ///
   /// This system processes the following sdf parameters:
-  /// <battery_name> name of the battery
-  /// <voltage> Initial voltage of the battery
+  /// <battery_name> name of the battery (required)
+  /// <voltage> Initial voltage of the battery (required)
   /// <open_circuit_voltage_constant_coef> Voltage at full charge
   /// <open_circuit_voltage_linear_coef> Amount of voltage decrease when no
   ///                                    charge
@@ -49,9 +49,12 @@ namespace systems
   /// <capacity> Total charge that the battery can hold
   /// <resistance> Internal resistance
   /// <smooth_current_tau> coefficient for smoothing current
-  /// <power_load> power load on battery
+  /// <power_load> power load on battery (required)
   /// <start_on_motion> if set to true, the battery will start draining
-  ///                  only if the robot has started moving
+  ///                   only if the robot has started moving
+  /// <enable_recharge> If true, the battery can be recharged
+  /// <charging_time> Hours taken to fully charge the battery.
+  ///                 (Required if <enable_recharge> is set to true)
   class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
