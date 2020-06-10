@@ -26,6 +26,7 @@ set(tests
   model.cc
   multicopter.cc
   network_handshake.cc
+  performer_detector.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
@@ -35,6 +36,7 @@ set(tests
   sdf_include.cc
   thermal_system.cc
   touch_plugin.cc
+  triggered_publisher.cc
   user_commands.cc
   log_system.cc
   wind_effects.cc

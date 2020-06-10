@@ -17,8 +17,9 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 #define IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 
-#include <ignition/gazebo/System.hh>
 #include <memory>
+
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
@@ -33,6 +34,33 @@ namespace systems
 
   /// \brief Differential drive controller which can be attached to a model
   /// with any number of left and right wheels.
+  ///
+  /// # System Parameters
+  ///
+  /// `<left_joint>`: Name of a joint that controls a left wheel. This
+  /// element can appear multiple times, and must appear at least once.
+  ///
+  /// `<right_joint>`: Name of a joint that controls a right wheel. This
+  /// element can appear multiple times, and must appear at least once.
+  ///
+  /// `<wheel_separation>`: Distance between wheels, in meters. This element
+  /// is optional, although it is recommended to be included with an
+  /// appropriate value. The default value is 1.0m.
+  ///
+  /// `<wheel_radius>`: Wheel radius in meters. This element is optional,
+  /// although it is recommended to be included with an appropriate value. The
+  /// default value is 0.2m.
+  ///
+  /// `<odom_publish_frequency>`: Odometry publication frequency. This
+  /// element is optional, and the default value is 50Hz.
+  ///
+  /// `<topic>`: Custom topic that this system will subscribe to in order to
+  /// receive command velocity messages. This element if optional, and the
+  /// default value is `/model/{name_of_model}/cmd_vel`.
+  ///
+  /// `<odom_topic>`: Custom topic on which this system will publish odometry
+  /// messages. This element if optional, and the default value is
+  /// `/model/{name_of_model}/odometry`.
   class IGNITION_GAZEBO_VISIBLE DiffDrive
       : public System,
         public ISystemConfigure,
@@ -70,4 +98,3 @@ namespace systems
 }
 
 #endif
-

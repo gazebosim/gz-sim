@@ -105,18 +105,48 @@
 
 ## Ignition Gazebo 2.x
 
+
+### Ignition Gazebo 2.20.0 (2020-06-09)
+
+1. Updated battery model to stop battery drain when there is no joint
+   velocity/force command, and added a recharging trigger.
+    * [Pull Request 183](https://github.com/ignitionrobotics/ign-gazebo/pull/183)
+
+1. Fix segfault in the Breadcrumbs system
+    * [Pull Request 180](https://github.com/ignitionrobotics/ign-gazebo/pull/180)
+
+1. Added an `<odom_topic>` element to the DiffDrive system so that a custom odometry topic can be used.
+    * [Pull Request 179](https://github.com/ignitionrobotics/ign-gazebo/pull/179)
+
+### Ignition Gazebo 2.19.0 (2020-06-02)
+
+1. Use updated model names for spawned models when generating SDFormat
+    * [Pull Request 166](https://github.com/ignitionrobotics/ign-gazebo/pull/166)
+
+1. Allow joint force commands (JointForceCmd) to dscharge a battery.
+    * [Pull Request 165](https://github.com/ignitionrobotics/ign-gazebo/pull/165)
+
+1. Allow renaming breadcrumb models if there is a name conflict
+    * [Pull Request 155](https://github.com/ignitionrobotics/ign-gazebo/pull/155)
+
+1. Add TriggeredPublisher system
+    * [Pull Request 139](https://github.com/ignitionrobotics/ign-gazebo/pull/139)
+
+1. Add PerformerDetector, a system for detecting when performers enter a specified region
+    * [Pull Request 125](https://github.com/ignitionrobotics/ign-gazebo/pull/125)
+
 ### Ignition Gazebo 2.18.0 (2020-05-20)
 
 1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
     * [Pull Request 146](https://github.com/ignitionrobotics/ign-gazebo/pull/146)
 
+1. DetachableJoint system: Add option to suppress warning about missing child model
+    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
+
 ### Ignition Gazebo 2.17.0 (2020-05-13)
 
 1. Allow battery plugin to work with joint force systems.
     * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
-
-1. DetachableJoint system: Add option to suppress warning about missing child model
-    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
 
 1. Make breadcrumb static after specified time
     * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)

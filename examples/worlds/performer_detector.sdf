@@ -1,6 +1,19 @@
 <?xml version="1.0" ?>
+
+<!--
+  Try sending commands:
+
+    To move the vehicle:
+
+      ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}"
+
+    Then, echo the PerformerDetector's topic to see when the vehicle is detected
+
+      ign topic -e -t /performer_detector
+-->
+
 <sdf version="1.6">
-  <world name="breadcrumbs">
+  <world name="performer_detector">
 
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
@@ -56,8 +69,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/breadcrumbs/control</service>
-        <stats_topic>/world/breadcrumbs/stats</stats_topic>
+        <service>/world/performer_detector/control</service>
+        <stats_topic>/world/performer_detector/stats</stats_topic>
 
       </plugin>
 
@@ -82,7 +95,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/breadcrumbs/stats</topic>
+        <topic>/world/performer_detector/stats</topic>
 
       </plugin>
 
@@ -128,58 +141,9 @@
       </link>
     </model>
 
-    <model name="tile_1">
-      <pose>0 0 0.1 0 0 0</pose>
-      <static>true</static>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>10 10 0.2</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>10 10 0.2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.0 0.8 0.0 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
-    <model name="tile_2">
-      <pose>10 0 0.1 0 0 0</pose>
-      <static>true</static>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>10 10 0.2</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>10 10 0.2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.0 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
     <model name='vehicle_blue'>
-      <pose>0 2 0.525 0 -0 0</pose>
+      <pose>0 2 0.325 0 -0 0</pose>
+      <self_collide>true</self_collide>
 
       <link name='chassis'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>
@@ -454,281 +418,81 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-       <max_deployments>3</max_deployments>
-       <breadcrumb>
-         <sdf version="1.6">
-          <model name="B1">
-            <pose>-1.2 0 0 0 0 0</pose>
-            <link name='body'>
-              <inertial>
-                <mass>0.6</mass>
-                <inertia>
-                  <ixx>0.017</ixx>
-                  <ixy>0</ixy>
-                  <ixz>0</ixz>
-                  <iyy>0.017</iyy>
-                  <iyz>0</iyz>
-                  <izz>0.009</izz>
-                </inertia>
-              </inertial>
-              <visual name='visual'>
-                <geometry>
-                  <box>
-                    <size>0.3 0.3 0.5</size>
-                  </box>
-                </geometry>
-                <material>
-                  <ambient>0.0 1.0 0.0 1</ambient>
-                  <diffuse>0.0 1.0 0.0 1</diffuse>
-                  <specular>0.5 0.5 0.5 1</specular>
-                </material>
-              </visual>
-              <collision name='collision'>
-                <geometry>
-                  <box>
-                    <size>0.3 0.3 0.5</size>
-                  </box>
-                </geometry>
-              </collision>
-            </link>
-          </model>
-        </sdf>
-       </breadcrumb>
-      </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-       <max_deployments>3</max_deployments>
-       <disable_physics_time>0.5</disable_physics_time>
-       <breadcrumb>
-         <sdf version="1.6">
-          <model name="B2">
-            <pose>-2.2 0 2.0 0 0 0</pose>
-            <link name='body'>
-              <pose>0 0 0.25 0 0 0</pose>
-              <inertial>
-                <mass>0.6</mass>
-                <inertia>
-                  <ixx>0.017</ixx>
-                  <ixy>0</ixy>
-                  <ixz>0</ixz>
-                  <iyy>0.017</iyy>
-                  <iyz>0</iyz>
-                  <izz>0.017</izz>
-                </inertia>
-              </inertial>
-              <visual name='visual'>
-                <geometry>
-                  <box>
-                    <size>0.5 0.5 0.5</size>
-                  </box>
-                </geometry>
-                <material>
-                  <ambient>0.0 1.0 1.0 1</ambient>
-                  <diffuse>0.0 1.0 1.0 1</diffuse>
-                  <specular>0.5 0.5 0.5 1</specular>
-                </material>
-              </visual>
-              <collision name='collision'>
-                <geometry>
-                  <box>
-                    <size>0.5 0.5 0.5</size>
-                  </box>
-                </geometry>
-              </collision>
-            </link>
-          </model>
-        </sdf>
-       </breadcrumb>
-      </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-        <max_deployments>-1</max_deployments>
-        <topic>/fuel_deploy</topic>
-        <breadcrumb>
-          <sdf version="1.6">
-            <model name="B2">
-              <pose>-2.2 0 5 0 0 0</pose>
-              <include>
-                <uri>
-                    https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Cardboard box
-                </uri>
-              </include>
-            </model>
-          </sdf>
-        </breadcrumb>
-      </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-       <max_deployments>3</max_deployments>
-       <performer_volume>
-         <geometry>
-           <box>
-             <size>4 4 2</size>
-           </box>
-         </geometry>
-       </performer_volume>
-       <breadcrumb>
-         <sdf version="1.6">
-          <model name="B1_perf">
-            <pose>-1.2 0 0 0 0 0</pose>
-            <link name='body'>
-              <inertial>
-                <mass>0.6</mass>
-                <inertia>
-                  <ixx>0.017</ixx>
-                  <ixy>0</ixy>
-                  <ixz>0</ixz>
-                  <iyy>0.017</iyy>
-                  <iyz>0</iyz>
-                  <izz>0.009</izz>
-                </inertia>
-              </inertial>
-              <visual name='visual'>
-                <geometry>
-                  <box>
-                    <size>0.3 0.3 0.5</size>
-                  </box>
-                </geometry>
-                <material>
-                  <ambient>0.0 1.0 0.0 1</ambient>
-                  <diffuse>0.0 1.0 0.0 1</diffuse>
-                  <specular>0.5 0.5 0.5 1</specular>
-                </material>
-              </visual>
-              <collision name='collision'>
-                <geometry>
-                  <box>
-                    <size>0.3 0.3 0.5</size>
-                  </box>
-                </geometry>
-              </collision>
-            </link>
-          </model>
-        </sdf>
-       </breadcrumb>
-      </plugin>
-      <!-- Breadcrumb with large performer volume -->
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-       <max_deployments>3</max_deployments>
-       <performer_volume>
-         <geometry>
-           <box>
-             <size>100 100 2</size>
-           </box>
-         </geometry>
-       </performer_volume>
-       <breadcrumb>
-         <sdf version="1.6">
-          <model name="B1_perf_large_volume">
-            <pose>-1.2 0 0 0 0 0</pose>
-            <link name='body'>
-              <inertial>
-                <mass>0.6</mass>
-                <inertia>
-                  <ixx>0.017</ixx>
-                  <ixy>0</ixy>
-                  <ixz>0</ixz>
-                  <iyy>0.017</iyy>
-                  <iyz>0</iyz>
-                  <izz>0.009</izz>
-                </inertia>
-              </inertial>
-              <visual name='visual'>
-                <geometry>
-                  <box>
-                    <size>0.3 0.3 0.5</size>
-                  </box>
-                </geometry>
-                <material>
-                  <ambient>0.0 1.0 0.0 1</ambient>
-                  <diffuse>0.0 1.0 0.0 1</diffuse>
-                  <specular>0.5 0.5 0.5 1</specular>
-                </material>
-              </visual>
-              <collision name='collision'>
-                <geometry>
-                  <box>
-                    <size>0.3 0.3 0.5</size>
-                  </box>
-                </geometry>
-              </collision>
-            </link>
-          </model>
-        </sdf>
-       </breadcrumb>
-      </plugin>
+    </model>
 
-      <!-- Two Breadcrumbs containing a breadcrumb model that is already spawned (B1).-->
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-       <max_deployments>3</max_deployments>
-       <allow_renaming>false</allow_renaming>
-       <topic>/no_rename_deploy</topic>
-       <breadcrumb>
-         <sdf version="1.6">
-          <model name="B1">
-            <pose>-10 0 0 0 0 0</pose>
-            <link name='body'>
-              <inertial>
-                <mass>0.6</mass>
-                <inertia>
-                  <ixx>0.017</ixx>
-                  <ixy>0</ixy>
-                  <ixz>0</ixz>
-                  <iyy>0.017</iyy>
-                  <iyz>0</iyz>
-                  <izz>0.009</izz>
-                </inertia>
-              </inertial>
-            </link>
-          </model>
-        </sdf>
-       </breadcrumb>
-      </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
-        <max_deployments>3</max_deployments>
-        <allow_renaming>true</allow_renaming>
-        <topic>/rename_deploy</topic>
-        <breadcrumb>
-          <sdf version="1.6">
-            <model name="B1">
-              <pose>-20 0 0 0 0 0</pose>
-              <link name='body'>
-                <inertial>
-                  <mass>0.6</mass>
-                  <inertia>
-                    <ixx>0.017</ixx>
-                    <ixy>0</ixy>
-                    <ixz>0</ixz>
-                    <iyy>0.017</iyy>
-                    <iyz>0</iyz>
-                    <izz>0.009</izz>
-                  </inertia>
-                </inertial>
-              </link>
-            </model>
-          </sdf>
-        </breadcrumb>
+    <model name="detector1">
+      <static>true</static>
+      <pose>10 0 2.5 0 0 0</pose>
+      <link name='body'>
+        <visual name='visual'>
+          <transparency>0.9</transparency>
+          <geometry>
+            <box>
+              <size>10 10 5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.0 1.0 0.0 1</ambient>
+            <diffuse>0.0 1.0 0.0 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+      <plugin
+        filename="libignition-gazebo-performer-detector-system.so"
+        name="ignition::gazebo::systems::PerformerDetector">
+        <topic>/performer_detector</topic>
+        <geometry>
+          <box>
+            <size>10 10 5</size>
+          </box>
+        </geometry>
       </plugin>
     </model>
-    <plugin name="ignition::gazebo" filename="dummy">
-      <performer name="perf1">
-        <ref>vehicle_blue</ref>
+    <model name="detector2">
+      <static>true</static>
+      <pose>10 5 2.5 0 0 0</pose>
+      <link name='body'>
+        <visual name='visual'>
+          <transparency>0.9</transparency>
+          <geometry>
+            <box>
+              <size>10 10 5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.0 1.0 0.0 1</ambient>
+            <diffuse>0.0 1.0 0.0 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+      <plugin filename="libignition-gazebo-performer-detector-system.so" name="ignition::gazebo::systems::PerformerDetector">
+        <topic>/performer_detector</topic>
         <geometry>
           <box>
-            <size>4 4 2</size>
+            <size>10 10 5</size>
           </box>
         </geometry>
-      </performer>
-      <level name="level1">
-        <pose>0 0 2.5 0 0 0</pose>
-        <geometry>
-          <box>
-            <size>10 10 10</size>
-          </box>
-        </geometry>
-        <buffer>2</buffer>
-        <ref>tile_1</ref>
-      </level>
-    </plugin>
-  </world>
-</sdf>
+      </plugin>
+    </model>
 
+
+  <plugin name="ignition::gazebo" filename="dummy">
+
+    <performer name="perf_vehicle_blue">
+      <ref>vehicle_blue</ref>
+      <geometry>
+        <box>
+          <size>2 2 2</size>
+        </box>
+      </geometry>
+    </performer>
+
+  </plugin>
+
+</world>
+</sdf>
 
