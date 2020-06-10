@@ -41,50 +41,10 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
-
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem =
-        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
-};
 
 class SdfFrameSemanticsTest : public ::testing::Test
 {
@@ -97,7 +57,7 @@ class SdfFrameSemanticsTest : public ::testing::Test
 
   public: void StartServer()
   {
-    this->relay = std::make_unique<Relay>();
+    this->relay = std::make_unique<test::Relay>();
     this->server = std::make_unique<Server>();
     using namespace std::chrono_literals;
     this->server->SetUpdatePeriod(0ns);
@@ -156,7 +116,7 @@ class SdfFrameSemanticsTest : public ::testing::Test
     return poseComp->Data();
   }
 
-  public: std::unique_ptr<Relay> relay;
+  public: std::unique_ptr<test::Relay> relay;
   public: std::unique_ptr<Server> server;
   public: EntityComponentManager *ecm {nullptr};
   // We won't use the event manager but it's required to create an
