@@ -71,7 +71,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
                                   const std::vector<Entity> &_entities);
 
     /// \brief Visualize the sensor's data using the Marker message
-    public: void VisualizeSensorData(std::vector<ignition::msgs::Vector3d> &positions);
+    public: void VisualizeSensorData(std::vector<ignition::math::Vector3d> &positions);
 
     /// \brief Interpolates contact data
     public: void InterpolateData(const ignition::msgs::Contact &contactMsg);
@@ -112,11 +112,17 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
     /// \brief Message for visualizing contact positions
     public: ignition::msgs::Marker positionMarkerMsg;
 
+    /// \brief Radius of the visualized contact sphere
+    public: double contactRadius{0.20};
+
     /// \brief Message for visualizing contact forces
     public: ignition::msgs::Marker forceMarkerMsg;
 
+    /// \brief Length of the visualized force cylinder
+    public: double forceLenght{0.20};
+
     /// \brief Position interpolated from the Contact messages
-    public: std::vector<ignition::msgs::Vector3d> interpolatedPosition;
+    public: std::vector<ignition::math::Vector3d> interpolatedPosition;
 
 };
 
@@ -128,13 +134,15 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
     igndbg << "Loading plugin [OpticalTactilePlugin]" << std::endl;
 
     // Get sdf parameters
-    if (!_sdf->HasElement("resolution")) {
+    if (!_sdf->HasElement("resolution")) 
+    {
         ignerr << "Missing required parameter <resolution>." << std::endl;
         return;
     } 
     else 
     {
-        this->resolution = _sdf->Get<double>("resolution");
+        // resolution is specified in mm
+        this->resolution = _sdf->Get<double>("resolution")/1000;
     }
 
     // Get all the sensors
@@ -184,7 +192,7 @@ void OpticalTactilePluginPrivate::Update(const UpdateInfo &_info,
             {
                 // Interpolate data returned by the Contact message
                 this->InterpolateData(contact);
-
+          
                 // Visualize interpolated data
                 this->VisualizeSensorData(this->interpolatedPosition);
 
@@ -225,15 +233,64 @@ void OpticalTactilePluginPrivate::InterpolateData(const ignition::msgs::Contact 
     // Delete old positions
     this->interpolatedPosition.clear();
 
-    // Add new ones and interpolate
-    for (int index = 0; index < contact.position_size(); ++index)
+    // Interpolate new ones
+    if (contact.position_size() == 4)
     {
-        this->interpolatedPosition.push_back(contact.position(index));
-    }
+        igndbg << "Interpolate 4 position" << std::endl;
+        ignition::math::Vector3d contact1 = ignition::msgs::Convert(contact.position(0));
+        ignition::math::Vector3d contact2 = ignition::msgs::Convert(contact.position(1));
+        ignition::math::Vector3d contact3 = ignition::msgs::Convert(contact.position(2));
+        ignition::math::Vector3d contact4 = ignition::msgs::Convert(contact.position(3));
+
+        ignition::math::Vector3d direction1 = (contact2 - contact1).Normalized() * this->resolution;
+        ignition::math::Vector3d direction2 = (contact4 - contact1).Normalized() * this->resolution;
+
+        ignition::math::Vector3d interpolatedVector = contact1;
+        this->interpolatedPosition.push_back(contact1);
+
+        // auxiliary Vector3d to iterate through contacts
+        ignition::math::Vector3d tempVector (0.0, 0.0, 0.0);
+
+        long unsigned int steps1 = contact1.Distance(contact2) / this->resolution;
+        long unsigned int steps2 = contact1.Distance(contact4) / this->resolution;
+        
+        igndbg << "\n contact1: " << contact1 << "\n"
+        << "contact2: " << contact2 << "\n" 
+        << "contact3: " << contact3 << "\n"
+        << "contact4: " << contact4 << "\n"
+        << "direction1: " << direction1 << "\n"
+        << "direction2: " << direction2 << "\n";
+        
+        igndbg << "steps1 = " << steps1 << std::endl;
+        igndbg << "contact1.Distance(contact2) = " << contact1.Distance(contact2) << std::endl;
+        igndbg << "this->resolution = " << this->resolution << std::endl;
+
+        igndbg << "steps2 = " << steps2 << std::endl;
+        igndbg << "contact1.Distance(contact4) = " << contact1.Distance(contact4) << std::endl;
+        igndbg << "this->resolution = " << this->resolution << std::endl;
+        igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
+        for (long unsigned int index1 = 0; index1 <= steps1; ++index1)
+        {
+            tempVector = interpolatedVector;
+            for (long unsigned int index2 = 0; index2 < steps2; ++index2)
+            {
+                interpolatedVector += direction2;
+                igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
+                this->interpolatedPosition.push_back(interpolatedVector);
+            }
+            if (index1 != steps1)
+            {
+                interpolatedVector = tempVector;
+                interpolatedVector += direction1;
+                igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
+                this->interpolatedPosition.push_back(interpolatedVector);  
+            }         
+        }
+    }   
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::VisualizeSensorData(std::vector<ignition::msgs::Vector3d> &positions)
+void OpticalTactilePluginPrivate::VisualizeSensorData(std::vector<ignition::math::Vector3d> &positions)
 {
     // Delete previous shapes already in simulation
     this->positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
@@ -244,15 +301,18 @@ void OpticalTactilePluginPrivate::VisualizeSensorData(std::vector<ignition::msgs
     // Add the new ones
     this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
     this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+
     for (int index = 0; index < positions.size(); ++index)
     {
         this->positionMarkerMsg.set_id(index);
         this->forceMarkerMsg.set_id(index);
 
         ignition::msgs::Set(this->positionMarkerMsg.mutable_pose(),
-                        ignition::math::Pose3d(positions[index].x(), positions[index].y(), positions[index].z(), 0, 0, 0));
+                        ignition::math::Pose3d(positions[index].X(), positions[index].Y(), 
+                        positions[index].Z(), 0, 0, 0));
         ignition::msgs::Set(this->forceMarkerMsg.mutable_pose(),
-                        ignition::math::Pose3d(positions[index].x(), positions[index].y(), positions[index].z(), 0, 0, 0));
+                        ignition::math::Pose3d(positions[index].X(), positions[index].Y(), 
+                        positions[index].Z() + this->forceLenght, 0, 0, 0));
 
         this->node.Request("/marker",this->positionMarkerMsg);
         this->node.Request("/marker",this->forceMarkerMsg);
@@ -278,7 +338,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
     // Configure Marker messages for position and force of the contacts
     // Blue spheres for positions
-    // Red cylinders for forces
+    // Green cylinders for forces
 
     // Create the marker message
     this->dataPtr->positionMarkerMsg.set_ns("positions");
@@ -316,10 +376,11 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
     // Set scales
     ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-                        ignition::math::Vector3d(0.20, 0.20, 0.20));
+                        ignition::math::Vector3d(this->dataPtr->contactRadius, this->dataPtr->contactRadius, 
+                        this->dataPtr->contactRadius));
 
     ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
-                        ignition::math::Vector3d(0.05, 0.05, 0.7));
+                        ignition::math::Vector3d(0.05, 0.05, this->dataPtr->forceLenght));
 }
 
 //////////////////////////////////////////////////
