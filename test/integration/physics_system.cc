@@ -255,7 +255,7 @@ TEST_F(PhysicsSystemFixture, NonDefaultCanonicalLink)
   const std::string modelName{"nondefault_canonical"};
 
   // Create a system that records the pose of the model.
-  Relay testSystem;
+  test::Relay testSystem;
 
   std::vector<ignition::math::Pose3d> modelPoses;
   testSystem.OnPostUpdate(
