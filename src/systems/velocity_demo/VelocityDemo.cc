@@ -153,7 +153,7 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void VelocityDemo::PostUpdate(const UpdateInfo &_info,
-    const EntityComponentManager &_ecm)
+    const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VelocityDemo::PostUpdate");
   // Nothing left to do if paused.
