@@ -27,7 +27,7 @@ namespace ignition
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE 
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace systems
 {
@@ -40,9 +40,9 @@ namespace systems
     /// model on which this plugin is attached.
     ///
     /// Parameters:
-    /// 
-    /// <enabled> Set this to true so the plugin works from the start and doesn't
-    ///           need to be enabled.
+    ///
+    /// <enabled> Set this to true so the plugin works from the start and
+    ///           doesn't need to be enabled.
 
     class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
         public System,
@@ -50,30 +50,29 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
     {
-        /// \brief Constructor
-        public: OpticalTactilePlugin();
+      /// \brief Constructor
+      public: OpticalTactilePlugin();
 
-        /// \brief Destructor
-        public: ~OpticalTactilePlugin() override = default;
+      /// \brief Destructor
+      public: ~OpticalTactilePlugin() override = default;
 
-        // Documentation inherited
-        public: void Configure(const Entity &_entity,
-                            const std::shared_ptr<const sdf::Element> &_sdf,
-                            EntityComponentManager &_ecm,
-                            EventManager &_eventMgr) override;
+      // Documentation inherited
+      public: void Configure(const Entity &_entity,
+                             const std::shared_ptr<const sdf::Element> &_sdf,
+                             EntityComponentManager &_ecm,
+                             EventManager &_eventMgr) override;
 
-        /// Documentation inherited
-        public: void PreUpdate(const UpdateInfo &_info,
-                            EntityComponentManager &_ecm) final;
+      /// Documentation inherited
+      public: void PreUpdate(const UpdateInfo &_info,
+                          EntityComponentManager &_ecm) final;
 
-        // Documentation inherited
-        public: void PostUpdate(
-                    const ignition::gazebo::UpdateInfo &_info,
-                    const ignition::gazebo::EntityComponentManager &_ecm) override;
+      // Documentation inherited
+      public: void PostUpdate(
+            const ignition::gazebo::UpdateInfo &_info,
+            const ignition::gazebo::EntityComponentManager &_ecm) override;
 
-        /// \brief Private data pointer
-        private: std::unique_ptr<OpticalTactilePluginPrivate> dataPtr;
-
+      /// \brief Private data pointer
+      private: std::unique_ptr<OpticalTactilePluginPrivate> dataPtr;
     };
 }
 }
