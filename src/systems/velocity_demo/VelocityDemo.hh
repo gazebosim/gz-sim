@@ -59,7 +59,7 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(
                 const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override;
+                const EntityComponentManager &/*_ecm*/) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<VelocityDemoPrivate> dataPtr;

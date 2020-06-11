@@ -1,12 +1,13 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo differential drive using velocity command demo
+  Ignition Gazebo velocity plugin demo
 
   Try sending commands:
 
     ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
 
     ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
+
 -->
 <sdf version="1.6">
   <world name="velocity_demo">

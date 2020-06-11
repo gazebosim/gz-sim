@@ -22,7 +22,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
-#incldue "ignition/gazebo/components/AngularVelocityCmd.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
@@ -69,18 +69,24 @@ void VelocityDemo::Configure(const Entity &_entity,
 {
   this->dataPtr->model = Model(_entity);
 
-  // Get the canonical link
-  std::vector<Entity> links = _ecm.ChildrenByComponents(
-      this->dataPtr->model.Entity(), components::CanonicalLink());
-  if (!links.empty())
-    this->dataPtr->canonicalLink = Link(links[0]);
-
   if (!this->dataPtr->model.Valid(_ecm))
   {
     ignerr << "VelocityDemo plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
+
+  // auto ptr = const_cast<sdf::Element *>(_sdf.get());
+
+  // Subscribe to commands
+  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  if (_sdf->HasElement("topic"))
+    topic = _sdf->Get<std::string>("topic");
+  this->dataPtr->node.Subscribe(
+    topic, &VelocityDemoPrivate::OnCmdVel, this->dataPtr.get());
+
+  ignmsg << "VelocityDemo subscribing to twist messages on [" << topic << "]"
+         << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -102,15 +108,15 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     return;
 
   // update angular velocity of model
-  auto angularVel = _ecm.Component<components::AngularVelocityCmd>(model);
-  ignwarn << "Model angular velocity: " << angularVel->Data()[0] << ", "
-    << angularVel->Data()[1] << ", " << angularVel->Data()[2] << std::endl;
+  auto angularVel =
+    _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->model.Entity());
 
   if (angularVel == nullptr)
   {
     _ecm.CreateComponent(
-      model, components::AngularVelocityCmd({this->dataPtr->angularVelocity}));
-    ignwarn << "Model angular velocity: " << this->dataPtr->angularVelocity[0]
+      this->dataPtr->model.Entity(),
+      components::AngularVelocityCmd({this->dataPtr->angularVelocity}));
+    ignwarn << "[CreateComponent] Model angular velocity: " << this->dataPtr->angularVelocity[0]
       << this->dataPtr->angularVelocity[1] << this->dataPtr->angularVelocity[2]
       << std::endl;
   }
@@ -118,28 +124,28 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     *angularVel = components::AngularVelocityCmd(
       {this->dataPtr->angularVelocity});
-    ignwarn << "Model angular velocity: " << this->dataPtr->angularVelocity[0]
+    ignwarn << "[retrieve] Model angular velocity: " << this->dataPtr->angularVelocity[0]
       << this->dataPtr->angularVelocity[1] << this->dataPtr->angularVelocity[2]
       << std::endl;
   }
 
-  // update linear velocity of model
-  auto linearVel = _ecm.Component<compoenents::LinearVelocityCmd>(model);
-  ignwarn << "Model linear velocity: " << linearVel->Data()[0] << ", "
-    << linearVel->Data()[1] << ", " << linearVel->Data()[2] << std::endl;
+  // // update linear velocity of model
+  auto linearVel =
+    _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->model.Entity());
 
   if (linearVel == nullptr)
   {
     _ecm.CreateComponent(
-      model, components::LinearVelocityCmd({this->dataPtr->linearVelocity}));
-    ignwarn << "Model linear velocity: " << this->dataPtr->linearVelocity[0]
+      this->dataPtr->model.Entity(),
+      components::LinearVelocityCmd({this->dataPtr->linearVelocity}));
+    ignwarn << "[CreateComponent] Model linear velocity: " << this->dataPtr->linearVelocity[0]
       << this->dataPtr->linearVelocity[1] << this->dataPtr->linearVelocity[2]
       << std::endl;
   }
   else
   {
     *linearVel = components::LinearVelocityCmd({this->dataPtr->linearVelocity});
-    ignwarn << "Model linear velocity: " << this->dataPtr->linearVelocity[0]
+    ignwarn << "[retrieve] Model linear velocity: " << this->dataPtr->linearVelocity[0]
       << this->dataPtr->linearVelocity[1] << this->dataPtr->linearVelocity[2]
       << std::endl;
   }
@@ -158,8 +164,10 @@ void VelocityDemo::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void VelocityDemoPrivate::OnCmdVel(const msgs::Twist &_msg)
 {
-  this->linearVelocity = _msg.linear();
-  this->angularVelocity = _msg.angular();
+  this->linearVelocity = math::Vector3d(
+    _msg.linear().x(), _msg.linear().y(), _msg.linear().z());
+  this->angularVelocity = math::Vector3d(
+    _msg.angular().x(), _msg.angular().y(), _msg.angular().z());
 }
 
 IGNITION_ADD_PLUGIN(VelocityDemo,
