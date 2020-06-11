@@ -132,7 +132,7 @@ ToolBar {
       MenuItem {
         text: "mp4"
         onTriggered: {
-          fileDialog.nameFilters = [ "*.mp4" ]
+          fileDialog.nameFilters = ["*.mp4"]
           fileDialog.selectedFormat = "mp4"
           VideoRecorder.OnStart("mp4")
           animation.start()
@@ -141,7 +141,7 @@ ToolBar {
       MenuItem {
         text: "ogv"
         onTriggered: {
-          fileDialog.nameFilters = [ "*.ogv" ]
+          fileDialog.nameFilters = ["*.ogv"]
           fileDialog.selectedFormat = "ogv"
           VideoRecorder.OnStart("ogv")
           animation.start()

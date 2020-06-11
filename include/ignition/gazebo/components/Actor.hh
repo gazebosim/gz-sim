@@ -17,10 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_ACTOR_HH_
 #define IGNITION_GAZEBO_COMPONENTS_ACTOR_HH_
 
+#include <ignition/msgs/actor.pb.h>
+
 #include <chrono>
 #include <string>
-
-#include <ignition/msgs/actor.pb.h>
 
 #include <sdf/Actor.hh>
 
