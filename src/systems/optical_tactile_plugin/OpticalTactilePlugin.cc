@@ -36,12 +36,6 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
-#include <ignition/transport.hh>
-#include <ignition/math.hh>
-#include <ignition/msgs.hh>
-
-#include <google/protobuf/message.h>
-
 #include "OpticalTactilePlugin.hh"
 
 using namespace ignition;
@@ -50,96 +44,96 @@ using namespace systems;
 
 class ignition::gazebo::systems::OpticalTactilePluginPrivate
 {
-    /// \brief Load the Contact sensor from an sdf element
-    /// \param[in] _sdf SDF element describing the Contact sensor
-    /// \param[in] _ecm Immutable reference to the EntityComponentManager
-    public: void Load(const EntityComponentManager &_ecm,
-                      const sdf::ElementPtr &_sdf);
+  /// \brief Load the Contact sensor from an sdf element
+  /// \param[in] _sdf SDF element describing the Contact sensor
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager
+  public: void Load(const EntityComponentManager &_ecm,
+                    const sdf::ElementPtr &_sdf);
 
-    /// \brief Actual function that enables the plugin.
-    /// \param[in] _value True to enable plugin.
-    public: void Enable(const bool _value);
+  /// \brief Actual function that enables the plugin.
+  /// \param[in] _value True to enable plugin.
+  public: void Enable(const bool _value);
 
-    /// \brief Process contact sensor data
-    /// \param[in] _info Simulation update info
-    /// \param[in] _ecm Immutable reference to the EntityComponentManager
-    public: void Update(const UpdateInfo &_info,
-                        const EntityComponentManager &_ecm);
+  /// \brief Process contact sensor data
+  /// \param[in] _info Simulation update info
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager
+  public: void Update(const UpdateInfo &_info,
+                      const EntityComponentManager &_ecm);
 
-    /// \brief Filters out new collisions fetched not related to the sensors
-    public: void FilterOutCollisions(const EntityComponentManager &_ecm,
-                                  const std::vector<Entity> &_entities);
+  /// \brief Filters out new collisions fetched not related to the sensors
+  public: void FilterOutCollisions(const EntityComponentManager &_ecm,
+                                   const std::vector<Entity> &_entities);
 
-    /// \brief Visualize the sensor's data using the Marker message
-    public: void VisualizeSensorData(std::vector<ignition::math::Vector3d> &positions);
+  /// \brief Visualize the sensor's data using the Marker message
+  public: void VisualizeSensorData(
+      std::vector<ignition::math::Vector3d> &positions);
 
-    /// \brief Interpolates contact data
-    public: void InterpolateData(const ignition::msgs::Contact &contactMsg);
+  /// \brief Interpolates contact data
+  public: void InterpolateData(const ignition::msgs::Contact &contactMsg);
 
-    /// \brief Resolution of the sensor in mm.
-    public: double resolution;
+  /// \brief Resolution of the sensor in mm.
+  public: double resolution;
 
-    /// \brief Model interface.
-    public: Model model{kNullEntity};
+  /// \brief Model interface.
+  public: Model model{kNullEntity};
 
-    /// \brief Transport node to visualize data on Gazebo.
-    public: transport::Node node;
+  /// \brief Transport node to visualize data on Gazebo.
+  public: transport::Node node;
 
-    /// \brief Publisher that publishes the sensors' contacts.
-    public: std::optional<transport::Node::Publisher>sensorContactsPub;
+  /// \brief Publisher that publishes the sensors' contacts.
+  public: std::optional<transport::Node::Publisher>sensorContactsPub;
 
-    /// \brief Collision entities that have been designated as contact sensors.
-    public: std::vector<Entity> sensorEntities;
+  /// \brief Collision entities that have been designated as contact sensors.
+  public: std::vector<Entity> sensorEntities;
 
-    /// \brief Collision entities of the simulation.
-    public: std::vector<Entity> collisionEntities;
+  /// \brief Collision entities of the simulation.
+  public: std::vector<Entity> collisionEntities;
 
-    /// \brief Filtered collisions from the simulation that belong to one or more sensors.
-    public: std::vector<Entity> filteredCollisionEntities;
+  /// \brief Filtered collisions from the simulation that belong to
+  // one or more sensors.
+  public: std::vector<Entity> filteredCollisionEntities;
 
-    /// \brief Wheter the plugin is enabled.
-    public: bool enabled{true};
+  /// \brief Wheter the plugin is enabled.
+  public: bool enabled{true};
 
-    /// \brief Initialization flag.
-    public: bool initialized{false};
+  /// \brief Initialization flag.
+  public: bool initialized{false};
 
-    /// \brief Copy of the sdf configuration used for this plugin.
-    public: sdf::ElementPtr sdfConfig;
+  /// \brief Copy of the sdf configuration used for this plugin.
+  public: sdf::ElementPtr sdfConfig;
 
-    /// \brief Name of the model in which the sensor(s) is attached.
-    public: std::string modelName;
-    
-    /// \brief Message for visualizing contact positions
-    public: ignition::msgs::Marker positionMarkerMsg;
+  /// \brief Name of the model in which the sensor(s) is attached.
+  public: std::string modelName;
 
-    /// \brief Radius of the visualized contact sphere
-    public: double contactRadius{0.20};
+  /// \brief Message for visualizing contact positions
+  public: ignition::msgs::Marker positionMarkerMsg;
 
-    /// \brief Message for visualizing contact forces
-    public: ignition::msgs::Marker forceMarkerMsg;
+  /// \brief Radius of the visualized contact sphere
+  public: double contactRadius{0.20};
 
-    /// \brief Length of the visualized force cylinder
-    public: double forceLenght{0.20};
+  /// \brief Message for visualizing contact forces
+  public: ignition::msgs::Marker forceMarkerMsg;
 
-    /// \brief Position interpolated from the Contact messages
-    public: std::vector<ignition::math::Vector3d> interpolatedPosition;
+  /// \brief Length of the visualized force cylinder
+  public: double forceLenght{0.20};
 
+  /// \brief Position interpolated from the Contact messages
+  public: std::vector<ignition::math::Vector3d> interpolatedPosition;
 };
 
 //////////////////////////////////////////////////
 void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
-                         const sdf::ElementPtr &_sdf)
+                                       const sdf::ElementPtr &_sdf)
 {
-
     igndbg << "Loading plugin [OpticalTactilePlugin]" << std::endl;
 
     // Get sdf parameters
-    if (!_sdf->HasElement("resolution")) 
+    if (!_sdf->HasElement("resolution"))
     {
         ignerr << "Missing required parameter <resolution>." << std::endl;
         return;
-    } 
-    else 
+    }
+    else
     {
         // resolution is specified in mm
         this->resolution = _sdf->Get<double>("resolution")/1000;
@@ -151,23 +145,22 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
 
     for (const Entity linkEntity : allLinks)
     {
-        auto linkCollisions=
+        auto linkCollisions =
             _ecm.ChildrenByComponents(linkEntity, components::Collision());
         for (const Entity colEntity : linkCollisions)
         {
             if (_ecm.EntityHasComponentType(colEntity,
-                                            components::ContactSensorData::typeId))
+                components::ContactSensorData::typeId))
             {
                 this->sensorEntities.push_back(colEntity);
 
                 this->modelName = this->model.Name(_ecm);
 
-                igndbg << "Sensor detected within model " << this->modelName << std::endl;
+                igndbg << "Sensor detected within model "
+                    << this->modelName << std::endl;
             }
         }
     }
-
-
 }
 
 //////////////////////////////////////////////////
@@ -181,31 +174,31 @@ void OpticalTactilePluginPrivate::Update(const UpdateInfo &_info,
                         const EntityComponentManager &_ecm)
 {
     IGN_PROFILE("TouchPluginPrivate::Update");
-    
+
     // Print collision messages which have the sensor as one collision
-    for (const Entity colEntity: this->filteredCollisionEntities)
+    for (const Entity colEntity : this->filteredCollisionEntities)
     {
-        auto* contacts = _ecm.Component<components::ContactSensorData>(colEntity);
+        auto* contacts =
+            _ecm.Component<components::ContactSensorData>(colEntity);
         if (contacts)
         {
             for (const auto &contact : contacts->Data().contact())
             {
                 // Interpolate data returned by the Contact message
                 this->InterpolateData(contact);
-          
+
                 // Visualize interpolated data
                 this->VisualizeSensorData(this->interpolatedPosition);
-
             }
-
-            //ignition::common::Time::Sleep(ignition::common::Time(0.1));
+            // ignition::common::Time::Sleep(ignition::common::Time(0.1));
         }
     }
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::FilterOutCollisions(const EntityComponentManager &_ecm,
-                                                      const std::vector<Entity> &_entities)
+void OpticalTactilePluginPrivate::FilterOutCollisions(
+                            const EntityComponentManager &_ecm,
+                            const std::vector<Entity> &_entities)
 {
     if (_entities.empty())
         return;
@@ -213,22 +206,23 @@ void OpticalTactilePluginPrivate::FilterOutCollisions(const EntityComponentManag
     // Clear vector that contains old data
     this->filteredCollisionEntities.clear();
 
-    // Get collisions from the sensor 
+    // Get collisions from the sensor
     for (Entity entity : _entities)
     {
-        std::string name = scopedName(entity,_ecm);
+        std::string name = scopedName(entity, _ecm);
         igndbg << "scopedName: " << name << std::endl;
         if (name.find(this->modelName) != std::string::npos)
         {
-            igndbg << "Filtered collision that belongs to a sensor" << std::endl;
+            igndbg << "Filtered collision that belongs to a sensor"
+                << std::endl;
             this->filteredCollisionEntities.push_back(entity);
         }
     }
-    
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::InterpolateData(const ignition::msgs::Contact &contact)
+void OpticalTactilePluginPrivate::InterpolateData(
+                    const ignition::msgs::Contact &contact)
 {
     // Delete old positions
     this->interpolatedPosition.clear();
@@ -237,85 +231,103 @@ void OpticalTactilePluginPrivate::InterpolateData(const ignition::msgs::Contact 
     if (contact.position_size() == 4)
     {
         igndbg << "Interpolate 4 position" << std::endl;
-        ignition::math::Vector3d contact1 = ignition::msgs::Convert(contact.position(0));
-        ignition::math::Vector3d contact2 = ignition::msgs::Convert(contact.position(1));
-        ignition::math::Vector3d contact3 = ignition::msgs::Convert(contact.position(2));
-        ignition::math::Vector3d contact4 = ignition::msgs::Convert(contact.position(3));
+        ignition::math::Vector3d contact1 =
+            ignition::msgs::Convert(contact.position(0));
+        ignition::math::Vector3d contact2 =
+            ignition::msgs::Convert(contact.position(1));
+        ignition::math::Vector3d contact3 =
+            ignition::msgs::Convert(contact.position(2));
+        ignition::math::Vector3d contact4 =
+            ignition::msgs::Convert(contact.position(3));
 
-        ignition::math::Vector3d direction1 = (contact2 - contact1).Normalized() * this->resolution;
-        ignition::math::Vector3d direction2 = (contact4 - contact1).Normalized() * this->resolution;
+        ignition::math::Vector3d direction1 =
+            (contact2 - contact1).Normalized() * this->resolution;
+        ignition::math::Vector3d direction2 =
+            (contact4 - contact1).Normalized() * this->resolution;
 
         ignition::math::Vector3d interpolatedVector = contact1;
         this->interpolatedPosition.push_back(contact1);
 
         // auxiliary Vector3d to iterate through contacts
-        ignition::math::Vector3d tempVector (0.0, 0.0, 0.0);
+        ignition::math::Vector3d tempVector(0.0, 0.0, 0.0);
 
-        long unsigned int steps1 = contact1.Distance(contact2) / this->resolution;
-        long unsigned int steps2 = contact1.Distance(contact4) / this->resolution;
-        
+        uint64_t steps1 =
+            contact1.Distance(contact2) / this->resolution;
+        uint64_t steps2 =
+            contact1.Distance(contact4) / this->resolution;
+
         igndbg << "\n contact1: " << contact1 << "\n"
-        << "contact2: " << contact2 << "\n" 
-        << "contact3: " << contact3 << "\n"
-        << "contact4: " << contact4 << "\n"
-        << "direction1: " << direction1 << "\n"
-        << "direction2: " << direction2 << "\n";
-        
+            << "contact2: " << contact2 << "\n"
+        << "contact2: " << contact2 << "\n"
+            << "contact2: " << contact2 << "\n"
+        << "contact2: " << contact2 << "\n"
+            << "contact2: " << contact2 << "\n"
+            << "contact3: " << contact3 << "\n"
+            << "contact4: " << contact4 << "\n"
+            << "direction1: " << direction1 << "\n"
+            << "direction2: " << direction2 << "\n";
+
         igndbg << "steps1 = " << steps1 << std::endl;
-        igndbg << "contact1.Distance(contact2) = " << contact1.Distance(contact2) << std::endl;
-        igndbg << "this->resolution = " << this->resolution << std::endl;
+        igndbg << "contact1.Distance(contact2) = "
+            << contact1.Distance(contact2) << std::endl;
+        igndbg << "this->resolution = "
+            << this->resolution << std::endl;
 
         igndbg << "steps2 = " << steps2 << std::endl;
-        igndbg << "contact1.Distance(contact4) = " << contact1.Distance(contact4) << std::endl;
+        igndbg << "contact1.Distance(contact4) = "
+            << contact1.Distance(contact4) << std::endl;
         igndbg << "this->resolution = " << this->resolution << std::endl;
         igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
-        for (long unsigned int index1 = 0; index1 <= steps1; ++index1)
+        for (uint64_t index1 = 0; index1 <= steps1; ++index1)
         {
             tempVector = interpolatedVector;
-            for (long unsigned int index2 = 0; index2 < steps2; ++index2)
+            for (uint64_t index2 = 0; index2 < steps2; ++index2)
             {
                 interpolatedVector += direction2;
-                igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
+                igndbg << "interpolatedVector: "
+                    << interpolatedVector << std::endl;
                 this->interpolatedPosition.push_back(interpolatedVector);
             }
             if (index1 != steps1)
             {
                 interpolatedVector = tempVector;
                 interpolatedVector += direction1;
-                igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
-                this->interpolatedPosition.push_back(interpolatedVector);  
-            }         
+                igndbg << "interpolatedVector: "
+                    << interpolatedVector << std::endl;
+                this->interpolatedPosition.push_back(interpolatedVector);
+            }
         }
-    }   
+    }
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::VisualizeSensorData(std::vector<ignition::math::Vector3d> &positions)
+void OpticalTactilePluginPrivate::VisualizeSensorData(
+    std::vector<ignition::math::Vector3d> &positions)
 {
     // Delete previous shapes already in simulation
     this->positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
     this->forceMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
-    this->node.Request("/marker",this->positionMarkerMsg);
-    this->node.Request("/marker",this->forceMarkerMsg);
+    this->node.Request("/marker", this->positionMarkerMsg);
+    this->node.Request("/marker", this->forceMarkerMsg);
 
     // Add the new ones
     this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
     this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
 
-    for (int index = 0; index < positions.size(); ++index)
+    for (uint64_t index = 0; index < positions.size(); ++index)
     {
         this->positionMarkerMsg.set_id(index);
         this->forceMarkerMsg.set_id(index);
 
         ignition::msgs::Set(this->positionMarkerMsg.mutable_pose(),
-                        ignition::math::Pose3d(positions[index].X(), positions[index].Y(), 
-                        positions[index].Z(), 0, 0, 0));
+            ignition::math::Pose3d(positions[index].X(), positions[index].Y(),
+            positions[index].Z(), 0, 0, 0));
         ignition::msgs::Set(this->forceMarkerMsg.mutable_pose(),
-                        ignition::math::Pose3d(positions[index].X(), positions[index].Y(), 
-                        positions[index].Z() + this->forceLenght, 0, 0, 0));
+            ignition::math::Pose3d(positions[index].X(), positions[index].Y(),
+            positions[index].Z() + this->forceLenght, 0, 0, 0));
 
-        this->node.Request("/marker",this->positionMarkerMsg);
-        this->node.Request("/marker",this->forceMarkerMsg);
+        this->node.Request("/marker", this->positionMarkerMsg);
+        this->node.Request("/marker", this->forceMarkerMsg);
     }
 }
 
@@ -342,45 +354,72 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
     // Create the marker message
     this->dataPtr->positionMarkerMsg.set_ns("positions");
-    this->dataPtr->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->positionMarkerMsg.set_type(ignition::msgs::Marker::SPHERE);
-    this->dataPtr->positionMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+    this->dataPtr->positionMarkerMsg.set_action(
+        ignition::msgs::Marker::ADD_MODIFY);
+    this->dataPtr->positionMarkerMsg.set_type(
+        ignition::msgs::Marker::SPHERE);
+    this->dataPtr->positionMarkerMsg.set_visibility(
+        ignition::msgs::Marker::GUI);
 
     this->dataPtr->forceMarkerMsg.set_ns("forces");
-    this->dataPtr->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->forceMarkerMsg.set_type(ignition::msgs::Marker::CYLINDER);
-    this->dataPtr->forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+    this->dataPtr->forceMarkerMsg.set_action(
+        ignition::msgs::Marker::ADD_MODIFY);
+    this->dataPtr->forceMarkerMsg.set_type(
+        ignition::msgs::Marker::CYLINDER);
+    this->dataPtr->forceMarkerMsg.set_visibility(
+        ignition::msgs::Marker::GUI);
 
-    // Set material properties 
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
-    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-    this->dataPtr->positionMarkerMsg.mutable_lifetime()->set_sec(2);
-    this->dataPtr->positionMarkerMsg.mutable_lifetime()->set_nsec(0);
+    // Set material properties
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
+    this->dataPtr->
+        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+    this->dataPtr->
+        positionMarkerMsg.mutable_lifetime()->set_sec(2);
+    this->dataPtr->
+        positionMarkerMsg.mutable_lifetime()->set_nsec(0);
 
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
-    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-    this->dataPtr->forceMarkerMsg.mutable_lifetime()->set_sec(2);
-    this->dataPtr->forceMarkerMsg.mutable_lifetime()->set_nsec(0);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
+    this->dataPtr->
+        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+    this->dataPtr->
+        forceMarkerMsg.mutable_lifetime()->set_sec(2);
+    this->dataPtr->
+        forceMarkerMsg.mutable_lifetime()->set_nsec(0);
 
     // Set scales
     ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-                        ignition::math::Vector3d(this->dataPtr->contactRadius, this->dataPtr->contactRadius, 
-                        this->dataPtr->contactRadius));
+        ignition::math::Vector3d(this->dataPtr->contactRadius,
+        this->dataPtr->contactRadius,
+        this->dataPtr->contactRadius));
 
     ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
-                        ignition::math::Vector3d(0.05, 0.05, this->dataPtr->forceLenght));
+        ignition::math::Vector3d(0.05, 0.05, this->dataPtr->forceLenght));
 }
 
 //////////////////////////////////////////////////
@@ -397,8 +436,8 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
 
     // Update new collision messages
 
-    // This is not an "else" because "initialized" can be set in the if block
-    // above
+    // This is not an "else" because "initialized" can be set
+    // in the if block above
     if (this->dataPtr->initialized)
     {
         // Fetch new collisions from simulation
@@ -417,13 +456,12 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PostUpdate(
-                            const ignition::gazebo::UpdateInfo &_info,
-                            const ignition::gazebo::EntityComponentManager &_ecm)
+    const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &_ecm)
 {
     IGN_PROFILE("TouchPluginPrivate::PostUpdate");
 
     this->dataPtr->Update(_info, _ecm);
-
 }
 
 IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
@@ -432,4 +470,5 @@ IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
                     OpticalTactilePlugin::ISystemPreUpdate,
                     OpticalTactilePlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin, "ignition::gazebo::systems::OpticalTactilePlugin")
+IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
+    "ignition::gazebo::systems::OpticalTactilePlugin")
