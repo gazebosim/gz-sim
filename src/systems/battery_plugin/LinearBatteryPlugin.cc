@@ -254,9 +254,11 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
       }
 
       std::string enableRechargeTopic = "/model/" + this->dataPtr->modelName +
-        "/" + _sdf->Get<std::string>("battery_name") + "/recharge/start";
+        "/battery/" + _sdf->Get<std::string>("battery_name") +
+        "/recharge/start";
       std::string disableRechargeTopic = "/model/" + this->dataPtr->modelName +
-        "/" + _sdf->Get<std::string>("battery_name") + "/recharge/stop";
+        "/battery/" + _sdf->Get<std::string>("battery_name") +
+        "/recharge/stop";
 
       this->dataPtr->node.Advertise(enableRechargeTopic,
         &LinearBatteryPluginPrivate::OnEnableRecharge, this->dataPtr.get());

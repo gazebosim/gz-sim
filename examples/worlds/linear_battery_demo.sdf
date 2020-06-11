@@ -17,16 +17,16 @@
       ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
 
   Recharge the battery using a service (default):
-      ign service -s /model/vehicle_blue/linear_battery/recharge/start --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
+      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/start --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
 
   Recharge the battery using a topic (optional if <recharge_by_topic> is true):
-      ign topic -t /model/vehicle_blue/linear_battery/recharge/start -m ignition.msgs.Boolean -p 'data:true'
+      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/start -m ignition.msgs.Boolean -p 'data:true'
 
   Stop recharging the battery using a service (default):
-      ign service -s /model/vehicle_blue/linear_battery/recharge/stop --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
+      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/stop --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
 
   Stop recharging the battery using a topic (optional if <recharge_by_topic> is true):
-      ign topic -t /model/vehicle_blue/linear_battery/recharge/stop -m ignition.msgs.Boolean -p 'data:true'
+      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m ignition.msgs.Boolean -p 'data:true'
 
   The blue vehicle should stop when it runs out of battery.
 
