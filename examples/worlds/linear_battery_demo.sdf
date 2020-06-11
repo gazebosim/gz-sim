@@ -538,7 +538,6 @@
         <!-- charging I = c / t, discharging I = P / V,
           charging I should be > discharging I -->
         <charging_time>3.0</charging_time>
-        <soc_threshold>0.51</soc_threshold>
         <!-- Consumer-specific -->
         <power_load>2.1</power_load>
         <start_on_motion>false</start_on_motion>
