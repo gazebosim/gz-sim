@@ -109,45 +109,52 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   // update angular velocity of model
   auto angularVel =
-    _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->model.Entity());
+    _ecm.Component<components::AngularVelocityCmd>(
+      this->dataPtr->model.Entity());
 
   if (angularVel == nullptr)
   {
     _ecm.CreateComponent(
       this->dataPtr->model.Entity(),
       components::AngularVelocityCmd({this->dataPtr->angularVelocity}));
-    ignwarn << "[CreateComponent] Model angular velocity: " << this->dataPtr->angularVelocity[0]
-      << this->dataPtr->angularVelocity[1] << this->dataPtr->angularVelocity[2]
-      << std::endl;
+    ignwarn << "Model angular velocity: "
+      << this->dataPtr->angularVelocity[0] << ", "
+      << this->dataPtr->angularVelocity[1] << ", "
+      << this->dataPtr->angularVelocity[2] << std::endl;
   }
   else
   {
     *angularVel = components::AngularVelocityCmd(
       {this->dataPtr->angularVelocity});
-    ignwarn << "[retrieve] Model angular velocity: " << this->dataPtr->angularVelocity[0]
-      << this->dataPtr->angularVelocity[1] << this->dataPtr->angularVelocity[2]
-      << std::endl;
+    ignwarn << "Model angular velocity: "
+      << this->dataPtr->angularVelocity[0] << ", "
+      << this->dataPtr->angularVelocity[1] << ", "
+      << this->dataPtr->angularVelocity[2] << std::endl;
   }
 
-  // // update linear velocity of model
+  // update linear velocity of model
   auto linearVel =
-    _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->model.Entity());
+    _ecm.Component<components::LinearVelocityCmd>(
+      this->dataPtr->model.Entity());
 
   if (linearVel == nullptr)
   {
     _ecm.CreateComponent(
       this->dataPtr->model.Entity(),
       components::LinearVelocityCmd({this->dataPtr->linearVelocity}));
-    ignwarn << "[CreateComponent] Model linear velocity: " << this->dataPtr->linearVelocity[0]
-      << this->dataPtr->linearVelocity[1] << this->dataPtr->linearVelocity[2]
-      << std::endl;
+    ignwarn << "Model linear velocity: "
+      << this->dataPtr->linearVelocity[0] << ", "
+      << this->dataPtr->linearVelocity[1] << ", "
+      << this->dataPtr->linearVelocity[2] << std::endl;
   }
   else
   {
-    *linearVel = components::LinearVelocityCmd({this->dataPtr->linearVelocity});
-    ignwarn << "[retrieve] Model linear velocity: " << this->dataPtr->linearVelocity[0]
-      << this->dataPtr->linearVelocity[1] << this->dataPtr->linearVelocity[2]
-      << std::endl;
+    *linearVel = components::LinearVelocityCmd(
+      {this->dataPtr->linearVelocity});
+    ignwarn << "Model linear velocity: "
+      << this->dataPtr->linearVelocity[0] << ", "
+      << this->dataPtr->linearVelocity[1] << ", "
+      << this->dataPtr->linearVelocity[2] << std::endl;
   }
 }
 
