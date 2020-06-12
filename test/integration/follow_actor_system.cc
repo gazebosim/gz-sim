@@ -142,12 +142,14 @@ TEST_P(FollowActorTest, PublishCmd)
         components::Name("box"));
       EXPECT_NE(kNullEntity, targetEntity);
 
-      auto animNameComp = _ecm.Component<components::AnimationName>(actorEntity);
+      auto animNameComp =
+          _ecm.Component<components::AnimationName>(actorEntity);
       ASSERT_NE(nullptr, animNameComp);
       EXPECT_EQ("walking", animNameComp->Data());
 
       // Animation time is always increasing
-      auto animTimeComp = _ecm.Component<components::AnimationTime>(actorEntity);
+      auto animTimeComp =
+          _ecm.Component<components::AnimationTime>(actorEntity);
       ASSERT_NE(nullptr, animTimeComp);
 
       // Actor pose is fixed to zero X/Y and initial Z
