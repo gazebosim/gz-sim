@@ -182,7 +182,7 @@
         filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
-        <resolution>5</resolution>
+        <resolution>200</resolution>
         <noise>"Gaussian"</noise>
       </plugin>
     </model>
