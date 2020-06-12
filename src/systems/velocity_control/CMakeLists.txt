@@ -1,6 +1,6 @@
-gz_add_system(velocity-demo
+gz_add_system(velocity-control
   SOURCES
-    VelocityDemo.cc
+    VelocityControl.cc
   PUBLIC_LINK_LIBS
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )

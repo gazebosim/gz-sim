@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_VELOCITYDEMO_HH_
-#define IGNITION_GAZEBO_SYSTEMS_VELOCITYDEMO_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_VELOCITYCONTROL_HH_
+#define IGNITION_GAZEBO_SYSTEMS_VELOCITYCONTROL_HH_
 
 #include <ignition/gazebo/System.hh>
 #include <memory>
@@ -29,21 +29,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class VelocityDemoPrivate;
+  class VelocityControlPrivate;
 
-  /// \brief Differential drive controller which can be attached to a model
-  /// with any number of left and right wheels.
-  class IGNITION_GAZEBO_VISIBLE VelocityDemo
+  /// \brief Linear and angular velocity controller
+  /// which is directly set on a model.
+  class IGNITION_GAZEBO_VISIBLE VelocityControl
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: VelocityDemo();
+    public: VelocityControl();
 
     /// \brief Destructor
-    public: ~VelocityDemo() override = default;
+    public: ~VelocityControl() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -58,11 +58,11 @@ namespace systems
 
     // Documentation inherited
     public: void PostUpdate(
-                const UpdateInfo &_info,
-                const EntityComponentManager &/*_ecm*/) override;
+                const UpdateInfo &/*_info*/,
+                const EntityComponentManager &/*_ecm*/) override {};
 
     /// \brief Private data pointer
-    private: std::unique_ptr<VelocityDemoPrivate> dataPtr;
+    private: std::unique_ptr<VelocityControlPrivate> dataPtr;
   };
   }
 }

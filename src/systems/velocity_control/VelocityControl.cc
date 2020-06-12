@@ -21,19 +21,17 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
-#include "VelocityDemo.hh"
+#include "VelocityControl.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-class ignition::gazebo::systems::VelocityDemoPrivate
+class ignition::gazebo::systems::VelocityControlPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -42,27 +40,24 @@ class ignition::gazebo::systems::VelocityDemoPrivate
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  /// \brief Calculated speed of left joint
+  /// \brief Angular velocity of a model
   public: math::Vector3d angularVelocity{0, 0, 0};
 
-  /// \brief Calculated speed of right joint
+  /// \brief Linear velocity of a model
   public: math::Vector3d linearVelocity{0, 0, 0};
 
   /// \brief Model interface
   public: Model model{kNullEntity};
-
-  /// \brief The model's canonical link.
-  public: Link canonicalLink{kNullEntity};
 };
 
 //////////////////////////////////////////////////
-VelocityDemo::VelocityDemo()
-  : dataPtr(std::make_unique<VelocityDemoPrivate>())
+VelocityControl::VelocityControl()
+  : dataPtr(std::make_unique<VelocityControlPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-void VelocityDemo::Configure(const Entity &_entity,
+void VelocityControl::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
@@ -71,29 +66,27 @@ void VelocityDemo::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "VelocityDemo plugin should be attached to a model entity. "
+    ignerr << "VelocityControl plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
-
-  // auto ptr = const_cast<sdf::Element *>(_sdf.get());
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
   if (_sdf->HasElement("topic"))
     topic = _sdf->Get<std::string>("topic");
   this->dataPtr->node.Subscribe(
-    topic, &VelocityDemoPrivate::OnCmdVel, this->dataPtr.get());
+    topic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
 
-  ignmsg << "VelocityDemo subscribing to twist messages on [" << topic << "]"
+  ignmsg << "VelocityControl subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
 
 //////////////////////////////////////////////////
-void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VelocityDemo::PreUpdate");
+  IGN_PROFILE("VelocityControl::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -117,19 +110,11 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     _ecm.CreateComponent(
       this->dataPtr->model.Entity(),
       components::AngularVelocityCmd({this->dataPtr->angularVelocity}));
-    ignwarn << "Model angular velocity: "
-      << this->dataPtr->angularVelocity[0] << ", "
-      << this->dataPtr->angularVelocity[1] << ", "
-      << this->dataPtr->angularVelocity[2] << std::endl;
   }
   else
   {
-    *angularVel = components::AngularVelocityCmd(
-      {this->dataPtr->angularVelocity});
-    ignwarn << "Model angular velocity: "
-      << this->dataPtr->angularVelocity[0] << ", "
-      << this->dataPtr->angularVelocity[1] << ", "
-      << this->dataPtr->angularVelocity[2] << std::endl;
+    *angularVel =
+      components::AngularVelocityCmd({this->dataPtr->angularVelocity});
   }
 
   // update linear velocity of model
@@ -142,34 +127,16 @@ void VelocityDemo::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     _ecm.CreateComponent(
       this->dataPtr->model.Entity(),
       components::LinearVelocityCmd({this->dataPtr->linearVelocity}));
-    ignwarn << "Model linear velocity: "
-      << this->dataPtr->linearVelocity[0] << ", "
-      << this->dataPtr->linearVelocity[1] << ", "
-      << this->dataPtr->linearVelocity[2] << std::endl;
   }
   else
   {
-    *linearVel = components::LinearVelocityCmd(
-      {this->dataPtr->linearVelocity});
-    ignwarn << "Model linear velocity: "
-      << this->dataPtr->linearVelocity[0] << ", "
-      << this->dataPtr->linearVelocity[1] << ", "
-      << this->dataPtr->linearVelocity[2] << std::endl;
+    *linearVel =
+      components::LinearVelocityCmd({this->dataPtr->linearVelocity});
   }
 }
 
 //////////////////////////////////////////////////
-void VelocityDemo::PostUpdate(const UpdateInfo &_info,
-    const EntityComponentManager &/*_ecm*/)
-{
-  IGN_PROFILE("VelocityDemo::PostUpdate");
-  // Nothing left to do if paused.
-  if (_info.paused)
-    return;
-}
-
-//////////////////////////////////////////////////
-void VelocityDemoPrivate::OnCmdVel(const msgs::Twist &_msg)
+void VelocityControlPrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   this->linearVelocity = math::Vector3d(
     _msg.linear().x(), _msg.linear().y(), _msg.linear().z());
@@ -177,11 +144,11 @@ void VelocityDemoPrivate::OnCmdVel(const msgs::Twist &_msg)
     _msg.angular().x(), _msg.angular().y(), _msg.angular().z());
 }
 
-IGNITION_ADD_PLUGIN(VelocityDemo,
+IGNITION_ADD_PLUGIN(VelocityControl,
                     ignition::gazebo::System,
-                    VelocityDemo::ISystemConfigure,
-                    VelocityDemo::ISystemPreUpdate,
-                    VelocityDemo::ISystemPostUpdate)
+                    VelocityControl::ISystemConfigure,
+                    VelocityControl::ISystemPreUpdate,
+                    VelocityControl::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(VelocityDemo,
-                          "ignition::gazebo::systems::VelocityDemo")
+IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+                          "ignition::gazebo::systems::VelocityControl")

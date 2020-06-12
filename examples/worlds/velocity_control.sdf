@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo velocity plugin demo
+  Ignition Gazebo velocity control plugin demo
 
   Try sending commands:
 
@@ -10,7 +10,7 @@
 
 -->
 <sdf version="1.6">
-  <world name="velocity_demo">
+  <world name="velocity_control">
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -66,8 +66,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/velocity_demo/control</service>
-        <stats_topic>/world/velocity_demo/stats</stats_topic>
+        <service>/world/velocity_control/control</service>
+        <stats_topic>/world/velocity_control/stats</stats_topic>
 
       </plugin>
 
@@ -92,7 +92,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/velocity_demo/stats</topic>
+        <topic>/world/velocity_control/stats</topic>
 
       </plugin>
 
@@ -307,13 +307,8 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-velocity-demo-system.so"
-        name="ignition::gazebo::systems::VelocityDemo">
-        <left_joint>left_wheel_joint</left_joint>
-        <right_joint>right_wheel_joint</right_joint>
-        <wheel_separation>1.25</wheel_separation>
-        <wheel_radius>0.3</wheel_radius>
-        <odom_publish_frequency>1</odom_publish_frequency>
+        filename="libignition-gazebo-velocity-control-system.so"
+        name="ignition::gazebo::systems::VelocityControl">
       </plugin>
 
     </model>
@@ -487,16 +482,11 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-velocity-demo-system.so"
-        name="ignition::gazebo::systems::VelocityDemo">
-        <left_joint>left_wheel_joint</left_joint>
-        <right_joint>right_wheel_joint</right_joint>
-        <wheel_separation>1.25</wheel_separation>
-        <wheel_radius>0.3</wheel_radius>
+        filename="libignition-gazebo-velocity-control-system.so"
+        name="ignition::gazebo::systems::VelocityControl">
       </plugin>
 
     </model>
 
   </world>
 </sdf>
-
