@@ -67,7 +67,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
   gazebo::Entity e1 = gazebo::kNullEntity;
   gazebo::Entity e2 = gazebo::kNullEntity;
 
-  test::Relay entityCreator;
+  gazebo::test::Relay entityCreator;
   entityCreator.OnPreUpdate(
     [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
     {
@@ -82,7 +82,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
       }
   });
 
-  test::Relay entityRemover;
+  gazebo::test::Relay entityRemover;
   entityRemover.OnPreUpdate(
     [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
     {
@@ -127,7 +127,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
     return counterImpl;
   };
 
-  test::Relay entityCounter;
+  gazebo::test::Relay entityCounter;
   entityCounter.OnPreUpdate(counterFunc(preCount));
   entityCounter.OnUpdate(counterFunc(updateCount));
   entityCounter.OnPostUpdate(counterFunc(postCount));
