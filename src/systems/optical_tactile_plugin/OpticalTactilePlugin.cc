@@ -54,12 +54,6 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \param[in] _value True to enable plugin.
   public: void Enable(const bool _value);
 
-  /// \brief Process contact sensor data
-  /// \param[in] _info Simulation update info
-  /// \param[in] _ecm Immutable reference to the EntityComponentManager
-  public: void Update(const UpdateInfo &_info,
-                      const EntityComponentManager &_ecm);
-
   /// \brief Filters out new collisions fetched not related to the sensors
   public: void FilterOutCollisions(const EntityComponentManager &_ecm,
                                    const std::vector<Entity> &_entities);
@@ -90,7 +84,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: std::vector<Entity> collisionEntities;
 
   /// \brief Filtered collisions from the simulation that belong to
-  // one or more sensors.
+  /// one or more sensors.
   public: std::vector<Entity> filteredCollisionEntities;
 
   /// \brief Wheter the plugin is enabled.
@@ -119,6 +113,15 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Position interpolated from the Contact messages
   public: std::vector<ignition::math::Vector3d> interpolatedPosition;
+
+  /// \brief Update period in milliseconds
+  public: int64_t updatePeriod{100};
+
+  /// \brief Last time Update was called
+  public: std::chrono::steady_clock::duration lastUpdateTime{0};
+
+  /// \brief Allows the plugin to run
+  public: bool update{true};
 };
 
 //////////////////////////////////////////////////
@@ -166,17 +169,29 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void OpticalTactilePluginPrivate::Enable(const bool _value)
 {
-    igndbg << "OpticalTactilePluginPrivate::Enable" << std::endl;
+    // Just a placeholder method for the moment
+    _value;
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::Update(const UpdateInfo &_info,
-                        const EntityComponentManager &_ecm)
+void OpticalTactilePlugin::Update(const UpdateInfo &_info,
+                                  EntityComponentManager &_ecm)
 {
+    // Nothing left to do if paused or not allowed to update
+    if (_info.paused || !this->dataPtr->update)
+      return;
+
     IGN_PROFILE("TouchPluginPrivate::Update");
 
-    // Print collision messages which have the sensor as one collision
-    for (const Entity colEntity : this->filteredCollisionEntities)
+    // Save the time for last time this function was called
+    this->dataPtr->lastUpdateTime = _info.simTime;
+
+    // Step 1: Interpolate data
+
+    // Delete old interpolated positions
+    this->dataPtr->interpolatedPosition.clear();
+
+    for (const Entity colEntity : this->dataPtr->filteredCollisionEntities)
     {
         auto* contacts =
             _ecm.Component<components::ContactSensorData>(colEntity);
@@ -185,14 +200,13 @@ void OpticalTactilePluginPrivate::Update(const UpdateInfo &_info,
             for (const auto &contact : contacts->Data().contact())
             {
                 // Interpolate data returned by the Contact message
-                this->InterpolateData(contact);
-
-                // Visualize interpolated data
-                this->VisualizeSensorData(this->interpolatedPosition);
+                this->dataPtr->InterpolateData(contact);
             }
-            // ignition::common::Time::Sleep(ignition::common::Time(0.1));
         }
     }
+
+    // Step 2: Visualize data
+    this->dataPtr->VisualizeSensorData(this->dataPtr->interpolatedPosition);
 }
 
 //////////////////////////////////////////////////
@@ -210,11 +224,9 @@ void OpticalTactilePluginPrivate::FilterOutCollisions(
     for (Entity entity : _entities)
     {
         std::string name = scopedName(entity, _ecm);
-        igndbg << "scopedName: " << name << std::endl;
+
         if (name.find(this->modelName) != std::string::npos)
         {
-            igndbg << "Filtered collision that belongs to a sensor"
-                << std::endl;
             this->filteredCollisionEntities.push_back(entity);
         }
     }
@@ -224,13 +236,8 @@ void OpticalTactilePluginPrivate::FilterOutCollisions(
 void OpticalTactilePluginPrivate::InterpolateData(
                     const ignition::msgs::Contact &contact)
 {
-    // Delete old positions
-    this->interpolatedPosition.clear();
-
-    // Interpolate new ones
     if (contact.position_size() == 4)
     {
-        igndbg << "Interpolate 4 position" << std::endl;
         ignition::math::Vector3d contact1 =
             ignition::msgs::Convert(contact.position(0));
         ignition::math::Vector3d contact2 =
@@ -256,44 +263,18 @@ void OpticalTactilePluginPrivate::InterpolateData(
         uint64_t steps2 =
             contact1.Distance(contact4) / this->resolution;
 
-        igndbg << "\n contact1: " << contact1 << "\n"
-            << "contact2: " << contact2 << "\n"
-        << "contact2: " << contact2 << "\n"
-            << "contact2: " << contact2 << "\n"
-        << "contact2: " << contact2 << "\n"
-            << "contact2: " << contact2 << "\n"
-            << "contact3: " << contact3 << "\n"
-            << "contact4: " << contact4 << "\n"
-            << "direction1: " << direction1 << "\n"
-            << "direction2: " << direction2 << "\n";
-
-        igndbg << "steps1 = " << steps1 << std::endl;
-        igndbg << "contact1.Distance(contact2) = "
-            << contact1.Distance(contact2) << std::endl;
-        igndbg << "this->resolution = "
-            << this->resolution << std::endl;
-
-        igndbg << "steps2 = " << steps2 << std::endl;
-        igndbg << "contact1.Distance(contact4) = "
-            << contact1.Distance(contact4) << std::endl;
-        igndbg << "this->resolution = " << this->resolution << std::endl;
-        igndbg << "interpolatedVector: " << interpolatedVector << std::endl;
         for (uint64_t index1 = 0; index1 <= steps1; ++index1)
         {
             tempVector = interpolatedVector;
             for (uint64_t index2 = 0; index2 < steps2; ++index2)
             {
                 interpolatedVector += direction2;
-                igndbg << "interpolatedVector: "
-                    << interpolatedVector << std::endl;
                 this->interpolatedPosition.push_back(interpolatedVector);
             }
             if (index1 != steps1)
             {
                 interpolatedVector = tempVector;
                 interpolatedVector += direction1;
-                igndbg << "interpolatedVector: "
-                    << interpolatedVector << std::endl;
                 this->interpolatedPosition.push_back(interpolatedVector);
             }
         }
@@ -335,14 +316,13 @@ void OpticalTactilePluginPrivate::VisualizeSensorData(
 OpticalTactilePlugin::OpticalTactilePlugin()
             : System(), dataPtr(std::make_unique<OpticalTactilePluginPrivate>())
 {
-    igndbg << "OpticalTactilePlugin Constructor" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::Configure(const Entity &_entity,
                             const std::shared_ptr<const sdf::Element> &_sdf,
-                            EntityComponentManager &_ecm,
-                            EventManager &_eventMgr)
+                            EntityComponentManager &,
+                            EventManager &)
 {
     igndbg << "OpticalTactilePlugin::Configure" << std::endl;
     this->dataPtr->sdfConfig = _sdf->Clone();
@@ -428,46 +408,57 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
 {
     IGN_PROFILE("TouchPluginPrivate::PreUpdate");
 
+    // Nothing left to do if paused
+    if (_info.paused)
+      return;
+
     if (!this->dataPtr->initialized)
     {
         this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
         this->dataPtr->initialized = true;
     }
 
-    // Update new collision messages
-
     // This is not an "else" because "initialized" can be set
     // in the if block above
     if (this->dataPtr->initialized)
     {
-        // Fetch new collisions from simulation
-        std::vector<Entity> newCollisions;
-        _ecm.EachNew<components::Collision>(
-            [&](const Entity &_entity, const components::Collision *) -> bool
-            {
-            igndbg << "Fetched new collision" << std::endl;
-            newCollisions.push_back(_entity);
-            return true;
-            });
-
-        this->dataPtr->FilterOutCollisions(_ecm, newCollisions);
+      // Fetch new collisions from simulation
+      std::vector<Entity> newCollisions;
+      _ecm.Each<components::Collision>(
+          [&](const Entity &_entity, const components::Collision *) -> bool
+          {
+          newCollisions.push_back(_entity);
+          return true;
+          });
+      this->dataPtr->FilterOutCollisions(_ecm, newCollisions);
     }
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PostUpdate(
     const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const ignition::gazebo::EntityComponentManager &)
 {
-    IGN_PROFILE("TouchPluginPrivate::PostUpdate");
+    IGN_PROFILE("TouchPlugin::PostUpdate");
 
-    this->dataPtr->Update(_info, _ecm);
+    // Nothing left to do if paused.
+    if (_info.paused)
+      return;
+
+    // Check if info should be updated
+    this->dataPtr->update = true;
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(
+        _info.simTime - this->dataPtr->lastUpdateTime);
+
+    if ((diff.count() >= 0) && (diff.count() < this->dataPtr->updatePeriod))
+      this->dataPtr->update = false;
 }
 
 IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
                     ignition::gazebo::System,
                     OpticalTactilePlugin::ISystemConfigure,
                     OpticalTactilePlugin::ISystemPreUpdate,
+                    OpticalTactilePlugin::ISystemUpdate,
                     OpticalTactilePlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
