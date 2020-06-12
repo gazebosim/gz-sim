@@ -18,9 +18,11 @@
 #define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYCMD_HH_
 
 #include <ignition/math/Vector3.hh>
+
+#include <ignition/gazebo/config.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
 
 namespace ignition
 {
