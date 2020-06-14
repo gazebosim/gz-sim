@@ -15,6 +15,7 @@
  *
 */
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
@@ -98,7 +99,7 @@ Server::Server(const ServerConfig &_config)
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
 
-  this->dataPtr->AddResourcePaths();
+  addResourcePaths();
 
   sdf::Errors errors;
 

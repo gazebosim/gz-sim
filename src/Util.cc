@@ -19,6 +19,7 @@
 #include <filesystem>
 #endif
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/StringUtils.hh>
 
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -208,6 +209,106 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 
   // Use platform-specific separator
   return common::joinPaths(path,  uri);
+}
+
+//////////////////////////////////////////////////
+std::vector<std::string> resourcePaths()
+{
+  // Environment variable holding resource paths
+  const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
+
+  std::vector<std::string> gzPaths;
+  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  if (gzPathCStr && *gzPathCStr != '\0')
+  {
+    gzPaths = common::Split(gzPathCStr, ':');
+  }
+
+  gzPaths.erase(remove_if(gzPaths.begin(), gzPaths.end(),
+      std::mem_fun_ref(&std::string::empty)), gzPaths.end());
+
+  return gzPaths;
+}
+
+//////////////////////////////////////////////////
+void addResourcePaths(const std::vector<std::string> &_paths)
+{
+  // Environment variable holding resource paths
+  const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
+
+  // Environment variable used by SDFormat to find URIs inside <include>
+  const std::string kSdfPathEnv{"SDF_PATH"};
+
+  // SDF paths (for <include>s)
+  std::vector<std::string> sdfPaths;
+  char *sdfPathCStr = getenv(kSdfPathEnv.c_str());
+  if (sdfPathCStr && *sdfPathCStr != '\0')
+  {
+    sdfPaths = common::Split(sdfPathCStr, ':');
+  }
+
+  // Ignition file paths (for <uri>s)
+  auto systemPaths = common::systemPaths();
+  std::vector<std::string> ignPaths;
+  char *ignPathCStr = getenv(systemPaths->FilePathEnv().c_str());
+  if (ignPathCStr && *ignPathCStr != '\0')
+  {
+    ignPaths = common::Split(ignPathCStr, ':');
+  }
+
+  // Gazebo resource paths
+  std::vector<std::string> gzPaths;
+  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  if (gzPathCStr && *gzPathCStr != '\0')
+  {
+    gzPaths = common::Split(gzPathCStr, ':');
+  }
+
+  // Add new paths to gzPaths
+  for (const auto &path : _paths)
+  {
+    if (std::find(gzPaths.begin(), gzPaths.end(), path) == gzPaths.end())
+    {
+      gzPaths.push_back(path);
+    }
+  }
+
+  // Append Gz paths to SDF / Ign paths
+  for (const auto &path : gzPaths)
+  {
+    if (std::find(sdfPaths.begin(), sdfPaths.end(), path) == sdfPaths.end())
+    {
+      sdfPaths.push_back(path);
+    }
+
+    if (std::find(ignPaths.begin(), ignPaths.end(), path) == ignPaths.end())
+    {
+      ignPaths.push_back(path);
+    }
+  }
+
+  // Update the vars
+  std::string sdfPathsStr;
+  for (const auto &path : sdfPaths)
+    sdfPathsStr += ':' + path;
+
+  setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
+
+  std::string ignPathsStr;
+  for (const auto &path : ignPaths)
+    ignPathsStr += ':' + path;
+
+  setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str(), 1);
+
+  std::string gzPathsStr;
+  for (const auto &path : gzPaths)
+    gzPathsStr += ':' + path;
+
+  setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
+
+  // Force re-evaluation
+  // SDF is evaluated at find call
+  systemPaths->SetFilePathEnv(systemPaths->FilePathEnv());
 }
 }
 }

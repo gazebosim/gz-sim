@@ -24,6 +24,7 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
@@ -255,6 +256,30 @@ std::unique_ptr<ignition::gui::Application> createGui(
       return nullptr;
     }
   }
+
+  // Get resource paths
+  service = "/gazebo/get_resource_paths";
+  msgs::StringMsg_V res;
+  // FIXME(chapulina) This is timing out when server and gui are in different
+  // terminals. Making an `ign service -s` request works. Print statements
+  // show that the server callback executes successfully.
+  executed = node.Request(service, 5000, res, result);
+
+  if (!executed)
+    ignerr << "Service call timed out for [" << service << "]" << std::endl;
+  else if (!result)
+    ignerr << "Service call failed for [" << service << "]" << std::endl;
+
+  std::vector<std::string> paths;
+  for (auto i = 0; i < res.data().size(); ++i)
+  {
+    paths.push_back(res.data(i));
+  }
+
+  addResourcePaths(paths);
+
+  // TODO(chapulina) subscribe to resource_paths topic
+
   return app;
 }
 

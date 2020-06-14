@@ -82,6 +82,12 @@ namespace ignition
     ///   1. /world/<world_name>/scene/info(none) : ignition::msgs::Scene
     ///     + Returns the current scene information.
     ///
+    ///   2. /gazebo/get_resource_paths : ignition::msgs::StringMsg_V
+    ///     + Get list of resource paths.
+    ///
+    ///   3. /gazebo/add_resource_paths : ignition::msgs::Empty
+    ///     + Add new resource paths.
+    ///
     /// ## Topics
     ///
     /// The following are topics provided by the Server.
@@ -94,6 +100,9 @@ namespace ignition
     ///
     /// 2. /world/<world_name>/stats : ignition::msgs::WorldStatistics
     ///   + This topic is throttled to 5Hz.
+    ///
+    /// 3. /gazebo/resource_paths : ignition::msgs::StringMsg_V
+    ///   + Updated list of resource paths.
     ///
     class IGNITION_GAZEBO_VISIBLE Server
     {
