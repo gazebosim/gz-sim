@@ -44,3 +44,22 @@ set(CMAKE_AUTORCC OFF)
 
 install(TARGETS ${gui_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
 install (FILES gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
+
+# Tests
+set (gtest_sources
+  ${gtest_sources}
+  Gui_TEST.cc
+)
+include_directories(${PROJECT_SOURCE_DIR}/test)
+
+ign_build_tests(TYPE UNIT
+  SOURCES
+    ${gtest_sources}
+  LIB_DEPS
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ${gui_target}
+    ${EXTRA_TEST_LIB_DEPS}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+)
