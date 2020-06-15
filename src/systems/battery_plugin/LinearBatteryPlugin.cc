@@ -252,15 +252,26 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
                   "Parameter required to enable recharge.\n";
         return;
       }
-      std::string enableRechargeService = this->dataPtr->modelName +
-        "/" + _sdf->Get<std::string>("battery_name") + "/recharge/start";
-      std::string disableRechargeService = this->dataPtr->modelName +
-        "/" + _sdf->Get<std::string>("battery_name") + "/recharge/stop";
 
-      this->dataPtr->node.Advertise(enableRechargeService,
+      std::string enableRechargeTopic = "/model/" + this->dataPtr->modelName +
+        "/battery/" + _sdf->Get<std::string>("battery_name") +
+        "/recharge/start";
+      std::string disableRechargeTopic = "/model/" + this->dataPtr->modelName +
+        "/battery/" + _sdf->Get<std::string>("battery_name") +
+        "/recharge/stop";
+
+      this->dataPtr->node.Advertise(enableRechargeTopic,
         &LinearBatteryPluginPrivate::OnEnableRecharge, this->dataPtr.get());
-      this->dataPtr->node.Advertise(disableRechargeService,
+      this->dataPtr->node.Advertise(disableRechargeTopic,
         &LinearBatteryPluginPrivate::OnDisableRecharge, this->dataPtr.get());
+
+      if (_sdf->HasElement("recharge_by_topic"))
+      {
+        this->dataPtr->node.Subscribe(enableRechargeTopic,
+          &LinearBatteryPluginPrivate::OnEnableRecharge, this->dataPtr.get());
+        this->dataPtr->node.Subscribe(disableRechargeTopic,
+          &LinearBatteryPluginPrivate::OnDisableRecharge, this->dataPtr.get());
+      }
     }
   }
 

@@ -53,6 +53,9 @@ namespace systems
   /// <start_on_motion> if set to true, the battery will start draining
   ///                   only if the robot has started moving
   /// <enable_recharge> If true, the battery can be recharged
+  /// <recharge_by_topic> If true, the start/stop signals for recharging the
+  ///                     battery will also be available via topics. The
+  ///                     regular Ignition services will still be available.
   /// <charging_time> Hours taken to fully charge the battery.
   ///                 (Required if <enable_recharge> is set to true)
   class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
