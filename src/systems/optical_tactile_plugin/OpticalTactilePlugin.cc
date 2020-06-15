@@ -285,15 +285,13 @@ void OpticalTactilePluginPrivate::InterpolateData(
 void OpticalTactilePluginPrivate::VisualizeSensorData(
     std::vector<ignition::math::Vector3d> &positions)
 {
-    // Delete previous shapes already in simulation
-    this->positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
-    this->forceMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
-    this->node.Request("/marker", this->positionMarkerMsg);
-    this->node.Request("/marker", this->forceMarkerMsg);
-
-    // Add the new ones
+    // Add new markers with specific lifetime
     this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+    this->positionMarkerMsg.mutable_lifetime()->set_sec(0);
+    this->positionMarkerMsg.mutable_lifetime()->set_nsec(this->updatePeriod * 1000000);
     this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+    this->forceMarkerMsg.mutable_lifetime()->set_sec(0);
+    this->forceMarkerMsg.mutable_lifetime()->set_nsec(this->updatePeriod * 1000000);
 
     for (uint64_t index = 0; index < positions.size(); ++index)
     {
@@ -367,9 +365,11 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->
         positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
     this->dataPtr->
-        positionMarkerMsg.mutable_lifetime()->set_sec(2);
+        positionMarkerMsg.mutable_lifetime()->
+          set_sec(0);
     this->dataPtr->
-        positionMarkerMsg.mutable_lifetime()->set_nsec(0);
+        positionMarkerMsg.mutable_lifetime()->
+          set_nsec(this->dataPtr->updatePeriod * 1000000);
 
     this->dataPtr->
         forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
@@ -388,9 +388,11 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->
         forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
     this->dataPtr->
-        forceMarkerMsg.mutable_lifetime()->set_sec(2);
+        forceMarkerMsg.mutable_lifetime()->
+          set_sec(0);
     this->dataPtr->
-        forceMarkerMsg.mutable_lifetime()->set_nsec(0);
+        forceMarkerMsg.mutable_lifetime()->
+          set_nsec(this->dataPtr->updatePeriod * 1000000);
 
     // Set scales
     ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
