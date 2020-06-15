@@ -284,6 +284,11 @@ std::tuple<bool, double, Vector3d>  AxisAlignedBox::Intersect(
   dir.Normalize();
   return this->Intersect(Line3d(_origin + dir * _min, _origin + dir * _max));
 }
+/////////////////////////////////////////////////
+double AxisAlignedBox::Volume() const
+{
+  return this->XLength() * this->YLength() * this->ZLength();
+}
 
 /////////////////////////////////////////////////
 // Find the intersection of a line from v0 to v1 and an

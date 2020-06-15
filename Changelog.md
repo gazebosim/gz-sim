@@ -2,6 +2,9 @@
 
 ## Ignition Math 6.x.x
 
+1. Implement AxisAlignedBox Volume function
+    * [Pull request 126](https://github.com/ignitionrobotics/ign-math/pull/126)
+
 1. Add operator + for AxisAlignedBox and Vector3.
     * [Pull request 122](https://github.com/ignitionrobotics/ign-math/pull/122)
 
