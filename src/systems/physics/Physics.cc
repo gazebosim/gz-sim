@@ -835,6 +835,17 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         {
           filterMaskFeature->SetCollisionFilterMask(collideBitmask);
         }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set collision bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
 
         this->entityCollisionMap.insert(
             std::make_pair(_entity, collisionPtrPhys));
