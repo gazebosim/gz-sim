@@ -224,8 +224,11 @@ std::vector<std::string> resourcePaths()
     gzPaths = common::Split(gzPathCStr, ':');
   }
 
-  gzPaths.erase(remove_if(gzPaths.begin(), gzPaths.end(),
-      std::mem_fun_ref(&std::string::empty)), gzPaths.end());
+  gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
+      [](const std::string &_path)
+      {
+        return _path.empty();
+      }), gzPaths.end());
 
   return gzPaths;
 }
