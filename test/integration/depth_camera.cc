@@ -64,7 +64,11 @@ void depthCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Depth Camera readings when it faces a box
+#ifdef __APPLE__
+TEST_F(DepthCameraTest, DISABLED_DepthCameraBox)
+#else
 TEST_F(DepthCameraTest, DepthCameraBox)
+#endif
 {
   // Start server
   ServerConfig serverConfig;

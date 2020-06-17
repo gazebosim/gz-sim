@@ -57,7 +57,11 @@ void laserCb(const msgs::LaserScan &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Gpu Lidar readings when it faces a box
+#ifdef __APPLE__
+TEST_F(GpuLidarTest, DISABLED_GpuLidarBox)
+#else
 TEST_F(GpuLidarTest, GpuLidarBox)
+#endif
 {
   const int horzSamples = 640;
 

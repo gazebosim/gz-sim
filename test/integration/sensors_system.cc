@@ -101,7 +101,11 @@ void testDefaultTopics()
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
+#ifdef __APPLE__
+TEST_F(SensorsFixture, DISABLED_HandleRemovedEntities)
+#else
 TEST_F(SensorsFixture, HandleRemovedEntities)
+#endif
 {
   ignition::gazebo::ServerConfig serverConfig;
 

@@ -64,7 +64,11 @@ void depthCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Rgbd Camera readings when it faces a box
+#ifdef __APPLE__
+TEST_F(RgbdCameraTest, DISABLED_RgbdCameraBox)
+#else
 TEST_F(RgbdCameraTest, RgbdCameraBox)
+#endif
 {
   // Start server
   ServerConfig serverConfig;
