@@ -29,6 +29,7 @@
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -55,15 +56,39 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: void Enable(const bool _value);
 
   /// \brief Filters out new collisions fetched not related to the sensors
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager
+  /// \param[in] _entities Collision entities to filter
   public: void FilterOutCollisions(const EntityComponentManager &_ecm,
                                    const std::vector<Entity> &_entities);
 
   /// \brief Visualize the sensor's data using the Marker message
+  /// \param[in] positions Contact positions to visualize
   public: void VisualizeSensorData(
       std::vector<ignition::math::Vector3d> &positions);
 
   /// \brief Interpolates contact data
+  /// \param[in] contactMsg Message containing the data to interpolate
   public: void InterpolateData(const ignition::msgs::Contact &contactMsg);
+
+  /// \brief Callback for the Depth Camera
+  /// \param[in] _msg Message from the subscribed topic
+  public: void DepthCameraCallback(
+          const ignition::msgs::PointCloudPacked &_msg);
+
+  /// \brief Unpacks the point cloud retrieved by the Depth Camera
+  /// into XYZ and RGB data
+  /// \param[in] _msg Message containing the data to unpack
+  /// \param[in] _xyzBuffer Buffer with the unpacked XYZ data
+  /// \param[in] _rgbBuffer Buffer with the unpacked RGB data
+  public: void UnpackPointCloudMsg(
+                        const ignition::msgs::PointCloudPacked &_msg,
+                        float *_xyzBuffer, unsigned char *_rgbBuffer);
+
+  /// \brief Computes the normal forces of the Optical Tactile sensor
+  /// \param[in] imageHeight Height of the image retrieved by the Depth Camera
+  /// \param[in] imageWidth Width of the image retrieved by the Depth Camera
+  public: void ComputeNormalForces(unsigned int imageHeight,
+                                   unsigned int imageWidth);
 
   /// \brief Resolution of the sensor in mm.
   public: double resolution;
@@ -73,9 +98,6 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Transport node to visualize data on Gazebo.
   public: transport::Node node;
-
-  /// \brief Publisher that publishes the sensors' contacts.
-  public: std::optional<transport::Node::Publisher>sensorContactsPub;
 
   /// \brief Collision entities that have been designated as contact sensors.
   public: std::vector<Entity> sensorEntities;
@@ -122,6 +144,12 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Allows the plugin to run
   public: bool update{true};
+
+  /// \brief Pointer to the XYZ data of the Depth Camera
+  float *pointsXYZBuffer = nullptr;
+
+  /// \brief Pointer to the point cloud RGB data of the Depth Camera
+  unsigned char *pointsRGBBuffer = nullptr;
 };
 
 //////////////////////////////////////////////////
@@ -288,10 +316,12 @@ void OpticalTactilePluginPrivate::VisualizeSensorData(
     // Add new markers with specific lifetime
     this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
     this->positionMarkerMsg.mutable_lifetime()->set_sec(0);
-    this->positionMarkerMsg.mutable_lifetime()->set_nsec(this->updatePeriod * 1000000);
+    this->positionMarkerMsg.mutable_lifetime()->set_nsec(
+        this->updatePeriod * 1000000);
     this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
     this->forceMarkerMsg.mutable_lifetime()->set_sec(0);
-    this->forceMarkerMsg.mutable_lifetime()->set_nsec(this->updatePeriod * 1000000);
+    this->forceMarkerMsg.mutable_lifetime()->set_nsec(
+        this->updatePeriod * 1000000);
 
     for (uint64_t index = 0; index < positions.size(); ++index)
     {
@@ -322,9 +352,25 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
                             EntityComponentManager &,
                             EventManager &)
 {
-    igndbg << "OpticalTactilePlugin::Configure" << std::endl;
     this->dataPtr->sdfConfig = _sdf->Clone();
     this->dataPtr->model = Model(_entity);
+
+    // Configure subscriber for Depth Camera images
+    sdf::ElementPtr depthCameraSdf =
+      _sdf->GetParent()->GetElement("link")->GetElement("sensor");
+    std::string topic = "/depth_camera/points";
+
+    if (depthCameraSdf->HasElement("topic"))
+      topic = "/" + depthCameraSdf->Get<std::string>("topic") + "/points";
+
+    if (!this->dataPtr->node.Subscribe(topic,
+      &OpticalTactilePluginPrivate::DepthCameraCallback,
+      this->dataPtr.get()))
+    {
+      ignerr << "Error subscribing to topic " << "[" << topic << "]. "
+      "<topic> must not contain '/'" << std::endl;
+      return;
+    }
 
     // Configure Marker messages for position and force of the contacts
     // Blue spheres for positions
@@ -454,6 +500,94 @@ void OpticalTactilePlugin::PostUpdate(
 
     if ((diff.count() >= 0) && (diff.count() < this->dataPtr->updatePeriod))
       this->dataPtr->update = false;
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::DepthCameraCallback(
+        const ignition::msgs::PointCloudPacked &_msg)
+{
+  unsigned int pointCloudSamples = _msg.width() * _msg.height();
+  unsigned int pointCloudBufferSize = pointCloudSamples * 3;
+  if (!this->pointsXYZBuffer)
+    this->pointsXYZBuffer = new float[pointCloudBufferSize];
+  if (!this->pointsRGBBuffer)
+    pointsRGBBuffer = new unsigned char[pointCloudBufferSize];
+
+  this->UnpackPointCloudMsg(_msg, this->pointsXYZBuffer,
+      this->pointsRGBBuffer);
+
+  this->ComputeNormalForces(_msg.height(), _msg.width());
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::UnpackPointCloudMsg(
+                const ignition::msgs::PointCloudPacked &_msg,
+                float *_xyzBuffer, unsigned char *_rgbBuffer)
+{
+  std::string msgBuffer = _msg.data();
+  char *msgBufferIndex = msgBuffer.data();
+
+  for (uint32_t j = 0; j < _msg.height(); ++j)
+  {
+    for (uint32_t i = 0; i < _msg.width(); ++i)
+    {
+      int fieldIndex = 0;
+      int pointIndex = j*_msg.width()*3 + i*3;
+
+      _xyzBuffer[pointIndex] =  *reinterpret_cast<float *>(
+        msgBufferIndex + _msg.field(fieldIndex++).offset());
+      _xyzBuffer[pointIndex + 1] = *reinterpret_cast<float *>(
+        msgBufferIndex + _msg.field(fieldIndex++).offset());
+      _xyzBuffer[pointIndex + 2] = *reinterpret_cast<float *>(
+        msgBufferIndex + _msg.field(fieldIndex++).offset());
+
+      int fieldOffset = _msg.field(fieldIndex).offset();
+      if (_msg.is_bigendian())
+      {
+        _rgbBuffer[pointIndex] = *(msgBufferIndex + fieldOffset + 0);
+        _rgbBuffer[pointIndex + 1] = *(msgBufferIndex + fieldOffset + 1);
+        _rgbBuffer[pointIndex + 2] = *(msgBufferIndex + fieldOffset + 2);
+      }
+      else
+      {
+        _rgbBuffer[pointIndex] = *(msgBufferIndex + fieldOffset + 2);
+        _rgbBuffer[pointIndex + 1] = *(msgBufferIndex + fieldOffset + 1);
+        _rgbBuffer[pointIndex + 2] = *(msgBufferIndex + fieldOffset + 0);
+      }
+      msgBufferIndex += _msg.point_step();
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::ComputeNormalForces(
+                                    unsigned int imageHeight,
+                                    unsigned int imageWidth)
+{
+  for (unsigned int i = 0; i < imageHeight; ++i)
+  {
+    unsigned int step = i*imageWidth*3;
+    for (unsigned int j = 0; j < imageWidth; ++j)
+    {
+      // TODO(mcres): compute actual normal forces
+
+      // Print distance to object
+      if ((i == imageHeight/2 && j == imageWidth/2) ||
+          (i == 0 && j == 0) ||
+          (i == 0 && j == (imageWidth-1)) ||
+          (i == (imageHeight-1) && j == 0) ||
+          (i == (imageHeight-1) && j == (imageWidth-1)))
+      {
+        float x = this->pointsXYZBuffer[step + j*3];
+        float y = this->pointsXYZBuffer[step + j*3 + 1];
+        float z = this->pointsXYZBuffer[step + j*3 + 2];
+
+        igndbg << "[DepthCamera] x = " << x << std::endl;
+        igndbg << "[DepthCamera] y = " << y << std::endl;
+        igndbg << "[DepthCamera] z = " << z << std::endl;
+      }
+    }
+  }
 }
 
 IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
