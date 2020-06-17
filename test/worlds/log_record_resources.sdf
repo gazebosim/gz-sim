@@ -121,7 +121,7 @@
       <static>false</static>
       <name>staging_area</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X2 Config 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X2 Config 1</uri>
     </include>
 
     <model name="ground_plane">
