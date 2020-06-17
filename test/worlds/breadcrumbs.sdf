@@ -549,7 +549,7 @@
               <pose>-2.2 0 5 0 0 0</pose>
               <include>
                 <uri>
-                    https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Cardboard box
+                    https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Cardboard box
                 </uri>
               </include>
             </model>
