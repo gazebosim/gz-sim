@@ -18,6 +18,11 @@
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-sensors-system.so"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
 
     <gui fullscreen="0">
 
@@ -29,7 +34,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -58,6 +63,8 @@
         <start_paused>true</start_paused>
         <service>/world/touch/control</service>
         <stats_topic>/world/touch/stats</stats_topic>
+        <service>/world/depth_camera_sensor/control</service>
+        <stats_topic>/world/depth_camera_sensor/stats</stats_topic>
 
       </plugin>
 
@@ -83,7 +90,13 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
         <topic>/world/touch/stats</topic>
+        <topic>/world/depth_camera_sensor/stats</topic>
+      </plugin>
 
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+          <property key="state" type="string">docked</property>
+        </ignition-gui>
       </plugin>
 
     </gui>
@@ -128,19 +141,19 @@
     </model>
 
     <model name="object_box">
-      <pose>0 0 1.25 0 0 0</pose>
+      <pose>1.5 0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>0.5 0.5 0.5</size>
+              <size>1 1 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>0.5 0.5 0.5</size>
+              <size>1 1 1</size>
             </box>
           </geometry>
           <material>
@@ -149,11 +162,11 @@
           </material>
         </visual>
       </link>
+      <static>true</static>
     </model>
 
     <model name="sensor_box">
       <pose>0 0 0.5 0 0 0</pose>
-
       <link name="link">
         <collision name="collision">
           <geometry>
@@ -169,7 +182,22 @@
             </box>
           </geometry>
         </visual>
-
+        <sensor name="depth_camera1" type="depth_camera">
+          <update_rate>1</update_rate>
+          <topic>depth_camera</topic>
+          <camera>
+            <horizontal_fov>1.05</horizontal_fov>
+            <image>
+              <width>256</width>
+              <height>256</height>
+              <format>RGB_INT8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+          </camera>
+        </sensor>
         <sensor name="optical_tactile_sensor" type="contact">
           <contact>
             <collision>collision</collision>
@@ -189,4 +217,3 @@
 
   </world>
 </sdf>
-
