@@ -32,8 +32,6 @@
 #include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
 
-#include <ignition/rendering/RenderTypes.hh>
-
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/Material.hh>
