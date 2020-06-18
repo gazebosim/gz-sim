@@ -11,6 +11,11 @@ load(
     "generate_file",
 )
 load(
+    "//ign_bazel:generate_yaml.bzl",
+    "generate_yaml",
+)
+
+load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",
     "ruby_binary",
     "ruby_library",
@@ -28,8 +33,8 @@ IGN_DESIGNATION = "/tmp"
 CMAKE_INSTALL_PREFIX = "/tmp"
 IGN_DATA_INSTALL_DIR = "/tmp"
 IGN_LIB_INSTALL_DIR = "/tmp"
-library_location = "/usr"
-IGN_LIBRARY_PATH = "/usr"
+library_location = "libignition-gazebo4-ign.so"
+IGN_LIBRARY_PATH = "/usr2"
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
@@ -57,27 +62,24 @@ cmake_configure_file(
     visibility = ["//visibility:private"],
 )
 
-cmake_configure_file(
-    name = "yaml",
-    src = "src/cmd/gazebo.yaml.in",
-    out = "src/cmd/gazebo.yaml",
-    cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "PROJECT_NAME_NO_VERSION_LOWER=%s" % (PROJECT_NAME),
-        "ign_library_path=%s" % (IGN_LIBRARY_PATH),
-    ],
-    visibility = ["//visibility:public"],
+cmds = "    - gazebo   : Run and manage Gazebo."
+
+generate_yaml(
+    name = "gazebo",
+    library_name = PROJECT_NAME,
+    library_version = "%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
+    commands = cmds,
+    ruby_target = "//ign_gazebo:cmdgazebo.rb",
 )
 
 # Generates config.hh based on the version numbers in CMake code.
 cmake_configure_file(
-    name = "ruby",
+    name = "cmdgazebo.rb",
     src = "src/cmd/cmdgazebo.rb.in",
-    out = "src/cmd/cmdgazebo.rb",
+    out = "cmdgazebo.rb",
     cmakelists = ["CMakeLists.txt"],
     defines = [
-        "library_location=%s" % [library_location],
+        "library_location=%s" % library_location,
         "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
     ],
     visibility = ["//visibility:public"],
@@ -85,9 +87,9 @@ cmake_configure_file(
 
 ruby_binary(
     name = "gazebo-ruby",
-    srcs = ["src/cmd/cmdgazebo.rb"],
+    srcs = ["cmdgazebo.rb"],
     includes = ["src/cmd"],
-    main = "src/cmd/cmdgazebo.rb",
+    main = "cmdgazebo.rb",
     visibility = ["//visibility:public"],
 )
 
@@ -378,10 +380,10 @@ public_headers = public_headers_no_gen + public_component_headers_no_gen + [
 ]
 
 cc_binary(
-    name = "libignition_gazebo.so",
+    name = "libignition-gazebo4-ign.so",
     srcs = sources + private_headers + public_headers,
     includes = ["include"],
-    linkopts = ["-Wl,-soname,libignition_gazebo.so", "-ltinyxml2"],
+    linkopts = ["-Wl,-soname,libignition-gazebo4-ign.so", "-ltinyxml2"],
     linkshared = True,
     visibility = [],
     copts = [
@@ -412,7 +414,7 @@ cc_binary(
 
 cc_library(
     name = "ign_gazebo",
-    srcs = ["libignition_gazebo.so"],
+    srcs = ["libignition-gazebo4-ign.so"],
     hdrs = public_headers,
     includes = ["include", "src"],
     visibility = ["//visibility:public"],
