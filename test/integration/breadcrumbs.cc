@@ -38,6 +38,27 @@
 using namespace ignition;
 using namespace gazebo;
 
+const char *g_cacheLocation = nullptr;
+class CustomCacheEnv : public ::testing::Environment
+{
+  public: void SetUp() override
+  {
+    this->cacheLoc =
+        common::uniqueDirectoryPath(common::absPath("breadcrumbs_test_cache"));
+    g_cacheLocation = this->cacheLoc.c_str();
+    common::createDirectory(g_cacheLocation);
+    ASSERT_TRUE(common::exists(g_cacheLocation));
+  }
+
+  public: void TearDown() override
+  {
+    common::removeAll(g_cacheLocation);
+  }
+
+  // g_cacheLocation will point to this string data.
+  private: std::string cacheLoc;
+};
+
 class BreadcrumbsTest : public ::testing::Test
 {
   // Documentation inherited
@@ -47,6 +68,22 @@ class BreadcrumbsTest : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
+  public: void LoadWorld(const std::string &_path, bool _useLevels = false)
+  {
+    this->serverConfig.SetResourceCache(g_cacheLocation);
+    this->serverConfig.SetSdfFile(
+        common::joinPaths(PROJECT_SOURCE_PATH, _path));
+    this->serverConfig.SetUseLevels(_useLevels);
+
+    this->server = std::make_unique<Server>(this->serverConfig);
+    EXPECT_FALSE(this->server->Running());
+    EXPECT_FALSE(*this->server->Running(0));
+    using namespace std::chrono_literals;
+    this->server->SetUpdatePeriod(1ns);
+  }
+
+  public: ServerConfig serverConfig;
+  public: std::unique_ptr<Server> server;
 };
 
 /////////////////////////////////////////////////
@@ -54,17 +91,7 @@ class BreadcrumbsTest : public ::testing::Test
 TEST_F(BreadcrumbsTest, DeployAtOffset)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -120,8 +147,8 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 2001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  server->Run(true, iterTestStart + 2001, false);
 }
 
 /////////////////////////////////////////////////
@@ -129,17 +156,7 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
 TEST_F(BreadcrumbsTest, MaxDeployments)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -184,8 +201,8 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 5001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 5001, false);
 }
 
 /////////////////////////////////////////////////
@@ -194,17 +211,7 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
 TEST_F(BreadcrumbsTest, FuelDeploy)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -248,8 +255,8 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -257,18 +264,7 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
 TEST_F(BreadcrumbsTest, Performer)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetUseLevels(true);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -332,8 +328,8 @@ TEST_F(BreadcrumbsTest, Performer)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -342,18 +338,7 @@ TEST_F(BreadcrumbsTest, Performer)
 TEST_F(BreadcrumbsTest, PerformerSetVolume)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetUseLevels(true);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf", true);
 
   test::Relay testSystem;
   transport::Node node;
@@ -399,8 +384,8 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -408,17 +393,7 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
 TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -476,7 +451,7 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 
       // Verify that the breadcrumb stopped falling after 0.5s.
       sdf::Root root;
-      root.Load(sdfFile);
+      root.Load(this->serverConfig.SdfFile());
       const sdf::World *world = root.WorldByIndex(0);
       double gz = world->Gravity().Z();
       double z0 = 2.0;
@@ -486,8 +461,8 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 2001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 2001, false);
 }
 
 /////////////////////////////////////////////////
@@ -496,17 +471,7 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 TEST_F(BreadcrumbsTest, AllowRenaming)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   transport::Node node;
   auto deployB1 =
@@ -516,21 +481,30 @@ TEST_F(BreadcrumbsTest, AllowRenaming)
   auto renameDeploy =
       node.Advertise<msgs::Empty>("/rename_deploy");
 
-  server.Run(true, 1, false);
+  this->server->Run(true, 1, false);
   deployB1.Publish(msgs::Empty());
-  server.Run(true, 100, false);
-  EXPECT_TRUE(server.HasEntity("B1_0"));
+  this->server->Run(true, 100, false);
+  EXPECT_TRUE(this->server->HasEntity("B1_0"));
 
   // Deploying via "/no_rename_deploy" will try to spawn B1_0, but since the
   // model already exists, the spawn should fail.
-  auto curEntityCount = server.EntityCount().value();
+  auto curEntityCount = this->server->EntityCount().value();
   noRenameDeploy.Publish(msgs::Empty());
-  server.Run(true, 100, false);
-  EXPECT_EQ(curEntityCount, server.EntityCount().value());
+  this->server->Run(true, 100, false);
+  EXPECT_EQ(curEntityCount, this->server->EntityCount().value());
 
   // Deploying via "/rename_deploy" will try to spawn B1_0, but since the
   // model already exists, it will spawn B1_0_1 instead.
   renameDeploy.Publish(msgs::Empty());
-  server.Run(true, 100, false);
-  EXPECT_TRUE(server.HasEntity("B1_0_1"));
+  this->server->Run(true, 100, false);
+  EXPECT_TRUE(this->server->HasEntity("B1_0_1"));
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(new CustomCacheEnv);
+  return RUN_ALL_TESTS();
 }
