@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2029 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   /// \brief Joint name
   public: std::string jointName;
 
-  /// \brief Commanded joint velocity
+  /// \brief Commanded joint position
   public: double jointPosCmd;
 
   /// \brief mutex to protect joint commands
@@ -55,7 +55,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Position PID controllers.
+  /// \brief Position PID controller.
   public: ignition::math::PID posPid;
 };
 
