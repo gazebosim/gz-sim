@@ -82,10 +82,10 @@ add_subdirectory(modules)
 
 # Plugins
 add_subdirectory(align_tool)
+add_subdirectory(axes)
 add_subdirectory(component_inspector)
 add_subdirectory(entity_tree)
 add_subdirectory(grid_config)
-add_subdirectory(axes)
 add_subdirectory(scene3d)
 add_subdirectory(transform_control)
 add_subdirectory(video_recorder)

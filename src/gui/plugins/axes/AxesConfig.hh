@@ -34,7 +34,7 @@ namespace gazebo
   {
     Q_OBJECT
 
-    Q_PROPERTY(QStringList comboList READ comboList WRITE setComboList NOTIFY comboListChanged)
+    Q_PROPERTY(QStringList comboList READ comboList WRITE SetComboList NOTIFY ComboListChanged)
 
     /// \brief Constructor
     public: AxesConfig();
@@ -61,8 +61,8 @@ namespace gazebo
     /// \brief function to find all the entities in the scene based on the visual names
     private: void EntitiesInScene();
 
-    /// \brief set a new combobox list and emit the signal comboListChanged
-    public: void setComboList(const QStringList &comboList);
+    /// \brief set a new combobox list and emit the signal ComboListChanged
+    public: void SetComboList(const QStringList &comboList);
 
     /// \brief Callback to update the size of the arrows
     /// \param[in] _size size of the arrows in meters
@@ -87,10 +87,10 @@ namespace gazebo
                                double _roll, double _pitch, double _yaw);
 
     /// \brief signal to emit when a new list is ready to show in the combobox
-    signals: void comboListChanged();
+    signals: void ComboListChanged();
 
     /// \brief Qt String list with the item of the combobox.
-    public: QStringList m_comboList;
+    public: QStringList itemComboList;
 
     /// \internal
     /// \brief Return a Qt String list with the item of the combobox.

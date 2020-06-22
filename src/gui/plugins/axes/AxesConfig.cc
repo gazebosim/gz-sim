@@ -123,7 +123,7 @@ void AxesConfig::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 bool AxesConfig::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::Type)
+  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -187,15 +187,15 @@ void AxesConfig::UpdateOriginArrows()
 
 const QStringList AxesConfig::comboList()
 {
-    return m_comboList;
+    return itemComboList;
 }
 
-void AxesConfig::setComboList(const QStringList &comboList)
+void AxesConfig::SetComboList(const QStringList &comboList)
 {
-   if (m_comboList != comboList)
+   if (itemComboList != comboList)
    {
-       m_comboList = comboList;
-       emit comboListChanged();
+       itemComboList = comboList;
+       emit ComboListChanged();
    }
 }
 
@@ -225,7 +225,7 @@ void AxesConfig::LoadAxesbyName(const std::string & name)
 
 void AxesConfig::onCurrentIndexChanged(int _index)
 {
-  std::string name_entity = m_comboList[_index].toStdString();
+  std::string name_entity = itemComboList[_index].toStdString();
   LoadAxesbyName(name_entity);
 }
 
@@ -246,13 +246,13 @@ void AxesConfig::EntitiesInScene()
     }
   }
 
-  QStringList local_combolist;
+  QStringList localCombolist;
   for (auto s : set_entities)
   {
-    local_combolist << s.c_str();
+    localCombolist << s.c_str();
   }
 
-  setComboList(local_combolist);
+  SetComboList(localCombolist);
 }
 
 /////////////////////////////////////////////////
