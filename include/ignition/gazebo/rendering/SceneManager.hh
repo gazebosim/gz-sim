@@ -32,6 +32,7 @@
 
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/Animation.hh>
+#include <ignition/common/graphics/Types.hh>
 
 #include <ignition/rendering/RenderTypes.hh>
 
