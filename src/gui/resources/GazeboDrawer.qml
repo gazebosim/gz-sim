@@ -73,46 +73,46 @@ Rectangle {
     // Custom action which calls custom C++ code
     /*ListElement {
       title: "New world"
-      action: "newWorld"
+      action_element: "newWorld"
       type: "world"
     }
     ListElement {
       title: "Load world"
-      action: "loadWorld"
+      action_element: "loadWorld"
       type: "world"
     }*/
     ListElement {
       title: "Save world"
-      action: "saveWorld"
+      action_element: "saveWorld"
       enabled: false
       type: "world"
     }
     ListElement {
       title: "Save world as..."
-      action: "saveWorldAs"
+      action_element: "saveWorldAs"
       type: "world"
     }
 
     // Actions provided by Ignition GUI, with custom titles
     ListElement {
       title: "Load client configuration"
-      action: "loadConfig"
+      action_element: "loadConfig"
     }
     ListElement {
       title: "Save client configuration"
-      action: "saveConfig"
+      action_element: "saveConfig"
     }
     ListElement {
       title: "Save client configuration as"
-      action: "saveConfigAs"
+      action_element: "saveConfigAs"
     }
     ListElement {
       title: "Style settings"
-      action: "styleSettings"
+      action_element: "styleSettings"
     }
     ListElement {
       title: "Quit"
-      action: "close"
+      action_element: "close"
     }
   }
 
@@ -125,7 +125,7 @@ Rectangle {
       text: title
       highlighted: ListView.isCurrentItem
       onClicked: {
-        customDrawer.onAction(action);
+        customDrawer.onAction(action_element);
         customDrawer.parent.closeDrawer();
       }
     }
