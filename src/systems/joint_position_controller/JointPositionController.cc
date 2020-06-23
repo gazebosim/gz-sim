@@ -96,7 +96,6 @@ void JointPositionController::Configure(const Entity &_entity,
   if (_sdf->HasElement("joint_index"))
   {
     this->dataPtr->jointIndex = _sdf->Get<unsigned int>("joint_index");
-    igndbg << "Joint index: " << this->dataPtr->jointIndex << std::endl;
   }
 
   // PID parameters
