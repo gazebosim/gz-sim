@@ -640,7 +640,7 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
 
   double pos0 = 0.42;
 
-  // cppcheck-suppress variableScope
+  /// cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
@@ -735,7 +735,7 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
 
   double vel0 = 3.0;
 
-  // cppcheck-suppress variableScope
+  /// cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
