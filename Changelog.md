@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Filter mesh collision based on `collide_bitmask` property
+    * [pull request 160](https://github.com/ignitionrobotics/ign-gazebo/pull/160)
+
 1. Use interpolate\_x sdf parameter for actor animations
     * [BitBucket pull request 536](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/536)
 
