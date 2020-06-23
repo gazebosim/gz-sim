@@ -57,6 +57,9 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
 
   /// \brief Position PID controller.
   public: ignition::math::PID posPid;
+
+  /// \brief Joint index to be used.
+  public: unsigned int jointIndex = 0u;
 };
 
 //////////////////////////////////////////////////
@@ -88,6 +91,12 @@ void JointPositionController::Configure(const Entity &_entity,
     ignerr << "JointPositionController found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
+  }
+
+  if (_sdf->HasElement("joint_index"))
+  {
+    this->dataPtr->jointIndex = _sdf->Get<unsigned int>("joint_index");
+    igndbg << "Joint index: " << this->dataPtr->jointIndex << std::endl;
   }
 
   // PID parameters
@@ -137,7 +146,8 @@ void JointPositionController::Configure(const Entity &_entity,
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
-                    "/joint/" + this->dataPtr->jointName + "/cmd_pos"};
+                    "/joint/" + this->dataPtr->jointName + "/" +
+                    std::to_string(this->dataPtr->jointIndex) + "/cmd_pos"};
   this->dataPtr->node.Subscribe(
       topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
 
@@ -193,11 +203,28 @@ void JointPositionController::PreUpdate(
   if (jointPosComp == nullptr)
     return;
 
+  // Sanity check: Make sure that the joint index is valid.
+  if (this->dataPtr->jointIndex >= jointPosComp->Data().size())
+  {
+    static bool invalidJointReported = false;
+    if (!invalidJointReported)
+    {
+      ignerr << "[JointPositionController]: Detected an invalid <joint_index> "
+             << "parameter. The index specified is ["
+             << this->dataPtr->jointIndex << "] but the joint only has ["
+             << jointPosComp->Data().size() << "] index[es]. "
+             << "This controller will be ignored" << std::endl;
+      invalidJointReported = true;
+    }
+    return;
+  }
+
   // Update force command.
   double error;
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->jointCmdMutex);
-    error = jointPosComp->Data().at(0) - this->dataPtr->jointPosCmd;
+    error = jointPosComp->Data().at(this->dataPtr->jointIndex) -
+            this->dataPtr->jointPosCmd;
   }
 
   double force = this->dataPtr->posPid.Update(error, _info.dt);
@@ -211,7 +238,7 @@ void JointPositionController::PreUpdate(
   }
   else
   {
-    forceComp->Data()[0] = force;
+    forceComp->Data()[this->dataPtr->jointIndex] = force;
   }
 }
 

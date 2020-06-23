@@ -4,9 +4,9 @@
 
   Try sending joint position commands:
 
-    ign topic -t "/model/joint_position_controller_demo/joint/j1/cmd_pos" -m ignition.msgs.Double -p "data: -1.0"
+    ign topic -t "/model/joint_position_controller_demo/joint/j1/0/cmd_pos" -m ignition.msgs.Double -p "data: -1.0"
 
-    ign topic -t "/model/joint_position_controller_demo/joint/j1/cmd_pos" -m ignition.msgs.Double -p "data: 1.0"
+    ign topic -t "/model/joint_position_controller_demo/joint/j1/0/cmd_pos" -m ignition.msgs.Double -p "data: 1.0"
 -->
 <sdf version="1.6">
   <world name="default">

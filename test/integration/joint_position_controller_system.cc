@@ -109,7 +109,7 @@ TEST_F(JointPositionControllerTestFixture, JointPositionCommand)
   // Publish command and check that the joint position is set
   transport::Node node;
   auto pub = node.Advertise<msgs::Double>(
-      "/model/joint_position_controller_test/joint/j1/cmd_pos");
+      "/model/joint_position_controller_test/joint/j1/0/cmd_pos");
 
   const double targetPosition{2.0};
   msgs::Double msg;
