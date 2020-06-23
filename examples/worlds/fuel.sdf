@@ -121,12 +121,12 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base/2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Double pendulum with base</uri>
     </include>
 
     <include>
       <pose>1 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
     </include>
 
     <include>
