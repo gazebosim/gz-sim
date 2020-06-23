@@ -29,6 +29,7 @@
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/physics/config.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -1368,7 +1369,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         }
 
         worldAngularVelFeature->SetWorldAngularVelocity(
-          math::eigen3::convert(_angularVelocityCmd->Data()));
+            math::eigen3::convert(_angularVelocityCmd->Data()));
 
         return true;
       });
@@ -1386,6 +1387,11 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (!freeGroup)
           return true;
 
+        const components::Pose *poseComp =
+            _ecm.Component<components::Pose>(_entity);
+        math::Vector3d worldLinearVel = poseComp->Data().Rot() *
+            _linearVelocityCmd->Data();
+
         auto worldLinearVelFeature = entityCast(_entity, freeGroup,
               this->entityWorldVelocityCommandMap);
         if (!worldLinearVelFeature)
@@ -1394,7 +1400,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         }
 
         worldLinearVelFeature->SetWorldLinearVelocity(
-          math::eigen3::convert(_linearVelocityCmd->Data()));
+            math::eigen3::convert(worldLinearVel));
 
         return true;
       });
