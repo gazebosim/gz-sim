@@ -1,5 +1,10 @@
 ## Ignition Gazebo 3.x
 
+### Ignition Gazebo 3.x.x (20xx-xx-xx)
+
+1. Backport collision bitmask changes
+    * [pull request 221](https://github.com/ignitionrobotics/ign-gazebo/pull/221)
+
 ### Ignition Gazebo 3.2.0 (2020-05-20)
 
 1. Merge ign-gazebo2 to ign-gazebo3
