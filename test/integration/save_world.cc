@@ -30,31 +30,11 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/UniqueTestDirectoryEnv.hh"
 #include "plugins/MockSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
-
-const char *g_cacheLocation = nullptr;
-class CustomCacheEnv : public ::testing::Environment
-{
-  public: void SetUp() override
-  {
-    this->cacheLoc =
-        common::uniqueDirectoryPath(common::absPath("save_world_test_cache"));
-    g_cacheLocation = this->cacheLoc.c_str();
-    common::createDirectory(g_cacheLocation);
-    ASSERT_TRUE(common::exists(g_cacheLocation));
-  }
-
-  public: void TearDown() override
-  {
-    common::removeAll(g_cacheLocation);
-  }
-
-  // g_cacheLocation will point to this string data.
-  private: std::string cacheLoc;
-};
 
 /////////////////////////////////////////////////
 class SdfGeneratorFixture : public ::testing::Test
@@ -67,7 +47,7 @@ class SdfGeneratorFixture : public ::testing::Test
   public: void LoadWorld(const std::string &_path)
   {
     ServerConfig serverConfig;
-    serverConfig.SetResourceCache(g_cacheLocation);
+    serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
     serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH, _path));
 
     std::cout << "Loading: " << serverConfig.SdfFile() << std::endl;
@@ -262,6 +242,7 @@ TEST_F(SdfGeneratorFixture, ModelSpawnedWithNewName)
 int main(int _argc, char **_argv)
 {
   ::testing::InitGoogleTest(&_argc, _argv);
-  ::testing::AddGlobalTestEnvironment(new CustomCacheEnv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("save_world_test_cache"));
   return RUN_ALL_TESTS();
 }

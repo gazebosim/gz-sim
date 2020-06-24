@@ -39,6 +39,8 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/UniqueTestDirectoryEnv.hh"
+
 #include "SdfGenerator.hh"
 
 using namespace ignition;
@@ -135,28 +137,6 @@ TEST(CompareElements, CompareWithDuplicateElements)
   EXPECT_FALSE(isSubset(m1CompTest, m1));
 }
 
-
-const char *g_cacheLocation = nullptr;
-class CustomCacheEnv : public ::testing::Environment
-{
-  public: void SetUp() override
-  {
-    this->cacheLoc =
-        common::uniqueDirectoryPath(common::absPath("sdf_gen_test_cache"));
-    g_cacheLocation = this->cacheLoc.c_str();
-    common::createDirectory(g_cacheLocation);
-    ASSERT_TRUE(common::exists(g_cacheLocation));
-  }
-
-  public: void TearDown() override
-  {
-    common::removeAll(g_cacheLocation);
-  }
-
-  // g_cacheLocation will point to this string data.
-  private: std::string cacheLoc;
-};
-
 /////////////////////////////////////////////////
 class ElementUpdateFixture : public ::testing::Test
 {
@@ -165,7 +145,7 @@ class ElementUpdateFixture : public ::testing::Test
     ignition::common::Console::SetVerbosity(4);
 
     fuel_tools::ClientConfig config;
-    config.SetCacheLocation(g_cacheLocation);
+    config.SetCacheLocation(test::UniqueTestDirectoryEnv::Path());
     this->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
     auto fuelCb = [&](const std::string &_uri)
@@ -888,6 +868,7 @@ TEST_F(GenerateWorldFixture, ModelsInline)
 int main(int _argc, char **_argv)
 {
   ::testing::InitGoogleTest(&_argc, _argv);
-  ::testing::AddGlobalTestEnvironment(new CustomCacheEnv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("sdf_gen_test_cache"));
   return RUN_ALL_TESTS();
 }

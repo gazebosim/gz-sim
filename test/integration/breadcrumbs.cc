@@ -33,31 +33,11 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "../helpers/Relay.hh"
+#include "helpers/Relay.hh"
+#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;
-
-const char *g_cacheLocation = nullptr;
-class CustomCacheEnv : public ::testing::Environment
-{
-  public: void SetUp() override
-  {
-    this->cacheLoc =
-        common::uniqueDirectoryPath(common::absPath("breadcrumbs_test_cache"));
-    g_cacheLocation = this->cacheLoc.c_str();
-    common::createDirectory(g_cacheLocation);
-    ASSERT_TRUE(common::exists(g_cacheLocation));
-  }
-
-  public: void TearDown() override
-  {
-    common::removeAll(g_cacheLocation);
-  }
-
-  // g_cacheLocation will point to this string data.
-  private: std::string cacheLoc;
-};
 
 class BreadcrumbsTest : public ::testing::Test
 {
@@ -70,7 +50,7 @@ class BreadcrumbsTest : public ::testing::Test
   }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
-    this->serverConfig.SetResourceCache(g_cacheLocation);
+    this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
     this->serverConfig.SetSdfFile(
         common::joinPaths(PROJECT_SOURCE_PATH, _path));
     this->serverConfig.SetUseLevels(_useLevels);
@@ -505,6 +485,7 @@ TEST_F(BreadcrumbsTest, AllowRenaming)
 int main(int _argc, char **_argv)
 {
   ::testing::InitGoogleTest(&_argc, _argv);
-  ::testing::AddGlobalTestEnvironment(new CustomCacheEnv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("breadcrumbs_test_cache"));
   return RUN_ALL_TESTS();
 }
