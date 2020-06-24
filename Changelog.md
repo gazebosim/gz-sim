@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.x.x (2020-xx-xx)
+
+1. Added support for controlling which joints are published by the
+   JointStatePublisher.
+    * [Pull Request 213](https://github.com/ignitionrobotics/ign-gazebo/pull/213)
 
 ### Ignition Gazebo 2.20.1 (2020-06-18)
 
