@@ -148,7 +148,7 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
   });
 
   this->server->AddSystem(testSystem.systemPtr);
-  server->Run(true, iterTestStart + 2001, false);
+  this->server->Run(true, iterTestStart + 2001, false);
 }
 
 /////////////////////////////////////////////////
