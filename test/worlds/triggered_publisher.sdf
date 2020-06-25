@@ -1,0 +1,162 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="triggered_publisher">
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_0"/>
+      <output type="ignition.msgs.Empty" topic="/out_0"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_1"/>
+      <output type="ignition.msgs.Boolean" topic="/out_1">
+          data: true
+      </output>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_2"/>
+      <output type="ignition.msgs.Boolean" topic="/out_2_0">
+          data: false
+      </output>
+      <output type="ignition.msgs.Boolean" topic="/out_2_1">
+          data: true
+      </output>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Boolean" topic="/in_3">
+        <match>
+            data: true
+        </match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_3"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Int32" topic="/in_4">
+        <match logic_type="negative">
+            data: 0
+        </match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_4_0"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Int32" topic="/in_4">
+        <match logic_type="positive">
+            data: 0
+        </match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_4_1"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Int32" topic="/in_5">
+        <match logic_type="negative">
+            data: -5
+        </match>
+        <match logic_type="negative">
+            data: -4
+        </match>
+        <match logic_type="negative">
+            data: -3
+        </match>
+        <match logic_type="negative">
+            data: -2
+        </match>
+        <match logic_type="negative">
+            data: -1
+        </match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_5"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Vector2d" topic="/in_6">
+        <match field="x">1.0</match>
+        <match field="y">2.0</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_6_0"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Vector2d" topic="/in_6">
+        <match field="x">1.0</match>
+        <match logic_type="negative" field="y">2.0</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_6_1"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Pose" topic="/in_7">
+        <match field="header.data">
+            {
+              key: "frame_id"
+              value: "frame0"
+            }
+        </match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_7"/>
+    </plugin>
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Pose" topic="/in_8">
+        <match field="header">
+          {
+            data {
+              key: "frame_id"
+              value: "frame0"
+            }
+            data {
+              key: "other_key"
+              value: "other_value"
+            }
+          }
+        </match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_8"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Int32_V" topic="/in_9">
+        <match>data: 0, data: 1</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_9"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Float" topic="/in_10">
+        <match tol="0.15">data: 0.5</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_10"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Pose" topic="/in_11">
+        <match field="position.z" tol="0.15">0.5</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_11"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Header" topic="/in_12">
+        <match field="data.value">"value1"</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/out_12"/>
+    </plugin>
+
+    <!-- The following systems are used for testing invalid configuration. They don't have actual tests -->
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.NonExtentType" topic="/invalid_input_0">
+        <match>data: 0, data: 1</match>
+      </input>
+      <output type="ignition.msgs.Empty" topic="/invalid_output_0"/>
+    </plugin>
+
+    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/invalid_input_1"/>
+    </plugin>
+    <!-- End invalid configuration -->
+  </world>
+</sdf>
+
+
