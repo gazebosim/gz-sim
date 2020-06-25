@@ -339,7 +339,7 @@ proto_library(
     ],
     deps = [
         "@com_google_protobuf//:empty_proto",
-        "//ign_msgs:msgs_proto",
+        "//ign_msgs:ignmsgs_proto",
         "performer_affinity_proto",
     ],
     strip_import_prefix = "src",
@@ -352,7 +352,7 @@ proto_library(
     ],
     deps = [
         "@com_google_protobuf//:empty_proto",
-        "//ign_msgs:msgs_proto",
+        "//ign_msgs:ignmsgs_proto",
     ],
     strip_import_prefix = "src/msgs",
 )
@@ -454,7 +454,7 @@ cc_library(
         "//ign_common/events:events",
         "//ign_common/graphics:graphics",
         "//ign_msgs",
-        "//ign_math/eigen3:ign_math_eigen3",
+        "//ign_math/eigen3:eigen3",
         "//sdformat",
     ],
 ) for system in systems]
@@ -484,7 +484,7 @@ cc_library(
         "//ign_common/profiler:profiler",
         "//ign_common/events:events",
         "//ign_common/graphics:graphics",
-        "//ign_math/eigen3:ign_math_eigen3",
+        "//ign_math/eigen3:eigen3",
         "@gtest//:gtest",
         "@gtest//:gtest_main",
     ],
