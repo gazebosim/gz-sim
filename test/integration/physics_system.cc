@@ -34,6 +34,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -46,6 +47,7 @@
 #include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -874,4 +876,61 @@ TEST_F(PhysicsSystemFixture, GetBoundingBox)
       ignition::math::Vector3d(-1.25, -2, 0),
       ignition::math::Vector3d(-0.25, 2, 1)),
       bbox.begin()->second);
+}
+
+/////////////////////////////////////////////////
+/// Test world angular veocity command component
+TEST_F(PhysicsSystemFixture, AngularVelocityCmdComponent)
+{
+  // set up test system
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/velocity_control.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  test::Relay testSystem;
+
+  // cppcheck-suppress variableScope
+  bool firstRun = true;
+
+  const sdf::Model *blue_vehicle = world->ModelByName("vehicle_blue");
+  ASSERT_TRUE(nullptr != blue_vehicle);
+  auto blue_pose = blue_vehicle->LinkByIndex(0)->WorldPose();
+  EXPECT_TRUE(math::Pose3d(0 2 0.325 0 -0 0), blue_pose);
+
+  const sdf::Model *green_vehicle = world->ModelByName("vehicle_green");
+  ASSERT_TRUE(nullptr != green_vehicle);
+  auto green_pose = green_vehicle->LinkByIndex(0)->WorldPose();
+  EXPECT_TRUE(math::Pose3d(0 -2 0.325 0 -0 0), green_pose);
+
+  
+  // check preupdate model position and angular velocity
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::AngularVelocityCmd>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Model *,
+            components::AngularVelocityCmd *_angularVelocityCmd) -> bool
+        {
+          auto angularVelComp =
+              _ecm.Component<components::AngularVelocityCmd>(_entity);
+          ASSERT_TRUE(nullptr != angularVelComp);
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 2, false);
 }
