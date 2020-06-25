@@ -31,11 +31,30 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+/// \brief Velocity command.
+struct Commands
+{
+  /// \brief Linear velocity.
+  double lin;
+
+  /// \brief Angular velocity.
+  double ang;
+
+  Commands() : lin(0.0), ang(0.0) {}
+};
+
 class ignition::gazebo::systems::VelocityControlPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
   public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+
+  /// \brief Update the linear and angular velocities.
+  /// \param[in] _info System update information.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -48,6 +67,24 @@ class ignition::gazebo::systems::VelocityControlPrivate
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief Linear velocity limiter.
+  public: std::unique_ptr<SpeedLimiter> limiterLin;
+
+  /// \brief Angular velocity limiter.
+  public: std::unique_ptr<SpeedLimiter> limiterAng;
+
+  /// \brief Previous control command.
+  public: Commands last0Cmd;
+
+  /// \brief Previous control command to last0Cmd.
+  public: Commands last1Cmd;
+
+  /// \brief Last target velocity requested.
+  public: msgs::Twist targetVel;
+
+  /// \brief A mutex to protect the target velocity command.
+  public: std::mutex mutex;
 };
 
 //////////////////////////////////////////////////
@@ -136,12 +173,52 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void VelocityControl::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("VelocityControl::PostUpdate");
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
+  this->dataPtr->UpdateVelocity(_info, _ecm);
+}
+
+
+//////////////////////////////////////////////////
+void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+{
+  IGN_PROFILE("VeocityControl::UpdateVelocity");
+
+  double linVel;
+  double angVel;
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    linVel = this->targetVel.linear().x();
+    angVel = this->targetVel.angular().z();
+  }
+  const double dt = std::chrono::duration<double>(_info.dt).count();
+  // Limit the target velocity if needed.
+  this->limiterLin->Limit(linVel, this->last0Cmd.lin, this->last1Cmd.lin, dt);
+  this->limiterAng->Limit(angVel, this->last0Cmd.ang, this->last1Cmd.ang, dt);
+
+  // Update history of commands.
+  this->last1Cmd = last0Cmd;
+  this->last0Cmd.lin = linVel;
+  this->last0Cmd.ang = angVel;
+
+  this->linearVelocity = math::Vector3d(
+    linVel, this->targetVel.linear().y(), this->targetVel.linear().z());
+  this->angularVelocity = math::Vector3d(
+    this->targetVel.angular().x(), this->targetVel.angular().y(), angVel);
+}
+
+//////////////////////////////////////////////////
 void VelocityControlPrivate::OnCmdVel(const msgs::Twist &_msg)
 {
-  this->linearVelocity = math::Vector3d(
-    _msg.linear().x(), _msg.linear().y(), _msg.linear().z());
-  this->angularVelocity = math::Vector3d(
-    _msg.angular().x(), _msg.angular().y(), _msg.angular().z());
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->targetVel = _msg;
 }
 
 IGNITION_ADD_PLUGIN(VelocityControl,

@@ -18,8 +18,11 @@
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
