@@ -141,19 +141,19 @@
     </model>
 
     <model name="object_box">
-      <pose>1.5 0 0.5 0 0 0</pose>
+      <pose>0 3 3.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>3 2 3</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>3 2 3</size>
             </box>
           </geometry>
           <material>
@@ -166,19 +166,19 @@
     </model>
 
     <model name="sensor_box">
-      <pose>0 0 0.5 0 0 0</pose>
+      <pose>0 0 3.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>0 1 1</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>0 1 1</size>
             </box>
           </geometry>
         </visual>
@@ -190,11 +190,11 @@
             <image>
               <width>256</width>
               <height>256</height>
-              <format>RGB_INT8</format>
+              <format>R_FLOAT32</format>
             </image>
             <clip>
               <near>0.1</near>
-              <far>10.0</far>
+              <far>5.0</far>
             </clip>
           </camera>
         </sensor>
@@ -205,15 +205,68 @@
         </sensor>
 
       </link>
-
+      <static>true</static>
       <plugin
         filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
-        <resolution>200</resolution>
-        <noise>"Gaussian"</noise>
+        <resolution>30</resolution>
+        <visualize_forces>true</visualize_forces>
       </plugin>
     </model>
 
+    <model name="object_sphere">
+      <pose>0 -3 3.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>1.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>1.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <static>true</static>
+    </model>
+
+    <model name="object_cylinder">
+      <pose>3 0 3.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>1.3</radius>
+              <length>3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>1.3</radius>
+              <length>3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <static>true</static>
+    </model>
+
+   
   </world>
 </sdf>
