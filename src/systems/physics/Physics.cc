@@ -1360,16 +1360,21 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (!freeGroup)
           return true;
+        
+        const components::Pose *poseComp =
+            _ecm.Component<components::Pose>(_entity);
+        math::Vector3d worldAngularVel = poseComp->Data().Rot() *
+            _angularVelocityCmd->Data();
 
         auto worldAngularVelFeature = entityCast(_entity, freeGroup,
-              this->entityWorldVelocityCommandMap);
+            this->entityWorldVelocityCommandMap);
         if (!worldAngularVelFeature)
         {
           return true;
         }
 
         worldAngularVelFeature->SetWorldAngularVelocity(
-            math::eigen3::convert(_angularVelocityCmd->Data()));
+            math::eigen3::convert(worldAngularVel));
 
         return true;
       });
