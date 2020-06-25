@@ -26,8 +26,6 @@
 
 #include "../helpers/Relay.hh"
 
-#define tol 10e-4
-
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
