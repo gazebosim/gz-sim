@@ -33,7 +33,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -47,46 +47,6 @@ class BreadcrumbsTest : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
-};
-
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem =
-        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
 };
 
 /////////////////////////////////////////////////
@@ -106,7 +66,7 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deployB1 =
@@ -181,7 +141,7 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deployB1 =
@@ -246,7 +206,7 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deploy = node.Advertise<msgs::Empty>("/fuel_deploy");
@@ -310,7 +270,7 @@ TEST_F(BreadcrumbsTest, Performer)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deploy = node.Advertise<msgs::Empty>(
@@ -395,7 +355,7 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto deploy = node.Advertise<msgs::Empty>(
       "/model/vehicle_blue/breadcrumbs/B1_perf_large_volume/deploy");
@@ -460,7 +420,7 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deployB2 =
@@ -528,4 +488,49 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, iterTestStart + 2001, false);
+}
+
+/////////////////////////////////////////////////
+// The test verifies that if allow_renaming is true, the Breadcrumb system
+// renames spawned models if a model with the same name exists.
+TEST_F(BreadcrumbsTest, AllowRenaming)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/breadcrumbs.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  transport::Node node;
+  auto deployB1 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
+  auto noRenameDeploy =
+      node.Advertise<msgs::Empty>("/no_rename_deploy");
+  auto renameDeploy =
+      node.Advertise<msgs::Empty>("/rename_deploy");
+
+  server.Run(true, 1, false);
+  deployB1.Publish(msgs::Empty());
+  server.Run(true, 100, false);
+  EXPECT_TRUE(server.HasEntity("B1_0"));
+
+  // Deploying via "/no_rename_deploy" will try to spawn B1_0, but since the
+  // model already exists, the spawn should fail.
+  auto curEntityCount = server.EntityCount().value();
+  noRenameDeploy.Publish(msgs::Empty());
+  server.Run(true, 100, false);
+  EXPECT_EQ(curEntityCount, server.EntityCount().value());
+
+  // Deploying via "/rename_deploy" will try to spawn B1_0, but since the
+  // model already exists, it will spawn B1_0_1 instead.
+  renameDeploy.Publish(msgs::Empty());
+  server.Run(true, 100, false);
+  EXPECT_TRUE(server.HasEntity("B1_0_1"));
 }
