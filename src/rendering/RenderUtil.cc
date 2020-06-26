@@ -16,6 +16,7 @@
  */
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <sdf/Actor.hh>
@@ -29,6 +30,8 @@
 #include <sdf/Visual.hh>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/Skeleton.hh>
+#include <ignition/common/SkeletonAnimation.hh>
 
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
@@ -58,6 +61,7 @@
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Transparency.hh"
+#include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -154,10 +158,10 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
-  public: std::map<Entity, uint64_t> removeEntities;
+  public: std::unordered_map<Entity, uint64_t> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
-  public: std::map<Entity, math::Pose3d> entityPoses;
+  public: std::unordered_map<Entity, math::Pose3d> entityPoses;
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
@@ -166,18 +170,39 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and temperature
   public: std::map<Entity, float> entityTemp;
 
+  /// \brief A map of entity ids and wire boxes
+  public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
+
+  /// \brief A map of entity ids and trajectory pose updates.
+  public: std::unordered_map<Entity, math::Pose3d> trajectoryPoses;
+
+  /// \brief A map of entity ids and actor animation info.
+  public: std::unordered_map<Entity, AnimationUpdateData> actorAnimationData;
+
+  /// \brief True to update skeletons manually using bone poses
+  /// (see actorTransforms). False to let render engine update animation
+  /// based on sim time.
+  /// \todo(anyone) Let this be turned on from a component
+  public: bool actorManualSkeletonUpdate = false;
+
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
 
   //// \brief Flag to indicate whether to create sensors
   public: bool enableSensors = false;
 
+  /// \brief A set containing all the entities with attached rendering sensors
+  public: std::unordered_set<Entity> sensorEntities;
+
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
   /// The function returns the id of the rendering sensor created.
-  public: std::function<
-      std::string(const sdf::Sensor &, const std::string &)>
-      createSensorCb;
+  public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+          const std::string &)> createSensorCb;
+
+  /// \brief Callback function for removing sensors.
+  /// The function arg is the entity id
+  public: std::function<void(const gazebo::Entity &)> removeSensorCb;
 
   /// \brief Currently selected entities, organized by order of selection.
   public: std::vector<Entity> selectedEntities;
@@ -190,12 +215,10 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Highlight a node and all its children.
   /// \param[in] _node Node to be highlighted
-  /// TODO(anyone) On future versions, use a bounding box instead
   public: void HighlightNode(const rendering::NodePtr &_node);
 
   /// \brief Restore a highlighted node to normal.
   /// \param[in] _node Node to be restored.
-  /// TODO(anyone) On future versions, use a bounding box instead
   public: void LowlightNode(const rendering::NodePtr &_node);
 };
 
@@ -261,7 +284,9 @@ void RenderUtil::Update()
   auto newLights = std::move(this->dataPtr->newLights);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
+  auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
 
   this->dataPtr->newScenes.clear();
@@ -272,7 +297,9 @@ void RenderUtil::Update()
   this->dataPtr->newLights.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
+  this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
 
   this->dataPtr->markerManager.Update();
@@ -283,7 +310,6 @@ void RenderUtil::Update()
     newSensors = std::move(this->dataPtr->newSensors);
     this->dataPtr->newSensors.clear();
   }
-
   this->dataPtr->updateMutex.unlock();
 
   // scene - only one scene is supported for now
@@ -299,7 +325,6 @@ void RenderUtil::Update()
   }
 
   // remove existing entities
-  // \todo(anyone) Remove sensors
   {
     IGN_PROFILE("RenderUtil::Update Remove");
     for (auto &entity : removeEntities)
@@ -310,6 +335,14 @@ void RenderUtil::Update()
           this->dataPtr->selectedEntities.end(), entity.first),
           this->dataPtr->selectedEntities.end());
       this->dataPtr->sceneManager.RemoveEntity(entity.first);
+
+      // delete associated sensor, if existing
+      auto sensorEntityIt = this->dataPtr->sensorEntities.find(entity.first);
+      if (sensorEntityIt != this->dataPtr->sensorEntities.end())
+      {
+        this->dataPtr->removeSensorCb(entity.first);
+        this->dataPtr->sensorEntities.erase(sensorEntityIt);
+      }
     }
   }
 
@@ -383,7 +416,7 @@ void RenderUtil::Update()
         }
 
         std::string sensorName =
-            this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
+            this->dataPtr->createSensorCb(entity, dataSdf, parentNode->Name());
         // Add to the system's scene manager
         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
         {
@@ -397,7 +430,7 @@ void RenderUtil::Update()
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
-    for (auto &pose : entityPoses)
+    for (const auto &pose : entityPoses)
     {
       auto node = this->dataPtr->sceneManager.NodeById(pose.first);
       if (!node)
@@ -406,18 +439,21 @@ void RenderUtil::Update()
       // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
       auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
-      int pauseNodeUpdate = 0;
+      int updateNode = 0;
       Entity entityId = kNullEntity;
       if (vis)
       {
-        pauseNodeUpdate = std::get<int>(vis->UserData("pause-update"));
+        // Get information from the visual's user data to indicate if
+        // the render thread should pause updating it's true location,
+        // this functionality is needed for temporal placement of a
+        // visual such as an align preview
+        updateNode = std::get<int>(vis->UserData("pause-update"));
         entityId = std::get<int>(vis->UserData("gazebo-entity"));
       }
       if ((this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
           entityId == this->dataPtr->selectedEntities.back())) ||
-          pauseNodeUpdate
-          )
+          updateNode)
       {
         continue;
       }
@@ -426,36 +462,152 @@ void RenderUtil::Update()
     }
 
     // update entities' local transformations
-    for (auto &tf : actorTransforms)
+    if (this->dataPtr->actorManualSkeletonUpdate)
     {
-      auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
-      auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
-      if (!actorMesh || !actorVisual)
-        continue;
+      for (auto &tf : actorTransforms)
+      {
+        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
+        auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
+        if (!actorMesh || !actorVisual)
+        {
+          ignerr << "Actor with Entity ID '" << tf.first << "'. not found. "
+                 << "Skipping skeleton animation update." << std::endl;
+          continue;
+        }
 
-      math::Pose3d actorPose;
-      actorPose.Pos() = tf.second["actorPose"].Translation();
-      actorPose.Rot() = tf.second["actorPose"].Rotation();
-      actorVisual->SetLocalPose(actorPose);
+        math::Pose3d globalPose;
+        if (entityPoses.find(tf.first) != entityPoses.end())
+        {
+          globalPose = entityPoses[tf.first];
+        }
 
-      tf.second.erase("actorPose");
-      actorMesh->SetSkeletonLocalTransforms(tf.second);
+        math::Pose3d trajPose;
+        // Trajectory from the ECS
+        if (trajectoryPoses.find(tf.first) != trajectoryPoses.end())
+        {
+          trajPose = trajectoryPoses[tf.first];
+        }
+        // Trajectory from the SDF script
+        else
+        {
+          trajPose.Pos() = tf.second["actorPose"].Translation();
+          trajPose.Rot() = tf.second["actorPose"].Rotation();
+        }
+
+        actorVisual->SetLocalPose(trajPose + globalPose);
+
+        tf.second.erase("actorPose");
+        actorMesh->SetSkeletonLocalTransforms(tf.second);
+      }
     }
-
-    // set visual temperature
-    for (auto &temp : entityTemp)
+    else
     {
-      auto node = this->dataPtr->sceneManager.NodeById(temp.first);
-      if (!node)
-        continue;
+      for (auto &it : actorAnimationData)
+      {
+        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(it.first);
+        auto actorVisual = this->dataPtr->sceneManager.NodeById(it.first);
+        auto actorSkel = this->dataPtr->sceneManager.ActorSkeletonById(
+            it.first);
+        if (!actorMesh || !actorVisual || !actorSkel)
+        {
+          ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
+                 << "Skipping skeleton animation update." << std::endl;
+          continue;
+        }
 
-      auto visual =
-          std::dynamic_pointer_cast<rendering::Visual>(node);
-      if (!visual)
-        continue;
+        AnimationUpdateData &animData = it.second;
+        if (!animData.valid)
+        {
+          ignerr << "invalid animation update data" << std::endl;
+          continue;
+        }
+        // Enable skeleton animation
+        if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
+        {
+          // disable all animations for this actor
+          for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+          {
+            actorMesh->SetSkeletonAnimationEnabled(
+                actorSkel->Animation(i)->Name(), false, false, 0.0);
+          }
 
-      visual->SetUserData("temperature", temp.second);
+          // enable requested animation
+          actorMesh->SetSkeletonAnimationEnabled(
+              animData.animationName, true, animData.loop);
+
+          // Set skeleton root node weight to zero so it is not affected by
+          // the animation being played. This is needed if trajectory animation
+          // is enabled. We need to let the trajectory animation set the
+          // position of the actor instead
+          common::SkeletonPtr skeleton =
+              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
+          if (skeleton)
+          {
+            float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
+            std::unordered_map<std::string, float> weights;
+            weights[skeleton->RootNode()->Name()] = rootBoneWeight;
+            actorMesh->SetSkeletonWeights(weights);
+          }
+        }
+        // Update skeleton animation by setting animation time.
+        // Note that animation time is different from sim time. An actor can
+        // have multiple animations. Animation time is associated with
+        // current animation that is being played. It is also adjusted if
+        // interpotate_x is enabled.
+        actorMesh->UpdateSkeletonAnimation(animData.time);
+
+        // manually update root transform in order to sync with trajectory
+        // animation
+        if (animData.followTrajectory)
+        {
+          common::SkeletonPtr skeleton =
+              this->dataPtr->sceneManager.ActorSkeletonById(it.first);
+          std::map<std::string, math::Matrix4d> rootTf;
+          rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
+          actorMesh->SetSkeletonLocalTransforms(rootTf);
+        }
+
+        // update actor trajectory animation
+        math::Pose3d globalPose;
+        if (entityPoses.find(it.first) != entityPoses.end())
+        {
+          globalPose = entityPoses[it.first];
+        }
+
+        math::Pose3d trajPose;
+        // Trajectory from the ECS
+        if (trajectoryPoses.find(it.first) != trajectoryPoses.end())
+        {
+          trajPose = trajectoryPoses[it.first];
+        }
+        else
+        {
+          // trajectory from sdf script
+          common::PoseKeyFrame poseFrame(0.0);
+          if (animData.followTrajectory)
+            animData.trajectory.Waypoints()->InterpolatedKeyFrame(poseFrame);
+          trajPose.Pos() = poseFrame.Translation();
+          trajPose.Rot() = poseFrame.Rotation();
+        }
+
+        actorVisual->SetLocalPose(trajPose + globalPose);
+      }
     }
+  }
+
+  // set visual temperature
+  for (auto &temp : entityTemp)
+  {
+    auto node = this->dataPtr->sceneManager.NodeById(temp.first);
+    if (!node)
+      continue;
+
+    auto visual =
+        std::dynamic_pointer_cast<rendering::Visual>(node);
+    if (!visual)
+      continue;
+
+    visual->SetUserData("temperature", temp.second);
   }
 }
 
@@ -479,6 +631,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     }
     this->newSensors.push_back(
         std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
+    this->sensorEntities.insert(_entity);
   };
 
   const std::string cameraSuffix{"/image"};
@@ -544,6 +697,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
               components::Geometry,
               components::CastShadows,
               components::Transparency,
+              components::VisibilityFlags,
               components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
@@ -552,6 +706,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
             const components::Transparency *_transparency,
+            const components::VisibilityFlags *_visibilityFlags,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
@@ -560,6 +715,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
           visual.SetTransparency(_transparency->Data());
+          visual.SetVisibilityFlags(_visibilityFlags->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -717,6 +873,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
               components::Geometry,
               components::CastShadows,
               components::Transparency,
+              components::VisibilityFlags,
               components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
@@ -725,6 +882,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
             const components::Transparency *_transparency,
+            const components::VisibilityFlags *_visibilityFlags,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
@@ -733,6 +891,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
           visual.SetTransparency(_transparency->Data());
+          visual.SetVisibilityFlags(_visibilityFlags->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -865,12 +1024,49 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   _ecm.Each<components::Actor, components::Pose>(
       [&](const Entity &_entity,
         const components::Actor *,
-        const components::Pose *)->bool
+        const components::Pose *_pose)->bool
       {
-        // TODO(anyone) Support setting actor pose from other systems
-        // this->entityPoses[_entity] = _pose->Data();
-        this->actorTransforms[_entity] =
-              this->sceneManager.ActorMeshAnimationAt(_entity, this->simTime);
+        // Trajectory origin
+        this->entityPoses[_entity] = _pose->Data();
+
+        auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
+        auto animNameComp = _ecm.Component<components::AnimationName>(_entity);
+
+        // Animation time set through ECM so ign-rendering can calculate bone
+        // transforms
+        if (animTimeComp && animNameComp)
+        {
+          auto skel = this->sceneManager.ActorSkeletonById(_entity);
+          if (nullptr != skel)
+          {
+            AnimationUpdateData animData;
+            animData.loop = true;
+            animData.followTrajectory = true;
+            animData.animationName = animNameComp->Data();
+            animData.time = animTimeComp->Data();
+            animData.rootTransform = skel->RootNode()->Transform();
+            animData.valid = true;
+            this->actorAnimationData[_entity] = animData;
+          }
+        }
+        // Bone poses calculated by ign-common
+        else if (this->actorManualSkeletonUpdate)
+        {
+          this->actorTransforms[_entity] =
+              this->sceneManager.ActorSkeletonTransformsAt(
+              _entity, this->simTime);
+        }
+        // Trajectory info from SDF so ign-rendering can calculate bone poses
+        else
+        {
+          this->actorAnimationData[_entity] =
+              this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+        }
+
+        // Trajectory pose set by other systems
+        auto trajPoseComp = _ecm.Component<components::TrajectoryPose>(_entity);
+        if (trajPoseComp)
+          this->trajectoryPoses[_entity] = trajPoseComp->Data();
         return true;
       });
 
@@ -1117,11 +1313,18 @@ void RenderUtil::SetUseCurrentGLContext(bool _enable)
 
 /////////////////////////////////////////////////
 void RenderUtil::SetEnableSensors(bool _enable,
-    std::function<std::string(const sdf::Sensor &, const std::string &)>
-    _createSensorCb)
+    std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+      const std::string &)> _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
   this->dataPtr->createSensorCb = std::move(_createSensorCb);
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetRemoveSensorCb(
+    std::function<void(const gazebo::Entity &)> _removeSensorCb)
+{
+  this->dataPtr->removeSensorCb = std::move(_removeSensorCb);
 }
 
 /////////////////////////////////////////////////
@@ -1131,27 +1334,22 @@ SceneManager &RenderUtil::SceneManager()
 }
 
 /////////////////////////////////////////////////
-Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
-{
-  // \todo(anyone) Use UserData once rendering Node supports that
-  return this->dataPtr->sceneManager.EntityFromNode(_node);
-}
-
-/////////////////////////////////////////////////
 MarkerManager &RenderUtil::MarkerManager()
 {
   return this->dataPtr->markerManager;
 }
 
 /////////////////////////////////////////////////
-// NOLINTNEXTLINE
-void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
+void RenderUtil::SetSelectedEntity(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;
 
-  // \todo(anyone) Use UserData once rendering Node supports it
-  auto entityId = this->dataPtr->sceneManager.EntityFromNode(_node);
+  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
+  Entity entityId = kNullEntity;
+
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
 
   if (entityId == kNullEntity)
     return;
@@ -1198,45 +1396,47 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;
-
-  for (auto n = 0u; n < _node->ChildCount(); ++n)
-  {
-    this->HighlightNode(_node->ChildByIndex(n));
-  }
-
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (nullptr == vis)
-    return;
-
-  // Visual material
-  auto visMat = vis->Material();
-  if (nullptr != visMat)
+  Entity entityId = kNullEntity;
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  // If the entity is not found in the existing map, create a wire box
+  auto wireBoxIt = this->wireBoxes.find(entityId);
+  if (wireBoxIt == this->wireBoxes.end())
   {
-    // If the entity isn't already highlighted, highlight it
-    if (this->originalEmissive.find(vis->Name()) ==
-        this->originalEmissive.end())
+    auto white = this->scene->Material("highlight_material");
+    if (!white)
     {
-      this->originalEmissive[vis->Name()] = visMat->Emissive();
-      visMat->SetEmissive(visMat->Emissive() + math::Color(0.5, 0.5, 0.5));
+      white = this->scene->CreateMaterial("highlight_material");
+      white->SetAmbient(1.0, 1.0, 1.0);
+      white->SetDiffuse(1.0, 1.0, 1.0);
+      white->SetSpecular(1.0, 1.0, 1.0);
+      white->SetEmissive(1.0, 1.0, 1.0);
     }
+
+    ignition::rendering::WireBoxPtr wireBox =
+      this->scene->CreateWireBox();
+    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    wireBox->SetBox(aabb);
+
+    // Create visual and add wire box
+    ignition::rendering::VisualPtr wireBoxVis =
+      this->scene->CreateVisual();
+    wireBoxVis->SetInheritScale(false);
+    wireBoxVis->AddGeometry(wireBox);
+    wireBoxVis->SetMaterial(white, false);
+    vis->AddChild(wireBoxVis);
+
+    // Add wire box to map for setting visibility
+    this->wireBoxes.insert(
+        std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
   }
-
-  for (auto g = 0u; g < vis->GeometryCount(); ++g)
+  else
   {
-    auto geom = vis->GeometryByIndex(g);
-
-    // Geometry material
-    auto geomMat = geom->Material();
-    if (nullptr == geomMat)
-      continue;
-
-    // If the entity isn't already highlighted, highlight it
-    if (this->originalEmissive.find(geom->Name()) ==
-        this->originalEmissive.end())
-    {
-      this->originalEmissive[geom->Name()] = geomMat->Emissive();
-      geomMat->SetEmissive(geomMat->Emissive() + math::Color(0.5, 0.5, 0.5));
-    }
+    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(true);
   }
 }
 
@@ -1245,53 +1445,16 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 {
   if (!_node)
     return;
-
-  for (auto n = 0u; n < _node->ChildCount(); ++n)
-  {
-    this->LowlightNode(_node->ChildByIndex(n));
-  }
-
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (nullptr == vis)
-    return;
-
-  // Visual material
-  auto visMat = vis->Material();
-  if (nullptr != visMat)
+  Entity entityId = kNullEntity;
+  if (vis)
+    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
-    auto visEmissive = this->originalEmissive.find(vis->Name());
-    if (visEmissive != this->originalEmissive.end())
-    {
-      visMat->SetEmissive(visEmissive->second);
-    }
-    else
-    {
-      ignerr << "Failed to find original material for visual [" << vis->Name()
-             << "]" << std::endl;
-    }
-  }
-
-  for (auto g = 0u; g < vis->GeometryCount(); ++g)
-  {
-    auto geom = vis->GeometryByIndex(g);
-
-    // Geometry material
-    auto geomMat = geom->Material();
-    if (nullptr == geomMat)
-    {
-      ignerr << "Geometry missing material during lowlight." << std::endl;
-      continue;
-    }
-
-    auto geomEmissive = this->originalEmissive.find(geom->Name());
-    if (geomEmissive != this->originalEmissive.end())
-    {
-      geomMat->SetEmissive(geomEmissive->second);
-    }
-    else
-    {
-      ignerr << "Failed to find original material for geometry ["
-             << geom->Name() << "]" << std::endl;
-    }
+    ignition::rendering::WireBoxPtr wireBox =
+      this->wireBoxes[entityId];
+    auto visParent = wireBox->Parent();
+    if (visParent)
+      visParent->SetVisible(false);
   }
 }

@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/ign-gazebo3/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-windows7-amd64)
 
 Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -42,7 +42,7 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 [Code of Conduct](#code-of-conduct)
 
-[Contributing](#code-of-contributing)
+[Contributing](#contributing)
 
 [Versioning](#versioning)
 
@@ -99,7 +99,7 @@ are handled for you. The downside of a binary install is that you won't be able 
 the code. See [Source Install](#source-install) for information on
 installing Ignition Gazebo from source.
 
-**Ubuntu Bionic (version 2)**
+**Ubuntu Bionic**
 
 1. Configure package repositories.
 
@@ -122,10 +122,10 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo2-dev
+    sudo apt-get install libignition-gazebo4-dev
     ```
 
-## Source Install (version 3)
+## Source Install
 
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
@@ -180,7 +180,7 @@ for dependency installation instructions for each supported operating system.
 1. Clone the repository.
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b master
     ```
 
 2. Configure and  build.

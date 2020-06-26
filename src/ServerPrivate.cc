@@ -204,69 +204,25 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           // If record plugin already specified in SDF, and record flags are
           //   specified on command line, replace SDF parameters with those on
           //   command line. (If none specified on command line, use those in
-          //   SDF.)
+          //   SDF - except for the record path.)
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
-            std::string recordPath = _config.LogRecordPath();
-            std::string cmpPath = _config.LogRecordCompressPath();
+            // TODO(anyone) Specify paths below in a Component instead of
+            // injecting SDF, so as to not confuse the <path> specified by user
+            // stripped here, and the one injected below. With Components,
+            // would not need to strip user-specified <path>, can simply
+            // ignore it when setting component values.
 
-            // Set record path
             if (!_config.LogRecordPath().empty())
             {
-              bool overwriteSdf = false;
-              // If <path> is specified in SDF, check whether to replace it
-              if (pluginElem->HasElement("path") &&
-                  !pluginElem->Get<std::string>("path").empty())
-              {
-                // If record path came from command line, overwrite SDF <path>
-                if (_config.LogIgnoreSdfPath())
-                {
-                  overwriteSdf = true;
-                }
-                // TODO(anyone) In Ignition-D, remove this. <path> will be
-                //   permanently ignored in favor of common::ignLogDirectory().
-                //   Always overwrite SDF.
-                // Otherwise, record path is same as the default timestamp log
-                //   path. Take the path in SDF <path>.
-                // Deprecated.
-                else
-                {
-                  ignwarn << "--record-path is not specified on command line. "
-                    << "<path> is specified in SDF. Will record to <path>. "
-                    << "Console will be logged to [" << ignLogDirectory()
-                    << "]. Note: In Ignition-D, <path> will be ignored, and "
-                    << "all recordings will be written to default console log "
-                    << "path if no path is specified on command line.\n";
-                  overwriteSdf = false;
-
-                  // Take <path> in SDF
-                  recordPath = pluginElem->Get<std::string>("path");
-
-                  // Update path for compressed file to match record path
-                  cmpPath = std::string(recordPath);
-                  if (!std::string(1, cmpPath.back()).compare(
-                    ignition::common::separator("")))
-                  {
-                    // Remove the separator at end of path
-                    cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
-                  }
-                  cmpPath += ".zip";
-                }
-              }
-              else
-              {
-                overwriteSdf = true;
-              }
-
-              if (overwriteSdf)
-              {
-                sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-                pathElem->SetName("path");
-                pluginElem->AddElementDescription(pathElem);
-                pathElem = pluginElem->GetElement("path");
-                pathElem->AddValue("string", "", false, "");
-                pathElem->Set<std::string>(recordPath);
-              }
+              // Explicitly allowing empty record paths through, always override
+              // <path>
+              sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+              pathElem->SetName("record_path");
+              pluginElem->AddElementDescription(pathElem);
+              pathElem = pluginElem->GetElement("record_path");
+              pathElem->AddValue("string", "", false, "");
+              pathElem->Set<std::string>(_config.LogRecordPath());
             }
 
             // If resource flag specified on command line, replace in SDF
@@ -296,7 +252,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               pluginElem->AddElementDescription(cPathElem);
               cPathElem = pluginElem->GetElement("compress_path");
               cPathElem->AddValue("string", "", false, "");
-              cPathElem->Set<std::string>(cmpPath);
+              cPathElem->Set<std::string>(_config.LogRecordCompressPath());
             }
 
             return;
@@ -327,9 +283,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   if (!_config.LogRecordPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("record_path");
     recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("path");
+    pathElem = recordElem->GetElement("record_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(_config.LogRecordPath());
   }

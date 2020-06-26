@@ -158,4 +158,3 @@ topics that are used for non-distributed simulation, which should all be
 provided by the primary. Therefore, play/pause and GUI functionality all
 interact with the simulation primary instance, which in turn propagates the
 commands to the secondaries.
-
