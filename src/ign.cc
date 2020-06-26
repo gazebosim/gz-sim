@@ -185,14 +185,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       {
         ignLogInit(recordPathMod, "server_console.log");
       }
-      // TODO(anyone) In Ignition-D, to be moved to outside and after this
-      //   if-else statement, after all ignLogInit() calls have been finalized,
-      //   so that <path> in SDF will always be ignored in favor of logging both
-      //   console logs and LogRecord recordings to common::ignLogDirectory().
-      //   In Blueprint and Citadel, LogRecord will record to <path> if no
-      //   --record-path is specified on command line.
-      serverConfig.SetLogRecordPath(recordPathMod);
-      serverConfig.SetLogIgnoreSdfPath(true);
     }
     // Empty record path specified. Use default.
     else
@@ -201,9 +193,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       ignLogInit(recordPathMod, "server_console.log");
       ignmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
-
-      serverConfig.SetLogRecordPath(recordPathMod);
     }
+    serverConfig.SetLogRecordPath(recordPathMod);
   }
   else
   {

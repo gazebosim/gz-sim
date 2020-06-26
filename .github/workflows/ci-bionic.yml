@@ -13,5 +13,38 @@ jobs:
         id: ci
         uses: ignition-tooling/ubuntu-bionic-ci-action@master
         with:
-          apt-dependencies: 'libignition-cmake2-dev libignition-common3-dev libignition-gui3-dev libignition-math6-eigen3-dev libignition-msgs5-dev libignition-plugin-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libsdformat9-dev libignition-fuel-tools4-dev libignition-physics2-dev libignition-sensors3-dev qml-module-qtqml-models2'
+          apt-dependencies: |
+            libignition-cmake2-dev
+            libignition-math6-eigen3-dev
+            libignition-msgs5-dev
+            libignition-plugin-dev
+            libignition-tools-dev
+            libignition-transport8-dev
+            libsdformat9-dev
+            libignition-fuel-tools4-dev
+            libignition-physics2-dev
+            libignition-common3-dev
+            libogre-1.9-dev
+            libogre-2.1-dev
+            libglew-dev
+            libfreeimage-dev
+            freeglut3-dev
+            libxmu-dev
+            libxi-dev
+            uuid-dev
+            xvfb
+            qtbase5-dev
+            libtinyxml2-dev
+            libprotoc-dev
+            libprotobuf-dev
+            qtdeclarative5-dev
+            qtquickcontrols2-5-dev
+            qml-module-qtquick2
+            qml-module-qtquick-controls
+            qml-module-qtquick-controls2
+            qml-module-qtquick-dialogs
+            qml-module-qtquick-layouts
+            qml-module-qt-labs-folderlistmodel
+            qml-module-qt-labs-settings
+            qml-module-qtgraphicaleffects
           codecov-token: ${{ secrets.CODECOV_TOKEN }}

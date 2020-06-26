@@ -411,6 +411,13 @@ void ComponentInspector::Update(const UpdateInfo &,
         setUnit(item, "rad/s");
       }
     }
+    else if (typeId == components::AnimationName::typeId)
+    {
+      auto comp = _ecm.Component<components::AnimationName>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::CastShadows::typeId)
     {
       auto comp = _ecm.Component<components::CastShadows>(
@@ -503,6 +510,13 @@ void ComponentInspector::Update(const UpdateInfo &,
     else if (typeId == components::Static::typeId)
     {
       auto comp = _ecm.Component<components::Static>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::TrajectoryPose::typeId)
+    {
+      auto comp = _ecm.Component<components::TrajectoryPose>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }

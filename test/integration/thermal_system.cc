@@ -27,7 +27,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 #define tol 10e-4
 
@@ -46,47 +46,6 @@ class ThermalTest : public ::testing::Test
   }
 };
 
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                 nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
-};
-
-
 /////////////////////////////////////////////////
 TEST_F(ThermalTest, TemperatureComponent)
 {
@@ -100,7 +59,7 @@ TEST_F(ThermalTest, TemperatureComponent)
   EXPECT_FALSE(*server.Running(0));
 
   // Create a system that checks for thermal component
-  Relay testSystem;
+  test::Relay testSystem;
 
   std::map<std::string, math::Temperature> entityTemp;
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,

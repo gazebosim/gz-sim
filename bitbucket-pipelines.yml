@@ -19,23 +19,26 @@ pipelines:
           # METHOD 1: Install the following debians
           - apt-get install -y
               libignition-cmake2-dev
-              libignition-common3-dev
-              libignition-gui3-dev
               libignition-math6-eigen3-dev
               libignition-msgs5-dev
               libignition-plugin-dev
-              libignition-rendering3-dev
               libignition-tools-dev
               libignition-transport8-dev
               libsdformat9-dev
               libignition-fuel-tools4-dev
               libignition-physics2-dev
-              libignition-sensors3-dev
+          #    libignition-common3-dev
+          #    libignition-gui3-dev
+          #    libignition-sensors3-dev
+          #    libignition-rendering3-dev
           # METHOD 2: Build from source
           # Build dependencies from source using a given branch
-          # - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
           # - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
           # - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-common ign-common3
+          - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
+          - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
           # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
