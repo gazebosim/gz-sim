@@ -189,7 +189,8 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
 
 
 //////////////////////////////////////////////////
-void VelocityControlPrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+void VelocityControlPrivate::UpdateVelocity(
+    const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VeocityControl::UpdateVelocity");

@@ -1360,7 +1360,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (!freeGroup)
           return true;
-        
+
         const components::Pose *poseComp =
             _ecm.Component<components::Pose>(_entity);
         math::Vector3d worldAngularVel = poseComp->Data().Rot() *
