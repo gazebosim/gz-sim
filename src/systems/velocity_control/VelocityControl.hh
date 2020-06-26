@@ -54,7 +54,7 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
+                const ignition::gazebo::UpdateInfo &/*_info*/,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
