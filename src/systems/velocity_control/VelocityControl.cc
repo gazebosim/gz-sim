@@ -15,8 +15,9 @@
  *
  */
 
-#include <ignition/common/Profiler.hh>
+#include <mutex>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -24,6 +25,8 @@
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
+
+#include "../diff_drive/SpeedLimiter.hh"
 
 #include "VelocityControl.hh"
 
@@ -186,7 +189,7 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
 
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+void VelocityControlPrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VeocityControl::UpdateVelocity");

@@ -66,7 +66,7 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
-          components::Name("vehicle"));
+          components::Name("vehicle_blue"));
         EXPECT_NE(kNullEntity, id);
 
         auto poseComp = _ecm.Component<components::Pose>(id);
@@ -85,6 +85,7 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
     {
       EXPECT_EQ(poses[0], pose);
     }
+
 
     // Publish command and check that vehicle moved
     transport::Node node;
@@ -130,7 +131,7 @@ TEST_P(VelocityControlTest, PublishCmd)
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
-      "/model/vehicle/cmd_vel");
+      "/model/vehicle_blue/cmd_vel");
 }
 
 // Run multiple times
