@@ -7,20 +7,17 @@ load(
     "generate_include_header",
 )
 load(
-    "//ign_bazel:generate_file.bzl",
-    "generate_file",
+    "//ign_bazel:ign_export_header.bzl",
+    "ign_export_header",
 )
 load(
     "//ign_bazel:generate_yaml.bzl",
     "generate_yaml",
 )
-
 load(
-    "@bazelruby_rules_ruby//ruby:defs.bzl",
-    "ruby_binary",
-    "ruby_library",
-    "ruby_test",
-    "ruby_rspec",
+    "//ign_msgs:ign_msg_gen.bzl",
+    "ign_msg_gen",
+    "get_proto_headers"
 )
 
 package(default_visibility = ["//visibility:public"])
@@ -62,60 +59,10 @@ cmake_configure_file(
     visibility = ["//visibility:private"],
 )
 
-cmds = "    - gazebo   : Run and manage Gazebo."
-
-generate_yaml(
-    name = "gazebo",
-    library_name = PROJECT_NAME,
-    library_version = "%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
-    commands = cmds,
-    ruby_target = "//ign_gazebo:cmdgazebo.rb",
-)
-
-# Generates config.hh based on the version numbers in CMake code.
-cmake_configure_file(
-    name = "cmdgazebo.rb",
-    src = "src/cmd/cmdgazebo.rb.in",
-    out = "cmdgazebo.rb",
-    cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "library_location=%s" % library_location,
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-    ],
-    visibility = ["//visibility:public"],
-)
-
-ruby_binary(
-    name = "gazebo-ruby",
-    srcs = ["cmdgazebo.rb"],
-    includes = ["src/cmd"],
-    main = "cmdgazebo.rb",
-    visibility = ["//visibility:public"],
-)
-
-generate_file(
+ign_export_header(
     name = "include/ignition/gazebo/Export.hh",
-    content = """
-#pragma once
-// IGN_DEPRECATED is defined by all ignition libraries, but the version below
-// is a simplified version.  When mixing the regular ignition libraries and
-// the drake compiled ignition libraries, the compiler throws a warning about
-// the macro being multiply defined.  We undefine it before redefining it here
-// to work around that issue.  Note that the IGNITION_GAZEBO_VISIBLE macro
-// shouldn't be defined multiple times, but we undefine it just in case.
-#ifdef IGNITION_GAZEBO_VISIBLE
-#undef IGNITION_GAZEBO_VISIBLE
-#endif
-#define IGNITION_GAZEBO_VISIBLE __attribute__ ((visibility("default")))
-#ifdef IGN_DEPRECATED
-#undef IGN_DEPRECATED
-#endif
-#define IGN_DEPRECATED(version) __attribute__ ((__deprecated__))
-#ifdef IGNITION_GAZEBO_HIDDEN
-#undef IGNITION_GAZEBO_HIDEN
-#endif
-#define IGNITION_GAZEBO_HIDDEN __attribute__ ((visibility("default")))
-    """,
+    lib_name = "ignition-gazebo",
+    export_base = "IGNITION_GAZEBO",
     visibility = ["//visibility:private"],
 )
 
@@ -323,6 +270,38 @@ systems = [
     "wind_effects",
 ]
 
+protos = glob(
+    ["src/msgs/*.proto"],
+    exclude = ["src/msgs/performer_affinity.proto"],
+)
+
+proto_library(
+    name = "performer_affinity_proto",
+    srcs = ["src/msgs/performer_affinity.proto"],
+    strip_import_prefix = "src/msgs",
+    deps = [
+        "//ign_msgs:ignmsgs_proto_public",
+    ],
+)
+
+proto_library(
+    name = "igngazebo_proto",
+    srcs = protos,
+    strip_import_prefix = "src",
+    deps = [
+        ":performer_affinity_proto",
+        "//ign_msgs:ignmsgs_proto_public",
+    ],
+)
+
+cc_proto_library(
+    name = "igngazebo_proto_cc",
+    deps = [
+        ":igngazebo_proto",
+    ],
+)
+'''
+
 cc_proto_library(
     name = "gazebo_cc_proto",
     deps = [
@@ -356,7 +335,7 @@ proto_library(
     ],
     strip_import_prefix = "src/msgs",
 )
-
+'''
 generate_include_header(
     name = "gazebohh_genrule",
     out = "include/ignition/gazebo.hh",
@@ -380,10 +359,10 @@ public_headers = public_headers_no_gen + public_component_headers_no_gen + [
 ]
 
 cc_binary(
-    name = "libignition-gazebo4-ign.so",
-    srcs = sources + private_headers + public_headers,
+    name = "libignition-gazebo4.so",
+    srcs = sources + private_headers + public_headers + [":igngazebo_proto_cc"],
     includes = ["include"],
-    linkopts = ["-Wl,-soname,libignition-gazebo4-ign.so", "-ltinyxml2"],
+    linkopts = ["-Wl,-soname,libignition-gazebo4.so", "-ltinyxml2"],
     linkshared = True,
     visibility = [],
     copts = [
@@ -396,7 +375,7 @@ cc_binary(
         "-Iexternal/qt",
     ],
     deps = [
-        ":gazebo_cc_proto",
+        ":igngazebo_proto_cc",
         "//ign_common",
         "//ign_gui",
         "//ign_fuel_tools",
@@ -414,21 +393,58 @@ cc_binary(
 
 cc_library(
     name = "ign_gazebo",
-    srcs = ["libignition-gazebo4-ign.so"],
+    srcs = ["libignition-gazebo4.so"],
     hdrs = public_headers,
     includes = ["include", "src"],
     visibility = ["//visibility:public"],
 )
 
 [
-cc_library(
-    name = system,
+
+cc_binary(
+    name = "libignition-gazebo4-%s.so" % system.replace("_", "-"),
     srcs = glob([  
         "src/systems/%s/*.cc" % system,
         "src/systems/%s/*.hh" % system,
     ],
     allow_empty = False,
     ),
+    includes = ["include"],
+    linkopts = ["-Wl,-soname,libignition-gazebo4-%s.so" % system.replace("_", "-")],
+    linkshared = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_gazebo",
+        "//ign_common",
+        "//ign_physics",
+        "//ign_physics/mesh:mesh",
+        "//ign_physics/sdf:sdf",
+        "//ign_gui",
+        "//ign_fuel_tools",
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_transport/log:log",
+        "//ign_sensors",
+        "//ign_rendering",
+        "//ign_plugin/core:ign_plugin",
+        "//ign_plugin/loader:loader",
+        "//ign_plugin/register:register",
+        "//ign_common/profiler:profiler",
+        "//ign_common/events:events",
+        "//ign_common/graphics:graphics",
+        "//ign_msgs",
+        "//ign_math/eigen3:eigen3",
+        "//sdformat",
+    ],
+
+) for system in systems]
+
+[
+cc_library(
+    name = system,
+    srcs = [  
+        "libignition-gazebo4-%s.so" % system.replace("_", "-")
+    ],
     hdrs = glob([
         "src/systems/%s/*.hh" % system,
     ],
