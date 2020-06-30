@@ -123,11 +123,11 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \TODO(caguero) Remove in Ignition Dome.
   /// \brief Battery current for a historic time window
-  // public: std::deque<double> iList;
+  public: std::deque<double> iList;
 
   /// \TODO(caguero) Remove in Ignition Dome.
   /// \brief Time interval for a historic time window
-  // public: std::deque<double> dtList;
+  public: std::deque<double> dtList;
 
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
@@ -463,7 +463,7 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   if (this->dataPtr->fixIssue225)
     msg.set_percentage(this->dataPtr->soc * 100);
   else
-    msg.set_percentage(this->dataPtr->soc * 100);
+    msg.set_percentage(this->dataPtr->soc);
 
   if (this->dataPtr->startCharging)
     msg.set_power_supply_status(msgs::BatteryState::CHARGING);
@@ -482,18 +482,10 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 {
   IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
 
-  igndbg << "1" << std::endl;
-
   if (fabs(_battery->Voltage()) < 1e-3 && !this->dataPtr->startCharging)
-  {
-    igndbg << "2" << std::endl;
-    return 1e-6;
-  }
+    return 0.0;
   if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->startCharging)
-  {
-    igndbg << "3" << std::endl;
     return _battery->Voltage();
-  }
 
   auto prevSocInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
 
@@ -509,8 +501,6 @@ double LinearBatteryPlugin::OnUpdateVoltage(
       totalpower += powerLoad.second;
   }
 
-  igndbg << "4" << std::endl;
-
   this->dataPtr->iraw = totalpower / _battery->Voltage();
 
   // compute charging current
@@ -523,33 +513,36 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
-  // if (!this->dataPtr->fixIssue225)
-  // {
-  //   if (this->dataPtr->iList.size() >= 100)
-  //   {
-  //     this->dataPtr->iList.pop_front();
-  //     this->dataPtr->dtList.pop_front();
-  //   }
-  //   this->dataPtr->iList.push_back(this->dataPtr->ismooth);
-  //   this->dataPtr->dtList.push_back(dt);
-  // }
+  if (!this->dataPtr->fixIssue225)
+  {
+    if (this->dataPtr->iList.size() >= 100)
+    {
+      this->dataPtr->iList.pop_front();
+      this->dataPtr->dtList.pop_front();
+    }
+    this->dataPtr->iList.push_back(this->dataPtr->ismooth);
+    this->dataPtr->dtList.push_back(dt);
+  }
 
   // Convert dt to hours
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
-  this->dataPtr->q = std::max(this->dataPtr->q, 1e-6);
 
   // open circuit voltage
   double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
-  voltage = std::max(voltage, 1e-6);
 
   // Estimate state of charge
   if (this->dataPtr->fixIssue225)
     this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
   else
-    this->dataPtr->soc = 100 * this->dataPtr->q / this->dataPtr->c;
+  {
+    double isum = 0.0;
+    for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
+      isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
+    this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
+  }
 
   // Throttle debug messages
   auto socInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
