@@ -86,14 +86,12 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
       EXPECT_EQ(poses[0], pose);
     }
 
-
     // Publish command and check that vehicle moved
     transport::Node node;
     auto pub = node.Advertise<msgs::Twist>(_cmdVelTopic);
 
     msgs::Twist msg;
 
-    // Avoid wheel slip by limiting acceleration
     // Avoid wheel slip by limiting acceleration (1 m/s^2)
     // and max velocity (0.5 m/s).
     // See <max_velocity< and <max_aceleration> parameters
@@ -123,6 +121,19 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
     int maxSleep = 30;
 
     ASSERT_NE(maxSleep, sleep);
+
+    // verify that the vehicle is moving in +x and rotating towards +y
+    for (unsigned int i = 1001; i < poses.size(); ++i)
+    {
+      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X());
+      EXPECT_GT(poses[i].Pos().Y(), poses[i-1].Pos().Y());
+      EXPECT_NEAR(poses[i].Pos().Z(), poses[i-1].Pos().Z(), 1e-5);
+      EXPECT_NEAR(poses[i].Rot().Euler().X(),
+          poses[i-1].Rot().Euler().X(), 1e-5);
+      EXPECT_NEAR(poses[i].Rot().Euler().Y(),
+          poses[i-1].Rot().Euler().Y(), 1e-5);
+      EXPECT_GT(poses[i].Rot().Euler().Z(), poses[i-1].Rot().Euler().Z());
+    }
   }
 };
 
