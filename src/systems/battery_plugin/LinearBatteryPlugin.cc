@@ -108,7 +108,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Instantaneous battery charge in Ah.
   public: double q{0.0};
 
-  /// \brief State of charge
+  /// \brief State of charge [0, 1]
   public: double soc{1.0};
 
   /// \brief Recharge status
@@ -117,11 +117,17 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
 
-  /// \brief Battery current for a historic time window
-  public: std::deque<double> iList;
+  /// \TODO(caguero) Remove this flag in Ignition Dome.
+  /// \brief Flag to enable some battery fixes.
+  public: bool fixIssue225{false};
 
+  /// \TODO(caguero) Remove in Ignition Dome.
+  /// \brief Battery current for a historic time window
+  // public: std::deque<double> iList;
+
+  /// \TODO(caguero) Remove in Ignition Dome.
   /// \brief Time interval for a historic time window
-  public: std::deque<double> dtList;
+  // public: std::deque<double> dtList;
 
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
@@ -129,8 +135,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Flag on whether the battery should start draining
   public: bool startDraining = true;
 
-  /// \brief The start time when battery starts draining
-  /// in seconds
+  /// \brief The start time when battery starts draining in seconds
   public: int drainStartTime = -1;
 
   /// \brief Book keep the last time printed, so as to not pollute dbg messages
@@ -210,6 +215,9 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("smooth_current_tau"))
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
+
+  if (_sdf->HasElement("fix_issue_225"))
+    this->dataPtr->fixIssue225 = _sdf->Get<bool>("fix_issue_225");
 
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
@@ -291,21 +299,12 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
             << "in LinearBatteryPlugin SDF" << std::endl;
   }
 
-  // Flag that indicates that the battery should start draining only on motion
-  if (_sdf->HasElement("start_on_motion"))
-  {
-    auto startOnMotion = _sdf->Get<bool>("start_on_motion");
-    if (startOnMotion)
-    {
-      igndbg << "Start draining only on motion" << std::endl;
-      this->dataPtr->startDraining = false;
-    }
-  }
-
   ignmsg << "LinearBatteryPlugin configured. Battery name: "
          << this->dataPtr->battery->Name() << std::endl;
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
+
+  this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
 
   // Setup battery state topic
   std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
@@ -460,7 +459,12 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   msg.set_current(this->dataPtr->ismooth);
   msg.set_charge(this->dataPtr->q);
   msg.set_capacity(this->dataPtr->c);
-  msg.set_percentage(this->dataPtr->soc);
+
+  if (this->dataPtr->fixIssue225)
+    msg.set_percentage(this->dataPtr->soc * 100);
+  else
+    msg.set_percentage(this->dataPtr->soc * 100);
+
   if (this->dataPtr->startCharging)
     msg.set_power_supply_status(msgs::BatteryState::CHARGING);
   else if (this->dataPtr->startDraining)
@@ -478,10 +482,18 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 {
   IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
 
-  if (fabs(_battery->Voltage()) < 1e-3)
-    return 0.0;
-  if (this->dataPtr->StateOfCharge() < 0)
+  igndbg << "1" << std::endl;
+
+  if (fabs(_battery->Voltage()) < 1e-3 && !this->dataPtr->startCharging)
+  {
+    igndbg << "2" << std::endl;
+    return 1e-6;
+  }
+  if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->startCharging)
+  {
+    igndbg << "3" << std::endl;
     return _battery->Voltage();
+  }
 
   auto prevSocInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
 
@@ -491,8 +503,13 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   double totalpower = 0.0;
   double k = dt / this->dataPtr->tau;
 
-  for (auto powerLoad : _battery->PowerLoads())
-    totalpower += powerLoad.second;
+  if (this->dataPtr->startDraining)
+  {
+    for (auto powerLoad : _battery->PowerLoads())
+      totalpower += powerLoad.second;
+  }
+
+  igndbg << "4" << std::endl;
 
   this->dataPtr->iraw = totalpower / _battery->Voltage();
 
@@ -506,29 +523,33 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
-  // Keep a list of historic currents and time intervals
-  if (this->dataPtr->iList.size() >= 100)
-  {
-    this->dataPtr->iList.pop_front();
-    this->dataPtr->dtList.pop_front();
-  }
-  this->dataPtr->iList.push_back(this->dataPtr->ismooth);
-  this->dataPtr->dtList.push_back(dt);
+  // if (!this->dataPtr->fixIssue225)
+  // {
+  //   if (this->dataPtr->iList.size() >= 100)
+  //   {
+  //     this->dataPtr->iList.pop_front();
+  //     this->dataPtr->dtList.pop_front();
+  //   }
+  //   this->dataPtr->iList.push_back(this->dataPtr->ismooth);
+  //   this->dataPtr->dtList.push_back(dt);
+  // }
 
   // Convert dt to hours
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
+  this->dataPtr->q = std::max(this->dataPtr->q, 1e-6);
 
   // open circuit voltage
   double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
+  voltage = std::max(voltage, 1e-6);
 
   // Estimate state of charge
-  double isum = 0.0;
-  for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
-    isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
-  this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
+  if (this->dataPtr->fixIssue225)
+    this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
+  else
+    this->dataPtr->soc = 100 * this->dataPtr->q / this->dataPtr->c;
 
   // Throttle debug messages
   auto socInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
