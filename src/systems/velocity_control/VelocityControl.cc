@@ -32,18 +32,6 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Velocity command.
-struct Commands
-{
-  /// \brief Linear velocity.
-  double lin;
-
-  /// \brief Angular velocity.
-  double ang;
-
-  Commands() : lin(0.0), ang(0.0) {}
-};
-
 class ignition::gazebo::systems::VelocityControlPrivate
 {
   /// \brief Callback for velocity subscription
