@@ -403,7 +403,7 @@ void ServerPrivate::SetupTransport()
   std::string pathTopic{"/gazebo/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
 
-  ignmsg << "Serving resource path interfaces on [" << addPathService
+  ignmsg << "Resource path interfaces on [" << addPathService
          << "], [" << getPathService << "], and [" << pathTopic << "]."
          << std::endl;
 }

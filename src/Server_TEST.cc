@@ -773,6 +773,23 @@ TEST_P(ServerFixture, AddResourcePaths)
   EXPECT_FALSE(*server.Running(0));
 
   transport::Node node;
+
+  // Subscribe to path updates
+  bool receivedMsg{false};
+  auto resourceCb = std::function<void(const msgs::StringMsg_V &)>(
+      [&receivedMsg](const auto &_msg)
+      {
+        receivedMsg = true;
+        EXPECT_EQ(5, _msg.data_size());
+        EXPECT_EQ("/tmp/some/path", _msg.data(0));
+        EXPECT_EQ("/home/user/another_path", _msg.data(1));
+        EXPECT_EQ("/tmp/new_path", _msg.data(2));
+        EXPECT_EQ("/tmp/more", _msg.data(3));
+        EXPECT_EQ("/tmp/even_more", _msg.data(4));
+      });
+  node.Subscribe("/gazebo/resource_paths", resourceCb);
+
+  // Add path
   msgs::StringMsg_V req;
   req.add_data("/tmp/new_path");
   req.add_data("/tmp/more:/tmp/even_more");
@@ -780,7 +797,16 @@ TEST_P(ServerFixture, AddResourcePaths)
   bool executed = node.Request("/gazebo/add_resource_paths", req);
   EXPECT_TRUE(executed);
 
-  // Check paths
+  int sleep{0};
+  int maxSleep{30};
+  while (!receivedMsg && sleep < maxSleep)
+  {
+    IGN_SLEEP_MS(50);
+    sleep++;
+  }
+  EXPECT_TRUE(receivedMsg);
+
+  // Check environment variables
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
     char *pathCStr = getenv(env);

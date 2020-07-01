@@ -40,6 +40,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 
+// Global node to subscribe to path updates
+ignition::transport::Node g_node;
+
+//////////////////////////////////////////////////
+void onAddResourcePaths(const msgs::StringMsg_V &_msg)
+{
+  std::vector<std::string> paths;
+  for (auto i = 0; i < _msg.data().size(); ++i)
+  {
+    paths.push_back(_msg.data(i));
+  }
+
+  addResourcePaths(paths);
+}
+
+//////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
@@ -113,8 +129,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
-
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
@@ -129,7 +143,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   {
     igndbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
-    executed = node.Request(service, timeout, worldsMsg, result);
+    executed = g_node.Request(service, timeout, worldsMsg, result);
   }
 
   // Only print error message if a sigkill was not received.
@@ -182,7 +196,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // Request and block
       ignition::msgs::GUI res;
-      executed = node.Request(service, timeout, res, result);
+      executed = g_node.Request(service, timeout, res, result);
 
       if (!executed)
         ignerr << "Service call timed out for [" << service << "]" << std::endl;
@@ -260,25 +274,16 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Get resource paths
   service = "/gazebo/get_resource_paths";
   msgs::StringMsg_V res;
-  // FIXME(chapulina) This is timing out when server and gui are in different
-  // terminals. Making an `ign service -s` request works. Print statements
-  // show that the server callback executes successfully.
-  executed = node.Request(service, 5000, res, result);
+  executed = g_node.Request(service, 5000, res, result);
 
   if (!executed)
     ignerr << "Service call timed out for [" << service << "]" << std::endl;
   else if (!result)
     ignerr << "Service call failed for [" << service << "]" << std::endl;
 
-  std::vector<std::string> paths;
-  for (auto i = 0; i < res.data().size(); ++i)
-  {
-    paths.push_back(res.data(i));
-  }
+  onAddResourcePaths(res);
 
-  addResourcePaths(paths);
-
-  // TODO(chapulina) subscribe to resource_paths topic
+  g_node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
 
   return app;
 }
