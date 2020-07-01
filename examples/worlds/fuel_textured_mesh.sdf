@@ -169,7 +169,7 @@
       <static>true</static>
       <name>Rescue Randy</name>
       <pose>0 0 0 0 0 1.57</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Rescue Randy</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
     </include>
 
     <model name="ground_plane">
