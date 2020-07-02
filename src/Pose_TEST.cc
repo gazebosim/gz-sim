@@ -140,10 +140,10 @@ TEST(PoseTest, Pose)
 /////////////////////////////////////////////////
 TEST(PoseTest, ConstPose)
 {
-  const math::Pose3d pose(0, 1, 2, 0, 0, 0);
+  const math::Pose3d pose(0, 1, 2, 1, 0, 0);
 
   EXPECT_TRUE(pose.Pos() == math::Vector3d(0, 1, 2));
-  EXPECT_TRUE(pose.Rot() == math::Quaterniond(0, 0, 0));
+  EXPECT_TRUE(pose.Rot() == math::Quaterniond(1, 0, 0));
 }
 
 /////////////////////////////////////////////////
@@ -155,3 +155,46 @@ TEST(PoseTest, OperatorStreamOut)
   EXPECT_EQ(stream.str(), "0.1 1.2 2.3 0 0.1 1");
 }
 
+/////////////////////////////////////////////////
+TEST(PoseTest, MutablePose)
+{
+  math::Pose3d pose(0, 1, 2, 0, 0, 0);
+
+  EXPECT_TRUE(pose.Pos() == math::Vector3d(0, 1, 2));
+  EXPECT_TRUE(pose.Rot() == math::Quaterniond(0, 0, 0));
+
+  pose.Pos() = math::Vector3d(10, 20, 30);
+  pose.Rot() = math::Quaterniond(1, 2, 1);
+
+  EXPECT_TRUE(pose.Pos() == math::Vector3d(10, 20, 30));
+  EXPECT_TRUE(pose.Rot() == math::Quaterniond(1, 2, 1));
+}
+
+/////////////////////////////////////////////////
+TEST(PoseTest, ConstPoseElements)
+{
+  const math::Pose3d pose(0, 1, 2, 1, 1, 2);
+  EXPECT_DOUBLE_EQ(pose.X(), 0);
+  EXPECT_DOUBLE_EQ(pose.Y(), 1);
+  EXPECT_DOUBLE_EQ(pose.Z(), 2);
+  EXPECT_DOUBLE_EQ(pose.Roll(), 1);
+  EXPECT_DOUBLE_EQ(pose.Pitch(), 1);
+  EXPECT_DOUBLE_EQ(pose.Yaw(), 2);
+}
+
+/////////////////////////////////////////////////
+TEST(PoseTest, SetPoseElements)
+{
+  math::Pose3d pose(1, 2, 3, 1.57, 1, 2);
+  EXPECT_DOUBLE_EQ(pose.X(), 1);
+  EXPECT_DOUBLE_EQ(pose.Y(), 2);
+  EXPECT_DOUBLE_EQ(pose.Z(), 3);
+
+  pose.SetX(10);
+  pose.SetY(12);
+  pose.SetZ(13);
+
+  EXPECT_DOUBLE_EQ(pose.X(), 10);
+  EXPECT_DOUBLE_EQ(pose.Y(), 12);
+  EXPECT_DOUBLE_EQ(pose.Z(), 13);
+}
