@@ -4,7 +4,7 @@
 
 1. Added support for controlling which joints are published by the
    JointStatePublisher.
-    * [Pull Request 213](https://github.com/ignitionrobotics/ign-gazebo/pull/213)
+    * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
 
 ### Ignition Gazebo 2.20.1 (2020-06-18)
 
