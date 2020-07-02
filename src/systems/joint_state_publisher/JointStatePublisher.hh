@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
 
 #include <memory>
+#include <set>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/gazebo/System.hh>
@@ -80,7 +81,7 @@ namespace systems
     private: std::unique_ptr<transport::Node::Publisher> modelPub;
 
     /// \brief The joints that will be published.
-    private: std::vector<Entity> joints;
+    private: std::set<Entity> joints;
   };
   }
 }

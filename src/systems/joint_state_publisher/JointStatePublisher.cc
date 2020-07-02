@@ -52,7 +52,7 @@ void JointStatePublisher::Configure(
   }
 
   // If a joint_name is specified in the plugin, then only publish the
-  // specified joints. Otherwise, publis all the joints.
+  // specified joints. Otherwise, publish all the joints.
   if (_sdf->HasElement("joint_name"))
   {
     sdf::Element *ptr = const_cast<sdf::Element *>(_sdf.get());
@@ -68,7 +68,7 @@ void JointStatePublisher::Configure(
       else
       {
         ignerr << "Joint with name[" << jointName << "] not found. "
-          << "The JointStatePublisher will not publishe this joint.\n";
+          << "The JointStatePublisher will not publish this joint.\n";
       }
 
       elem = elem->GetNextElement("joint_name");
@@ -90,7 +90,13 @@ void JointStatePublisher::Configure(
 void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
     gazebo::Entity _joint)
 {
-  this->joints.push_back(_joint);
+  if (this->joints.find(_joint) != this->joints.end())
+  {
+    ignwarn << "Ignoring duplicate joint in a JointSatePublisher plugin.\n";
+    return;
+  }
+
+  this->joints.insert(_joint);
 
   // Create joint position component if one doesn't exist
   if (!_ecm.EntityHasComponentType(_joint,

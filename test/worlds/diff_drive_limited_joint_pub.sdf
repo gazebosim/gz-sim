@@ -236,6 +236,8 @@
         name="ignition::gazebo::systems::JointStatePublisher">
         <joint_name>left_wheel_joint</joint_name>
         <joint_name>right_wheel_joint</joint_name>
+        <!-- Add duplicate name for testing -->
+        <joint_name>right_wheel_joint</joint_name>
       </plugin>
 
     </model>

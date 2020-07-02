@@ -20,12 +20,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
-
-#include "../helpers/Relay.hh"
-
-#define tol 10e-4
 
 using namespace ignition;
 using namespace gazebo;
@@ -57,6 +52,7 @@ TEST_F(JointStatePublisherTest, DefaultPublisher)
 
   server.SetUpdatePeriod(0ns);
 
+  int count = 0;
   // Check that all of joints are published.
   std::function<void(const msgs::Model &)> jointStateCb =
     [&](const msgs::Model &_msg)
@@ -81,12 +77,16 @@ TEST_F(JointStatePublisherTest, DefaultPublisher)
       EXPECT_TRUE(foundRightWheelJoint);
       EXPECT_TRUE(foundCasterWheel);
       EXPECT_FALSE(extra);
+      count++;
     };
 
   transport::Node node;
   node.Subscribe("/world/diff_drive/model/vehicle/joint_state", jointStateCb);
 
   server.Run(true, 10, false);
+
+  // Make sure the callback was triggered at least once.
+  EXPECT_GT(count, 0);
 }
 
 /////////////////////////////////////////////////
@@ -103,6 +103,7 @@ TEST_F(JointStatePublisherTest, LimitedPublisher)
 
   server.SetUpdatePeriod(0ns);
 
+  int count = 0;
   // Check that only the left and right wheel joints are published.
   std::function<void(const msgs::Model &)> jointStateCb =
     [&](const msgs::Model &_msg)
@@ -111,22 +112,35 @@ TEST_F(JointStatePublisherTest, LimitedPublisher)
            foundRightWheelJoint{false},
            extra{false};
 
+      int rightWheelJointCount = 0;
       for (int i = 0; i < _msg.joint_size(); ++i)
       {
         if (_msg.joint(i).name() == "left_wheel_joint")
+        {
           foundLeftWheelJoint = true;
+        }
         else if (_msg.joint(i).name() == "right_wheel_joint")
+        {
+          rightWheelJointCount++;
           foundRightWheelJoint = true;
+        }
         else
           extra = true;
       }
+      // Test duplicate joint names do not result in repeats.
+      EXPECT_EQ(1, rightWheelJointCount);
+
       EXPECT_TRUE(foundLeftWheelJoint);
       EXPECT_TRUE(foundRightWheelJoint);
       EXPECT_FALSE(extra);
+      count++;
     };
 
   transport::Node node;
   node.Subscribe("/world/diff_drive/model/vehicle/joint_state", jointStateCb);
 
   server.Run(true, 10, false);
+
+  // Make sure the callback was triggered at least once.
+  EXPECT_GT(count, 0);
 }
