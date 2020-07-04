@@ -17,8 +17,8 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 #define IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
-#include <ignition/gazebo/System.hh>
 #include <memory>
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
@@ -32,8 +32,46 @@ namespace systems
   class JointPositionControllerPrivate;
 
   /// \brief Joint position controller which can be attached to a model with a
-  /// reference to a single joint.
-  //  Currently only the first axis of a joint is actuated.
+  /// reference to a single joint. Currently only the first axis of a joint is
+  /// actuated.
+  ///
+  /// A new Ignition Transport topic is created to send target joint positions.
+  /// The topic name is
+  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos"
+  ///
+  /// This topic accepts ignition::msgs::Double values representing the target
+  /// position.
+  ///
+  /// ## System Parameters
+  ///
+  /// `<joint_name>` The name of the joint to control. Required parameter.
+  ///
+  /// `<joint_index>` Axis of the joint to control. Optional parameter.
+  ///  The default value is 0.
+  ///
+  /// `<p_gain>` The proportional gain of the PID. Optional parameter.
+  ///  The default value is 1.
+  ///
+  /// `<i_gain>` The integral gain of the PID. Optional parameter.
+  ///  The default value is 0.1.
+  ///
+  /// `<d_gain>` The derivative gain of the PID. Optional parameter.
+  ///  The default value is 0.01
+  ///
+  /// `<i_max>` The integral upper limit of the PID. Optional parameter.
+  ///  The default value is 1.
+  ///
+  /// `<i_min>` The integral lower limit of the PID. Optional parameter.
+  ///  The default value is -1.
+  ///
+  /// `<cmd_max>` Output max value of the PID. Optional parameter.
+  ///  The default value is 1000.
+  ///
+  /// `<cmd_min>` Output min value of the PID. Optional parameter.
+  ///  The default value is -1000.
+  ///
+  /// `<cmd_offset>` Command offset (feed-forward) of the PID. Optional
+  /// parameter. The default value is 0.
   class IGNITION_GAZEBO_VISIBLE JointPositionController
       : public System,
         public ISystemConfigure,
