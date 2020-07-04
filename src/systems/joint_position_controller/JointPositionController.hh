@@ -32,8 +32,7 @@ namespace systems
   class JointPositionControllerPrivate;
 
   /// \brief Joint position controller which can be attached to a model with a
-  /// reference to a single joint. Currently only the first axis of a joint is
-  /// actuated.
+  /// reference to a single joint.
   ///
   /// A new Ignition Transport topic is created to send target joint positions.
   /// The topic name is
