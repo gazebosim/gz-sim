@@ -97,7 +97,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: double r{0.0};
 
   /// \brief Current low-pass filter characteristic time in seconds.
-  public: double tau{0.0};
+  public: double tau{1.0};
 
   /// \brief Raw battery current in A.
   public: double iraw{0.0};
@@ -201,14 +201,14 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   if (_sdf->HasElement("open_circuit_voltage_linear_coef"))
     this->dataPtr->e1 = _sdf->Get<double>("open_circuit_voltage_linear_coef");
 
-  if (_sdf->HasElement("initial_charge"))
-  {
-    this->dataPtr->q0 = _sdf->Get<double>("initial_charge");
-    this->dataPtr->q = this->dataPtr->q0;
-  }
-
   if (_sdf->HasElement("capacity"))
     this->dataPtr->c = _sdf->Get<double>("capacity");
+
+  this->dataPtr->q0 = this->dataPtr->c;
+  if (_sdf->HasElement("initial_charge"))
+    this->dataPtr->q0 = _sdf->Get<double>("initial_charge");
+
+  this->dataPtr->q = this->dataPtr->q0;
 
   if (_sdf->HasElement("resistance"))
     this->dataPtr->r = _sdf->Get<double>("resistance");
