@@ -531,6 +531,13 @@
         <capacity>1.2009</capacity>
         <power_load>6.6</power_load>
         <fix_issue_225>false</fix_issue_225>
+        <enable_recharge>true</enable_recharge>
+        <!-- charging I = c / t, discharging I = P / V,
+          charging I should be > discharging I -->
+        <charging_time>3.0</charging_time>
+        <!-- Consumer-specific -->
+        <power_load>2.1</power_load>
+        <recharge_by_topic>true</recharge_by_topic>
       </plugin>
 
     </model>
