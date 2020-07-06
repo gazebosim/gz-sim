@@ -20,6 +20,8 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
@@ -52,6 +54,13 @@ class ignition::gazebo::systems::JointControllerPrivate
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief True if force commands are internally used to keep the target
+  /// velocity.
+  public: bool useForceCommands{false};
+
+  /// \brief Velocity PID controller.
+  public: ignition::math::PID velPid;
 };
 
 //////////////////////////////////////////////////
@@ -83,6 +92,71 @@ void JointController::Configure(const Entity &_entity,
     ignerr << "JointController found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
+  }
+
+  if (_sdf->HasElement("use_force_commands"))
+  {
+    this->dataPtr->useForceCommands =
+      _sdf->Get<unsigned int>("use_force_commands");
+
+    // PID parameters
+    double p         =  1;
+    double i         =  0.0;
+    double d         =  0.0;
+    double iMax      =  1;
+    double iMin      = -1;
+    double cmdMax    =  1000;
+    double cmdMin    = -1000;
+    double cmdOffset =  0;
+
+    if (_sdf->HasElement("p_gain"))
+    {
+      p = _sdf->Get<double>("p_gain");
+    }
+    if (_sdf->HasElement("i_gain"))
+    {
+      i = _sdf->Get<double>("i_gain");
+    }
+    if (_sdf->HasElement("d_gain"))
+    {
+      d = _sdf->Get<double>("d_gain");
+    }
+    if (_sdf->HasElement("i_max"))
+    {
+      iMax = _sdf->Get<double>("i_max");
+    }
+    if (_sdf->HasElement("i_min"))
+    {
+      iMin = _sdf->Get<double>("i_min");
+    }
+    if (_sdf->HasElement("cmd_max"))
+    {
+      cmdMax = _sdf->Get<double>("cmd_max");
+    }
+    if (_sdf->HasElement("cmd_min"))
+    {
+      cmdMin = _sdf->Get<double>("cmd_min");
+    }
+    if (_sdf->HasElement("cmd_offset"))
+    {
+      cmdOffset = _sdf->Get<double>("cmd_offset");
+    }
+
+    this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
+
+    igndbg << "[JointController] Force mode with parameters:" << std::endl;
+    igndbg << "p_gain: ["     << p         << "]"             << std::endl;
+    igndbg << "i_gain: ["     << i         << "]"             << std::endl;
+    igndbg << "d_gain: ["     << d         << "]"             << std::endl;
+    igndbg << "i_max: ["      << iMax      << "]"             << std::endl;
+    igndbg << "i_min: ["      << iMin      << "]"             << std::endl;
+    igndbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
+    igndbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
+    igndbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
+  }
+  else
+  {
+    igndbg << "[JointController] Velocity mode" << std::endl;
   }
 
   // Subscribe to commands
@@ -123,21 +197,60 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->jointVelCmdMutex);
-
-  // Update joint velocity
-  auto vel =
-      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
-
-  if (vel == nullptr)
+  // Create joint velocity component if one doesn't exist
+  auto jointVelComp =
+      _ecm.Component<components::JointVelocity>(this->dataPtr->jointEntity);
+  if (jointVelComp == nullptr)
   {
     _ecm.CreateComponent(
-        this->dataPtr->jointEntity,
-        components::JointVelocityCmd({this->dataPtr->jointVelCmd}));
+        this->dataPtr->jointEntity, components::JointVelocity());
   }
+  if (jointVelComp == nullptr)
+    return;
+
+
+  // igndbg << "Velocity: " <<  jointVelComp->Data().at(0) << std::endl;
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->jointVelCmdMutex);
+
+  // Force mode.
+  if (this->dataPtr->useForceCommands)
+  {
+    double error = jointVelComp->Data().at(0) - this->dataPtr->jointVelCmd;
+    double force = this->dataPtr->velPid.Update(error, _info.dt);
+
+    // igndbg << "Error: " <<  error << std::endl;
+    // igndbg << "Force: " <<  force << std::endl<< std::endl;
+
+    auto forceComp =
+        _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
+    if (forceComp == nullptr)
+    {
+      _ecm.CreateComponent(this->dataPtr->jointEntity,
+                           components::JointForceCmd({force}));
+    }
+    else
+    {
+      forceComp->Data()[0] = force;
+    }
+  }
+  // Velocity mode.
   else
   {
-    vel->Data()[0] = this->dataPtr->jointVelCmd;
+    // Update joint velocity
+    auto vel =
+      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->jointEntity,
+          components::JointVelocityCmd({this->dataPtr->jointVelCmd}));
+    }
+    else
+    {
+      vel->Data()[0] = this->dataPtr->jointVelCmd;
+    }
   }
 }
 
