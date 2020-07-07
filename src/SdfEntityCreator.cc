@@ -245,6 +245,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
+
     if ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
         (link == _model->CanonicalLink()))
     {
@@ -268,6 +269,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     auto jointEntity = this->CreateEntities(joint);
 
     this->SetParent(jointEntity, modelEntity);
+  }
+
+  // Nested Models
+  for (uint64_t modelIndex = 0; modelIndex < _model->ModelCount();
+      ++modelIndex)
+  {
+    auto nestedModel = _model->ModelByIndex(modelIndex);
+    auto nestedModelEntity = this->CreateEntities(nestedModel);
+
+    this->SetParent(nestedModelEntity, modelEntity);
   }
 
   // Model plugins

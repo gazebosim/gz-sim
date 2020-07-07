@@ -664,36 +664,46 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         // TODO(anyone) Don't load models unless they have collisions
 
-        // Check if parent world exists
-        // TODO(louise): Support nested models, see
-        // https://github.com/ignitionrobotics/ign-physics/issues/10
-        if (this->entityWorldMap.find(_parent->Data())
-            == this->entityWorldMap.end())
-        {
-          ignwarn << "Model's parent entity [" << _parent->Data()
-                  << "] not found on world map." << std::endl;
-          return true;
-        }
-        auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
-
+        // Check if parent world / model exists
         sdf::Model model;
         model.SetName(_name->Data());
         model.SetRawPose(_pose->Data());
-
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
           model.SetStatic(staticComp->Data());
         }
-
         auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
         if (selfCollideComp && selfCollideComp ->Data())
         {
           model.SetSelfCollide(selfCollideComp->Data());
         }
 
-        auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-        this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+        // check if parent is a world
+        auto worldIt = this->entityWorldMap.find(_parent->Data());
+        if (worldIt != this->entityWorldMap.end())
+        {
+          auto worldPtrPhys = worldIt->second;
+          auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+          this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+        }
+        // check if parent is a model (nested model)
+        else
+        {
+          auto parentIt = this->entityModelMap.find(_parent->Data());
+          if (parentIt != this->entityModelMap.end())
+          {
+            auto parentPtrPhys = parentIt->second;
+            auto modelPtrPhys = parentPtrPhys->ConstructModel(model);
+            this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+          }
+          else
+          {
+            ignwarn << "Model's parent entity [" << _parent->Data()
+                    << "] not found on world / model map." << std::endl;
+            return true;
+          }
+        }
 
         return true;
       });
@@ -1357,16 +1367,19 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         // Get canonical link offset
+        // if free group does not have a canonical link, assume zero offset
         auto linkEntityIt =
             this->linkEntityMap.find(freeGroup->CanonicalLink());
-        if (linkEntityIt == this->linkEntityMap.end())
-          return true;
-
-        auto canonicalPoseComp =
-            _ecm.Component<components::Pose>(linkEntityIt->second);
+        math::Pose3d canonicalLinkPose;
+        if (linkEntityIt != this->linkEntityMap.end())
+        {
+          auto canonicalPoseComp =
+              _ecm.Component<components::Pose>(linkEntityIt->second);
+          canonicalLinkPose = canonicalPoseComp->Data();
+        }
 
         freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
-                                canonicalPoseComp->Data()));
+            canonicalLinkPose));
 
         // Process pose commands for static models here, as one-time changes
         const components::Static *staticComp =
