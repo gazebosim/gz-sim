@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/double.pb.h>
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/PID.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -208,19 +209,17 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (jointVelComp == nullptr)
     return;
 
-
-  // igndbg << "Velocity: " <<  jointVelComp->Data().at(0) << std::endl;
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->jointVelCmdMutex);
+  double targetVel;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->jointVelCmdMutex);
+    targetVel = this->dataPtr->jointVelCmd;
+  }
 
   // Force mode.
   if (this->dataPtr->useForceCommands)
   {
-    double error = jointVelComp->Data().at(0) - this->dataPtr->jointVelCmd;
+    double error = jointVelComp->Data().at(0) - targetVel;
     double force = this->dataPtr->velPid.Update(error, _info.dt);
-
-    // igndbg << "Error: " <<  error << std::endl;
-    // igndbg << "Force: " <<  force << std::endl<< std::endl;
 
     auto forceComp =
         _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
@@ -245,11 +244,11 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       _ecm.CreateComponent(
           this->dataPtr->jointEntity,
-          components::JointVelocityCmd({this->dataPtr->jointVelCmd}));
+          components::JointVelocityCmd({targetVel}));
     }
     else
     {
-      vel->Data()[0] = this->dataPtr->jointVelCmd;
+      vel->Data()[0] = targetVel;
     }
   }
 }
