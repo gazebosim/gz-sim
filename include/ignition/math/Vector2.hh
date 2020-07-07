@@ -65,6 +65,13 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~Vector2() {}
 
+      /// \brief Return the sum of the values
+      /// \return the sum
+      public: T Sum() const
+      {
+        return this->data[0] + this->data[1];
+      }
+
       /// \brief Calc distance to the given point
       /// \param[in] _pt The point to measure to
       /// \return the distance
@@ -99,6 +106,15 @@ namespace ignition
           this->data[0] /= d;
           this->data[1] /= d;
         }
+      }
+
+      /// \brief Returns a normalized vector
+      /// \return unit length vector
+      public: Vector2 Normalized() const
+      {
+        Vector2<T> result = *this;
+        result.Normalize();
+        return result;
       }
 
       /// \brief Set the contents of the vector
