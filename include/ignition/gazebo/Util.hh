@@ -66,8 +66,19 @@ namespace ignition
     /// paths.
     /// \param[in] _filePath The path to a file in disk.
     /// \return The full path URI.
-    std::string asFullPath(const std::string &_uri,
+    std::string IGNITION_GAZEBO_VISIBLE asFullPath(const std::string &_uri,
         const std::string &_filePath);
+
+    /// \brief Get resource paths based on latest environment variables.
+    /// \return All paths in the IGN_GAZEBO_RESOURCE_PATH variable.
+    std::vector<std::string> IGNITION_GAZEBO_VISIBLE resourcePaths();
+
+    /// \brief Add resource paths based on latest environment variables.
+    /// This will update the SDF and Ignition environment variables, and
+    /// optionally add more paths to the list.
+    /// \param[in] _paths Optional paths to add.
+    void IGNITION_GAZEBO_VISIBLE addResourcePaths(
+        const std::vector<std::string> &_paths = {});
     }
   }
 }

@@ -24,6 +24,7 @@
 #include <ignition/gui/Plugin.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
@@ -39,6 +40,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 
+// Global node to subscribe to path updates
+ignition::transport::Node g_node;
+
+//////////////////////////////////////////////////
+void onAddResourcePaths(const msgs::StringMsg_V &_msg)
+{
+  std::vector<std::string> paths;
+  for (auto i = 0; i < _msg.data().size(); ++i)
+  {
+    paths.push_back(_msg.data(i));
+  }
+
+  addResourcePaths(paths);
+}
+
+//////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
@@ -112,8 +129,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
-
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
@@ -128,7 +143,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   {
     igndbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
-    executed = node.Request(service, timeout, worldsMsg, result);
+    executed = g_node.Request(service, timeout, worldsMsg, result);
   }
 
   // Only print error message if a sigkill was not received.
@@ -181,7 +196,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // Request and block
       ignition::msgs::GUI res;
-      executed = node.Request(service, timeout, res, result);
+      executed = g_node.Request(service, timeout, res, result);
 
       if (!executed)
         ignerr << "Service call timed out for [" << service << "]" << std::endl;
@@ -255,6 +270,21 @@ std::unique_ptr<ignition::gui::Application> createGui(
       return nullptr;
     }
   }
+
+  // Get resource paths
+  service = "/gazebo/resource_paths/get";
+  msgs::StringMsg_V res;
+  executed = g_node.Request(service, 5000, res, result);
+
+  if (!executed)
+    ignerr << "Service call timed out for [" << service << "]" << std::endl;
+  else if (!result)
+    ignerr << "Service call failed for [" << service << "]" << std::endl;
+
+  onAddResourcePaths(res);
+
+  g_node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
+
   return app;
 }
 

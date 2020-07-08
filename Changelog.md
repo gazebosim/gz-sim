@@ -1,5 +1,15 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.x.x (2020-xx-xx)
+
+1. Added support for controlling which joints are published by the
+   JointStatePublisher.
+    * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
+
+### Ignition Gazebo 2.20.1 (2020-06-18)
+
+1. Properly add new models into the scenegraph. With this fix, when a model is spawned it will be added into the graph and resulting calls to the `scene/info` service will return a correct `msgs::Scene`.
+    * [Pull Request 212](https://github.com/ignitionrobotics/ign-gazebo/pull/212)
 
 ### Ignition Gazebo 2.20.0 (2020-06-09)
 

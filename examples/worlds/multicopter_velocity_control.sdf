@@ -155,7 +155,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
     <include>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X3 UAV/4
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X3 UAV/4
       </uri>
       <plugin
         filename="libignition-gazebo-multicopter-motor-model-system.so"
@@ -280,7 +280,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
     <include>
       <pose>0 3 1 0 0 0</pose>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X4 UAV Config 1
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X4 UAV Config 1
       </uri>
 
       <plugin filename="libignition-gazebo-multicopter-motor-model-system.so"

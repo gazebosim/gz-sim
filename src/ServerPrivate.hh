@@ -154,10 +154,6 @@ namespace ignition
       /// \brief Name of environment variable holding resource paths.
       public: const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
 
-      /// \brief Environment variable used by SDFormat to find URIs inside
-      /// <include>s.
-      public: const std::string kSdfPathEnv{"SDF_PATH"};
-
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
 
@@ -166,6 +162,9 @@ namespace ignition
 
       /// \brief Node for transport.
       private: transport::Node node;
+
+      /// \brief Publisher of resrouce paths.
+      private: transport::Node::Publisher pathPub;
     };
     }
   }
