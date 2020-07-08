@@ -751,7 +751,7 @@ TEST_P(ServerFixture, GetResourcePaths)
   transport::Node node;
   msgs::StringMsg_V res;
   bool result;
-  bool executed = node.Request("/gazebo/get_resource_paths", 5000, res, result);
+  bool executed = node.Request("/gazebo/resource_paths/get", 5000, res, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ(2, res.data_size());
@@ -794,7 +794,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   req.add_data("/tmp/new_path");
   req.add_data("/tmp/more:/tmp/even_more");
   req.add_data("/tmp/some/path");
-  bool executed = node.Request("/gazebo/add_resource_paths", req);
+  bool executed = node.Request("/gazebo/resource_paths/add", req);
   EXPECT_TRUE(executed);
 
   int sleep{0};

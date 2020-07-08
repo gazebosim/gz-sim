@@ -392,11 +392,11 @@ void ServerPrivate::SetupTransport()
   ignmsg << "Serving world names on [" << worldsService << "]" << std::endl;
 
   // Resource path management
-  std::string addPathService{"/gazebo/add_resource_paths"};
+  std::string addPathService{"/gazebo/resource_paths/add"};
   this->node.Advertise(addPathService,
       &ServerPrivate::AddResourcePathsService, this);
 
-  std::string getPathService{"/gazebo/get_resource_paths"};
+  std::string getPathService{"/gazebo/resource_paths/get"};
   this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this);
 

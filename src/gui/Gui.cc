@@ -272,7 +272,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get resource paths
-  service = "/gazebo/get_resource_paths";
+  service = "/gazebo/resource_paths/get";
   msgs::StringMsg_V res;
   executed = g_node.Request(service, 5000, res, result);
 

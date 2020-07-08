@@ -72,7 +72,7 @@ TEST(GuiTest, ResourcePath)
         pathsCalled = true;
         return true;
       };
-  node.Advertise("/gazebo/get_resource_paths", pathsCb);
+  node.Advertise("/gazebo/resource_paths/get", pathsCb);
 
   auto app = ignition::gazebo::gui::createGui(g_argc, g_argv, nullptr);
   EXPECT_NE(nullptr, app);

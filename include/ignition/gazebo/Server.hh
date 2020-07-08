@@ -82,10 +82,10 @@ namespace ignition
     ///   1. /world/<world_name>/scene/info(none) : ignition::msgs::Scene
     ///     + Returns the current scene information.
     ///
-    ///   2. /gazebo/get_resource_paths : ignition::msgs::StringMsg_V
+    ///   2. /gazebo/resource_paths/get : ignition::msgs::StringMsg_V
     ///     + Get list of resource paths.
     ///
-    ///   3. /gazebo/add_resource_paths : ignition::msgs::Empty
+    ///   3. /gazebo/resource_paths/add : ignition::msgs::Empty
     ///     + Add new resource paths.
     ///
     /// ## Topics
