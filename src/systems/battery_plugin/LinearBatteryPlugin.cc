@@ -110,7 +110,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: double q{0.0};
 
   /// \brief State of charge [0, 1].
-  public: double soc{100.0};
+  public: double soc{1.0};
 
   /// \brief Recharge status
   public: std::atomic_bool startCharging{false};
@@ -235,10 +235,10 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   if (_sdf->HasElement("smooth_current_tau"))
   {
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
-    if (this->dataPtr->tau < 0 || this->dataPtr->tau > 1)
+    if (this->dataPtr->tau <= 0)
     {
-      ignerr << "<smooth_current_tau> value should be between [0, 1]. "
-             << "Using 1 instead." << std::endl;
+      ignerr << "<smooth_current_tau> value should be positive. "
+             << "Using [1] instead." << std::endl;
       this->dataPtr->tau = 1;
     }
   }
@@ -456,6 +456,17 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 
   // Update actual battery
   this->dataPtr->stepSize = _info.dt;
+
+  // Sanity check: tau should be between [dt, +inf).
+  double dt = (std::chrono::duration_cast<std::chrono::nanoseconds>(
+    this->dataPtr->stepSize).count()) * 1e-9;
+  if (this->dataPtr->tau < dt)
+  {
+    ignerr << "<smooth_current_tau> should be in the range [dt, +inf) but is "
+           << "configured with [" << this->dataPtr->tau << "]. We'll be using "
+           << "[" << dt << "] instead" << std::endl;
+    this->dataPtr->tau = dt;
+  }
 
   if (this->dataPtr->battery)
   {
