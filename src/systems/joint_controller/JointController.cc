@@ -95,53 +95,21 @@ void JointController::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("use_force_commands"))
+  if (_sdf->HasElement("use_force_commands") &&
+      _sdf->Get<bool>("use_force_commands"))
   {
     this->dataPtr->useForceCommands =
       _sdf->Get<unsigned int>("use_force_commands");
 
     // PID parameters
-    double p         =  1;
-    double i         =  0.0;
-    double d         =  0.0;
-    double iMax      =  1;
-    double iMin      = -1;
-    double cmdMax    =  1000;
-    double cmdMin    = -1000;
-    double cmdOffset =  0;
-
-    if (_sdf->HasElement("p_gain"))
-    {
-      p = _sdf->Get<double>("p_gain");
-    }
-    if (_sdf->HasElement("i_gain"))
-    {
-      i = _sdf->Get<double>("i_gain");
-    }
-    if (_sdf->HasElement("d_gain"))
-    {
-      d = _sdf->Get<double>("d_gain");
-    }
-    if (_sdf->HasElement("i_max"))
-    {
-      iMax = _sdf->Get<double>("i_max");
-    }
-    if (_sdf->HasElement("i_min"))
-    {
-      iMin = _sdf->Get<double>("i_min");
-    }
-    if (_sdf->HasElement("cmd_max"))
-    {
-      cmdMax = _sdf->Get<double>("cmd_max");
-    }
-    if (_sdf->HasElement("cmd_min"))
-    {
-      cmdMin = _sdf->Get<double>("cmd_min");
-    }
-    if (_sdf->HasElement("cmd_offset"))
-    {
-      cmdOffset = _sdf->Get<double>("cmd_offset");
-    }
+    double p         = _sdf->Get<double>("p_gain",     1.0).first;
+    double i         = _sdf->Get<double>("i_gain",     0.0).first;
+    double d         = _sdf->Get<double>("d_gain",     0.0).first;
+    double iMax      = _sdf->Get<double>("i_max",      1.0).first;
+    double iMin      = _sdf->Get<double>("i_min",     -1.0).first;
+    double cmdMax    = _sdf->Get<double>("cmd_max",    1000.0).first;
+    double cmdMin    = _sdf->Get<double>("cmd_min",   -1000.0).first;
+    double cmdOffset = _sdf->Get<double>("cmd_offset", 0.0).first;
 
     this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 

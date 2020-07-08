@@ -138,7 +138,7 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
 }
 
 /////////////////////////////////////////////////
-// Tests that the JointController accepts joint velocity commands
+// Tests the JointController using joint force commands
 TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
 {
   using namespace std::chrono_literals;
