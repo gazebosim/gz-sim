@@ -98,8 +98,7 @@ void JointController::Configure(const Entity &_entity,
   if (_sdf->HasElement("use_force_commands") &&
       _sdf->Get<bool>("use_force_commands"))
   {
-    this->dataPtr->useForceCommands =
-      _sdf->Get<unsigned int>("use_force_commands");
+    this->dataPtr->useForceCommands = true;
 
     // PID parameters
     double p         = _sdf->Get<double>("p_gain",     1.0).first;
