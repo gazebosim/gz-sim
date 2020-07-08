@@ -18,6 +18,7 @@
 #include <ignition/msgs/battery_state.pb.h>
 #include <ignition/msgs/boolean.pb.h>
 
+#include <algorithm>
 #include <atomic>
 #include <functional>
 #include <string>
@@ -96,7 +97,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Battery inner resistance in Ohm.
   public: double r{0.0};
 
-  /// \brief Current low-pass filter characteristic time in seconds.
+  /// \brief Current low-pass filter characteristic time in seconds [0, 1].
   public: double tau{1.0};
 
   /// \brief Raw battery current in A.
@@ -108,8 +109,8 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Instantaneous battery charge in Ah.
   public: double q{0.0};
 
-  /// \brief State of charge [0, 1]
-  public: double soc{1.0};
+  /// \brief State of charge [0, 1].
+  public: double soc{100.0};
 
   /// \brief Recharge status
   public: std::atomic_bool startCharging{false};
@@ -204,9 +205,27 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   if (_sdf->HasElement("capacity"))
     this->dataPtr->c = _sdf->Get<double>("capacity");
 
+  if (this->dataPtr->c <= 0)
+  {
+    ignerr << "No <capacity> or incorrect value specified. Capacity should be "
+           << "greater than 0.\n";
+    return;
+  }
+
   this->dataPtr->q0 = this->dataPtr->c;
   if (_sdf->HasElement("initial_charge"))
+  {
     this->dataPtr->q0 = _sdf->Get<double>("initial_charge");
+    if (this->dataPtr->q0 > this->dataPtr->c || this->dataPtr->q0 < 0)
+    {
+      ignerr << "<initial_charge> value should be between [0, <capacity>]."
+             << std::endl;
+      this->dataPtr->q0 =
+        std::max(0.0, std::min(this->dataPtr->q0, this->dataPtr->c));
+      ignerr << "Setting <initial_charge> to [" << this->dataPtr->q0
+             << "] instead." << std::endl;
+    }
+  }
 
   this->dataPtr->q = this->dataPtr->q0;
 
@@ -214,7 +233,15 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->r = _sdf->Get<double>("resistance");
 
   if (_sdf->HasElement("smooth_current_tau"))
+  {
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
+    if (this->dataPtr->tau < 0 || this->dataPtr->tau > 1)
+    {
+      ignerr << "<smooth_current_tau> value should be between [0, 1]. "
+             << "Using 1 instead." << std::endl;
+      this->dataPtr->tau = 1;
+    }
+  }
 
   if (_sdf->HasElement("fix_issue_225"))
     this->dataPtr->fixIssue225 = _sdf->Get<bool>("fix_issue_225");
@@ -447,8 +474,8 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("LinearBatteryPlugin::PostUpdate");
-  // Nothing left to do if paused
-  if (_info.paused)
+  // Nothing left to do if paused or the publisher wasn't created.
+  if (_info.paused || !this->dataPtr->statePub)
     return;
 
   // Publish battery state

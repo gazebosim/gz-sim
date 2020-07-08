@@ -51,7 +51,7 @@ keep in mind the following formula:
 ### Known limitations
 
 If `<fix_issue_225>` is not set, the battery drains at a faster (100x) rate.
-In this case, the battery runtime should be calculated as follow:
+In this case, the battery runtime should be calculated as follows:
 
 `battery_runtime` (hours) = `<capacity>` * `<voltage>` / (`<power_load>` * 100)
 

@@ -48,7 +48,7 @@ namespace systems
   /// <initial_charge> Initial charge of the battery (Ah)
   /// <capacity> Total charge that the battery can hold (Ah)
   /// <resistance> Internal resistance (Ohm)
-  /// <smooth_current_tau> coefficient for smoothing current
+  /// <smooth_current_tau> coefficient for smoothing current [0, 1].
   /// <power_load> power load on battery (required) (Watts)
   /// <enable_recharge> If true, the battery can be recharged
   /// <recharge_by_topic> If true, the start/stop signals for recharging the

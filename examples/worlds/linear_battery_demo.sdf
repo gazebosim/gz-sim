@@ -530,7 +530,7 @@
         <open_circuit_voltage_constant_coef>12.592</open_circuit_voltage_constant_coef>
         <capacity>1.2009</capacity>
         <power_load>6.6</power_load>
-        <fix_issue_225>false</fix_issue_225>
+        <fix_issue_225>true</fix_issue_225>
         <enable_recharge>true</enable_recharge>
         <!-- charging I = c / t, discharging I = P / V,
           charging I should be > discharging I -->
