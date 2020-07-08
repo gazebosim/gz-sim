@@ -71,13 +71,13 @@ Please, refer to the battery specification to set the advanced values.
 
 ## Charging
 
-A battery can be charge if the SDF parameter `<enable_recharge>` is set to true.
+A battery can be charged if the SDF parameter `<enable_recharge>` is set to true.
 Here are the relevant SDF parameters related with charging:
 
 `<enable_recharge>`: As mentioned, it should be `true` to enable recharging.
 `<charging_time>`: Hours taken to fully charge the battery. Keep in mind that
 this value assumes no battery load while charging. If the battery is under load,
-it will take longer time to recharge.
+it will take a longer time to recharge.
 `<recharge_by_topic>`: If true, the start/stop signals for recharging the
 battery will also be available via topics. The regular Ignition services will
 still be available.
@@ -87,7 +87,7 @@ By default, two Ignition Transport services are available for managing charging:
 * `/model/<model_name>/battery/<battery_name>/recharge/start`: Enable recharging.
 * `/model/<model_name>/battery/<battery_name>/recharge/stop`: Disable recharging.
 
-Both services accept an ignition::msgs::Boolean parameter.
+Both services accept an `ignition::msgs::Boolean` parameter.
 
 ## Try out an example
 
