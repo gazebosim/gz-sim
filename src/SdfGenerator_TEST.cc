@@ -39,6 +39,8 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/UniqueTestDirectoryEnv.hh"
+
 #include "SdfGenerator.hh"
 
 using namespace ignition;
@@ -142,9 +144,14 @@ class ElementUpdateFixture : public ::testing::Test
   {
     ignition::common::Console::SetVerbosity(4);
 
+    fuel_tools::ClientConfig config;
+    config.SetCacheLocation(test::UniqueTestDirectoryEnv::Path());
+    this->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
+
     auto fuelCb = [&](const std::string &_uri)
     {
-      auto out = fuel_tools::fetchResource(_uri);
+      auto out =
+          fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
       if (!out.empty())
       {
         this->includeUriMap[out] = _uri;
@@ -195,6 +202,7 @@ class ElementUpdateFixture : public ::testing::Test
   public: std::unique_ptr<SdfEntityCreator> creator;
   public: msgs::SdfGeneratorConfig sdfGenConfig;
   public: sdf_generator::IncludeUriMap includeUriMap;
+  public: std::unique_ptr<fuel_tools::FuelClient> fuelClient;
 };
 
 /////////////////////////////////////////////////
@@ -853,4 +861,14 @@ TEST_F(GenerateWorldFixture, ModelsInline)
     EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
     EXPECT_TRUE(isSubset(this->root.Element(), newRoot.Element()));
   }
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("sdf_gen_test_cache"));
+  return RUN_ALL_TESTS();
 }
