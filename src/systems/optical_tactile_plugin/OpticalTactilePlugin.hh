@@ -53,6 +53,15 @@ namespace systems
     /// <visualize_forces> Set this to true so the plugin visualizes the normal
     /// forces in the 3D world. This element is optional, and the
     /// default value is false.
+    ///
+    /// <contact_radius> Radius of the contacts visualized if
+    /// <visualize_forces> is set to true. This parameter is optional.
+    ///
+    /// <force_radius> Radius of the forces visualized if
+    /// <visualize_forces> is set to true. This parameter is optional.
+    ///
+    /// <force_length> Length of the forces visualized if
+    /// <visualize_forces> is set to true. This parameter is optional.
 
     class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
         public System,
