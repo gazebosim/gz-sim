@@ -141,6 +141,9 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Pose of the sensor model
   public: ignition::math::Pose3f sensorWorldPose;
 
+  /// \brief Offset between Depth Camera pose and model pose
+  public: ignition::math::Pose3f depthCameraOffset;
+
   /// \brief Whether a new message has been returned by the Depth Camera
   public: bool newCameraMsg{false};
 
@@ -254,6 +257,15 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
         << "1 Contact sensor" << std::endl;
       return;
     }
+
+    // Store depth camera offset from model
+    auto offset = depthCameraSdf->Get<ignition::math::Pose3d>("pose");
+    igndbg << "Camera offset: " << offset << std::endl;
+    // Depth Camera data is float, so convert Pose3d to Pose3f
+    this->depthCameraOffset = ignition::math::Pose3f(
+        offset.Pos().X(), offset.Pos().Y(), offset.Pos().Z(),
+        offset.Rot().W(), offset.Rot().X(), offset.Rot().Y(),
+        offset.Rot().Z());
 
     // Configure subscriber for Depth Camera images
     std::string topic = "/depth_camera/points";
@@ -671,13 +683,15 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
             forceMarkerSensorQuaternion);
 
         ignition::math::Pose3f forceMarkerWorldPose =
-            forceMarkerSensorPose + this->sensorWorldPose;
+            (forceMarkerSensorPose + this->depthCameraOffset) +
+            this->sensorWorldPose;
         forceMarkerWorldPose.Correct();
 
         ignition::math::Pose3f positionMarkerSensorPose(
             forceMarkerSensorPosition, forceMarkerSensorQuaternion);
         ignition::math::Pose3f positionMarkerWorldPose =
-            positionMarkerSensorPose + this->sensorWorldPose;
+            (positionMarkerSensorPose + this->depthCameraOffset) +
+            this->sensorWorldPose;
         positionMarkerWorldPose.Correct();
 
         // Set markers pose messages from previously computed poses
