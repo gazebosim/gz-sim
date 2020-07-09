@@ -68,7 +68,8 @@ namespace systems
   /// supported. The position of the geometry is derived from the pose of the
   /// containing model.
   /// `<pose>`: Additional pose offset. This pose is added to the parent
-  /// model pose when computing the detection region.
+  /// model pose when computing the detection region. Only the position
+  /// component of the `<pose>` is used.
 
   class IGNITION_GAZEBO_VISIBLE PerformerDetector
       : public System,
