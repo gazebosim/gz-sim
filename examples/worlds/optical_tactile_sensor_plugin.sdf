@@ -201,6 +201,9 @@
         <enabled>true</enabled>
         <resolution>30</resolution>
         <visualize_forces>true</visualize_forces>
+        <contact_radius>0.003</contact_radius>
+        <force_radius>0.001</force_radius>
+        <force_length>0.01</force_length>
       </plugin>
     </model>
 

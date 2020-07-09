@@ -127,13 +127,16 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: ignition::msgs::Marker positionMarkerMsg;
 
   /// \brief Radius of the visualized contact sphere
-  public: double contactRadius{0.01};
+  public: double contactRadius{0.003};
 
   /// \brief Message for visualizing contact forces
   public: ignition::msgs::Marker forceMarkerMsg;
 
   /// \brief Length of the visualized force cylinder
-  public: double forceLength{0.03};
+  public: double forceLength{0.01};
+
+  /// \brief Radius of the visualized force cylinder
+  public: double forceRadius{0.001};
 
   /// \brief Position interpolated from the Contact messages
   public: std::vector<ignition::math::Vector3d> interpolatedPosition;
@@ -395,6 +398,38 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     // Blue spheres for positions
     // Green cylinders for forces
 
+    // Get markers parameters
+
+    if (!_sdf->HasElement("contact_radius"))
+    {
+        ignlog << "Missing required parameter <contact_radius>, "
+            << "using default value" << std::endl;
+    }
+    else
+    {
+        this->dataPtr->contactRadius = _sdf->Get<double>("contact_radius");
+    }
+
+    if (!_sdf->HasElement("force_radius"))
+    {
+        ignlog << "Missing required parameter <force_radius>, "
+            << "using default value" << std::endl;
+    }
+    else
+    {
+        this->dataPtr->forceRadius = _sdf->Get<double>("force_radius");
+    }
+
+    if (!_sdf->HasElement("force_length"))
+    {
+        ignlog << "Missing required parameter <force_length>, "
+            << "using default value" << std::endl;
+    }
+    else
+    {
+        this->dataPtr->forceLength = _sdf->Get<double>("force_length");
+    }
+
     // Create the marker message
     this->dataPtr->positionMarkerMsg.set_ns("positions");
     this->dataPtr->positionMarkerMsg.set_action(
@@ -460,7 +495,8 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
         this->dataPtr->contactRadius));
 
     ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
-        ignition::math::Vector3d(0.003, 0.003, this->dataPtr->forceLength));
+        ignition::math::Vector3d(this->dataPtr->forceRadius,
+        this->dataPtr->forceRadius, this->dataPtr->forceLength));
 }
 
 //////////////////////////////////////////////////
