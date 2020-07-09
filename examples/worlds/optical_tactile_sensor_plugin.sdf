@@ -159,20 +159,21 @@
         <collision name="collision">
           <geometry>
             <box>
-              <size>0.05 0.05 0.05</size>
+              <size>0.005 0.02 0.02</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>0.05 0.05 0.05</size>
+              <size>0.005 0.02 0.02</size>
             </box>
           </geometry>
         </visual>
         <sensor name="depth_camera" type="depth_camera">
           <update_rate>1</update_rate>
           <topic>depth_camera</topic>
+          <pose relative_to="tactile_sensor">-0.05 0 0 0 0 0</pose>
           <camera>
             <horizontal_fov>1.05</horizontal_fov>
             <image>
@@ -181,8 +182,8 @@
               <format>R_FLOAT32</format>
             </image>
             <clip>
-              <near>0.01</near>
-              <far>0.2</far>
+              <near>0.030</near>
+              <far>0.065</far>
             </clip>
           </camera>
         </sensor>
