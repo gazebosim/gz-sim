@@ -77,6 +77,11 @@ void PerformerDetector::Configure(const Entity &_entity,
     return;
   }
 
+  if (sdfClone->HasElement("pose"))
+  {
+    this->poseOffset = sdfClone->Get<math::Pose3d>("pose");
+  }
+
   std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
                              "/performer_detector/status"};
   auto topic = _sdf->Get<std::string>("topic", defaultTopic).first;
@@ -109,7 +114,8 @@ void PerformerDetector::PostUpdate(
 
   // Double negative because AxisAlignedBox does not currently have operator+
   // that takes a position
-  auto region = this->detectorGeometry - (-modelPose.Pos());
+  auto region = this->detectorGeometry -
+    (-(modelPose.Pos() + this->poseOffset.Pos()));
 
   _ecm.Each<components::Performer, components::Geometry,
             components::ParentEntity>(
