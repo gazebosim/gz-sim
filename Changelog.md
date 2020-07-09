@@ -7,7 +7,7 @@
     * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
 
 1. Added an additional pose offset for the performer detector plugin.
-    * [Pull Request 235](https://github.com/ignitionrobotics/ign-gazebo/pull/235)
+    * [Pull Request 236](https://github.com/ignitionrobotics/ign-gazebo/pull/236)
 
 ### Ignition Gazebo 2.20.1 (2020-06-18)
 
