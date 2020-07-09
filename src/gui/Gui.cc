@@ -40,8 +40,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 
+// \TODO(chapulina) Using this global node doesn't work when starting
+// `ign gazebo`, only for `ign gazebo -g`
 // Global node to subscribe to path updates
-ignition::transport::Node g_node;
+// ignition::transport::Node g_node;
 
 //////////////////////////////////////////////////
 void onAddResourcePaths(const msgs::StringMsg_V &_msg)
@@ -129,6 +131,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
+  ignition::transport::Node g_node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
@@ -283,7 +286,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   onAddResourcePaths(res);
 
-  g_node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
+//  g_node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
 
   return app;
 }
