@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
@@ -312,6 +313,32 @@ TEST_F(ComponentsTest, Collision)
   std::istringstream istr("ignored");
   components::Collision comp3;
   comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, DetachableJoint)
+{
+  components::DetachableJointInfo info1;
+  info1.parentLink = 1;
+  info1.childLink = 2;
+  // Create components
+  auto comp1 = components::DetachableJoint(info1);
+  auto comp2 = components::DetachableJoint(info1);
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp2);
+  EXPECT_TRUE(comp1 == comp2);
+  EXPECT_FALSE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("1 2 fixed", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::DetachableJoint comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
 }
 
 /////////////////////////////////////////////////

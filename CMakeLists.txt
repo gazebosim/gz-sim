@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo3 VERSION 3.0.0)
+project(ignition-gazebo3 VERSION 3.2.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat9 REQUIRED)
+ign_find_package(sdformat9 REQUIRED VERSION 9.2.0)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
@@ -53,7 +53,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs5 REQUIRED)
+ign_find_package(ignition-msgs5 REQUIRED VERSION 5.3)
 set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
 
 #--------------------------------------
@@ -75,7 +75,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui3 REQUIRED)
+ign_find_package(ignition-gui3 REQUIRED VERSION 3.1)
 set(IGN_GUI_VER ${ignition-gui3_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -87,12 +87,10 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics2
+ign_find_package(ignition-physics2 VERSION 2.1
   COMPONENTS
     mesh
     sdf
-    dartsim
-    dartsim-plugin
   REQUIRED
 )
 set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})

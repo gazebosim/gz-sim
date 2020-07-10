@@ -22,6 +22,7 @@
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Level.hh"
@@ -88,6 +89,9 @@ QString entityType(Entity _entity,
   if (nullptr != _ecm.Component<components::Sensor>(_entity))
     return QString("sensor");
 
+  if (nullptr != _ecm.Component<components::Actor>(_entity))
+    return QString("actor");
+
   return QString();
 }
 
@@ -132,19 +136,6 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
   entityItem->setData(QString::number(_entity),
       this->roleNames().key("entity"));
   entityItem->setData(_type, this->roleNames().key("type"));
-
-  // TODO(louise) Update icons when available
-  auto icon = _type;
-  if (_type.isEmpty() ||
-      _type == "light" ||
-      _type == "level" ||
-      _type == "sensor" ||
-      _type == "performer")
-  {
-    icon = "visual";
-  }
-  entityItem->setData(QUrl("qrc:/Gazebo/images/" + icon + ".png"),
-      this->roleNames().key("icon"));
 
   parentItem->appendRow(entityItem);
 
@@ -245,8 +236,7 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(100, "entityName"),
           std::pair(101, "entity"),
-          std::pair(102, "icon"),
-          std::pair(103, "type")};
+          std::pair(102, "type")};
 }
 
 /////////////////////////////////////////////////

@@ -105,6 +105,12 @@ void SceneManager::SetWorldId(Entity _id)
 }
 
 /////////////////////////////////////////////////
+Entity SceneManager::WorldId() const
+{
+  return this->dataPtr->worldId;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     const sdf::Model &_model, Entity _parentId)
 {
@@ -185,6 +191,8 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->dataPtr->scene->CreateVisual(name);
+  linkVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  linkVis->SetUserData("pause-update", static_cast<int>(0));
   linkVis->SetLocalPose(_link.RawPose());
   this->dataPtr->visuals[_id] = linkVis;
 
@@ -276,10 +284,30 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetMetalness(1.0);
       }
     }
-    // TODO(anyone) set transparency)
-    // material->SetTransparency(_visual.Transparency());
+    else
+    {
+      // meshes created by mesh loader may have their own materials
+      // update/override their properties based on input sdf element values
+      auto mesh = std::dynamic_pointer_cast<rendering::Mesh>(geom);
+      for (unsigned int i = 0; i < mesh->SubMeshCount(); ++i)
+      {
+        auto submesh = mesh->SubMeshByIndex(i);
+        auto submeshMat = submesh->Material();
+        if (submeshMat)
+        {
+          double productAlpha = (1.0-_visual.Transparency()) *
+              (1.0 - submeshMat->Transparency());
+          submeshMat->SetTransparency(1 - productAlpha);
+          submeshMat->SetCastShadows(_visual.CastShadows());
+        }
+      }
+    }
+
     if (material)
     {
+      // set transparency
+      material->SetTransparency(_visual.Transparency());
+
       // cast shadows
       material->SetCastShadows(_visual.CastShadows());
 
@@ -358,7 +386,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    common::MeshManager *meshManager = common::MeshManager::Instance();
+    ignition::common::MeshManager *meshManager =
+        ignition::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -742,6 +771,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       return light;
   }
 
+  // \todo(anyone) Set entity user data once rendering Node supports it
   light->SetLocalPose(_light.RawPose());
   light->SetDiffuseColor(_light.Diffuse());
   light->SetSpecularColor(_light.Specular());

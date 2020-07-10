@@ -37,6 +37,12 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     acceptedButtons: Qt.NoButton
+    onEntered: {
+      GzScene3D.OnFocusWindow()
+    }
+    onPositionChanged: {
+      GzScene3D.OnHovered(mouseArea.mouseX, mouseArea.mouseY);
+    }
   }
 
   RenderWindow {

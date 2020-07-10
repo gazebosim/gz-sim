@@ -44,57 +44,18 @@
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
-  }
-
-  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(
-              gazebo::MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-
-  protected: gazebo::SystemLoader sm;
-  protected: gazebo::MockSystem *mockSystem;
-};
-
-//////////////////////////////////////////////////
 /// \brief A system to move models to arbitrary poses. Note that this does not
 /// work if the physics system is running.
-class ModelMover: public Relay
+class ModelMover: public test::Relay
 {
-  public: explicit ModelMover(Entity _entity): Relay(), entity(_entity)
+  public: explicit ModelMover(Entity _entity): test::Relay(), entity(_entity)
   {
     using namespace std::placeholders;
     this->mockSystem->preUpdateCallback =
@@ -153,9 +114,10 @@ class LevelManagerFixture : public ::testing::Test
                             "/test/worlds/levels.sdf");
     serverConfig.SetUseLevels(true);
 
-    server = std::make_unique<gazebo::Server>(serverConfig);
+    EXPECT_EQ(nullptr, this->server);
+    this->server = std::make_unique<gazebo::Server>(serverConfig);
 
-    Relay testSystem;
+    test::Relay testSystem;
     // Check entities loaded on the default level
     testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
                             const gazebo::EntityComponentManager &_ecm)
@@ -220,7 +182,7 @@ TEST_F(LevelManagerFixture, DefaultLevel)
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
-  Relay recorder;
+  test::Relay recorder;
   // Check entities loaded on the default level
   recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
                             const gazebo::EntityComponentManager &_ecm)

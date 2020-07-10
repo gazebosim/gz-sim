@@ -9,6 +9,7 @@ set(tests
   buoyancy.cc
   components.cc
   contact_system.cc
+  detachable_joint.cc
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
@@ -25,15 +26,19 @@ set(tests
   model.cc
   multicopter.cc
   network_handshake.cc
+  performer_detector.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
   thermal_system.cc
   touch_plugin.cc
+  triggered_publisher.cc
   user_commands.cc
+  velocity_control_system.cc
   log_system.cc
   wind_effects.cc
 )

@@ -57,6 +57,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -221,8 +222,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->simTime = _info.simTime;
 
   this->dataPtr->CreateRenderingEntities(_ecm, _info);
-  if (_info.dt != std::chrono::steady_clock::duration::zero())
-    this->dataPtr->UpdateRenderingEntities(_ecm);
+  this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
 }
@@ -406,12 +406,18 @@ void RenderUtil::Update()
       // Don't move entity being manipulated (last selected)
       // TODO(anyone) Check top level visual instead of parent
       auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+      int pauseNodeUpdate = 0;
       Entity entityId = kNullEntity;
       if (vis)
+      {
+        pauseNodeUpdate = std::get<int>(vis->UserData("pause-update"));
         entityId = std::get<int>(vis->UserData("gazebo-entity"));
-      if (this->dataPtr->transformActive &&
+      }
+      if ((this->dataPtr->transformActive &&
           (pose.first == this->dataPtr->selectedEntities.back() ||
-          entityId == this->dataPtr->selectedEntities.back()))
+          entityId == this->dataPtr->selectedEntities.back())) ||
+          pauseNodeUpdate
+          )
       {
         continue;
       }
@@ -537,6 +543,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     _ecm.Each<components::Visual, components::Name, components::Pose,
               components::Geometry,
               components::CastShadows,
+              components::Transparency,
               components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
@@ -544,6 +551,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Pose *_pose,
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
+            const components::Transparency *_transparency,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
@@ -551,6 +559,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
+          visual.SetTransparency(_transparency->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -707,6 +716,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
     _ecm.EachNew<components::Visual, components::Name, components::Pose,
               components::Geometry,
               components::CastShadows,
+              components::Transparency,
               components::ParentEntity>(
         [&](const Entity &_entity,
             const components::Visual *,
@@ -714,6 +724,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::Pose *_pose,
             const components::Geometry *_geom,
             const components::CastShadows *_castShadows,
+            const components::Transparency *_transparency,
             const components::ParentEntity *_parent)->bool
         {
           sdf::Visual visual;
@@ -721,6 +732,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           visual.SetRawPose(_pose->Data());
           visual.SetGeom(_geom->Data());
           visual.SetCastShadows(_castShadows->Data());
+          visual.SetTransparency(_transparency->Data());
 
           // Optional components
           auto material = _ecm.Component<components::Material>(_entity);
@@ -1121,13 +1133,8 @@ SceneManager &RenderUtil::SceneManager()
 /////////////////////////////////////////////////
 Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 {
-  Entity entity = kNullEntity;
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-
-  if (vis)
-    entity = std::get<int>(vis->UserData("gazebo-entity"));
-
-  return entity;
+  // \todo(anyone) Use UserData once rendering Node supports that
+  return this->dataPtr->sceneManager.EntityFromNode(_node);
 }
 
 /////////////////////////////////////////////////
@@ -1143,11 +1150,8 @@ void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
   if (!_node)
     return;
 
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  Entity entityId = kNullEntity;
-
-  if (vis)
-    entityId = std::get<int>(vis->UserData("gazebo-entity"));
+  // \todo(anyone) Use UserData once rendering Node supports it
+  auto entityId = this->dataPtr->sceneManager.EntityFromNode(_node);
 
   if (entityId == kNullEntity)
     return;

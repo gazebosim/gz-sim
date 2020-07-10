@@ -1,0 +1,17 @@
+name: Ubuntu Bionic CI
+
+on: [push, pull_request]
+
+jobs:
+  bionic-ci:
+    runs-on: ubuntu-latest
+    name: Ubuntu Bionic CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Bionic CI
+        id: ci
+        uses: ignition-tooling/ubuntu-bionic-ci-action@master
+        with:
+          apt-dependencies: 'libignition-cmake2-dev libignition-common3-dev libignition-gui3-dev libignition-math6-eigen3-dev libignition-msgs5-dev libignition-plugin-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libsdformat9-dev libignition-fuel-tools4-dev libignition-physics2-dev libignition-sensors3-dev qml-module-qtqml-models2'
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}

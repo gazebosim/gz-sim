@@ -26,7 +26,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 // Command line not working on OSX, see
-// https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/25/
+// https://github.com/ignitionrobotics/ign-gazebo/issues/25/
 #ifndef __APPLE__
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
@@ -118,6 +118,33 @@ TEST(CmdLine, Gazebo)
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+}
+
+/////////////////////////////////////////////////
+TEST(CmdLine, ResourcePath)
+{
+  std::string cmd = kIgnCommand + " -s -r -v 4 --iterations 1 plugins.sdf";
+
+  // No path
+  std::string output = customExecStr(cmd);
+  EXPECT_NE(output.find("Unable to find file plugins.sdf"), std::string::npos)
+      << output;
+
+  // Correct path
+  auto path = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
+    PROJECT_SOURCE_PATH + "/test/worlds ";
+
+  output = customExecStr(path + cmd);
+  EXPECT_EQ(output.find("Unable to find file plugins.sdf"), std::string::npos)
+      << output;
+
+  // Several paths
+  path = std::string("IGN_GAZEBO_RESOURCE_PATH=banana:") +
+    PROJECT_SOURCE_PATH + "/test/worlds:orange ";
+
+  output = customExecStr(path + cmd);
+  EXPECT_EQ(output.find("Unable to find file plugins.sdf"), std::string::npos)
+      << output;
 }
 #endif
 

@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="Shapes/">
+  <file>Shapes.qml</file>
+  <file>box.png</file>
+  <file>sphere.png</file>
+  <file>cylinder.png</file>
+</qresource>
+</RCC>

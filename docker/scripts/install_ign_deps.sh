@@ -9,7 +9,6 @@ sudo apt-get update
 sudo apt-get install -y \
   doxygen \
   libbullet-dev \
-  libeigen3-dev \
   libtinyxml2-dev \
   libprotoc-dev libprotobuf-dev \
   protobuf-compiler \

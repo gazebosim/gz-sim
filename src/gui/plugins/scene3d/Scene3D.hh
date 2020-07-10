@@ -96,6 +96,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void OnDropped(const QString &_drop,
         int _mouseX, int _mouseY);
 
+    /// \brief Callback when the mouse hovers to a new position.
+    /// \param[in] _mouseX x coordinate of the hovered mouse position.
+    /// \param[in] _mouseY y coordinate of the hovered mouse position.
+    public slots: void OnHovered(int _mouseX, int _mouseY);
+
+    /// \brief Callback when the mouse enters the render window to
+    /// focus the window for mouse/key events
+    public slots: void OnFocusWindow();
+
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
@@ -171,6 +180,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
 
+    /// \brief Set the model to hover over the scene.
+    /// \param[in] _model Sdf string of the model to load in for the user.
+    public: void SetModel(const std::string &_model);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
@@ -230,6 +243,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _drag Mouse move distance
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
+
+    /// \brief New hover event triggered.
+    /// \param[in] _hoverPos Mouse hover screen position
+    public: void NewHoverEvent(const math::Vector2i &_hoverPos);
 
     /// \brief Handle key press event for snapping
     /// \param[in] _e The key event to process.
@@ -311,6 +328,28 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Handle entity selection requests
     private: void HandleEntitySelection();
+
+    /// \brief Handle model placement requests
+    private: void HandleModelPlacement();
+
+    /// \brief Generate a unique entity id.
+    /// \return The unique entity id
+    private: Entity UniqueId();
+
+    /// \brief Generate a preview of a model.
+    /// \param[in] _modelSdfString The sdf string of the model to be generated
+    /// \return True on success, false if failure
+    public: bool GeneratePreviewModel(const std::string &_modelSdfString);
+
+    /// \brief Delete the visuals generated from the shapes plugin.
+    public: void TerminatePreviewModel();
+
+    /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
+    /// ray cast from the given 2D screen coordinates.
+    /// \param[in] _screenPod 2D coordinates on the screen, in pixels.
+    /// \return 3D coordinates of a point in the 3D scene.
+    public: math::Vector3d ScreenToPlane(const math::Vector2i &_screenPos)
+        const;
 
     /// \brief Retrieve the first point on a surface in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
@@ -431,6 +470,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
 
+    /// \brief Set the model to hover.
+    /// \param[in] _model Sdf string of the model to load in for the user.
+    public: void SetModel(const std::string &_model);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
@@ -509,6 +552,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
     /// \return 3D coordinates of a point in the 3D scene.
     public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos);
+
+    /// \brief Called when the mouse hovers to a new position.
+    /// \param[in] _hoverPos 2D coordinates of the hovered mouse position on
+    /// the render window.
+    public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
