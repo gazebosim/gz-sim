@@ -31,7 +31,7 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TEST(GuiTest, ResourcePath)
+TEST(GuiTest, PathManager)
 {
   common::Console::SetVerbosity(4);
 
@@ -98,6 +98,51 @@ TEST(GuiTest, ResourcePath)
     EXPECT_EQ("/from_env", paths[0]);
     EXPECT_EQ("/tmp/more_env", paths[1]);
     EXPECT_EQ("/from_callback", paths[2]);
+  }
+
+  // Create a subscriber just so we can check when the message has propagated
+  bool topicCalled{false};
+  std::function<void(const msgs::StringMsg_V &)> topicCb =
+      [&topicCalled](const msgs::StringMsg_V &)
+      {
+        topicCalled = true;
+      };
+  node.Subscribe("/gazebo/resource_paths", topicCb);
+
+  // Notify new path through a topic
+  msgs::StringMsg_V msg;
+  msg.add_data("/new/path");
+
+  auto pathPub = node.Advertise<msgs::StringMsg_V>("/gazebo/resource_paths");
+  pathPub.Publish(msg);
+
+  int sleep{0};
+  int maxSleep{30};
+  while (!topicCalled && sleep < maxSleep)
+  {
+    IGN_SLEEP_MS(100);
+    sleep++;
+  }
+  EXPECT_TRUE(topicCalled);
+
+  // Check paths
+  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  {
+    char *pathCStr = getenv(env);
+
+    auto paths = common::Split(pathCStr, ':');
+    paths.erase(std::remove_if(paths.begin(), paths.end(),
+        [](std::string const &_path)
+        {
+          return _path.empty();
+        }),
+        paths.end());
+
+    EXPECT_EQ(4u, paths.size());
+    EXPECT_EQ("/from_env", paths[0]);
+    EXPECT_EQ("/tmp/more_env", paths[1]);
+    EXPECT_EQ("/from_callback", paths[2]);
+    EXPECT_EQ("/new/path", paths[3]);
   }
 }
 

@@ -79,6 +79,13 @@ namespace ignition
     /// \param[in] _paths Optional paths to add.
     void IGNITION_GAZEBO_VISIBLE addResourcePaths(
         const std::vector<std::string> &_paths = {});
+
+    /// \brief Environment variable holding resource paths.
+    const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
+
+    /// \brief Environment variable used by SDFormat to find URIs inside
+    /// `<include>`
+    const std::string kSdfPathEnv{"SDF_PATH"};
     }
   }
 }

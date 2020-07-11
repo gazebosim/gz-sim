@@ -42,14 +42,6 @@ namespace gazebo
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
-// Environment variable holding resource paths
-const std::string g_kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
-
-// Environment variable used by SDFormat to find URIs inside <include>
-const std::string g_kSdfPathEnv{"SDF_PATH"};
-
-
-
 //////////////////////////////////////////////////
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
@@ -224,7 +216,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 std::vector<std::string> resourcePaths()
 {
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(g_kResourcePathEnv.c_str());
+  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -244,7 +236,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 {
   // SDF paths (for <include>s)
   std::vector<std::string> sdfPaths;
-  char *sdfPathCStr = getenv(g_kSdfPathEnv.c_str());
+  char *sdfPathCStr = getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
     sdfPaths = common::Split(sdfPathCStr, ':');
@@ -261,7 +253,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   // Gazebo resource paths
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(g_kResourcePathEnv.c_str());
+  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -295,7 +287,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  setenv(g_kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
+  setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
@@ -307,7 +299,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  setenv(g_kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
+  setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
 
   // Force re-evaluation
   // SDF is evaluated at find call

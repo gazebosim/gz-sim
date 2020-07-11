@@ -2,6 +2,7 @@ set (gui_sources
   Gui.cc
   GuiFileHandler.cc
   GuiRunner.cc
+  PathManager.cc
   TmpIface.cc
 )
 

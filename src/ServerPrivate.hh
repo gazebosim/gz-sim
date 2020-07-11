@@ -151,9 +151,6 @@ namespace ignition
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
 
-      /// \brief Name of environment variable holding resource paths.
-      public: const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
-
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
 
