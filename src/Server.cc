@@ -24,6 +24,7 @@
 #include <sdf/Error.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -121,7 +122,7 @@ Server::Server(const ServerConfig &_config)
   else if (!_config.SdfFile().empty())
   {
     common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv(this->dataPtr->kResourcePathEnv);
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
     ignmsg << "Loading SDF world file[" << filePath << "].\n";
