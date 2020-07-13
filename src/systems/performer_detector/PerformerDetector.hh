@@ -67,6 +67,9 @@ namespace systems
   /// `<geometry>`: Detection region. Currently, only the `<box>` geometry is
   /// supported. The position of the geometry is derived from the pose of the
   /// containing model.
+  /// `<pose>`: Additional pose offset relative to the parent model's pose.
+  /// This pose is added to the parent model pose when computing the
+  /// detection region. Only the position component of the `<pose>` is used.
 
   class IGNITION_GAZEBO_VISIBLE PerformerDetector
       : public System,
@@ -128,6 +131,9 @@ namespace systems
 
     /// \brief Whether the system has been initialized
     private: bool initialized{false};
+
+    /// \brief Additional pose offset for the plugin.
+    private: math::Pose3d poseOffset;
   };
 
   }
