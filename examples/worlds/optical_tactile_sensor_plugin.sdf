@@ -112,6 +112,16 @@
         </ignition-gui>
       </plugin>
 
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
+      </plugin>
+
     </gui>
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -154,7 +164,7 @@
     </model>
 
     <model name="tactile_sensor">
-      <pose>0 0.1 0.8 0 0 -1.57</pose>
+      <pose>-0.005 -0.001 0.847 0 1.57 -1.57</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
@@ -163,19 +173,11 @@
             </box>
           </geometry>
         </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.005 0.02 0.02</size>
-            </box>
-          </geometry>
-        </visual>
         <sensor name="depth_camera" type="depth_camera">
           <update_rate>1</update_rate>
           <topic>depth_camera</topic>
           <pose relative_to="tactile_sensor">-0.05 0 0 0 0 0</pose>
           <camera>
-            <horizontal_fov>1.05</horizontal_fov>
             <image>
               <width>640</width>
               <height>480</height>
@@ -199,11 +201,13 @@
         filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
-        <resolution>30</resolution>
+        <resolution>15</resolution>
         <visualize_forces>true</visualize_forces>
-        <contact_radius>0.003</contact_radius>
-        <force_radius>0.001</force_radius>
+        <visualize_sensor>true</visualize_sensor>
+        <contact_radius>0.001</contact_radius>
+        <force_radius>0.0002</force_radius>
         <force_length>0.01</force_length>
+        <extended_sensing>0.001</extended_sensing>
       </plugin>
     </model>
 

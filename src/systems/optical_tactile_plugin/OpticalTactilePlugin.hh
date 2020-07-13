@@ -54,14 +54,21 @@ namespace systems
     /// forces in the 3D world. This element is optional, and the
     /// default value is false.
     ///
-    /// <contact_radius> Radius of the contacts visualized if
+    /// <contact_radius> Radius in meters of the contacts visualized if
     /// <visualize_forces> is set to true. This parameter is optional.
     ///
-    /// <force_radius> Radius of the forces visualized if
+    /// <force_radius> Radius in meters of the forces visualized if
     /// <visualize_forces> is set to true. This parameter is optional.
     ///
-    /// <force_length> Length of the forces visualized if
+    /// <force_length> Length in meters of the forces visualized if
     /// <visualize_forces> is set to true. This parameter is optional.
+    ///
+    /// <extended_sensing> Extended sensing distance in meters. The sensor will
+    /// output data coming from its collision geometry plus this distance. This
+    ///  element is optional, and the default value is 0.001.
+    ///
+    /// <visualize_sensor> Whether to visualize the sensor or not. This element
+    /// is optional, and the default value is false.
 
     class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
         public System,
