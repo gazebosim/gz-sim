@@ -6,6 +6,9 @@
    JointStatePublisher.
     * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
 
+1. Added an additional pose offset for the performer detector plugin.
+    * [Pull Request 236](https://github.com/ignitionrobotics/ign-gazebo/pull/236)
+
 1. Fixed battery issues and updated tutorial.
     * [Pull Request 230](https://github.com/ignitionrobotics/ign-gazebo/pull/230)
 
