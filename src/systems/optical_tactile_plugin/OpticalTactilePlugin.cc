@@ -144,6 +144,9 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Pose of the sensor model
   public: ignition::math::Pose3f sensorWorldPose;
 
+  /// \brief Pose of the sensor model in the previous iteration
+  public: ignition::math::Pose3f prevSensorWorldPose;
+
   /// \brief Offset between Depth Camera pose and model pose
   public: ignition::math::Pose3f depthCameraOffset;
 
@@ -162,6 +165,20 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Mutex for variables mutated by the camera callback.
   /// The variables are: newCameraMsg, cameraMsg.
   public: std::mutex serviceMutex;
+
+  /// \brief If true, the plugin will draw a marker in the place of the
+  /// contact sensor so it's easy to know its position
+  public: bool visualizeSensor{false};
+
+  /// \brief Message for visualizing the sensor
+  public: ignition::msgs::Marker sensorMarkerMsg;
+
+  /// \brief Size of the contact sensor
+  public: ignition::math::Vector3d sensorSize;
+
+  /// \brief Extended sensing distance. The sensor will output data coming from
+  /// its volume plus this distance.
+  public: double extendedSensing{0.001};
 };
 
 //////////////////////////////////////////////////
@@ -197,6 +214,26 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
     else
     {
         this->visualizeForces = _sdf->Get<bool>("visualize_forces");
+    }
+
+    if (!_sdf->HasElement("extended_sensing"))
+    {
+        ignlog << "Missing required parameter <extended_sensing>, "
+            << "using default value" << std::endl;
+    }
+    else
+    {
+        this->extendedSensing = _sdf->Get<double>("extended_sensing");
+    }
+
+    if (!_sdf->HasElement("visualize_sensor"))
+    {
+        ignlog << "Missing required parameter <visualize_sensor>, "
+            << "using default value" << std::endl;
+    }
+    else
+    {
+        this->visualizeSensor = _sdf->Get<bool>("visualize_sensor");
     }
 
     // todo(anyone) The plugin should be able to handle more than one link. In
@@ -261,9 +298,14 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
       return;
     }
 
-    // Store depth camera offset from model
+    // Store depth camera update rate and offset from model
     auto offset = depthCameraSdf->Get<ignition::math::Pose3d>("pose");
-    igndbg << "Camera offset: " << offset << std::endl;
+    this->cameraUpdateRate = 1;
+    if (depthCameraSdf->HasElement("update_rate"))
+    {
+      this->cameraUpdateRate = depthCameraSdf->Get<float>("update_rate");
+    }
+
     // Depth Camera data is float, so convert Pose3d to Pose3f
     this->depthCameraOffset = ignition::math::Pose3f(
         offset.Pos().X(), offset.Pos().Y(), offset.Pos().Z(),
@@ -447,6 +489,15 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->forceMarkerMsg.set_visibility(
         ignition::msgs::Marker::GUI);
 
+    this->dataPtr->sensorMarkerMsg.set_ns("sensor");
+    this->dataPtr->sensorMarkerMsg.set_id(1);
+    this->dataPtr->sensorMarkerMsg.set_action(
+        ignition::msgs::Marker::ADD_MODIFY);
+    this->dataPtr->sensorMarkerMsg.set_type(
+        ignition::msgs::Marker::BOX);
+    this->dataPtr->sensorMarkerMsg.set_visibility(
+        ignition::msgs::Marker::GUI);
+
     // Set material properties
     this->dataPtr->
         positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
@@ -488,6 +539,27 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
         forceMarkerMsg.mutable_lifetime()->
           set_sec(this->dataPtr->cameraUpdateRate);
 
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_r(0.5);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_g(0.5);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_b(0.5);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_a(0.75);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0.5);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0.5);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0.5);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_a(0.75);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_lifetime()->set_sec(0);
+    this->dataPtr->
+        sensorMarkerMsg.mutable_lifetime()->set_nsec(0);
+
     // Set scales
     ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
         ignition::math::Vector3d(this->dataPtr->contactRadius,
@@ -497,6 +569,18 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
         ignition::math::Vector3d(this->dataPtr->forceRadius,
         this->dataPtr->forceRadius, this->dataPtr->forceLength));
+
+    // Get the size of the sensor from the SDF
+
+    // If there's no <collision> specified inside <link>, a default one
+    // is set
+    this->dataPtr->sensorSize =
+      _sdf->GetParent()->GetElement("link")->GetElement("collision")->
+      GetElement("geometry")->GetElement("box")->
+      Get<ignition::math::Vector3d>("size");
+
+    ignition::msgs::Set(this->dataPtr->sensorMarkerMsg.mutable_scale(),
+      this->dataPtr->sensorSize);
 }
 
 //////////////////////////////////////////////////
@@ -584,6 +668,39 @@ void OpticalTactilePlugin::PostUpdate(
         this->dataPtr->newCameraMsg = false;
       }
     }
+
+    // Publish sensor marker if required and sensor pose has changed
+    if (this->dataPtr->visualizeSensor &&
+      (this->dataPtr->sensorWorldPose != this->dataPtr->prevSensorWorldPose))
+    {
+      this->dataPtr->sensorMarkerMsg.set_action(
+          ignition::msgs::Marker::ADD_MODIFY);
+      this->dataPtr->sensorMarkerMsg.set_id(1);
+
+      this->dataPtr->sensorMarkerMsg.mutable_pose()
+        ->mutable_position()->set_x(this->dataPtr->sensorWorldPose.Pos().X());
+      this->dataPtr->sensorMarkerMsg.mutable_pose()
+        ->mutable_position()->set_y(this->dataPtr->sensorWorldPose.Pos().Y());
+      this->dataPtr->sensorMarkerMsg.mutable_pose()
+        ->mutable_position()->set_z(this->dataPtr->sensorWorldPose.Pos().Z());
+      this->dataPtr->sensorMarkerMsg.mutable_pose()->
+        mutable_orientation()->set_x(
+          this->dataPtr->sensorWorldPose.Rot().X());
+      this->dataPtr->sensorMarkerMsg.mutable_pose()->
+        mutable_orientation()->set_y(
+          this->dataPtr->sensorWorldPose.Rot().Y());
+      this->dataPtr->sensorMarkerMsg.mutable_pose()->
+        mutable_orientation()->set_z(
+          this->dataPtr->sensorWorldPose.Rot().Z());
+      this->dataPtr->sensorMarkerMsg.mutable_pose()->
+        mutable_orientation()->set_w(
+          this->dataPtr->sensorWorldPose.Rot().W());
+
+      this->dataPtr->node.Request("/marker", this->dataPtr->sensorMarkerMsg);
+    }
+
+    // Store the pose of the sensor in the current iteration
+    this->dataPtr->prevSensorWorldPose = this->dataPtr->sensorWorldPose;
 }
 
 //////////////////////////////////////////////////
@@ -631,6 +748,31 @@ void OpticalTactilePluginPrivate::UnpackPointCloudMsg(
       // z coordinate in pixel (i,j)
       this->imageXYZ[i][j][2] = *reinterpret_cast<float *>(
         msgBufferIndex + _msg.field(fieldIndex++).offset());
+
+      // Filter out points outside of the contact sensor
+
+      // We assume that the Depth Camera is only displaced in the -X direction
+      bool insideX = (this->imageXYZ[i][j][0] >= std::abs(
+        this->depthCameraOffset.X()) - this->extendedSensing)
+        && (this->imageXYZ[i][j][0] <= (std::abs(this->depthCameraOffset.X()) +
+        this->sensorSize.X() + this->extendedSensing));
+
+      bool insideY = (this->imageXYZ[i][j][1] <= this->sensorSize.Y() / 2 +
+        this->extendedSensing)
+        && (this->imageXYZ[i][j][1] >= - this->sensorSize.Y() / 2 -
+        this->extendedSensing);
+
+      bool insideZ = (this->imageXYZ[i][j][2] <= this->sensorSize.Z() / 2 +
+        this->extendedSensing)
+        && (this->imageXYZ[i][j][2] >= - this->sensorSize.Z() / 2 -
+        this->extendedSensing);
+
+      if (!insideX || !insideY || !insideZ)
+      {
+        this->imageXYZ[i][j][0] = ignition::math::INF_D;
+        this->imageXYZ[i][j][1] = ignition::math::INF_D;
+        this->imageXYZ[i][j][2] = ignition::math::INF_D;
+      }
 
       msgBufferIndex += _msg.point_step();
     }
