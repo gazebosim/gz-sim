@@ -115,7 +115,7 @@ void PerformerDetector::PostUpdate(
   // Double negative because AxisAlignedBox does not currently have operator+
   // that takes a position
   auto region = this->detectorGeometry -
-    (-(modelPose.Pos() + this->poseOffset.Pos()));
+    (-(modelPose.Pos() + modelPose.Rot() * this->poseOffset.Pos()));
 
   _ecm.Each<components::Performer, components::Geometry,
             components::ParentEntity>(
