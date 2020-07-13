@@ -6,6 +6,9 @@
    JointStatePublisher.
     * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
 
+1. Fixed battery issues and updated tutorial.
+    * [Pull Request 230](https://github.com/ignitionrobotics/ign-gazebo/pull/230)
+
 ### Ignition Gazebo 2.20.1 (2020-06-18)
 
 1. Properly add new models into the scenegraph. With this fix, when a model is spawned it will be added into the graph and resulting calls to the `scene/info` service will return a correct `msgs::Scene`.
