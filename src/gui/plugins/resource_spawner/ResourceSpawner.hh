@@ -46,6 +46,26 @@ namespace gazebo
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
   /// and updates from
+  class PathModel : public QStandardItemModel
+  {
+    Q_OBJECT
+
+    /// \brief Constructor
+    public: explicit PathModel();
+
+    /// \brief Destructor
+    public: ~PathModel() override = default;
+
+    /// \brief Add a local model to the grid view.
+    /// param[in] _model The local model to be added
+    public slots: void AddPath(const std::string &_path);
+
+    // Documentation inherited
+    public: QHash<int, QByteArray> roleNames() const override;
+  };
+
+  /// \brief Provides a model by which the resource spawner qml plugin pulls
+  /// and updates from
   class GridModel : public QStandardItemModel
   {
     Q_OBJECT
@@ -87,6 +107,8 @@ namespace gazebo
     /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
     public: void LoadLocalModel(const std::string &_path);
+
+    public: void AddPath(const std::string &_path);
 
     /// \brief Recursively searches the provided path for all model.config's
     /// and populates a vector of local models with the information

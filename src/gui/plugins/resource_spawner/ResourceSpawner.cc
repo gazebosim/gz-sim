@@ -43,11 +43,44 @@ namespace ignition::gazebo
 
     /// \brief The grid model that the qml gridview reflects
     public: GridModel gridModel;
+
+    public: PathModel pathModel;
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
+
+/////////////////////////////////////////////////
+PathModel::PathModel() : QStandardItemModel()
+{
+}
+
+/////////////////////////////////////////////////
+void PathModel::AddPath(const std::string &_path)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("PathModel::AddPath");
+  QStandardItem *parentItem{nullptr};
+
+  parentItem = this->invisibleRootItem();
+
+  auto localModel = new QStandardItem(QString::fromStdString(_path));
+  localModel->setData(QString::fromStdString(_path),
+                      this->roleNames().key("path"));
+
+  ignwarn << "Adding " << _path << std::endl;
+  parentItem->appendRow(localModel);
+}
+
+/////////////////////////////////////////////////
+QHash<int, QByteArray> PathModel::roleNames() const
+{
+  return
+  {
+    std::pair(100, "path"),
+  };
+}
 
 /////////////////////////////////////////////////
 GridModel::GridModel() : QStandardItemModel()
@@ -92,6 +125,8 @@ ResourceSpawner::ResourceSpawner()
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "LocalModelList", &this->dataPtr->gridModel);
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+      "PathList", &this->dataPtr->pathModel);
 }
 
 /////////////////////////////////////////////////
@@ -178,6 +213,11 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
   }
 }
 
+void ResourceSpawner::AddPath(const std::string &_path)
+{
+  this->dataPtr->pathModel.AddPath(_path);
+}
+
 /////////////////////////////////////////////////
 void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 {
@@ -190,13 +230,19 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 
   msgs::StringMsg_V res;
   bool result;
-  bool executed = this->dataPtr->node.Request("/gazebo/get_resource_paths", 5000, res, result);
+  bool executed = this->dataPtr->node.Request("/gazebo/resource_paths/get", 5000, res, result);
   if (!executed || !result || res.data_size() < 1)
   {
     ignwarn << "IGN_GAZEBO_RESOURCE_PATH not found."   \
                "Set this environment variable to the " \
                "path where your models are located.\n";
     return;
+  }
+
+  for (size_t i = 0; i < res.data_size(); i++)
+  {
+    std::string path = res.data(i);
+    this->AddPath(res.data(i));
   }
 
   std::string path = res.data(0);
