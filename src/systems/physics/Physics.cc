@@ -475,6 +475,8 @@ void Physics::Configure(const Entity &_entity,
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
   systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
+  systemPaths.AddPluginPaths(std::string(IGNITION_PHYSICS_ENGINE_INSTALL_DIR) + "dartsim/");
+  systemPaths.AddPluginPaths(std::string(IGNITION_PHYSICS_ENGINE_INSTALL_DIR) + "tpe/");
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())

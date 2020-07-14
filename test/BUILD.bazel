@@ -3,9 +3,9 @@ load(
     "cmake_configure_file",
 )
 
-BINARY_DIR = "/tmp"
-SOURCE_DIR = "/tmp"
-CMAKE_BINARY_DIR = "/tmp"
+BINARY_DIR = "./ign_gazebo"
+SOURCE_DIR = "./ign_gazebo"
+CMAKE_BINARY_DIR = "./ign_gazebo"
 IGNITION_TOOLS_BINARY_DIRS = "/tmp"
 PROJECT_NAME = "ignition-gazebo"
 PROJECT_MAJOR = 4
@@ -33,5 +33,6 @@ cc_library(
     srcs = ["ignition/gazebo/test_config.hh"],
     includes = ["."],
     visibility = ["//visibility:public"],
+    data = glob(["worlds/*.sdf"])
 )
 
