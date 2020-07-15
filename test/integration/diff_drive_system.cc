@@ -46,34 +46,32 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
 
-};
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _cmdVelTopic Command velocity topic.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestPublishCmd(const std::string &_sdfFile,
+                                 const std::string &_cmdVelTopic,
+                                 const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
 
-/////////////////////////////////////////////////
-TEST_P(DiffDriveTest, PublishCmd)
-{
-  // Start server
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive.sdf");
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
+    // Create a system that records the vehicle poses
+    test::Relay testSystem;
 
-  // Create a system that records the vehicle poses
-  test::Relay testSystem;
-
-  std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
-    {
-      auto id = _ecm.EntityByComponents(
-        components::Model(),
-        components::Name("vehicle"));
-      EXPECT_NE(kNullEntity, id);
-
-      auto poseComp = _ecm.Component<components::Pose>(id);
-      ASSERT_NE(nullptr, poseComp);
+    std::vector<math::Pose3d> poses;
+    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
+      const gazebo::EntityComponentManager &_ecm)
+      {
+        auto id = _ecm.EntityByComponents(
+          components::Model(),
+          components::Name("vehicle"));
+        EXPECT_NE(kNullEntity, id);
 
         auto poseComp = _ecm.Component<components::Pose>(id);
         ASSERT_NE(nullptr, poseComp);
@@ -89,35 +87,15 @@ TEST_P(DiffDriveTest, PublishCmd)
 
     for (const auto &pose : poses)
     {
-      ASSERT_TRUE(_msg.has_header());
-      ASSERT_TRUE(_msg.header().has_stamp());
+      EXPECT_EQ(poses[0], pose);
+    }
 
-      double msgTime =
-          static_cast<double>(_msg.header().stamp().sec()) +
-          static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
-
-      EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
-      lastMsgTime = msgTime;
-
-      odomPoses.push_back(msgs::Convert(_msg.pose()));
-    };
-
-  // Publish command and check that vehicle moved
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/model/vehicle/odometry", odomCb);
-
-  msgs::Twist msg;
-
-  // Avoid wheel slip by limiting acceleration
-  test::Relay velocityRamp;
-  const double desiredLinVel = 0.5;
-  const double desiredAngVel = 0.2;
-  const double linAccel = 1;
-  const double angAccel = 1;
-  velocityRamp.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &)
+    // Get odometry messages
+    double period{1.0 / 50.0};
+    double lastMsgTime{1.0};
+    std::vector<math::Pose3d> odomPoses;
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
       {
         ASSERT_TRUE(_msg.has_header());
         ASSERT_TRUE(_msg.header().has_stamp());

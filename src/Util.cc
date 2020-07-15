@@ -41,7 +41,6 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
 //////////////////////////////////////////////////
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)

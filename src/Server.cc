@@ -14,8 +14,6 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
 
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
@@ -23,6 +21,7 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
+#include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ServerPrivate.hh"

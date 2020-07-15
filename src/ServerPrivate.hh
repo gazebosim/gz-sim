@@ -93,7 +93,8 @@ namespace ignition
       /// This will update the SDF and Ignition environment variables based
       /// on kResourcesPathEnv, and optionally add more paths to the list.
       /// \param[in] _paths Optional paths to add.
-      public: void AddResourcePaths(const std::vector<std::string> &_paths = {});
+      public: void AddResourcePaths(
+                  const std::vector<std::string> &_paths = {});
 
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
