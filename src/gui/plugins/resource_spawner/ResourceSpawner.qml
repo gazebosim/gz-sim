@@ -183,7 +183,7 @@ Rectangle {
             }
             Text {
               text: model.name
-              color: Material.theme == Material.Light ? "#444444" : "#cccccc"
+              color: "#444444"
               width: parent.width
               height: parent.height
               font.pointSize: 12
