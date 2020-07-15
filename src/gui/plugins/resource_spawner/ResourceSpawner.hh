@@ -80,6 +80,9 @@ namespace gazebo
     /// param[in] _model The local model to be added
     public slots: void AddLocalModel(LocalModel &_model);
 
+    /// \brief Clear the current grid model
+    public: void Clear();
+
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
   };
@@ -114,6 +117,11 @@ namespace gazebo
     /// and populates a vector of local models with the information
     /// \param[in] _path The path to search
     public: void FindLocalModels(const std::string &_path);
+
+    /// \brief Callback when a resource path is selected, will clear the
+    /// currently loaded resources and load the ones at the specified path
+    /// \param[in] _path The path to search resources
+    public slots: void OnPathClicked(const QString &_path);
 
     /// \internal
     /// \brief Pointer to private data.

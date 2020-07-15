@@ -44,6 +44,7 @@ namespace ignition::gazebo
     /// \brief The grid model that the qml gridview reflects
     public: GridModel gridModel;
 
+    /// \brief The path list model that the qml treeview reflects
     public: PathModel pathModel;
   };
 }
@@ -69,7 +70,6 @@ void PathModel::AddPath(const std::string &_path)
   localModel->setData(QString::fromStdString(_path),
                       this->roleNames().key("path"));
 
-  ignwarn << "Adding " << _path << std::endl;
   parentItem->appendRow(localModel);
 }
 
@@ -85,6 +85,18 @@ QHash<int, QByteArray> PathModel::roleNames() const
 /////////////////////////////////////////////////
 GridModel::GridModel() : QStandardItemModel()
 {
+}
+
+/////////////////////////////////////////////////
+void GridModel::Clear()
+{
+  QStandardItem *parentItem{nullptr};
+  parentItem = this->invisibleRootItem();
+
+  while (parentItem->rowCount() > 0)
+  {
+    parentItem->removeRow(0);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -213,9 +225,17 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
   }
 }
 
+/////////////////////////////////////////////////
 void ResourceSpawner::AddPath(const std::string &_path)
 {
   this->dataPtr->pathModel.AddPath(_path);
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnPathClicked(const QString &_path)
+{
+  this->dataPtr->gridModel.Clear();
+  this->FindLocalModels(_path.toStdString());
 }
 
 /////////////////////////////////////////////////
@@ -224,29 +244,25 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Resource Spawner";
 
-  // For shapes requests
+  // For resource spawn requests
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
 
   msgs::StringMsg_V res;
   bool result;
-  bool executed = this->dataPtr->node.Request("/gazebo/resource_paths/get", 5000, res, result);
+  bool executed = this->dataPtr->node.Request(
+      "/gazebo/resource_paths/get", 5000, res, result);
   if (!executed || !result || res.data_size() < 1)
   {
-    ignwarn << "IGN_GAZEBO_RESOURCE_PATH not found."   \
-               "Set this environment variable to the " \
-               "path where your models are located.\n";
+    ignwarn << "No paths found in IGN_GAZEBO_RESOURCE_PATH.\n";
     return;
   }
 
-  for (size_t i = 0; i < res.data_size(); i++)
+  for (int i = 0; i < res.data_size(); i++)
   {
-    std::string path = res.data(i);
-    this->AddPath(res.data(i));
+    const std::string path = res.data(i);
+    this->AddPath(path);
   }
-
-  std::string path = res.data(0);
-  this->FindLocalModels(path);
 }
 
 /////////////////////////////////////////////////
