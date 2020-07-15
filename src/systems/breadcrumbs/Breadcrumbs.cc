@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
@@ -65,6 +66,9 @@ void Breadcrumbs::Configure(const Entity &_entity,
   this->disablePhysicsTime =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
       std::chrono::duration<double>(period));
+
+  this->allowRenaming =
+      _sdf->Get<bool>("allow_renaming", this->allowRenaming).first;
 
   this->model = Model(_entity);
 
@@ -161,8 +165,42 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           this->numDeployments < this->maxDeployments)
       {
         sdf::Model modelToSpawn = *this->modelRoot.ModelByIndex(0);
-        modelToSpawn.SetName(modelToSpawn.Name() + "_" +
-                             std::to_string(this->numDeployments));
+        std::string desiredName =
+            modelToSpawn.Name() + "_" + std::to_string(this->numDeployments);
+
+        std::vector<std::string> modelNames;
+        _ecm.Each<components::Name, components::Model>(
+            [&modelNames](const Entity &, const components::Name *_name,
+                          const components::Model *)
+            {
+              modelNames.push_back(_name->Data());
+              return true;
+            });
+
+        // Check if there's a model with the same name.
+        auto it = std::find(modelNames.begin(), modelNames.end(), desiredName);
+        if (it != modelNames.end())
+        {
+          if (!this->allowRenaming)
+          {
+            ignwarn << "Entity named [" << desiredName
+                    << "] already exists and "
+                    << "[allow_renaming] is false. Entity not spawned."
+                    << std::endl;
+            return;
+          }
+
+          std::string newName = desiredName;
+          int counter = 0;
+          while (std::find(modelNames.begin(), modelNames.end(), newName) !=
+                 modelNames.end())
+          {
+            newName = desiredName + "_" + std::to_string(++counter);
+          }
+          desiredName = newName;
+        }
+
+        modelToSpawn.SetName(desiredName);
         modelToSpawn.SetPose(poseComp->Data() * modelToSpawn.Pose());
         ignmsg << "Deploying " << modelToSpawn.Name() << " at "
                << modelToSpawn.Pose() << std::endl;
@@ -207,7 +245,8 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
 
     std::set<Entity> processedEntities;
-    for (const auto &e : this->pendingGeometryUpdate) {
+    for (const auto &e : this->pendingGeometryUpdate)
+    {
       Entity perf = _ecm.EntityByComponents(components::Performer(),
                                             components::ParentEntity(e));
       if (perf == kNullEntity)
@@ -244,16 +283,15 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       auto td = _info.simTime - it->second;
       if (td > this->disablePhysicsTime)
       {
-        auto nameComp = _ecm.Component<components::Name>(it->first);
+        auto name = _ecm.Component<components::Name>(it->first)->Data();
         if (!this->MakeStatic(it->first, _ecm))
         {
-          ignerr << "Failed to make breadcrumb '" << nameComp->Data()
+          ignerr << "Failed to make breadcrumb '" << name
                  << "' static." << std::endl;
         }
         else
         {
-          ignmsg << "Breadcrumb '" << nameComp->Data()
-                 << "' is now static." << std::endl;
+          ignmsg << "Breadcrumb '" << name << "' is now static." << std::endl;
         }
         this->autoStaticEntities.erase(it++);
       }

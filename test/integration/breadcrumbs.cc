@@ -33,7 +33,8 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "helpers/Relay.hh"
+#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -47,46 +48,22 @@ class BreadcrumbsTest : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
-};
-
-class Relay
-{
-  public: Relay()
+  public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
+    this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
+    this->serverConfig.SetSdfFile(
+        common::joinPaths(PROJECT_SOURCE_PATH, _path));
+    this->serverConfig.SetUseLevels(_useLevels);
 
-    this->systemPtr = plugin.value();
-
-    this->mockSystem =
-        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
+    this->server = std::make_unique<Server>(this->serverConfig);
+    EXPECT_FALSE(this->server->Running());
+    EXPECT_FALSE(*this->server->Running(0));
+    using namespace std::chrono_literals;
+    this->server->SetUpdatePeriod(1ns);
   }
 
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
+  public: ServerConfig serverConfig;
+  public: std::unique_ptr<Server> server;
 };
 
 /////////////////////////////////////////////////
@@ -94,19 +71,9 @@ class Relay
 TEST_F(BreadcrumbsTest, DeployAtOffset)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deployB1 =
@@ -160,8 +127,8 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 2001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 2001, false);
 }
 
 /////////////////////////////////////////////////
@@ -169,19 +136,9 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
 TEST_F(BreadcrumbsTest, MaxDeployments)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deployB1 =
@@ -224,8 +181,8 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 5001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 5001, false);
 }
 
 /////////////////////////////////////////////////
@@ -234,19 +191,9 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
 TEST_F(BreadcrumbsTest, FuelDeploy)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deploy = node.Advertise<msgs::Empty>("/fuel_deploy");
@@ -288,8 +235,8 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -297,20 +244,9 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
 TEST_F(BreadcrumbsTest, Performer)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetUseLevels(true);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deploy = node.Advertise<msgs::Empty>(
@@ -372,8 +308,8 @@ TEST_F(BreadcrumbsTest, Performer)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -382,20 +318,9 @@ TEST_F(BreadcrumbsTest, Performer)
 TEST_F(BreadcrumbsTest, PerformerSetVolume)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetUseLevels(true);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf", true);
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto deploy = node.Advertise<msgs::Empty>(
       "/model/vehicle_blue/breadcrumbs/B1_perf_large_volume/deploy");
@@ -439,8 +364,8 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -448,19 +373,9 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
 TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
   auto deployB2 =
@@ -516,7 +431,7 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 
       // Verify that the breadcrumb stopped falling after 0.5s.
       sdf::Root root;
-      root.Load(sdfFile);
+      root.Load(this->serverConfig.SdfFile());
       const sdf::World *world = root.WorldByIndex(0);
       double gz = world->Gravity().Z();
       double z0 = 2.0;
@@ -526,6 +441,51 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 2001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 2001, false);
+}
+
+/////////////////////////////////////////////////
+// The test verifies that if allow_renaming is true, the Breadcrumb system
+// renames spawned models if a model with the same name exists.
+TEST_F(BreadcrumbsTest, AllowRenaming)
+{
+  // Start server
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+
+  transport::Node node;
+  auto deployB1 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
+  auto noRenameDeploy =
+      node.Advertise<msgs::Empty>("/no_rename_deploy");
+  auto renameDeploy =
+      node.Advertise<msgs::Empty>("/rename_deploy");
+
+  this->server->Run(true, 1, false);
+  deployB1.Publish(msgs::Empty());
+  this->server->Run(true, 100, false);
+  EXPECT_TRUE(this->server->HasEntity("B1_0"));
+
+  // Deploying via "/no_rename_deploy" will try to spawn B1_0, but since the
+  // model already exists, the spawn should fail.
+  auto curEntityCount = this->server->EntityCount().value();
+  noRenameDeploy.Publish(msgs::Empty());
+  this->server->Run(true, 100, false);
+  EXPECT_EQ(curEntityCount, this->server->EntityCount().value());
+
+  // Deploying via "/rename_deploy" will try to spawn B1_0, but since the
+  // model already exists, it will spawn B1_0_1 instead.
+  renameDeploy.Publish(msgs::Empty());
+  this->server->Run(true, 100, false);
+  EXPECT_TRUE(this->server->HasEntity("B1_0_1"));
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("breadcrumbs_test_cache"));
+  return RUN_ALL_TESTS();
 }
