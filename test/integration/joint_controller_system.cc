@@ -30,7 +30,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 #define TOL 1e-4
 
@@ -47,45 +47,6 @@ class JointControllerTestFixture : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
-};
-
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "ignition::gazebo::MockSystem", nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem =
-        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
 };
 
 /////////////////////////////////////////////////
@@ -108,7 +69,7 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
 
   const std::string linkName = "rotor";
 
-  Relay testSystem;
+  test::Relay testSystem;
   std::vector<math::Vector3d> angularVelocities;
   testSystem.OnPreUpdate(
       [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
@@ -176,3 +137,80 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
   }
 }
 
+/////////////////////////////////////////////////
+// Tests the JointController using joint force commands
+TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/joint_controller.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  const std::string linkName = "rotor2";
+
+  test::Relay testSystem;
+  math::Vector3d angularVelocity;
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      {
+        auto link = _ecm.EntityByComponents(components::Link(),
+                                            components::Name(linkName));
+        // Create an AngularVelocity component if it doesn't exist. This signals
+        // physics system to populate the component
+        if (nullptr == _ecm.Component<components::AngularVelocity>(link))
+        {
+          _ecm.CreateComponent(link, components::AngularVelocity());
+        }
+      });
+
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                              const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Link, components::Name,
+                  components::AngularVelocity>(
+            [&](const ignition::gazebo::Entity &,
+                const components::Link *,
+                const components::Name *_name,
+                const components::AngularVelocity *_angularVel) -> bool
+            {
+              EXPECT_EQ(_name->Data(), linkName);
+              angularVelocity = _angularVel->Data();
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  const std::size_t initIters = 10;
+  server.Run(true, initIters, false);
+  EXPECT_NEAR(0, angularVelocity.Length(), TOL);
+
+  // Publish command and check that the joint velocity is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_controller_test_2/joint/j1/cmd_vel");
+
+  const double testAngVel{20.0};
+  msgs::Double msg;
+  msg.set_data(testAngVel);
+
+  pub.Publish(msg);
+  // Wait for the message to be published
+  std::this_thread::sleep_for(100ms);
+
+  const std::size_t testIters = 3000;
+  server.Run(true, testIters , false);
+
+  EXPECT_NEAR(0, angularVelocity.X(), 1e-2);
+  EXPECT_NEAR(0, angularVelocity.Y(), 1e-2);
+  EXPECT_NEAR(testAngVel, angularVelocity.Z(), 1e-2);
+}

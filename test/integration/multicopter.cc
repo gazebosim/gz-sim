@@ -36,7 +36,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -68,46 +68,6 @@ class MulticopterTest : public ::testing::Test
   }
 };
 
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
-};
-
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
 TEST_F(MulticopterTest, CommandedMotorSpeed)
@@ -115,7 +75,7 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
   // Start server
   auto server = this->StartServer("/test/worlds/quadcopter.sdf");
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdMotorSpeed =
       node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
@@ -182,7 +142,7 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
   auto server =
       this->StartServer("/test/worlds/quadcopter_velocity_control.sdf");
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
 
@@ -290,7 +250,7 @@ TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
   auto server =
       this->StartServer("/test/worlds/quadcopter_velocity_control.sdf");
 
-  Relay testSystem;
+  test::Relay testSystem;
   transport::Node node;
   auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
 

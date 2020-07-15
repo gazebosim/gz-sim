@@ -30,7 +30,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 #define TOL 1e-4
 
@@ -47,45 +47,6 @@ class ApplyJointForceTestFixture : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
-};
-
-class Relay
-{
-  public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "ignition::gazebo::MockSystem", nullptr);
-    EXPECT_TRUE(plugin.has_value());
-
-    this->systemPtr = plugin.value();
-
-    this->mockSystem =
-        dynamic_cast<MockSystem *>(systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
-
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
-
-  public: SystemPluginPtr systemPtr;
-
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
 };
 
 /////////////////////////////////////////////////
@@ -110,7 +71,7 @@ TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
 
   const std::string jointName = "j1";
 
-  Relay testSystem;
+  test::Relay testSystem;
   std::vector<double> jointForceCmd;
   testSystem.OnPreUpdate(
       [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)

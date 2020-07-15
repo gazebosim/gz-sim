@@ -16,6 +16,8 @@ set(tests
   examples_build.cc
   imu_system.cc
   joint_controller_system.cc
+  joint_position_controller_system.cc
+  joint_state_publisher_system.cc
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
@@ -25,6 +27,7 @@ set(tests
   model.cc
   multicopter.cc
   network_handshake.cc
+  performer_detector.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
@@ -32,6 +35,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_include.cc
   touch_plugin.cc
+  triggered_publisher.cc
   user_commands.cc
   log_system.cc
   wheel_slip.cc
