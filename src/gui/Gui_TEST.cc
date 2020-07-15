@@ -52,6 +52,7 @@ TEST(GuiTest, PathManager)
         return true;
       };
   node.Advertise("/gazebo/worlds", worldsCb);
+  igndbg << "Worlds advertised" << std::endl;
 
   // GUI info callback
   bool guiInfoCalled{false};
@@ -62,6 +63,7 @@ TEST(GuiTest, PathManager)
         return true;
       };
   node.Advertise("/world/world_name/gui/info", guiInfoCb);
+  igndbg << "GUI info advertised" << std::endl;
 
   // Resource paths callback
   bool pathsCalled{false};
@@ -73,9 +75,11 @@ TEST(GuiTest, PathManager)
         return true;
       };
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
+  igndbg << "Paths advertised" << std::endl;
 
   auto app = ignition::gazebo::gui::createGui(g_argc, g_argv, nullptr);
   EXPECT_NE(nullptr, app);
+  igndbg << "GUI created" << std::endl;
 
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(guiInfoCalled);
@@ -84,6 +88,7 @@ TEST(GuiTest, PathManager)
   // Check paths
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
+    igndbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
@@ -94,7 +99,7 @@ TEST(GuiTest, PathManager)
         }),
         paths.end());
 
-    EXPECT_EQ(3u, paths.size());
+    ASSERT_EQ(3u, paths.size());
     EXPECT_EQ("/from_env", paths[0]);
     EXPECT_EQ("/tmp/more_env", paths[1]);
     EXPECT_EQ("/from_callback", paths[2]);
@@ -108,6 +113,7 @@ TEST(GuiTest, PathManager)
         topicCalled = true;
       };
   node.Subscribe("/gazebo/resource_paths", topicCb);
+  igndbg << "Paths subscribed" << std::endl;
 
   // Notify new path through a topic
   msgs::StringMsg_V msg;
@@ -128,6 +134,7 @@ TEST(GuiTest, PathManager)
   // Check paths
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
+    igndbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
@@ -138,7 +145,7 @@ TEST(GuiTest, PathManager)
         }),
         paths.end());
 
-    EXPECT_EQ(4u, paths.size());
+    ASSERT_EQ(4u, paths.size());
     EXPECT_EQ("/from_env", paths[0]);
     EXPECT_EQ("/tmp/more_env", paths[1]);
     EXPECT_EQ("/from_callback", paths[2]);
