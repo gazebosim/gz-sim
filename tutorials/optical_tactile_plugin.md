@@ -1,0 +1,171 @@
+\page opticaltactileplugin Optical Tactile Plugin
+
+This plugin implements a tactile sensor from a depth camera and a contact sensor. 
+Given the increasing number of this kind of sensors and their use cases, this 
+plugin is the first step towards precisely evaluating this technology and its 
+possible applications before being deployed in the real world.
+
+Currently, the plugin is required to work within models that have one link, one
+contact sensor and one depth camera. In order to simulate the behaviour of a
+deformable membrane that returns the contact forces of the object being touched, 
+we merge the information coming from this two different sensors. Vectors normal to 
+the surfaces being touched are computed from the values coming from the depth camera.
+Next, this values are merged with the information returned by the contact sensor, i.e.
+force magnitudes, penetration and depth.
+
+Functionality can be added on top of the information returned by this sensor,
+like object recognition, tactile imaging, precise manipulation or human-robot
+interaction. However, this is something not currently supported, and the plugin
+only returns the information computed.
+
+The plugin allows the user to visualize the surface vectors of the objects being touched.
+In the next image, we can see these vectors when we touch the ring and the top
+surface of a can of coke:
+
+<img src="https://github.com/ignitionrobotics/ign-gazebo/blob/master/tutorials/files/optical_tactile_plugin/coke_can.png"/>
+
+## Components layout
+
+As described in the previous section, there are several components that make up 
+the optical tactile sensor. The following graphical description aims to help the
+user get a better understanding of the different components of the plugin:
+
+```
+                               ___
+                             /|   |
+                            / |   |
+                           /  |   |
+                        _ /   |   |
+ Depth camera ---------|_|    | ·-|----- Model's origin
+ placed behind the        \   |   |
+ 'membrane' (see the next  \  |   |
+ section)                   \ |   |
+                             \|___|--- 'Tactile membrane': This is the collision
+                                        geometry of the contact sensor. Forces
+                                        returned by the sensor are inside this
+                                        volume (check the <extended_sensing>
+                                        parameter)
+```
+
+## Assumptions
+
+The following assumptions have been made when working on this plugin:
+
+- Currently, the plugin's model should be made up of one link, one contact
+sensor and one depth camera.
+- The geometry of the sensor must be a box. Ideally, the size should be around
+20x20x5 mm, but this can be changed.
+- The depth camera should be displaced from the model's origin in the negative
+direction of the X axis, so it's not placed inside the membrane. This can be done
+setting the depth camera's `<pose>` accordingly. Check out the [example below](#try-it-out).
+- There should not be a `<visual>` element inside the link, so the depth camera
+isn't facing the link and can return coherent values. The 'membrane' can still
+be visualized setting the `<visualize_sensor>` parameter to true. For more information
+about the parameters, check the [parameters section](#parameters).
+
+## Try it out
+
+You can run [the example world](https://github.com/ignitionrobotics/ign-gazebo/tree/master/examples/worlds) or build your own model following the example below. If the model
+structure were to be modified, please take a look at the [assumptions](#assumptions) taken. 
+
+```{.xml}
+<model name="tactile_sensor">
+  <pose>0 0 1 0 0 0</pose>
+  <link name="link">
+    <collision name="collision">
+      <geometry>
+        <box>
+          <size>0.005 0.02 0.02</size>
+        </box>
+      </geometry>
+    </collision>
+    <sensor name="depth_camera" type="depth_camera">
+      <update_rate>1</update_rate>
+      <topic>depth_camera</topic>
+      <pose relative_to="tactile_sensor">-0.05 0 0 0 0 0</pose>
+      <camera>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R_FLOAT32</format>
+        </image>
+        <clip>
+          <near>0.030</near>
+          <far>0.065</far>
+        </clip>
+      </camera>
+    </sensor>
+    <sensor name="contact_sensor" type="contact">
+      <contact>
+        <collision>collision</collision>
+      </contact>
+    </sensor>
+
+  </link>
+  <static>true</static>
+  <plugin
+    filename="libignition-gazebo-opticaltactileplugin-system.so"
+    name="ignition::gazebo::systems::OpticalTactilePlugin">
+    <enabled>true</enabled>
+    <resolution>15</resolution>
+    <visualize_forces>true</visualize_forces>
+    <visualize_sensor>true</visualize_sensor>
+    <contact_radius>0.001</contact_radius>
+    <force_radius>0.0002</force_radius>
+    <force_length>0.01</force_length>
+    <extended_sensing>0.001</extended_sensing>
+  </plugin>
+</model>
+```
+You should be able to do something like this:
+
+<img src="https://github.com/ignitionrobotics/ign-gazebo/blob/master/tutorials/files/optical_tactile_plugin/example_world.gif"/>
+
+## Parameters
+
+### Plugin
+These parameters are optional but can be specified in order to customize the
+desired behaviour:
+
+- `<enabled>`: (todo) Set this to true so the plugin works from the
+start and doesn't need to be enabled. This element is optional, and the default
+value is true.
+
+- `<resolution>`: Number of pixels to skip when visualizing forces. One
+vector representing a normal force is computed for each of the camera
+pixels. This element must be positive and it is optional. The default
+value is 30.
+
+- `<visualize_forces>`: Set this to true so the plugin visualizes the normal
+forces in the 3D world. This element is optional, and the
+default value is false.
+
+- `<contact_radius>`: Radius in meters of the contacts visualized if
+`<visualize_forces>` is set to true. This parameter is optional and the
+default value is 0.003.
+
+- `<force_radius>`: Radius in meters of the forces visualized if
+`<visualize_forces>` is set to true. This parameter is optional and the
+default value is 0.001.
+
+- `<force_length>`: Length in meters of the forces visualized if
+`<visualize_forces>` is set to true. This parameter is optional and the
+default value is 0.01.
+
+- `<extended_sensing>`: Extended sensing distance in meters. The sensor will
+output data coming from its collision geometry plus this distance. This
+element is optional, and the default value is 0.001.
+
+- `<visualize_sensor>`: Whether to visualize the sensor or not. This element
+is optional, and the default value is false.
+
+### Depth camera
+There are some parameters within the depth camera that influence the way the
+plugin works:
+
+- `<update_rate>`: The 3D vectors normal to the surfaces being touched are
+computed each time the camera returns an image. If `<visualize_forces>`
+is set to `true` and this value is too high, it may slow down the simulation.
+
+- `<clip>`: These values should be set in a way that the 'membrane' stays
+in between its far and near values. Otherwise, nothing will be visualized.
