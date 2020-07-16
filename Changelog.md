@@ -2,6 +2,10 @@
 
 ### Ignition Gazebo 3.x.x (20xx-xx-xx)
 
+1. Added buoyancy system plugin.
+    * [pull request 252](https://github.com/ignitionrobotics/ign-gazebo/pull/252)
+
+
 1. Backport collision bitmask changes
     * [pull request 223](https://github.com/ignitionrobotics/ign-gazebo/pull/223)
 
@@ -26,9 +30,6 @@
 
 1. Fix moving static model with link offset
     * [BitBucket pull request 566](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/566)
-
-1. Added buoyancy system plugin.
-    * [Pull Request 506](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/506)
 
 1. Added Link::AddWorldWrench function that adds a wrench to a link.
     * [BitBucket pull request 509](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/509)
