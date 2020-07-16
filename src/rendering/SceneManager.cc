@@ -476,6 +476,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
+        // Use alpha channel for transparency
+        material->SetAlphaFromTexture(true);
       }
       else
         ignerr << "Unable to find file [" << albedoMap << "]\n";
