@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -34,14 +35,17 @@ using namespace gazebo;
 using namespace systems;
 
 // Adapted from osrf/Gazebo WheelSlipPlugin
-// https://bitbucket.org/osrf/gazebo/pull-requests/2950
+// https://osrf-migration.github.io/gazebo-gh-pages/#!/osrf/gazebo/pull-requests/2950/
 class ignition::gazebo::systems::WheelSlipPrivate
 {
+  /// \brief Initialize the plugin
   public: bool Load(const EntityComponentManager &_ecm, sdf::ElementPtr _sdf);
 
+  /// \brief Update wheel slip plugin data based on physics data
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager
   public: void Update(EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Ignition communication node
   public: transport::Node node;
 
   /// \brief Joint Entity
@@ -59,11 +63,12 @@ class ignition::gazebo::systems::WheelSlipPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  public: class LinkSurfaceParams{
+  public: class LinkSurfaceParams
+    {
       /// \brief Pointer to wheel spin joint.
       public: Entity joint;
 
-      /// \brief Pointer to ODESurfaceParams object.
+      /// \brief Pointer to wheel spin collision entity.
       public: Entity collision;
 
       /// \brief Unitless wheel slip compliance in lateral direction.
@@ -79,7 +84,7 @@ class ignition::gazebo::systems::WheelSlipPrivate
       public: double slipComplianceLongitudinal = 0;
 
       /// \brief Wheel normal force estimate used to compute slip
-      /// compliance for ODE, which takes units of 1/N.
+      /// compliance, which takes units of 1/N.
       public: double wheelNormalForce = 0;
 
       /// \brief Wheel radius extracted from collision shape if not
@@ -87,7 +92,7 @@ class ignition::gazebo::systems::WheelSlipPrivate
       public: double wheelRadius = 0;
     };
 
-  /// \brief TODO
+  /// \brief The map relating links to their respective surface parameters. 
   public: std::map<Entity, LinkSurfaceParams> mapLinkSurfaceParams;
 
   public: bool validConfig{false};
@@ -204,7 +209,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
   if (this->mapLinkSurfaceParams.empty())
   {
-    ignerr << "No ODE links and surfaces found, plugin is disabled"
+    ignerr << "No links and surfaces found, plugin is disabled"
            << std::endl;
     return false;
   }
@@ -231,12 +236,13 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
       continue;
     double spinAngularVelocity = spinAngularVelocityComp->Data()[0];
 
-    // As discussed in WheelSlipPlugin.hh, the ODE slip1 and slip2
+    // TODO(anyone): Update the below description to comply with the new units
+    // As discussed in WheelSlipPlugin.hh, the slip1 and slip2
     // parameters have units of inverse viscous damping:
     // [linear velocity / force] or [m / s / N].
     // Since the slip compliance parameters supplied to the plugin
     // are unitless, they must be scaled by a linear speed and force
-    // magnitude before being passed to ODE.
+    // magnitude.
     // The force is taken from a user-defined constant that should roughly
     // match the steady-state normal force at the wheel.
     // The linear speed is computed dynamically at each time step as
@@ -292,10 +298,7 @@ void WheelSlip::Configure(const Entity &_entity,
   }
 
   auto sdfClone = _sdf->Clone();
-  if (this->dataPtr->Load(_ecm, sdfClone))
-  {
-    this->dataPtr->validConfig = true;
-  }
+  this->dataPtr->validConfig = this->dataPtr->Load(_ecm, sdfClone);
 }
 
 //////////////////////////////////////////////////

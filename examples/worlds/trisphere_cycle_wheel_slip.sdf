@@ -1,4 +1,14 @@
 <?xml version="1.0" ?>
+<!--
+  Ignition Gazebo trisphere wheel slip plugin demo
+
+  A demo displaying the wheel slip plugin.  The red trisphere cycle has wheel slip while the blue does not.
+
+  Run with
+
+    ign gazebo trisphere_cycle_wheel_slip.sdf
+
+-->
 
 <sdf version="1.6">
   <world name="wheel_slip">
@@ -149,6 +159,11 @@
         </collision>
         <visual name="axle_visual">
           <pose>-0.4713346258704366 0 0  1.5707963267948966 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>1.0392304845413263</length>
@@ -167,6 +182,11 @@
         </collision>
         <visual name="frame_left_visual">
           <pose>0 0.17155177419583564 0  0 1.5707963267948966 -0.3490658503988659</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>1.0031676644991372</length>
@@ -185,6 +205,11 @@
         </collision>
         <visual name="frame_right_visual">
           <pose>0 -0.17155177419583564 0  0 1.5707963267948966 0.3490658503988659</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>1.0031676644991372</length>
@@ -217,6 +242,11 @@
         </collision>
         <visual name="handlebars_visual">
           <pose>0 0 0.397747564417433  1.5707963267948966 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.6363961030678927</length>
@@ -235,6 +265,11 @@
         </collision>
         <visual name="headtube_visual">
           <pose>0 0 0.2386485386504598  0 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.31819805153394637</length>
@@ -253,6 +288,11 @@
         </collision>
         <visual name="spindle_visual">
           <pose>0 0 -0.23864853865045976  1.5707963267948966 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.6363961030678927</length>
@@ -271,6 +311,11 @@
         </collision>
         <visual name="fork_left_visual">
           <pose>0 0.15909902576697318 -0.07954951288348658  0.7853981633974483 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.45</length>
@@ -289,6 +334,11 @@
         </collision>
         <visual name="fork_right_visual">
           <pose>0 -0.15909902576697318 -0.07954951288348658  -0.7853981633974483 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.45</length>
@@ -299,6 +349,11 @@
       </link>
       <link name="wheel_front">
         <pose>0.08288176767905665 0 0.15  0 0 0</pose>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
         <inertial>
           <mass>0.5</mass>
           <inertia>
@@ -327,6 +382,11 @@
           </surface>
         </collision>
         <visual name="visual">
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <sphere>
               <radius>0.15</radius>
@@ -382,6 +442,11 @@
           </surface>
         </collision>
         <visual name="visual">
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <sphere>
               <radius>0.15</radius>
@@ -426,6 +491,11 @@
           </surface>
         </collision>
         <visual name="visual">
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+            <specular>0.8 0.3 0.3 1</specular>
+          </material>
           <geometry>
             <sphere>
               <radius>0.15</radius>
@@ -491,6 +561,11 @@
         </collision>
         <visual name="axle_visual">
           <pose>-0.4713346258704366 0 0  1.5707963267948966 0 0</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>1.0392304845413263</length>
@@ -508,6 +583,11 @@
           </geometry>
         </collision>
         <visual name="frame_left_visual">
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <pose>0 0.17155177419583564 0  0 1.5707963267948966 -0.3490658503988659</pose>
           <geometry>
             <cylinder>
@@ -527,6 +607,11 @@
         </collision>
         <visual name="frame_right_visual">
           <pose>0 -0.17155177419583564 0  0 1.5707963267948966 0.3490658503988659</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>1.0031676644991372</length>
@@ -559,6 +644,11 @@
         </collision>
         <visual name="handlebars_visual">
           <pose>0 0 0.397747564417433  1.5707963267948966 0 0</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.6363961030678927</length>
@@ -577,6 +667,11 @@
         </collision>
         <visual name="headtube_visual">
           <pose>0 0 0.2386485386504598  0 0 0</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.31819805153394637</length>
@@ -595,6 +690,11 @@
         </collision>
         <visual name="spindle_visual">
           <pose>0 0 -0.23864853865045976  1.5707963267948966 0 0</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.6363961030678927</length>
@@ -613,6 +713,11 @@
         </collision>
         <visual name="fork_left_visual">
           <pose>0 0.15909902576697318 -0.07954951288348658  0.7853981633974483 0 0</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.45</length>
@@ -631,6 +736,11 @@
         </collision>
         <visual name="fork_right_visual">
           <pose>0 -0.15909902576697318 -0.07954951288348658  -0.7853981633974483 0 0</pose>
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <cylinder>
               <length>0.45</length>
@@ -669,6 +779,11 @@
           </surface>
         </collision>
         <visual name="visual">
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <sphere>
               <radius>0.15</radius>
@@ -724,6 +839,11 @@
           </surface>
         </collision>
         <visual name="visual">
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <sphere>
               <radius>0.15</radius>
@@ -768,6 +888,11 @@
           </surface>
         </collision>
         <visual name="visual">
+          <material>
+            <ambient>0.3 0.3 0.8 1</ambient>
+            <diffuse>0.3 0.3 0.8 1</diffuse>
+            <specular>0.3 0.3 0.8 1</specular>
+          </material>
           <geometry>
             <sphere>
               <radius>0.15</radius>

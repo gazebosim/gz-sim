@@ -3,5 +3,4 @@ gz_add_system(wheel-slip
   WheelSlip.cc
   PUBLIC_LINK_LIBS
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
 )

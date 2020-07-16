@@ -1617,12 +1617,12 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
-  // _ecm.Each<components::SlipComplianceCmd>(
-  //     [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
-  //     {
-  //       _slip->Data().Set(0, 0);
-  //       return true;
-  //     });
+  _ecm.Each<components::SlipComplianceCmd>(
+      [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
+      {
+        _slip->Data().Set(0, 0);
+        return true;
+      });
 
   // Update joint positions
   _ecm.Each<components::Joint, components::JointPosition>(

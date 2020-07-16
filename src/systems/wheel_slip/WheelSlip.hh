@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+
 #ifndef IGNITION_GAZEBO_SYSTEMS_WHEELSLIP_HH_
 #define IGNITION_GAZEBO_SYSTEMS_WHEELSLIP_HH_
 
@@ -32,6 +33,7 @@ namespace systems
   class WheelSlipPrivate;
 
   /// \brief This system applies a force to the first axis of a specified joint.
+  /// TODO(): Explain the sdf parameters here
   class IGNITION_GAZEBO_VISIBLE WheelSlip
       : public System,
         public ISystemConfigure,
