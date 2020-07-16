@@ -1,6 +1,6 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.x.x (2020-xx-xx)
+### Ignition Gazebo 2.21.0 (2020-07-16)
 
 1. Added support for controlling which joints are published by the
    JointStatePublisher.
