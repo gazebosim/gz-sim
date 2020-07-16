@@ -37,6 +37,7 @@ set(tests
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
+  velocity_control_system.cc
   log_system.cc
   wind_effects.cc
 )
