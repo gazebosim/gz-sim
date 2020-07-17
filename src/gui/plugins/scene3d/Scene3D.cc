@@ -2106,6 +2106,17 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         renderWindow->SetFollowOffset(offset);
       }
     }
+    
+    if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
+    {
+      auto fullscreen = false;
+      elem->QueryBoolText(&fullscreen);
+      if (fullscreen)
+      {
+        ignition::gui::App()->findChild
+          <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+      }
+    }
   }
 
   // transform mode
