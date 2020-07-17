@@ -418,3 +418,9 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
   }
   return path;
 }
+
+//////////////////////////////////////////////////
+std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
+{
+  return this->FetchResource(_uri.Str());
+}
