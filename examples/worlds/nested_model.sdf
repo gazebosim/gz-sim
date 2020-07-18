@@ -62,7 +62,7 @@
         <step>true</step>
         <start_paused>true</start_paused>
         <service>/world/nested_model/control</service>
-        <stats_topic>/world/nested_model/stats</stats_topic>
+        <stats_topic>/world/nested_model_world/stats</stats_topic>
 
       </plugin>
 
@@ -87,7 +87,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/nested_model/stats</topic>
+        <topic>/world/nested_model_world/stats</topic>
 
       </plugin>
 
