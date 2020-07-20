@@ -39,7 +39,7 @@ JointStatePublisher::JointStatePublisher()
 
 //////////////////////////////////////////////////
 void JointStatePublisher::Configure(
-    const Entity &_entity, const std::shared_ptr<const sdf::Element> &,
+    const Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &)
 {
   // Get the model.
@@ -51,30 +51,71 @@ void JointStatePublisher::Configure(
     return;
   }
 
-  // Create the position, velocity, and force components for the joint.
-  std::vector<Entity> childJoints = _ecm.ChildrenByComponents(
-      this->model.Entity(), components::Joint());
-  for (const Entity &joint : childJoints)
+  // If a joint_name is specified in the plugin, then only publish the
+  // specified joints. Otherwise, publish all the joints.
+  if (_sdf->HasElement("joint_name"))
   {
-    // Create joint position component if one doesn't exist
-    if (!_ecm.EntityHasComponentType(joint,
-          components::JointPosition().TypeId()))
+    sdf::Element *ptr = const_cast<sdf::Element *>(_sdf.get());
+    sdf::ElementPtr elem = ptr->GetElement("joint_name");
+    while (elem)
     {
-      _ecm.CreateComponent(joint, components::JointPosition());
-    }
+      std::string jointName = elem->Get<std::string>();
+      gazebo::Entity jointEntity = this->model.JointByName(_ecm, jointName);
+      if (jointEntity != kNullEntity)
+      {
+        this->CreateComponents(_ecm, jointEntity);
+      }
+      else
+      {
+        ignerr << "Joint with name[" << jointName << "] not found. "
+          << "The JointStatePublisher will not publish this joint.\n";
+      }
 
-    // Create joint velocity component if one doesn't exist
-    if (!_ecm.EntityHasComponentType(joint,
-          components::JointVelocity().TypeId()))
-    {
-      _ecm.CreateComponent(joint, components::JointVelocity());
+      elem = elem->GetNextElement("joint_name");
     }
+  }
+  else
+  {
+    // Create the position, velocity, and force components for the joint.
+    std::vector<Entity> childJoints = _ecm.ChildrenByComponents(
+        this->model.Entity(), components::Joint());
+    for (const Entity &joint : childJoints)
+    {
+      this->CreateComponents(_ecm, joint);
+    }
+  }
+}
 
-    // Create joint force component if one doesn't exist
-    if (!_ecm.EntityHasComponentType(joint, components::JointForce().TypeId()))
-    {
-      _ecm.CreateComponent(joint, components::JointForce());
-    }
+//////////////////////////////////////////////////
+void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
+    gazebo::Entity _joint)
+{
+  if (this->joints.find(_joint) != this->joints.end())
+  {
+    ignwarn << "Ignoring duplicate joint in a JointSatePublisher plugin.\n";
+    return;
+  }
+
+  this->joints.insert(_joint);
+
+  // Create joint position component if one doesn't exist
+  if (!_ecm.EntityHasComponentType(_joint,
+        components::JointPosition().TypeId()))
+  {
+    _ecm.CreateComponent(_joint, components::JointPosition());
+  }
+
+  // Create joint velocity component if one doesn't exist
+  if (!_ecm.EntityHasComponentType(_joint,
+        components::JointVelocity().TypeId()))
+  {
+    _ecm.CreateComponent(_joint, components::JointVelocity());
+  }
+
+  // Create joint force component if one doesn't exist
+  if (!_ecm.EntityHasComponentType(_joint, components::JointForce().TypeId()))
+  {
+    _ecm.CreateComponent(_joint, components::JointForce());
   }
 }
 
@@ -124,9 +165,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
     msgs::Set(msg.mutable_pose(), pose->Data());
 
   // Process each joint
-  std::vector<Entity> childJoints = _ecm.ChildrenByComponents(
-      this->model.Entity(), components::Joint());
-  for (const Entity &joint : childJoints)
+  for (const Entity &joint : this->joints)
   {
     // Add a joint message.
     msgs::Joint *jointMsg = msg.add_joint();
