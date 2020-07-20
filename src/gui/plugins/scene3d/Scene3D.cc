@@ -1326,7 +1326,10 @@ void IgnRenderer::HandleMouseViewControl()
     // Pan with left button
     if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::LEFT)
     {
-      this->dataPtr->viewControl.Pan(this->dataPtr->drag);
+      if (Qt::ShiftModifier == QGuiApplication::queryKeyboardModifiers())
+        this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+      else
+        this->dataPtr->viewControl.Pan(this->dataPtr->drag);
     }
     // Orbit with middle button
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::MIDDLE)
