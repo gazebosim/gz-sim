@@ -17,6 +17,8 @@
 #ifndef IGNITION_MATH_VECTOR4_HH_
 #define IGNITION_MATH_VECTOR4_HH_
 
+#include <algorithm>
+
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
@@ -124,6 +126,42 @@ namespace ignition
         this->data[1] = _y;
         this->data[2] = _z;
         this->data[3] = _w;
+      }
+
+      /// \brief Set this vector's components to the maximum of itself and the
+      ///        passed in vector
+      /// \param[in] _v the maximum clamping vector
+      public: void Max(const Vector4<T> &_v)
+      {
+        this->data[0] = std::max(_v[0], this->data[0]);
+        this->data[1] = std::max(_v[1], this->data[1]);
+        this->data[2] = std::max(_v[2], this->data[2]);
+        this->data[3] = std::max(_v[3], this->data[3]);
+      }
+
+      /// \brief Set this vector's components to the minimum of itself and the
+      ///        passed in vector
+      /// \param[in] _v the minimum clamping vector
+      public: void Min(const Vector4<T> &_v)
+      {
+        this->data[0] = std::min(_v[0], this->data[0]);
+        this->data[1] = std::min(_v[1], this->data[1]);
+        this->data[2] = std::min(_v[2], this->data[2]);
+        this->data[3] = std::min(_v[3], this->data[3]);
+      }
+
+      /// \brief Get the maximum value in the vector
+      /// \return the maximum element
+      public: T Max() const
+      {
+        return *std::max_element(this->data, this->data+4);
+      }
+
+      /// \brief Get the minimum value in the vector
+      /// \return the minimum element
+      public: T Min() const
+      {
+        return *std::min_element(this->data, this->data+4);
       }
 
       /// \brief Assignment operator

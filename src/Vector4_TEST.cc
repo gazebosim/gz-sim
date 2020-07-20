@@ -157,6 +157,38 @@ TEST(Vector4dTest, NoException)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector4dTest, Max)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.3, 0.2);
+  math::Vector4d vec2(0.2, 0.3, 0.4, 0.3);
+  math::Vector4d vec3(0.1, 0.2, 0.3, 0.4);
+
+  EXPECT_DOUBLE_EQ(vec1.Max(), 0.3);
+
+  vec1.Max(vec2);
+  EXPECT_EQ(vec1, math::Vector4d(0.2, 0.3, 0.4, 0.3));
+
+  vec1.Max(vec3);
+  EXPECT_EQ(vec1, math::Vector4d(0.2, 0.3, 0.4, 0.4));
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Min)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.3, 0.4);
+  math::Vector4d vec2(0.2, 0.3, 0.4, 0.3);
+  math::Vector4d vec3(0.05, 0.1, 0.2, 0.2);
+
+  EXPECT_DOUBLE_EQ(vec1.Min(), 0.1);
+
+  vec1.Min(vec2);
+  EXPECT_EQ(vec1, math::Vector4d(0.1, 0.2, 0.3, 0.3));
+
+  vec1.Min(vec3);
+  EXPECT_EQ(vec1, math::Vector4d(0.05, 0.1, 0.2, 0.2));
+}
+
+/////////////////////////////////////////////////
 // Test Equal function with specified tolerance
 TEST(Vector2Test, EqualTolerance)
 {
