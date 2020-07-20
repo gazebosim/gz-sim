@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 4.0.0 (20XX-XX-XX)
 
+1. Names with spaces: add string serializer
+    * [pull request 244](https://github.com/ignitionrobotics/ign-gazebo/pull/244)
+
 1. Filter mesh collision based on `collide_bitmask` property
     * [pull request 160](https://github.com/ignitionrobotics/ign-gazebo/pull/160)
 
