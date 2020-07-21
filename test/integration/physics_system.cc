@@ -918,7 +918,8 @@ TEST_F(PhysicsSystemFixture, NestedModel)
           auto parentId = _ecm.Component<components::ParentEntity>(_entity);
           if (parentId)
           {
-            auto parentName = _ecm.Component<components::Name>(parentId->Data());
+            auto parentName =
+                _ecm.Component<components::Name>(parentId->Data());
             parents[_name->Data()] = parentName->Data();
           }
           return true;
