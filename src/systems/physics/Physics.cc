@@ -1390,21 +1390,12 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto canonicalPoseComp =
             _ecm.Component<components::Pose>(linkEntityIt->second);
 
-        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
-                                canonicalPoseComp->Data()));
+        // set world pose of canonical link in freegroup
+        math::Pose3d linkPose =
+            this->RelativePose(_entity, linkEntityIt->second, _ecm);
 
-        // TODO if free group does not have a canonical link, assume zero offset?
-        // auto linkEntityIt =
-        //     this->linkEntityMap.find(freeGroup->CanonicalLink());
-        // math::Pose3d canonicalLinkPose;
-        // if (linkEntityIt != this->linkEntityMap.end())
-        // {
-        //   auto canonicalPoseComp =
-        //       _ecm.Component<components::Pose>(linkEntityIt->second);
-        //   canonicalLinkPose = canonicalPoseComp->Data();
-        // }
-        //freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
-        //    canonicalLinkPose));
+        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+                                linkPose));
 
         // Process pose commands for static models here, as one-time changes
         const components::Static *staticComp =
