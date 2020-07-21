@@ -90,10 +90,27 @@ void PerformerDetector::Configure(const Entity &_entity,
     {
       std::string key = headerElem->Get<std::string>("key", "").first;
       std::string value = headerElem->Get<std::string>("value", "").first;
-      if (!key.empty() || !value.empty())
-      {
+      if (!key.empty() && !value.empty())
         this->extraHeaderData[key] = value;
+      else if (key.empty() && !value.empty())
+      {
+        ignerr << "Performer detector[" << this->detectorName << "] has an "
+          << "empty <key> with an associated <value> of [" << value << "]. "
+          << "This <header_data> will be ignored.\n";
       }
+      else if (value.empty() && !key.empty())
+      {
+        ignerr << "Performer detector[" << this->detectorName << "] has an "
+          << "empty <value> with an associated <key> of [" << key << "]. "
+          << "This <header_data> will be ignored.\n";
+      }
+      else
+      {
+        ignerr << "Performer detector[" << this->detectorName << "] has an "
+          << "empty <header_data> element. This <header_data> will be "
+          << "ignored\n";
+      }
+
       headerElem = headerElem->GetNextElement("header_data");
     }
   }

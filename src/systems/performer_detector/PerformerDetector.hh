@@ -73,7 +73,7 @@ namespace systems
   /// detection region. Only the position component of the `<pose>` is used.
   /// `<header_data>`: Zero or more key-value pairs that will be
   /// included in the header of the detection messages. A `<header_data>`
-  /// element should have child `<key>` and/or `<value>` elements whose
+  /// element should have child `<key>` and `<value>` elements whose
   /// contents are interpreted as strings. Keys value pairs are stored in a
   /// map, which means the keys are unique.
 
