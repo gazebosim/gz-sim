@@ -710,7 +710,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           {
             auto parentPtrPhys = parentIt->second;
             auto modelPtrPhys = parentPtrPhys->ConstructModel(model);
-            this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+            if (modelPtrPhys)
+            {
+              this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+            }
+            else
+            {
+              ignerr << "Model: '" << _name->Data() << "' not loaded. "
+                     << "Nested model not supported by physics engine. " << std::endl;
+            }
           }
           else
           {
@@ -1387,9 +1395,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (linkEntityIt == this->linkEntityMap.end())
           return true;
 
-        auto canonicalPoseComp =
-            _ecm.Component<components::Pose>(linkEntityIt->second);
-
         // set world pose of canonical link in freegroup
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntityIt->second, _ecm);
@@ -1647,7 +1652,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           if (canonicalLink)
           {
             // This is the canonical link, update the top level model.
-            // The pose this link w.r.t its top level model never changes
+            // The pose of this link w.r.t its top level model never changes
             // because it's "fixed" to the model. Instead, we change
             // the top level model's pose here. The physics engine gives us the
             // pose of this link relative to world so to set the top level
@@ -1820,10 +1825,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             _ecm.SetChanged(_entity, components::AngularAcceleration::typeId,
                 state);
           }
-        }
-        else
-        {
-          ignwarn << "Unknown link with id " << _entity << " found\n";
         }
         return true;
       });
