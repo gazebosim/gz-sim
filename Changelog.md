@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.22.0 (2020-07-22)
+
+1. Allow zero or more key/value pairs to be added to detection header information.
+    * [Pull Request 257](https://github.com/ignitionrobotics/ign-gazebo/pull/257)
+
 ### Ignition Gazebo 2.21.0 (2020-07-16)
 
 1. Added support for controlling which joints are published by the
