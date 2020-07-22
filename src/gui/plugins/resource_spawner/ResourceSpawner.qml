@@ -26,7 +26,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQml.Models 2.2
 
 SplitView {
-  Layout.minimumWidth: 400
+  Layout.minimumWidth: 500
   Layout.minimumHeight: 375
   anchors.fill: parent
   orientation: Qt.Horizontal
@@ -70,7 +70,7 @@ SplitView {
     model: PathList
     Layout.fillWidth: true
     Layout.minimumHeight: 400
-    Layout.minimumWidth: 300
+    Layout.minimumWidth: 250
     // For some reason, SingleSelection is not working
     selectionMode: SelectionMode.MultiSelection
     verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
@@ -155,12 +155,12 @@ SplitView {
   }
 
   ColumnLayout {
-    Layout.minimumWidth: 300
+    Layout.minimumWidth: 250
     Layout.fillWidth: true
     spacing: 0
     Rectangle {
       Layout.fillWidth: true
-      Layout.minimumWidth: 300
+      Layout.minimumWidth: 250
       height: 40
       color: evenColor
       Text {
