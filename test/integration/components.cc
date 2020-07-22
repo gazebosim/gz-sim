@@ -60,10 +60,13 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -108,6 +111,33 @@ TEST_F(ComponentsTest, Actor)
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ("def", comp3.Data().SkinFilename());
   EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, AnimationName)
+{
+  // Create components
+  auto comp11 = components::AnimationName("comp1");
+  auto comp12 = components::AnimationName("comp1");
+  auto comp2 = components::AnimationName("comp2");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("comp1", ostr.str());
+
+  std::istringstream istr("comp3");
+  components::AnimationName comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("comp3", comp3.Data());
 }
 
 /////////////////////////////////////////////////
@@ -664,9 +694,9 @@ TEST_F(ComponentsTest, LevelEntityNames)
   // Stream operators
   std::ostringstream ostr;
   comp11.Serialize(ostr);
-  EXPECT_EQ("level1 level2 ", ostr.str());
+  EXPECT_EQ("level1\x1Flevel2\x1F", ostr.str());
 
-  std::istringstream istr("level3 level4");
+  std::istringstream istr("level3\x1Flevel4");
   components::LevelEntityNames comp3;
   comp3.Deserialize(istr);
 
@@ -945,14 +975,26 @@ TEST_F(ComponentsTest, Name)
   EXPECT_FALSE(comp11 != comp12);
 
   // Stream operators
-  std::ostringstream ostr;
-  comp11.Serialize(ostr);
-  EXPECT_EQ("comp1", ostr.str());
+  for (auto str : {
+      "boring",
+      "snake_case",
+      "camelCase",
+      "with s p a c e s 123",
+      "with/slash",
+      "tópico",
+      "トピック"
+    })
+  {
+    auto compA = components::Name(str);
+    std::ostringstream ostr;
+    compA.Serialize(ostr);
+    EXPECT_EQ(str, ostr.str());
 
-  std::istringstream istr("comp3");
-  components::Name comp3;
-  comp3.Deserialize(istr);
-  EXPECT_EQ("comp3", comp3.Data());
+    std::istringstream istr(str);
+    components::Name compB;
+    compB.Deserialize(istr);
+    EXPECT_EQ(str, compB.Data());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1032,6 +1074,33 @@ TEST_F(ComponentsTest, Performer)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, PerformerAffinity)
+{
+  // Create components
+  auto comp11 = components::PerformerAffinity("comp1");
+  auto comp12 = components::PerformerAffinity("comp1");
+  auto comp2 = components::PerformerAffinity("comp2");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("comp1", ostr.str());
+
+  std::istringstream istr("comp3");
+  components::PerformerAffinity comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("comp3", comp3.Data());
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, PerformerLevels)
 {
   // Create components
@@ -1055,6 +1124,27 @@ TEST_F(ComponentsTest, PerformerLevels)
   EXPECT_EQ(1u, comp3.Data().count(9));
   EXPECT_EQ(1u, comp3.Data().count(10));
   EXPECT_EQ(0u, comp3.Data().count(1));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, PhysicsEnginePlugin)
+{
+  // Create components
+  auto comp11 = components::PhysicsEnginePlugin("engine-plugin");
+  auto comp12 = components::PhysicsEnginePlugin("engine-plugin");
+  auto comp2 = components::PhysicsEnginePlugin("another-engine-plugin");
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("engine-plugin", ostr.str());
+
+  std::istringstream istr("libengine-plugin.so");
+  components::PhysicsEnginePlugin comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("libengine-plugin.so", comp3.Data());
 }
 
 /////////////////////////////////////////////////
@@ -1104,6 +1194,33 @@ TEST_F(ComponentsTest, Sensor)
   std::istringstream istr("ignored");
   components::Sensor comp3;
   comp3.Deserialize(istr);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, SourceFilePath)
+{
+  // Create components
+  auto comp11 = components::SourceFilePath("comp1");
+  auto comp12 = components::SourceFilePath("comp1");
+  auto comp2 = components::SourceFilePath("comp2");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("comp1", ostr.str());
+
+  std::istringstream istr("comp3");
+  components::SourceFilePath comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("comp3", comp3.Data());
 }
 
 /////////////////////////////////////////////////

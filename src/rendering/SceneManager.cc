@@ -115,6 +115,12 @@ void SceneManager::SetWorldId(Entity _id)
 }
 
 /////////////////////////////////////////////////
+Entity SceneManager::WorldId() const
+{
+  return this->dataPtr->worldId;
+}
+
+/////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     const sdf::Model &_model, Entity _parentId)
 {
@@ -470,6 +476,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
+        // Use alpha channel for transparency
+        material->SetAlphaFromTexture(true);
       }
       else
         ignerr << "Unable to find file [" << albedoMap << "]\n";

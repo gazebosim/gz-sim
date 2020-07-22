@@ -32,6 +32,7 @@
 
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/Animation.hh>
+#include <ignition/common/graphics/Types.hh>
 
 #include <ignition/rendering/RenderTypes.hh>
 
@@ -102,6 +103,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world's ID.
     /// \param[in] _id World ID.
     public: void SetWorldId(Entity _id);
+
+    /// \brief Get the world's ID.
+    /// \return World ID
+    public: Entity WorldId() const;
 
     /// \brief Create a model
     /// \param[in] _id Unique model id
