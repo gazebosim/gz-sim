@@ -1,7 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="ResourceSpawner/">
+  <file>folder_closed.png</file>
+  <file>folder_open.png</file>
   <file>ResourceSpawner.qml</file>
-  <file>copy_object.png</file>
   <file>NoThumbnail.png</file>
 </qresource>
 </RCC>

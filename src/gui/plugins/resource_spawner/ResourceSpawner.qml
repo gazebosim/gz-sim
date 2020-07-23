@@ -108,7 +108,7 @@ SplitView {
 
         Image {
           id: dirIcon
-          source: "copy_object.png"
+          source: styleData.selected ? "folder_open.png" : "folder_closed.png"
           height: treeItemHeight * 0.6
           width: treeItemHeight * 0.6
           anchors.verticalCenter: parent.verticalCenter
