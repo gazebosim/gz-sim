@@ -28,6 +28,10 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+
+
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -46,6 +50,12 @@ namespace ignition::gazebo
 
     /// \brief The path list model that the qml treeview reflects
     public: PathModel pathModel;
+
+    public: std::unique_ptr<ignition::fuel_tools::FuelClient> fuelClient = nullptr;
+
+    public: std::vector<ignition::fuel_tools::ModelIdentifier> models;
+
+    public: std::unordered_map<std::string, std::vector<ignition::fuel_tools::ModelIdentifier>> fuelDetails;
   };
 }
 
@@ -139,6 +149,7 @@ ResourceSpawner::ResourceSpawner()
       "LocalModelList", &this->dataPtr->gridModel);
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
+  this->dataPtr->fuelClient = std::make_unique<ignition::fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
@@ -255,7 +266,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   if (!executed || !result || res.data_size() < 1)
   {
     ignwarn << "No paths found in IGN_GAZEBO_RESOURCE_PATH.\n";
-    return;
   }
 
   for (int i = 0; i < res.data_size(); i++)
@@ -263,6 +273,76 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     const std::string path = res.data(i);
     this->AddPath(path);
   }
+
+  /*
+  // TODO fuel models here
+  std::vector<ignition::fuel_tools::ModelIdentifier> models;
+  std::string serverName = "fuel.ignitionrobotics.org";
+
+  auto servers = common::FuelModelDatabase::Instance()->Servers();
+  for (auto const &server : servers)
+  {
+    std::function <void(
+        const std::vector<ignition::fuel_tools::ModelIdentifier> &) f =
+        [server, this](
+            const std::vector<ignition::fuel_tools::ModelIdentifier> &_models)
+        {
+          for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
+          {
+            this->dataPtr->models.push_back(iter->Identification());
+          }
+        };
+
+  }
+
+  */
+
+  auto servers = this->dataPtr->fuelClient->Config().Servers();
+  
+  for (auto const &server : servers)
+  {
+    std::function <void(
+        const std::vector<ignition::fuel_tools::ModelIdentifier> &)> f =
+        [server, this](
+            const std::vector<ignition::fuel_tools::ModelIdentifier> &_models)
+        {
+          std::string serverUrl = server.Url().Str();
+          for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
+          {
+            this->dataPtr->fuelDetails[serverUrl] = _models;
+            // TODO update or print here
+            for (auto id : this->dataPtr->fuelDetails[serverUrl])
+            {
+              auto ownerName = id.Owner();
+              auto url = id.Server().Url();
+              //ignwarn << "owner name is " << ownerName << std::endl;
+              //ignwarn << "unique name is " << id.UniqueName() << std::endl;
+              //ignwarn << "url is " << url.Str() << std::endl;
+              // TODO check if model is already cached
+              // FuelClient has API: Result CachedModel(const common::URI &_modelUrl, std::string &_path)
+              std::string path;
+              if (this->dataPtr->fuelClient->CachedModel(ignition::common::URI(id.UniqueName()), path))
+              {
+                ignwarn << "locally cached: " << id.Name() << " and is at " << path << std::endl;
+              }
+            }
+          }
+        };
+    std::thread t([this, f, server]
+    {
+      std::vector<ignition::fuel_tools::ModelIdentifier> models;
+
+      for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
+      {
+        models.push_back(iter->Identification());
+      }
+      f(models);
+    });
+    t.detach();
+  }
+
+  ignwarn << "after server url " << std::endl;
+
 }
 
 /////////////////////////////////////////////////
