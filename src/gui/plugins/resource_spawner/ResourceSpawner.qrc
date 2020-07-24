@@ -1,7 +1,10 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="ResourceSpawner/">
   <file>ResourceSpawner.qml</file>
+  <file>ResourceView.qml</file>
+  <file>FuelView.qml</file>
   <file>copy_object.png</file>
   <file>NoThumbnail.png</file>
+  <file>CloudDownload.png</file>
 </qresource>
 </RCC>

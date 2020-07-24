@@ -31,12 +31,11 @@
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 
-
-
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "ResourceSpawner.hh"
+#include <set>
 
 namespace ignition::gazebo
 {
@@ -46,10 +45,16 @@ namespace ignition::gazebo
     public: transport::Node node;
 
     /// \brief The grid model that the qml gridview reflects
-    public: GridModel gridModel;
+    public: GridModel localGridModel;
 
     /// \brief The path list model that the qml treeview reflects
     public: PathModel pathModel;
+
+    /// \brief The grid model that the qml gridview reflects
+    public: GridModel fuelGridModel;
+
+    /// \brief The path list model that the qml treeview reflects
+    public: PathModel ownerModel;
 
     public: std::unique_ptr<ignition::fuel_tools::FuelClient> fuelClient = nullptr;
 
@@ -119,6 +124,10 @@ void GridModel::AddLocalModel(LocalModel &_model)
   parentItem = this->invisibleRootItem();
 
   auto localModel = new QStandardItem(QString::fromStdString(_model.name));
+  localModel->setData(_model.isFuel,
+                      this->roleNames().key("isFuel"));
+  localModel->setData(_model.isDownloaded,
+                      this->roleNames().key("isDownloaded"));
   localModel->setData(QString::fromStdString(_model.thumbnailPath),
                       this->roleNames().key("thumbnail"));
   localModel->setData(QString::fromStdString(_model.name),
@@ -137,6 +146,8 @@ QHash<int, QByteArray> GridModel::roleNames() const
     std::pair(100, "thumbnail"),
     std::pair(101, "name"),
     std::pair(102, "sdf"),
+    std::pair(103, "isDownloaded"),
+    std::pair(104, "isFuel"),
   };
 }
 
@@ -146,9 +157,13 @@ ResourceSpawner::ResourceSpawner()
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "LocalModelList", &this->dataPtr->gridModel);
+      "LocalModelList", &this->dataPtr->localGridModel);
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+      "FuelModelList", &this->dataPtr->fuelGridModel);
+  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+      "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient = std::make_unique<ignition::fuel_tools::FuelClient>();
 }
 
@@ -206,7 +221,7 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
       }
     }
   }
-  this->dataPtr->gridModel.AddLocalModel(model);
+  this->dataPtr->localGridModel.AddLocalModel(model);
 }
 
 /////////////////////////////////////////////////
@@ -237,6 +252,67 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
 }
 
 /////////////////////////////////////////////////
+void ResourceSpawner::FindFuelModels(const std::string &_owner)
+{
+  auto servers = this->dataPtr->fuelClient->Config().Servers();
+  for (auto const &server : servers)
+  {
+    std::string serverUrl = server.Url().Str();
+    for (auto id : this->dataPtr->fuelDetails[serverUrl])
+    {
+      if (_owner == id.Owner())
+      {
+        LocalModel model;
+        model.name = id.Name();
+        model.isFuel = true;
+        model.isDownloaded = false;
+        model.sdfPath = id.UniqueName();
+        // TODO add resource to this->dataPtr->fuelGridModel by
+        // 1 - Set the name
+        // 2 - Set model sdf path
+        // 3 - Set model thumbnail - only if downloaded?
+        // 4
+        //
+        std::string path;
+        if (this->dataPtr->fuelClient->CachedModel(ignition::common::URI(id.UniqueName()), path))
+        {
+          ignwarn << "locally cached: " << id.Name() << " and is at " << path << std::endl;
+          model.isDownloaded = true;
+          model.thumbnailPath = path;
+        }
+        
+        this->dataPtr->fuelGridModel.AddLocalModel(model);
+      }
+    }
+  }
+  /*
+  std::string path = _path;
+  if (common::isDirectory(path))
+  {
+    for (common::DirIter file(path); file != common::DirIter(); ++file)
+    {
+      std::string currentPath(*file);
+      if (common::isDirectory(currentPath))
+      {
+        std::string modelConfigPath =
+          common::joinPaths(currentPath, "model.config");
+          this->LoadLocalModel(modelConfigPath);
+      }
+      else
+      {
+        this->LoadLocalModel(currentPath);
+      }
+    }
+  }
+  else
+  {
+    this->LoadLocalModel(path);
+  }
+  */
+
+}
+
+/////////////////////////////////////////////////
 void ResourceSpawner::AddPath(const std::string &_path)
 {
   this->dataPtr->pathModel.AddPath(_path);
@@ -245,8 +321,23 @@ void ResourceSpawner::AddPath(const std::string &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnPathClicked(const QString &_path)
 {
-  this->dataPtr->gridModel.Clear();
+  this->dataPtr->localGridModel.Clear();
   this->FindLocalModels(_path.toStdString());
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnDownloadFuelResource(const QString &_path)
+{
+  ignwarn << "Downloading " << _path.toStdString() << std::endl;
+
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnOwnerClicked(const QString &_owner)
+{
+  ignwarn << "Clicked " << _owner.toStdString() << std::endl;
+  this->dataPtr->fuelGridModel.Clear();
+  this->FindFuelModels(_owner.toStdString());
 }
 
 /////////////////////////////////////////////////
@@ -299,50 +390,57 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 
   auto servers = this->dataPtr->fuelClient->Config().Servers();
   
-  for (auto const &server : servers)
+  std::thread t([this, servers]
   {
-    std::function <void(
-        const std::vector<ignition::fuel_tools::ModelIdentifier> &)> f =
-        [server, this](
-            const std::vector<ignition::fuel_tools::ModelIdentifier> &_models)
-        {
-          std::string serverUrl = server.Url().Str();
-          for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
-          {
-            this->dataPtr->fuelDetails[serverUrl] = _models;
-            // TODO update or print here
-            for (auto id : this->dataPtr->fuelDetails[serverUrl])
-            {
-              auto ownerName = id.Owner();
-              auto url = id.Server().Url();
-              //ignwarn << "owner name is " << ownerName << std::endl;
-              //ignwarn << "unique name is " << id.UniqueName() << std::endl;
-              //ignwarn << "url is " << url.Str() << std::endl;
-              // TODO check if model is already cached
-              // FuelClient has API: Result CachedModel(const common::URI &_modelUrl, std::string &_path)
-              std::string path;
-              if (this->dataPtr->fuelClient->CachedModel(ignition::common::URI(id.UniqueName()), path))
-              {
-                ignwarn << "locally cached: " << id.Name() << " and is at " << path << std::endl;
-              }
-            }
-          }
-        };
-    std::thread t([this, f, server]
+    std::set<std::string> ownerSet;
+    for (auto const &server : servers)
     {
       std::vector<ignition::fuel_tools::ModelIdentifier> models;
-
       for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
       {
         models.push_back(iter->Identification());
       }
-      f(models);
-    });
-    t.detach();
-  }
+      std::string serverUrl = server.Url().Str();
+      this->dataPtr->fuelDetails[serverUrl] = models;
+      for (auto id : this->dataPtr->fuelDetails[serverUrl])
+      {
+        auto ownerName = id.Owner();
+        ownerSet.insert(ownerName);
+        auto url = id.Server().Url();
+        std::string path;
+      }
+    }
 
+    // Add all unique owners to the owner model
+    for (const auto &owner : ownerSet)
+    {
+      this->dataPtr->ownerModel.AddPath(owner);
+    } 
+  });
+  t.detach();
   ignwarn << "after server url " << std::endl;
 
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnFuelResourceSpawn(const QString &_sdfPath)
+{
+  std::string modelSdfPath = _sdfPath.toStdString();
+  ignwarn << "Path is " << modelSdfPath << std::endl;
+  /*
+  // Parse the sdf from the path
+  std::ifstream nameFileout;
+  nameFileout.open(modelSdfPath);
+  std::string line;
+  std::string modelSdfString = "";
+  while (std::getline(nameFileout, line))
+    modelSdfString += line + "\n";
+
+  auto event = new gui::events::SpawnPreviewModel(modelSdfString);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      event);
+  */
 }
 
 /////////////////////////////////////////////////

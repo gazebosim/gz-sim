@@ -42,6 +42,10 @@ namespace gazebo
     /// \brief The absolute path to the thumbnail of the local model, will be
     /// empty if no thumbnail is found
     std::string thumbnailPath = "";
+
+    bool isFuel = false;
+
+    bool isDownloaded = false;
   };
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
@@ -106,6 +110,8 @@ namespace gazebo
     /// \param[in] _sdfPath The absolute path to the resource's sdf file
     public slots: void OnResourceSpawn(const QString &_sdfPath);
 
+    public slots: void OnFuelResourceSpawn(const QString &_sdfPath);
+
     /// \brief Loads a local model from an absolute path to a model.config,
     /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
@@ -122,6 +128,12 @@ namespace gazebo
     /// currently loaded resources and load the ones at the specified path
     /// \param[in] _path The path to search resources
     public slots: void OnPathClicked(const QString &_path);
+
+    public slots: void OnOwnerClicked(const QString &_owner);
+
+    public slots: void OnDownloadFuelResource(const QString &_path);
+
+    public: void FindFuelModels(const std::string &_owner);
 
     /// \internal
     /// \brief Pointer to private data.
