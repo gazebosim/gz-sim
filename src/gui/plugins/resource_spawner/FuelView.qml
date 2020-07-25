@@ -14,6 +14,14 @@ SplitView {
   // anchors.fill: parent
   orientation: Qt.Horizontal
 
+   function windowWidth() {
+     return resourceView.Window.window ? (resourceView.Window.window.width) : 0
+   }
+ 
+   function windowHeight() {
+     return resourceView.Window.window ? (resourceView.Window.window.height) : 0
+   }
+
   TreeView {
     id: treeView
     model: OwnerList
@@ -166,7 +174,7 @@ SplitView {
               Layout.fillHeight: true
               Layout.fillWidth: true
               Layout.margins: 1
-              source: model.thumbnail == "" ? "NoThumbnail.png" : "file:" + model.thumbnail
+              source: (model.isFuel && !model.isDownloaded) ? "DownloadToUse.png" : (model.thumbnail == "" ? "NoThumbnail.png" : "file:" + model.thumbnail)
               fillMode: Image.PreserveAspectFit
             }
           }
@@ -176,16 +184,44 @@ SplitView {
             hoverEnabled: true
             propagateComposedEvents: true
             onClicked: {
-              print(model.isFuel)
-              print(model.isDownloaded)
-              ResourceSpawner.OnFuelResourceSpawn(model.sdf);
+              print("Spawn resource")
+              if (model.isFuel && !model.isDownloaded)
+              {
+                downloadDialog.open()
+              }
+              else
+              {
+                ResourceSpawner.OnResourceSpawn(model.sdf);
+              }
               gridView.currentIndex = index
+            }
+          }
+          Dialog {
+            id: downloadDialog
+            parent: resourceView.Window.window ? resourceView.Window.window.contentItem : resourceView
+            x: (windowWidth() - width) / 2
+            y: (windowHeight() - height) / 2
+            width: 360
+            height: 150
+            modal: true
+            focus: true
+            title: "Note"
+            Rectangle {
+              color: "transparent"
+              anchors.fill: parent
+              Text {
+                width: downloadDialog.width - 50
+                height: downloadDialog.height
+                text: "Please download the model first by clicking the cloud icon in order to drag it into the scene."
+                color: Material.theme == Material.Light ? "black" : "white"
+                wrapMode: Text.WordWrap
+              }
             }
           }
           ToolTip {
             visible: ma.containsMouse
             delay: 500
-            text: model === null ? "N/A" : model.name
+            text: (model === null ? "N/A" : ((model.isFuel && !model.isDownloaded) ? "Please download the model to use it" : model.name))
             enter: null
             exit: null
           }
@@ -206,7 +242,7 @@ SplitView {
             propagateComposedEvents: true
             onClicked: {
               print("download clicked");
-              ResourceSpawner.OnDownloadFuelResource(model.sdfPath)
+              ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
               model.isDownloaded = true
             }
           }

@@ -4,6 +4,7 @@
   <file>ResourceView.qml</file>
   <file>FuelView.qml</file>
   <file>copy_object.png</file>
+  <file>DownloadToUse.png</file>
   <file>NoThumbnail.png</file>
   <file>CloudDownload.png</file>
 </qresource>

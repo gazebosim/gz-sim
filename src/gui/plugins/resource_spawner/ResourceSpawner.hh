@@ -87,6 +87,8 @@ namespace gazebo
     /// \brief Clear the current grid model
     public: void Clear();
 
+    public: void UpdateGridModel(int index, LocalModel &_model);
+
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
   };
@@ -131,9 +133,11 @@ namespace gazebo
 
     public slots: void OnOwnerClicked(const QString &_owner);
 
-    public slots: void OnDownloadFuelResource(const QString &_path);
+    public slots: void OnDownloadFuelResource(const QString &_path, int index);
 
     public: void FindFuelModels(const std::string &_owner);
+    
+    public: void SetThumbnail(const std::string &_thumbnailPath, LocalModel &_model);
 
     /// \internal
     /// \brief Pointer to private data.

@@ -33,6 +33,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
+#include <QGuiApplication>
 
 #include "ResourceSpawner.hh"
 #include <set>
@@ -71,6 +72,8 @@ using namespace gazebo;
 PathModel::PathModel() : QStandardItemModel()
 {
 }
+
+static int gridIndex = 0;
 
 /////////////////////////////////////////////////
 void PathModel::AddPath(const std::string &_path)
@@ -134,8 +137,35 @@ void GridModel::AddLocalModel(LocalModel &_model)
                       this->roleNames().key("name"));
   localModel->setData(QString::fromStdString(_model.sdfPath),
                       this->roleNames().key("sdf"));
+  if (_model.isFuel)
+  {
+    localModel->setData(gridIndex,
+                        this->roleNames().key("index"));
+    gridIndex++;
+  }
+  else
+    localModel->setData(-1,
+                        this->roleNames().key("index"));
 
   parentItem->appendRow(localModel);
+}
+
+void GridModel::UpdateGridModel(int index, LocalModel &_model)
+{
+  QStandardItem *parentItem{nullptr};
+
+  parentItem = this->invisibleRootItem();
+ 
+  auto grid = parentItem->child(index);
+
+  grid->setData(_model.isFuel,
+                      this->roleNames().key("isFuel"));
+  grid->setData(_model.isDownloaded,
+                      this->roleNames().key("isDownloaded"));
+  grid->setData(QString::fromStdString(_model.thumbnailPath),
+                      this->roleNames().key("thumbnail"));
+  grid->setData(QString::fromStdString(_model.sdfPath),
+                      this->roleNames().key("sdf"));
 }
 
 /////////////////////////////////////////////////
@@ -148,6 +178,7 @@ QHash<int, QByteArray> GridModel::roleNames() const
     std::pair(102, "sdf"),
     std::pair(103, "isDownloaded"),
     std::pair(104, "isFuel"),
+    std::pair(105, "index"),
   };
 }
 
@@ -169,6 +200,37 @@ ResourceSpawner::ResourceSpawner()
 
 /////////////////////////////////////////////////
 ResourceSpawner::~ResourceSpawner() = default;
+
+void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath, LocalModel &_model)
+{
+  // Get first thumbnail image found
+  if (common::exists(_thumbnailPath))
+  {
+    for (common::DirIter file(_thumbnailPath);
+         file != common::DirIter(); ++file)
+    {
+      std::string current(*file);
+      if (common::isFile(current))
+      {
+        std::string thumbnailFileName = common::basename(current);
+        std::string::size_type thumbnailExtensionIndex =
+          thumbnailFileName.rfind(".");
+        std::string thumbnailFileExtension =
+          thumbnailFileName.substr(thumbnailExtensionIndex + 1);
+        // The standard image types QML supports
+        if (thumbnailFileExtension == "png"  ||
+            thumbnailFileExtension == "jpg"  ||
+            thumbnailFileExtension == "jpeg" ||
+            thumbnailFileExtension == "svg")
+        {
+          _model.thumbnailPath = current;
+          break;
+        }
+      }
+    }
+  }
+
+}
 
 /////////////////////////////////////////////////
 void ResourceSpawner::LoadLocalModel(const std::string &_path)
@@ -196,31 +258,7 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
   model.sdfPath = sdfPath;
 
   // Get first thumbnail image found
-  if (common::exists(thumbnailPath))
-  {
-    for (common::DirIter file(thumbnailPath);
-         file != common::DirIter(); ++file)
-    {
-      std::string current(*file);
-      if (common::isFile(current))
-      {
-        std::string thumbnailFileName = common::basename(current);
-        std::string::size_type thumbnailExtensionIndex =
-          thumbnailFileName.rfind(".");
-        std::string thumbnailFileExtension =
-          thumbnailFileName.substr(thumbnailExtensionIndex + 1);
-        // The standard image types QML supports
-        if (thumbnailFileExtension == "png"  ||
-            thumbnailFileExtension == "jpg"  ||
-            thumbnailFileExtension == "jpeg" ||
-            thumbnailFileExtension == "svg")
-        {
-          model.thumbnailPath = current;
-          break;
-        }
-      }
-    }
-  }
+  this->SetThumbnail(thumbnailPath, model);
   this->dataPtr->localGridModel.AddLocalModel(model);
 }
 
@@ -267,49 +305,19 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
         model.isFuel = true;
         model.isDownloaded = false;
         model.sdfPath = id.UniqueName();
-        // TODO add resource to this->dataPtr->fuelGridModel by
-        // 1 - Set the name
-        // 2 - Set model sdf path
-        // 3 - Set model thumbnail - only if downloaded?
-        // 4
-        //
         std::string path;
         if (this->dataPtr->fuelClient->CachedModel(ignition::common::URI(id.UniqueName()), path))
         {
-          ignwarn << "locally cached: " << id.Name() << " and is at " << path << std::endl;
           model.isDownloaded = true;
-          model.thumbnailPath = path;
+          model.sdfPath = ignition::common::joinPaths(path, "model.sdf");
+          std::string thumbnailPath = common::joinPaths(path, "thumbnails");
+          this->SetThumbnail(thumbnailPath, model);
         }
         
         this->dataPtr->fuelGridModel.AddLocalModel(model);
       }
     }
   }
-  /*
-  std::string path = _path;
-  if (common::isDirectory(path))
-  {
-    for (common::DirIter file(path); file != common::DirIter(); ++file)
-    {
-      std::string currentPath(*file);
-      if (common::isDirectory(currentPath))
-      {
-        std::string modelConfigPath =
-          common::joinPaths(currentPath, "model.config");
-          this->LoadLocalModel(modelConfigPath);
-      }
-      else
-      {
-        this->LoadLocalModel(currentPath);
-      }
-    }
-  }
-  else
-  {
-    this->LoadLocalModel(path);
-  }
-  */
-
 }
 
 /////////////////////////////////////////////////
@@ -326,18 +334,45 @@ void ResourceSpawner::OnPathClicked(const QString &_path)
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::OnDownloadFuelResource(const QString &_path)
+void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
 {
   ignwarn << "Downloading " << _path.toStdString() << std::endl;
+  ignwarn << "current index " << index << std::endl;
+  // TODO create new local model to update the grid model sdfpath and thumbnail with
+  LocalModel model;
 
+  // TODO download model
+  // set thumbnail and sdf path for the model
+
+  std::string localPath;
+  
+  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
+  if (this->dataPtr->fuelClient->DownloadModel(ignition::common::URI(_path.toStdString()), localPath))
+  {
+    // Successful download, set thumbnail
+    std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
+    this->SetThumbnail(thumbnailPath, model);
+    model.isDownloaded = true;
+    model.sdfPath = common::joinPaths(localPath, "model.sdf");
+    model.isFuel = true;
+    this->dataPtr->fuelGridModel.UpdateGridModel(index, model);
+  }
+  else
+  {
+    ignwarn << "Download failed.  Try again." << std::endl;
+  }
+  QGuiApplication::restoreOverrideCursor();
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::OnOwnerClicked(const QString &_owner)
 {
+  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   ignwarn << "Clicked " << _owner.toStdString() << std::endl;
+  gridIndex = 0;
   this->dataPtr->fuelGridModel.Clear();
   this->FindFuelModels(_owner.toStdString());
+  QGuiApplication::restoreOverrideCursor();
 }
 
 /////////////////////////////////////////////////
@@ -365,31 +400,9 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     this->AddPath(path);
   }
 
-  /*
-  // TODO fuel models here
-  std::vector<ignition::fuel_tools::ModelIdentifier> models;
-  std::string serverName = "fuel.ignitionrobotics.org";
-
-  auto servers = common::FuelModelDatabase::Instance()->Servers();
-  for (auto const &server : servers)
-  {
-    std::function <void(
-        const std::vector<ignition::fuel_tools::ModelIdentifier> &) f =
-        [server, this](
-            const std::vector<ignition::fuel_tools::ModelIdentifier> &_models)
-        {
-          for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
-          {
-            this->dataPtr->models.push_back(iter->Identification());
-          }
-        };
-
-  }
-
-  */
-
   auto servers = this->dataPtr->fuelClient->Config().Servers();
-  
+  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
+  ignmsg << "Please wait... Loading fuel models from online.\n";
   std::thread t([this, servers]
   {
     std::set<std::string> ownerSet;
@@ -416,38 +429,16 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     {
       this->dataPtr->ownerModel.AddPath(owner);
     } 
+    QGuiApplication::restoreOverrideCursor();
+    ignmsg << "Fuel models loaded.\n";
   });
   t.detach();
-  ignwarn << "after server url " << std::endl;
-
-}
-
-/////////////////////////////////////////////////
-void ResourceSpawner::OnFuelResourceSpawn(const QString &_sdfPath)
-{
-  std::string modelSdfPath = _sdfPath.toStdString();
-  ignwarn << "Path is " << modelSdfPath << std::endl;
-  /*
-  // Parse the sdf from the path
-  std::ifstream nameFileout;
-  nameFileout.open(modelSdfPath);
-  std::string line;
-  std::string modelSdfString = "";
-  while (std::getline(nameFileout, line))
-    modelSdfString += line + "\n";
-
-  auto event = new gui::events::SpawnPreviewModel(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      event);
-  */
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
   std::string modelSdfPath = _sdfPath.toStdString();
-
   // Parse the sdf from the path
   std::ifstream nameFileout;
   nameFileout.open(modelSdfPath);
@@ -455,7 +446,6 @@ void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
   std::string modelSdfString = "";
   while (std::getline(nameFileout, line))
     modelSdfString += line + "\n";
-
   auto event = new gui::events::SpawnPreviewModel(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
