@@ -75,14 +75,15 @@ SplitView {
           visible: false
         }
 
-        TableViewColumn
-        {
-          role: "name"
-        }
+  /**
+   * Height of each item on the tree
+   */
+  property int treeItemHeight: 30;
 
-        selection: ItemSelectionModel {
-          model: PathList
-        }
+  /**
+   * Height of each item on the grid
+   */
+  property int gridItemHeight: 150;
 
         style: TreeViewStyle {
           indentation: 0
@@ -97,8 +98,9 @@ SplitView {
             height: treeItemHeight
             width: parent.width
 
-            anchors.top: parent.top
-            anchors.right: parent.right
+    headerDelegate: Rectangle {
+      visible: false
+    }
 
             Image {
               id: dirIcon
@@ -393,6 +395,30 @@ SplitView {
               ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
               model.isDownloaded = true
             }
+            Image {
+              Layout.fillHeight: true
+              Layout.fillWidth: true
+              Layout.margins: 1
+              source: model.thumbnail == "" ? "NoThumbnail.png" : model.thumbnail
+              fillMode: Image.PreserveAspectFit
+            }
+          }
+          MouseArea {
+            id: ma
+            anchors.fill: parent
+            hoverEnabled: true
+            propagateComposedEvents: true
+            onClicked: {
+              ResourceSpawner.OnResourceSpawn(model.sdf);
+              gridView.currentIndex = index
+            }
+          }
+          ToolTip {
+            visible: ma.containsMouse
+            delay: 500
+            text: model === null ? "N/A" : model.name
+            enter: null
+            exit: null
           }
         }
       }
