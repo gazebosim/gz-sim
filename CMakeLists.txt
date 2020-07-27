@@ -38,8 +38,8 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat9 VERSION 9.2 REQUIRED)
-set(SDF_VER ${sdformat9_VERSION_MAJOR})
+ign_find_package(sdformat10 REQUIRED)
+set(SDF_VER ${sdformat10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -53,7 +53,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED VERSION 5.3)
+ign_find_package(ignition-msgs6 REQUIRED)
 set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
 #--------------------------------------
@@ -70,8 +70,8 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.1)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
+ign_find_package(ignition-fuel_tools5 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
@@ -87,13 +87,13 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics2 VERSION 2.1
+ign_find_package(ignition-physics3
   COMPONENTS
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
+set(IGN_PHYSICS_VER ${ignition-physics3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
