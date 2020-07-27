@@ -314,7 +314,7 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
           this->SetThumbnail(thumbnailPath, model);
         }
         
-        this->dataPtr->fuelGridModel.AddLocalModel(model);
+        this->dataPtr->localGridModel.AddLocalModel(model);
       }
     }
   }
@@ -338,11 +338,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
 {
   ignwarn << "Downloading " << _path.toStdString() << std::endl;
   ignwarn << "current index " << index << std::endl;
-  // TODO create new local model to update the grid model sdfpath and thumbnail with
   LocalModel model;
-
-  // TODO download model
-  // set thumbnail and sdf path for the model
 
   std::string localPath;
   
@@ -355,7 +351,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
     model.isDownloaded = true;
     model.sdfPath = common::joinPaths(localPath, "model.sdf");
     model.isFuel = true;
-    this->dataPtr->fuelGridModel.UpdateGridModel(index, model);
+    this->dataPtr->localGridModel.UpdateGridModel(index, model);
   }
   else
   {
@@ -370,7 +366,7 @@ void ResourceSpawner::OnOwnerClicked(const QString &_owner)
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   ignwarn << "Clicked " << _owner.toStdString() << std::endl;
   gridIndex = 0;
-  this->dataPtr->fuelGridModel.Clear();
+  this->dataPtr->localGridModel.Clear();
   this->FindFuelModels(_owner.toStdString());
   QGuiApplication::restoreOverrideCursor();
 }
@@ -403,6 +399,11 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   auto servers = this->dataPtr->fuelClient->Config().Servers();
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   ignmsg << "Please wait... Loading fuel models from online.\n";
+
+  // Add notice for the user that fuel models are being loaded
+  this->dataPtr->ownerModel.AddPath("Please wait, loading Fuel models...");
+
+  // Pull in fuel models asynchronously
   std::thread t([this, servers]
   {
     std::set<std::string> ownerSet;
@@ -423,6 +424,9 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
         std::string path;
       }
     }
+
+    // Clear the loading message
+    this->dataPtr->ownerModel.clear();
 
     // Add all unique owners to the owner model
     for (const auto &owner : ownerSet)
