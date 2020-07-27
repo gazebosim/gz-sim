@@ -1,0 +1,37 @@
+load(
+    "//ign_bazel:cmake_configure_file.bzl",
+    "cmake_configure_file",
+)
+
+BINARY_DIR = "/tmp"
+SOURCE_DIR = "/tmp"
+CMAKE_BINARY_DIR = "/tmp"
+IGNITION_TOOLS_BINARY_DIRS = "/tmp"
+PROJECT_NAME = "ignition-gazebo"
+PROJECT_MAJOR = 4
+PROJECT_MINOR = 0
+PROJECT_PATCH = 0
+
+# Generates config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "test_config",
+    src = "test_config.hh.in",
+    out = "ignition/gazebo/test_config.hh",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "PROJECT_BINARY_DIR=%s" % (BINARY_DIR),
+        "PROJECT_SOURCE_DIR=%s" % (SOURCE_DIR),
+        "CMAKE_BINARY_DIR=%s" % (CMAKE_BINARY_DIR),
+        "IGNITION-TOOLS_BINARY_DIRS=%s" % (IGNITION_TOOLS_BINARY_DIRS),
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+    ],
+    visibility = ["//visibility:private"],
+)
+
+cc_library(
+    name = "test_utils",
+    srcs = ["ignition/gazebo/test_config.hh"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+

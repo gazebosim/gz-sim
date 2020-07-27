@@ -1,0 +1,507 @@
+load(
+    "//ign_bazel:cmake_configure_file.bzl",
+    "cmake_configure_file",
+)
+load(
+    "//ign_bazel:generate_include_header.bzl",
+    "generate_include_header",
+)
+load(
+    "//ign_bazel:ign_export_header.bzl",
+    "ign_export_header",
+)
+load(
+    "//ign_bazel:generate_yaml.bzl",
+    "generate_yaml",
+)
+load(
+    "//ign_msgs:ign_msg_gen.bzl",
+    "ign_msg_gen",
+    "get_proto_headers"
+)
+
+package(default_visibility = ["//visibility:public"])
+
+PROJECT_NAME = "ignition-gazebo"
+PROJECT_MAJOR = 4
+PROJECT_MINOR = 0
+PROJECT_PATCH = 0
+IGN_DESIGNATION = "/tmp"
+CMAKE_INSTALL_PREFIX = "/tmp"
+IGN_DATA_INSTALL_DIR = "/tmp"
+IGN_LIB_INSTALL_DIR = "/tmp"
+library_location = "libignition-gazebo4-ign.so"
+IGN_LIBRARY_PATH = "/usr2"
+
+# Generates config.hh based on the version numbers in CMake code.
+cmake_configure_file(
+    name = "config",
+    src = "include/ignition/gazebo/config.hh.in",
+    out = "include/ignition/gazebo/config.hh",
+    cmakelists = ["CMakeLists.txt"],
+    defines = [
+        "PROJECT_VERSION_MAJOR=%d" % (PROJECT_MAJOR),
+        "PROJECT_MAJOR_VERSION=%d" % (PROJECT_MAJOR),
+        "PROJECT_MINOR_VERSION=%d" % (PROJECT_MINOR),
+        "PROJECT_PATCH_VERSION=%d" % (PROJECT_PATCH),
+        "PROJECT_VERSION_PATCH=%d" % (PROJECT_PATCH),
+        "PROJECT_VERSION_MAJOR=%d" % (PROJECT_MAJOR),
+        "PROJECT_VERSION_MINOR=%d" % (PROJECT_MINOR),
+        "PROJECT_VERSION=%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR),
+        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
+        "PROJECT_NAME_NO_VERSION=%s" % (PROJECT_NAME),
+        "PROJECT_NAME=%s" % (PROJECT_NAME),
+        "IGN_DESIGNATION=%s" % (IGN_DESIGNATION),
+        "CMAKE_INSTALL_PREFIX=%s" % (CMAKE_INSTALL_PREFIX),
+        "IGN_DATA_INSTALL_DIR=%s" % (IGN_DATA_INSTALL_DIR),
+        "IGN_LIB_INSTALL_DIR=%s" % (IGN_LIB_INSTALL_DIR),
+    ],
+    visibility = ["//visibility:private"],
+)
+
+ign_export_header(
+    name = "include/ignition/gazebo/Export.hh",
+    lib_name = "ignition-gazebo",
+    export_base = "IGNITION_GAZEBO",
+    visibility = ["//visibility:private"],
+)
+
+public_component_headers_no_gen = [
+    "include/ignition/gazebo/components/Actor.hh",
+    "include/ignition/gazebo/components/Actuators.hh",
+    "include/ignition/gazebo/components/AirPressureSensor.hh",
+    "include/ignition/gazebo/components/Altimeter.hh",
+    "include/ignition/gazebo/components/AngularAcceleration.hh",
+    "include/ignition/gazebo/components/AngularVelocity.hh",
+    "include/ignition/gazebo/components/Atmosphere.hh",
+    "include/ignition/gazebo/components/AxisAlignedBox.hh",
+    "include/ignition/gazebo/components/BatterySoC.hh",
+    "include/ignition/gazebo/components/Camera.hh",
+    "include/ignition/gazebo/components/CanonicalLink.hh",
+    "include/ignition/gazebo/components/CastShadows.hh",
+    "include/ignition/gazebo/components/ChildLinkName.hh",
+    "include/ignition/gazebo/components/Collision.hh",
+    "include/ignition/gazebo/components/Component.hh",
+    "include/ignition/gazebo/components/ContactSensorData.hh",
+    "include/ignition/gazebo/components/ContactSensor.hh",
+    "include/ignition/gazebo/components/DepthCamera.hh",
+    "include/ignition/gazebo/components/DetachableJoint.hh",
+    "include/ignition/gazebo/components/ExternalWorldWrenchCmd.hh",
+    "include/ignition/gazebo/components/Factory.hh",
+    "include/ignition/gazebo/components/Geometry.hh",
+    "include/ignition/gazebo/components/GpuLidar.hh",
+    "include/ignition/gazebo/components/Gravity.hh",
+    "include/ignition/gazebo/components/Imu.hh",
+    "include/ignition/gazebo/components/Inertial.hh",
+    "include/ignition/gazebo/components/JointAxis.hh",
+    "include/ignition/gazebo/components/JointForceCmd.hh",
+    "include/ignition/gazebo/components/JointForce.hh",
+    "include/ignition/gazebo/components/Joint.hh",
+    "include/ignition/gazebo/components/JointPosition.hh",
+    "include/ignition/gazebo/components/JointPositionReset.hh",
+    "include/ignition/gazebo/components/JointType.hh",
+    "include/ignition/gazebo/components/JointVelocityCmd.hh",
+    "include/ignition/gazebo/components/JointVelocity.hh",
+    "include/ignition/gazebo/components/JointVelocityReset.hh",
+    "include/ignition/gazebo/components/LevelBuffer.hh",
+    "include/ignition/gazebo/components/LevelEntityNames.hh",
+    "include/ignition/gazebo/components/Level.hh",
+    "include/ignition/gazebo/components/Lidar.hh",
+    "include/ignition/gazebo/components/Light.hh",
+    "include/ignition/gazebo/components/LinearAcceleration.hh",
+    "include/ignition/gazebo/components/LinearVelocity.hh",
+    "include/ignition/gazebo/components/LinearVelocitySeed.hh",
+    "include/ignition/gazebo/components/Link.hh",
+    "include/ignition/gazebo/components/LogicalCamera.hh",
+    "include/ignition/gazebo/components/MagneticField.hh",
+    "include/ignition/gazebo/components/Magnetometer.hh",
+    "include/ignition/gazebo/components/Material.hh",
+    "include/ignition/gazebo/components/Model.hh",
+    "include/ignition/gazebo/components/Name.hh",
+    "include/ignition/gazebo/components/ParentEntity.hh",
+    "include/ignition/gazebo/components/ParentLinkName.hh",
+    "include/ignition/gazebo/components/PerformerAffinity.hh",
+    "include/ignition/gazebo/components/Performer.hh",
+    "include/ignition/gazebo/components/PerformerLevels.hh",
+    "include/ignition/gazebo/components/PhysicsEnginePlugin.hh",
+    "include/ignition/gazebo/components/PoseCmd.hh",
+    "include/ignition/gazebo/components/Pose.hh",
+    "include/ignition/gazebo/components/RgbdCamera.hh",
+    "include/ignition/gazebo/components/Scene.hh",
+    "include/ignition/gazebo/components/SelfCollide.hh",
+    "include/ignition/gazebo/components/Sensor.hh",
+    "include/ignition/gazebo/components/Serialization.hh",
+    "include/ignition/gazebo/components/SourceFilePath.hh",
+    "include/ignition/gazebo/components/Static.hh",
+    "include/ignition/gazebo/components/Temperature.hh",
+    "include/ignition/gazebo/components/ThermalCamera.hh",
+    "include/ignition/gazebo/components/ThreadPitch.hh",
+    "include/ignition/gazebo/components/Transparency.hh",
+    "include/ignition/gazebo/components/Visibility.hh",
+    "include/ignition/gazebo/components/Visual.hh",
+    "include/ignition/gazebo/components/Wind.hh",
+    "include/ignition/gazebo/components/WindMode.hh",
+    "include/ignition/gazebo/components/World.hh",
+]
+
+public_headers_no_gen = [
+    "include/ignition/gazebo/Conversions.hh",
+    "include/ignition/gazebo/EntityComponentManager.hh",
+    "include/ignition/gazebo/Entity.hh",
+    "include/ignition/gazebo/EventManager.hh",
+    "include/ignition/gazebo/Events.hh",
+    "include/ignition/gazebo/Link.hh",
+    "include/ignition/gazebo/Model.hh",
+    "include/ignition/gazebo/SdfEntityCreator.hh",
+    "include/ignition/gazebo/ServerConfig.hh",
+    "include/ignition/gazebo/Server.hh",
+    "include/ignition/gazebo/System.hh",
+    "include/ignition/gazebo/SystemLoader.hh",
+    "include/ignition/gazebo/SystemPluginPtr.hh",
+    "include/ignition/gazebo/Types.hh",
+    "include/ignition/gazebo/Util.hh",
+    "include/ignition/gazebo/detail/ComponentStorageBase.hh",
+    "include/ignition/gazebo/detail/EntityComponentManager.hh",
+    "include/ignition/gazebo/detail/View.hh",
+    "include/ignition/gazebo/gui/GuiEvents.hh",
+    "include/ignition/gazebo/gui/Gui.hh",
+    "include/ignition/gazebo/gui/GuiRunner.hh",
+    "include/ignition/gazebo/gui/GuiSystem.hh",
+    "include/ignition/gazebo/gui/TmpIface.hh",
+    "include/ignition/gazebo/rendering/MarkerManager.hh",
+    "include/ignition/gazebo/rendering/RenderUtil.hh",
+    "include/ignition/gazebo/rendering/SceneManager.hh",
+]
+
+private_headers = [
+    "src/Barrier.hh",
+    "src/ign.hh",
+    "src/LevelManager.hh",
+    "src/SdfGenerator.hh",
+    "src/ServerPrivate.hh",
+    "src/SimulationRunner.hh",
+    "src/network/NetworkConfig.hh",
+    "src/network/NetworkManager.hh",
+    "src/network/NetworkManagerPrimary.hh",
+    "src/network/NetworkManagerSecondary.hh",
+    "src/network/NetworkManagerPrivate.hh",
+    "src/network/NetworkRole.hh",
+    "src/network/PeerInfo.hh",
+    "src/network/PeerTracker.hh",
+    "src/gui/GuiFileHandler.hh",
+]
+
+sources = [
+    "src/Barrier.cc",
+    "src/Conversions.cc",
+    "src/EntityComponentManager.cc",
+    "src/EventManager.cc",
+    "src/ign.cc",
+    "src/LevelManager.cc",
+    "src/Link.cc",
+    "src/Model.cc",
+    "src/SdfEntityCreator.cc",
+    "src/SdfGenerator.cc",
+    "src/Server.cc",
+    "src/ServerConfig.cc",
+    "src/ServerPrivate.cc",
+    "src/SimulationRunner.cc",
+    "src/System.cc",
+    "src/SystemLoader.cc",
+    "src/Util.cc",
+    "src/View.cc",
+    "src/gui/Gui.cc",
+    "src/gui/GuiFileHandler.cc",
+    "src/gui/GuiRunner.cc",
+    "src/gui/TmpIface.cc",
+    "src/network/NetworkConfig.cc",
+    "src/network/NetworkManager.cc",
+    "src/network/NetworkManagerPrimary.cc",
+    "src/network/NetworkManagerSecondary.cc",
+    "src/network/PeerInfo.cc",
+    "src/network/PeerTracker.cc",
+]
+
+test_sources = [
+    "src/Barrier_TEST.cc",
+    "src/ComponentFactory_TEST.cc",
+    "src/Component_TEST.cc",
+    "src/Conversions_TEST.cc",
+    "src/EntityComponentManager_TEST.cc",
+    "src/EventManager_TEST.cc",
+    "src/Link_TEST.cc",
+    "src/Model_TEST.cc",
+    "src/SdfEntityCreator_TEST.cc",
+    # "src/SdfGenerator_TEST.cc",
+    # "src/Server_TEST.cc",
+    "src/SimulationRunner_TEST.cc",
+    "src/SystemLoader_TEST.cc",
+    "src/System_TEST.cc",
+    "src/Util_TEST.cc",
+]
+
+systems = [
+    "air_pressure",
+    "altimeter",
+    "apply_joint_force",
+    "battery_plugin",
+    "breadcrumbs",
+    "contact",
+    "detachable_joint",
+    "diff_drive",
+    "follow_actor",
+    "imu",
+    "joint_controller",
+    "joint_state_publisher",
+    "lift_drag",
+    "log",
+    "logical_camera",
+    "log_video_recorder",
+    "magnetometer",
+    "multicopter_control",
+    "multicopter_motor_model",
+    "physics",
+    "pose_publisher",
+    "scene_broadcaster",
+    "sensors",
+    "thermal",
+    "touch_plugin",
+    "user_commands",
+    "wind_effects",
+]
+
+protos = glob(
+    ["src/msgs/*.proto"],
+    exclude = ["src/msgs/performer_affinity.proto"],
+)
+
+proto_library(
+    name = "performer_affinity_proto",
+    srcs = ["src/msgs/performer_affinity.proto"],
+    strip_import_prefix = "src/msgs",
+    deps = [
+        "//ign_msgs:ignmsgs_proto_public",
+    ],
+)
+
+proto_library(
+    name = "igngazebo_proto",
+    srcs = protos,
+    strip_import_prefix = "src",
+    deps = [
+        ":performer_affinity_proto",
+        "//ign_msgs:ignmsgs_proto_public",
+    ],
+)
+
+cc_proto_library(
+    name = "igngazebo_proto_cc",
+    deps = [
+        ":igngazebo_proto",
+    ],
+)
+'''
+
+cc_proto_library(
+    name = "gazebo_cc_proto",
+    deps = [
+        ":gazebo_proto",
+    ],
+)
+
+proto_library(
+    name = "gazebo_proto",
+    srcs = [
+        "src/msgs/simulation_step.proto",
+        "src/msgs/peer_control.proto",
+        "src/msgs/peer_info.proto",
+    ],
+    deps = [
+        "@com_google_protobuf//:empty_proto",
+        "//ign_msgs:ignmsgs_proto",
+        "performer_affinity_proto",
+    ],
+    strip_import_prefix = "src",
+)
+
+proto_library(
+    name = "performer_affinity_proto",
+    srcs = [
+        "src/msgs/performer_affinity.proto",
+    ],
+    deps = [
+        "@com_google_protobuf//:empty_proto",
+        "//ign_msgs:ignmsgs_proto",
+    ],
+    strip_import_prefix = "src/msgs",
+)
+'''
+generate_include_header(
+    name = "gazebohh_genrule",
+    out = "include/ignition/gazebo.hh",
+    hdrs = public_headers_no_gen + [
+        "include/ignition/gazebo/config.hh",
+        "include/ignition/gazebo/Export.hh",
+    ],
+)
+
+generate_include_header(
+    name = "gazebo_componentshh_genrule",
+    out = "include/ignition/gazebo/components/components.hh",
+    hdrs = public_component_headers_no_gen
+)
+
+public_headers = public_headers_no_gen + public_component_headers_no_gen + [
+    "include/ignition/gazebo/config.hh",
+    "include/ignition/gazebo/Export.hh",
+    "include/ignition/gazebo.hh",
+    "include/ignition/gazebo/components/components.hh",
+]
+
+cc_binary(
+    name = "libignition-gazebo4.so",
+    srcs = sources + private_headers + public_headers + [":igngazebo_proto_cc"],
+    includes = ["include"],
+    linkopts = ["-Wl,-soname,libignition-gazebo4.so", "-ltinyxml2"],
+    linkshared = True,
+    visibility = [],
+    copts = [
+        "-Iexternal/qt/QtCore",
+        "-Iexternal/qt/QtGui",
+        "-Iexternal/qt/QtQml",
+        "-Iexternal/qt/QtQuick",
+        "-Iexternal/qt/QtQuickControls2",
+        "-Iexternal/qt/QtWidgets",
+        "-Iexternal/qt",
+    ],
+    deps = [
+        ":igngazebo_proto_cc",
+        "//ign_common",
+        "//ign_gui",
+        "//ign_fuel_tools",
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_plugin/core:ign_plugin",
+        "//ign_plugin/loader:loader",
+        "//ign_common/profiler:profiler",
+        "//ign_common/events:events",
+        "//ign_msgs",
+        "//sdformat",
+        "@qt//:headers",
+    ],
+)
+
+cc_library(
+    name = "ign_gazebo",
+    srcs = ["libignition-gazebo4.so"],
+    hdrs = public_headers,
+    includes = ["include", "src"],
+    visibility = ["//visibility:public"],
+)
+
+[
+
+cc_binary(
+    name = "libignition-gazebo4-%s.so" % system.replace("_", "-"),
+    srcs = glob([  
+        "src/systems/%s/*.cc" % system,
+        "src/systems/%s/*.hh" % system,
+    ],
+    allow_empty = False,
+    ),
+    includes = ["include"],
+    linkopts = ["-Wl,-soname,libignition-gazebo4-%s.so" % system.replace("_", "-")],
+    linkshared = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_gazebo",
+        "//ign_common",
+        "//ign_physics",
+        "//ign_physics/mesh:mesh",
+        "//ign_physics/sdf:sdf",
+        "//ign_gui",
+        "//ign_fuel_tools",
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_transport/log:log",
+        "//ign_sensors",
+        "//ign_rendering",
+        "//ign_plugin/core:ign_plugin",
+        "//ign_plugin/loader:loader",
+        "//ign_plugin/register:register",
+        "//ign_common/profiler:profiler",
+        "//ign_common/events:events",
+        "//ign_common/graphics:graphics",
+        "//ign_msgs",
+        "//ign_math/eigen3:eigen3",
+        "//sdformat",
+    ],
+
+) for system in systems]
+
+[
+cc_library(
+    name = system,
+    srcs = [  
+        "libignition-gazebo4-%s.so" % system.replace("_", "-")
+    ],
+    hdrs = glob([
+        "src/systems/%s/*.hh" % system,
+    ],
+    allow_empty = False,
+    ),
+    deps = [
+        "//ign_gazebo",
+        "//ign_common",
+        "//ign_physics",
+        "//ign_physics/mesh:mesh",
+        "//ign_physics/sdf:sdf",
+        "//ign_gui",
+        "//ign_fuel_tools",
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_transport/log:log",
+        "//ign_sensors",
+        "//ign_rendering",
+        "//ign_plugin/core:ign_plugin",
+        "//ign_plugin/loader:loader",
+        "//ign_plugin/register:register",
+        "//ign_common/profiler:profiler",
+        "//ign_common/events:events",
+        "//ign_common/graphics:graphics",
+        "//ign_msgs",
+        "//ign_math/eigen3:eigen3",
+        "//sdformat",
+    ],
+) for system in systems]
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src] + private_headers,
+    deps = [
+        "//ign_bazel:utilities",
+        "//ign_gazebo/test:test_utils",
+        "//ign_gazebo",
+        "//ign_msgs",
+        "//sdformat",
+        "//ign_common",
+        "//ign_physics",
+        "//ign_physics/mesh:mesh",
+        "//ign_physics/sdf:sdf",
+        "//ign_gui",
+        "//ign_fuel_tools",
+        "//ign_transport",
+        "//ign_transport/log:log",
+        "//ign_sensors",
+        "//ign_rendering",
+        "//ign_plugin/core:ign_plugin",
+        "//ign_plugin/loader:loader",
+        "//ign_plugin/register:register",
+        "//ign_common/profiler:profiler",
+        "//ign_common/events:events",
+        "//ign_common/graphics:graphics",
+        "//ign_math/eigen3:eigen3",
+        "@gtest//:gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in test_sources]
