@@ -61,6 +61,17 @@ TEST(Vector4dTest, Vector4d)
   v.Set(2, 4, 6, 8);
   EXPECT_EQ(v, math::Vector4d(2, 4, 6, 8));
 
+  // ::DotProd
+  EXPECT_TRUE(math::equal(60.0, v.Dot(math::Vector4d(1, 2, 3, 4)), 1e-2));
+
+  // ::AbsDotProd
+  v1.Set(-1, -2, -3, -4);
+  EXPECT_TRUE(math::equal(60.0, v.AbsDot(v1), 1e-2));
+
+  // ::GetAbs
+  EXPECT_TRUE(v1.Abs() == math::Vector4d(1, 2, 3, 4));
+  EXPECT_TRUE(v.Abs() == math::Vector4d(2, 4, 6, 8));
+
   // ::operator= vector4
   v = v1;
   EXPECT_EQ(v, v1);

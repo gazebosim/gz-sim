@@ -115,6 +115,43 @@ namespace ignition
         }
       }
 
+      /// \brief Return the dot product of this vector and another vector
+      /// \param[in] _v the vector
+      /// \return the dot product
+      public: T Dot(const Vector4<T> &_v) const
+      {
+        return this->data[0] * _v[0] +
+               this->data[1] * _v[1] +
+               this->data[2] * _v[2] +
+               this->data[3] * _v[3];
+      }
+
+      /// \brief Return the absolute dot product of this vector and
+      /// another vector. This is similar to the Dot function, except the
+      /// absolute value of each component of the vector is used.
+      ///
+      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 * z2) + abs(w1 * w2)
+      ///
+      /// \param[in] _v the vector
+      /// \return The absolute dot product
+      public: T AbsDot(const Vector4<T> &_v) const
+      {
+        return std::abs(this->data[0] * _v[0]) +
+               std::abs(this->data[1] * _v[1]) +
+               std::abs(this->data[2] * _v[2]) +
+               std::abs(this->data[3] * _v[3]);
+      }
+
+      /// \brief Get the absolute value of the vector
+      /// \return a vector with positive elements
+      public: Vector4 Abs() const
+      {
+        return Vector4(std::abs(this->data[0]),
+                       std::abs(this->data[1]),
+                       std::abs(this->data[2]),
+                       std::abs(this->data[3]));
+      }
+
       /// \brief Set the contents of the vector
       /// \param[in] _x value along x axis
       /// \param[in] _y value along y axis
