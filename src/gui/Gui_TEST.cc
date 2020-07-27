@@ -16,9 +16,11 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/StringUtils.hh>
-#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/gui/Gui.hh"
