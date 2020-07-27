@@ -63,6 +63,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /// \brief Private data class for VisualizeContacts
   class VisualizeContactsPrivate
   {
+    /// \brief Creates ContactSensorData for Collision components without a
+    /// Contact Sensor by requesting the /enable_contact service
+    /// \param[in] Reference to the GUI Entity Component Manager
+    public: void CreateCollisionData(EntityComponentManager &_ecm);
+
     /// \brief Transport node
     public: transport::Node node;
 
@@ -78,19 +83,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Message for visualizing contact forces
     public: ignition::msgs::Marker forceMarkerMsg;
 
-    /// \brief Length of the visualized force cylinder
-    public: double forceLenght{0.40};
+    /// \brief Scale of the visualized force cylinder. By scale we mean how
+    /// many meters per newton the marker will be long
+    public: double forceScale{0.40};
 
     /// \brief Update time of the markers in milliseconds
-    public: int64_t markerLifetime{350};
+    public: int64_t markerLifetime{200};
 
     /// \brief Simulation time for the last markers update
     public: std::chrono::steady_clock::duration lastMarkersUpdateTime{0};
 
     /// \brief Mutex for variable mutated by the checkbox and spinboxes
     /// callbacks.
-    /// The variables are: checkboxState, contactRadius and forceLenght.
+    /// The variables are: checkboxState, contactRadius, forceScale and
+    /// markerLifetime
     public: std::mutex serviceMutex;
+
+    /// \brief Initialization flag
+    public: bool initialized{false};
+
+    /// \brief Name of the world
+    public: std::string worldName;
   };
 }
 }
@@ -115,7 +128,7 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Visualize contacts";
 
   ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+    ignition::gui::MainWindow *>()->installEventFilter(this);
 
   // Configure Marker messages for position and force of the contacts
 
@@ -125,75 +138,66 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
   // Create the marker message
   this->dataPtr->positionMarkerMsg.set_ns("positions");
   this->dataPtr->positionMarkerMsg.set_action(
-      ignition::msgs::Marker::ADD_MODIFY);
+    ignition::msgs::Marker::ADD_MODIFY);
   this->dataPtr->positionMarkerMsg.set_type(
-      ignition::msgs::Marker::SPHERE);
+    ignition::msgs::Marker::SPHERE);
   this->dataPtr->positionMarkerMsg.set_visibility(
-      ignition::msgs::Marker::GUI);
+    ignition::msgs::Marker::GUI);
   this->dataPtr->
-      positionMarkerMsg.mutable_lifetime()->
-        set_sec(0);
+    positionMarkerMsg.mutable_lifetime()->
+      set_sec(0);
   this->dataPtr->
-      positionMarkerMsg.mutable_lifetime()->
-        set_nsec(this->dataPtr->markerLifetime * 1000000);
+    positionMarkerMsg.mutable_lifetime()->
+      set_nsec(this->dataPtr->markerLifetime * 1000000);
 
   this->dataPtr->forceMarkerMsg.set_ns("forces");
-  this->dataPtr->forceMarkerMsg.set_action(
-      ignition::msgs::Marker::ADD_MODIFY);
-  this->dataPtr->forceMarkerMsg.set_type(
-      ignition::msgs::Marker::CYLINDER);
-  this->dataPtr->forceMarkerMsg.set_visibility(
-      ignition::msgs::Marker::GUI);
-  this->dataPtr->
-      forceMarkerMsg.mutable_lifetime()->
-        set_sec(0);
-  this->dataPtr->
-      forceMarkerMsg.mutable_lifetime()->
-        set_nsec(this->dataPtr->markerLifetime * 1000000);
+  this->dataPtr->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  this->dataPtr->forceMarkerMsg.set_type(ignition::msgs::Marker::CYLINDER);
+  this->dataPtr->forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+  this->dataPtr->forceMarkerMsg.mutable_lifetime()->set_sec(0);
+  this->dataPtr->forceMarkerMsg.mutable_lifetime()->
+    set_nsec(this->dataPtr->markerLifetime * 1000000);
 
   // Set material properties
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
+    positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
+    positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
+    positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
+    positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
+    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
+    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
   this->dataPtr->
-      positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
 
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
+    forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
+    forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
+    forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
+    forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
+    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
+    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
   this->dataPtr->
-      forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
 
-  // Set scales
+  // Set contact position scale
   ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-      ignition::math::Vector3d(this->dataPtr->contactRadius,
-      this->dataPtr->contactRadius,
-      this->dataPtr->contactRadius));
-
-  ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
-      ignition::math::Vector3d(0.02, 0.02, this->dataPtr->forceLenght));
+    ignition::math::Vector3d(this->dataPtr->contactRadius,
+    this->dataPtr->contactRadius,
+    this->dataPtr->contactRadius));
 }
 
 /////////////////////////////////////////////////
@@ -215,6 +219,27 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
       return;
   }
 
+  if (!this->dataPtr->initialized)
+  {
+    // Get the name of the world
+    if (this->dataPtr->worldName.empty())
+    {
+      _ecm.Each<components::World, components::Name>(
+        [&](const Entity &,
+            const components::World *,
+            const components::Name *_name) -> bool
+        {
+          // We assume there's only one world
+          this->dataPtr->worldName = _name->Data();
+          return false;
+        });
+    }
+
+    // Enable collisions
+    this->dataPtr->CreateCollisionData(_ecm);
+    this->dataPtr->initialized = true;
+  }
+
   // Only publish markers if enough time has passed
   auto timeDiff =
     std::chrono::duration_cast<std::chrono::milliseconds>(_info.simTime -
@@ -232,28 +257,47 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
   // Get the contacts and publish them
   // Since we are setting a lifetime for the markers, we get all the
   // contacts instead of getting news and removed ones
+
+  // Variable for setting the markers id through the iteration
+  int markerID = 1;
   _ecm.Each<components::ContactSensorData>(
     [&](const Entity &,
         const components::ContactSensorData *_contacts) -> bool
     {
-      for (const auto contact : _contacts->Data().contact())
+      for (const auto &contact : _contacts->Data().contact())
       {
         // todo(anyone) add information about contact normal, depth
         // and wrench
         for (int i = 0; i < contact.position_size(); ++i)
         {
-          // Set marker poses and request service
+          // Skip dummy data set by physics
+          bool dataIsDummy = std::fabs(
+            contact.position(i).x() -
+            static_cast<float>(ignition::math::NAN_I)) < 0.001;
+          if (dataIsDummy)
+            return true;
+
+          // Set marker id, poses and request service
+          this->dataPtr->positionMarkerMsg.set_id(markerID);
           ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
             ignition::math::Pose3d(contact.position(i).x(),
               contact.position(i).y(), contact.position(i).z(),
               0, 0, 0));
 
+          // Placeholder for the force value (see todo comment above)
+          double force = 1;
+
+          double forceLength = this->dataPtr->forceScale * force;
+          ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
+            ignition::math::Vector3d(0.02, 0.02, forceLength));
+
           // The position of the force marker is modified in order to place the
           // end of the cylinder in the contact point, not its middle point
+          this->dataPtr->forceMarkerMsg.set_id(markerID++);
           ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_pose(),
             ignition::math::Pose3d(contact.position(i).x(),
               contact.position(i).y(),
-              contact.position(i).z() + this->dataPtr->forceLenght/2,
+              contact.position(i).z() + forceLength/2,
               0, 0, 0));
 
           this->dataPtr->node.Request(
@@ -267,14 +311,49 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void VisualizeContacts::UpdateLength(double _length)
+void VisualizeContactsPrivate::CreateCollisionData(
+                              EntityComponentManager &_ecm)
+{
+  // Collisions can't be enabled with _ecm given that this is a GUI plugin and
+  // it doesn't run in the same process as the physics.
+  // We use the world/<name>/enable_collision service instead.
+  _ecm.Each<components::Collision>(
+    [&](const Entity &_entity,
+        const components::Collision *) -> bool
+    {
+      // Check if ContactSensorData has already been created
+      bool collisionHasContactSensor =
+        _ecm.EntityHasComponentType(_entity,
+          components::ContactSensorData::typeId);
+
+      if (collisionHasContactSensor)
+      {
+        igndbg << "ContactSensorData detected in collision [" << _entity << "]"
+          << std::endl;
+        return true;
+      }
+
+      // Request service for enabling collision
+      msgs::Entity req;
+      req.set_id(_entity);
+      req.set_type(msgs::Entity::COLLISION);
+
+      msgs::Boolean res;
+      bool result;
+      unsigned int timeout = 50;
+      std::string service = "/world/" + this->worldName + "/enable_collision";
+
+      this->node.Request(service, req, timeout, res, result);
+
+      return true;
+    });
+}
+
+//////////////////////////////////////////////////
+void VisualizeContacts::UpdateScale(double _scale)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->forceLenght = _length;
-
-  // Set scale
-  ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
-      ignition::math::Vector3d(0.02, 0.02, this->dataPtr->forceLenght));
+  this->dataPtr->forceScale = _scale;
 }
 
 //////////////////////////////////////////////////
@@ -285,9 +364,23 @@ void VisualizeContacts::UpdateRadius(double _radius)
 
   // Set scale
   ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-      ignition::math::Vector3d(this->dataPtr->contactRadius,
-      this->dataPtr->contactRadius,
-      this->dataPtr->contactRadius));
+    ignition::math::Vector3d(this->dataPtr->contactRadius,
+    this->dataPtr->contactRadius,
+    this->dataPtr->contactRadius));
+}
+
+//////////////////////////////////////////////////
+void VisualizeContacts::UpdatePeriod(double _period)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->markerLifetime = _period;
+
+  // Set markers lifetime
+  this->dataPtr->
+    positionMarkerMsg.mutable_lifetime()->set_nsec(_period * 1000000);
+
+  this->dataPtr->
+    forceMarkerMsg.mutable_lifetime()->set_nsec(_period * 1000000);
 }
 
 // Register this plugin

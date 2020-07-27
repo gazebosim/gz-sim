@@ -222,11 +222,6 @@ Contacts will be visualized as blue spheres and green cylinders.
             </box>
           </geometry>
         </collision>
-        <sensor name="contact_sensor" type="contact">
-          <contact>
-            <collision>collision</collision>
-          </contact>
-        </sensor>
       </link>
 
       <link name='left_wheel'>
@@ -300,11 +295,6 @@ Contacts will be visualized as blue spheres and green cylinders.
             </sphere>
           </geometry>
         </collision>
-        <sensor name="contact_sensor" type="contact">
-          <contact>
-            <collision>collision</collision>
-          </contact>
-        </sensor>
       </link>
 
       <link name='caster'>
@@ -339,11 +329,6 @@ Contacts will be visualized as blue spheres and green cylinders.
             </sphere>
           </geometry>
         </collision>
-        <sensor name="contact_sensor" type="contact">
-          <contact>
-            <collision>collision</collision>
-          </contact>
-        </sensor>
       </link>
 
       <joint name='left_wheel_joint' type='revolute'>

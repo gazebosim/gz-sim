@@ -61,9 +61,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in] _radius new radius of the contact
     public slots: void UpdateRadius(double _radius);
 
-    /// \brief Update the length of the contact
-    /// \param[in] _length new length of the contact
-    public slots: void UpdateLength(double _length);
+    /// \brief Update the scale of the contact. By scale we mean how many
+    /// meters per newton the marker will be long
+    /// \param[in] _scale new scale of the contact
+    public slots: void UpdateScale(double _scale);
+
+    /// \brief Update the update period of the markers
+    /// \param[in] _period new update period
+    public slots: void UpdatePeriod(double _period);
 
     /// \internal
     /// \brief Pointer to private data

@@ -251,15 +251,15 @@ class ignition::gazebo::systems::PhysicsPrivate
                         return false;
                       }
 
-                      for (int i = 0 ; i < _a.contact_size() ; ++i)
+                      for (int i = 0; i < _a.contact_size(); ++i)
                       {
                         if (_a.contact(i).position_size() !=
                             _b.contact(i).position_size())
                         {
-                        return false;
+                          return false;
                         }
 
-                        for (int j = 0 ; j < _a.contact(i).position_size() ;
+                        for (int j = 0; j < _a.contact(i).position_size();
                           ++j)
                         {
                           auto pos1 = _a.contact(i).position(j);
@@ -1954,28 +1954,40 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
+        msgs::Contacts contactsComp;
         if (entityContactMap.find(_collEntity1) == entityContactMap.end())
         {
           // Clear the last contact data
           *_contacts = components::ContactSensorData();
-          return true;
-        }
 
-        const auto &contactMap = entityContactMap[_collEntity1];
-
-        msgs::Contacts contactsComp;
-
-        for (const auto &[collEntity2, contactData] : contactMap)
-        {
+          // If there's an empty ContactSensorData, it won't be updated in the
+          // GUI ECM and there could be remaining contacts which shouldn't
+          // exist anymore. We insert dummy data in the empty ContactSensorData
+          // in order to avoid this problem.
           msgs::Contact *contactMsg = contactsComp.add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
-          contactMsg->mutable_collision2()->set_id(collEntity2);
-          for (const auto &contact : contactData)
+          contactMsg->mutable_collision2()->set_id(_collEntity1);
+          auto *position = contactMsg->add_position();
+          position->set_x(ignition::math::NAN_I);
+          position->set_y(ignition::math::NAN_I);
+          position->set_z(ignition::math::NAN_I);
+        }
+        else
+        {
+          const auto &contactMap = entityContactMap[_collEntity1];
+
+          for (const auto &[collEntity2, contactData] : contactMap)
           {
-            auto *position = contactMsg->add_position();
-            position->set_x(contact->point.x());
-            position->set_y(contact->point.y());
-            position->set_z(contact->point.z());
+            msgs::Contact *contactMsg = contactsComp.add_contact();
+            contactMsg->mutable_collision1()->set_id(_collEntity1);
+            contactMsg->mutable_collision2()->set_id(collEntity2);
+            for (const auto &contact : contactData)
+            {
+              auto *position = contactMsg->add_position();
+              position->set_x(contact->point.x());
+              position->set_y(contact->point.y());
+              position->set_z(contact->point.z());
+            }
           }
         }
 
@@ -1985,8 +1997,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           ComponentState::NoChange;
         _ecm.SetChanged(
           _collEntity1, components::ContactSensorData::typeId, state);
-
-        *_contacts = components::ContactSensorData(contactsComp);
 
         return true;
       });

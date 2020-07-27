@@ -39,7 +39,7 @@ GridLayout {
     Layout.alignment: Qt.AlignHCenter
     id: visualizeContacts
     Layout.columnSpan: 4
-    text: qsTr("Show/Hide Contacts")
+    text: qsTr("Show Contacts")
     checked: false
     onClicked: {
       VisualizeContacts.OnVisualize(checked)
@@ -64,7 +64,7 @@ GridLayout {
     Layout.columnSpan: 2
     id: radiusText
     color: "dimgrey"
-    text: "Radius"
+    text: "Radius (m)"
   }
 
   IgnSpinBox {
@@ -80,19 +80,37 @@ GridLayout {
 
   Text {
     Layout.columnSpan: 2
-    id: lengthText
+    id: scaleText
     color: "dimgrey"
-    text: "Length"
+    text: "Force scale (m/N)"
   }
 
   IgnSpinBox {
     Layout.columnSpan: 2
-    id: length
+    id: scale
     maximumValue: 2.00
     minimumValue: 0.01
     value: 0.40
     decimals: 2
     stepSize: 0.05
-    onEditingFinished: VisualizeContacts.UpdateLength(length.value)
+    onEditingFinished: VisualizeContacts.UpdateScale(scale.value)
+  }
+
+  Text {
+    Layout.columnSpan: 2
+    id: updatePeriodText
+    color: "dimgrey"
+    text: "Update period (ms)"
+  }
+
+  IgnSpinBox {
+    Layout.columnSpan: 2
+    id: updatePeriod
+    maximumValue: 2000
+    minimumValue: 10
+    value: 200
+    decimals: 0
+    stepSize: 50
+    onEditingFinished: VisualizeContacts.UpdatePeriod(updatePeriod.value)
   }
 }
