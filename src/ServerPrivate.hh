@@ -89,6 +89,11 @@ namespace ignition
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResource(const std::string &_uri);
 
+      /// \brief Fetch a resource from Fuel using fuel-tools.
+      /// \param[in] _uri The resource URI to fetch.
+      /// \return Path to the downloaded resource, empty on error.
+      public: std::string FetchResourceUri(const common::URI &_uri);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);

@@ -17,6 +17,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
 
 // Include all components so they have first-class support
@@ -33,6 +34,11 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 {
   this->setProperty("worldName", QString::fromStdString(_worldName));
   this->stateTopic = "/world/" + _worldName + "/state";
+
+  common::addFindFileURICallback([] (common::URI _uri)
+  {
+    return fuel_tools::fetchResource(_uri.Str());
+  });
 
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
          << std::endl;
