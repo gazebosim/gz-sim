@@ -162,7 +162,7 @@ for dependency installation instructions for each supported operating system.
     ```
 
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libignition-gui3-dev libignition-msgs5-dev libsdformat9-dev
+    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport9-dev libignition-gui4-dev libignition-msgs6-dev libsdformat10-dev
     ```
 
 ### Building from source
@@ -228,8 +228,8 @@ line is using symbolic links to each library's YAML file.
 mkdir ~/.ignition/tools/configs -p
 cd ~/.ignition/tools/configs/
 ln -s /usr/local/share/ignition/fuel4.yaml .
-ln -s /usr/local/share/ignition/transport7.yaml .
-ln -s /usr/local/share/ignition/transportlog7.yaml .
+ln -s /usr/local/share/ignition/transport9.yaml .
+ln -s /usr/local/share/ignition/transportlog9.yaml .
 ...
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```
