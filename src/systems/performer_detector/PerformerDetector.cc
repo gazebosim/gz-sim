@@ -82,6 +82,39 @@ void PerformerDetector::Configure(const Entity &_entity,
     this->poseOffset = sdfClone->Get<math::Pose3d>("pose");
   }
 
+  // Load optional header data.
+  if (sdfClone->HasElement("header_data"))
+  {
+    auto headerElem = sdfClone->GetElement("header_data");
+    while (headerElem)
+    {
+      std::string key = headerElem->Get<std::string>("key", "").first;
+      std::string value = headerElem->Get<std::string>("value", "").first;
+      if (!key.empty() && !value.empty())
+        this->extraHeaderData[key] = value;
+      else if (key.empty() && !value.empty())
+      {
+        ignerr << "Performer detector[" << this->detectorName << "] has an "
+          << "empty <key> with an associated <value> of [" << value << "]. "
+          << "This <header_data> will be ignored.\n";
+      }
+      else if (value.empty() && !key.empty())
+      {
+        ignerr << "Performer detector[" << this->detectorName << "] has an "
+          << "empty <value> with an associated <key> of [" << key << "]. "
+          << "This <header_data> will be ignored.\n";
+      }
+      else
+      {
+        ignerr << "Performer detector[" << this->detectorName << "] has an "
+          << "empty <header_data> element. This <header_data> will be "
+          << "ignored\n";
+      }
+
+      headerElem = headerElem->GetNextElement("header_data");
+    }
+  }
+
   std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
                              "/performer_detector/status"};
   auto topic = _sdf->Get<std::string>("topic", defaultTopic).first;
@@ -199,6 +232,14 @@ void PerformerDetector::Publish(
     auto *headerData = msg.mutable_header()->add_data();
     headerData->set_key("state");
     headerData->add_value(std::to_string(_state));
+  }
+
+  // Include the optional extra header data.
+  for (const auto &data : this->extraHeaderData)
+  {
+    auto *headerData = msg.mutable_header()->add_data();
+    headerData->set_key(data.first);
+    headerData->add_value(data.second);
   }
 
   this->pub.Publish(msg);

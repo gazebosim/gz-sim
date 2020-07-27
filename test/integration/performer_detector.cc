@@ -73,6 +73,44 @@ TEST_F(PerformerDetectorTest, MovingPerformer)
       {
         std::lock_guard<std::mutex> lock(this->poseMsgsMutex);
         this->poseMsgs.push_back(_msg);
+
+        std::string detectorName;
+        for (int i = 0; i < _msg.header().data_size(); ++i)
+        {
+          if (_msg.header().data(i).key() == "frame_id")
+            detectorName = _msg.header().data(i).value(0);
+        }
+
+        bool hasUniqueKey = false;
+        bool hasDuplicateKey = false;
+        for (int i = 0; i < _msg.header().data_size(); ++i)
+        {
+          EXPECT_NE(_msg.header().data(i).key(), "no_value");
+          EXPECT_NE(_msg.header().data(i).value(0), "no_key");
+          EXPECT_NE(_msg.header().data(i).value(0), "first_value");
+          if (_msg.header().data(i).key() == "unique_key")
+          {
+            EXPECT_EQ(_msg.header().data(i).value(0), "unique_value");
+            hasUniqueKey  = true;
+          }
+          else if (_msg.header().data(i).key() == "duplicate_key")
+          {
+            EXPECT_EQ(_msg.header().data(i).value(0), "second_value");
+            hasDuplicateKey  = true;
+          }
+        }
+        if (detectorName == "detector1")
+        {
+          EXPECT_EQ(4, _msg.header().data_size());
+          EXPECT_TRUE(hasDuplicateKey);
+          EXPECT_TRUE(hasUniqueKey);
+        }
+        else
+        {
+          EXPECT_EQ(2, _msg.header().data_size());
+          EXPECT_FALSE(hasDuplicateKey);
+          EXPECT_FALSE(hasUniqueKey);
+        }
       });
 
   node.Subscribe("/performer_detector", detectorCb);
