@@ -23,8 +23,9 @@ import "qrc:/qml"
 GridLayout {
   columns: 6
   columnSpacing: 10
-  Layout.minimumWidth: 200
+  Layout.minimumWidth: 250
   Layout.minimumHeight: 200
+  anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
@@ -54,13 +55,6 @@ GridLayout {
   }
 
   Text {
-    Layout.columnSpan: 4
-    text: "Markers size"
-    color: "dimgrey"
-    font.bold: true
-  }
-
-  Text {
     Layout.columnSpan: 2
     id: radiusText
     color: "dimgrey"
@@ -69,6 +63,7 @@ GridLayout {
 
   IgnSpinBox {
     Layout.columnSpan: 2
+    Layout.fillWidth: true
     id: radius
     maximumValue: 2.00
     minimumValue: 0.01
@@ -87,6 +82,7 @@ GridLayout {
 
   IgnSpinBox {
     Layout.columnSpan: 2
+    Layout.fillWidth: true
     id: scale
     maximumValue: 2.00
     minimumValue: 0.01
@@ -105,6 +101,7 @@ GridLayout {
 
   IgnSpinBox {
     Layout.columnSpan: 2
+    Layout.fillWidth: true
     id: updatePeriod
     maximumValue: 2000
     minimumValue: 10

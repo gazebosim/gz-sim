@@ -74,6 +74,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Current state of the checkbox
     public: bool checkboxState{false};
 
+    /// \brief Previous state of the checkbox
+    public: bool checkboxPrevState{false};
+
     /// \brief Message for visualizing contact positions
     public: ignition::msgs::Marker positionMarkerMsg;
 
@@ -213,12 +216,6 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
 {
   IGN_PROFILE("VisualizeContacts::Update");
 
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-    if (!this->dataPtr->checkboxState)
-      return;
-  }
-
   if (!this->dataPtr->initialized)
   {
     // Get the name of the world
@@ -238,6 +235,34 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
     // Enable collisions
     this->dataPtr->CreateCollisionData(_ecm);
     this->dataPtr->initialized = true;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+    if (this->dataPtr->checkboxPrevState && !this->dataPtr->checkboxState)
+    {
+      // Remove the markers
+      this->dataPtr->positionMarkerMsg.set_action(
+        ignition::msgs::Marker::DELETE_ALL);
+      this->dataPtr->forceMarkerMsg.set_action(
+        ignition::msgs::Marker::DELETE_ALL);
+
+      igndbg << "Removing markers..." << std::endl;
+      this->dataPtr->node.Request(
+        "/marker", this->dataPtr->positionMarkerMsg);
+      this->dataPtr->node.Request(
+        "/marker", this->dataPtr->forceMarkerMsg);
+
+      // Change action in case checkbox is checked again
+      this->dataPtr->positionMarkerMsg.set_action(
+        ignition::msgs::Marker::ADD_MODIFY);
+      this->dataPtr->forceMarkerMsg.set_action(
+        ignition::msgs::Marker::ADD_MODIFY);
+    }
+
+    this->dataPtr->checkboxPrevState = this->dataPtr->checkboxState;
+    if (!this->dataPtr->checkboxState)
+      return;
   }
 
   // Only publish markers if enough time has passed
