@@ -29,6 +29,7 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
@@ -133,6 +134,14 @@ void PerformerDetector::PostUpdate(
   const ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PerformerDetector::PostUpdate");
+
+  if (this->initialized && !this->model.Valid(_ecm))
+  {
+    // Deactivate this performer if the parent model has been removed, for
+    // example, by the level manager
+    this->initialized = false;
+    return;
+  }
 
   if (_info.paused)
     return;
