@@ -22,9 +22,13 @@
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -40,11 +44,13 @@ class PerformerDetectorTest : public ::testing::Test
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
 
-  protected: std::unique_ptr<Server> StartServer(const std::string &_filePath)
+  protected: std::unique_ptr<Server> StartServer(const std::string &_filePath,
+                                      bool _useLevels = false)
   {
     ServerConfig serverConfig;
     const auto sdfFile = std::string(PROJECT_SOURCE_PATH) + _filePath;
     serverConfig.SetSdfFile(sdfFile);
+    serverConfig.SetUseLevels(_useLevels);
 
     auto server = std::make_unique<Server>(serverConfig);
     EXPECT_FALSE(server->Running());
@@ -73,6 +79,44 @@ TEST_F(PerformerDetectorTest, MovingPerformer)
       {
         std::lock_guard<std::mutex> lock(this->poseMsgsMutex);
         this->poseMsgs.push_back(_msg);
+
+        std::string detectorName;
+        for (int i = 0; i < _msg.header().data_size(); ++i)
+        {
+          if (_msg.header().data(i).key() == "frame_id")
+            detectorName = _msg.header().data(i).value(0);
+        }
+
+        bool hasUniqueKey = false;
+        bool hasDuplicateKey = false;
+        for (int i = 0; i < _msg.header().data_size(); ++i)
+        {
+          EXPECT_NE(_msg.header().data(i).key(), "no_value");
+          EXPECT_NE(_msg.header().data(i).value(0), "no_key");
+          EXPECT_NE(_msg.header().data(i).value(0), "first_value");
+          if (_msg.header().data(i).key() == "unique_key")
+          {
+            EXPECT_EQ(_msg.header().data(i).value(0), "unique_value");
+            hasUniqueKey  = true;
+          }
+          else if (_msg.header().data(i).key() == "duplicate_key")
+          {
+            EXPECT_EQ(_msg.header().data(i).value(0), "second_value");
+            hasDuplicateKey  = true;
+          }
+        }
+        if (detectorName == "detector1")
+        {
+          EXPECT_EQ(4, _msg.header().data_size());
+          EXPECT_TRUE(hasDuplicateKey);
+          EXPECT_TRUE(hasUniqueKey);
+        }
+        else
+        {
+          EXPECT_EQ(2, _msg.header().data_size());
+          EXPECT_FALSE(hasDuplicateKey);
+          EXPECT_FALSE(hasUniqueKey);
+        }
       });
 
   node.Subscribe("/performer_detector", detectorCb);
@@ -138,4 +182,75 @@ TEST_F(PerformerDetectorTest, MovingPerformer)
   EXPECT_NEAR(-1, this->poseMsgs[1].position().y(), 1e-2);
   EXPECT_NEAR(2.5, this->poseMsgs[3].position().x(), 1e-2);
   EXPECT_NEAR(-1, this->poseMsgs[3].position().y(), 1e-2);
+}
+
+/////////////////////////////////////////////////
+// Test that Performer detector handles the case where the associated model is
+// removed, for example, by the level manager
+TEST_F(PerformerDetectorTest, HandlesRemovedParentModel)
+{
+  auto server = this->StartServer("/test/worlds/performer_detector.sdf", true);
+
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &_info,
+                             gazebo::EntityComponentManager &_ecm)
+  {
+    Entity vehicle = _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle_blue"));
+    ASSERT_FALSE(kNullEntity == vehicle);
+
+    if (_info.iterations == 2)
+    {
+      // Move vehicle out of level1
+      _ecm.CreateComponent(vehicle,
+          components::WorldPoseCmd(math::Pose3d({-100, 0, 0}, {})));
+    }
+    else if (_info.iterations == 4)
+    {
+      auto pose = _ecm.Component<components::Pose>(vehicle);
+      EXPECT_NEAR(-100.0, pose->Data().Pos().X(), 1e-3);
+      ASSERT_TRUE(nullptr == _ecm.Component<components::WorldPoseCmd>(vehicle));
+
+      // Move vehicle back into level1 and in the detectors' region
+      _ecm.CreateComponent(vehicle,
+          components::WorldPoseCmd(math::Pose3d({5, 2, 0.325}, {})));
+    }
+    else if (_info.iterations == 5)
+    {
+      auto pose = _ecm.Component<components::Pose>(vehicle);
+      EXPECT_NEAR(5, pose->Data().Pos().X(), 1e-3);
+    }
+  });
+
+  server->AddSystem(testSystem.systemPtr);
+
+  transport::Node node;
+  auto cmdVelPub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+
+  auto detectorCb = std::function<void(const msgs::Pose &)>(
+      [this](const auto &_msg)
+      {
+        std::lock_guard<std::mutex> lock(this->poseMsgsMutex);
+        this->poseMsgs.push_back(_msg);
+      });
+
+  node.Subscribe("/performer_detector", detectorCb);
+
+  server->Run(true, 10, false);
+
+  // Wait for messages to arrive in poseMsgs or a timeout is reached
+  const auto timeOut = 5s;
+  auto tInit = std::chrono::steady_clock::now();
+  auto tNow = tInit;
+  while (tNow - tInit < timeOut)
+  {
+    std::this_thread::sleep_for(100ms);
+
+    std::lock_guard<std::mutex> lock(this->poseMsgsMutex);
+    if (this->poseMsgs.size() >= 1)
+      break;
+
+    tNow = std::chrono::steady_clock::now();
+  }
+  EXPECT_EQ(2u, this->poseMsgs.size());
 }
