@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
@@ -31,12 +32,12 @@
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 
+#include <set>
+
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-#include <QGuiApplication>
 
 #include "ResourceSpawner.hh"
-#include <set>
 
 namespace ignition::gazebo
 {
@@ -51,19 +52,23 @@ namespace ignition::gazebo
     /// \brief The path list model that the qml treeview reflects
     public: PathModel pathModel;
 
-    /// \brief The grid model that the qml gridview reflects
-    public: GridModel fuelGridModel;
-
     /// \brief The path list model that the qml treeview reflects
     public: PathModel ownerModel;
 
-    public: std::unique_ptr<ignition::fuel_tools::FuelClient> fuelClient = nullptr;
+    /// \brief Client used to download resources from Ignition Fuel.
+    public: std::unique_ptr<ignition::fuel_tools::FuelClient>
+            fuelClient = nullptr;
 
-    public: std::vector<ignition::fuel_tools::ModelIdentifier> models;
-
-    public: std::unordered_map<std::string, std::vector<ignition::fuel_tools::ModelIdentifier>> fuelDetails;
+    /// \brief Stores details about all Fuel servers providing assets.
+    /// The key is the server URI and the value is the list of models
+    /// corresponding to that URI.
+    public: std::unordered_map<std::string,
+            std::vector<ignition::fuel_tools::ModelIdentifier>> fuelDetails;
   };
 }
+
+static int gridIndex = 0;
+static int localGridIndex = 0;
 
 using namespace ignition;
 using namespace gazebo;
@@ -72,8 +77,6 @@ using namespace gazebo;
 PathModel::PathModel() : QStandardItemModel()
 {
 }
-
-static int gridIndex = 0;
 
 /////////////////////////////////////////////////
 void PathModel::AddPath(const std::string &_path)
@@ -144,8 +147,11 @@ void GridModel::AddLocalModel(LocalModel &_model)
     gridIndex++;
   }
   else
-    localModel->setData(-1,
+  {
+    localModel->setData(localGridIndex,
                         this->roleNames().key("index"));
+    localGridIndex++;
+  }
 
   parentItem->appendRow(localModel);
 }
@@ -155,7 +161,7 @@ void GridModel::UpdateGridModel(int index, LocalModel &_model)
   QStandardItem *parentItem{nullptr};
 
   parentItem = this->invisibleRootItem();
- 
+
   auto grid = parentItem->child(index);
 
   grid->setData(_model.isFuel,
@@ -192,16 +198,16 @@ ResourceSpawner::ResourceSpawner()
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "FuelModelList", &this->dataPtr->fuelGridModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
-  this->dataPtr->fuelClient = std::make_unique<ignition::fuel_tools::FuelClient>();
+  this->dataPtr->fuelClient =
+    std::make_unique<ignition::fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
 ResourceSpawner::~ResourceSpawner() = default;
 
-void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath, LocalModel &_model)
+void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
+    LocalModel &_model)
 {
   // Get first thumbnail image found
   if (common::exists(_thumbnailPath))
@@ -217,7 +223,8 @@ void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath, LocalModel
           thumbnailFileName.rfind(".");
         std::string thumbnailFileExtension =
           thumbnailFileName.substr(thumbnailExtensionIndex + 1);
-        // The standard image types QML supports
+        // The standard image types QML supports, search for any file
+        // with this extension and use the first found
         if (thumbnailFileExtension == "png"  ||
             thumbnailFileExtension == "jpg"  ||
             thumbnailFileExtension == "jpeg" ||
@@ -229,7 +236,6 @@ void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath, LocalModel
       }
     }
   }
-
 }
 
 /////////////////////////////////////////////////
@@ -248,6 +254,7 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
   doc.LoadFile(configFileName.c_str());
   auto modelXml = doc.FirstChildElement("model");
 
+  // Get the name of the model
   if (modelXml)
   {
     auto modelName = modelXml->FirstChildElement("name");
@@ -265,6 +272,7 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::FindLocalModels(const std::string &_path)
 {
+  // Only searches one directory deep for potential files named `model.config`
   std::string path = _path;
   if (common::isDirectory(path))
   {
@@ -293,6 +301,9 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
 void ResourceSpawner::FindFuelModels(const std::string &_owner)
 {
   auto servers = this->dataPtr->fuelClient->Config().Servers();
+
+  // Iterate through the loaded servers and search for any models belonging
+  // to the owner
   for (auto const &server : servers)
   {
     std::string serverUrl = server.Url().Str();
@@ -306,14 +317,18 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
         model.isDownloaded = false;
         model.sdfPath = id.UniqueName();
         std::string path;
-        if (this->dataPtr->fuelClient->CachedModel(ignition::common::URI(id.UniqueName()), path))
+
+        // If the resource is cached, we can go ahead and populate the
+        // respective information
+        if (this->dataPtr->fuelClient->CachedModel(
+              ignition::common::URI(id.UniqueName()), path))
         {
           model.isDownloaded = true;
           model.sdfPath = ignition::common::joinPaths(path, "model.sdf");
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
           this->SetThumbnail(thumbnailPath, model);
         }
-        
+
         this->dataPtr->localGridModel.AddLocalModel(model);
       }
     }
@@ -329,21 +344,23 @@ void ResourceSpawner::AddPath(const std::string &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnPathClicked(const QString &_path)
 {
+  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   this->dataPtr->localGridModel.Clear();
   this->FindLocalModels(_path.toStdString());
+  QGuiApplication::restoreOverrideCursor();
+  localGridIndex = 0;
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
 {
-  ignwarn << "Downloading " << _path.toStdString() << std::endl;
-  ignwarn << "current index " << index << std::endl;
   LocalModel model;
-
   std::string localPath;
-  
+
+  // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  if (this->dataPtr->fuelClient->DownloadModel(ignition::common::URI(_path.toStdString()), localPath))
+  if (this->dataPtr->fuelClient->DownloadModel(
+        ignition::common::URI(_path.toStdString()), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
@@ -363,12 +380,12 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnOwnerClicked(const QString &_owner)
 {
+  // This may take a few seconds, set waiting cursor
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  ignwarn << "Clicked " << _owner.toStdString() << std::endl;
-  gridIndex = 0;
   this->dataPtr->localGridModel.Clear();
   this->FindFuelModels(_owner.toStdString());
   QGuiApplication::restoreOverrideCursor();
+  gridIndex = 0;
 }
 
 /////////////////////////////////////////////////
@@ -421,7 +438,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
         auto ownerName = id.Owner();
         ownerSet.insert(ownerName);
         auto url = id.Server().Url();
-        std::string path;
       }
     }
 
@@ -432,7 +448,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     for (const auto &owner : ownerSet)
     {
       this->dataPtr->ownerModel.AddPath(owner);
-    } 
+    }
     QGuiApplication::restoreOverrideCursor();
     ignmsg << "Fuel models loaded.\n";
   });

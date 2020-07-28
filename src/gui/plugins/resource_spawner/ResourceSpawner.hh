@@ -43,8 +43,11 @@ namespace gazebo
     /// empty if no thumbnail is found
     std::string thumbnailPath = "";
 
+    /// \brief Bool to indicate if this model is fuel or not
     bool isFuel = false;
 
+    /// \brief Bool to indicate if this model has been downloaded or not, will
+    /// always be false with local models as it is irrelevant in this case
     bool isDownloaded = false;
   };
 
@@ -112,13 +115,13 @@ namespace gazebo
     /// \param[in] _sdfPath The absolute path to the resource's sdf file
     public slots: void OnResourceSpawn(const QString &_sdfPath);
 
-    public slots: void OnFuelResourceSpawn(const QString &_sdfPath);
-
     /// \brief Loads a local model from an absolute path to a model.config,
     /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
     public: void LoadLocalModel(const std::string &_path);
 
+    /// \brief Adds a path to the path list model.
+    /// \param[in] _path The path to add
     public: void AddPath(const std::string &_path);
 
     /// \brief Recursively searches the provided path for all model.config's
@@ -131,13 +134,29 @@ namespace gazebo
     /// \param[in] _path The path to search resources
     public slots: void OnPathClicked(const QString &_path);
 
+    /// \brief Callback when a fuel owner is selected, will clear the
+    /// currently loaded resources and load the ones belonging to the
+    /// specified owner.
+    /// \param[in] _owner The name of the owner
     public slots: void OnOwnerClicked(const QString &_owner);
 
+    /// \brief Callback when a request is made to download a fuel resource.
+    /// \param[in] _path URI to the fuel resource
+    /// \param[in] index The index of the grid pane to update
     public slots: void OnDownloadFuelResource(const QString &_path, int index);
 
+    /// \brief Searches through the previously loaded fuel resources to locate
+    /// the models belonging to the passed in owner.
+    /// \param[in] _owner The name of the owner
     public: void FindFuelModels(const std::string &_owner);
-    
-    public: void SetThumbnail(const std::string &_thumbnailPath, LocalModel &_model);
+
+    /// \brief Finds a thumbnail on the provided thumbnail path and
+    /// sets the model's thumbnail path attribute to it, no action is
+    /// taken if no thumbnail is found.
+    /// \param[in] _thumbnailPath The path to search for a thumbnail
+    /// \param[in] _model The model to update with the thumbnail information
+    public: void SetThumbnail(const std::string &_thumbnailPath,
+                LocalModel &_model);
 
     /// \internal
     /// \brief Pointer to private data.

@@ -12,22 +12,40 @@ import QtQml.Models 2.2
 SplitView {
   id: resourceView
   Layout.minimumWidth: 500
-  Layout.minimumHeight: 400
+  Layout.minimumHeight: 500
   anchors.fill: parent
   orientation: Qt.Horizontal
 
+  /**
+   * Height of each item on the tree
+   */
   property int treeItemHeight: 30;
 
+  /**
+   * Height of each item on the grid
+   */
   property int gridItemHeight: 150;
 
+  /**
+   * Width of each item on the grid
+   */
   property int gridItemWidth: 200;
 
+  /**
+   * Currently selected path
+   */
   property string currentPath: "";
 
+  /**
+   * Color for odd rows, according to theme
+   */
   property color oddColor: (Material.theme == Material.Light) ?
   Material.color(Material.Grey, Material.Shade100):
   Material.color(Material.Grey, Material.Shade800);
 
+  /**
+   * Color for even rows, according to theme
+   */
   property color evenColor: (Material.theme == Material.Light) ?
   Material.color(Material.Grey, Material.Shade200):
   Material.color(Material.Grey, Material.Shade900);
@@ -45,45 +63,50 @@ SplitView {
     Layout.fillWidth: true
     Layout.minimumHeight: 400
     Layout.minimumWidth: 300
+    anchors.bottom: parent.bottom
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: parent.height
     ColumnLayout {
+      id: localColumn
       spacing: 2
-      Layout.preferredHeight: resourceView.height / 2
+      Layout.minimumHeight: 100
       Rectangle {
         Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: resourceView.width
         Layout.preferredHeight: 35
         Text {
           text: "Local models"
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.horizontalCenter: parent.horizontalCenter
           font.pointSize: 15
-          leftPadding: 5
-          topPadding: 5
         }
       }
       TreeView {
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: resourceView.width
         id: treeView
         model: PathList
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        Layout.alignment: Qt.AlignCenter
+        Layout.minimumWidth: 300
+        Layout.minimumHeight: 100
         // For some reason, SingleSelection is not working
         selectionMode: SelectionMode.MultiSelection
         verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
         headerVisible: false
         backgroundVisible: false
-        Layout.minimumWidth: 300
 
         headerDelegate: Rectangle {
           visible: false
         }
 
-  /**
-   * Height of each item on the tree
-   */
-  property int treeItemHeight: 30;
+        TableViewColumn
+        {
+          role: "name"
+        }
 
-  /**
-   * Height of each item on the grid
-   */
-  property int gridItemHeight: 150;
+        selection: ItemSelectionModel {
+          model: PathList
+        }
 
         style: TreeViewStyle {
           indentation: 0
@@ -96,15 +119,13 @@ SplitView {
             id: item
             color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
             height: treeItemHeight
-            width: parent.width
 
-    headerDelegate: Rectangle {
-      visible: false
-    }
+            anchors.top: parent.top
+            anchors.right: parent.right
 
             Image {
               id: dirIcon
-              source: "copy_object.png"
+              source: styleData.selected ? "folder_open.png" : "folder_closed.png"
               height: treeItemHeight * 0.6
               width: treeItemHeight * 0.6
               anchors.verticalCenter: parent.verticalCenter
@@ -112,7 +133,6 @@ SplitView {
             }
 
             Text {
-              width: parent.width - 10
               text: (model === null) ? "" : model.path
               color: Material.theme == Material.Light ? "black" : "white"
               elide: Text.ElideMiddle
@@ -130,11 +150,11 @@ SplitView {
               hoverEnabled: true
               onClicked: {
                 ResourceSpawner.OnPathClicked(model.path);
-                treeView.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
-                treeView2.selection.clearSelection()
                 currentPath = model.path
                 gridView.currentIndex = -1
                 mouse.accepted = false
+                treeView.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
+                treeView2.selection.clearSelection()
               }
             }
 
@@ -153,18 +173,17 @@ SplitView {
     }
 
     ColumnLayout {
+      id: fuelColumn
       spacing: 2
-      anchors.bottom: resourceView.bottom
-      Layout.preferredHeight: resourceView.height / 2
+      Layout.minimumHeight: 100
       Rectangle {
         Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: resourceView.width
         Layout.preferredHeight: 35
         Text {
           text: "Fuel models"
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.horizontalCenter: parent.horizontalCenter
           font.pointSize: 15
-          leftPadding: 5
-          topPadding: 5
         }
       }
       TreeView {
@@ -173,10 +192,12 @@ SplitView {
         // For some reason, SingleSelection is not working
         selectionMode: SelectionMode.MultiSelection
         verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
-        Layout.preferredWidth: resourceView.width
         headerVisible: false
         backgroundVisible: false
         Layout.minimumWidth: 300
+        Layout.alignment: Qt.AlignCenter
+        Layout.fillWidth: true
+        Layout.fillHeight: true
 
         headerDelegate: Rectangle {
           visible: false
@@ -194,7 +215,7 @@ SplitView {
         style: TreeViewStyle {
           indentation: 0
           rowDelegate: Rectangle {
-            id: row
+            id: row2
             color: Material.background
             height: treeItemHeight
           }
@@ -202,14 +223,13 @@ SplitView {
             id: item
             color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
             height: treeItemHeight
-            width: parent.width
 
             anchors.top: parent.top
             anchors.right: parent.right
 
             Image {
               id: dirIcon
-              source: "copy_object.png"
+              source: styleData.selected ? "folder_open.png" : "folder_closed.png"
               height: treeItemHeight * 0.6
               width: treeItemHeight * 0.6
               anchors.verticalCenter: parent.verticalCenter
@@ -217,7 +237,6 @@ SplitView {
             }
 
             Text {
-              width: parent.width - 10
               text: (model === null) ? "" : model.path
               color: Material.theme == Material.Light ? "black" : "white"
               elide: Text.ElideMiddle
@@ -338,12 +357,7 @@ SplitView {
               {
                 ResourceSpawner.OnResourceSpawn(model.sdf);
                 gridView.currentIndex = index;
-                print("current index")
-                print(gridView.currentIndex)
-                print("index")
-                print(index)
               }
-              print("resource clicked");
             }
           }
           Dialog {
@@ -391,34 +405,9 @@ SplitView {
             hoverEnabled: true
             propagateComposedEvents: true
             onClicked: {
-              print("download clicked");
               ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
               model.isDownloaded = true
             }
-            Image {
-              Layout.fillHeight: true
-              Layout.fillWidth: true
-              Layout.margins: 1
-              source: model.thumbnail == "" ? "NoThumbnail.png" : model.thumbnail
-              fillMode: Image.PreserveAspectFit
-            }
-          }
-          MouseArea {
-            id: ma
-            anchors.fill: parent
-            hoverEnabled: true
-            propagateComposedEvents: true
-            onClicked: {
-              ResourceSpawner.OnResourceSpawn(model.sdf);
-              gridView.currentIndex = index
-            }
-          }
-          ToolTip {
-            visible: ma.containsMouse
-            delay: 500
-            text: model === null ? "N/A" : model.name
-            enter: null
-            exit: null
           }
         }
       }
