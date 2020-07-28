@@ -75,7 +75,7 @@ SplitView {
         Layout.alignment: Qt.AlignCenter
         Layout.preferredHeight: 35
         Text {
-          text: "Local models"
+          text: "Local Resources"
           anchors.verticalCenter: parent.verticalCenter
           anchors.horizontalCenter: parent.horizontalCenter
           font.pointSize: 15
@@ -180,7 +180,7 @@ SplitView {
         Layout.alignment: Qt.AlignCenter
         Layout.preferredHeight: 35
         Text {
-          text: "Fuel models"
+          text: "Fuel Resources"
           anchors.verticalCenter: parent.verticalCenter
           anchors.horizontalCenter: parent.horizontalCenter
           font.pointSize: 15
@@ -304,7 +304,7 @@ SplitView {
       color: Material.background
       GridView {
         id: gridView
-        model: LocalModelList
+        model: ResourceList
         cellWidth: gridItemWidth
         cellHeight: gridItemHeight
         currentIndex: -1

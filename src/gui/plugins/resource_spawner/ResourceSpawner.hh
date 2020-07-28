@@ -31,7 +31,7 @@ namespace gazebo
   class ResourceSpawnerPrivate;
 
   /// \brief Local model used to update the GridModel
-  struct LocalModel
+  struct Resource
   {
     /// \brief The name of the local model
     std::string name = "";
@@ -73,24 +73,29 @@ namespace gazebo
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
   /// and updates from
-  class GridModel : public QStandardItemModel
+  class ResourceModel : public QStandardItemModel
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: explicit GridModel();
+    public: explicit ResourceModel();
 
     /// \brief Destructor
-    public: ~GridModel() override = default;
+    public: ~ResourceModel() override = default;
 
-    /// \brief Add a local model to the grid view.
-    /// param[in] _model The local model to be added
-    public slots: void AddLocalModel(LocalModel &_model);
+    /// \brief Add a local resource to the grid view.
+    /// param[in] _resource The local resource to be added
+    public slots: void AddResource(Resource &_resource);
 
     /// \brief Clear the current grid model
     public: void Clear();
 
-    public: void UpdateGridModel(int index, LocalModel &_model);
+    /// \brief Updates the resource at the provided index with the values in
+    /// the passed in resource.
+    /// \param[in] index The index of the resources within the resource model
+    /// \param[in] _resource The resource values with which to update the
+    /// existing resource
+    public: void UpdateResourceModel(int index, Resource &_resource);
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
@@ -118,7 +123,7 @@ namespace gazebo
     /// \brief Loads a local model from an absolute path to a model.config,
     /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
-    public: void LoadLocalModel(const std::string &_path);
+    public: void LoadLocalResource(const std::string &_path);
 
     /// \brief Adds a path to the path list model.
     /// \param[in] _path The path to add
@@ -127,7 +132,12 @@ namespace gazebo
     /// \brief Recursively searches the provided path for all model.config's
     /// and populates a vector of local models with the information
     /// \param[in] _path The path to search
-    public: void FindLocalModels(const std::string &_path);
+    public: void FindLocalResources(const std::string &_path);
+
+    /// \brief Searches through the previously loaded fuel resources to locate
+    /// the models belonging to the passed in owner.
+    /// \param[in] _owner The name of the owner
+    public: void FindFuelResources(const std::string &_owner);
 
     /// \brief Callback when a resource path is selected, will clear the
     /// currently loaded resources and load the ones at the specified path
@@ -145,18 +155,13 @@ namespace gazebo
     /// \param[in] index The index of the grid pane to update
     public slots: void OnDownloadFuelResource(const QString &_path, int index);
 
-    /// \brief Searches through the previously loaded fuel resources to locate
-    /// the models belonging to the passed in owner.
-    /// \param[in] _owner The name of the owner
-    public: void FindFuelModels(const std::string &_owner);
-
     /// \brief Finds a thumbnail on the provided thumbnail path and
     /// sets the model's thumbnail path attribute to it, no action is
     /// taken if no thumbnail is found.
     /// \param[in] _thumbnailPath The path to search for a thumbnail
     /// \param[in] _model The model to update with the thumbnail information
     public: void SetThumbnail(const std::string &_thumbnailPath,
-                LocalModel &_model);
+                Resource &_resource);
 
     /// \internal
     /// \brief Pointer to private data.

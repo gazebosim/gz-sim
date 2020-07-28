@@ -47,12 +47,14 @@ namespace ignition::gazebo
     public: transport::Node node;
 
     /// \brief The grid model that the qml gridview reflects
-    public: GridModel localGridModel;
+    public: ResourceModel resourceModel;
 
-    /// \brief The path list model that the qml treeview reflects
+    /// \brief The path list model that the qml treeview reflects for local
+    /// resources
     public: PathModel pathModel;
 
-    /// \brief The path list model that the qml treeview reflects
+    /// \brief The owner list model that the qml treeview reflects for fuel
+    /// resources
     public: PathModel ownerModel;
 
     /// \brief Client used to download resources from Ignition Fuel.
@@ -65,8 +67,10 @@ namespace ignition::gazebo
     public: std::unordered_map<std::string,
             std::vector<ignition::fuel_tools::ModelIdentifier>> fuelDetails;
 
+    /// \brief The map to cache resources after a search is made on an owner,
+    /// reduces redundant searches
     public: std::unordered_map<std::string,
-            std::vector<LocalModel>> ownerModelMap;
+            std::vector<Resource>> ownerModelMap;
   };
 }
 
@@ -107,12 +111,12 @@ QHash<int, QByteArray> PathModel::roleNames() const
 }
 
 /////////////////////////////////////////////////
-GridModel::GridModel() : QStandardItemModel()
+ResourceModel::ResourceModel() : QStandardItemModel()
 {
 }
 
 /////////////////////////////////////////////////
-void GridModel::Clear()
+void ResourceModel::Clear()
 {
   QStandardItem *parentItem{nullptr};
   parentItem = this->invisibleRootItem();
@@ -124,61 +128,61 @@ void GridModel::Clear()
 }
 
 /////////////////////////////////////////////////
-void GridModel::AddLocalModel(LocalModel &_model)
+void ResourceModel::AddResource(Resource &_resource)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("GridModel::AddLocalModel");
+  IGN_PROFILE("GridModel::AddResource");
   QStandardItem *parentItem{nullptr};
 
   parentItem = this->invisibleRootItem();
 
-  auto localModel = new QStandardItem(QString::fromStdString(_model.name));
-  localModel->setData(_model.isFuel,
+  auto resource = new QStandardItem(QString::fromStdString(_resource.name));
+  resource->setData(_resource.isFuel,
                       this->roleNames().key("isFuel"));
-  localModel->setData(_model.isDownloaded,
+  resource->setData(_resource.isDownloaded,
                       this->roleNames().key("isDownloaded"));
-  localModel->setData(QString::fromStdString(_model.thumbnailPath),
+  resource->setData(QString::fromStdString(_resource.thumbnailPath),
                       this->roleNames().key("thumbnail"));
-  localModel->setData(QString::fromStdString(_model.name),
+  resource->setData(QString::fromStdString(_resource.name),
                       this->roleNames().key("name"));
-  localModel->setData(QString::fromStdString(_model.sdfPath),
+  resource->setData(QString::fromStdString(_resource.sdfPath),
                       this->roleNames().key("sdf"));
-  if (_model.isFuel)
+  if (_resource.isFuel)
   {
-    localModel->setData(gridIndex,
+    resource->setData(gridIndex,
                         this->roleNames().key("index"));
     gridIndex++;
   }
   else
   {
-    localModel->setData(localGridIndex,
+    resource->setData(localGridIndex,
                         this->roleNames().key("index"));
     localGridIndex++;
   }
 
-  parentItem->appendRow(localModel);
+  parentItem->appendRow(resource);
 }
 
-void GridModel::UpdateGridModel(int index, LocalModel &_model)
+void ResourceModel::UpdateResourceModel(int index, Resource &_resource)
 {
   QStandardItem *parentItem{nullptr};
 
   parentItem = this->invisibleRootItem();
 
-  auto grid = parentItem->child(index);
+  auto resource = parentItem->child(index);
 
-  grid->setData(_model.isFuel,
+  resource->setData(_resource.isFuel,
                       this->roleNames().key("isFuel"));
-  grid->setData(_model.isDownloaded,
+  resource->setData(_resource.isDownloaded,
                       this->roleNames().key("isDownloaded"));
-  grid->setData(QString::fromStdString(_model.thumbnailPath),
+  resource->setData(QString::fromStdString(_resource.thumbnailPath),
                       this->roleNames().key("thumbnail"));
-  grid->setData(QString::fromStdString(_model.sdfPath),
+  resource->setData(QString::fromStdString(_resource.sdfPath),
                       this->roleNames().key("sdf"));
 }
 
 /////////////////////////////////////////////////
-QHash<int, QByteArray> GridModel::roleNames() const
+QHash<int, QByteArray> ResourceModel::roleNames() const
 {
   return
   {
@@ -197,7 +201,7 @@ ResourceSpawner::ResourceSpawner()
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "LocalModelList", &this->dataPtr->localGridModel);
+      "ResourceList", &this->dataPtr->resourceModel);
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
@@ -210,7 +214,7 @@ ResourceSpawner::ResourceSpawner()
 ResourceSpawner::~ResourceSpawner() = default;
 
 void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
-    LocalModel &_model)
+    Resource &_resource)
 {
   // Get first thumbnail image found
   if (common::exists(_thumbnailPath))
@@ -233,7 +237,7 @@ void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
             thumbnailFileExtension == "jpeg" ||
             thumbnailFileExtension == "svg")
         {
-          _model.thumbnailPath = current;
+          _resource.thumbnailPath = current;
           break;
         }
       }
@@ -242,17 +246,17 @@ void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::LoadLocalModel(const std::string &_path)
+void ResourceSpawner::LoadLocalResource(const std::string &_path)
 {
   std::string fileName = common::basename(_path);
   if (!common::isFile(_path) || fileName != "model.config")
     return;
 
   // If we have found model.config, extract thumbnail and sdf
-  LocalModel model;
-  std::string modelPath = common::parentPath(_path);
-  std::string thumbnailPath = common::joinPaths(modelPath, "thumbnails");
-  std::string configFileName = common::joinPaths(modelPath, "model.config");
+  Resource resource;
+  std::string resourcePath = common::parentPath(_path);
+  std::string thumbnailPath = common::joinPaths(resourcePath, "thumbnails");
+  std::string configFileName = common::joinPaths(resourcePath, "model.config");
   tinyxml2::XMLDocument doc;
   doc.LoadFile(configFileName.c_str());
   auto modelXml = doc.FirstChildElement("model");
@@ -262,18 +266,18 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
   {
     auto modelName = modelXml->FirstChildElement("name");
     if (modelName)
-      model.name = modelName->GetText();
+      resource.name = modelName->GetText();
   }
-  std::string sdfPath = sdf::getModelFilePath(modelPath);
-  model.sdfPath = sdfPath;
+  std::string sdfPath = sdf::getModelFilePath(resourcePath);
+  resource.sdfPath = sdfPath;
 
   // Get first thumbnail image found
-  this->SetThumbnail(thumbnailPath, model);
-  this->dataPtr->localGridModel.AddLocalModel(model);
+  this->SetThumbnail(thumbnailPath, resource);
+  this->dataPtr->resourceModel.AddResource(resource);
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::FindLocalModels(const std::string &_path)
+void ResourceSpawner::FindLocalResources(const std::string &_path)
 {
   // Only searches one directory deep for potential files named `model.config`
   std::string path = _path;
@@ -286,30 +290,30 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
       {
         std::string modelConfigPath =
           common::joinPaths(currentPath, "model.config");
-          this->LoadLocalModel(modelConfigPath);
+          this->LoadLocalResource(modelConfigPath);
       }
       else
       {
-        this->LoadLocalModel(currentPath);
+        this->LoadLocalResource(currentPath);
       }
     }
   }
   else
   {
-    this->LoadLocalModel(path);
+    this->LoadLocalResource(path);
   }
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::FindFuelModels(const std::string &_owner)
+void ResourceSpawner::FindFuelResources(const std::string &_owner)
 {
   // If we have already made this search, load the stored results
   if (this->dataPtr->ownerModelMap.find(_owner) !=
       this->dataPtr->ownerModelMap.end())
   {
-    for (LocalModel model : this->dataPtr->ownerModelMap[_owner])
+    for (Resource resource : this->dataPtr->ownerModelMap[_owner])
     {
-      this->dataPtr->localGridModel.AddLocalModel(model);
+      this->dataPtr->resourceModel.AddResource(resource);
     }
     return;
   }
@@ -318,7 +322,7 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
 
   // Iterate through the loaded servers and search for any models belonging
   // to the owner
-  std::vector<LocalModel> ownerModels;
+  std::vector<Resource> ownerResources;
   for (auto const &server : servers)
   {
     std::string serverUrl = server.Url().Str();
@@ -326,11 +330,11 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
     {
       if (_owner == id.Owner())
       {
-        LocalModel model;
-        model.name = id.Name();
-        model.isFuel = true;
-        model.isDownloaded = false;
-        model.sdfPath = id.UniqueName();
+        Resource resource;
+        resource.name = id.Name();
+        resource.isFuel = true;
+        resource.isDownloaded = false;
+        resource.sdfPath = id.UniqueName();
         std::string path;
 
         // If the resource is cached, we can go ahead and populate the
@@ -338,18 +342,18 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
         if (this->dataPtr->fuelClient->CachedModel(
               ignition::common::URI(id.UniqueName()), path))
         {
-          model.isDownloaded = true;
-          model.sdfPath = ignition::common::joinPaths(path, "model.sdf");
+          resource.isDownloaded = true;
+          resource.sdfPath = ignition::common::joinPaths(path, "model.sdf");
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
-          this->SetThumbnail(thumbnailPath, model);
+          this->SetThumbnail(thumbnailPath, resource);
         }
-        
-        ownerModels.push_back(model);
-        this->dataPtr->localGridModel.AddLocalModel(model);
+
+        ownerResources.push_back(resource);
+        this->dataPtr->resourceModel.AddResource(resource);
       }
     }
   }
-  this->dataPtr->ownerModelMap[_owner] = ownerModels;
+  this->dataPtr->ownerModelMap[_owner] = ownerResources;
 }
 
 /////////////////////////////////////////////////
@@ -362,8 +366,8 @@ void ResourceSpawner::AddPath(const std::string &_path)
 void ResourceSpawner::OnPathClicked(const QString &_path)
 {
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  this->dataPtr->localGridModel.Clear();
-  this->FindLocalModels(_path.toStdString());
+  this->dataPtr->resourceModel.Clear();
+  this->FindLocalResources(_path.toStdString());
   QGuiApplication::restoreOverrideCursor();
   localGridIndex = 0;
 }
@@ -371,7 +375,7 @@ void ResourceSpawner::OnPathClicked(const QString &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
 {
-  LocalModel model;
+  Resource resource;
   std::string localPath;
 
   // Set the waiting cursor while the resource downloads
@@ -381,11 +385,11 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
-    this->SetThumbnail(thumbnailPath, model);
-    model.isDownloaded = true;
-    model.sdfPath = common::joinPaths(localPath, "model.sdf");
-    model.isFuel = true;
-    this->dataPtr->localGridModel.UpdateGridModel(index, model);
+    this->SetThumbnail(thumbnailPath, resource);
+    resource.isDownloaded = true;
+    resource.sdfPath = common::joinPaths(localPath, "model.sdf");
+    resource.isFuel = true;
+    this->dataPtr->resourceModel.UpdateResourceModel(index, resource);
   }
   else
   {
@@ -399,8 +403,8 @@ void ResourceSpawner::OnOwnerClicked(const QString &_owner)
 {
   // This may take a few seconds, set waiting cursor
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  this->dataPtr->localGridModel.Clear();
-  this->FindFuelModels(_owner.toStdString());
+  this->dataPtr->resourceModel.Clear();
+  this->FindFuelResources(_owner.toStdString());
   QGuiApplication::restoreOverrideCursor();
   gridIndex = 0;
 }
@@ -434,7 +438,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   ignmsg << "Please wait... Loading fuel models from online.\n";
 
-  // Add notice for the user that fuel models are being loaded
+  // Add notice for the user that fuel resources are being loaded
   this->dataPtr->ownerModel.AddPath("Please wait, loading Fuel models...");
 
   // Pull in fuel models asynchronously
@@ -467,7 +471,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
       this->dataPtr->ownerModel.AddPath(owner);
     }
     QGuiApplication::restoreOverrideCursor();
-    ignmsg << "Fuel models loaded.\n";
+    ignmsg << "Fuel resources loaded.\n";
   });
   t.detach();
 }
