@@ -64,6 +64,9 @@ namespace ignition::gazebo
     /// corresponding to that URI.
     public: std::unordered_map<std::string,
             std::vector<ignition::fuel_tools::ModelIdentifier>> fuelDetails;
+
+    public: std::unordered_map<std::string,
+            std::vector<LocalModel>> ownerModelMap;
   };
 }
 
@@ -300,10 +303,22 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::FindFuelModels(const std::string &_owner)
 {
+  // If we have already made this search, load the stored results
+  if (this->dataPtr->ownerModelMap.find(_owner) !=
+      this->dataPtr->ownerModelMap.end())
+  {
+    for (LocalModel model : this->dataPtr->ownerModelMap[_owner])
+    {
+      this->dataPtr->localGridModel.AddLocalModel(model);
+    }
+    return;
+  }
+
   auto servers = this->dataPtr->fuelClient->Config().Servers();
 
   // Iterate through the loaded servers and search for any models belonging
   // to the owner
+  std::vector<LocalModel> ownerModels;
   for (auto const &server : servers)
   {
     std::string serverUrl = server.Url().Str();
@@ -328,11 +343,13 @@ void ResourceSpawner::FindFuelModels(const std::string &_owner)
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
           this->SetThumbnail(thumbnailPath, model);
         }
-
+        
+        ownerModels.push_back(model);
         this->dataPtr->localGridModel.AddLocalModel(model);
       }
     }
   }
+  this->dataPtr->ownerModelMap[_owner] = ownerModels;
 }
 
 /////////////////////////////////////////////////
