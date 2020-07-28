@@ -8,8 +8,6 @@
 1. Backport support for <uri>s from Fuel #255
     * [Pull Request 255](https://github.com/ignitionrobotics/ign-gazebo/pull/255)
 
-1. Backport support for <uri>s from Fuel #255
-
 ### Ignition Gazebo 2.22.0 (2020-07-22)
 
 1. Allow zero or more key/value pairs to be added to detection header information.
