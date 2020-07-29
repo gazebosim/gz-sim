@@ -32,6 +32,10 @@ Rectangle {
   // Left indentation
   property int indentation: 10
 
+  // icon size
+  property int iconWidth: 20
+  property int iconHeight: 20
+
   // Horizontal margins
   property int margin: 5
 
@@ -73,6 +77,32 @@ Rectangle {
         return numberValue.toFixed(decimals)
       }
     }
+  }
+  Component {
+      id: plotIcon
+      Image {
+          property string componentInfo: ""
+          source: "plottable_icon.svg"
+          anchors.top: parent.top
+          anchors.left: parent.left
+
+          Drag.mimeData: { "text/plain" : (model === null) ? "" :
+          "Component," + model.entity + "," + model.typeId + "," + model.dataType + "," + componentInfo}
+          Drag.dragType: Drag.Automatic
+          Drag.supportedActions : Qt.CopyAction
+          Drag.active: dragMouse.drag.active
+          // a point to drag from
+          Drag.hotSpot.x: 0
+          Drag.hotSpot.y: y
+          MouseArea {
+              id: dragMouse
+              anchors.fill: parent
+              drag.target: (model === null) ? null : parent
+              onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
+              onReleased: parent.Drag.drop();
+              cursorShape: Qt.DragCopyCursor
+          }
+      }
   }
 
   Column {
@@ -149,13 +179,28 @@ Rectangle {
           width: indentation + margin
         }
 
-        Text {
-          text: 'X (' + unit + ')'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
+        Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: xText.width + indentation*3
+            Loader {
+                id: loaderX
+                width: iconWidth
+                height: iconHeight
+                y:10
+                sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderX.item.componentInfo = "x"
 
+            Text {
+              id: xText
+              text: ' X (' + unit + ')'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+        }
         Item {
           Layout.fillWidth: true
           height: 40
@@ -172,11 +217,26 @@ Rectangle {
           width: margin
         }
 
-        Text {
-          text: 'Y (' + unit + ')'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
+        Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: xText.width + indentation*3
+            Loader {
+                id: loaderY
+                width: iconWidth
+                height: iconHeight
+                y:10
+                sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderY.item.componentInfo = "y"
+
+            Text {
+              text: ' Y (' + unit + ')'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
         }
 
         Item {
@@ -189,11 +249,26 @@ Rectangle {
           }
         }
 
-        Text {
-          text: 'Z (' + unit + ')'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
+        Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: xText.width + indentation*3
+            Loader {
+                id: loaderZ
+                width: iconWidth
+                height: iconHeight
+                y:10
+                sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderZ.item.componentInfo = "z"
+
+            Text {
+              text: 'Z (' + unit + ')'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
         }
 
         Item {
