@@ -134,6 +134,39 @@ namespace ignition
         return (this->data[0] * _v[0]) + (this->data[1] * _v[1]);
       }
 
+      /// \brief Get the absolute value of the vector
+      /// \return a vector with positive elements
+      public: Vector2 Abs() const
+      {
+        return Vector2(std::abs(this->data[0]),
+                       std::abs(this->data[1]));
+      }
+
+      /// \brief Return the absolute dot product of this vector and
+      /// another vector. This is similar to the Dot function, except the
+      /// absolute value of each component of the vector is used.
+      ///
+      /// result = abs(x1 * x2) + abs(y1 * y2)
+      ///
+      /// \param[in] _v The vector
+      /// \return The absolute dot product
+      public: T AbsDot(const Vector2<T> &_v) const
+      {
+        return std::abs(this->data[0] * _v[0]) +
+               std::abs(this->data[1] * _v[1]);
+      }
+
+       /// \brief Corrects any nan values
+      public: inline void Correct()
+      {
+        // std::isfinite works with floating point values,
+        // need to explicit cast to avoid ambiguity in vc++.
+        if (!std::isfinite(static_cast<double>(this->data[0])))
+          this->data[0] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[1])))
+          this->data[1] = 0;
+      }
+
       /// \brief Assignment operator
       /// \param[in] _v a value for x and y element
       /// \return this
