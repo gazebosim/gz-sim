@@ -808,7 +808,7 @@ find_package(ignition-common3-all REQUIRED)
 find_package(ignition-gazebo4-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs6-all REQUIRED)
-find_package(ignition-physics2-all REQUIRED)
+find_package(ignition-physics3-all REQUIRED)
 find_package(ignition-sensors4-all REQUIRED)
 find_package(ignition-transport9-all REQUIRED)
 ```

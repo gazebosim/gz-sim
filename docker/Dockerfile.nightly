@@ -16,7 +16,7 @@ RUN apt-get update \
     libignition-fuel-tools5-dev \
     libignition-math6-eigen3-dev \
     libignition-plugin-dev \
-    libignition-physics2-dev \
+    libignition-physics3-dev \
     libignition-rendering4-dev \
     libignition-tools-dev \
     libignition-transport9-dev \
