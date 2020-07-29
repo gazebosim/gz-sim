@@ -16,11 +16,11 @@ jobs:
           apt-dependencies: |
             libignition-cmake2-dev
             libignition-math6-eigen3-dev
-            libignition-msgs5-dev
+            libignition-msgs6-dev
             libignition-plugin-dev
             libignition-tools-dev
-            libignition-transport8-dev
-            libsdformat9-dev
+            libignition-transport9-dev
+            libsdformat10-dev
             libignition-fuel-tools4-dev
             libignition-physics2-dev
             libignition-common3-dev
