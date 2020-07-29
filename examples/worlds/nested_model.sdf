@@ -61,7 +61,7 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/nested_model/control</service>
+        <service>/world/nested_model_world/control</service>
         <stats_topic>/world/nested_model_world/stats</stats_topic>
 
       </plugin>

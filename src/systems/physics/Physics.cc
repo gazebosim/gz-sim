@@ -1666,8 +1666,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             auto mutableModelPose =
                _ecm.Component<components::Pose>(topLevelModel);
             *(mutableModelPose) = components::Pose(
-                linkPoseFromTopLevelModel.Inverse() +
-                math::eigen3::convert(worldPose));
+                math::eigen3::convert(worldPose) *
+                linkPoseFromTopLevelModel.Inverse());
 
             _ecm.SetChanged(_parent->Data(), components::Pose::typeId,
                 ComponentState::PeriodicChange);
