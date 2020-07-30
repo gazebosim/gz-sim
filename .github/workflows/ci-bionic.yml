@@ -1,6 +1,6 @@
-name: Ubuntu Bionic CI
+name: Ubuntu CI
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   bionic-ci:
@@ -9,42 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Bionic CI
+      - name: Compile and test
         id: ci
         uses: ignition-tooling/ubuntu-bionic-ci-action@master
         with:
-          apt-dependencies: |
-            libignition-cmake2-dev
-            libignition-math6-eigen3-dev
-            libignition-msgs6-dev
-            libignition-plugin-dev
-            libignition-tools-dev
-            libignition-transport9-dev
-            libsdformat10-dev
-            libignition-fuel-tools5-dev
-            libignition-physics3-dev
-            libignition-common3-dev
-            libogre-1.9-dev
-            libogre-2.1-dev
-            libglew-dev
-            libfreeimage-dev
-            freeglut3-dev
-            libxmu-dev
-            libxi-dev
-            uuid-dev
-            xvfb
-            qtbase5-dev
-            libtinyxml2-dev
-            libprotoc-dev
-            libprotobuf-dev
-            qtdeclarative5-dev
-            qtquickcontrols2-5-dev
-            qml-module-qtquick2
-            qml-module-qtquick-controls
-            qml-module-qtquick-controls2
-            qml-module-qtquick-dialogs
-            qml-module-qtquick-layouts
-            qml-module-qt-labs-folderlistmodel
-            qml-module-qt-labs-settings
-            qml-module-qtgraphicaleffects
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
