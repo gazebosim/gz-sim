@@ -373,6 +373,16 @@
         </box>
       </geometry>
     </performer>
+    <level name="level1">
+      <pose>5 3 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>30 30 10</size>
+        </box>
+      </geometry>
+      <buffer>5</buffer>
+      <ref>detector2</ref>
+    </level>
   </plugin>
 
 </world>
