@@ -17,6 +17,10 @@
 #include <cstring>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+#include <ignition/fuel_tools/Result.hh>
+#include <ignition/fuel_tools/WorldIdentifier.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
@@ -48,6 +52,41 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
 extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 {
   return IGN_GAZEBO_WORLD_INSTALL_DIR;
+}
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(char *_pathToResource)
+{
+  ignwarn << "in fuel resource" << std::endl;
+  std::string path;
+  ignition::fuel_tools::ServerConfig server;
+  server.SetUrl(ignition::common::URI("https://fuel.ignitionrobotics.org"));
+  ignition::fuel_tools::ClientConfig config;
+  config.AddServer(server);
+  ignition::fuel_tools::FuelClient fuelClient(config);
+  ignwarn << "Server version" << server.Version() << std::endl;
+
+  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
+  {
+    path += "/test.world";
+    ignwarn << "Cached - path is " << path << std::endl;
+    return strdup(path.c_str());
+  }
+
+  ignition::fuel_tools::Result result = fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
+
+  if (result)
+  {
+    ignwarn << "Downloaded - path is " << path << std::endl;
+    return path.c_str();
+  }
+  else
+  {
+    std::cout << "Download failed because " << result.ReadableResult()
+        << std::endl;
+  }
+
+  ignwarn << "Failure to download " << path << std::endl;
+  return "";
 }
 
 //////////////////////////////////////////////////
@@ -227,6 +266,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
+
   serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
