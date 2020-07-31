@@ -105,7 +105,6 @@
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -127,7 +126,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// New features can't be added to this list in minor / patch releases, in
   /// order to maintain backwards compatibility with downstream physics plugins.
   public: using MinimumFeatureList = ignition::physics::FeatureList<
-          ignition::physics::SetShapeFrictionPyramidSlipCompliance,
           // FreeGroup
 
           ignition::physics::FindFreeGroupFeature,
@@ -275,6 +273,26 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Environment variable which holds paths to look for engine plugins
   public: std::string pluginPathEnv = "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
+
+  //////////////////////////////////////////////////
+  // Slip Compliance
+
+  /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
+  public: using FrictionPyramidSlipComplianceFeatureList = physics::FeatureList<
+            MinimumFeatureList,
+            ignition::physics::SetShapeFrictionPyramidSlipCompliance>;
+
+  /// \brief Shape type with slip compliance features.
+  public: using ShapeSlipParamPtrType = physics::ShapePtr<
+            physics::FeaturePolicy3d, FrictionPyramidSlipComplianceFeatureList>;
+
+  /// \brief A map between shape entity ids in the ECM to Shape Entities in
+  /// ign-physics
+  /// All shapes on this map are also in `entityCollisionMap`. The difference
+  /// is that here they've been casted for
+  /// `FrictionPyramidSlipComplianceFeatureList`.
+  public: std::unordered_map<Entity, ShapeSlipParamPtrType>
+      entityShapeSlipParamMap;
 
   //////////////////////////////////////////////////
   // Detachable joints
@@ -1181,10 +1199,28 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         auto shapeIt = this->entityCollisionMap.find(_entity);
         if (shapeIt == this->entityCollisionMap.end())
+        {
+          ignwarn << "Failed to find model [" << _entity << "]." << std::endl;
           return true;
+        }
 
-        shapeIt->second->SetPrimarySlipCompliance(_slipCmdComp->Data().X());
-        shapeIt->second->SetSecondarySlipCompliance(_slipCmdComp->Data().Y());
+        auto slipComplianceShape = entityCast(_entity, shapeIt->second,
+            this->entityShapeSlipParamMap);
+
+        if (!slipComplianceShape)
+        {
+          ignwarn << "Can't process Wheel Slip component, physics engine "
+                  << "missing SetShapeFrictionPyramidSlipCompliance"
+                  << std::endl;
+
+          // Break Each call since no SlipCompliances can be processed
+          return false;
+        }
+
+        slipComplianceShape->SetPrimarySlipCompliance(
+            _slipCmdComp->Data()[0]);
+        slipComplianceShape->SetSecondarySlipCompliance(
+            _slipCmdComp->Data()[1]);
 
         return true;
       });
@@ -1620,7 +1656,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::SlipComplianceCmd>(
       [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
       {
-        _slip->Data().Set(0, 0);
+        std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
         return true;
       });
 

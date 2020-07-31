@@ -107,7 +107,7 @@ TEST_F(WheelSlipTest, TireDrum)
 {
   const double metersPerMile = 1609.34;
   const double secondsPerHour = 3600.0;
-  std::vector<std::string> linksToCheck{"wheel","axle", "upright"};
+  std::vector<std::string> linksToCheck{"wheel", "axle", "upright"};
 
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -145,7 +145,7 @@ TEST_F(WheelSlipTest, TireDrum)
   Entity tireEntity =
     ecm->EntityByComponents(components::Model(),
         components::Name("tire"));
-  
+
   EXPECT_NE(gazebo::kNullEntity, tireEntity);
 
   Entity wheelLinkEntity = ecm->EntityByComponents(
@@ -155,18 +155,21 @@ TEST_F(WheelSlipTest, TireDrum)
 
   EXPECT_NE(gazebo::kNullEntity, wheelLinkEntity);
 
-  auto wheelInertialComp = ecm->Component<components::Inertial>(wheelLinkEntity);
+  auto wheelInertialComp =
+    ecm->Component<components::Inertial>(wheelLinkEntity);
 
   EXPECT_NE(nullptr, wheelInertialComp);
 
   const double wheelMass = wheelInertialComp->Data().MassMatrix().Mass();
 
-  auto collisionGeometry = ecm->Component<components::Geometry>(wheelLinkEntity);
+  auto collisionGeometry =
+    ecm->Component<components::Geometry>(wheelLinkEntity);
 
   ASSERT_NE(nullptr, collisionGeometry);
 
-  ASSERT_TRUE((collisionGeometry->Data().Type() == sdf::GeometryType::SPHERE)
-           || (collisionGeometry->Data().Type() == sdf::GeometryType::CYLINDER));
+  ASSERT_TRUE(
+      (collisionGeometry->Data().Type() == sdf::GeometryType::SPHERE) ||
+      (collisionGeometry->Data().Type() == sdf::GeometryType::CYLINDER));
 
   double wheelRadius = 0.0;
 
@@ -175,7 +178,8 @@ TEST_F(WheelSlipTest, TireDrum)
   if (collisionGeometry->Data().Type() == sdf::GeometryType::CYLINDER)
     wheelRadius = collisionGeometry->Data().CylinderShape()->Radius();
 
-  auto collisionComp = ecm->Component<components::CollisionElement>(wheelLinkEntity);
+  auto collisionComp =
+    ecm->Component<components::CollisionElement>(wheelLinkEntity);
 
   ASSERT_NE(nullptr, collisionComp);
 
@@ -203,42 +207,44 @@ TEST_F(WheelSlipTest, TireDrum)
 
     modelMass += inertialComp->Data().MassMatrix().Mass();
   }
- 
+
   // Get drum radius
   Entity drumEntity =
     ecm->EntityByComponents(components::Model(),
         components::Name("drum"));
 
   ASSERT_NE(gazebo::kNullEntity, drumEntity);
-  
+
   Entity drumJointEntity = ecm->EntityByComponents(
       components::ParentEntity(drumEntity),
       components::Name("joint"),
       components::Joint());
 
   ASSERT_NE(gazebo::kNullEntity, drumJointEntity);
-  
+
   Entity drumLinkEntity = ecm->EntityByComponents(
       components::ParentEntity(drumEntity),
       components::Name("link"),
       components::Link());
 
   ASSERT_NE(gazebo::kNullEntity, drumLinkEntity);
-  auto drumCollisionGeometry = ecm->Component<components::Geometry>(wheelLinkEntity);
+  auto drumCollisionGeometry =
+    ecm->Component<components::Geometry>(wheelLinkEntity);
 
   ASSERT_NE(nullptr, drumCollisionGeometry);
   ASSERT_EQ(sdf::GeometryType::CYLINDER, drumCollisionGeometry->Data().Type());
-  const double drumRadius = drumCollisionGeometry->Data().CylinderShape()->Radius();
+  const double drumRadius =
+    drumCollisionGeometry->Data().CylinderShape()->Radius();
 
   // Get axle wheel and steer joint of wheel model
-  
+
   Entity wheelAxleJointEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
       components::Name("axle_wheel"),
       components::Joint());
 
   ASSERT_NE(gazebo::kNullEntity, wheelAxleJointEntity);
-  
+
   Entity wheelSteerJointEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
       components::Name("steer"),
@@ -247,7 +253,8 @@ TEST_F(WheelSlipTest, TireDrum)
   ASSERT_NE(gazebo::kNullEntity, wheelSteerJointEntity);
 
   const double drumSpeed = -25.0 * metersPerMile / secondsPerHour / drumRadius;
-  const double wheelSpeed = -25.0 * metersPerMile / secondsPerHour / wheelRadius;
+  const double wheelSpeed =
+    -25.0 * metersPerMile / secondsPerHour / wheelRadius;
 
   math::Vector2d slipCmd;
   double wheelNormalForce = 1000.0;
@@ -274,7 +281,6 @@ TEST_F(WheelSlipTest, TireDrum)
   else
     ecm->CreateComponent(collisionEntity, newSlipCmdComp);
 
-  
   // Lateral slip: low
   wheelSlip1 = wheelSpeed / wheelNormalForce * slipComplianceLateral;
   wheelSlip2 = wheelSpeed / wheelNormalForce * slipComplianceLongitudinal;
@@ -287,7 +293,6 @@ TEST_F(WheelSlipTest, TireDrum)
   wheelSlip2 = wheelSpeed / wheelNormalForce * slipComplianceLongitudinal;
   newSlipCmdComp = components::SlipComplianceCmd({wheelSlip1, wheelSlip2});
   ecm->CreateComponent(collisionEntity, newSlipCmdComp);
-
 }
 
 TEST_F(WheelSlipTest, TricyclesUphill)
@@ -429,7 +434,8 @@ TEST_F(WheelSlipTest, TricyclesUphill)
 
   if (!worldVel)
   {
-    ecm->CreateComponent(trisphereCycle0Entity, components::WorldLinearVelocity());
+    ecm->CreateComponent(trisphereCycle0Entity,
+        components::WorldLinearVelocity());
     worldVel =
       ecm->Component<components::WorldLinearVelocity>(trisphereCycle0Entity);
   }
@@ -446,12 +452,13 @@ TEST_F(WheelSlipTest, TricyclesUphill)
     ecm->Component<components::JointVelocity>(wheelRearLeftSpin1Entity);
   wheelRearRightVelocity =
     ecm->Component<components::JointVelocity>(wheelRearRightSpin1Entity);
-   worldVel =
+  worldVel =
      ecm->Component<components::WorldLinearVelocity>(trisphereCycle1Entity);
 
   if (!worldVel)
   {
-    ecm->CreateComponent(trisphereCycle1Entity, components::WorldLinearVelocity());
+    ecm->CreateComponent(trisphereCycle1Entity,
+        components::WorldLinearVelocity());
     worldVel =
       ecm->Component<components::WorldLinearVelocity>(trisphereCycle1Entity);
   }

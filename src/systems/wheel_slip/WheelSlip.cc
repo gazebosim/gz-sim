@@ -92,7 +92,7 @@ class ignition::gazebo::systems::WheelSlipPrivate
       public: double wheelRadius = 0;
     };
 
-  /// \brief The map relating links to their respective surface parameters. 
+  /// \brief The map relating links to their respective surface parameters.
   public: std::map<Entity, LinkSurfaceParams> mapLinkSurfaceParams;
 
   public: bool validConfig{false};
@@ -262,7 +262,7 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     slipCmd.X() = slip1;
     slipCmd.Y() = slip2;
 
-    components::SlipComplianceCmd newSlipCmdComp(slipCmd);
+    components::SlipComplianceCmd newSlipCmdComp({slip1, slip2});
 
     auto currSlipCmdComp =
         _ecm.Component<components::SlipComplianceCmd>(params.collision);
