@@ -43,39 +43,42 @@
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
+using namespace optical_tactile_sensor;
 
 class ignition::gazebo::systems::OpticalTactilePluginPrivate
 {
   /// \brief Load the Contact sensor from an sdf element
-  /// \param[in] _sdf SDF element describing the Contact sensor
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
-  public: void Load(const EntityComponentManager &_ecm,
-                    const std::shared_ptr<const sdf::Element> &_sdf);
+  public: void Load(const EntityComponentManager &_ecm);
 
   /// \brief Actual function that enables the plugin.
   /// \param[in] _value True to enable plugin.
   public: void Enable(const bool _value);
 
-  /// \brief Filters out new collisions fetched not related to the sensors
-  /// \param[in] _ecm Immutable reference to the EntityComponentManager
-  /// \param[in] _entities Collision entities to filter
-  public: void FilterOutCollisions(const EntityComponentManager &_ecm,
-                                    const std::vector<Entity> &_entities);
-
-  /// \brief Interpolates contact data
-  /// \param[in] _contactMsg Message containing the data to interpolate
-  public: void InterpolateData(const ignition::msgs::Contact &_contactMsg);
+  /// \brief Interpolates contacts returned by the contact sensor
+  /// \param[in] _contact Message containing the data to interpolate
+  public: void InterpolateContactData(const ignition::msgs::Contact &_contact);
 
   /// \brief Callback for the Depth Camera
   /// \param[in] _msg Message from the subscribed topic
   public: void DepthCameraCallback(
-                const ignition::msgs::PointCloudPacked &_msg);
+    const ignition::msgs::PointCloudPacked &_msg);
 
-  /// \brief Unpacks the point cloud retrieved by the Depth Camera
-  /// into XYZ data
-  /// \param[in] _msg Message containing the data to unpack
-  public: void UnpackPointCloudMsg(
-                const ignition::msgs::PointCloudPacked &_msg);
+  /// \brief Map the (i,j) coordinates defined in the top-left corner of the
+  /// camera into its corresponding (X,Y,Z) measurement with respect to the
+  /// camera's origin
+  /// \param[in] _i Horizontal camera coordinate defined in the top-left corner
+  /// of the image, pointing rightwards
+  /// \param[in] _j Vertical camera coordinate defined in the top-left corner
+  /// of the image, pointing downwards
+  /// \returns The corresponding (X,Y,Z) point
+  public: ignition::math::Vector3f MapPointCloudData(const u_int32_t &_i,
+    const uint32_t &_j);
+
+  /// \brief Check if a specific point returned by the Depth Camera is inside
+  /// the contact surface.
+  /// \param[in] _point Point returned by the Depth Camera
+  public: bool PointInsideSensor(ignition::math::Vector3f _point);
 
   /// \brief Computes the normal forces of the Optical Tactile sensor
   /// \param[in] _msg Message returned by the Depth Camera
@@ -86,11 +89,14 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// 34644101/calculate-surface-normals-from-depth-image-
   /// using-neighboring-pixels-cross-produc
   public: void ComputeNormalForces(
-                const ignition::msgs::PointCloudPacked &_msg,
-                const bool _visualizeForces);
+    const ignition::msgs::PointCloudPacked &_msg,
+    const bool _visualizeForces);
 
-  /// \brief Resolution of the sensor in pixels to skip.
-  public: int resolution{100};
+  /// \brief Resolution of the visualization in pixels to skip.
+  public: int visualizationResolution{30};
+
+  /// \brief Resolution of the interpolated contacts in mm.
+  public: double contactsResolution{1.0};
 
   /// \brief Whether to visualize the normal forces.
   public: bool visualizeForces{false};
@@ -98,18 +104,15 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Model interface.
   public: Model model{kNullEntity};
 
-  /// \brief Transport node to visualize data on Gazebo.
+  /// \brief Transport node
   public: transport::Node node;
 
-  /// \brief Collision entities that have been designated as contact sensors.
-  public: ignition::gazebo::Entity contactSensorEntity;
+  /// \brief Entity representing the contact sensor of the plugin
+  public: ignition::gazebo::Entity sensorCollisionEntity;
 
-  /// \brief Collision entities of the simulation.
-  public: std::vector<Entity> collisionEntities;
-
-  /// \brief Filtered collisions from the simulation that belong to
-  /// one or more sensors.
-  public: std::vector<Entity> filteredCollisionEntities;
+  /// \brief Entity representing the collision of the object in contact with
+  /// the optical tactile sensor.
+  public: ignition::gazebo::Entity objectCollisionEntity;
 
   /// \brief Whether the plugin is enabled.
   public: bool enabled{true};
@@ -117,29 +120,17 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Initialization flag.
   public: bool initialized{false};
 
-  /// \brief Copy of the sdf configuration used for this plugin.
-  public: std::shared_ptr<const sdf::Element> sdfConfig{nullptr};
-
   /// \brief Name of the model to which the sensor is attached.
   public: std::string modelName;
 
-  /// \brief Message for visualizing contact positions
-  public: ignition::msgs::Marker positionMarkerMsg;
-
   /// \brief Radius of the visualized contact sphere
   public: double contactRadius{0.003};
-
-  /// \brief Message for visualizing contact forces
-  public: ignition::msgs::Marker forceMarkerMsg;
 
   /// \brief Length of the visualized force cylinder
   public: double forceLength{0.01};
 
   /// \brief Radius of the visualized force cylinder
   public: double forceRadius{0.001};
-
-  /// \brief Position interpolated from the Contact messages
-  public: std::vector<ignition::math::Vector3d> interpolatedPosition;
 
   /// \brief Pose of the sensor model
   public: ignition::math::Pose3f sensorWorldPose;
@@ -159,8 +150,8 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Message returned by the Depth Camera
   public: ignition::msgs::PointCloudPacked cameraMsg;
 
-  /// \brief 3D vector to store unpacked XYZ points
-  std::vector<std::vector<std::vector<float>>> imageXYZ;
+  /// \brief Data returned by the Depth Camera after being preprocessed
+  public: char *msgBuffer;
 
   /// \brief Mutex for variables mutated by the camera callback.
   /// The variables are: newCameraMsg, cameraMsg.
@@ -170,547 +161,472 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// contact sensor so it's easy to know its position
   public: bool visualizeSensor{false};
 
-  /// \brief Message for visualizing the sensor
-  public: ignition::msgs::Marker sensorMarkerMsg;
-
   /// \brief Size of the contact sensor
   public: ignition::math::Vector3d sensorSize;
 
   /// \brief Extended sensing distance. The sensor will output data coming from
   /// its volume plus this distance.
   public: double extendedSensing{0.001};
+
+  /// \brief Pointer to visualization object
+  public: std::unique_ptr<OpticalTactilePluginVisualization> visualizePtr;
 };
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm,
-                              const std::shared_ptr<const sdf::Element> &_sdf)
-{
-    igndbg << "Loading plugin [OpticalTactilePlugin]" << std::endl;
-
-    // Get sdf parameters
-    if (!_sdf->HasElement("resolution"))
-    {
-        ignlog << "Missing required parameter <resolution>, "
-            << "using default value" << std::endl;
-    }
-    else
-    {
-        if (_sdf->Get<int>("resolution") < 0)
-        {
-          ignwarn << "Parameter <resolution> must be positive, "
-              << "using default value" << std::endl;
-        }
-        else
-        {
-          this->resolution = _sdf->Get<int>("resolution");
-        }
-    }
-
-    if (!_sdf->HasElement("visualize_forces"))
-    {
-        ignlog << "Missing required parameter <visualize_forces>, "
-            << "using default value" << std::endl;
-    }
-    else
-    {
-        this->visualizeForces = _sdf->Get<bool>("visualize_forces");
-    }
-
-    if (!_sdf->HasElement("extended_sensing"))
-    {
-        ignlog << "Missing required parameter <extended_sensing>, "
-            << "using default value" << std::endl;
-    }
-    else
-    {
-        this->extendedSensing = _sdf->Get<double>("extended_sensing");
-    }
-
-    if (!_sdf->HasElement("visualize_sensor"))
-    {
-        ignlog << "Missing required parameter <visualize_sensor>, "
-            << "using default value" << std::endl;
-    }
-    else
-    {
-        this->visualizeSensor = _sdf->Get<bool>("visualize_sensor");
-    }
-
-    // todo(anyone) The plugin should be able to handle more than one link. In
-    // that case, one of the links would be the actual tactile sensor.
-
-    // Check SDF structure
-    // Model should only have 1 link
-    auto allLinks =
-        _ecm.ChildrenByComponents(this->model.Entity(), components::Link());
-    if (allLinks.size() != 1)
-    {
-      ignerr << "Plugin must have 1 link" << std::endl;
-      return;
-    }
-
-    // Link should have a collision component linked to a contact sensor
-    auto linkCollisions =
-        _ecm.ChildrenByComponents(allLinks[0], components::Collision());
-    for (const Entity &colEntity : linkCollisions)
-    {
-      if (_ecm.EntityHasComponentType(colEntity,
-          components::ContactSensorData::typeId))
-      {
-        this->contactSensorEntity = colEntity;
-
-        this->modelName = this->model.Name(_ecm);
-
-        igndbg << "Contactensor detected within model "
-            << this->modelName << std::endl;
-      }
-    }
-
-    // Link should have 1 Contact sensor and 1 Depth Camera sensor
-    auto sensorsInsideLink =
-        _ecm.ChildrenByComponents(allLinks[0], components::Sensor());
-
-    bool depthCameraInLink = false;
-    bool contactSensorInLink = false;
-    sdf::ElementPtr depthCameraSdf = nullptr;
-    for (const Entity &sensor : sensorsInsideLink)
-    {
-      if (_ecm.EntityHasComponentType(sensor,
-                                      components::DepthCamera::typeId))
-      {
-        depthCameraInLink = true;
-        depthCameraSdf =
-          _ecm.Component<components::DepthCamera>(sensor)->Data().Element();
-      }
-
-      if (_ecm.EntityHasComponentType(sensor,
-                                      components::ContactSensor::typeId))
-      {
-        contactSensorInLink = true;
-      }
-    }
-
-    if (!depthCameraInLink || !contactSensorInLink ||
-      sensorsInsideLink.size() != 2)
-    {
-      ignerr << "Link must have 1 Depth Camera sensor and "
-        << "1 Contact sensor" << std::endl;
-      return;
-    }
-
-    // Store depth camera update rate and offset from model
-    auto offset = depthCameraSdf->Get<ignition::math::Pose3d>("pose");
-    this->cameraUpdateRate = 1;
-    if (depthCameraSdf->HasElement("update_rate"))
-    {
-      this->cameraUpdateRate = depthCameraSdf->Get<float>("update_rate");
-    }
-
-    // Depth Camera data is float, so convert Pose3d to Pose3f
-    this->depthCameraOffset = ignition::math::Pose3f(
-        offset.Pos().X(), offset.Pos().Y(), offset.Pos().Z(),
-        offset.Rot().W(), offset.Rot().X(), offset.Rot().Y(),
-        offset.Rot().Z());
-
-    // Configure subscriber for Depth Camera images
-    std::string topic = "/depth_camera/points";
-    if (depthCameraSdf->HasElement("topic"))
-      topic = "/" + depthCameraSdf->Get<std::string>("topic") + "/points";
-
-    if (!this->node.Subscribe(topic,
-        &OpticalTactilePluginPrivate::DepthCameraCallback,
-        this))
-    {
-      ignerr << "Error subscribing to topic " << "[" << topic << "]. "
-        << "<topic> must not contain '/'" << std::endl;
-      return;
-    }
-}
-
-//////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::Enable(const bool _value)
-{
-    // Just a placeholder method for the moment
-    _value;
-}
-
-//////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::FilterOutCollisions(
-                            const EntityComponentManager &_ecm,
-                            const std::vector<Entity> &_entities)
-{
-    if (_entities.empty())
-        return;
-
-    // Clear vector that contains old data
-    this->filteredCollisionEntities.clear();
-
-    // Get collisions from the sensor
-    for (const Entity &entity : _entities)
-    {
-        std::string name = scopedName(entity, _ecm);
-
-        if (name.find(this->modelName) != std::string::npos)
-        {
-            this->filteredCollisionEntities.push_back(entity);
-        }
-    }
-}
-
-//////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::InterpolateData(
-                    const ignition::msgs::Contact &contact)
-{
-    // The Optical Tactile Sensor is supposed to be box-shaped.
-    // Contacts returned by the Contact Sensor in this type of shapes should be
-    // 4 points in the corners of some of its faces, in this case the one
-    // corresponding to the 'sensing' face.
-    // Given that the number of contacts may change even when the objects are
-    // at rest, data is only interpolated when the number of contacts
-    // returned is 4.
-
-    if (contact.position_size() == 4)
-    {
-        ignition::math::Vector3d contact1 =
-            ignition::msgs::Convert(contact.position(0));
-        ignition::math::Vector3d contact2 =
-            ignition::msgs::Convert(contact.position(1));
-        ignition::math::Vector3d contact3 =
-            ignition::msgs::Convert(contact.position(2));
-        ignition::math::Vector3d contact4 =
-            ignition::msgs::Convert(contact.position(3));
-
-        ignition::math::Vector3d direction1 =
-            (contact2 - contact1).Normalized() * this->resolution;
-        ignition::math::Vector3d direction2 =
-            (contact4 - contact1).Normalized() * this->resolution;
-
-        ignition::math::Vector3d interpolatedVector = contact1;
-        this->interpolatedPosition.push_back(contact1);
-
-        // auxiliary Vector3d to iterate through contacts
-        ignition::math::Vector3d tempVector(0.0, 0.0, 0.0);
-
-        uint64_t steps1 =
-            contact1.Distance(contact2) / this->resolution;
-        uint64_t steps2 =
-            contact1.Distance(contact4) / this->resolution;
-
-        for (uint64_t index1 = 0; index1 <= steps1; ++index1)
-        {
-            tempVector = interpolatedVector;
-            for (uint64_t index2 = 0; index2 < steps2; ++index2)
-            {
-                interpolatedVector += direction2;
-                this->interpolatedPosition.push_back(interpolatedVector);
-            }
-            if (index1 != steps1)
-            {
-                interpolatedVector = tempVector;
-                interpolatedVector += direction1;
-                this->interpolatedPosition.push_back(interpolatedVector);
-            }
-        }
-    }
-}
-
-//////////////////////////////////////////////////
 OpticalTactilePlugin::OpticalTactilePlugin()
-            : System(), dataPtr(std::make_unique<OpticalTactilePluginPrivate>())
+  : System(), dataPtr(std::make_unique<OpticalTactilePluginPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::Configure(const Entity &_entity,
-                            const std::shared_ptr<const sdf::Element> &_sdf,
-                            EntityComponentManager &_ecm,
-                            EventManager &)
+  const std::shared_ptr<const sdf::Element> &_sdf,
+  EntityComponentManager &_ecm,
+  EventManager &)
 {
-    this->dataPtr->sdfConfig = _sdf;
-    this->dataPtr->model = Model(_entity);
+  this->dataPtr->model = Model(_entity);
 
-    if (!this->dataPtr->model.Valid(_ecm))
-    {
-      ignerr << "Touch plugin should be attached to a model entity. "
-        << "Failed to initialize." << std::endl;
-      return;
-    }
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    ignerr << "Touch plugin should be attached to a model entity. "
+      << "Failed to initialize." << std::endl;
+    return;
+  }
 
-    // Configure Marker messages for position and force of the contacts
-    // Blue spheres for positions
-    // Green cylinders for forces
+  // Get the sdf parameters
 
-    // Get markers parameters
+  // <enabled>
+  if (!_sdf->HasElement("enabled"))
+  {
+    ignlog << "Missing parameter <enabled>, "
+      << "setting to " << this->dataPtr->enabled << std::endl;
+  }
+  else
+  {
+    this->dataPtr->enabled = _sdf->Get<bool>("enabled");
+  }
 
-    if (!_sdf->HasElement("contact_radius"))
+  // <visualization_resolution>
+  if (!_sdf->HasElement("visualization_resolution"))
+  {
+    ignlog << "Missing parameter <visualization_resolution>, "
+      << "setting to " << this->dataPtr->visualizationResolution << std::endl;
+  }
+  else
+  {
+    if (_sdf->Get<int>("visualization_resolution") < 0)
     {
-        ignlog << "Missing required parameter <contact_radius>, "
-            << "using default value" << std::endl;
-    }
-    else
-    {
-        this->dataPtr->contactRadius = _sdf->Get<double>("contact_radius");
-    }
-
-    if (!_sdf->HasElement("force_radius"))
-    {
-        ignlog << "Missing required parameter <force_radius>, "
-            << "using default value" << std::endl;
-    }
-    else
-    {
-        this->dataPtr->forceRadius = _sdf->Get<double>("force_radius");
-    }
-
-    if (!_sdf->HasElement("force_length"))
-    {
-        ignlog << "Missing required parameter <force_length>, "
-            << "using default value" << std::endl;
+      ignwarn << "Parameter <visualization_resolution> must be positive, "
+        << "setting to " << this->dataPtr->visualizationResolution << std::endl;
     }
     else
     {
-        this->dataPtr->forceLength = _sdf->Get<double>("force_length");
+      this->dataPtr->visualizationResolution =
+        _sdf->Get<int>("visualization_resolution");
     }
+  }
 
-    // Create the marker message
-    this->dataPtr->positionMarkerMsg.set_ns("positions");
-    this->dataPtr->positionMarkerMsg.set_action(
-        ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->positionMarkerMsg.set_type(
-        ignition::msgs::Marker::SPHERE);
-    this->dataPtr->positionMarkerMsg.set_visibility(
-        ignition::msgs::Marker::GUI);
+  // <contacts_resolution>
+  if (!_sdf->HasElement("contacts_resolution"))
+  {
+    ignlog << "Missing parameter <contacts_resolution>, "
+      << "setting to " << this->dataPtr->contactsResolution << std::endl;
+  }
+  else
+  {
+    if (_sdf->Get<double>("contacts_resolution") < 0)
+    {
+      ignwarn << "Parameter <contacts_resolution> must be positive, "
+        << "setting to " << this->dataPtr->contactsResolution << std::endl;
+    }
+    else
+    {
+      this->dataPtr->contactsResolution =
+        _sdf->Get<double>("contacts_resolution");
+    }
+  }
 
-    this->dataPtr->forceMarkerMsg.set_ns("forces");
-    this->dataPtr->forceMarkerMsg.set_action(
-        ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->forceMarkerMsg.set_type(
-        ignition::msgs::Marker::CYLINDER);
-    this->dataPtr->forceMarkerMsg.set_visibility(
-        ignition::msgs::Marker::GUI);
+  // <visualize_forces>
+  if (!_sdf->HasElement("visualize_forces"))
+  {
+    ignlog << "Missing parameter <visualize_forces>, "
+      << "setting to " << this->dataPtr->visualizeForces << std::endl;
+  }
+  else
+  {
+    this->dataPtr->visualizeForces = _sdf->Get<bool>("visualize_forces");
+  }
 
-    this->dataPtr->sensorMarkerMsg.set_ns("sensor");
-    this->dataPtr->sensorMarkerMsg.set_id(1);
-    this->dataPtr->sensorMarkerMsg.set_action(
-        ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->sensorMarkerMsg.set_type(
-        ignition::msgs::Marker::BOX);
-    this->dataPtr->sensorMarkerMsg.set_visibility(
-        ignition::msgs::Marker::GUI);
+  // <extended_sensing>
+  if (!_sdf->HasElement("extended_sensing"))
+  {
+    ignlog << "Missing parameter <extended_sensing>, "
+      << "setting to " << this->dataPtr->extendedSensing << std::endl;
+  }
+  else
+  {
+    if (_sdf->Get<double>("extended_sensing") < 0)
+    {
+      ignwarn << "Parameter <extended_sensing> must be positive, "
+        << "setting to " << this->dataPtr->extendedSensing << std::endl;
+    }
+    else
+    {
+      this->dataPtr->extendedSensing = _sdf->Get<double>("extended_sensing");
+    }
+  }
 
-    // Set material properties
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
-    this->dataPtr->
-        positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-    this->dataPtr->
-        positionMarkerMsg.mutable_lifetime()->
-          set_sec(this->dataPtr->cameraUpdateRate);
+  // <visualize_sensor>
+  if (!_sdf->HasElement("visualize_sensor"))
+  {
+    ignlog << "Missing parameter <visualize_sensor>, "
+      << "setting to " << this->dataPtr->visualizeSensor << std::endl;
+  }
+  else
+  {
+    this->dataPtr->visualizeSensor = _sdf->Get<bool>("visualize_sensor");
+  }
 
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
-    this->dataPtr->
-        forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-    this->dataPtr->
-        forceMarkerMsg.mutable_lifetime()->
-          set_sec(this->dataPtr->cameraUpdateRate);
+  // <contact_radius>
+  if (!_sdf->HasElement("contact_radius"))
+  {
+    ignlog << "Missing parameter <contact_radius>, "
+      << "setting to " << this->dataPtr->contactRadius << std::endl;
+  }
+  else
+  {
+    if (_sdf->Get<double>("contact_radius") < 0)
+    {
+      ignwarn << "Parameter <contact_radius> must be positive, "
+        << "setting to " << this->dataPtr->contactRadius << std::endl;
+    }
+    else
+    {
+      this->dataPtr->contactRadius = _sdf->Get<double>("contact_radius");
+    }
+  }
 
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_r(0.5);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_g(0.5);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_b(0.5);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_ambient()->set_a(0.75);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0.5);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0.5);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0.5);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_a(0.75);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_lifetime()->set_sec(0);
-    this->dataPtr->
-        sensorMarkerMsg.mutable_lifetime()->set_nsec(0);
+  // <force_radius>
+  if (!_sdf->HasElement("force_radius"))
+  {
+    ignlog << "Missing parameter <force_radius>, "
+      << "setting to " << this->dataPtr->forceRadius << std::endl;
+  }
+  else
+  {
+    if (_sdf->Get<double>("force_radius") < 0)
+    {
+      ignwarn << "Parameter <force_radius> must be positive, "
+        << "setting to " << this->dataPtr->forceRadius << std::endl;
+    }
+    else
+    {
+      this->dataPtr->forceRadius = _sdf->Get<double>("force_radius");
+    }
+  }
 
-    // Set scales
-    ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-        ignition::math::Vector3d(this->dataPtr->contactRadius,
-        this->dataPtr->contactRadius,
-        this->dataPtr->contactRadius));
+  // <force_length>
+  if (!_sdf->HasElement("force_length"))
+  {
+    ignlog << "Missing parameter <force_length>, "
+      << "setting to " << this->dataPtr->forceLength << std::endl;
+  }
+  else
+  {
+    if (_sdf->Get<double>("force_length") < 0)
+    {
+      ignwarn << "Parameter <force_length> must be positive, "
+        << "setting to " << this->dataPtr->forceLength << std::endl;
+    }
+    else
+    {
+      this->dataPtr->forceLength = _sdf->Get<double>("force_length");
+    }
+  }
 
-    ignition::msgs::Set(this->dataPtr->forceMarkerMsg.mutable_scale(),
-        ignition::math::Vector3d(this->dataPtr->forceRadius,
-        this->dataPtr->forceRadius, this->dataPtr->forceLength));
-
-    // Get the size of the sensor from the SDF
-
-    // If there's no <collision> specified inside <link>, a default one
-    // is set
-    this->dataPtr->sensorSize =
-      _sdf->GetParent()->GetElement("link")->GetElement("collision")->
-      GetElement("geometry")->GetElement("box")->
-      Get<ignition::math::Vector3d>("size");
-
-    ignition::msgs::Set(this->dataPtr->sensorMarkerMsg.mutable_scale(),
-      this->dataPtr->sensorSize);
+  // Get the size of the sensor from the SDF
+  // If there's no <collision> specified inside <link>, a default one
+  // is set
+  this->dataPtr->sensorSize =
+    _sdf->GetParent()->GetElement("link")->GetElement("collision")->
+    GetElement("geometry")->GetElement("box")->
+    Get<ignition::math::Vector3d>("size");
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
-                            EntityComponentManager &_ecm)
+  EntityComponentManager &_ecm)
 {
-    IGN_PROFILE("TouchPluginPrivate::PreUpdate");
+  IGN_PROFILE("TouchPluginPrivate::PreUpdate");
 
-    // Nothing left to do if paused
-    if (_info.paused)
-      return;
+  // Nothing left to do if paused
+  if (_info.paused)
+    return;
 
-    if (!this->dataPtr->initialized)
+  if (!this->dataPtr->initialized)
+  {
+    // We call Load here instead of Configure because we can't be guaranteed
+    // that all entities have been created when Configure is called
+    this->dataPtr->Load(_ecm);
+    this->dataPtr->initialized = true;
+  }
+
+  // This is not an "else" because "initialized" can be set
+  // in the if block above
+  if (this->dataPtr->initialized)
+  {
+    // Get the first object being touched by the sensor
+    // We assume there's only one object being touched
+    auto csd = _ecm.Component<components::ContactSensorData>(
+      this->dataPtr->sensorCollisionEntity);
+    for (const auto &contact : csd->Data().contact())
     {
-        // We call Load here instead of Configure because we can't be guaranteed
-        // that all entities have been created when Configure is called
-        this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
-        this->dataPtr->initialized = true;
+      this->dataPtr->objectCollisionEntity =
+        contact.collision2().id();
+      break;
     }
 
-    // This is not an "else" because "initialized" can be set
-    // in the if block above
-    if (this->dataPtr->initialized)
-    {
-      // Fetch new collisions from simulation
-      std::vector<Entity> newCollisions;
-      _ecm.Each<components::Collision>(
-          [&](const Entity &_entity, const components::Collision *) -> bool
-          {
-            newCollisions.push_back(_entity);
-            return true;
-          });
-      this->dataPtr->FilterOutCollisions(_ecm, newCollisions);
+    // Get the Depth Camera pose
+    ignition::math::Pose3d sensorPose =
+      _ecm.Component<components::Pose>(
+        this->dataPtr->model.Entity())->Data();
 
-      // Get the Depth Camera pose
-      ignition::math::Pose3d sensorPose =
-          _ecm.Component<components::Pose>(
-            this->dataPtr->model.Entity())->Data();
-
-      // Depth Camera data is float, so convert Pose3d to Pose3f
-      this->dataPtr->sensorWorldPose = ignition::math::Pose3f(
-          sensorPose.Pos().X(), sensorPose.Pos().Y(), sensorPose.Pos().Z(),
-          sensorPose.Rot().W(), sensorPose.Rot().X(), sensorPose.Rot().Y(),
-          sensorPose.Rot().Z());
-    }
+    // Depth Camera data is float, so convert Pose3d to Pose3f
+    this->dataPtr->sensorWorldPose = ignition::math::Pose3f(
+      sensorPose.Pos().X(), sensorPose.Pos().Y(), sensorPose.Pos().Z(),
+      sensorPose.Rot().W(), sensorPose.Rot().X(), sensorPose.Rot().Y(),
+      sensorPose.Rot().Z());
+  }
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PostUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+  const ignition::gazebo::UpdateInfo &_info,
+  const ignition::gazebo::EntityComponentManager &_ecm)
 {
-    IGN_PROFILE("TouchPlugin::PostUpdate");
+  IGN_PROFILE("TouchPlugin::PostUpdate");
 
-    // Nothing left to do if paused.
-    if (_info.paused)
-      return;
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
 
-    // Delete old interpolated positions
-    this->dataPtr->interpolatedPosition.clear();
+  auto* contacts =
+    _ecm.Component<components::ContactSensorData>(
+      this->dataPtr->sensorCollisionEntity);
 
-    for (const Entity &colEntity : this->dataPtr->filteredCollisionEntities)
+  if (contacts)
+  {
+    for (const auto &contact : contacts->Data().contact())
     {
-        auto* contacts =
-            _ecm.Component<components::ContactSensorData>(colEntity);
-        if (contacts)
-        {
-            for (const auto &contact : contacts->Data().contact())
-            {
-                // Interpolate data returned by the Contact message
-                this->dataPtr->InterpolateData(contact);
-            }
-        }
+      // Interpolate data returned by the Contact message
+      this->dataPtr->InterpolateContactData(contact);
+    }
+  }
+
+  // Process camera message if it's new
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+    if (this->dataPtr->newCameraMsg)
+    {
+      this->dataPtr->ComputeNormalForces(this->dataPtr->cameraMsg,
+        this->dataPtr->visualizeForces);
+
+      this->dataPtr->newCameraMsg = false;
+    }
+  }
+
+  // Publish sensor marker if required and sensor pose has changed
+  if (this->dataPtr->visualizeSensor &&
+    (this->dataPtr->sensorWorldPose != this->dataPtr->prevSensorWorldPose))
+  {
+    this->dataPtr->visualizePtr->VisualizeSensor(
+      this->dataPtr->sensorWorldPose);
+  }
+
+  // Store the pose of the sensor in the current iteration
+  this->dataPtr->prevSensorWorldPose = this->dataPtr->sensorWorldPose;
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
+{
+  igndbg << "Loading plugin [OpticalTactilePlugin]" << std::endl;
+
+  // todo(anyone) The plugin should be able to handle more than one link. In
+  // that case, one of the links would be the actual tactile sensor.
+
+  // Check plugin structure
+  // Model should only have 1 link
+  auto allLinks =
+    _ecm.ChildrenByComponents(this->model.Entity(), components::Link());
+  if (allLinks.size() != 1)
+  {
+    ignerr << "Plugin must have exactly 1 link" << std::endl;
+    return;
+  }
+
+  // Link should have a collision component linked to a contact sensor
+  auto linkCollisions =
+    _ecm.ChildrenByComponents(allLinks[0], components::Collision());
+  for (const Entity &colEntity : linkCollisions)
+  {
+    if (_ecm.EntityHasComponentType(colEntity,
+        components::ContactSensorData::typeId))
+    {
+      this->sensorCollisionEntity = colEntity;
+
+      this->modelName = this->model.Name(_ecm);
+
+      igndbg << "Contact sensor detected within model "
+        << this->modelName << std::endl;
+    }
+  }
+
+  // Link should have exactly 1 Contact sensor and 1 Depth Camera sensor
+  auto sensorsInsideLink =
+    _ecm.ChildrenByComponents(allLinks[0], components::Sensor());
+
+  int depthCameraCounter = 0;
+  int contactSensorCounter = 0;
+  sdf::ElementPtr depthCameraSdf = nullptr;
+  for (const Entity &sensor : sensorsInsideLink)
+  {
+    if (_ecm.EntityHasComponentType(sensor, components::DepthCamera::typeId))
+    {
+      depthCameraCounter += 1;
+      depthCameraSdf =
+        _ecm.Component<components::DepthCamera>(sensor)->Data().Element();
     }
 
-    // Process camera message if it's new
+    if (_ecm.EntityHasComponentType(sensor, components::ContactSensor::typeId))
     {
-      std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-      if (this->dataPtr->newCameraMsg)
-      {
-        this->dataPtr->UnpackPointCloudMsg(this->dataPtr->cameraMsg);
-        this->dataPtr->ComputeNormalForces(this->dataPtr->cameraMsg,
-            this->dataPtr->visualizeForces);
+      contactSensorCounter += 1;
+    }
+  }
 
-        this->dataPtr->newCameraMsg = false;
+  if ((depthCameraCounter != 1) || (contactSensorCounter != 1))
+  {
+    ignerr << "Link must have 1 Depth Camera sensor and "
+      << "1 Contact sensor" << std::endl;
+    return;
+  }
+
+  // Store depth camera update rate and offset from model
+  auto offset = depthCameraSdf->Get<ignition::math::Pose3d>("pose");
+  if (!depthCameraSdf->HasElement("update_rate"))
+  {
+    ignerr << "Depth camera should have an <update_rate> value" << std::endl;
+    return;
+  }
+  this->cameraUpdateRate = depthCameraSdf->Get<float>("update_rate");
+
+  // Depth Camera data is float, so convert Pose3d to Pose3f
+  this->depthCameraOffset = ignition::math::Pose3f(
+    offset.Pos().X(), offset.Pos().Y(), offset.Pos().Z(),
+    offset.Rot().W(), offset.Rot().X(), offset.Rot().Y(),
+    offset.Rot().Z());
+
+  // Configure subscriber for Depth Camera images
+  if (!depthCameraSdf->HasElement("topic"))
+  {
+    ignerr << "Depth camera should have a unique <topic> value" << std::endl;
+    return;
+  }
+  std::string topic =
+    "/" + depthCameraSdf->Get<std::string>("topic") + "/points";
+  if (!this->node.Subscribe(topic,
+      &OpticalTactilePluginPrivate::DepthCameraCallback, this))
+  {
+    ignerr << "Error subscribing to topic " << "[" << topic << "]. "
+      << "<topic> must not contain '/'" << std::endl;
+    return;
+  }
+
+  // Instantiate the visualization class
+  this->visualizePtr = std::make_unique<
+    OpticalTactilePluginVisualization>(this->contactRadius,
+    this->forceRadius, this->forceLength,
+    this->cameraUpdateRate, this->depthCameraOffset,
+    this->visualizationResolution);
+
+  // Create the marker messages
+  this->visualizePtr->CreateMarkersMsgs(this->modelName, this->sensorSize);
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::Enable(const bool _value)
+{
+    // todo(mcres) Implement method
+    _value;
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginPrivate::InterpolateContactData(
+  const ignition::msgs::Contact &_contact)
+{
+  // The Optical Tactile Sensor is supposed to be box-shaped.
+  // Contacts returned by the Contact Sensor in this type of shapes should be
+  // 4 points in the corners of some of its faces, in this case the one
+  // corresponding to the 'sensing' face.
+  // Given that the number of contacts may change even when the objects are
+  // at rest, data is only interpolated when the number of contacts
+  // returned is 4.
+
+  // todo(mcres) Handle a different number of contacts returned by the
+  // contact sensor
+
+  if (_contact.position_size() == 4)
+  {
+    // todo(mcres) Interpolated contacts should be published in a message
+
+    ignition::math::Vector3d contact1 =
+      ignition::msgs::Convert(_contact.position(0));
+    ignition::math::Vector3d contact2 =
+      ignition::msgs::Convert(_contact.position(1));
+    ignition::math::Vector3d contact3 =
+      ignition::msgs::Convert(_contact.position(2));
+    ignition::math::Vector3d contact4 =
+      ignition::msgs::Convert(_contact.position(3));
+
+    ignition::math::Vector3d direction1 =
+      (contact2 - contact1).Normalized() * (this->contactsResolution/1000.0);
+    ignition::math::Vector3d direction2 =
+      (contact4 - contact1).Normalized() * (this->contactsResolution/1000.0);
+
+    ignition::math::Vector3d interpolatedVector = contact1;
+
+    // auxiliary Vector3d to iterate through contacts
+    ignition::math::Vector3d tempVector(0.0, 0.0, 0.0);
+
+    uint64_t steps1 =
+      contact1.Distance(contact2) / (this->contactsResolution/1000.0);
+    uint64_t steps2 =
+      contact1.Distance(contact4) / (this->contactsResolution/1000.0);
+
+    for (uint64_t index1 = 0; index1 <= steps1; ++index1)
+    {
+      tempVector = interpolatedVector;
+      for (uint64_t index2 = 0; index2 < steps2; ++index2)
+      {
+        interpolatedVector += direction2;
+      }
+      if (index1 != steps1)
+      {
+        interpolatedVector = tempVector;
+        interpolatedVector += direction1;
       }
     }
-
-    // Publish sensor marker if required and sensor pose has changed
-    if (this->dataPtr->visualizeSensor &&
-      (this->dataPtr->sensorWorldPose != this->dataPtr->prevSensorWorldPose))
-    {
-      this->dataPtr->sensorMarkerMsg.set_action(
-          ignition::msgs::Marker::ADD_MODIFY);
-      this->dataPtr->sensorMarkerMsg.set_id(1);
-
-      this->dataPtr->sensorMarkerMsg.mutable_pose()
-        ->mutable_position()->set_x(this->dataPtr->sensorWorldPose.Pos().X());
-      this->dataPtr->sensorMarkerMsg.mutable_pose()
-        ->mutable_position()->set_y(this->dataPtr->sensorWorldPose.Pos().Y());
-      this->dataPtr->sensorMarkerMsg.mutable_pose()
-        ->mutable_position()->set_z(this->dataPtr->sensorWorldPose.Pos().Z());
-      this->dataPtr->sensorMarkerMsg.mutable_pose()->
-        mutable_orientation()->set_x(
-          this->dataPtr->sensorWorldPose.Rot().X());
-      this->dataPtr->sensorMarkerMsg.mutable_pose()->
-        mutable_orientation()->set_y(
-          this->dataPtr->sensorWorldPose.Rot().Y());
-      this->dataPtr->sensorMarkerMsg.mutable_pose()->
-        mutable_orientation()->set_z(
-          this->dataPtr->sensorWorldPose.Rot().Z());
-      this->dataPtr->sensorMarkerMsg.mutable_pose()->
-        mutable_orientation()->set_w(
-          this->dataPtr->sensorWorldPose.Rot().W());
-
-      this->dataPtr->node.Request("/marker", this->dataPtr->sensorMarkerMsg);
-    }
-
-    // Store the pose of the sensor in the current iteration
-    this->dataPtr->prevSensorWorldPose = this->dataPtr->sensorWorldPose;
+  }
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePluginPrivate::DepthCameraCallback(
-        const ignition::msgs::PointCloudPacked &_msg)
+  const ignition::msgs::PointCloudPacked &_msg)
 {
   // This check avoids running the callback at t=0 and getting
   // unexpected markers in the scene
   if (!this->initialized)
-      return;
+    return;
 
   {
     std::lock_guard<std::mutex> lock(this->serviceMutex);
@@ -720,208 +636,123 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::UnpackPointCloudMsg(
-                        const ignition::msgs::PointCloudPacked &_msg)
+ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
+  const u_int32_t &_i, const uint32_t &_j)
 {
-  // 3D vector to store XYZ points
-  this->imageXYZ = std::vector<std::vector<std::vector<float>>>
-      (_msg.width(),
-      std::vector<std::vector<float>>(_msg.height(),
-      std::vector<float>(3)));
+  // Initialize return variable
+  ignition::math::Vector3f measuredPoint;
 
-  // Unpack point cloud message
-  std::string msgBuffer = _msg.data();
-  char *msgBufferIndex = msgBuffer.data();
+  // Save original position of the pointer
+  char *initialMsgBuffer = this->msgBuffer;
 
-  for (uint64_t j = 0; j < _msg.height(); ++j)
+  // Number of bytes from the beginning of the pointer (image coordinates at
+  // 0,0) to the desired (i,j) position
+  uint32_t msgBufferIndex =
+    _j*this->cameraMsg.row_step() + _i*this->cameraMsg.point_step();
+
+  this->msgBuffer += msgBufferIndex;
+  int fieldIndex = 0;
+
+  // X coordinate
+  measuredPoint.X() = *reinterpret_cast<float *>(
+    this->msgBuffer + this->cameraMsg.field(fieldIndex++).offset());
+  // Y coordinate
+  measuredPoint.Y() = *reinterpret_cast<float *>(
+    this->msgBuffer + this->cameraMsg.field(fieldIndex++).offset());
+  // Z coordinate
+  measuredPoint.Z() = *reinterpret_cast<float *>(
+    this->msgBuffer + this->cameraMsg.field(fieldIndex).offset());
+
+  // Check if point is inside the sensor
+  bool pointInside = this->PointInsideSensor(measuredPoint);
+  if (!pointInside)
   {
-    for (uint64_t i = 0; i < _msg.width(); ++i)
-    {
-      int fieldIndex = 0;
-
-      // x coordinate in pixel (i,j)
-      this->imageXYZ[i][j][0] =  *reinterpret_cast<float *>(
-        msgBufferIndex + _msg.field(fieldIndex++).offset());
-      // y coordinate in pixel (i,j)
-      this->imageXYZ[i][j][1] = *reinterpret_cast<float *>(
-        msgBufferIndex + _msg.field(fieldIndex++).offset());
-      // z coordinate in pixel (i,j)
-      this->imageXYZ[i][j][2] = *reinterpret_cast<float *>(
-        msgBufferIndex + _msg.field(fieldIndex++).offset());
-
-      // Filter out points outside of the contact sensor
-
-      // We assume that the Depth Camera is only displaced in the -X direction
-      bool insideX = (this->imageXYZ[i][j][0] >= std::abs(
-        this->depthCameraOffset.X()) - this->extendedSensing)
-        && (this->imageXYZ[i][j][0] <= (std::abs(this->depthCameraOffset.X()) +
-        this->sensorSize.X() + this->extendedSensing));
-
-      bool insideY = (this->imageXYZ[i][j][1] <= this->sensorSize.Y() / 2 +
-        this->extendedSensing)
-        && (this->imageXYZ[i][j][1] >= - this->sensorSize.Y() / 2 -
-        this->extendedSensing);
-
-      bool insideZ = (this->imageXYZ[i][j][2] <= this->sensorSize.Z() / 2 +
-        this->extendedSensing)
-        && (this->imageXYZ[i][j][2] >= - this->sensorSize.Z() / 2 -
-        this->extendedSensing);
-
-      if (!insideX || !insideY || !insideZ)
-      {
-        this->imageXYZ[i][j][0] = ignition::math::INF_D;
-        this->imageXYZ[i][j][1] = ignition::math::INF_D;
-        this->imageXYZ[i][j][2] = ignition::math::INF_D;
-      }
-
-      msgBufferIndex += _msg.point_step();
-    }
+    measuredPoint.X() = ignition::math::INF_F;
+    measuredPoint.Y() = ignition::math::INF_F;
+    measuredPoint.Z() = ignition::math::INF_F;
   }
+
+  // Restore msgBuffer to initial position
+  this->msgBuffer = initialMsgBuffer;
+
+  return measuredPoint;
+}
+
+//////////////////////////////////////////////////
+bool OpticalTactilePluginPrivate::PointInsideSensor(
+  ignition::math::Vector3f _point)
+{
+  // We assume that the Depth Camera is only displaced in the -X direction
+  bool insideX = (_point.X() >= std::abs(
+    this->depthCameraOffset.X()) - this->extendedSensing)
+    && (_point.X() <= (std::abs(this->depthCameraOffset.X()) +
+    this->sensorSize.X() + this->extendedSensing));
+
+  bool insideY = (_point.Y() <= this->sensorSize.Y() / 2 +
+    this->extendedSensing)
+    && (_point.Y() >= - this->sensorSize.Y() / 2 -
+    this->extendedSensing);
+
+  bool insideZ = (_point.Z() <= this->sensorSize.Z() / 2 +
+    this->extendedSensing)
+    && (_point.Z() >= - this->sensorSize.Z() / 2 -
+    this->extendedSensing);
+
+  return (insideX && insideY && insideZ);
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePluginPrivate::ComputeNormalForces(
-                    const ignition::msgs::PointCloudPacked &_msg,
-                    const bool _visualizeForces)
+  const ignition::msgs::PointCloudPacked &_msg,
+  const bool _visualizeForces)
 {
-  // 2D vector to store normal force vectors
-  std::vector<std::vector<ignition::math::Vector3f>> normalForces(_msg.width(),
-      std::vector<ignition::math::Vector3f>(_msg.height()));
+  // Get data from the message
+  std::string rawMsgBuffer = _msg.data();
+  this->msgBuffer = rawMsgBuffer.data();
 
-  // Visualization is downsampled according to plugin parameter <resolution>
-  // if <visualize_forces> is set to true
-  bool visualizeRow = true;
-  int rowCounter = 0;
+  // Declare variables for storing the XYZ points
+  ignition::math::Vector3f p1, p2, p3, p4, markerPosition;
 
-  bool visualizeColumn = true;
-  int columnCounter = 0;
+  // todo(anyone) Improve performance once the following issue is completed:
+  // https://github.com/ignitionrobotics/ign-math/issues/144
 
-  // Variable for setting the markers id through the iteration
-  int marker_id = 1;
-
+  // We don't get the image's edges because there are no adjacent points to
+  // compute the forces
   for (uint64_t j = 1; j < (_msg.height() - 1); ++j)
   {
     for (uint64_t i = 1; i < (_msg.width() - 1); ++i)
     {
-      // Compute normal forces
-      double dxdi =
-          (this->imageXYZ[i+1][j][0] -
-          this->imageXYZ[i-1][j][0])/
-          std::abs(this->imageXYZ[i+1][j][1] -
-          this->imageXYZ[i-1][j][1]);
+      // Get points for computing normal forces
+      p1 = this->MapPointCloudData(i + 1, j);
+      p2 = this->MapPointCloudData(i - 1, j);
+      p3 = this->MapPointCloudData(i, j + 1);
+      p4 = this->MapPointCloudData(i, j - 1);
 
-      double dxdj =
-          (this->imageXYZ[i][j+1][0] -
-          this->imageXYZ[i][j-1][0])/
-          std::abs(this->imageXYZ[i][j+1][2] -
-          this->imageXYZ[i][j-1][2]);
+      float dxdi = (p1.X() - p2.X()) / std::abs(p1.Y() - p2.Y());
+      float dxdj =  (p3.X() - p4.X()) / std::abs(p3.Z() - p4.Z());
 
       ignition::math::Vector3f direction(-1, -dxdi, -dxdj);
 
       // todo(anyone) multiply vector by contact forces info
-      normalForces[i][j] = direction.Normalized();
+      ignition::math::Vector3f normalForce = direction.Normalized();
 
-      // todo(mcres) normal forces will be published even if visualization
-      // is turned off
+      // todo(mcres) Normal forces will be computed even if visualization
+      // is turned off. These forces should be published in the future.
       if (!_visualizeForces)
-          continue;
+        continue;
 
-      // Downsampling for visualization
-      if (visualizeRow && visualizeColumn)
-      {
-        // Add new markers with specific lifetime
-        this->positionMarkerMsg.set_id(marker_id);
-        this->positionMarkerMsg.set_action(
-            ignition::msgs::Marker::ADD_MODIFY);
-        this->positionMarkerMsg.mutable_lifetime()->set_sec(
-            this->cameraUpdateRate);
-        this->positionMarkerMsg.mutable_lifetime()->set_nsec(0);
-
-        this->forceMarkerMsg.set_id(marker_id++);
-        this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-        this->forceMarkerMsg.mutable_lifetime()->set_sec(
-            this->cameraUpdateRate);
-        this->forceMarkerMsg.mutable_lifetime()->set_nsec(0);
-
-        // The pose of the  markers must be published with reference
-        // to the simulation origin
-        ignition::math::Vector3f forceMarkerSensorPosition
-            (this->imageXYZ[i][j][0], this->imageXYZ[i][j][1],
-            this->imageXYZ[i][j][2]);
-
-        ignition::math::Quaternionf forceMarkerSensorQuaternion;
-        forceMarkerSensorQuaternion.From2Axes(
-          ignition::math::Vector3f(0, 0, 1), normalForces[i][j]);
-
-        // The position of the force marker is modified in order to place the
-        // end of the cylinder in the surface, not its middle point
-        ignition::math::Pose3f forceMarkerSensorPose(
-            forceMarkerSensorPosition +
-            normalForces[i][j] * (this->forceLength/2),
-            forceMarkerSensorQuaternion);
-
-        ignition::math::Pose3f forceMarkerWorldPose =
-            (forceMarkerSensorPose + this->depthCameraOffset) +
-            this->sensorWorldPose;
-        forceMarkerWorldPose.Correct();
-
-        ignition::math::Pose3f positionMarkerSensorPose(
-            forceMarkerSensorPosition, forceMarkerSensorQuaternion);
-        ignition::math::Pose3f positionMarkerWorldPose =
-            (positionMarkerSensorPose + this->depthCameraOffset) +
-            this->sensorWorldPose;
-        positionMarkerWorldPose.Correct();
-
-        // Set markers pose messages from previously computed poses
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_position()->set_x(forceMarkerWorldPose.Pos().X());
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_position()->set_y(forceMarkerWorldPose.Pos().Y());
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_position()->set_z(forceMarkerWorldPose.Pos().Z());
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_x(forceMarkerWorldPose.Rot().X());
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_y(forceMarkerWorldPose.Rot().Y());
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_z(forceMarkerWorldPose.Rot().Z());
-        this->forceMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_w(forceMarkerWorldPose.Rot().W());
-
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_position()->set_x(positionMarkerWorldPose.Pos().X());
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_position()->set_y(positionMarkerWorldPose.Pos().Y());
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_position()->set_z(positionMarkerWorldPose.Pos().Z());
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_x(positionMarkerWorldPose.Rot().X());
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_y(positionMarkerWorldPose.Rot().Y());
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_z(positionMarkerWorldPose.Rot().Z());
-        this->positionMarkerMsg.mutable_pose()
-          ->mutable_orientation()->set_w(positionMarkerWorldPose.Rot().W());
-
-        this->node.Request("/marker", this->forceMarkerMsg);
-        this->node.Request("/marker", this->positionMarkerMsg);
-      }
-      visualizeColumn = (this->resolution == ++columnCounter);
-      if (visualizeColumn)
-          columnCounter = 0;
+      markerPosition = this->MapPointCloudData(i, j);
+      this->visualizePtr->VisualizeNormalForce(i, j, markerPosition,
+        normalForce, this->sensorWorldPose);
     }
-    visualizeColumn = true;
-    visualizeRow = (this->resolution == ++rowCounter);
-    if (visualizeRow)
-        rowCounter = 0;
   }
 }
 
 IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
-                    ignition::gazebo::System,
-                    OpticalTactilePlugin::ISystemConfigure,
-                    OpticalTactilePlugin::ISystemPreUpdate,
-                    OpticalTactilePlugin::ISystemPostUpdate)
+  ignition::gazebo::System,
+  OpticalTactilePlugin::ISystemConfigure,
+  OpticalTactilePlugin::ISystemPreUpdate,
+  OpticalTactilePlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
-    "ignition::gazebo::systems::OpticalTactilePlugin")
+  "ignition::gazebo::systems::OpticalTactilePlugin")

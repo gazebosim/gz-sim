@@ -21,6 +21,7 @@
 #include <memory>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
+#include "Visualization.hh"
 
 namespace ignition
 {
@@ -45,23 +46,30 @@ namespace systems
     /// doesn't need to be enabled. This element is optional, and the
     /// default value is true.
     ///
-    /// <resolution> Number of pixels to skip when visualizing forces. One
-    /// vector representing a normal force is computed for each of the camera
-    /// pixels. This element must be positive and it is optional. The default
-    /// value is 100.
+    /// <visualization_resolution> Number of pixels to skip when visualizing
+    /// the forces. One vector representing a normal force is computed for each
+    /// of the camera pixels. This element must be positive and it is optional.
+    /// The default value is 30.
+    ///
+    /// <contacts_resolution> Distance in mm to interpolate the contacts
+    /// returned by the contact sensor. This element must be positive and
+    /// it is optional. The default value is 1.
     ///
     /// <visualize_forces> Set this to true so the plugin visualizes the normal
     /// forces in the 3D world. This element is optional, and the
     /// default value is false.
     ///
     /// <contact_radius> Radius in meters of the contacts visualized if
-    /// <visualize_forces> is set to true. This parameter is optional.
+    /// <visualize_forces> is set to true. This parameter is optional, and the
+    /// default value is 0.003.
     ///
     /// <force_radius> Radius in meters of the forces visualized if
-    /// <visualize_forces> is set to true. This parameter is optional.
+    /// <visualize_forces> is set to true. This parameter is optional, and the
+    /// default value is 0.001.
     ///
     /// <force_length> Length in meters of the forces visualized if
-    /// <visualize_forces> is set to true. This parameter is optional.
+    /// <visualize_forces> is set to true. This parameter is optional, and the
+    /// default value is 0.01.
     ///
     /// <extended_sensing> Extended sensing distance in meters. The sensor will
     /// output data coming from its collision geometry plus this distance. This
@@ -71,10 +79,10 @@ namespace systems
     /// is optional, and the default value is false.
 
     class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
-        public System,
-        public ISystemConfigure,
-        public ISystemPreUpdate,
-        public ISystemPostUpdate
+      public System,
+      public ISystemConfigure,
+      public ISystemPreUpdate,
+      public ISystemPostUpdate
     {
       /// \brief Constructor
       public: OpticalTactilePlugin();
@@ -84,18 +92,18 @@ namespace systems
 
       // Documentation inherited
       public: void Configure(const Entity &_entity,
-                             const std::shared_ptr<const sdf::Element> &_sdf,
-                             EntityComponentManager &_ecm,
-                             EventManager &_eventMgr) override;
+        const std::shared_ptr<const sdf::Element> &_sdf,
+        EntityComponentManager &_ecm,
+        EventManager &_eventMgr) override;
 
       /// Documentation inherited
       public: void PreUpdate(const UpdateInfo &_info,
-                             EntityComponentManager &_ecm) override;
+        EntityComponentManager &_ecm) override;
 
       // Documentation inherited
       public: void PostUpdate(
-            const ignition::gazebo::UpdateInfo &_info,
-            const ignition::gazebo::EntityComponentManager &_ecm) override;
+        const ignition::gazebo::UpdateInfo &_info,
+        const ignition::gazebo::EntityComponentManager &_ecm) override;
 
       /// \brief Private data pointer
       private: std::unique_ptr<OpticalTactilePluginPrivate> dataPtr;
