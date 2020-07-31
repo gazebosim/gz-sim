@@ -201,7 +201,8 @@
         filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
-        <resolution>15</resolution>
+        <visualization_resolution>15</visualization_resolution>
+        <contacts_resolution>1</contacts_resolution>
         <visualize_forces>true</visualize_forces>
         <visualize_sensor>true</visualize_sensor>
         <contact_radius>0.001</contact_radius>
