@@ -26,7 +26,8 @@ if (SWIG_FOUND)
     GaussMarkovProcess
     Rand
     Vector2
-    Vector3)
+    Vector3
+    Vector4)
 endif()
 
 #################################################
