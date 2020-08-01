@@ -59,6 +59,7 @@
 #include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
+#include <ignition/physics/sdf/ConstructNestedModel.hh>
 #include <ignition/physics/sdf/ConstructWorld.hh>
 
 // SDF
@@ -478,6 +479,25 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// that here they've been casted for `MeshFeatureList`.
   public: std::unordered_map<Entity, LinkMeshPtrType>
       entityLinkMeshMap;
+
+  //////////////////////////////////////////////////
+  // Nested Models
+
+  /// \brief Feature list to construct nested models
+  public: using NestedModelFeatureList = ignition::physics::FeatureList<
+            MinimumFeatureList,
+            ignition::physics::sdf::ConstructSdfNestedModel>;
+
+  /// \brief Link type with meshes.
+  public: using NestedModelPtrType = physics::ModelPtr<
+            physics::FeaturePolicy3d, NestedModelFeatureList>;
+
+  /// \brief A map between model entity ids in the ECM to Model Entities in
+  /// ign-physics, with Nested Model feature.
+  /// All models on this map are also in `entityModelMap`. The difference is
+  /// that here they've been casted for `ConstructedSdfNestedModel`.
+  public: std::unordered_map<Entity, NestedModelPtrType>
+      entityNestedModelMap;
 };
 
 //////////////////////////////////////////////////
@@ -709,7 +729,20 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           if (parentIt != this->entityModelMap.end())
           {
             auto parentPtrPhys = parentIt->second;
-            auto modelPtrPhys = parentPtrPhys->ConstructModel(model);
+
+            auto nestedModelFeature = entityCast(_parent->Data(), parentPtrPhys,
+                this->entityNestedModelMap);
+            if (!nestedModelFeature)
+            {
+              igndbg << "Attempting to construct nested models, but the physics"
+                     << " engine doesn't support feature "
+                     << "[ConstructSdfNestedModelFeature]. "
+                     << "Nested model will be ignored."
+                     << std::endl;
+              return true;
+            }
+
+            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
             if (modelPtrPhys)
             {
               this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
