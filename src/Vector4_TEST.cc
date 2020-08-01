@@ -57,6 +57,11 @@ TEST(Vector4dTest, Vector4d)
   v.Normalize();
   EXPECT_EQ(v, math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
 
+  // ::Normalized
+  v.Set(1, 2, 3, 4);
+  EXPECT_EQ(v.Normalized(),
+            math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
+
   // ::Set
   v.Set(2, 4, 6, 8);
   EXPECT_EQ(v, math::Vector4d(2, 4, 6, 8));
@@ -208,6 +213,16 @@ TEST(Vector2Test, EqualTolerance)
   EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-1));
   EXPECT_TRUE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1));
   EXPECT_TRUE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1.1));
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Sum)
+{
+  math::Vector4d vec1(1.5, 2.5, 3.5, -4.5);
+
+  EXPECT_TRUE(math::equal(math::Vector4d::Zero.Sum(), 0.0, 1e-6));
+  EXPECT_TRUE(math::equal(math::Vector4d::One.Sum(), 4.0, 1e-6));
+  EXPECT_TRUE(math::equal(vec1.Sum(), 3.0, 1e-6));
 }
 
 /////////////////////////////////////////////////

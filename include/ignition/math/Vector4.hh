@@ -115,6 +115,15 @@ namespace ignition
         }
       }
 
+      /// \brief Return a normalized vector
+      /// \return unit length vector
+      public: Vector4 Normalized() const
+      {
+        Vector4<T> result = *this;
+        result.Normalize();
+        return result;
+      }
+
       /// \brief Return the dot product of this vector and another vector
       /// \param[in] _v the vector
       /// \return the dot product
@@ -199,6 +208,13 @@ namespace ignition
       public: T Min() const
       {
         return *std::min_element(this->data, this->data+4);
+      }
+
+      /// \brief Return the sum of the values
+      /// \return the sum
+      public: T Sum() const
+      {
+        return this->data[0] + this->data[1] + this->data[2] + this->data[3];
       }
 
       /// \brief Assignment operator
