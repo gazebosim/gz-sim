@@ -1,0 +1,5 @@
+import "qrc:/qml"
+
+PlottingInterface {
+
+}
