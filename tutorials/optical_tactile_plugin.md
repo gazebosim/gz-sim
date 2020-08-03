@@ -9,12 +9,12 @@ Currently, the plugin is required to work within models that have one link, one
 contact sensor and one depth camera. In order to simulate the behaviour of the
 contact surface, which returns the contact forces of the object being touched,
 we merge the information coming from these two different sensors. Contact normals to 
-the surfaces being touched are computed from the depth image. (TODO) Next, these
+the surfaces being touched are computed from the depth image. (TODO pending ExtraContactData fields from https://github.com/ignitionrobotics/ign-physics/pull/40 are exposed in ign-gazebo) Next, these
 values are merged with the information returned by the contact sensor, i.e. force 
 magnitudes, penetration and depth.
 
 The plugin allows the user to visualize the contact normals of the objects in 
-the proximity of being touched. In the next image, we can see these normals 
+the proximity of contact. In the next image, we can see these normals 
 when we touch the ring and the top surface of a can of coke:
 
 <img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/optical_tactile_plugin/coke_can.png"/>
@@ -51,14 +51,14 @@ sensor and one depth camera.
 - The geometry of the sensor must be a box, because the interpolation of the 
 contacts returned assumes 4 points of input. The visualization of contacts 
 and the `<extended_sensing>` parameter currently make this assumption as well.
-Ideally, the size should be around 20x20x5 mm, but this can be changed. That is
-the approximate size of a real tactile sensor. A bigger one will also work,
-as long as the contact surface fits inside the camera's FOV.
-- The depth camera should be displaced from the model's origin in the negative
-direction of the X axis, so it's not placed inside the contact surface. This can
+Ideally, the size should be around 20x20x5 mm, but this can be changed. A bigger
+one will also work, as long as the contact surface fits inside the camera's FOV.
+- The depth camera should be displaced from the contact surface as in the 
+previous sketch, so it's not placed inside the contact surface. This can
 be done by setting the depth camera's `<pose>` accordingly. Check out the [example below](#try-it-out).
-If the camera was placed in the middle of the contact surface, objects could go
-past the camera and information would be missing. 
+If the camera was placed inside the contact surface, objects could pass through
+the camera from in front of the camera to behind it when the sensor approaches them.
+Thus, information would be missing.
 - There should not be a `<visual>` element inside the link, so that the link of 
 the sensor does not block the depth camera's view. The contact surface can still
 be visualized by setting the `<visualize_sensor>` parameter to true. For more 
