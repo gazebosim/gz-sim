@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  find_package(ignition-transport8 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-  set(IGN_TRANSPORT_VER ${ignition-transport8_VERSION_MAJOR})
+  find_package(ignition-transport9 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+  set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 
-  find_package(sdformat9 REQUIRED)
-  set(SDF_VER ${sdformat9_VERSION_MAJOR})
+  find_package(sdformat10 REQUIRED)
+  set(SDF_VER ${sdformat10_VERSION_MAJOR})
 
-  find_package(ignition-msgs5 REQUIRED)
-  set(IGN_MSGS_VER ${ignition-msgs5_VERSION_MAJOR})
+  find_package(ignition-msgs6 REQUIRED)
+  set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
   find_package(ignition-common3 REQUIRED)
   set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
