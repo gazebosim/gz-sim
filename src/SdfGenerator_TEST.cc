@@ -52,9 +52,17 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
                      const sdf::ElementPtr &_elemB)
 {
   if (_elemA->GetName() != _elemB->GetName())
+  {
+    igndbg << "[" << _elemA->GetName() << "] different from ["
+            << _elemB->GetName() << "]" << std::endl;
     return false;
+  }
   if (_elemA->GetAttributeCount() != _elemB->GetAttributeCount())
+  {
+    igndbg << "[" << _elemA->GetAttributeCount() << "] different from ["
+            << _elemB->GetAttributeCount() << "]" << std::endl;
     return false;
+  }
 
   // Compare attributes
   for (std::size_t i = 0; i < _elemA->GetAttributeCount(); ++i)
@@ -62,9 +70,17 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     sdf::ParamPtr attrA = _elemA->GetAttribute(i);
     sdf::ParamPtr attrB = _elemB->GetAttribute(attrA->GetKey());
     if (attrA->GetTypeName() != attrB->GetTypeName())
+    {
+      igndbg << "[" << attrA->GetTypeName() << "] different from ["
+              << attrB->GetTypeName() << "]" << std::endl;
       return false;
+    }
     if (attrA->GetAsString() != attrB->GetAsString())
+    {
+      igndbg << "[" << attrA->GetAsString() << "] different from ["
+              << attrB->GetAsString() << "]" << std::endl;
       return false;
+    }
   }
   // Compare values
   {
