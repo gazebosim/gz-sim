@@ -36,11 +36,13 @@ using namespace gazebo;
 TEST(GuiTest, PathManager)
 {
   common::Console::SetVerbosity(4);
+  igndbg << "Start test" << std::endl;
 
   setenv("IGN_GAZEBO_RESOURCE_PATH",
          "/from_env:/tmp/more_env", 1);
   setenv("SDF_PATH", "", 1);
   setenv("IGN_FILE_PATH", "", 1);
+  igndbg << "Environment set" << std::endl;
 
   transport::Node node;
 
