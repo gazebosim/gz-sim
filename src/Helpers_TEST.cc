@@ -102,14 +102,14 @@ TEST(HelpersTest, FixNaN)
 {
   EXPECT_DOUBLE_EQ(math::fixnan(1.0 / 0.0), 0.0);
   EXPECT_DOUBLE_EQ(math::fixnan(-1.0 / 0.0), 0.0);
-  EXPECT_DOUBLE_EQ(math::fixnan(0.0 / 0.0), 0.0);
+  EXPECT_DOUBLE_EQ(math::fixnan(1.0 / 0.0), 0.0);
 
   EXPECT_DOUBLE_EQ(math::fixnan(42.0), 42.0);
   EXPECT_DOUBLE_EQ(math::fixnan(-42.0), -42.0);
 
   EXPECT_FLOAT_EQ(math::fixnan(1.0f / 0.0f), 0.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-1.0f / 0.0f), 0.0f);
-  EXPECT_FLOAT_EQ(math::fixnan(0.0f / 0.0f), 0.0f);
+  EXPECT_FLOAT_EQ(math::fixnan(1.0f / 0.0f), 0.0f);
 
   EXPECT_FLOAT_EQ(math::fixnan(42.0f), 42.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-42.0f), -42.0f);

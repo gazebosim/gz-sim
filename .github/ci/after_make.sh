@@ -2,6 +2,8 @@
 
 set -x
 
+BUILD_DIR=`pwd`
+
 # Install
 make install
 
@@ -12,3 +14,5 @@ cd build
 cmake ..
 make
 ./graph_example
+
+cd $BUILD_DIR
