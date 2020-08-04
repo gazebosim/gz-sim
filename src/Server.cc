@@ -104,8 +104,6 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  addResourcePaths();
-
   sdf::Errors errors;
 
   // Load a world if specified. Check SDF string first, then SDF file

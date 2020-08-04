@@ -24,7 +24,6 @@
 
 #include "../plugins/MockSystem.hh"
 
-
 namespace ignition
 {
 namespace gazebo

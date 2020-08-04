@@ -94,13 +94,6 @@ namespace ignition
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResourceUri(const common::URI &_uri);
 
-      /// \brief Add resource paths based on latest environment variables.
-      /// This will update the SDF and Ignition environment variables based
-      /// on kResourcesPathEnv, and optionally add more paths to the list.
-      /// \param[in] _paths Optional paths to add.
-      public: void AddResourcePaths(
-                  const std::vector<std::string> &_paths = {});
-
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
