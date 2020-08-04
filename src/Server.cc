@@ -21,9 +21,10 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Util.hh"
+
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -98,6 +99,10 @@ Server::Server(const ServerConfig &_config)
   // Configure SDF to fetch assets from ignition fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
+  common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
+      this->dataPtr.get(), std::placeholders::_1));
+
+  addResourcePaths();
 
   addResourcePaths();
 
