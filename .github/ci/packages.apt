@@ -13,4 +13,4 @@ libignition-tools-dev
 libignition-transport7-dev
 libsdformat8-dev
 qml-module-qtqml-models2
-xvbf
+xvfb
