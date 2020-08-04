@@ -2009,6 +2009,44 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
       manager.ComponentState(e2, c2.first));
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, StateMsgAfterRemoveComponent)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  manager.RemoveComponent(e1, e1c1);
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &e1c0Msg = compIter->second;
+    compIter++;
+    EXPECT_FALSE(e1c0Msg.remove());
+
+    // Second component
+    const auto &e1c1Msg = compIter->second;
+    compIter++;
+    EXPECT_TRUE(e1c1Msg.remove());
+
+    // Third component
+    const auto &e1c2Msg = compIter->second;
+    EXPECT_FALSE(e1c2Msg.remove());
+  }
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
