@@ -84,6 +84,22 @@
 
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.21.0 (2020-07-16)
+
+1. Added support for controlling which joints are published by the
+   JointStatePublisher.
+    * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
+
+1. Added an additional pose offset for the performer detector plugin.
+    * [Pull Request 236](https://github.com/ignitionrobotics/ign-gazebo/pull/236)
+
+1. Fixed battery issues and updated tutorial.
+    * [Pull Request 230](https://github.com/ignitionrobotics/ign-gazebo/pull/230)
+
+### Ignition Gazebo 2.20.1 (2020-06-18)
+
+1. Properly add new models into the scenegraph. With this fix, when a model is spawned it will be added into the graph and resulting calls to the `scene/info` service will return a correct `msgs::Scene`.
+    * [Pull Request 212](https://github.com/ignitionrobotics/ign-gazebo/pull/212)
 
 ### Ignition Gazebo 2.20.0 (2020-06-09)
 
