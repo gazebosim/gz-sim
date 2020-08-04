@@ -773,6 +773,24 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
   }
 
+  // fullscreen
+  if (_e->key() == Qt::Key_F11)
+  {
+    if (ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->visibility() 
+        == QWindow::FullScreen)
+    {
+      ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->showMaximized());
+    }
+    else
+    {
+      ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+    }
+  }
+
+
   switch (_e->key())
   {
     case Qt::Key_X:
@@ -2106,7 +2124,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         renderWindow->SetFollowOffset(offset);
       }
     }
-    
+
     if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
     {
       auto fullscreen = false;
