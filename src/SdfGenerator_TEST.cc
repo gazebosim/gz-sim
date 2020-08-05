@@ -53,14 +53,11 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
 {
   if (_elemA->GetName() != _elemB->GetName())
   {
-    igndbg << "[" << _elemA->GetName() << "] different from ["
-            << _elemB->GetName() << "]" << std::endl;
     return false;
   }
+
   if (_elemA->GetAttributeCount() != _elemB->GetAttributeCount())
   {
-    igndbg << "[" << _elemA->GetAttributeCount() << "] different from ["
-            << _elemB->GetAttributeCount() << "]" << std::endl;
     return false;
   }
 
@@ -71,14 +68,10 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     sdf::ParamPtr attrB = _elemB->GetAttribute(attrA->GetKey());
     if (attrA->GetTypeName() != attrB->GetTypeName())
     {
-      igndbg << "[" << attrA->GetTypeName() << "] different from ["
-              << attrB->GetTypeName() << "]" << std::endl;
       return false;
     }
     if (attrA->GetAsString() != attrB->GetAsString())
     {
-      igndbg << "[" << attrA->GetAsString() << "] different from ["
-              << attrB->GetAsString() << "]" << std::endl;
       return false;
     }
   }
@@ -855,8 +848,6 @@ TEST_F(GenerateWorldFixture, ModelsInline)
     const std::optional<std::string> worldStr = sdf_generator::generateWorld(
         this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
     ASSERT_TRUE(worldStr.has_value());
-    // std::cout << "Generated world:" << std::endl;
-    // std::cout << worldStr << std::endl;
     sdf::Root newRoot;
     newRoot.LoadSdfString(*worldStr);
     EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
