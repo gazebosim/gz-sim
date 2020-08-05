@@ -97,7 +97,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Map of removed components. The key is the entity to
   /// which belongs the component, and the value is the component being
-  /// removed.
+  /// removed. This is set when RemoveComponent() is called, so we assume
+  /// only one removed component per entity.
   std::map<Entity, ComponentKey> removedComponents;
 };
 
@@ -862,7 +863,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
     // TODO(anyone) Set component being removed once we have a way to queue it
 
-    // Add a component to the message and set it to be removed if the entity
+    // Add a component to the message and set it to be removed if the component
     // exists in the removedComponents map.
 
     bool entityHasRemovedComponent =
@@ -872,8 +873,12 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     {
       auto removedComponent = this->dataPtr->removedComponents[_entity];
       msgs::SerializedComponent cmp;
+
       cmp.set_type(removedComponent.first);
       cmp.set_remove(true);
+      // Empty data is needed for the component to be processed afterwards
+      cmp.set_component(" ");
+
       (*(entIter->second.mutable_components()))[
         static_cast<int64_t>(removedComponent.first)] = cmp;
 
