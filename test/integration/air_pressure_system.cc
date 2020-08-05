@@ -65,7 +65,7 @@ TEST_F(AirPressureTest, AirPressure)
 
   bool updateChecked{false};
 
-  // Create a system that records altimeter data
+  // Create a system that checks sensor topic
   test::Relay testSystem;
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
                               const gazebo::EntityComponentManager &_ecm)
