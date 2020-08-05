@@ -200,9 +200,11 @@ namespace sdf_generator
   /// \brief Recursively go through the child elements of the input element and
   /// update all relative URIs to absolute.
   ///
-  /// The resulting URI will have a "file://" scheme regardless of whether the
-  /// original URI had the scheme. i.e, absolute URIs without the "file://"
-  /// scheme will also be updated by this function.
+  /// URIs with http / https scheme won't be modified.
+  ///
+  /// For all other URIs, the resulting URI will have a "file://" scheme
+  /// regardless of whether the original URI had the scheme. i.e, absolute URIs
+  /// without the "file://" scheme will also be updated by this function.
   /// \param[in] _elem Input element to update
   /// \param[in] _prefixPath Path to be prepended to relative URIs.
   static void relativeToAbsoluteUri(const sdf::ElementPtr &_elem,
@@ -214,7 +216,9 @@ namespace sdf_generator
       auto uriStr = uriElem->Get<std::string>();
       // If the URI starts with "file://", it is assumed to be an
       // absolute path, so there is no need to update it.
-      if (uriStr.find("file://") == std::string::npos)
+      if (uriStr.find("file://") == std::string::npos &&
+          uriStr.find("http://") == std::string::npos &&
+          uriStr.find("https://") == std::string::npos)
       {
         if (uriStr[0] != '/')
         {
