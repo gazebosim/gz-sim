@@ -34,7 +34,6 @@
 
 #include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -163,7 +162,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
       if (!coll)
       {
-        ignerr << "Invalid collision pointer. This shouldn't happend\n";
+        ignerr << "Invalid collision pointer. This shouldn't happen\n";
         continue;
       }
 

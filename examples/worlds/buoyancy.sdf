@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo buoyancy plugin demo. This world contains the following 
+  Ignition Gazebo buoyancy plugin demo. This world contains the following
   three models:
 
-  1. submarine: A simple submarine model that floats in place. 
+  1. submarine: A simple submarine model that floats in place.
   2. submarine_sinking: A simple submarine model that is not buoyant and sinks.
   3. submarine_buoyant: A simple submarine model that is buoyant and floats.
 

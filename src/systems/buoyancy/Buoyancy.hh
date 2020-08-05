@@ -33,7 +33,7 @@ namespace systems
 
   /// \brief A system that simulates buoyancy of objects immersed in fluid.
   /// All SDF parameters are optional. This system must be attached to the
-  /// world and this system will apply buoyancy to all links that have interia
+  /// world and this system will apply buoyancy to all links that have inertia
   /// and collision shapes.
   ///
   /// The volume and center of volume will be computed for each link, and
