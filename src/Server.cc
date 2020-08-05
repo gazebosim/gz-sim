@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/Server.hh"
 
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
@@ -23,6 +22,9 @@
 #include <sdf/Error.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/Util.hh"
+
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -100,6 +102,8 @@ Server::Server(const ServerConfig &_config)
   common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
       this->dataPtr.get(), std::placeholders::_1));
 
+  addResourcePaths();
+
   sdf::Errors errors;
 
   // Load a world if specified. Check SDF string first, then SDF file
@@ -120,7 +124,7 @@ Server::Server(const ServerConfig &_config)
   else if (!_config.SdfFile().empty())
   {
     common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
     ignmsg << "Loading SDF world file[" << filePath << "].\n";
