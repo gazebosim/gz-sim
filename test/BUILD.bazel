@@ -5,7 +5,6 @@ load(
 
 BINARY_DIR = "./ign_gazebo"
 SOURCE_DIR = "./ign_gazebo"
-CMAKE_BINARY_DIR = "./ign_gazebo"
 IGNITION_TOOLS_BINARY_DIRS = "/tmp"
 PROJECT_NAME = "ignition-gazebo"
 PROJECT_MAJOR = 4
@@ -21,7 +20,7 @@ cmake_configure_file(
     defines = [
         "PROJECT_BINARY_DIR=%s" % (BINARY_DIR),
         "PROJECT_SOURCE_DIR=%s" % (SOURCE_DIR),
-        "CMAKE_BINARY_DIR=%s" % (CMAKE_BINARY_DIR),
+        "CMAKE_BINARY_DIR=%s" % (BINARY_DIR),
         "IGNITION-TOOLS_BINARY_DIRS=%s" % (IGNITION_TOOLS_BINARY_DIRS),
         "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
     ],

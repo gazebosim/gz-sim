@@ -405,11 +405,10 @@ cc_library(
 )
 
 [
-
 cc_binary(
-    name = "libignition-gazebo-%s-system.so" % system.replace("_", "-"),
+    name = "libignition-gazebo-%s-system.so" % (system.replace("_", "-")),
     srcs = glob([
-            "src/systems/%s/*.cc" % system,
+          "src/systems/%s/*.cc" % system,
           "src/systems/%s/*.hh" % system,
       ],
       allow_empty = False,
@@ -449,7 +448,7 @@ cc_binary(
 cc_library(
     name = system,
     srcs = [
-        "libignition-gazebo-%s-system.so" % system.replace("_", "-")
+        "libignition-gazebo-%s-system.so" % (system.replace("_", "-"))
     ],
     hdrs = glob([
           "src/systems/%s/*.hh" % system,
@@ -471,7 +470,6 @@ cc_library(
         "//ign_sensors:all",
         "//ign_rendering",
         "//ign_plugin/core:ign_plugin",
-        "//ign_plugin/loader:loader",
         "//ign_plugin/register:register",
         "//ign_common/profiler:profiler",
         "//ign_common/events:events",
@@ -484,14 +482,14 @@ cc_library(
 
 cc_library(
     name = "ign_gazebo_systems",
-    srcs = [":libignition-gazebo-%s-system.so" % system.replace("_", "-") for system in systems],
     deps = [
         "//ign_gazebo/src/gui/plugins:libGzScene3D.so",
         "//ign_gazebo/src/gui/plugins:libComponentInspector.so",
         "//ign_gazebo/src/gui/plugins:libEntityTree.so",
         "//ign_gazebo/src/gui/plugins:libTransformControl.so",
         "//ign_gazebo/src/gui/plugins:IgnGazebo/libEntityContextMenu.so",
-    ]
+    ] + 
+    [":libignition-gazebo-%s-system.so" % (system.replace("_", "-")) for system in systems]
 )
 
 [cc_test(
@@ -513,6 +511,7 @@ cc_library(
         "//ign_transport",
         "//ign_transport/log:log",
         "//ign_sensors",
+        "//ign_sensors:all",
         "//ign_rendering",
         "//ign_plugin/core:ign_plugin",
         "//ign_plugin/loader:loader",

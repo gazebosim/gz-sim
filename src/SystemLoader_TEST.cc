@@ -41,10 +41,9 @@ TEST(SystemLoader, Constructor)
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
-      "<plugin filename='libignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='ignition::gazebo::systems::Physics'></plugin>"
-      "</world></sdf>");
+      "<plugin filename='libignition-gazebo-physics-system.so' "
+      "        name='ignition::gazebo::systems::Physics'></plugin>"
+      "</world></sdf>"));
 
   auto worldElem = root.WorldByIndex(0)->Element();
   if (worldElem->HasElement("plugin")) {
