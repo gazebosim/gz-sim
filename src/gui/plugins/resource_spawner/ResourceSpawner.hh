@@ -30,8 +30,8 @@ namespace gazebo
 {
   class ResourceSpawnerPrivate;
 
-  /// \brief Local model used to update the GridModel
-  struct LocalModel
+  /// \brief Resource used to update the ResourceModel
+  struct Resource
   {
     /// \brief The name of the local model
     std::string name = "";
@@ -66,21 +66,21 @@ namespace gazebo
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
   /// and updates from
-  class GridModel : public QStandardItemModel
+  class ResourceModel : public QStandardItemModel
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: explicit GridModel();
+    public: explicit ResourceModel();
 
     /// \brief Destructor
-    public: ~GridModel() override = default;
+    public: ~ResourceModel() override = default;
 
-    /// \brief Add a local model to the grid view.
-    /// param[in] _model The local model to be added
-    public slots: void AddLocalModel(LocalModel &_model);
+    /// \brief Add a resource to the grid view.
+    /// param[in] _model The resource to be added
+    public slots: void AddResource(Resource &_resource);
 
-    /// \brief Clear the current grid model
+    /// \brief Clear the current resource model
     public: void Clear();
 
     // Documentation inherited
@@ -109,14 +109,16 @@ namespace gazebo
     /// \brief Loads a local model from an absolute path to a model.config,
     /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
-    public: void LoadLocalModel(const std::string &_path);
+    public: void LoadLocalResource(const std::string &_path);
 
+    /// \brief Add a path to the QML grid view.
+    /// \param[in] _path The path to be added
     public: void AddPath(const std::string &_path);
 
     /// \brief Recursively searches the provided path for all model.config's
     /// and populates a vector of local models with the information
     /// \param[in] _path The path to search
-    public: void FindLocalModels(const std::string &_path);
+    public: void FindLocalResources(const std::string &_path);
 
     /// \brief Callback when a resource path is selected, will clear the
     /// currently loaded resources and load the ones at the specified path

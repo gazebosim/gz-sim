@@ -181,7 +181,7 @@ SplitView {
       color: Material.background
       GridView {
         id: gridView
-        model: LocalModelList
+        model: ResourceList
         cellWidth: gridItemWidth
         cellHeight: gridItemHeight
         currentIndex: -1

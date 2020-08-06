@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
@@ -42,7 +43,7 @@ namespace ignition::gazebo
     public: transport::Node node;
 
     /// \brief The grid model that the qml gridview reflects
-    public: GridModel gridModel;
+    public: ResourceModel resourceModel;
 
     /// \brief The path list model that the qml treeview reflects
     public: PathModel pathModel;
@@ -83,12 +84,12 @@ QHash<int, QByteArray> PathModel::roleNames() const
 }
 
 /////////////////////////////////////////////////
-GridModel::GridModel() : QStandardItemModel()
+ResourceModel::ResourceModel() : QStandardItemModel()
 {
 }
 
 /////////////////////////////////////////////////
-void GridModel::Clear()
+void ResourceModel::Clear()
 {
   QStandardItem *parentItem{nullptr};
   parentItem = this->invisibleRootItem();
@@ -100,27 +101,27 @@ void GridModel::Clear()
 }
 
 /////////////////////////////////////////////////
-void GridModel::AddLocalModel(LocalModel &_model)
+void ResourceModel::AddResource(Resource &_resource)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("GridModel::AddLocalModel");
+  IGN_PROFILE("GridModel::AddResource");
   QStandardItem *parentItem{nullptr};
 
   parentItem = this->invisibleRootItem();
 
-  auto localModel = new QStandardItem(QString::fromStdString(_model.name));
-  localModel->setData(QString::fromStdString(_model.thumbnailPath),
+  auto resource = new QStandardItem(QString::fromStdString(_resource.name));
+  resource->setData(QString::fromStdString(_resource.thumbnailPath),
                       this->roleNames().key("thumbnail"));
-  localModel->setData(QString::fromStdString(_model.name),
+  resource->setData(QString::fromStdString(_resource.name),
                       this->roleNames().key("name"));
-  localModel->setData(QString::fromStdString(_model.sdfPath),
+  resource->setData(QString::fromStdString(_resource.sdfPath),
                       this->roleNames().key("sdf"));
 
-  parentItem->appendRow(localModel);
+  parentItem->appendRow(resource);
 }
 
 /////////////////////////////////////////////////
-QHash<int, QByteArray> GridModel::roleNames() const
+QHash<int, QByteArray> ResourceModel::roleNames() const
 {
   return
   {
@@ -136,7 +137,7 @@ ResourceSpawner::ResourceSpawner()
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
-      "LocalModelList", &this->dataPtr->gridModel);
+      "ResourceList", &this->dataPtr->resourceModel);
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
 }
@@ -145,17 +146,17 @@ ResourceSpawner::ResourceSpawner()
 ResourceSpawner::~ResourceSpawner() = default;
 
 /////////////////////////////////////////////////
-void ResourceSpawner::LoadLocalModel(const std::string &_path)
+void ResourceSpawner::LoadLocalResource(const std::string &_path)
 {
   std::string fileName = common::basename(_path);
   if (!common::isFile(_path) || fileName != "model.config")
     return;
 
   // If we have found model.config, extract thumbnail and sdf
-  LocalModel model;
-  std::string modelPath = common::parentPath(_path);
-  std::string thumbnailPath = common::joinPaths(modelPath, "thumbnails");
-  std::string configFileName = common::joinPaths(modelPath, "model.config");
+  Resource resource;
+  std::string resourcePath = common::parentPath(_path);
+  std::string thumbnailPath = common::joinPaths(resourcePath, "thumbnails");
+  std::string configFileName = common::joinPaths(resourcePath, "model.config");
   tinyxml2::XMLDocument doc;
   doc.LoadFile(configFileName.c_str());
   auto modelXml = doc.FirstChildElement("model");
@@ -164,10 +165,10 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
   {
     auto modelName = modelXml->FirstChildElement("name");
     if (modelName)
-      model.name = modelName->GetText();
+      resource.name = modelName->GetText();
   }
-  std::string sdfPath = sdf::getModelFilePath(modelPath);
-  model.sdfPath = sdfPath;
+  std::string sdfPath = sdf::getModelFilePath(resourcePath);
+  resource.sdfPath = sdfPath;
 
   // Get first thumbnail image found
   if (common::exists(thumbnailPath))
@@ -189,17 +190,17 @@ void ResourceSpawner::LoadLocalModel(const std::string &_path)
             thumbnailFileExtension == "jpeg" ||
             thumbnailFileExtension == "svg")
         {
-          model.thumbnailPath = current;
+          resource.thumbnailPath = current;
           break;
         }
       }
     }
   }
-  this->dataPtr->gridModel.AddLocalModel(model);
+  this->dataPtr->resourceModel.AddResource(resource);
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::FindLocalModels(const std::string &_path)
+void ResourceSpawner::FindLocalResources(const std::string &_path)
 {
   std::string path = _path;
   if (common::isDirectory(path))
@@ -211,17 +212,17 @@ void ResourceSpawner::FindLocalModels(const std::string &_path)
       {
         std::string modelConfigPath =
           common::joinPaths(currentPath, "model.config");
-          this->LoadLocalModel(modelConfigPath);
+          this->LoadLocalResource(modelConfigPath);
       }
       else
       {
-        this->LoadLocalModel(currentPath);
+        this->LoadLocalResource(currentPath);
       }
     }
   }
   else
   {
-    this->LoadLocalModel(path);
+    this->LoadLocalResource(path);
   }
 }
 
@@ -234,8 +235,8 @@ void ResourceSpawner::AddPath(const std::string &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnPathClicked(const QString &_path)
 {
-  this->dataPtr->gridModel.Clear();
-  this->FindLocalModels(_path.toStdString());
+  this->dataPtr->resourceModel.Clear();
+  this->FindLocalResources(_path.toStdString());
 }
 
 /////////////////////////////////////////////////
@@ -243,10 +244,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Resource Spawner";
-
-  // For resource spawn requests
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
 
   msgs::StringMsg_V res;
   bool result;
