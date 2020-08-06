@@ -65,4 +65,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
 
 extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(char *_pathToResource);
 
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findResourceSdf(char *_path);
+
 #endif

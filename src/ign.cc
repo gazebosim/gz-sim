@@ -53,6 +53,32 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 {
   return IGN_GAZEBO_WORLD_INSTALL_DIR;
 }
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findResourceSdf(char *_path)
+{
+  if (ignition::common::exists(_path))
+  {
+    for (ignition::common::DirIter file(_path);
+         file != ignition::common::DirIter(); ++file)
+    {
+      std::string current(*file);
+      if (ignition::common::isFile(current))
+      {
+        std::string fileName = ignition::common::basename(current);
+        std::string::size_type fileExtensionIndex = fileName.rfind(".");
+        std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+        if (fileExtension == "sdf")
+        {
+          return strdup(current.c_str());
+        }
+      }
+    }
+  }
+  return "";
+}
+
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(char *_pathToResource)
 {
@@ -77,7 +103,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(char *_pathToRes
   if (result)
   {
     ignwarn << "Downloaded - path is " << path << std::endl;
-    return path.c_str();
+    return strdup(path.c_str());
   }
   else
   {
@@ -268,7 +294,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   }
 
   serverConfig.SetSdfFile(_file);
-
+  ignwarn << "a\n";
   // Set the update rate.
   if (_hz > 0.0)
     serverConfig.SetUpdateRate(_hz);
@@ -279,6 +305,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     ignmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
+  ignwarn << "b\n";
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
@@ -287,6 +314,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
   }
+  ignwarn << "c\n";
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {
@@ -303,17 +331,21 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         std::string(_playback)));
     }
   }
+  ignwarn << "d\n";
 
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
     serverConfig.SetPhysicsEngine(_physicsEngine);
   }
+  ignwarn << "e\n";
 
   // Create the Gazebo server
   ignition::gazebo::Server server(serverConfig);
+  ignwarn << "f\n";
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
+  ignwarn << "g\n";
 
   igndbg << "Shutting down ign-gazebo-server" << std::endl;
   return 0;

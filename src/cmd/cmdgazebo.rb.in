@@ -309,6 +309,9 @@ class Cmd
       # Import the findFuelResource function
       Importer.extern 'const char *findFuelResource(const char *)'
 
+      # Import the findResourceSdf function
+      Importer.extern 'const char *findResourceSdf(const char *)'
+
       if options.key?('version')
         Importer.extern 'char *gazeboVersionHeader()'
         puts Importer.gazeboVersionHeader.to_s
@@ -344,6 +347,9 @@ class Cmd
             if !File.exists?(path)
               puts "1"
               fuelPath = Importer.findFuelResource(options['file']).to_s
+              path = Importer.findResourceSdf(fuelPath).to_s;
+              options['file'] = path
+              puts "file is"
               puts options['file']
               puts "fuel path is "
               puts fuelPath
@@ -352,7 +358,6 @@ class Cmd
                 exit(-1)
               end
               puts "fuel resource successful"
-              path = fuelPath
             end
           end
         end
