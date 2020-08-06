@@ -309,9 +309,6 @@ class Cmd
       # Import the findFuelResource function
       Importer.extern 'const char *findFuelResource(const char *)'
 
-      # Import the findResourceSdf function
-      Importer.extern 'const char *findResourceSdf(const char *)'
-
       if options.key?('version')
         Importer.extern 'char *gazeboVersionHeader()'
         puts Importer.gazeboVersionHeader.to_s
@@ -326,15 +323,12 @@ class Cmd
 
       parsed = ''
       if options['file'] != ''
-        puts "0.1"
         # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
-          puts "0.2"
         # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
         else
-          puts "0.3"
           configPathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
           # todo: IGN_GAZEBO_RESOURCE_PATH is colon separated.
           if !configPathEnv.nil? &&
@@ -343,30 +337,20 @@ class Cmd
           else
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
-            # todo, if the following if statement fails, try to check fuel
             if !File.exists?(path)
-              puts "1"
-              fuelPath = Importer.findFuelResource(options['file']).to_s
-              path = Importer.findResourceSdf(fuelPath).to_s;
+              path = Importer.findFuelResource(options['file']).to_s
               options['file'] = path
-              puts "file is"
-              puts options['file']
-              puts "fuel path is "
-              puts fuelPath
-              if fuelPath == ""
+              if path == ""
                 puts "Unable to find or download file " + options['file']
                 exit(-1)
               end
-              puts "fuel resource successful"
             end
           end
         end
 
         # ERB parse the file, and then run the result
         parsed = ERB.new(File.read(path)).result()
-        puts parsed
       end
-      puts "2"
 
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
@@ -380,7 +364,6 @@ class Cmd
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
-      puts "3"
 
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
@@ -394,7 +377,6 @@ class Cmd
             options['playback'], options['physics_engine'],
             options['file'])
         end
-        puts "4"
 
         guiPid = Process.fork do
           ENV['RMT_PORT'] = '1501'
@@ -402,14 +384,12 @@ class Cmd
           Process.setproctitle('ign gazebo gui')
           Importer.runGui(options['gui_config'])
         end
-        puts "5"
 
         Signal.trap("INT") {
           self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
           self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
           return 1
         }
-        puts "6"
 
         # Wait for a child process to end
         pid, status = Process.wait2
@@ -419,7 +399,6 @@ class Cmd
         else
           self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
         end
-        puts "7"
 
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1

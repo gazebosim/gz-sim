@@ -63,8 +63,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
 
-extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(char *_pathToResource);
-
-extern "C" IGNITION_GAZEBO_VISIBLE const char *findResourceSdf(char *_path);
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+    char *_pathToResource);
 
 #endif

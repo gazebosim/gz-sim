@@ -55,11 +55,39 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE const char *findResourceSdf(char *_path)
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+    char *_pathToResource)
 {
-  if (ignition::common::exists(_path))
+  std::string path;
+  std::string worldPath;
+  ignition::fuel_tools::ServerConfig server;
+  server.SetUrl(ignition::common::URI("https://fuel.ignitionrobotics.org"));
+  ignition::fuel_tools::ClientConfig config;
+  config.AddServer(server);
+  ignition::fuel_tools::FuelClient fuelClient(config);
+
+  // Attempt to find cached copy, and then attempt download
+  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
   {
-    for (ignition::common::DirIter file(_path);
+    worldPath = path;
+  }
+  else if (ignition::fuel_tools::Result result =
+    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
+    result)
+  {
+    worldPath = path;
+  }
+  else
+  {
+    ignwarn << "Fuel world download failed because " << result.ReadableResult()
+        << std::endl;
+    return "";
+  }
+
+  // Find the first sdf file in the world path
+  if (ignition::common::exists(worldPath))
+  {
+    for (ignition::common::DirIter file(worldPath);
          file != ignition::common::DirIter(); ++file)
     {
       std::string current(*file);
@@ -76,42 +104,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findResourceSdf(char *_path)
       }
     }
   }
-  return "";
-}
-
-//////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(char *_pathToResource)
-{
-  ignwarn << "in fuel resource" << std::endl;
-  std::string path;
-  ignition::fuel_tools::ServerConfig server;
-  server.SetUrl(ignition::common::URI("https://fuel.ignitionrobotics.org"));
-  ignition::fuel_tools::ClientConfig config;
-  config.AddServer(server);
-  ignition::fuel_tools::FuelClient fuelClient(config);
-  ignwarn << "Server version" << server.Version() << std::endl;
-
-  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
-  {
-    path += "/test.world";
-    ignwarn << "Cached - path is " << path << std::endl;
-    return strdup(path.c_str());
-  }
-
-  ignition::fuel_tools::Result result = fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
-
-  if (result)
-  {
-    ignwarn << "Downloaded - path is " << path << std::endl;
-    return strdup(path.c_str());
-  }
-  else
-  {
-    std::cout << "Download failed because " << result.ReadableResult()
-        << std::endl;
-  }
-
-  ignwarn << "Failure to download " << path << std::endl;
   return "";
 }
 
@@ -294,7 +286,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   }
 
   serverConfig.SetSdfFile(_file);
-  ignwarn << "a\n";
   // Set the update rate.
   if (_hz > 0.0)
     serverConfig.SetUpdateRate(_hz);
@@ -305,7 +296,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     ignmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
-  ignwarn << "b\n";
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
@@ -314,7 +304,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
   }
-  ignwarn << "c\n";
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {
@@ -331,21 +320,17 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         std::string(_playback)));
     }
   }
-  ignwarn << "d\n";
 
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
     serverConfig.SetPhysicsEngine(_physicsEngine);
   }
-  ignwarn << "e\n";
 
   // Create the Gazebo server
   ignition::gazebo::Server server(serverConfig);
-  ignwarn << "f\n";
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
-  ignwarn << "g\n";
 
   igndbg << "Shutting down ign-gazebo-server" << std::endl;
   return 0;
