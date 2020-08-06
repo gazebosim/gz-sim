@@ -284,8 +284,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
-
   serverConfig.SetSdfFile(_file);
+
   // Set the update rate.
   if (_hz > 0.0)
     serverConfig.SetUpdateRate(_hz);
