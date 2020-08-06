@@ -44,10 +44,12 @@ namespace gazebo
     std::string thumbnailPath = "";
 
     /// \brief Bool to indicate if this model is fuel or not
+    // cppcheck-suppress unusedStructMember
     bool isFuel = false;
 
     /// \brief Bool to indicate if this model has been downloaded or not, will
     /// always be false with local models as it is irrelevant in this case
+    // cppcheck-suppress unusedStructMember
     bool isDownloaded = false;
   };
 
