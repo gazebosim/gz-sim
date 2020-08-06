@@ -99,6 +99,10 @@ namespace gazebo
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
+
+    public: int gridIndex = 0;
+
+    public: int localGridIndex = 0;
   };
 
   /// \brief Provides interface for communicating to backend for generation

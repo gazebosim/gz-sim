@@ -74,9 +74,6 @@ namespace ignition::gazebo
   };
 }
 
-static int gridIndex = 0;
-static int localGridIndex = 0;
-
 using namespace ignition;
 using namespace gazebo;
 
@@ -125,6 +122,8 @@ void ResourceModel::Clear()
   {
     parentItem->removeRow(0);
   }
+  this->gridIndex = 0;
+  this->localGridIndex = 0;
 }
 
 /////////////////////////////////////////////////
@@ -149,20 +148,21 @@ void ResourceModel::AddResource(Resource &_resource)
                       this->roleNames().key("sdf"));
   if (_resource.isFuel)
   {
-    resource->setData(gridIndex,
+    resource->setData(this->gridIndex,
                         this->roleNames().key("index"));
-    gridIndex++;
+    this->gridIndex++;
   }
   else
   {
-    resource->setData(localGridIndex,
+    resource->setData(this->localGridIndex,
                         this->roleNames().key("index"));
-    localGridIndex++;
+    this->localGridIndex++;
   }
 
   parentItem->appendRow(resource);
 }
 
+/////////////////////////////////////////////////
 void ResourceModel::UpdateResourceModel(int index, Resource &_resource)
 {
   QStandardItem *parentItem{nullptr};
@@ -213,6 +213,7 @@ ResourceSpawner::ResourceSpawner()
 /////////////////////////////////////////////////
 ResourceSpawner::~ResourceSpawner() = default;
 
+/////////////////////////////////////////////////
 void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
     Resource &_resource)
 {
@@ -369,7 +370,6 @@ void ResourceSpawner::OnPathClicked(const QString &_path)
   this->dataPtr->resourceModel.Clear();
   this->FindLocalResources(_path.toStdString());
   QGuiApplication::restoreOverrideCursor();
-  localGridIndex = 0;
 }
 
 /////////////////////////////////////////////////
@@ -406,7 +406,6 @@ void ResourceSpawner::OnOwnerClicked(const QString &_owner)
   this->dataPtr->resourceModel.Clear();
   this->FindFuelResources(_owner.toStdString());
   QGuiApplication::restoreOverrideCursor();
-  gridIndex = 0;
 }
 
 /////////////////////////////////////////////////
@@ -436,7 +435,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 
   auto servers = this->dataPtr->fuelClient->Config().Servers();
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  ignmsg << "Please wait... Loading fuel models from online.\n";
+  ignmsg << "Please wait... Loading models from Fuel.\n";
 
   // Add notice for the user that fuel resources are being loaded
   this->dataPtr->ownerModel.AddPath("Please wait, loading Fuel models...");

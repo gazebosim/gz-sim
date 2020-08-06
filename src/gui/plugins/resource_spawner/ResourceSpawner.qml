@@ -392,7 +392,7 @@ SplitView {
               Text {
                 width: downloadDialog.width - 50
                 height: downloadDialog.height
-                text: "Please download the model first by clicking the cloud icon in order to drag it into the scene."
+                text: "Please download the model first by clicking the cloud icon in order to bring it into the scene."
                 color: Material.theme == Material.Light ? "black" : "white"
                 wrapMode: Text.WordWrap
               }
