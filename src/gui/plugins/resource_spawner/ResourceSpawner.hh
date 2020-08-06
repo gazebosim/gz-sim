@@ -30,7 +30,7 @@ namespace gazebo
 {
   class ResourceSpawnerPrivate;
 
-  /// \brief Local model used to update the GridModel
+  /// \brief Resource used to update the ResourceModel
   struct Resource
   {
     /// \brief The name of the local model
@@ -87,7 +87,7 @@ namespace gazebo
     /// param[in] _resource The local resource to be added
     public slots: void AddResource(Resource &_resource);
 
-    /// \brief Clear the current grid model
+    /// \brief Clear the current resource model
     public: void Clear();
 
     /// \brief Updates the resource at the provided index with the values in

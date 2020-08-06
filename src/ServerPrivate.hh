@@ -89,6 +89,11 @@ namespace ignition
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResource(const std::string &_uri);
 
+      /// \brief Fetch a resource from Fuel using fuel-tools.
+      /// \param[in] _uri The resource URI to fetch.
+      /// \return Path to the downloaded resource, empty on error.
+      public: std::string FetchResourceUri(const common::URI &_uri);
+
       /// \brief Add resource paths based on latest environment variables.
       /// This will update the SDF and Ignition environment variables based
       /// on kResourcesPathEnv, and optionally add more paths to the list.

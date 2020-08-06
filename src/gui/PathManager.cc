@@ -31,7 +31,6 @@ using namespace gazebo::gui;
 //////////////////////////////////////////////////
 void onAddResourcePaths(const msgs::StringMsg_V &_msg)
 {
-igndbg << "A" << std::endl;
   std::vector<std::string> paths;
   for (auto i = 0; i < _msg.data().size(); ++i)
   {
@@ -57,7 +56,5 @@ PathManager::PathManager()
 
   onAddResourcePaths(res);
 
-igndbg << "A" << std::endl;
   this->node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
 }
-
