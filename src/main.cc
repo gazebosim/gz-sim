@@ -117,7 +117,7 @@ void help()
   << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
-  << " resources. Can be useful with the -f option to find an SDF file."
+  << " resources such as worlds and models."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed "
   << " simulation environment. Role is one of [PRIMARY, SECONDARY]. This will"
