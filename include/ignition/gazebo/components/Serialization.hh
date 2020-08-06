@@ -19,6 +19,7 @@
 
 #include <ignition/msgs/double_v.pb.h>
 
+#include <string>
 #include <vector>
 #include <sdf/Sensor.hh>
 
@@ -104,7 +105,7 @@ namespace serializers
   {
     /// \brief Serialization
     /// \param[in] _out Output stream.
-    /// \param[in] _geometry Geometry to stream
+    /// \param[in] _vec Vector to stream
     /// \return The stream.
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const std::vector<double> &_vec)
@@ -152,6 +153,32 @@ namespace serializers
         google::protobuf::Message &_msg)
     {
       _msg.ParseFromIstream(&_in);
+      return _in;
+    }
+  };
+
+  /// \brief Serializer for components that hold std::string.
+  class StringSerializer
+  {
+    /// \brief Serialization
+    /// \param[in] _out Output stream.
+    /// \param[in] _data Data to serialize.
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+        const std::string &_data)
+    {
+      _out << _data;
+      return _out;
+    }
+
+    /// \brief Deserialization
+    /// \param[in] _in Input stream.
+    /// \param[in] _data Data to populate.
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+        std::string &_data)
+    {
+      _data = std::string(std::istreambuf_iterator<char>(_in), {});
       return _in;
     }
   };
