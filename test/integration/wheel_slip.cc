@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
 #include <gtest/gtest.h>
 
@@ -56,46 +56,46 @@ class WheelSlipTest : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
+             {
+               common::Console::SetVerbosity(4);
+               setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+                   (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+             }
 };
 
 class Relay
 {
   public: Relay()
-  {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
-    EXPECT_TRUE(plugin.has_value());
+          {
+            auto plugin = loader.LoadPlugin("libMockSystem.so",
+                "ignition::gazebo::MockSystem",
+                nullptr);
+            EXPECT_TRUE(plugin.has_value());
 
-    this->systemPtr = plugin.value();
+            this->systemPtr = plugin.value();
 
-    this->mockSystem = static_cast<MockSystem *>(
-        systemPtr->QueryInterface<System>());
-    EXPECT_NE(nullptr, this->mockSystem);
-  }
+            this->mockSystem = static_cast<MockSystem *>(
+                systemPtr->QueryInterface<System>());
+            EXPECT_NE(nullptr, this->mockSystem);
+          }
 
   public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->preUpdateCallback = std::move(_cb);
-    return *this;
-  }
+          {
+            this->mockSystem->preUpdateCallback = std::move(_cb);
+            return *this;
+          }
 
   public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-  {
-    this->mockSystem->updateCallback = std::move(_cb);
-    return *this;
-  }
+          {
+            this->mockSystem->updateCallback = std::move(_cb);
+            return *this;
+          }
 
   public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-  {
-    this->mockSystem->postUpdateCallback = std::move(_cb);
-    return *this;
-  }
+          {
+            this->mockSystem->postUpdateCallback = std::move(_cb);
+            return *this;
+          }
 
   public: SystemPluginPtr systemPtr;
 
@@ -121,9 +121,9 @@ TEST_F(WheelSlipTest, TireDrum)
   gazebo::EntityComponentManager *ecm = nullptr;
   Relay testSystem;
   testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+        gazebo::EntityComponentManager &_ecm)
       {
-        ecm = &_ecm;
+      ecm = &_ecm;
       });
 
   // Create a system that records the vehicle poses
@@ -162,26 +162,32 @@ TEST_F(WheelSlipTest, TireDrum)
 
   const double wheelMass = wheelInertialComp->Data().MassMatrix().Mass();
 
-  auto collisionGeometry =
-    ecm->Component<components::Geometry>(wheelLinkEntity);
+  EXPECT_DOUBLE_EQ(2.5, wheelMass);
 
-  ASSERT_NE(nullptr, collisionGeometry);
+  auto collisionWheelLinkEntity = ecm->EntityByComponents(
+      components::ParentEntity(wheelLinkEntity),
+      components::Name("collision"),
+      components::Collision());
+
+  EXPECT_NE(gazebo::kNullEntity, collisionWheelLinkEntity);
+
+  auto wheelCollisionComp =
+    ecm->Component<components::CollisionElement>(collisionWheelLinkEntity);
+
+  ASSERT_NE(nullptr, wheelCollisionComp);
 
   ASSERT_TRUE(
-      (collisionGeometry->Data().Type() == sdf::GeometryType::SPHERE) ||
-      (collisionGeometry->Data().Type() == sdf::GeometryType::CYLINDER));
+      (wheelCollisionComp->Data().Geom()->Type() ==
+       sdf::GeometryType::SPHERE) ||
+      (wheelCollisionComp->Data().Geom()->Type() ==
+       sdf::GeometryType::CYLINDER));
 
   double wheelRadius = 0.0;
 
-  if (collisionGeometry->Data().Type() == sdf::GeometryType::SPHERE)
-    wheelRadius = collisionGeometry->Data().SphereShape()->Radius();
-  if (collisionGeometry->Data().Type() == sdf::GeometryType::CYLINDER)
-    wheelRadius = collisionGeometry->Data().CylinderShape()->Radius();
-
-  auto collisionComp =
-    ecm->Component<components::CollisionElement>(wheelLinkEntity);
-
-  ASSERT_NE(nullptr, collisionComp);
+  if (wheelCollisionComp->Data().Geom()->Type() == sdf::GeometryType::SPHERE)
+    wheelRadius = wheelCollisionComp->Data().Geom()->SphereShape()->Radius();
+  if (wheelCollisionComp->Data().Geom()->Type() == sdf::GeometryType::CYLINDER)
+    wheelRadius = wheelCollisionComp->Data().Geom()->CylinderShape()->Radius();
 
   // TODO(anyone) enable below tests when kp is supported
   // auto elem = collisionComp->Data().Element();
@@ -228,13 +234,19 @@ TEST_F(WheelSlipTest, TireDrum)
       components::Link());
 
   ASSERT_NE(gazebo::kNullEntity, drumLinkEntity);
-  auto drumCollisionGeometry =
-    ecm->Component<components::Geometry>(wheelLinkEntity);
 
-  ASSERT_NE(nullptr, drumCollisionGeometry);
-  ASSERT_EQ(sdf::GeometryType::CYLINDER, drumCollisionGeometry->Data().Type());
-  const double drumRadius =
-    drumCollisionGeometry->Data().CylinderShape()->Radius();
+  Entity drumCollisionEntity = ecm->EntityByComponents(
+      components::ParentEntity(drumLinkEntity),
+      components::Name("collision"),
+      components::Collision());
+
+  ASSERT_NE(gazebo::kNullEntity, drumCollisionEntity);
+
+  auto drumCollisionComp =
+    ecm->Component<components::CollisionElement>(drumCollisionEntity);
+  ASSERT_NE(nullptr, drumCollisionComp);
+  ASSERT_EQ(sdf::GeometryType::CYLINDER,
+            drumCollisionComp->Data().Geom()->Type());
 
   // Get axle wheel and steer joint of wheel model
 
@@ -252,7 +264,6 @@ TEST_F(WheelSlipTest, TireDrum)
 
   ASSERT_NE(gazebo::kNullEntity, wheelSteerJointEntity);
 
-  const double drumSpeed = -25.0 * metersPerMile / secondsPerHour / drumRadius;
   const double wheelSpeed =
     -25.0 * metersPerMile / secondsPerHour / wheelRadius;
 
@@ -309,9 +320,9 @@ TEST_F(WheelSlipTest, TricyclesUphill)
   gazebo::EntityComponentManager *ecm = nullptr;
   Relay testSystem;
   testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+        gazebo::EntityComponentManager &_ecm)
       {
-        ecm = &_ecm;
+      ecm = &_ecm;
       });
 
   // Create a system that records the vehicle poses
@@ -340,6 +351,7 @@ TEST_F(WheelSlipTest, TricyclesUphill)
         components::Name("trisphere_cycle0"));
 
   EXPECT_NE(gazebo::kNullEntity, trisphereCycle0Entity);
+
 
   Entity trisphereCycle1Entity =
     ecm->EntityByComponents(components::Model(),
@@ -398,23 +410,79 @@ TEST_F(WheelSlipTest, TricyclesUphill)
 
   // Set speed of both models
   const double angularSpeed = 6.0;
+  ecm->CreateComponent(
+      wheelRearLeftSpin0Entity,
+      components::JointVelocityCmd({angularSpeed}));
 
   ecm->CreateComponent(
-        wheelRearLeftSpin0Entity,
-        components::JointVelocityCmd({angularSpeed}));
+      wheelRearRightSpin0Entity,
+      components::JointVelocityCmd({angularSpeed}));
 
   ecm->CreateComponent(
-        wheelRearRightSpin0Entity,
-        components::JointVelocityCmd({angularSpeed}));
+      wheelRearLeftSpin1Entity,
+      components::JointVelocityCmd({angularSpeed}));
 
   ecm->CreateComponent(
-        wheelRearLeftSpin1Entity,
-        components::JointVelocityCmd({angularSpeed}));
+      wheelRearRightSpin1Entity,
+      components::JointVelocityCmd({angularSpeed}));
 
-  ecm->CreateComponent(
-        wheelRearRightSpin1Entity,
-        components::JointVelocityCmd({angularSpeed}));
+  // Get frame link of first model
+  Entity trisphere0FrameEntity = ecm->EntityByComponents(
+      components::ParentEntity(trisphereCycle0Entity),
+      components::Name("frame"),
+      components::Link());
 
+  // Get frame link of second model
+  Entity trisphere1FrameEntity = ecm->EntityByComponents(
+      components::ParentEntity(trisphereCycle1Entity),
+      components::Name("frame"),
+      components::Link());
+
+  auto worldVelTrisphere0 =
+    ecm->Component<components::WorldLinearVelocity>(trisphere0FrameEntity);
+
+  if (!worldVelTrisphere0)
+  {
+    ecm->CreateComponent(trisphere0FrameEntity,
+        components::WorldLinearVelocity());
+    worldVelTrisphere0 =
+      ecm->Component<components::WorldLinearVelocity>(trisphere0FrameEntity);
+  }
+
+  auto worldVelTrisphere1 =
+    ecm->Component<components::WorldLinearVelocity>(trisphere1FrameEntity);
+
+  if (!worldVelTrisphere1)
+  {
+    ecm->CreateComponent(trisphere1FrameEntity,
+        components::WorldLinearVelocity());
+    worldVelTrisphere1 =
+      ecm->Component<components::WorldLinearVelocity>(trisphere1FrameEntity);
+  }
+
+  Relay testSlipSystem;
+  testSlipSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+        gazebo::EntityComponentManager &)
+      {
+      auto wheelRearLeftVelocity0Cmd =
+        ecm->Component<components::JointVelocityCmd>(wheelRearLeftSpin0Entity);
+      auto wheelRearRightVelocity0Cmd =
+        ecm->Component<components::JointVelocityCmd>(wheelRearRightSpin0Entity);
+      auto wheelRearLeftVelocity1Cmd =
+        ecm->Component<components::JointVelocityCmd>(wheelRearLeftSpin1Entity);
+      auto wheelRearRightVelocity1Cmd =
+        ecm->Component<components::JointVelocityCmd>(wheelRearRightSpin1Entity);
+
+      *wheelRearLeftVelocity0Cmd =
+        components::JointVelocityCmd({angularSpeed});
+      *wheelRearRightVelocity0Cmd =
+        components::JointVelocityCmd({angularSpeed});
+      *wheelRearLeftVelocity1Cmd =
+        components::JointVelocityCmd({angularSpeed});
+      *wheelRearRightVelocity1Cmd =
+        components::JointVelocityCmd({angularSpeed});
+      });
+  server.AddSystem(testSlipSystem.systemPtr);
   server.Run(true, 2000, false);
 
   // compute expected slip
@@ -429,46 +497,30 @@ TEST_F(WheelSlipTest, TricyclesUphill)
     ecm->Component<components::JointVelocity>(wheelRearLeftSpin0Entity);
   auto wheelRearRightVelocity =
     ecm->Component<components::JointVelocity>(wheelRearRightSpin0Entity);
-  auto worldVel =
-    ecm->Component<components::WorldLinearVelocity>(trisphereCycle0Entity);
-
-  if (!worldVel)
-  {
-    ecm->CreateComponent(trisphereCycle0Entity,
-        components::WorldLinearVelocity());
-    worldVel =
-      ecm->Component<components::WorldLinearVelocity>(trisphereCycle0Entity);
-  }
+  worldVelTrisphere0 =
+    ecm->Component<components::WorldLinearVelocity>(trisphere0FrameEntity);
 
   EXPECT_NE(nullptr, wheelRearLeftVelocity);
   EXPECT_NE(nullptr, wheelRearRightVelocity);
-  EXPECT_NE(nullptr, worldVel);
+  EXPECT_NE(nullptr, worldVelTrisphere0);
 
   EXPECT_NEAR(angularSpeed, wheelRearLeftVelocity->Data()[0], 3e-3);
   EXPECT_NEAR(angularSpeed, wheelRearRightVelocity->Data()[0], 3e-3);
-  EXPECT_NEAR(noSlipLinearSpeed - worldVel->Data()[0], 0.0, 5e-3);
+  EXPECT_NEAR(noSlipLinearSpeed - worldVelTrisphere0->Data()[0], 0.0, 5e-3);
 
   wheelRearLeftVelocity =
     ecm->Component<components::JointVelocity>(wheelRearLeftSpin1Entity);
   wheelRearRightVelocity =
     ecm->Component<components::JointVelocity>(wheelRearRightSpin1Entity);
-  worldVel =
-     ecm->Component<components::WorldLinearVelocity>(trisphereCycle1Entity);
-
-  if (!worldVel)
-  {
-    ecm->CreateComponent(trisphereCycle1Entity,
-        components::WorldLinearVelocity());
-    worldVel =
-      ecm->Component<components::WorldLinearVelocity>(trisphereCycle1Entity);
-  }
+  worldVelTrisphere1 =
+    ecm->Component<components::WorldLinearVelocity>(trisphere1FrameEntity);
 
   EXPECT_NE(nullptr, wheelRearLeftVelocity);
   EXPECT_NE(nullptr, wheelRearRightVelocity);
-  EXPECT_NE(nullptr, worldVel);
+  EXPECT_NE(nullptr, worldVelTrisphere1);
 
   EXPECT_NEAR(angularSpeed, wheelRearLeftVelocity->Data()[0], 3e-3);
   EXPECT_NEAR(angularSpeed, wheelRearRightVelocity->Data()[0], 3e-3);
-  EXPECT_NEAR(noSlipLinearSpeed - worldVel->Data()[0],
+  EXPECT_NEAR(noSlipLinearSpeed - worldVelTrisphere1->Data()[0],
       noSlipLinearSpeed * forceRatio, 5e-3);
 }
