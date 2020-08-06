@@ -133,10 +133,10 @@ start and doesn't need to be enabled. This element is optional, and the default
 value is true.
 
 - `<contacts_resolution>`: Distance in mm to interpolate the contacts
-returned by the contact sensor. The plugin interpolates these contacts given that the
-number of contacts returned by the physics engine doesn't allow a high resolution
-of the measurements. This element must be positive and it is optional.
-The default value is 1.
+returned by the contact sensor. The plugin adds onto contacts from the physics
+engine, which may be lower resolution depending on the primitive geometry or
+triangle size in the case of meshes. This element must be positive and it is
+optional. The default value is 1.
 
 - `<visualization_resolution>`: Number of pixels to skip when visualizing
 forces. One vector representing a normal force is computed for each of the camera
@@ -196,39 +196,36 @@ simulation, the following topics and services have been advertised:
   are computed.
 
 ## Performance
-In order to get an idea about the resources consumed by the plugin, some
-experiments have been made by setting the parameters to specific values.
+In order to give an idea about the resources consumed by the plugin, we carried 
+out some simple experiments by setting the parameters to specific values.
+To run the experiments, we've used a Xiaomi Mi Air 13.3 with an Intel Core
+i5-8250U quad-core 1.6GHz.
 
 Mainly, there are two parameters that can affect the computational cost of running
 the plugin: the visualization and the contacts resolutions. The following parameters 
 have been tested for a sensor with a size of 20x20x5 mm:
 
-- `<visualization_resolution>`: A value of 20 allows to see an enough
+- `<visualization_resolution>`: A value of 20 allows us to see a sufficient
 number of forces and check what the sensor is looking at. However, if we
 set the value to less than 15, lags can be expected when moving around the
 simulation due to the cost of requesting the `/marker` service too many times.
-The simulation itself may will even have problems when loading.
 
 - `<contacts_resolution>`: Like the previous parameter, a value too low can
-cause the simulation to slow down or even not load at all. The following table
-aims to provide and idea of how this parameter parameter affects the simulation:
-    ______________________________________________________________________
-   | <contacts_resolution> | no. of contacts computed  |  Average RTF (%)  |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |            1          |            441            |          95       |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |          0.5          |            1681           |          90       |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |          0.3          |            4489           |          70       |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |          0.1          |            40200          |          20       |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-    
+cause the simulation to slow down. The following table aims to provide an idea 
+of how this parameter affects the simulation, with a single instance of the
+plugin loaded in the world:
 
-While the previous experiments had in mind a unique plugin in the simulation,
-it's important to know how many of them could be loaded before the RTF becomes
-unacceptable. Of course, this depends on the parameters of each individual plugin,
-so all of them have been set as follows:
+| <contacts_resolution>  | no. of contacts computed | Average RTF (%) |
+| ------------- | ------------- | ------------- |
+| 1 | 441 | 95 |
+| 0.5 | 1681 | 90 |
+| 0.3 | 4489 | 70 |
+| 0.1 | 40200 | 20 |    
+
+It's important to know how many plugins could be loaded before the RTF becomes
+unacceptable. Of course, this depends on the parameters of each individual plugin.
+
+In the following evaluation, they have been set as follows:
 
 ```
   <visualization_resolution>15</visualization_resolution>
@@ -242,22 +239,18 @@ so all of them have been set as follows:
 ```
 
 We found the following RTFs:
-    _____________________________________________
-   |    no. of sensors     |    Worst RTF (%)   |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |            1          |         80         |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |            3          |         54         |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |            5          |         40         |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |            7          |         35         |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
-   |           10          |          5         |
-    ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
 
-Clearly, the most computational expensive feature is the visualization of the
-normal forces. If `<visualize_forces>` is turned on, problems are found when
+
+| no. of sensors  | Worst RTF (%) |
+| ------------- | ------------- |
+| 1 | 80 |
+| 3 | 54 |
+| 5 | 40 |
+| 7 | 35 |
+| 10 | 5 |
+
+Clearly, the most computationally expensive feature is the visualization of the
+normal forces. If `<visualize_forces>` is turned on, a lag is observed when
 running the simulation with 3 or more sensors, and even 2 sensors is a demanding task.
 This is due to the fact that the plugin is continually requesting a service for
 visualizing these forces.
