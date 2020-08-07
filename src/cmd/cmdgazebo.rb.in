@@ -341,9 +341,18 @@ class Cmd
           if path.nil?
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
+            puts Importer.worldInstallDir().to_s
             if !File.exists?(path)
-              puts "Unable to find file " + options['file']
-              exit(-1)
+              Importer.extern 'char *bazelInstallDir()'
+	      puts "bazel install dir"
+	      puts Importer.bazelInstallDir().to_s
+	      path = File.join(Importer.bazelInstallDir().to_s, "ign_gazebo/examples/worlds")
+	      path = File.join(path, options['file'])
+	      options['file'] = path
+	      if !File.exists?(path)
+	        puts "Unable to find file gazebo " + options['file']
+                exit(-1)
+	      end
             end
           end
         end
@@ -352,6 +361,8 @@ class Cmd
         parsed = ERB.new(File.read(path)).result()
       end
 
+      puts parsed
+      puts options['file']
       # Import the runServer function
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,

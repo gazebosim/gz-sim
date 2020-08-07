@@ -51,6 +51,12 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 }
 
 //////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE const char *bazelInstallDir()
+{
+  return strdup(ignition::common::cwd().c_str());
+}
+
+//////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,

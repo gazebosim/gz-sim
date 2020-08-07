@@ -319,6 +319,14 @@ public_headers = public_headers_no_gen + public_component_headers_no_gen + [
     "include/ignition/gazebo/components/components.hh",
 ]
 
+filegroup(
+    name = "example-worlds",
+    srcs = glob([
+        "examples/worlds/*.sdf",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "ign_gazebo_headers",
     hdrs = private_headers + public_headers,
@@ -336,7 +344,6 @@ genrule(
     ],
     cmd = "cd ign_gazebo/src/gui/resources/ && qtchooser -qt=5 -run-tool=rcc --name gazebo gazebo.qrc -o qrc_gazebo.cpp && cp qrc_gazebo.cpp ../../../../$(OUTS)",
 )
-genrule
 
 qt_cc_library(
     name = "ign_gazebo_gui",
@@ -368,7 +375,6 @@ qt_cc_library(
         ":ign_gazebo_headers",
     ],
 )
-
 
 cc_binary(
     name = "libignition-gazebo4.so",

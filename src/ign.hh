@@ -34,6 +34,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
 
 extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 
+extern "C" IGNITION_GAZEBO_VISIBLE const char *bazelInstallDir();
+
 /// \brief External hook to run simulation server.
 /// \param[in] _sdfString SDF file to run, as a string.
 /// \param[in] _iterations --iterations option
