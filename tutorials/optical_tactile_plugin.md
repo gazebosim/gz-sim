@@ -215,7 +215,7 @@ cause the simulation to slow down. The following table aims to provide an idea
 of how this parameter affects the simulation, with a single instance of the
 plugin loaded in the world:
 
-| <contacts_resolution>  | no. of contacts computed | Average RTF (%) |
+| `<contacts_resolution>`  | No. of contacts computed | Average RTF (%) |
 | ------------- | ------------- | ------------- |
 | 1 | 441 | 95 |
 | 0.5 | 1681 | 90 |
@@ -241,7 +241,7 @@ In the following evaluation, they have been set as follows:
 We found the following RTFs:
 
 
-| no. of sensors  | Worst RTF (%) |
+| No. of sensors  | Worst RTF (%) |
 | ------------- | ------------- |
 | 1 | 80 |
 | 3 | 54 |
