@@ -84,6 +84,17 @@ namespace ignition
                     (this->data[3]-_pt[3])*(this->data[3]-_pt[3]));
       }
 
+      /// \brief Calc distance to the given point
+      /// \param[in] _x value along x
+      /// \param[in] _y value along y
+      /// \param[in] _z value along z
+      /// \param[in] _w value along w
+      /// \return the distance
+      public: T Distance(T _x, T _y, T _z, T _w) const
+      {
+        return this->Distance(Vector4(_x, _y, _z, _w));
+      }
+
       /// \brief Returns the length (magnitude) of the vector
       /// \return The length
       public: T Length() const
@@ -99,6 +110,39 @@ namespace ignition
              + std::pow(this->data[1], 2)
              + std::pow(this->data[2], 2)
              + std::pow(this->data[3], 2);
+      }
+
+      /// \brief Round to near whole number.
+      public: void Round()
+      {
+        this->data[0] = nearbyint(this->data[0]);
+        this->data[1] = nearbyint(this->data[1]);
+        this->data[2] = nearbyint(this->data[2]);
+        this->data[3] = nearbyint(this->data[3]);
+      }
+
+      /// \brief Get a rounded version of this vector
+      /// \return a rounded vector
+      public: Vector4 Rounded() const
+      {
+        Vector4<T> result = *this;
+        result.Round();
+        return result;
+      }
+
+      /// \brief Corrects any nan values
+      public: inline void Correct()
+      {
+        // std::isfinite works with floating point values,
+        // need to explicit cast to avoid ambiguity in vc++.
+        if (!std::isfinite(static_cast<double>(this->data[0])))
+          this->data[0] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[1])))
+          this->data[1] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[2])))
+          this->data[2] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[3])))
+          this->data[3] = 0;
       }
 
       /// \brief Normalize the vector length
@@ -637,6 +681,16 @@ namespace ignition
       public: inline void W(const T &_v)
       {
         this->data[3] = _v;
+      }
+
+      /// \brief Less than operator.
+      /// \param[in] _pt Vector to compare.
+      /// \return True if this vector's X(), Y(), Z() or W() value is less
+      /// than the given vector's corresponding values.
+      public: bool operator<(const Vector4<T> &_pt) const
+      {
+        return this->data[0] < _pt[0] || this->data[1] < _pt[1] ||
+               this->data[2] < _pt[2] || this->data[3] < _pt[3];
       }
 
       /// \brief Stream insertion operator

@@ -43,8 +43,10 @@ TEST(Vector4dTest, Vector4d)
   math::Vector4d v(v1);
   EXPECT_EQ(v, v1);
 
+  // ::Distance
   EXPECT_TRUE(math::equal(v.Distance(
           math::Vector4d(0, 0, 0, 0)), 5.4772, 1e-3));
+  EXPECT_TRUE(math::equal(v.Distance(1, 2, 3, 4), 0.0));
 
   // ::Length()
   v.Set(1, 2, 3, 4);
@@ -53,7 +55,21 @@ TEST(Vector4dTest, Vector4d)
   // ::SquaredLength()
   EXPECT_TRUE(math::equal(v.SquaredLength(), 30.0));
 
+  // ::Rounded
+  v.Set(1.23, 2.34, 3.55, 8.49);
+  EXPECT_TRUE(v.Rounded() == math::Vector4d(1, 2, 4, 8));
+
+  // ::Round
+  v.Round();
+  EXPECT_TRUE(v == math::Vector4d(1, 2, 4, 8));
+
+  // ::Correct
+  v.Set(1, 1, std::nan("1"), 1);
+  v.Correct();
+  EXPECT_TRUE(v == math::Vector4d(1, 1, 0, 1));
+
   // ::Normalize
+  v.Set(1, 2, 3, 4);
   v.Normalize();
   EXPECT_EQ(v, math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
 
@@ -144,6 +160,10 @@ TEST(Vector4dTest, Vector4d)
 
   // ::operator != vector4
   EXPECT_NE(v, math::Vector4d());
+
+  // ::operator < vector4
+  v.Set(1, 2, 3, 4);
+  EXPECT_TRUE(v < math::Vector4d(4, 3, 2, 1));
 
   // ::IsFinite
   EXPECT_TRUE(v.IsFinite());
