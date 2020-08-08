@@ -170,7 +170,7 @@
       <model name="model_01">
         <pose>1 0 0.0 0 0 0</pose>
         <link name="link_01">
-          <pose>0.25 0 0.0 0 0 0</pose>
+          <pose>0.25 0 0.0 0 0 0.785398</pose>
           <collision name="collision_01">
             <geometry>
               <box>
