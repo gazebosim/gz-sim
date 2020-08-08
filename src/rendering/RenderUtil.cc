@@ -298,7 +298,6 @@ void RenderUtil::Update()
         if (iteration < removeIteration)
           continue;
       }
-
       this->dataPtr->sceneManager.CreateModel(
           entityId, std::get<1>(model), std::get<2>(model));
     }
@@ -577,7 +576,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
-ignerr << "EachNew  " << _entity << std::endl;
           this->newModels.push_back(
               std::make_tuple(_entity, model, _parent->Data(),
               _info.iterations));
