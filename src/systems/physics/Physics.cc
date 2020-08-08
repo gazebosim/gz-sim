@@ -1470,6 +1470,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         // set world pose of canonical link in freegroup
+        // canonical link might be in a nested model so use RelativePose to get
+        // its pose relative to this model
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntityIt->second, _ecm);
 
