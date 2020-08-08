@@ -155,6 +155,15 @@ namespace ignition
       /// \param[in] _parent Entity which should be _child's parent.
       public: void SetParent(Entity _child, Entity _parent);
 
+      /// \brief Overloaded function to recursively create model entities
+      /// and make sure only one canonical link is created per model tree
+      /// \param[in] _model SDF model object.
+      /// \param[in] _createCanonicalLink True to create a canonical link
+      /// component and attach to its child link entity
+      /// \return Model entity.
+      private: Entity CreateEntities(const sdf::Model *_model,
+          bool _createCanonicalLink);
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;
     };

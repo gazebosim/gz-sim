@@ -488,16 +488,27 @@ class ignition::gazebo::systems::PhysicsPrivate
             MinimumFeatureList,
             ignition::physics::sdf::ConstructSdfNestedModel>;
 
-  /// \brief Link type with meshes.
-  public: using NestedModelPtrType = physics::ModelPtr<
+  /// \brief Model type with nested model feature.
+  public: using ModelNestedModelPtrType = physics::ModelPtr<
+            physics::FeaturePolicy3d, NestedModelFeatureList>;
+
+  /// \brief World type with nested model feature.
+  public: using WorldNestedModelPtrType = physics::WorldPtr<
             physics::FeaturePolicy3d, NestedModelFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// ign-physics, with Nested Model feature.
   /// All models on this map are also in `entityModelMap`. The difference is
   /// that here they've been casted for `ConstructedSdfNestedModel`.
-  public: std::unordered_map<Entity, NestedModelPtrType>
-      entityNestedModelMap;
+  public: std::unordered_map<Entity, ModelNestedModelPtrType>
+      entityModelNestedModelMap;
+
+  /// \brief A map between model entity ids in the ECM to World Entities in
+  /// ign-physics, with Nested Model feature.
+  /// All models on this map are also in `entityWorldMap`. The difference is
+  /// that here they've been casted for `ConstructedSdfNestedModel`.
+  public: std::unordered_map<Entity, WorldNestedModelPtrType>
+      entityWorldNestedModelMap;
 };
 
 //////////////////////////////////////////////////
@@ -719,8 +730,29 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         if (worldIt != this->entityWorldMap.end())
         {
           auto worldPtrPhys = worldIt->second;
-          auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-          this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+
+          // Use the ConstructNestedModel feature for nested models
+          if (model.ModelCount() > 0)
+          {
+            auto nestedModelFeature = entityCast(_parent->Data(), worldPtrPhys,
+                this->entityWorldNestedModelMap);
+            if (!nestedModelFeature)
+            {
+              igndbg << "Attempting to construct nested models, but the physics"
+                     << " engine doesn't support feature "
+                     << "[ConstructSdfNestedModelFeature]. "
+                     << "Nested model will be ignored."
+                     << std::endl;
+              return true;
+            }
+            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
+            this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+          }
+          else
+          {
+            auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+            this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+          }
         }
         // check if parent is a model (nested model)
         else
@@ -731,7 +763,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             auto parentPtrPhys = parentIt->second;
 
             auto nestedModelFeature = entityCast(_parent->Data(), parentPtrPhys,
-                this->entityNestedModelMap);
+                this->entityModelNestedModelMap);
             if (!nestedModelFeature)
             {
               igndbg << "Attempting to construct nested models, but the physics"
@@ -742,15 +774,24 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               return true;
             }
 
+            // override static property only if parent is static.
+            auto parentStaticComp =
+              _ecm.Component<components::Static>(_parent->Data());
+            if (parentStaticComp && parentStaticComp->Data())
+              model.SetStatic(true);
+
+
             auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
             if (modelPtrPhys)
             {
-              this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+              this->entityModelMap.insert(
+                  std::make_pair(_entity, modelPtrPhys));
             }
             else
             {
               ignerr << "Model: '" << _name->Data() << "' not loaded. "
-                     << "Nested model not supported by physics engine. " << std::endl;
+                     << "Nested model not supported by physics engine. "
+                     << std::endl;
             }
           }
           else
@@ -1663,12 +1704,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        // get top level model of this link
-        auto topLevelModel = this->TopLevelModel(_parent->Data(), _ecm);
-
         // If model is static, don't process pose changes as periodic
         const auto *staticComp =
-          _ecm.Component<components::Static>(topLevelModel);
+          _ecm.Component<components::Static>(_entity);
 
         if (staticComp && staticComp->Data())
           return true;
@@ -1676,6 +1714,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
+          // get top level model of this link
+          auto topLevelModel = this->TopLevelModel(_parent->Data(), _ecm);
+
           auto canonicalLink =
               _ecm.Component<components::CanonicalLink>(_entity);
 

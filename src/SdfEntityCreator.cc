@@ -216,6 +216,18 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
+  // todo(anyone) Support multiple canonical links in nested models
+  // This version of CreateEntties keeps track whether or not to create a
+  // canonical link in a model tree using the last arg in this recursive
+  // function. Once support is  added, we do not need to use this overloaded
+  // function.
+  return this->CreateEntities(_model, true);
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
+    bool _createCanonicalLink)
+{
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -238,6 +250,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   // the parent frame until we get frames working.
 
   // Links
+  bool createdCanonicalLink = false;
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
   {
@@ -246,11 +259,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
     this->SetParent(linkEntity, modelEntity);
 
-    if ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
-        (link == _model->CanonicalLink()))
+    if (_createCanonicalLink &&
+        ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
+        (link == _model->CanonicalLink())))
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
+      createdCanonicalLink = true;
     }
 
     // Set wind mode if the link didn't override it
@@ -276,7 +291,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       ++modelIndex)
   {
     auto nestedModel = _model->ModelByIndex(modelIndex);
-    auto nestedModelEntity = this->CreateEntities(nestedModel);
+
+    // create nested model and only create canonical link component
+    // if it has not been created in this model yet.
+    auto nestedModelEntity = this->CreateEntities(nestedModel,
+        (_createCanonicalLink && !createdCanonicalLink));
 
     this->SetParent(nestedModelEntity, modelEntity);
   }
