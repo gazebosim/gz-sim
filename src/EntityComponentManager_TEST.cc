@@ -2010,16 +2010,18 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, StateMsgAfterRemoveComponent)
+TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
   manager.CreateComponent<IntComponent>(e1, IntComponent(123));
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
-  manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
 
   manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c2);
 
   // Serialize into a message
   msgs::SerializedStateMap stateMsg;
@@ -2032,9 +2034,9 @@ TEST_P(EntityComponentManagerFixture, StateMsgAfterRemoveComponent)
     auto compIter = e1Msg.components().begin();
 
     // First component
-    const auto &e1c0Msg = compIter->second;
+    const auto &e1c2Msg = compIter->second;
     compIter++;
-    EXPECT_FALSE(e1c0Msg.remove());
+    EXPECT_TRUE(e1c2Msg.remove());
 
     // Second component
     const auto &e1c1Msg = compIter->second;
@@ -2042,8 +2044,74 @@ TEST_P(EntityComponentManagerFixture, StateMsgAfterRemoveComponent)
     EXPECT_TRUE(e1c1Msg.remove());
 
     // Third component
-    const auto &e1c2Msg = compIter->second;
-    EXPECT_FALSE(e1c2Msg.remove());
+    const auto &e1c0Msg = compIter->second;
+    EXPECT_FALSE(e1c0Msg.remove());
+  }
+
+  // Check that removed components don't exist anymore
+  msgs::SerializedStateMap newStateMsg;
+  manager.State(newStateMsg);
+
+  // Check message
+  {
+    auto iter = newStateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    EXPECT_EQ(1, e1Msg.components_size());
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &e1c0Msg = compIter->second;
+    EXPECT_FALSE(e1c0Msg.remove());
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c2);
+
+  // Serialize into a message
+  msgs::SerializedState stateMsg;
+  stateMsg = manager.State();
+
+  // Check message
+  {
+    auto entityMsg = stateMsg.entities(0);
+
+    // First component
+    const auto &e1c0Msg = entityMsg.components(0);
+    EXPECT_FALSE(e1c0Msg.remove());
+
+    // Second component
+    const auto &e1c1Msg = entityMsg.components(1);
+    EXPECT_TRUE(e1c1Msg.remove());
+
+    // Third component
+    const auto &e1c2Msg = entityMsg.components(2);
+    EXPECT_TRUE(e1c2Msg.remove());
+  }
+
+  // Check that removed components don't exist anymore
+  msgs::SerializedState newStateMsg;
+  newStateMsg = manager.State();
+
+  // Check message
+  {
+    auto entityMsg = newStateMsg.entities(0);
+    EXPECT_EQ(1, entityMsg.components_size());
+
+    // First component
+    const auto &e1c0Msg = entityMsg.components(0);
+    EXPECT_FALSE(e1c0Msg.remove());
   }
 }
 
