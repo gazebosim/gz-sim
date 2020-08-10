@@ -22,15 +22,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -410,7 +410,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
@@ -419,7 +419,7 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <topic>/B1/deploy</topic>
        <max_deployments>3</max_deployments>
        <breadcrumb>
@@ -462,7 +462,7 @@
          </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <topic>/B2/deploy</topic>
        <disable_physics_time>2.0</disable_physics_time>
        <max_deployments>3</max_deployments>

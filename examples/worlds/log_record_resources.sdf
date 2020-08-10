@@ -10,15 +10,15 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="libignition-gazebo-physics-system.so"
+     filename="ignition-gazebo-physics-system"
      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-log-system.so"
+      filename="ignition-gazebo-log-system"
       name="ignition::gazebo::systems::LogRecord">
       <!-- Deprecated: directories to write recorded files.
            Use --record-path instead. -->

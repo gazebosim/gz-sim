@@ -12,15 +12,15 @@
 <sdf version="1.6">
   <world name="levels">
     <plugin
-     filename="libignition-gazebo-physics-system.so"
+     filename="ignition-gazebo-physics-system"
      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -4072,7 +4072,7 @@
     </joint>
 
     <plugin
-      filename="libignition-gazebo-diff-drive-system.so"
+      filename="ignition-gazebo-diff-drive-system"
       name="ignition::gazebo::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
@@ -4250,7 +4250,7 @@
     </joint>
 
     <plugin
-      filename="libignition-gazebo-diff-drive-system.so"
+      filename="ignition-gazebo-diff-drive-system"
       name="ignition::gazebo::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>

@@ -19,15 +19,15 @@
 <sdf version="1.6">
   <world name="lift_drag">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <gui fullscreen="0">
@@ -316,11 +316,11 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-joint-state-publisher-system.so"
+        filename="ignition-gazebo-joint-state-publisher-system"
         name="ignition::gazebo::systems::JointStatePublisher"></plugin>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>0.1</cla>
@@ -334,7 +334,7 @@
         <link_name>blade_1</link_name>
       </plugin>
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>0.1</cla>
@@ -348,11 +348,11 @@
         <link_name>blade_2</link_name>
       </plugin>
       <plugin
-        filename="libignition-gazebo-apply-joint-force-system.so"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="ignition::gazebo::systems::ApplyJointForce">
         <joint_name>rod_1_joint</joint_name>
       </plugin>
-      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>

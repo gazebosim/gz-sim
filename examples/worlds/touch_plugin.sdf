@@ -22,15 +22,15 @@ The output of the plugin is via
 <sdf version="1.6">
   <world name="touch">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-contact-system.so"
+      filename="ignition-gazebo-contact-system"
       name="ignition::gazebo::systems::Contact">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -170,7 +170,7 @@ The output of the plugin is via
       </link>
 
       <plugin
-        filename="libignition-gazebo-touchplugin-system.so"
+        filename="ignition-gazebo-touchplugin-system"
         name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>

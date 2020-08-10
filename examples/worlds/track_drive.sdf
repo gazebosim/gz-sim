@@ -23,19 +23,19 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-imu-system.so"
+      filename="ignition-gazebo-imu-system"
       name="ignition::gazebo::systems::Imu">
     </plugin>
     <gui fullscreen="0">
@@ -1117,7 +1117,7 @@
       </joint>
 
       <!-- Track drive -->
-      <plugin filename="libignition-gazebo-diff-drive-system.so"
+      <plugin filename="ignition-gazebo-diff-drive-system"
               name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>
@@ -2138,7 +2138,7 @@
       </joint>
 
       <!-- Track drive -->
-      <plugin filename="libignition-gazebo-diff-drive-system.so"
+      <plugin filename="ignition-gazebo-diff-drive-system"
               name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>

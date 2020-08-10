@@ -16,31 +16,31 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-air-pressure-system.so"
+      filename="ignition-gazebo-air-pressure-system"
       name="ignition::gazebo::systems::AirPressure">
     </plugin>
     <plugin
-      filename="libignition-gazebo-altimeter-system.so"
+      filename="ignition-gazebo-altimeter-system"
       name="ignition::gazebo::systems::Altimeter">
     </plugin>
     <plugin
-      filename="libignition-gazebo-imu-system.so"
+      filename="ignition-gazebo-imu-system"
       name="ignition::gazebo::systems::Imu">
     </plugin>
     <plugin
-      filename="libignition-gazebo-magnetometer-system.so"
+      filename="ignition-gazebo-magnetometer-system"
       name="ignition::gazebo::systems::Magnetometer">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 

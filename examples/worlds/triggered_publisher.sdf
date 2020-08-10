@@ -18,23 +18,23 @@ moment the box hits the ground, the second box should start falling.
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-contact-system.so"
+      filename="ignition-gazebo-contact-system"
       name="ignition::gazebo::systems::Contact">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-altimeter-system.so"
+      filename="ignition-gazebo-altimeter-system"
       name="ignition::gazebo::systems::Altimeter">
     </plugin>
 
@@ -414,7 +414,7 @@ moment the box hits the ground, the second box should start falling.
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
@@ -447,20 +447,20 @@ moment the box hits the ground, the second box should start falling.
         </sensor>
       </link>
       <plugin
-        filename="libignition-gazebo-touchplugin-system.so"
+        filename="ignition-gazebo-touchplugin-system"
         name="ignition::gazebo::systems::TouchPlugin">
         <target>vehicle_blue</target>
         <namespace>trigger</namespace>
         <time>0.001</time>
         <enabled>true</enabled>
       </plugin>
-      <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>box1</child_model>
         <child_link>box_body</child_link>
         <topic>/box1/detach</topic>
       </plugin>
-      <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>box2</child_model>
         <child_link>box_body</child_link>
@@ -515,19 +515,19 @@ moment the box hits the ground, the second box should start falling.
       </link>
     </model>
 
-    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Empty" topic="/start"/>
       <output type="ignition.msgs.Twist" topic="/cmd_vel">
           linear: {x: 3}
       </output>
     </plugin>
-    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Boolean" topic="/trigger/touched">
         <match>data: true</match>
       </input>
       <output type="ignition.msgs.Empty" topic="/box1/detach"/>
     </plugin>
-    <plugin filename="libignition-gazebo-triggered-publisher-system.so" name="ignition::gazebo::systems::TriggeredPublisher">
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Altimeter" topic="/altimeter">
         <match field="vertical_position" tol="0.2">-7.5</match>
       </input>

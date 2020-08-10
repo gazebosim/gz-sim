@@ -35,11 +35,11 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="libignition-gazebo-physics-system.so"
+     filename="ignition-gazebo-physics-system"
      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -329,7 +329,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint_green</left_joint>
         <right_joint>right_wheel_joint_green</right_joint>
@@ -337,7 +337,7 @@
         <wheel_radius>0.3</wheel_radius>
       </plugin>
 
-      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
@@ -528,7 +528,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint_blue</left_joint>
         <right_joint>right_wheel_joint_blue</right_joint>
@@ -536,7 +536,7 @@
         <wheel_radius>0.3</wheel_radius>
       </plugin>
 
-      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
           name="ignition::gazebo::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>
