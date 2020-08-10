@@ -1,11 +1,5 @@
 <?xml version="1.0" ?>
-<!--
 
-Try moving a model:
-
-    ign service -s /world/shapes/set_pose --reqtype ignition.msgs.Pose --reptype ignition.msgs.Boolean --timeout 300 --req 'name: "box", position: {z: 5.0}'
-
--->
 <sdf version="1.6">
   <world name="shapes">
     <physics name="1ms" type="ignored">
