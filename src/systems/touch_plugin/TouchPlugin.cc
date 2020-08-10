@@ -185,7 +185,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   this->validConfig = true;
 
   // Start enabled or not
-  if (_sdf->Get<bool>("enabled", false).second)
+  if (_sdf->Get<bool>("enabled", false).first)
   {
     this->Enable(true);
   }
