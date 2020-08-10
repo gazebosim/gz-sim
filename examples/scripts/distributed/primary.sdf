@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
