@@ -235,7 +235,7 @@
     <include>
       <pose>0 0 0 0 0 1.57</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Playground
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Playground
       </uri>
     </include>
 

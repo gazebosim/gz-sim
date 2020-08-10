@@ -472,7 +472,7 @@
               <pose>-2 0 0 0 0 0</pose>
               <include>
                 <uri>
-                  https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X2 Config 1
+                  https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X2 Config 1
                 </uri>
               </include>
             </model>
