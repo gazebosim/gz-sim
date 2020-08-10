@@ -17,6 +17,8 @@
 #ifndef IGNITION_MATH_VECTOR2_HH_
 #define IGNITION_MATH_VECTOR2_HH_
 
+#include <algorithm>
+
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
 
@@ -165,6 +167,38 @@ namespace ignition
           this->data[0] = 0;
         if (!std::isfinite(static_cast<double>(this->data[1])))
           this->data[1] = 0;
+      }
+
+      /// \brief Set this vector's components to the maximum of itself and the
+      ///        passed in vector
+      /// \param[in] _v the maximum clamping vector
+      public: void Max(const Vector2<T> &_v)
+      {
+        this->data[0] = std::max(_v[0], this->data[0]);
+        this->data[1] = std::max(_v[1], this->data[1]);
+      }
+
+      /// \brief Set this vector's components to the minimum of itself and the
+      ///        passed in vector
+      /// \param[in] _v the minimum clamping vector
+      public: void Min(const Vector2<T> &_v)
+      {
+        this->data[0] = std::min(_v[0], this->data[0]);
+        this->data[1] = std::min(_v[1], this->data[1]);
+      }
+
+      /// \brief Get the maximum value in the vector
+      /// \return the maximum element
+      public: T Max() const
+      {
+        return std::max(this->data[0], this->data[1]);
+      }
+
+      /// \brief Get the minimum value in the vector
+      /// \return the minimum element
+      public: T Min() const
+      {
+        return std::min(this->data[0], this->data[1]);
       }
 
       /// \brief Assignment operator
