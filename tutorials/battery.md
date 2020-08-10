@@ -18,7 +18,7 @@ model:
 ```{.xml}
 <model>
   ...
-  <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+  <plugin filename="ignition-gazebo-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>

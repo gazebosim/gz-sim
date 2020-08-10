@@ -62,7 +62,7 @@ Recording can be specified in the SDF, under `<world>` tag:
 <world name="default">
     ...
     <plugin
-      filename="libignition-gazebo-log-system.so"
+      filename="ignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
       <!--
          Deprecated: Specifying the path on SDF is deprecated on Blueprint and
@@ -121,7 +121,7 @@ Alternatively, playback can be specified in an SDF file. See example file
 <world name="default">
     ...
     <plugin
-      filename='libignition-gazebo-log-system.so'
+      filename='ignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::LogPlayback'>
       <path>/tmp/log</path>
     </plugin>
