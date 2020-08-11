@@ -89,6 +89,11 @@ namespace ignition
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResource(const std::string &_uri);
 
+      /// \brief Fetch a resource from Fuel using fuel-tools.
+      /// \param[in] _uri The resource URI to fetch.
+      /// \return Path to the downloaded resource, empty on error.
+      public: std::string FetchResourceUri(const common::URI &_uri);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -97,6 +102,16 @@ namespace ignition
       /// \param[out] _res Response containing the names of all the worlds.
       /// \return True if successful.
       private: bool WorldsService(ignition::msgs::StringMsg_V &_res);
+
+      /// \brief Callback for add resource paths service.
+      /// \param[out] _req Request containing the paths to be added.
+      private: void AddResourcePathsService(
+          const ignition::msgs::StringMsg_V &_req);
+
+      /// \brief Callback for get resource paths service.
+      /// \param[out] _res Response filled with all current paths.
+      /// \return True if successful.
+      private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
@@ -143,6 +158,9 @@ namespace ignition
 
       /// \brief Node for transport.
       private: transport::Node node;
+
+      /// \brief Publisher of resrouce paths.
+      private: transport::Node::Publisher pathPub;
     };
     }
   }

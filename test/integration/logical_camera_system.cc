@@ -24,13 +24,14 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -72,10 +73,45 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
+  const std::string sensorName = "logical_camera";
+
+  auto topic = "world/logical_camera_sensor/model/logical_camera/link/"
+      "logical_camera_link/sensor/logical_camera/logical_camera";
+
+  bool updateChecked{false};
+
+  // Create a system that checks sensor topic
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                              const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::LogicalCamera, components::Name>(
+            [&](const ignition::gazebo::Entity &_entity,
+                const components::LogicalCamera *,
+                const components::Name *_name) -> bool
+            {
+              EXPECT_EQ(_name->Data(), sensorName);
+
+              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+              EXPECT_NE(nullptr, sensorComp);
+
+              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+              EXPECT_NE(nullptr, topicComp);
+              if (topicComp)
+              {
+                EXPECT_EQ(topic, topicComp->Data());
+              }
+
+              updateChecked = true;
+
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
   // subscribe to logical camera topic
   transport::Node node;
-  node.Subscribe("/logical_camera",
-      &logicalCameraCb);
   node.Subscribe(std::string("/world/logical_camera_sensor/") +
       "model/logical_camera/link/logical_camera_link" +
       "/sensor/logical_camera/logical_camera", &logicalCameraCb);
@@ -83,6 +119,7 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
   // Run server and verify that we are receiving messages
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
+  EXPECT_TRUE(updateChecked);
   mutex.lock();
   EXPECT_GT(logicalCameraMsgs.size(), 0u);
   mutex.unlock();
