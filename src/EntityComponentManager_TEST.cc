@@ -82,6 +82,10 @@ class EntityCompMgrTest : public EntityComponentManager
   {
     this->SetAllComponentsUnchanged();
   }
+  public: void RunClearRemovedComponents()
+  {
+    this->ClearRemovedComponents();
+  }
 };
 
 class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
@@ -2048,7 +2052,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
     EXPECT_FALSE(e1c0Msg.remove());
   }
 
-  // Check that removed components don't exist anymore
+  // Check that removed components don't exist anymore after clearing them
+  manager.RunClearRemovedComponents();
   msgs::SerializedStateMap newStateMsg;
   manager.State(newStateMsg);
 
@@ -2100,7 +2105,8 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
     EXPECT_TRUE(e1c2Msg.remove());
   }
 
-  // Check that removed components don't exist anymore
+  // Check that removed components don't exist anymore after clearing them
+  manager.RunClearRemovedComponents();
   msgs::SerializedState newStateMsg;
   newStateMsg = manager.State();
 
@@ -2111,6 +2117,83 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
 
     // First component
     const auto &e1c0Msg = entityMsg.components(0);
+    EXPECT_FALSE(e1c0Msg.remove());
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
+{
+  // Simulate the GUI's ECM
+  EntityCompMgrTest guiManager;
+
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // Serialize server ECM into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Set GUI's ECM and serialize into a message
+  guiManager.SetState(stateMsg);
+  msgs::SerializedStateMap guiStateMsg;
+  guiManager.State(guiStateMsg);
+
+  // Check sync message
+  {
+    auto iter = guiStateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &e1c2Msg = compIter->second;
+    compIter++;
+    EXPECT_FALSE(e1c2Msg.remove());
+
+    // Second component
+    const auto &e1c1Msg = compIter->second;
+    compIter++;
+    EXPECT_FALSE(e1c1Msg.remove());
+
+    // Third component
+    const auto &e1c0Msg = compIter->second;
+    EXPECT_FALSE(e1c0Msg.remove());
+  }
+
+  // Remove components and synchronize again
+  manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c2);
+
+  msgs::SerializedStateMap newStateMsg;
+  manager.State(newStateMsg);
+
+  guiManager.SetState(newStateMsg);
+  msgs::SerializedStateMap newGuiStateMsg;
+  guiManager.State(newGuiStateMsg);
+
+  // Check message
+  {
+    auto iter = newGuiStateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &e1c2Msg = compIter->second;
+    compIter++;
+    EXPECT_TRUE(e1c2Msg.remove());
+
+    // Second component
+    const auto &e1c1Msg = compIter->second;
+    compIter++;
+    EXPECT_TRUE(e1c1Msg.remove());
+
+    // Third component
+    const auto &e1c0Msg = compIter->second;
     EXPECT_FALSE(e1c0Msg.remove());
   }
 }

@@ -110,10 +110,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 
-  /// \brief Map of removed components. The key is the entity to
+  /// \brief Unordered multimap of removed components. The key is the entity to
   /// which belongs the component, and the value is the component being
-  /// removed. This is set when RemoveComponent() is called, so we assume
-  /// only one removed component per entity.
+  /// removed.
   std::unordered_multimap<Entity, ComponentKey> removedComponents;
 };
 
@@ -791,9 +790,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
     it++;
   }
-
-  // Remove entity from map
-  this->removedComponents.erase(_entity);
 }
 
 //////////////////////////////////////////////////
@@ -825,9 +821,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
     it++;
   }
-
-  // Remove entity from map
-  this->removedComponents.erase(_entity);
 }
 
 //////////////////////////////////////////////////
