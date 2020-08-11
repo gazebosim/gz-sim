@@ -499,6 +499,7 @@ cc_library(
         ":ign_gazebo_systems",
         "//ign_bazel:utilities",
         "//ign_gazebo/test:test_utils",
+        "//ign_gazebo/test:test_systems",
         "//ign_gazebo:ign_gazebo",
         "//ign_msgs",
         "//sdformat",
