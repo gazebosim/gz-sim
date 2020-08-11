@@ -434,7 +434,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   }
 
   auto servers = this->dataPtr->fuelClient->Config().Servers();
-  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   ignmsg << "Please wait... Loading models from Fuel.\n";
 
   // Add notice for the user that fuel resources are being loaded
@@ -469,7 +468,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     {
       this->dataPtr->ownerModel.AddPath(owner);
     }
-    QGuiApplication::restoreOverrideCursor();
     ignmsg << "Fuel resources loaded.\n";
   });
   t.detach();
