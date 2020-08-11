@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -64,11 +65,7 @@ void depthCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Rgbd Camera readings when it faces a box
-#ifdef __APPLE__
-TEST_F(RgbdCameraTest, DISABLED_RgbdCameraBox)
-#else
-TEST_F(RgbdCameraTest, RgbdCameraBox)
-#endif
+TEST_F(RgbdCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
