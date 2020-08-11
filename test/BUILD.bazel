@@ -3,9 +3,8 @@ load(
     "cmake_configure_file",
 )
 
-BINARY_DIR = "/tmp"
-SOURCE_DIR = "/tmp"
-CMAKE_BINARY_DIR = "/tmp"
+BINARY_DIR = "./ign_gazebo"
+SOURCE_DIR = "./ign_gazebo"
 IGNITION_TOOLS_BINARY_DIRS = "/tmp"
 PROJECT_NAME = "ignition-gazebo"
 PROJECT_MAJOR = 4
@@ -21,11 +20,89 @@ cmake_configure_file(
     defines = [
         "PROJECT_BINARY_DIR=%s" % (BINARY_DIR),
         "PROJECT_SOURCE_DIR=%s" % (SOURCE_DIR),
-        "CMAKE_BINARY_DIR=%s" % (CMAKE_BINARY_DIR),
+        "CMAKE_BINARY_DIR=%s" % (BINARY_DIR),
         "IGNITION-TOOLS_BINARY_DIRS=%s" % (IGNITION_TOOLS_BINARY_DIRS),
         "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
     ],
     visibility = ["//visibility:private"],
+)
+
+cc_binary(
+    name = "libTestSystem.so",
+    srcs = ["plugins/TestSystem.cc", "plugins/TestSystem.hh"],
+    linkshared = True,
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_common",
+        "//ign_common/events",
+        "//ign_gazebo",
+        "//ign_msgs",
+        "//ign_plugin/register",
+        "//sdformat",
+    ]
+)
+
+cc_binary(
+    name = "libTestSensorSystem.so",
+    srcs = ["plugins/TestSensorSystem.cc", "plugins/TestSensorSystem.hh"],
+    linkshared = True,
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_common",
+        "//ign_common/events",
+        "//ign_gazebo",
+        "//ign_msgs",
+        "//ign_plugin/register",
+        "//sdformat",
+        "//ign_transport",
+    ]
+)
+
+cc_binary(
+    name = "libTestWorldSystem.so",
+    srcs = ["plugins/TestWorldSystem.cc", "plugins/TestWorldSystem.hh"],
+    linkshared = True,
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_common",
+        "//ign_common/events",
+        "//ign_gazebo",
+        "//ign_msgs",
+        "//ign_plugin/register",
+        "//sdformat",
+    ]
+)
+
+cc_binary(
+    name = "libTestModelSystem.so",
+    srcs = ["plugins/TestModelSystem.cc", "plugins/TestModelSystem.hh"],
+    linkshared = True,
+    includes = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_common",
+        "//ign_common/events",
+        "//ign_gazebo",
+        "//ign_transport",
+        "//ign_msgs",
+        "//ign_plugin/register",
+        "//sdformat",
+    ]
+)
+
+cc_library(
+    name = "test_systems",
+    deps = [ 
+        ":libTestSystem.so", 
+        ":libTestWorldSystem.so", 
+        ":libTestModelSystem.so",
+        ":libTestSensorSystem.so"
+    ],
+    visibility = ["//visibility:public"],
+    data = glob(["worlds/*.sdf"]),
 )
 
 cc_library(
@@ -33,5 +110,7 @@ cc_library(
     srcs = ["ignition/gazebo/test_config.hh"],
     includes = ["."],
     visibility = ["//visibility:public"],
+    data = glob(["worlds/*.sdf"]),
 )
+
 
