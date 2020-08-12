@@ -212,9 +212,13 @@ namespace sdf_generator
     {
       auto uriElem = _elem->GetElement("uri");
       auto uriStr = uriElem->Get<std::string>();
-      // If the URI starts with "file://", it is assumed to be an
-      // absolute path, so there is no need to update it.
-      if (uriStr.find("file://") == std::string::npos)
+
+      // If the URI starts with "file://", "http://" or "http://"
+      // it is assumed to be an absolute path or an URL,
+      // so there is no need to update it.
+      if (uriStr.find("file://") == std::string::npos &&
+          !(uriStr.find("http://") == std::string::npos ||
+            uriStr.find("https://") == std::string::npos))
       {
         if (uriStr[0] != '/')
         {
