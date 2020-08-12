@@ -781,7 +781,7 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
         == QWindow::FullScreen)
     {
       ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->showMaximized());
+        <ignition::gui::MainWindow *>()->QuickWindow()->showMaximized();
     }
     else
     {
