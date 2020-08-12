@@ -336,7 +336,14 @@ genrule(
     ],
     cmd = "cd ign_gazebo/src/gui/resources/ && qtchooser -qt=5 -run-tool=rcc --name gazebo gazebo.qrc -o qrc_gazebo.cpp && cp qrc_gazebo.cpp ../../../../$(OUTS)",
 )
-genrule
+
+filegroup(
+    name = "example-worlds",
+    srcs = glob([
+        "examples/worlds/*.sdf"
+    ]),
+    visibility = ["//visibility:public"],
+)
 
 qt_cc_library(
     name = "ign_gazebo_gui",
@@ -369,7 +376,6 @@ qt_cc_library(
     ],
 )
 
-
 cc_binary(
     name = "libignition-gazebo4.so",
     srcs = sources + private_headers + public_headers,
@@ -394,6 +400,9 @@ cc_binary(
         "//ign_msgs",
         "//sdformat",
     ],
+    data = [
+        ":example-worlds",
+    ],
 )
 
 cc_library(
@@ -403,6 +412,46 @@ cc_library(
     includes = ["include"],
     visibility = ["//visibility:public"],
 )
+
+[
+cc_binary(
+    name = "libignition-gazebo4-%s-system.so" % (system.replace("_", "-")),
+    srcs = glob([
+          "src/systems/%s/*.cc" % system,
+          "src/systems/%s/*.hh" % system,
+      ],
+      allow_empty = False,
+    ),
+    includes = ["include"],
+    linkshared = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ign_gazebo",
+        "//ign_common",
+        "//ign_physics",
+        "//ign_physics/mesh:mesh",
+        "//ign_physics/sdf:sdf",
+        "//ign_physics/dartsim:libignition-physics-dartsim-plugin.so",
+        "//ign_gui",
+        "//ign_fuel_tools",
+        "//ign_bazel:utilities",
+        "//ign_transport",
+        "//ign_transport/log:log",
+        "//ign_sensors",
+        "//ign_sensors:all",
+        "//ign_rendering",
+        "//ign_plugin/core:ign_plugin",
+        "//ign_plugin/loader:loader",
+        "//ign_plugin/register:register",
+        "//ign_common/profiler:profiler",
+        "//ign_common/events:events",
+        "//ign_common/graphics:graphics",
+        "//ign_msgs",
+        "//ign_math/eigen3:eigen3",
+        "//sdformat",
+    ],
+
+) for system in systems]
 
 [
 cc_binary(
@@ -448,7 +497,8 @@ cc_binary(
 cc_library(
     name = system,
     srcs = [
-        "libignition-gazebo-%s-system.so" % (system.replace("_", "-"))
+        "libignition-gazebo-%s-system.so" % (system.replace("_", "-")),
+        "libignition-gazebo4-%s-system.so" % (system.replace("_", "-")),
     ],
     hdrs = glob([
           "src/systems/%s/*.hh" % system,
@@ -490,6 +540,8 @@ cc_library(
         "//ign_gazebo/src/gui/plugins:IgnGazebo/libEntityContextMenu.so",
     ] + 
     [":libignition-gazebo-%s-system.so" % (system.replace("_", "-")) for system in systems]
+      +
+    [":libignition-gazebo4-%s-system.so" % (system.replace("_", "-")) for system in systems]
 )
 
 [cc_test(
