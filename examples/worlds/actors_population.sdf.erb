@@ -149,7 +149,14 @@
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
     </include>
 
-    <actor name="actor_talking">
+    <%
+      # number of population
+      total = 10
+      for i in (0..total-1)
+        for j in (1..total)
+    %>
+
+    <actor name="actor_<%= 10*i+j %>">
       <skin>
         <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
@@ -162,87 +169,22 @@
       <script>
         <loop>true</loop>
         <auto_start>true</auto_start>
-        <trajectory id="0" type="talk_b">
+        <trajectory id="<%= 10*i+j %>" type="talk_b">
           <waypoint>
             <time>0</time>
-            <pose>2 -2 1.0 0 0 0</pose>
+            <pose><%= -5 + 2*j %> <%= 5 + -2*i %> 1.0 0 0 0</pose>
           </waypoint>
           <waypoint>
             <time>30</time>
-            <pose>2 -2 1.0 0 0 0</pose>
+            <pose><%= -5 + 2*j %> <%= 5 + -2*i %> 1.0 0 0 0</pose>
           </waypoint>
         </trajectory>
       </script>
     </actor>
 
-    <model name="box">
-      <pose>5.0 0 0.7 0 0 0</pose>
-      <link name="box_link">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.3 0.3 0.3 1</ambient>
-            <diffuse>0.3 0.3 0.3 1</diffuse>
-            <specular>0.3 0.5 0.3 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="camera">
-      <static>true</static>
-      <pose>3 -3 10 0 1.57 0</pose>
-      <link name="link">
-        <pose>0.05 0.05 0.05 0 0 0</pose>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </visual>
-        <sensor name="camera" type="camera">
-          <camera>
-            <horizontal_fov>1.047</horizontal_fov>
-            <image>
-              <width>320</width>
-              <height>240</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-          </camera>
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
-          <visualize>true</visualize>
-          <topic>camera</topic>
-        </sensor>
-      </link>
-    </model>
-
+    <%
+        end
+      end
+    %>
   </world>
 </sdf>

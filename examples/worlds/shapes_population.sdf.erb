@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
+
 <sdf version="1.6">
-  <world name="shapes_bitmask">
+  <world name="shapes">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -60,8 +61,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/shapes_bitmask/control</service>
-        <stats_topic>/world/shapes_bitmask/stats</stats_topic>
+        <service>/world/shapes/control</service>
+        <stats_topic>/world/shapes/stats</stats_topic>
 
       </plugin>
 
@@ -86,7 +87,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/shapes_bitmask/stats</topic>
+        <topic>/world/shapes/stats</topic>
 
       </plugin>
 
@@ -96,6 +97,8 @@
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
         </ignition-gui>
+      </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
       </plugin>
 
       <!-- Transform Control -->
@@ -144,9 +147,18 @@
       </link>
     </model>
 
-    <model name="boxA">
-      <pose>0 0 1.0 0 0 0</pose>
-      <link name="link">
+    <%
+      # number of population
+      n = 1000
+      for m in (0..n)
+        geom_1 = 'box'
+        geom_2 = 'cylinder'
+        geom_3 = 'sphere'
+    %>
+
+    <model name="<%= geom_1 %>_<%= m.to_s %>">
+      <pose><%= -750 + m*1.5 %> 0 0.5 0 0 0</pose>
+      <link name="box_link">
         <inertial>
           <inertia>
             <ixx>1</ixx>
@@ -158,19 +170,15 @@
           </inertia>
           <mass>1.0</mass>
         </inertial>
-        <collision name="collision">
+        <collision name="box_collision">
           <geometry>
             <box>
               <size>1 1 1</size>
             </box>
           </geometry>
-          <surface>
-            <contact>
-              <collide_bitmask>0x01</collide_bitmask>
-            </contact>
-          </surface>
         </collision>
-        <visual name="visual">
+
+        <visual name="box_visual">
           <geometry>
             <box>
               <size>1 1 1</size>
@@ -185,37 +193,35 @@
       </link>
     </model>
 
-    <model name="boxB">
-      <pose>0 0 3.0 0 0 0</pose>
-      <link name="link">
+    <model name="<%= geom_2 %>_<%= m.to_s %>">
+      <pose><%= -750 + m*1.5 %> -1.5 0.5 0 0 0</pose>
+      <link name="cylinder_link">
         <inertial>
           <inertia>
-            <ixx>1</ixx>
+            <ixx>2</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>1</iyy>
+            <iyy>2</iyy>
             <iyz>0</iyz>
-            <izz>1</izz>
+            <izz>2</izz>
           </inertia>
-          <mass>1.0</mass>
+          <mass>2.0</mass>
         </inertial>
-        <collision name="collision">
+        <collision name="cylinder_collision">
           <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
           </geometry>
-          <surface>
-            <contact>
-              <collide_bitmask>0x02</collide_bitmask>
-            </contact>
-          </surface>
         </collision>
-        <visual name="visual">
+
+        <visual name="cylinder_visual">
           <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
           </geometry>
           <material>
             <ambient>0 1 0 1</ambient>
@@ -226,46 +232,44 @@
       </link>
     </model>
 
-    <model name="boxC">
-      <pose>0 0 6.0 0 0 0</pose>
-      <link name="link">
+    <model name="<%= geom_3 %>_<%= m.to_s %>">
+      <pose><%= -750 + m*1.5 %> 1.5 0.5 0 0 0</pose>
+      <link name="sphere_link">
         <inertial>
           <inertia>
-            <ixx>1</ixx>
+            <ixx>3</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>1</iyy>
+            <iyy>3</iyy>
             <iyz>0</iyz>
-            <izz>1</izz>
+            <izz>3</izz>
           </inertia>
-          <mass>1.0</mass>
+          <mass>3.0</mass>
         </inertial>
-        <collision name="collision">
+        <collision name="sphere_collision">
           <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
           </geometry>
-          <surface>
-            <contact>
-              <collide_bitmask>0x03</collide_bitmask>
-            </contact>
-          </surface>
         </collision>
-        <visual name="visual">
+
+        <visual name="sphere_visual">
           <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
           </geometry>
           <material>
-            <ambient>1 1 0 1</ambient>
-            <diffuse>1 1 0 1</diffuse>
-            <specular>1 1 0 1</specular>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
           </material>
         </visual>
       </link>
     </model>
-
+    <%
+      end
+    %>
   </world>
 </sdf>
