@@ -53,8 +53,10 @@ Let's try customizing it:
 
 Note how the UI is now in dark mode!
 
-If you ever want to restore default settings, just delete that file, and the
-next time Gazebo is started a new file will be created with default values:
+You'll often want to restore default settings or to use the latest default
+provided by Ignition (when you update to a newer version for example). In
+that case, just delete that file, and the next time Gazebo is started a new file
+will be created with default values:
 
 `rm $HOME/.ignition/gazebo/gui.config`
 
