@@ -2172,7 +2172,14 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
   msgs::SerializedStateMap newStateMsg;
   manager.State(newStateMsg);
 
+  EXPECT_TRUE(nullptr != guiManager.Component<IntComponent>(e1));
+  EXPECT_TRUE(nullptr != guiManager.Component<DoubleComponent>(e1));
+  EXPECT_TRUE(nullptr != guiManager.Component<StringComponent>(e1));
   guiManager.SetState(newStateMsg);
+  EXPECT_TRUE(nullptr != guiManager.Component<IntComponent>(e1));
+  EXPECT_TRUE(nullptr == guiManager.Component<DoubleComponent>(e1));
+  EXPECT_TRUE(nullptr == guiManager.Component<StringComponent>(e1));
+
   msgs::SerializedStateMap newGuiStateMsg;
   guiManager.State(newGuiStateMsg);
 
