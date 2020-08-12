@@ -1,17 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  This demo shows the actor
+  To generate sdf file using this erb template, run `erb -T 1 actors_population.sdf.erb > actors_population.sdf`
 -->
 <sdf version="1.6">
   <world name="actors">
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-sensors-system.so"
-      name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre</render_engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
@@ -31,7 +26,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -86,13 +81,6 @@
         <iterations>true</iterations>
         <topic>/world/actors/stats</topic>
 
-      </plugin>
-
-      <!-- Image display -->
-      <plugin filename="ImageDisplay" name="Camera image">
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
       </plugin>
 
       <!-- Entity tree -->
