@@ -60,11 +60,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
 {
   std::string path;
   std::string worldPath;
-  ignition::fuel_tools::ServerConfig server;
-  server.SetUrl(ignition::common::URI("https://fuel.ignitionrobotics.org"));
-  ignition::fuel_tools::ClientConfig config;
-  config.AddServer(server);
-  ignition::fuel_tools::FuelClient fuelClient(config);
+  ignition::fuel_tools::FuelClient fuelClient;
 
   // Attempt to find cached copy, and then attempt download
   if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
@@ -84,23 +80,26 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     return "";
   }
 
-  // Find the first sdf file in the world path
-  if (ignition::common::exists(worldPath))
-  {
-    for (ignition::common::DirIter file(worldPath);
-         file != ignition::common::DirIter(); ++file)
-    {
-      std::string current(*file);
-      if (ignition::common::isFile(current))
-      {
-        std::string fileName = ignition::common::basename(current);
-        std::string::size_type fileExtensionIndex = fileName.rfind(".");
-        std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
+  if (!ignition::common::exists(worldPath))
+    return "";
 
-        if (fileExtension == "sdf")
-        {
-          return strdup(current.c_str());
-        }
+
+  // Find the first sdf file in the world path for now, the later intention is
+  // to load an optional world config file first and if that does not exist,
+  // continue to load the first sdf file found as done below
+  for (ignition::common::DirIter file(worldPath);
+       file != ignition::common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (ignition::common::isFile(current))
+    {
+      std::string fileName = ignition::common::basename(current);
+      std::string::size_type fileExtensionIndex = fileName.rfind(".");
+      std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+      if (fileExtension == "sdf")
+      {
+        return strdup(current.c_str());
       }
     }
   }
