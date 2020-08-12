@@ -123,7 +123,6 @@ Server::Server(const ServerConfig &_config)
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     systemPaths.AddFilePaths("./ign_gazebo/examples/worlds");
-    ignwarn << "ign gazeb world install dir " << IGN_GAZEBO_WORLD_INSTALL_DIR << std::endl;
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
     ignmsg << "Loading SDF world file[" << filePath << "].\n";
 
