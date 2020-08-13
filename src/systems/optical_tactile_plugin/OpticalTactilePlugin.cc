@@ -55,33 +55,29 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \param[in] _value True to enable plugin.
   public: void Enable(const bool _value);
 
-  /// \brief Interpolates contacts returned by the contact sensor
-  /// \param[in] _contact Message containing the data to interpolate
-  public: void InterpolateContactData(const ignition::msgs::Contact &_contact);
-
-  /// \brief Callback for the Depth Camera
+  /// \brief Callback for the depth camera
   /// \param[in] _msg Message from the subscribed topic
   public: void DepthCameraCallback(
     const ignition::msgs::PointCloudPacked &_msg);
 
   /// \brief Map the (i,j) coordinates defined in the top-left corner of the
   /// camera into its corresponding (X,Y,Z) measurement with respect to the
-  /// camera's origin
+  /// camera's origin in the world frame
   /// \param[in] _i Horizontal camera coordinate defined in the top-left corner
   /// of the image, pointing rightwards
   /// \param[in] _j Vertical camera coordinate defined in the top-left corner
   /// of the image, pointing downwards
   /// \returns The corresponding (X,Y,Z) point
-  public: ignition::math::Vector3f MapPointCloudData(const u_int32_t &_i,
-    const uint32_t &_j);
+  public: ignition::math::Vector3f MapPointCloudData(const uint64_t &_i,
+    const uint64_t &_j);
 
-  /// \brief Check if a specific point returned by the Depth Camera is inside
+  /// \brief Check if a specific point from the depth camera is inside
   /// the contact surface.
-  /// \param[in] _point Point returned by the Depth Camera
+  /// \param[in] _point Point from the depth camera
   public: bool PointInsideSensor(ignition::math::Vector3f _point);
 
   /// \brief Computes the normal forces of the Optical Tactile sensor
-  /// \param[in] _msg Message returned by the Depth Camera
+  /// \param[in] _msg Message from the depth camera
   /// \param[in] _visualizeForces Whether to visualize the forces or not
   ///
   /// Implementation inspired by
@@ -94,9 +90,6 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Resolution of the visualization in pixels to skip.
   public: int visualizationResolution{30};
-
-  /// \brief Resolution of the interpolated contacts in mm.
-  public: double contactsResolution{1.0};
 
   /// \brief Whether to visualize the normal forces.
   public: bool visualizeForces{false};
@@ -123,14 +116,8 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Name of the model to which the sensor is attached.
   public: std::string modelName;
 
-  /// \brief Radius of the visualized contact sphere
-  public: double contactRadius{0.003};
-
-  /// \brief Length of the visualized force cylinder
+  /// \brief Length of the visualized forces
   public: double forceLength{0.01};
-
-  /// \brief Radius of the visualized force cylinder
-  public: double forceRadius{0.001};
 
   /// \brief Pose of the sensor model
   public: ignition::math::Pose3f sensorWorldPose;
@@ -138,19 +125,19 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Pose of the sensor model in the previous iteration
   public: ignition::math::Pose3f prevSensorWorldPose;
 
-  /// \brief Offset between Depth Camera pose and model pose
+  /// \brief Offset between depth camera pose and model pose
   public: ignition::math::Pose3f depthCameraOffset;
 
-  /// \brief Whether a new message has been returned by the Depth Camera
+  /// \brief Whether a new message has been returned by the depth camera
   public: bool newCameraMsg{false};
 
-  /// \brief Depth Camera update rate
+  /// \brief Depth camera update rate
   public: float cameraUpdateRate{1};
 
-  /// \brief Message returned by the Depth Camera
+  /// \brief Message returned by the depth camera
   public: ignition::msgs::PointCloudPacked cameraMsg;
 
-  /// \brief Data returned by the Depth Camera after being preprocessed
+  /// \brief Preprocessed depth camera data
   public: char *msgBuffer;
 
   /// \brief Mutex for variables mutated by the camera callback.
@@ -170,6 +157,12 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Pointer to visualization object
   public: std::unique_ptr<OpticalTactilePluginVisualization> visualizePtr;
+
+  /// \brief Flag for checking the data type returned by the DepthCamera
+  public: bool checkDepthCameraData{true};
+
+  /// \brief Flag for allowing the plugin to output error/warning only once
+  public: bool initErrorPrinted{false};
 };
 
 //////////////////////////////////////////////////
@@ -195,7 +188,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   // Get the sdf parameters
 
-  // <enabled>
   if (!_sdf->HasElement("enabled"))
   {
     ignlog << "Missing parameter <enabled>, "
@@ -206,7 +198,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->enabled = _sdf->Get<bool>("enabled");
   }
 
-  // <visualization_resolution>
   if (!_sdf->HasElement("visualization_resolution"))
   {
     ignlog << "Missing parameter <visualization_resolution>, "
@@ -226,27 +217,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     }
   }
 
-  // <contacts_resolution>
-  if (!_sdf->HasElement("contacts_resolution"))
-  {
-    ignlog << "Missing parameter <contacts_resolution>, "
-      << "setting to " << this->dataPtr->contactsResolution << std::endl;
-  }
-  else
-  {
-    if (_sdf->Get<double>("contacts_resolution") < 0)
-    {
-      ignwarn << "Parameter <contacts_resolution> must be positive, "
-        << "setting to " << this->dataPtr->contactsResolution << std::endl;
-    }
-    else
-    {
-      this->dataPtr->contactsResolution =
-        _sdf->Get<double>("contacts_resolution");
-    }
-  }
-
-  // <visualize_forces>
   if (!_sdf->HasElement("visualize_forces"))
   {
     ignlog << "Missing parameter <visualize_forces>, "
@@ -257,7 +227,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->visualizeForces = _sdf->Get<bool>("visualize_forces");
   }
 
-  // <extended_sensing>
   if (!_sdf->HasElement("extended_sensing"))
   {
     ignlog << "Missing parameter <extended_sensing>, "
@@ -276,7 +245,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     }
   }
 
-  // <visualize_sensor>
   if (!_sdf->HasElement("visualize_sensor"))
   {
     ignlog << "Missing parameter <visualize_sensor>, "
@@ -287,45 +255,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     this->dataPtr->visualizeSensor = _sdf->Get<bool>("visualize_sensor");
   }
 
-  // <contact_radius>
-  if (!_sdf->HasElement("contact_radius"))
-  {
-    ignlog << "Missing parameter <contact_radius>, "
-      << "setting to " << this->dataPtr->contactRadius << std::endl;
-  }
-  else
-  {
-    if (_sdf->Get<double>("contact_radius") < 0)
-    {
-      ignwarn << "Parameter <contact_radius> must be positive, "
-        << "setting to " << this->dataPtr->contactRadius << std::endl;
-    }
-    else
-    {
-      this->dataPtr->contactRadius = _sdf->Get<double>("contact_radius");
-    }
-  }
-
-  // <force_radius>
-  if (!_sdf->HasElement("force_radius"))
-  {
-    ignlog << "Missing parameter <force_radius>, "
-      << "setting to " << this->dataPtr->forceRadius << std::endl;
-  }
-  else
-  {
-    if (_sdf->Get<double>("force_radius") < 0)
-    {
-      ignwarn << "Parameter <force_radius> must be positive, "
-        << "setting to " << this->dataPtr->forceRadius << std::endl;
-    }
-    else
-    {
-      this->dataPtr->forceRadius = _sdf->Get<double>("force_radius");
-    }
-  }
-
-  // <force_length>
   if (!_sdf->HasElement("force_length"))
   {
     ignlog << "Missing parameter <force_length>, "
@@ -347,10 +276,28 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   // Get the size of the sensor from the SDF
   // If there's no <collision> specified inside <link>, a default one
   // is set
-  this->dataPtr->sensorSize =
-    _sdf->GetParent()->GetElement("link")->GetElement("collision")->
-    GetElement("geometry")->GetElement("box")->
-    Get<ignition::math::Vector3d>("size");
+  if (_sdf->GetParent() != nullptr)
+  {
+    if (_sdf->GetParent()->GetElement("link") != nullptr)
+    {
+      if (_sdf->GetParent()->GetElement("link")->GetElement("collision")
+          != nullptr)
+      {
+        if (_sdf->GetParent()->GetElement("link")->GetElement("collision")->
+            GetElement("geometry") != nullptr)
+        {
+          if (_sdf->GetParent()->GetElement("link")->GetElement("collision")->
+              GetElement("geometry")->GetElement("box") != nullptr)
+          {
+            this->dataPtr->sensorSize =
+              _sdf->GetParent()->GetElement("link")->GetElement("collision")->
+              GetElement("geometry")->GetElement("box")->
+              Get<ignition::math::Vector3d>("size");
+          }
+        }
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -368,7 +315,6 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
     // We call Load here instead of Configure because we can't be guaranteed
     // that all entities have been created when Configure is called
     this->dataPtr->Load(_ecm);
-    this->dataPtr->initialized = true;
   }
 
   // This is not an "else" because "initialized" can be set
@@ -386,12 +332,12 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
       break;
     }
 
-    // Get the Depth Camera pose
+    // Get the model pose
     ignition::math::Pose3d sensorPose =
       _ecm.Component<components::Pose>(
         this->dataPtr->model.Entity())->Data();
 
-    // Depth Camera data is float, so convert Pose3d to Pose3f
+    // Depth camera data is float, so convert Pose3d to Pose3f
     this->dataPtr->sensorWorldPose = ignition::math::Pose3f(
       sensorPose.Pos().X(), sensorPose.Pos().Y(), sensorPose.Pos().Z(),
       sensorPose.Rot().W(), sensorPose.Rot().X(), sensorPose.Rot().Y(),
@@ -402,26 +348,15 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PostUpdate(
   const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &_ecm)
+  const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("TouchPlugin::PostUpdate");
 
-  // Nothing left to do if paused.
-  if (_info.paused)
+  // Nothing left to do if paused or failed to initialize.
+  if (_info.paused || !this->dataPtr->initialized)
     return;
 
-  auto* contacts =
-    _ecm.Component<components::ContactSensorData>(
-      this->dataPtr->sensorCollisionEntity);
-
-  if (contacts)
-  {
-    for (const auto &contact : contacts->Data().contact())
-    {
-      // Interpolate data returned by the Contact message
-      this->dataPtr->InterpolateContactData(contact);
-    }
-  }
+  // TODO(anyone) Get ContactSensor data and merge it with DepthCamera data
 
   // Process camera message if it's new
   {
@@ -439,7 +374,7 @@ void OpticalTactilePlugin::PostUpdate(
   if (this->dataPtr->visualizeSensor &&
     (this->dataPtr->sensorWorldPose != this->dataPtr->prevSensorWorldPose))
   {
-    this->dataPtr->visualizePtr->VisualizeSensor(
+    this->dataPtr->visualizePtr->RequestSensorMarkerMsg(
       this->dataPtr->sensorWorldPose);
   }
 
@@ -452,22 +387,32 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 {
   igndbg << "Loading plugin [OpticalTactilePlugin]" << std::endl;
 
-  // todo(anyone) The plugin should be able to handle more than one link. In
-  // that case, one of the links would be the actual tactile sensor.
-
   // Check plugin structure
-  // Model should only have 1 link
   auto allLinks =
     _ecm.ChildrenByComponents(this->model.Entity(), components::Link());
-  if (allLinks.size() != 1)
+  // Model should only have 1 link
+  // todo(anyone) The plugin should be able to handle more than one link. In
+  // that case, one of the links would be the actual tactile sensor.
+  if (allLinks.size() != 1 && !this->initErrorPrinted)
   {
-    ignerr << "Plugin must have exactly 1 link" << std::endl;
+    ignerr << "Plugin must have exactly 1 link (only printed once)"
+      << std::endl;
+    this->initErrorPrinted = true;
     return;
   }
 
   // Link should have a collision component linked to a contact sensor
   auto linkCollisions =
     _ecm.ChildrenByComponents(allLinks[0], components::Collision());
+
+  if (linkCollisions.size() == 0  && !this->initErrorPrinted)
+  {
+    ignerr << "Link must have at least 1 collision (only printed once)"
+      << std::endl;
+    this->initErrorPrinted = true;
+    return;
+  }
+
   for (const Entity &colEntity : linkCollisions)
   {
     if (_ecm.EntityHasComponentType(colEntity,
@@ -482,7 +427,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
     }
   }
 
-  // Link should have exactly 1 Contact sensor and 1 Depth Camera sensor
+  // Link should have exactly 1 ContactSensor and 1 DepthCamera sensor
   auto sensorsInsideLink =
     _ecm.ChildrenByComponents(allLinks[0], components::Sensor());
 
@@ -504,53 +449,68 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
     }
   }
 
-  if ((depthCameraCounter != 1) || (contactSensorCounter != 1))
+  if (((depthCameraCounter != 1) || (contactSensorCounter != 1))
+      && !this->initErrorPrinted)
   {
-    ignerr << "Link must have 1 Depth Camera sensor and "
-      << "1 Contact sensor" << std::endl;
+    ignerr << "Link must have exactly 1 depth camera sensor and "
+      << "1 contact sensor (only printed once)" << std::endl;
+    this->initErrorPrinted = true;
     return;
   }
 
   // Store depth camera update rate and offset from model
   auto offset = depthCameraSdf->Get<ignition::math::Pose3d>("pose");
-  if (!depthCameraSdf->HasElement("update_rate"))
+  if (!depthCameraSdf->HasElement("update_rate") && !this->initErrorPrinted)
   {
-    ignerr << "Depth camera should have an <update_rate> value" << std::endl;
+    ignerr << "Depth camera should have an <update_rate> value "
+      << "(only printed once)" << std::endl;
+    this->initErrorPrinted = true;
     return;
   }
   this->cameraUpdateRate = depthCameraSdf->Get<float>("update_rate");
 
-  // Depth Camera data is float, so convert Pose3d to Pose3f
+  // Depth camera data is float, so convert Pose3d to Pose3f
   this->depthCameraOffset = ignition::math::Pose3f(
     offset.Pos().X(), offset.Pos().Y(), offset.Pos().Z(),
     offset.Rot().W(), offset.Rot().X(), offset.Rot().Y(),
     offset.Rot().Z());
 
-  // Configure subscriber for Depth Camera images
+  // Configure subscriber for depth camera images
   if (!depthCameraSdf->HasElement("topic"))
   {
-    ignerr << "Depth camera should have a unique <topic> value" << std::endl;
-    return;
+    ignwarn << "Depth camera publishing to __default__ topic. "
+      << "It's possible that two depth cameras are publishing into the same "
+      << "topic" << std::endl;
   }
+  else
+  {
+    ignlog << "Depth camera publishing to "
+      << depthCameraSdf->Get<std::string>("topic") << " topic" << std::endl;
+  }
+
   std::string topic =
     "/" + depthCameraSdf->Get<std::string>("topic") + "/points";
   if (!this->node.Subscribe(topic,
-      &OpticalTactilePluginPrivate::DepthCameraCallback, this))
+      &OpticalTactilePluginPrivate::DepthCameraCallback, this)
+      && !this->initErrorPrinted)
   {
     ignerr << "Error subscribing to topic " << "[" << topic << "]. "
-      << "<topic> must not contain '/'" << std::endl;
+      << "<topic> must not contain '/' (only printing once)" << std::endl;
+    this->initErrorPrinted = true;
     return;
   }
 
   // Instantiate the visualization class
   this->visualizePtr = std::make_unique<
-    OpticalTactilePluginVisualization>(this->contactRadius,
-    this->forceRadius, this->forceLength,
-    this->cameraUpdateRate, this->depthCameraOffset,
-    this->visualizationResolution);
+    OpticalTactilePluginVisualization>(
+      this->modelName,
+      this->sensorSize,
+      this->forceLength,
+      this->cameraUpdateRate,
+      this->depthCameraOffset,
+      this->visualizationResolution);
 
-  // Create the marker messages
-  this->visualizePtr->CreateMarkersMsgs(this->modelName, this->sensorSize);
+  this->initialized = true;
 }
 
 //////////////////////////////////////////////////
@@ -558,65 +518,6 @@ void OpticalTactilePluginPrivate::Enable(const bool _value)
 {
     // todo(mcres) Implement method
     _value;
-}
-
-//////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::InterpolateContactData(
-  const ignition::msgs::Contact &_contact)
-{
-  // The Optical Tactile Sensor is supposed to be box-shaped.
-  // Contacts returned by the Contact Sensor in this type of shapes should be
-  // 4 points in the corners of some of its faces, in this case the one
-  // corresponding to the 'sensing' face.
-  // Given that the number of contacts may change even when the objects are
-  // at rest, data is only interpolated when the number of contacts
-  // returned is 4.
-
-  // todo(mcres) Handle a different number of contacts returned by the
-  // contact sensor
-
-  if (_contact.position_size() == 4)
-  {
-    // todo(mcres) Interpolated contacts should be published in a message
-
-    ignition::math::Vector3d contact1 =
-      ignition::msgs::Convert(_contact.position(0));
-    ignition::math::Vector3d contact2 =
-      ignition::msgs::Convert(_contact.position(1));
-    ignition::math::Vector3d contact3 =
-      ignition::msgs::Convert(_contact.position(2));
-    ignition::math::Vector3d contact4 =
-      ignition::msgs::Convert(_contact.position(3));
-
-    ignition::math::Vector3d direction1 =
-      (contact2 - contact1).Normalized() * (this->contactsResolution/1000.0);
-    ignition::math::Vector3d direction2 =
-      (contact4 - contact1).Normalized() * (this->contactsResolution/1000.0);
-
-    ignition::math::Vector3d interpolatedVector = contact1;
-
-    // auxiliary Vector3d to iterate through contacts
-    ignition::math::Vector3d tempVector(0.0, 0.0, 0.0);
-
-    uint64_t steps1 =
-      contact1.Distance(contact2) / (this->contactsResolution/1000.0);
-    uint64_t steps2 =
-      contact1.Distance(contact4) / (this->contactsResolution/1000.0);
-
-    for (uint64_t index1 = 0; index1 <= steps1; ++index1)
-    {
-      tempVector = interpolatedVector;
-      for (uint64_t index2 = 0; index2 < steps2; ++index2)
-      {
-        interpolatedVector += direction2;
-      }
-      if (index1 != steps1)
-      {
-        interpolatedVector = tempVector;
-        interpolatedVector += direction1;
-      }
-    }
-  }
 }
 
 //////////////////////////////////////////////////
@@ -628,6 +529,21 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
   if (!this->initialized)
     return;
 
+  // Check whether DepthCamera returns FLOAT32 data
+  if (this->checkDepthCameraData)
+  {
+    int float32Type = 6;
+    for (auto const &field : _msg.field())
+    {
+      if (field.datatype() != float32Type)
+      {
+        ignerr << "FLOAT32 is expected for a casting to float *" << std::endl;
+        return;
+      }
+    }
+    this->checkDepthCameraData = false;
+  }
+
   {
     std::lock_guard<std::mutex> lock(this->serviceMutex);
     this->cameraMsg = _msg;
@@ -637,31 +553,35 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
 
 //////////////////////////////////////////////////
 ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
-  const u_int32_t &_i, const uint32_t &_j)
+  const uint64_t &_i, const uint64_t &_j)
 {
   // Initialize return variable
-  ignition::math::Vector3f measuredPoint;
+  ignition::math::Vector3f measuredPoint(0, 0, 0);
+
+  // Nothing left to do if failed to initialize.
+  if (!this->initialized)
+    return measuredPoint;
 
   // Save original position of the pointer
-  char *initialMsgBuffer = this->msgBuffer;
+  char *temporaryMsgBuffer = this->msgBuffer;
 
   // Number of bytes from the beginning of the pointer (image coordinates at
   // 0,0) to the desired (i,j) position
   uint32_t msgBufferIndex =
     _j*this->cameraMsg.row_step() + _i*this->cameraMsg.point_step();
 
-  this->msgBuffer += msgBufferIndex;
+  temporaryMsgBuffer += msgBufferIndex;
   int fieldIndex = 0;
 
   // X coordinate
   measuredPoint.X() = *reinterpret_cast<float *>(
-    this->msgBuffer + this->cameraMsg.field(fieldIndex++).offset());
+    temporaryMsgBuffer + this->cameraMsg.field(fieldIndex++).offset());
   // Y coordinate
   measuredPoint.Y() = *reinterpret_cast<float *>(
-    this->msgBuffer + this->cameraMsg.field(fieldIndex++).offset());
+    temporaryMsgBuffer + this->cameraMsg.field(fieldIndex++).offset());
   // Z coordinate
   measuredPoint.Z() = *reinterpret_cast<float *>(
-    this->msgBuffer + this->cameraMsg.field(fieldIndex).offset());
+    temporaryMsgBuffer + this->cameraMsg.field(fieldIndex).offset());
 
   // Check if point is inside the sensor
   bool pointInside = this->PointInsideSensor(measuredPoint);
@@ -672,9 +592,6 @@ ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
     measuredPoint.Z() = ignition::math::INF_F;
   }
 
-  // Restore msgBuffer to initial position
-  this->msgBuffer = initialMsgBuffer;
-
   return measuredPoint;
 }
 
@@ -682,21 +599,25 @@ ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
 bool OpticalTactilePluginPrivate::PointInsideSensor(
   ignition::math::Vector3f _point)
 {
-  // We assume that the Depth Camera is only displaced in the -X direction
-  bool insideX = (_point.X() >= std::abs(
-    this->depthCameraOffset.X()) - this->extendedSensing)
-    && (_point.X() <= (std::abs(this->depthCameraOffset.X()) +
-    this->sensorSize.X() + this->extendedSensing));
+  // Nothing left to do if failed to initialize.
+  if (!this->initialized)
+    return false;
 
-  bool insideY = (_point.Y() <= this->sensorSize.Y() / 2 +
-    this->extendedSensing)
-    && (_point.Y() >= - this->sensorSize.Y() / 2 -
-    this->extendedSensing);
+  // We assume that the depth camera is placed behind the contact surface, i.e.
+  // displaced in the -X direction with respect to the model's origin
+  bool insideX =
+    (_point.X() >= std::abs(this->depthCameraOffset.X()) -
+      this->extendedSensing) &&
+    (_point.X() <= (std::abs(this->depthCameraOffset.X()) +
+      this->sensorSize.X() + this->extendedSensing));
 
-  bool insideZ = (_point.Z() <= this->sensorSize.Z() / 2 +
-    this->extendedSensing)
-    && (_point.Z() >= - this->sensorSize.Z() / 2 -
-    this->extendedSensing);
+  bool insideY =
+    (_point.Y() <= this->sensorSize.Y() / 2 + this->extendedSensing) &&
+    (_point.Y() >= - this->sensorSize.Y() / 2 - this->extendedSensing);
+
+  bool insideZ =
+    (_point.Z() <= this->sensorSize.Z() / 2 + this->extendedSensing) &&
+    (_point.Z() >= - this->sensorSize.Z() / 2 - this->extendedSensing);
 
   return (insideX && insideY && insideZ);
 }
@@ -706,6 +627,10 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   const ignition::msgs::PointCloudPacked &_msg,
   const bool _visualizeForces)
 {
+  // Nothing left to do if failed to initialize.
+  if (!this->initialized)
+    return;
+
   // Get data from the message
   std::string rawMsgBuffer = _msg.data();
   this->msgBuffer = rawMsgBuffer.data();
@@ -713,14 +638,17 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   // Declare variables for storing the XYZ points
   ignition::math::Vector3f p1, p2, p3, p4, markerPosition;
 
-  // todo(anyone) Improve performance once the following issue is completed:
-  // https://github.com/ignitionrobotics/ign-math/issues/144
+  // Marker messages representing the normal forces
+  ignition::msgs::Marker positionMarkerMsg;
+  ignition::msgs::Marker forceMarkerMsg;
 
   // We don't get the image's edges because there are no adjacent points to
   // compute the forces
-  for (uint64_t j = 1; j < (_msg.height() - 1); ++j)
+  for (uint64_t j = 1; j < (_msg.height() - 1);
+      j += this->visualizationResolution)
   {
-    for (uint64_t i = 1; i < (_msg.width() - 1); ++i)
+    for (uint64_t i = 1; i < (_msg.width() - 1);
+        i += this->visualizationResolution)
     {
       // Get points for computing normal forces
       p1 = this->MapPointCloudData(i + 1, j);
@@ -734,17 +662,27 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       ignition::math::Vector3f direction(-1, -dxdi, -dxdj);
 
       // todo(anyone) multiply vector by contact forces info
+
+      // todo(anyone) Replace with MatrixX and use vector multiplication instead
+      // of for-loops once the following issue is completed:
+      // https://github.com/ignitionrobotics/ign-math/issues/144
       ignition::math::Vector3f normalForce = direction.Normalized();
 
-      // todo(mcres) Normal forces will be computed even if visualization
+      // todo(mcres) Normal forces are computed even if visualization
       // is turned off. These forces should be published in the future.
       if (!_visualizeForces)
         continue;
 
       markerPosition = this->MapPointCloudData(i, j);
-      this->visualizePtr->VisualizeNormalForce(i, j, markerPosition,
-        normalForce, this->sensorWorldPose);
+      this->visualizePtr->AddNormalForceToMarkerMsgs(positionMarkerMsg,
+        forceMarkerMsg, markerPosition, normalForce, this->sensorWorldPose);
     }
+  }
+
+  if (_visualizeForces)
+  {
+    this->visualizePtr->RequestNormalForcesMarkerMsgs(positionMarkerMsg,
+      forceMarkerMsg);
   }
 }
 
