@@ -498,7 +498,10 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       visualPtr->AddGeometry(markerPtr);
 
       // Add visual to root visual
-      this->scene->RootVisual()->AddChild(visualPtr);
+      if (!visualPtr->HasParent())
+      {
+          this->scene->RootVisual()->AddChild(visualPtr);
+      }
 
       // Store the visual
       this->visuals[ns][id] = visualPtr;
