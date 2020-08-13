@@ -156,13 +156,16 @@ namespace ignition
       public: void SetParent(Entity _child, Entity _parent);
 
       /// \brief Overloaded function to recursively create model entities
-      /// and make sure only one canonical link is created per model tree
+      /// and make sure a) only one canonical link is created per model tree,
+      /// and b) we override the nested model's static property to true if
+      /// its parent is static
       /// \param[in] _model SDF model object.
       /// \param[in] _createCanonicalLink True to create a canonical link
       /// component and attach to its child link entity
+      /// \param[in] _staticParent True if parent is static, false otherwise.
       /// \return Model entity.
       private: Entity CreateEntities(const sdf::Model *_model,
-          bool _createCanonicalLink);
+          bool _createCanonicalLink, bool _staticParent);
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;

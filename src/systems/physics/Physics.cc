@@ -790,7 +790,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             else
             {
               ignerr << "Model: '" << _name->Data() << "' not loaded. "
-                     << "Nested model not supported by physics engine. "
+                     << "Failed to create nested model."
                      << std::endl;
             }
           }
@@ -1454,6 +1454,21 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // world pose cmd not supported for nested models
+        // todo(anyone) remove this check when we can set nested model pose
+        auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
+        if (parentComp)
+        {
+          auto modelComp = _ecm.Component<components::Model>(
+              parentComp->Data());
+          if (modelComp)
+          {
+            ignerr << "Unable to set world pose for nested models."
+                   << std::endl;
+            return true;
+          }
+        }
+
         // The canonical link as specified by sdformat is different from the
         // canonical link of the FreeGroup object
 
@@ -1750,8 +1765,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           }
           else
           {
-            // Compute the relative pose of this link from the model
-            // first get the world pose of the parent model
+            // Compute the relative pose of this link from the top level model
+            // first get the world pose of the top level model
             auto worldComp =
                 _ecm.Component<components::ParentEntity>(topLevelModel);
             // if the worldComp is a nullptr, something is wrong with ECS
@@ -1764,6 +1779,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             math::Pose3d parentWorldPose =
                 this->RelativePose(worldComp->Data(), _parent->Data(), _ecm);
 
+            // Note that if the canonical link is inside a nested model, the
+            // immediate parent model of this link will not have its pose
+            // updated. Nested models have a fixed pose relative to the top
+            // level model.
             *_pose = components::Pose(math::eigen3::convert(worldPose) +
                                       parentWorldPose.Inverse());
             _ecm.SetChanged(_entity, components::Pose::typeId,
