@@ -763,9 +763,10 @@ TEST_P(ServerFixture, GetResourcePaths)
 TEST_P(ServerFixture, CachedFuelWorld)
 {
   std::string cachedWorldPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
-  std::string cachedWorldFilePath = cachedWorldPath + "/fuel.ignitionrobotics.org/OpenRobotics/worlds/Test%20world/2/test.sdf";
-  std::string fuelWorldURL = "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
-  std::cout << "cached world path " << cachedWorldPath << std::endl;
+  std::string cachedWorldFilePath = cachedWorldPath +
+    "/fuel.ignitionrobotics.org/OpenRobotics/worlds/Test%20world/2/test.sdf";
+  std::string fuelWorldURL =
+    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
 
   ServerConfig serverConfig;
