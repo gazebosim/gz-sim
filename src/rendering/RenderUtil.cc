@@ -320,7 +320,8 @@ void RenderUtil::Update()
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
-    this->ShowOriginAxes();
+    if (scene.OriginVisual() && !this->dataPtr->enableSensors)
+      this->ShowOriginAxes();
     // only one scene so break
     break;
   }

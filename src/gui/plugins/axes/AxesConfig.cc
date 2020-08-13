@@ -55,6 +55,9 @@ namespace ignition::gazebo
 
     /// \brief structure to save active axes
     public: std::map<std::string, math::Pose3d> activeAxesMap;
+
+    /// \brief Flag that indicates whether there are new updates to be rendered.
+    public: bool dirty{false};
   };
 }
 
@@ -161,6 +164,9 @@ void AxesConfig::UpdateOriginArrows()
   if (!this->dataPtr->axes)
     return;
 
+  if (!this->dataPtr->dirty)
+    return;
+
   // Save the axesVisual in the structure if it doesn't exist or update the pose
   auto it = this->dataPtr->activeAxesMap.find(this->dataPtr->name_axes);
   if (it == this->dataPtr->activeAxesMap.end())
@@ -183,6 +189,8 @@ void AxesConfig::UpdateOriginArrows()
   }
   // update scale
   this->dataPtr->axes->SetLocalScale(1, 1, this->dataPtr->length * 2);
+
+  this->dataPtr->dirty = false;
 }
 
 const QStringList AxesConfig::comboList()
@@ -201,7 +209,8 @@ void AxesConfig::SetComboList(const QStringList &comboList)
 
 void AxesConfig::LoadAxesbyName(const std::string & name)
 {
-  if (this->dataPtr->name_axes.compare(name) == 0 && this->dataPtr->axes)
+  if ((this->dataPtr->name_axes.compare(name) == 0 && this->dataPtr->axes)
+      && !this->dataPtr->dirty)
     return;
 
   this->dataPtr->name_axes = name;
@@ -225,8 +234,8 @@ void AxesConfig::LoadAxesbyName(const std::string & name)
 
 void AxesConfig::onCurrentIndexChanged(int _index)
 {
-  std::string name_entity = itemComboList[_index].toStdString();
-  LoadAxesbyName(name_entity);
+  this->dataPtr->name_axes = itemComboList[_index].toStdString();
+  this->dataPtr->dirty = true;
 }
 
 void AxesConfig::EntitiesInScene()
@@ -259,6 +268,7 @@ void AxesConfig::EntitiesInScene()
 void AxesConfig::UpdateLength(double _length)
 {
   this->dataPtr->length = _length;
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -267,17 +277,20 @@ void AxesConfig::SetPose(
   double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->pose = math::Pose3d(_x, _y, _z, _roll, _pitch, _yaw);
+  this->dataPtr->dirty = true;
 }
 
 void AxesConfig::OnTypeAxes(bool _checked)
 {
   this->dataPtr->isArrow = _checked;
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
 void AxesConfig::OnShow(bool _checked)
 {
   this->dataPtr->visible = _checked;
+  this->dataPtr->dirty = true;
 }
 
 // Register this plugin
