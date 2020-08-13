@@ -59,6 +59,11 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+namespace ignition {
+
+namespace gazebo {
+
+class PlotComponentPrivate;
 
 class PlotComponent
 {
@@ -101,24 +106,9 @@ class PlotComponent
   /// \return component type ID
   public: uint64_t TypeId();
 
-  /// \brief entity id in the simulation
-  private: uint64_t entity;
-
-  /// \brief type identifier unique to each component type
-  private: uint64_t typeId;
-
-  /// \brief component data type (Pose3d, Vector3d, double)
-  private: std::string type;
-
-  /// \brief attributes of the components,
-  /// ex: x,y,z attributes in Vector3d type component
-  private: std::map<std::string, ignition::gui::PlotData*> data;
+  /// \brief dataPtr holds Abstraction data of PlottingPrivate
+  private: std::unique_ptr<PlotComponentPrivate> dataPtr;
 };
-
-
-namespace ignition {
-
-namespace gazebo {
 
 class PlottingPrivate;
 

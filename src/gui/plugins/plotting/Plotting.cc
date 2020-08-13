@@ -29,6 +29,22 @@ namespace ignition::gazebo
 
     public: QTimer *timer;
   };
+
+  class PlotComponentPrivate
+  {
+    /// \brief entity id in the simulation
+    public: uint64_t entity;
+
+    /// \brief type identifier unique to each component type
+    public: uint64_t typeId;
+
+    /// \brief component data type (Pose3d, Vector3d, double)
+    public: std::string type;
+
+    /// \brief attributes of the components,
+    /// ex: x,y,z attributes in Vector3d type component
+    public: std::map<std::string, ignition::gui::PlotData*> data;
+  };
 }
 
 using namespace ignition::gazebo;
@@ -36,29 +52,30 @@ using namespace ignition::gui;
 
 //////////////////////////////////////////////////
 PlotComponent::PlotComponent(std::string _type, uint64_t _entity,
-                             uint64_t _typeId)
+                             uint64_t _typeId) :
+    dataPtr(new PlotComponentPrivate)
 {
-  this->entity = _entity;
-  this->typeId = _typeId;
-  this->type = _type;
+  this->dataPtr->entity = _entity;
+  this->dataPtr->typeId = _typeId;
+  this->dataPtr->type = _type;
 
   if (_type == "Vector3d")
   {
-    this->data["x"] = new PlotData();
-    this->data["y"] = new PlotData();
-    this->data["z"] = new PlotData();
+    this->dataPtr->data["x"] = new PlotData();
+    this->dataPtr->data["y"] = new PlotData();
+    this->dataPtr->data["z"] = new PlotData();
   }
   else if (_type == "Pose3d")
   {
-    this->data["x"] = new PlotData();
-    this->data["y"] = new PlotData();
-    this->data["z"] = new PlotData();
-    this->data["roll"] = new PlotData();
-    this->data["pitch"] = new PlotData();
-    this->data["yaw"] = new PlotData();
+    this->dataPtr->data["x"] = new PlotData();
+    this->dataPtr->data["y"] = new PlotData();
+    this->dataPtr->data["z"] = new PlotData();
+    this->dataPtr->data["roll"] = new PlotData();
+    this->dataPtr->data["pitch"] = new PlotData();
+    this->dataPtr->data["yaw"] = new PlotData();
   }
   else if (_type == "double")
-      this->data["value"] = new PlotData();
+      this->dataPtr->data["value"] = new PlotData();
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
@@ -66,29 +83,29 @@ PlotComponent::PlotComponent(std::string _type, uint64_t _entity,
 //////////////////////////////////////////////////
 void PlotComponent::RegisterChart(std::string _attribute, int _chart)
 {
-  if (this->data.count(_attribute) == 0)
+  if (this->dataPtr->data.count(_attribute) == 0)
   {
     ignwarn << "Invalid Plot Component Attribute" << std::endl;
     return;
   }
-  this->data[_attribute]->AddChart(_chart);
+  this->dataPtr->data[_attribute]->AddChart(_chart);
 }
 
 //////////////////////////////////////////////////
 void PlotComponent::UnRegisterChart(std::string _attribute, int _chart)
 {
-  if (this->data.count(_attribute) == 0)
+  if (this->dataPtr->data.count(_attribute) == 0)
   {
     ignwarn << "Invalid Plot Component Attribute" << std::endl;
     return;
   }
-  this->data[_attribute]->RemoveChart(_chart);
+  this->dataPtr->data[_attribute]->RemoveChart(_chart);
 }
 
 //////////////////////////////////////////////////
 bool PlotComponent::HasCharts()
 {
-  for (auto field : data)
+  for (auto field : this->dataPtr->data)
     if (field.second->ChartCount() > 0)
         return true;
   return false;
@@ -98,26 +115,26 @@ bool PlotComponent::HasCharts()
 void PlotComponent::SetAttributeValue(std::string _attribute,
                                       const double &_value)
 {
-  if (this->data.count(_attribute) > 0)
-    this->data[_attribute]->SetValue(_value);
+  if (this->dataPtr->data.count(_attribute) > 0)
+    this->dataPtr->data[_attribute]->SetValue(_value);
 }
 
 //////////////////////////////////////////////////
 std::map<std::string, PlotData*> PlotComponent::Data() const
 {
-  return this->data;
+  return this->dataPtr->data;
 }
 
 //////////////////////////////////////////////////
 uint64_t PlotComponent::Entity()
 {
-  return this->entity;
+  return this->dataPtr->entity;
 }
 
 //////////////////////////////////////////////////
 uint64_t PlotComponent::TypeId()
 {
-  return this->typeId;
+  return this->dataPtr->typeId;
 }
 
 // ======================= Plotting =========================
