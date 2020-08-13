@@ -1454,19 +1454,12 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
-        // world pose cmd not supported for nested models
-        // todo(anyone) remove this check when we can set nested model pose
-        auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
-        if (parentComp)
+        // world pose cmd currently not supported for nested models
+        if (_entity != this->TopLevelModel(_entity, _ecm))
         {
-          auto modelComp = _ecm.Component<components::Model>(
-              parentComp->Data());
-          if (modelComp)
-          {
-            ignerr << "Unable to set world pose for nested models."
-                   << std::endl;
-            return true;
-          }
+          ignerr << "Unable to set world pose for nested models."
+                 << std::endl;
+          return true;
         }
 
         // The canonical link as specified by sdformat is different from the
@@ -1521,6 +1514,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // angular vel cmd currently not supported for nested models
+        if (_entity != this->TopLevelModel(_entity, _ecm))
+        {
+          ignerr << "Unable to set angular velocity for nested models."
+                 << std::endl;
+          return true;
+        }
+
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (!freeGroup)
           return true;
@@ -1551,6 +1552,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt == this->entityModelMap.end())
           return true;
+
+        // linear vel cmd currently not supported for nested models
+        if (_entity != this->TopLevelModel(_entity, _ecm))
+        {
+          ignerr << "Unable to set linear velocity for nested models."
+                 << std::endl;
+          return true;
+        }
 
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (!freeGroup)
