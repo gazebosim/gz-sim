@@ -44,21 +44,21 @@ PlotComponent::PlotComponent(std::string _type, uint64_t _entity,
 
   if (_type == "Vector3d")
   {
-    this->data["x"] = new Field();
-    this->data["y"] = new Field();
-    this->data["z"] = new Field();
-    this->data["roll"] = new Field();
-    this->data["pitch"] = new Field();
-    this->data["yaw"] = new Field();
+    this->data["x"] = new PlotData();
+    this->data["y"] = new PlotData();
+    this->data["z"] = new PlotData();
   }
   else if (_type == "Pose3d")
   {
-    this->data["x"] = new Field();
-    this->data["y"] = new Field();
-    this->data["z"] = new Field();
+    this->data["x"] = new PlotData();
+    this->data["y"] = new PlotData();
+    this->data["z"] = new PlotData();
+    this->data["roll"] = new PlotData();
+    this->data["pitch"] = new PlotData();
+    this->data["yaw"] = new PlotData();
   }
   else if (_type == "double")
-      this->data["value"] = new Field();
+      this->data["value"] = new PlotData();
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
@@ -103,7 +103,7 @@ void PlotComponent::SetAttributeValue(std::string _attribute,
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, Field *> PlotComponent::Data() const
+std::map<std::string, PlotData*> PlotComponent::Data() const
 {
   return this->data;
 }

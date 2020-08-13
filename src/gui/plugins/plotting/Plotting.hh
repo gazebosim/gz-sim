@@ -91,7 +91,7 @@ class PlotComponent
 
   /// \brief Get all attributes of the component
   /// \return component attributes
-  public: std::map<std::string, ignition::gui::Field*> Data() const;
+  public: std::map<std::string, ignition::gui::PlotData*> Data() const;
 
   /// \brief Get the Component entity ID
   /// \return entity ID
@@ -112,7 +112,7 @@ class PlotComponent
 
   /// \brief attributes of the components,
   /// ex: x,y,z attributes in Vector3d type component
-  private: std::map<std::string, ignition::gui::Field*> data;
+  private: std::map<std::string, ignition::gui::PlotData*> data;
 };
 
 
