@@ -14,8 +14,9 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage migrationplugins "Migration from Gazebo-classic: plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
-* \subpage battery "Battery": Keep track of battery charge on robot models
+* \subpage gui_config "GUI configuration": Customizing your layout.
 * \subpage debugging "Debugging": Information about debugging Gazebo.
+* \subpage battery "Battery": Keep track of battery charge on robot models
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation
 
