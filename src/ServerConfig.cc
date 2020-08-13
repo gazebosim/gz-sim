@@ -291,7 +291,7 @@ class ignition::gazebo::ServerConfigPrivate
 //////////////////////////////////////////////////
 std::string findResourceSdf(const std::string &_path)
 {
-	if (ignition::common::exists(_path))
+  if (ignition::common::exists(_path))
   {
     for (ignition::common::DirIter file(_path);
          file != ignition::common::DirIter(); ++file)
@@ -307,9 +307,9 @@ std::string findResourceSdf(const std::string &_path)
         {
           return current;
         }
-      } 
-    } 
-  } 
+      }
+    }
+  }
   return "";
 }
 
@@ -358,7 +358,8 @@ bool ServerConfig::SetSdfFile(const std::string &_file)
   }
   else
   {
-    ignwarn << "Fuel world download failed because " << result.ReadableResult() << std::endl;
+    ignwarn << "Fuel world download failed because " <<
+      result.ReadableResult() << std::endl;
   }
   return false;
 }

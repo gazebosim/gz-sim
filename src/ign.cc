@@ -58,6 +58,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     char *_pathToResource)
 {
+  std::cout << "finding fuel resource\n";
   std::string path;
   std::string worldPath;
   ignition::fuel_tools::FuelClient fuelClient;
@@ -65,12 +66,14 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
   // Attempt to find cached copy, and then attempt download
   if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
   {
+    ignmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
   else if (ignition::fuel_tools::Result result =
     fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
     result)
   {
+    ignmsg << "Successfully downloaded world from fuel." << std::endl;
     worldPath = path;
   }
   else
