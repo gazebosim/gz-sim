@@ -218,15 +218,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
   // todo(anyone) Support multiple canonical links in nested models
   // This version of CreateEntties keeps track whether or not to create a
-  // canonical link in a model tree using the last arg in this recursive
-  // function. Once support is  added, we do not need to use this overloaded
-  // function.
-  return this->CreateEntities(_model, true);
+  // canonical link in a model tree using the second arg in this recursive
+  // function. We also override child nested models static property if parent
+  // model is static
+  return this->CreateEntities(_model, true, false);
 }
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
-    bool _createCanonicalLink)
+    bool _createCanonicalLink, bool _staticParent)
 {
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
@@ -237,8 +237,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
+  bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
-      components::Static(_model->Static()));
+      components::Static(isStatic));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::WindMode(_model->EnableWind()));
   this->dataPtr->ecm->CreateComponent(
@@ -250,7 +251,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
   // the parent frame until we get frames working.
 
   // Links
-  bool createdCanonicalLink = false;
+  bool canonicalLinkCreated = false;
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
   {
@@ -265,7 +266,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
-      createdCanonicalLink = true;
+      canonicalLinkCreated = true;
     }
 
     // Set wind mode if the link didn't override it
@@ -292,10 +293,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
   {
     auto nestedModel = _model->ModelByIndex(modelIndex);
 
-    // create nested model and only create canonical link component
-    // if it has not been created in this model yet.
+    // Create nested model. Make sure to only create canonical link component
+    // in the nested model if a canonical link has not been created in this
+    // model yet. Also override static propery of the nested model if this model
+    //  is static
     auto nestedModelEntity = this->CreateEntities(nestedModel,
-        (_createCanonicalLink && !createdCanonicalLink));
+        (_createCanonicalLink && !canonicalLinkCreated), isStatic);
 
     this->SetParent(nestedModelEntity, modelEntity);
   }
