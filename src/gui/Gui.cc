@@ -53,6 +53,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
+  // Set auto scaling factor for HiDPI displays
+  qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+
   // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
