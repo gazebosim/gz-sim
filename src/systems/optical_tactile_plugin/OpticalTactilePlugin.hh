@@ -46,26 +46,14 @@ namespace systems
     /// doesn't need to be enabled. This element is optional, and the
     /// default value is true.
     ///
-    /// <visualization_resolution> Number of pixels to skip when visualizing
-    /// the forces. One vector representing a normal force is computed for each
-    /// of the camera pixels. This element must be positive and it is optional.
-    /// The default value is 30.
-    ///
-    /// <contacts_resolution> Distance in mm to interpolate the contacts
-    /// returned by the contact sensor. This element must be positive and
-    /// it is optional. The default value is 1.
+    /// <visualization_resolution> Number n of pixels to skip when visualizing
+    /// the forces. One vector representing a normal force is computed for
+    /// every nth pixel. This element must be positive and it is optional.
+    /// The default value is 30
     ///
     /// <visualize_forces> Set this to true so the plugin visualizes the normal
     /// forces in the 3D world. This element is optional, and the
     /// default value is false.
-    ///
-    /// <contact_radius> Radius in meters of the contacts visualized if
-    /// <visualize_forces> is set to true. This parameter is optional, and the
-    /// default value is 0.003.
-    ///
-    /// <force_radius> Radius in meters of the forces visualized if
-    /// <visualize_forces> is set to true. This parameter is optional, and the
-    /// default value is 0.001.
     ///
     /// <force_length> Length in meters of the forces visualized if
     /// <visualize_forces> is set to true. This parameter is optional, and the

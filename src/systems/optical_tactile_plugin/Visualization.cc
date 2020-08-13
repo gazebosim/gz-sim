@@ -33,205 +33,176 @@ namespace optical_tactile_sensor
 
 //////////////////////////////////////////////////
 OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
-  double &_contactRadius, double &_forceRadius, double &_forceLength,
-  float &_cameraUpdateRate, ignition::math::Pose3f &_depthCameraOffset,
+  std::string &_modelName,
+  ignition::math::Vector3d &_sensorSize,
+  double &_forceLength,
+  float &_cameraUpdateRate,
+  ignition::math::Pose3f &_depthCameraOffset,
   int &_visualizationResolution) :
-  contactRadius(_contactRadius), forceRadius(_forceRadius),
-  forceLength(_forceLength), cameraUpdateRate(_cameraUpdateRate),
+  modelName(_modelName),
+  sensorSize(_sensorSize),
+  forceLength(_forceLength),
+  cameraUpdateRate(_cameraUpdateRate),
   depthCameraOffset(_depthCameraOffset),
   visualizationResolution(_visualizationResolution)
 {
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginVisualization::CreateMarkersMsgs(
-  std::string &_modelName,
-  ignition::math::Vector3d &_sensorSize)
+void OpticalTactilePluginVisualization::InitializeSensorMarkerMsg(
+  ignition::msgs::Marker &_sensorMarkerMsg)
 {
-  // Configure marker messages for position and force of the contacts, as well
-  // as the marker for visualizing the sensor
+  // Initialize the marker for visualizing the sensor as a grey transparent box
 
-  // Blue spheres for positions
-  // Green cylinders for forces
-  // Grey transparent box for the sensor
-
-  this->positionMarkerMsg.set_ns("positions_" + _modelName);
-  this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  this->positionMarkerMsg.set_type(ignition::msgs::Marker::SPHERE);
-  this->positionMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
-
-  this->forceMarkerMsg.set_ns("forces_" + _modelName);
-  this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  this->forceMarkerMsg.set_type(ignition::msgs::Marker::CYLINDER);
-  this->forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
-
-  this->sensorMarkerMsg.set_ns("sensor_" + _modelName);
-  this->sensorMarkerMsg.set_id(1);
-  this->sensorMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  this->sensorMarkerMsg.set_type(ignition::msgs::Marker::BOX);
-  this->sensorMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+  _sensorMarkerMsg.set_ns("sensor_" + this->modelName);
+  _sensorMarkerMsg.set_id(1);
+  _sensorMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  _sensorMarkerMsg.set_type(ignition::msgs::Marker::BOX);
+  _sensorMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+  ignition::msgs::Set(_sensorMarkerMsg.mutable_scale(), this->sensorSize);
 
   // Set material properties
-  this->positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-  this->positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
-  this->positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
-  this->positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-  this->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-  this->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
-  this->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
-  this->positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-  this->positionMarkerMsg.mutable_lifetime()->set_sec(this->cameraUpdateRate);
-
-  this->forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-  this->forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
-  this->forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
-  this->forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-  this->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-  this->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
-  this->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
-  this->forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-  this->forceMarkerMsg.mutable_lifetime()->set_sec(this->cameraUpdateRate);
-
-  this->sensorMarkerMsg.mutable_material()->mutable_ambient()->set_r(0.5);
-  this->sensorMarkerMsg.mutable_material()->mutable_ambient()->set_g(0.5);
-  this->sensorMarkerMsg.mutable_material()->mutable_ambient()->set_b(0.5);
-  this->sensorMarkerMsg.mutable_material()->mutable_ambient()->set_a(0.75);
-  this->sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0.5);
-  this->sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0.5);
-  this->sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0.5);
-  this->sensorMarkerMsg.mutable_material()->mutable_diffuse()->set_a(0.75);
-  this->sensorMarkerMsg.mutable_lifetime()->set_sec(0);
-  this->sensorMarkerMsg.mutable_lifetime()->set_nsec(0);
-
-  // Set scales
-  ignition::msgs::Set(this->positionMarkerMsg.mutable_scale(),
-    ignition::math::Vector3d(this->contactRadius, this->contactRadius,
-    this->contactRadius));
-
-  ignition::msgs::Set(this->forceMarkerMsg.mutable_scale(),
-    ignition::math::Vector3d(this->forceRadius, this->forceRadius,
-    this->forceLength));
-
-  ignition::msgs::Set(this->sensorMarkerMsg.mutable_scale(), _sensorSize);
+  ignition::msgs::Set(_sensorMarkerMsg.mutable_material()->
+    mutable_ambient(), math::Color(0.5, 0.5, 0.5, 0.75));
+  ignition::msgs::Set(_sensorMarkerMsg.mutable_material()->
+    mutable_diffuse(), math::Color(0.5, 0.5, 0.5, 0.75));
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginVisualization::VisualizeSensor(
-  ignition::math::Pose3f &_sensorPose)
+void OpticalTactilePluginVisualization::RequestSensorMarkerMsg(
+  ignition::math::Pose3f const &_sensorPose)
 {
-  this->sensorMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  this->sensorMarkerMsg.set_id(1);
+  ignition::msgs::Marker sensorMarkerMsg;
 
-  this->sensorMarkerMsg.mutable_pose()->mutable_position()->set_x(
-    _sensorPose.Pos().X());
-  this->sensorMarkerMsg.mutable_pose()->mutable_position()->set_y(
-    _sensorPose.Pos().Y());
-  this->sensorMarkerMsg.mutable_pose()->mutable_position()->set_z(
-    _sensorPose.Pos().Z());
-  this->sensorMarkerMsg.mutable_pose()->mutable_orientation()->set_x(
-    _sensorPose.Rot().X());
-  this->sensorMarkerMsg.mutable_pose()->mutable_orientation()->set_y(
-    _sensorPose.Rot().Y());
-  this->sensorMarkerMsg.mutable_pose()->mutable_orientation()->set_z(
-    _sensorPose.Rot().Z());
-  this->sensorMarkerMsg.mutable_pose()->mutable_orientation()->set_w(
-    _sensorPose.Rot().W());
+  this->InitializeSensorMarkerMsg(sensorMarkerMsg);
 
-  this->node.Request("/marker", this->sensorMarkerMsg);
+  ignition::msgs::Set(sensorMarkerMsg.mutable_pose(),
+    ignition::math::Pose3d(_sensorPose.Pos().X(),
+      _sensorPose.Pos().Y(), _sensorPose.Pos().Z(),
+      _sensorPose.Rot().X(), _sensorPose.Rot().Y(),
+      _sensorPose.Rot().Z(), _sensorPose.Rot().W()));
+
+  this->node.Request("/marker", sensorMarkerMsg);
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginVisualization::VisualizeNormalForce(
-  uint64_t &_i, uint64_t &_j,
+void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
+  ignition::msgs::Marker &_positionMarkerMsg,
+  ignition::msgs::Marker &_forceMarkerMsg)
+{
+  // Initialize marker messages for position and force of the contacts
+
+  // Blue points for positions
+  // Green lines for forces
+
+  _positionMarkerMsg.set_ns("positions_" + this->modelName);
+  _positionMarkerMsg.set_id(1);
+  _positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  _positionMarkerMsg.set_type(ignition::msgs::Marker::POINTS);
+  _positionMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+  ignition::msgs::Set(_positionMarkerMsg.mutable_scale(),
+    ignition::math::Vector3d(1, 1, 1));
+
+  _forceMarkerMsg.set_ns("forces_" + this->modelName);
+  _forceMarkerMsg.set_id(1);
+  _forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  _forceMarkerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
+  _forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+
+  // Set material properties and lifetime
+  ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
+    mutable_ambient(), math::Color(0, 0, 1, 1));
+  ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
+    mutable_diffuse(), math::Color(0, 0, 1, 1));
+  _positionMarkerMsg.mutable_lifetime()->set_sec(this->cameraUpdateRate);
+
+  ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
+    mutable_ambient(), math::Color(0, 1, 0, 1));
+  ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
+    mutable_diffuse(), math::Color(0, 1, 0, 1));
+  _forceMarkerMsg.mutable_lifetime()->set_sec(this->cameraUpdateRate);
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
+  ignition::msgs::Marker &_positionMarkerMsg,
+  ignition::msgs::Marker &_forceMarkerMsg,
   ignition::math::Vector3f &_position,
   ignition::math::Vector3f &_normalForce,
   ignition::math::Pose3f &_sensorWorldPose)
 {
-  // Visualization is downsampled according to plugin parameter
-  // <visualization_resolution> if <visualize_forces> is set to true
+  // Check if messages have been initialized
+  if (!this->normalForcesMsgsAreInitialized)
+  {
+    this->InitializeNormalForcesMarkerMsgs(_positionMarkerMsg,
+      _forceMarkerMsg);
+    this->normalForcesMsgsAreInitialized = true;
+  }
 
-  // Check if _normalForce has to be visualized
-  bool visualizeForce = (_i % this->visualizationResolution == 0 &&
-    _j % this->visualizationResolution == 0) ||
-    (_i % this->visualizationResolution == 0 && _j == 1) ||
-    (_i == 1 && _j % this->visualizationResolution == 0) ||
-    (_i == 1 && _j == 1);
-
-  if (!visualizeForce)
-    return;
-
-  if (_i == 1 && _j == 1)
-    this->markerID = 1;
-
-  // Add new markers with specific lifetime
-  this->positionMarkerMsg.set_id(this->markerID);
-  this->positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  this->positionMarkerMsg.mutable_lifetime()->set_sec(this->cameraUpdateRate);
-  this->positionMarkerMsg.mutable_lifetime()->set_nsec(0);
-
-  this->forceMarkerMsg.set_id(this->markerID++);
-  this->forceMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  this->forceMarkerMsg.mutable_lifetime()->set_sec(this->cameraUpdateRate);
-  this->forceMarkerMsg.mutable_lifetime()->set_nsec(0);
-
-  // The pose of the  markers must be published with reference
-  // to the simulation origin
-  ignition::math::Vector3f forceMarkerSensorPosition(
+  // We need to compute the two points that form a normal force (start and end
+  // points) with reference to the simulation origin
+  ignition::math::Vector3f normalForcePositionFromSensor(
     _position.X(), _position.Y(), _position.Z());
 
-  ignition::math::Quaternionf forceMarkerSensorQuaternion;
-  forceMarkerSensorQuaternion.From2Axes(
+  ignition::math::Quaternionf normalForceOrientationFromSensor;
+  normalForceOrientationFromSensor.From2Axes(
     ignition::math::Vector3f(0, 0, 1), _normalForce);
 
-  // The position of the force marker is modified in order to place the
-  // end of the cylinder in the surface, not its middle point
-  ignition::math::Pose3f forceMarkerSensorPose(forceMarkerSensorPosition +
-    _normalForce * (this->forceLength/2), forceMarkerSensorQuaternion);
+  ignition::math::Pose3f normalForcePoseFromSensor(
+    normalForcePositionFromSensor, normalForceOrientationFromSensor);
 
-  ignition::math::Pose3f forceMarkerWorldPose =
-    (forceMarkerSensorPose + this->depthCameraOffset) + _sensorWorldPose;
-  forceMarkerWorldPose.Correct();
+  ignition::math::Pose3f normalForcePoseFromWorld =
+    (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
+  normalForcePoseFromWorld.Correct();
 
-  ignition::math::Pose3f positionMarkerSensorPose(
-    forceMarkerSensorPosition, forceMarkerSensorQuaternion);
-  ignition::math::Pose3f positionMarkerWorldPose =
-    (positionMarkerSensorPose + this->depthCameraOffset) + _sensorWorldPose;
-  positionMarkerWorldPose.Correct();
+  // Get the first point of the normal force
+  ignition::math::Vector3f firstPointFromWorld =
+    normalForcePoseFromWorld.Pos();
 
-  // Set markers pose messages from previously computed poses
-  this->forceMarkerMsg.mutable_pose()->mutable_position()->set_x(
-    forceMarkerWorldPose.Pos().X());
-  this->forceMarkerMsg.mutable_pose()->mutable_position()->set_y(
-    forceMarkerWorldPose.Pos().Y());
-  this->forceMarkerMsg.mutable_pose()->mutable_position()->set_z(
-    forceMarkerWorldPose.Pos().Z());
-  this->forceMarkerMsg.mutable_pose()->mutable_orientation()->set_x(
-    forceMarkerWorldPose.Rot().X());
-  this->forceMarkerMsg.mutable_pose()->mutable_orientation()->set_y(
-    forceMarkerWorldPose.Rot().Y());
-  this->forceMarkerMsg.mutable_pose()->mutable_orientation()->set_z(
-    forceMarkerWorldPose.Rot().Z());
-  this->forceMarkerMsg.mutable_pose()->mutable_orientation()->set_w(
-    forceMarkerWorldPose.Rot().W());
+  // Move the normal force pose a distance of forceLength along the direction
+  // of _normalForce and get the second point
+  normalForcePoseFromSensor.Set(normalForcePositionFromSensor +
+    _normalForce * this->forceLength, normalForceOrientationFromSensor);
 
-  this->positionMarkerMsg.mutable_pose()->mutable_position()->set_x(
-    positionMarkerWorldPose.Pos().X());
-  this->positionMarkerMsg.mutable_pose()->mutable_position()->set_y(
-    positionMarkerWorldPose.Pos().Y());
-  this->positionMarkerMsg.mutable_pose()->mutable_position()->set_z(
-    positionMarkerWorldPose.Pos().Z());
-  this->positionMarkerMsg.mutable_pose()->mutable_orientation()->set_x(
-    positionMarkerWorldPose.Rot().X());
-  this->positionMarkerMsg.mutable_pose()->mutable_orientation()->set_y(
-    positionMarkerWorldPose.Rot().Y());
-  this->positionMarkerMsg.mutable_pose()->mutable_orientation()->set_z(
-    positionMarkerWorldPose.Rot().Z());
-  this->positionMarkerMsg.mutable_pose()->mutable_orientation()->set_w(
-    positionMarkerWorldPose.Rot().W());
+  normalForcePoseFromWorld =
+    (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
+  normalForcePoseFromWorld.Correct();
 
-  this->node.Request("/marker", this->forceMarkerMsg);
-  this->node.Request("/marker", this->positionMarkerMsg);
+  ignition::math::Vector3f secondPointFromWorld =
+    normalForcePoseFromWorld.Pos();
+
+  // Check invalid points to avoid data transfer overhead
+  if (firstPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0) ||
+      secondPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0))
+    return;
+
+  // Add points to the messages
+
+  ignition::msgs::Set(_positionMarkerMsg.add_point(),
+    ignition::math::Vector3d(firstPointFromWorld.X(),
+      firstPointFromWorld.Y(), firstPointFromWorld.Z()));
+
+  ignition::msgs::Set(_forceMarkerMsg.add_point(),
+    ignition::math::Vector3d(firstPointFromWorld.X(),
+      firstPointFromWorld.Y(), firstPointFromWorld.Z()));
+
+  ignition::msgs::Set(_forceMarkerMsg.add_point(),
+    ignition::math::Vector3d(secondPointFromWorld.X(),
+      secondPointFromWorld.Y(), secondPointFromWorld.Z()));
 }
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::RequestNormalForcesMarkerMsgs(
+  ignition::msgs::Marker &_positionMarkerMsg,
+  ignition::msgs::Marker &_forceMarkerMsg)
+{
+  this->node.Request("/marker", _forceMarkerMsg);
+  this->node.Request("/marker", _positionMarkerMsg);
+
+  // Let the messages be initialized again
+  this->normalForcesMsgsAreInitialized = false;
+}
+
 }
 }
 }

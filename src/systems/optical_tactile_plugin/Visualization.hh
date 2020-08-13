@@ -41,65 +41,83 @@ namespace optical_tactile_sensor
   class OpticalTactilePluginVisualization
   {
     /// \brief Constructor
-    /// \param[in] _contactRadius Value of the contactRadius attribute
-    /// \param[in] _forceRadius Value of the forceRadius attribute
+    /// \param[in] _modelName Name of the model to which the sensor is attached
+    /// \param[in] _sensorSize Size of the contact sensor
     /// \param[in] _forceLength Value of the forceLength attribute
     /// \param[in] _cameraUpdateRate Value of the cameraUpdateRate attribute
     /// \param[in] _depthCameraOffset Value of the depthCameraOffset attribute
     /// \param[in] _visualizationResolution Value of the
     /// visualizationResolution attribute
-    public: OpticalTactilePluginVisualization(double &_contactRadius,
-      double &_forceRadius, double &_forceLength, float &_cameraUpdateRate,
+    public: OpticalTactilePluginVisualization(
+      std::string &_modelName,
+      ignition::math::Vector3d &_sensorSize,
+      double &_forceLength,
+      float &_cameraUpdateRate,
       ignition::math::Pose3f &_depthCameraOffset,
       int &_visualizationResolution);
 
     /// \brief Destructor
     public: ~OpticalTactilePluginVisualization();
 
-    /// \brief Initialize the messages needed to request the /marker service
-    /// \param[in] _modelName Name of the model
-    /// \param[in] _sensorSize Size of the contact sensor
-    public: void CreateMarkersMsgs(std::string &_modelName,
-      ignition::math::Vector3d &_sensorSize);
+    /// \brief Initialize the marker message representing the optical tactile
+    /// sensor
+    /// \param[out] _sensorMarkerMsg Message for visualizing the sensor
+    private: void InitializeSensorMarkerMsg(
+      ignition::msgs::Marker &_sensorMarkerMsg);
 
-    /// \brief Visualize the collision geometry of the sensor. This can be
-    /// helpful when debbuging, given that there shouldn't be a visual tag
-    /// in the plugin's model
+    /// \brief Request the "/marker" service for the sensor marker.
+    /// This can be helpful when debbuging, given that there shouldn't be a
+    /// visual tag in the plugin's model
     /// \param[in] _sensorPose Pose of the optical tactile sensor
-    public: void VisualizeSensor(ignition::math::Pose3f &_sensorPose);
+    public: void RequestSensorMarkerMsg(
+      ignition::math::Pose3f const &_sensorPose);
 
-    /// \brief Visualize the normal forces computed for a (i,j) pixel of the
-    /// image returned by the depth camera
-    /// \param[in] _i First coordinate of the pixel
-    /// \param[in] _j Second coordinate of the pixel
+    /// \brief Initialize the marker messages representing the normal forces
+    /// \param[out] _positionMarkerMsg Message for visualizing the contact
+    /// positions
+    /// \param[out] _forceMarkerMsg Message for visualizing the contact
+    /// normal forces
+    private: void InitializeNormalForcesMarkerMsgs(
+      ignition::msgs::Marker &_positionMarkerMsg,
+      ignition::msgs::Marker &_forceMarkerMsg);
+
+    /// \brief Add a normal force to the marker messages representing the
+    /// normal forces computed
+    /// \param[out] _positionMarkerMsg Message for visualizing the contact
+    /// positions
+    /// \param[out] _forceMarkerMsg Message for visualizing the contact
+    /// normal forces
     /// \param[in] _position Position of the normal force referenced to the
     /// depth camera's origin
     /// \param[in] _normalForce Value of the normal force referenced to
     /// the depth camera's origin
     /// \param[in] _sensorWorldPose Pose of the plugin's model referenced to
     /// the world's origin
-    public: void VisualizeNormalForce(uint64_t &_i, uint64_t &_j,
+    public: void AddNormalForceToMarkerMsgs(
+      ignition::msgs::Marker &_positionMarkerMsg,
+      ignition::msgs::Marker &_forceMarkerMsg,
       ignition::math::Vector3f &_position,
       ignition::math::Vector3f &_normalForce,
       ignition::math::Pose3f &_sensorWorldPose);
 
-    /// \brief Message for visualizing the sensor
-    private: ignition::msgs::Marker sensorMarkerMsg;
-
-    /// \brief Message for visualizing contacts positions
-    private: ignition::msgs::Marker positionMarkerMsg;
-
-    /// \brief Message for visualizing contacts forces
-    private: ignition::msgs::Marker forceMarkerMsg;
+    /// \brief Request the "/marker" service for the marker messages
+    /// representing the normal forces
+    /// \param[in] _positionMarkerMsg Message for visualizing the contact
+    /// positions
+    /// \param[in] _forceMarkerMsg Message for visualizing the contact
+    /// normal forces
+    public: void RequestNormalForcesMarkerMsgs(
+      ignition::msgs::Marker &_positionMarkerMsg,
+      ignition::msgs::Marker &_forceMarkerMsg);
 
     /// \brief Transport node to request the /marker service
     private: ignition::transport::Node node;
 
-    /// \brief Radius of the visualized contact sphere
-    private: double contactRadius;
+    /// \brief Name of the model to which the sensor is attached
+    private: std::string modelName;
 
-    /// \brief Radius of the visualized force cylinder
-    private: double forceRadius;
+    /// \brief Size of the contact sensor
+    private: ignition::math::Vector3d sensorSize;
 
     /// \brief Length of the visualized force cylinder
     private: double forceLength;
@@ -113,8 +131,8 @@ namespace optical_tactile_sensor
     /// \brief Resolution of the sensor in pixels to skip.
     private: int visualizationResolution;
 
-    /// \brief Variable for setting the markers id
-    private: int markerID;
+    /// \brief Whether the normal forces messages are initialized or not
+    private: bool normalForcesMsgsAreInitialized{false};
   };
 }
 }
