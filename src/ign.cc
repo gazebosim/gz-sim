@@ -58,7 +58,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     char *_pathToResource)
 {
-  std::cout << "finding fuel resource\n";
   std::string path;
   std::string worldPath;
   ignition::fuel_tools::FuelClient fuelClient;
