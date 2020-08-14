@@ -122,7 +122,7 @@ void ResourceModel::Clear()
   {
     parentItem->removeRow(0);
   }
-  this->gridIndex = 0;
+  this->fuelGridIndex = 0;
   this->localGridIndex = 0;
 }
 
@@ -148,9 +148,9 @@ void ResourceModel::AddResource(Resource &_resource)
                       this->roleNames().key("sdf"));
   if (_resource.isFuel)
   {
-    resource->setData(this->gridIndex,
+    resource->setData(this->fuelGridIndex,
                         this->roleNames().key("index"));
-    this->gridIndex++;
+    this->fuelGridIndex++;
   }
   else
   {
@@ -413,10 +413,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Resource Spawner";
-
-  // For resource spawn requests
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
 
   msgs::StringMsg_V res;
   bool result;

@@ -102,8 +102,12 @@ namespace gazebo
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
 
-    public: int gridIndex = 0;
+    // \brief Index to keep track of the position of each fuel resource,
+    // used primarily to access currently loaded resources for updates
+    public: int fuelGridIndex = 0;
 
+    // \brief Index to keep track of the position of each local resource,
+    // used primarily to access currently loaded resources for updates
     public: int localGridIndex = 0;
   };
 
