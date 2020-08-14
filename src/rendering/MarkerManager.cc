@@ -500,7 +500,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       // Add visual to root visual
       if (!visualPtr->HasParent())
       {
-          this->scene->RootVisual()->AddChild(visualPtr);
+        this->scene->RootVisual()->AddChild(visualPtr);
       }
 
       // Store the visual
