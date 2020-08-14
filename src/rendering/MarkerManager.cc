@@ -308,11 +308,14 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
   _markerPtr->SetType(markerType);
 
   // Set Marker Material
-  rendering::MaterialPtr materialPtr = MsgToMaterial(_msg);
-  _markerPtr->SetMaterial(materialPtr, true /* clone */);
+  if (_msg.has_material())
+  {
+    rendering::MaterialPtr materialPtr = MsgToMaterial(_msg);
+    _markerPtr->SetMaterial(materialPtr, true /* clone */);
 
-  // clean up material after clone
-  this->scene->DestroyMaterial(materialPtr);
+    // clean up material after clone
+    this->scene->DestroyMaterial(materialPtr);
+  }
 
   // Assume the presence of points means we clear old ones
   if (_msg.point().size() > 0)
