@@ -320,8 +320,6 @@ void RenderUtil::Update()
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
-    if (scene.OriginVisual() && !this->dataPtr->enableSensors)
-      this->ShowOriginAxes();
     // only one scene so break
     break;
   }
@@ -1281,15 +1279,6 @@ void RenderUtil::ShowGrid()
   visual->SetLocalPosition(0, 0, 0.015);
   visual->SetMaterial(gray);
   root->AddChild(visual);
-}
-
-/////////////////////////////////////////////////
-void RenderUtil::ShowOriginAxes()
-{
-  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
-
-  auto worldOriginAxes = this->dataPtr->scene->CreateAxisVisual("worldOriginAxes");
-  root->AddChild(worldOriginAxes);
 }
 
 /////////////////////////////////////////////////

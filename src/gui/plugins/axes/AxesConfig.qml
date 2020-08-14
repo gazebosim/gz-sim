@@ -60,36 +60,6 @@ GridLayout {
     Layout.fillWidth: true
   }
 
-  ComboBox {
-    Layout.alignment: Qt.AlignHCenter
-    Layout.columnSpan: 2
-    objectName: "ComboBoxEntities"
-    model: AxesConfig.comboList
-    onActivated: {
-      AxesConfig.onCurrentIndexChanged(index)
-    }
-    onAccepted: {
-         if (editableCombo.find(currentText) === -1) {
-             model.append({text: editText})
-             currentIndex = editableCombo.find(editText)
-         }
-     }
-  }
-
-  // Right spacer
-  Item {
-    Layout.columnSpan: 1
-    Layout.rowSpan: 1
-    Layout.fillWidth: true
-  }
-
-  // Left spacer
-  Item {
-    Layout.columnSpan: 1
-    Layout.rowSpan: 1
-    Layout.fillWidth: true
-  }
-
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     Layout.columnSpan: 2
@@ -107,6 +77,42 @@ GridLayout {
     Layout.fillWidth: true
   }
 
+  // Left spacer
+  Item {
+    Layout.columnSpan: 1
+    Layout.rowSpan: 1
+    Layout.fillWidth: true
+  }
+
+  ComboBox {
+    Layout.alignment: Qt.AlignHCenter
+    Layout.columnSpan: 2
+    objectName: "ComboBoxEntities"
+    model: AxesConfig.comboList
+    onActivated: {
+      AxesConfig.onCurrentIndexChanged(index)
+      axesLength.value = AxesConfig.length
+      x.value = AxesConfig.axesX
+      y.value = AxesConfig.axesY
+      z.value = AxesConfig.axesZ
+      roll.value = AxesConfig.axesRoll
+      pitch.value = AxesConfig.axesPitch
+      yaw.value = AxesConfig.axesYaw
+    }
+    onAccepted: {
+         if (editableCombo.find(currentText) === -1) {
+             model.append({text: editText})
+             currentIndex = editableCombo.find(editText)
+         }
+     }
+  }
+
+  // Right spacer
+  Item {
+    Layout.columnSpan: 1
+    Layout.rowSpan: 1
+    Layout.fillWidth: true
+  }
 
   // Left spacer
   Item {
@@ -133,6 +139,7 @@ GridLayout {
     onEditingFinished: AxesConfig.UpdateLength(axesLength.value)
     Layout.fillWidth: true
   }
+  
   // Right spacer
   Item {
     Layout.columnSpan: 1

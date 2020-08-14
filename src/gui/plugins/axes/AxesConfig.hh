@@ -34,6 +34,8 @@ namespace gazebo
   {
     Q_OBJECT
 
+    /// \internal
+    /// \brief QProperty to udpate the QCombobox with the entities
     Q_PROPERTY(QStringList comboList READ comboList WRITE SetComboList NOTIFY ComboListChanged)
 
     /// \brief Constructor
@@ -99,6 +101,62 @@ namespace gazebo
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<AxesConfigPrivate> dataPtr;
+
+    /// \internal
+    /// \brief QProperty to udpate the length of each axes on the GUI
+    Q_PROPERTY(double length READ length)
+
+    /// \internal
+    /// \brief QProperty to udpate the X position of each axes on the GUI
+    Q_PROPERTY(double axesX READ axesX)
+
+    /// \internal
+    /// \brief QProperty to udpate the Y position of each axes on the GUI
+    Q_PROPERTY(double axesY READ axesY)
+
+    /// \internal
+    /// \brief QProperty to udpate the Z position of each axes on the GUI
+    Q_PROPERTY(double axesZ READ axesZ)
+
+    /// \internal
+    /// \brief QProperty to udpate the roll orientation of each axes on the GUI
+    Q_PROPERTY(double axesRoll READ axesRoll)
+
+    /// \internal
+    /// \brief QProperty to udpate the pitch orientation of each axes on the GUI
+    Q_PROPERTY(double axesPitch READ axesPitch)
+
+    /// \internal
+    /// \brief QProperty to udpate the yaw orientation of each axes on the GUI
+    Q_PROPERTY(double axesYaw READ axesYaw)
+
+    /// \internal
+    /// \brief return length of the active axis
+    private: double length() const;
+
+    /// \internal
+    /// \brief return X position of the active axis
+    private: double axesX() const;
+
+    /// \internal
+    /// \brief return Y position of the active axis
+    private: double axesY() const;
+
+    /// \internal
+    /// \brief return Z position of the active axis
+    private: double axesZ() const;
+
+    /// \internal
+    /// \brief return roll of the active axis
+    private: double axesRoll() const;
+
+    /// \internal
+    /// \brief return pitch of the active axis
+    private: double axesPitch() const;
+
+    /// \internal
+    /// \brief return yaw of the active axis
+    private: double axesYaw() const;
   };
 }
 }

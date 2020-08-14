@@ -97,9 +97,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Show grid view in the scene
     public: void ShowGrid();
 
-    /// \brief Show origin axes view in the scene
-    public: void ShowOriginAxes();
-
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
