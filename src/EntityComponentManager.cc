@@ -860,7 +860,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
-  // TODO(anyone) Set component being removed once we have a way to queue it
   this->dataPtr->SetRemovedComponentsMsgs(_entity, entityMsg);
 }
 
@@ -948,7 +947,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
-  // TODO(anyone) Set component being removed once we have a way to queue it
   this->dataPtr->SetRemovedComponentsMsgs(_entity, _msg);
 
   // Remove the entity from the message if a component for the entity was
