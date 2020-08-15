@@ -289,31 +289,6 @@ class ignition::gazebo::ServerConfigPrivate
 };
 
 //////////////////////////////////////////////////
-std::string findResourceSdf(const std::string &_path)
-{
-  if (ignition::common::exists(_path))
-  {
-    for (ignition::common::DirIter file(_path);
-         file != ignition::common::DirIter(); ++file)
-    {
-      std::string current(*file);
-      if (ignition::common::isFile(current))
-      {
-        std::string fileName = ignition::common::basename(current);
-        std::string::size_type fileExtensionIndex = fileName.rfind(".");
-        std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
-
-        if (fileExtension == "sdf")
-        {
-          return current;
-        }
-      }
-    }
-  }
-  return "";
-}
-
-//////////////////////////////////////////////////
 ServerConfig::ServerConfig()
   : dataPtr(new ServerConfigPrivate)
 {
@@ -331,37 +306,9 @@ ServerConfig::~ServerConfig() = default;
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
-  if (ignition::common::isFile(_file))
-  {
-    this->dataPtr->sdfFile = _file;
-    this->dataPtr->sdfString = "";
-    return true;
-  }
-
-  // The file name does not have a file extension, assume it is a fuel world
-  std::string path;
-  std::string fileName = "";
-  ignition::fuel_tools::FuelClient fuelClient;
-
-  if (fuelClient.CachedWorld(ignition::common::URI(_file), path))
-  {
-    this->dataPtr->sdfFile = findResourceSdf(path);
-    this->dataPtr->sdfString = "";
-    return true;
-  }
-  else if (ignition::fuel_tools::Result result =
-      fuelClient.DownloadWorld(ignition::common::URI(_file), path); result)
-  {
-    this->dataPtr->sdfFile = findResourceSdf(path);
-    this->dataPtr->sdfString = "";
-    return true;
-  }
-  else
-  {
-    ignwarn << "Fuel world download failed because " <<
-      result.ReadableResult() << std::endl;
-  }
-  return false;
+  this->dataPtr->sdfFile = _file;
+  this->dataPtr->sdfString = "";
+  return true;
 }
 
 /////////////////////////////////////////////////
