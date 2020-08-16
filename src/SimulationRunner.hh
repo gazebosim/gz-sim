@@ -491,6 +491,10 @@ namespace ignition
       /// \brief Map from file paths to Fuel URIs.
       private: std::unordered_map<std::string, std::string> fuelUriMap;
 
+      /// \brief True if Server::RunOnce triggered a blocking paused step
+      private: bool blockingPausedStepPending{false};
+
+      friend class Server;
       friend class LevelManager;
     };
     }
