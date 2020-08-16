@@ -476,6 +476,42 @@ TEST_P(ServerFixture, RunNonBlocking)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, RunOnceUnpaused)
+{
+    gazebo::Server server;
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+    EXPECT_EQ(0u, *server.IterationCount());
+
+    // Make the server run fast.
+    server.SetUpdatePeriod(1ns);
+
+    while (*server.IterationCount() < 100)
+        server.RunOnce(false);
+
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunOncePaused)
+{
+    gazebo::Server server;
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+    EXPECT_EQ(0u, *server.IterationCount());
+
+    // Make the server run fast.
+    server.SetUpdatePeriod(1ns);
+
+    while (*server.IterationCount() < 100)
+        server.RunOnce(true);
+
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   ignition::gazebo::ServerConfig serverConfig;
