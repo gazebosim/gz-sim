@@ -70,9 +70,9 @@ void PlaybackScrubber::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void PlaybackScrubber::OnMode(const QString &_mode)
+void PlaybackScrubber::OnDrag(double value)
 {
-
+  ignwarn << "value: " << value << std::endl;
 }
 
 // Register this plugin

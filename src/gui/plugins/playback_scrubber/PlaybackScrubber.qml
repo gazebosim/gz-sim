@@ -29,9 +29,16 @@ ToolBar {
 
   background: Rectangle {
     color: "transparent"
-  }
-
-  RowLayout {
-    spacing: 2
+    Slider {
+      id: slider
+      from: 1
+      value: 1
+      to: 100
+      stepSize: 0.1
+      onValueChanged: {
+        print(slider.value)
+        PlaybackScrubber.OnDrag(slider.value);
+      }
+    }
   }
 }

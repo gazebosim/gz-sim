@@ -45,7 +45,7 @@ namespace gazebo
 
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
-    public slots: void OnMode(const QString &_mode);
+    public slots: void OnDrag(double value);
 
     /// \internal
     /// \brief Pointer to private data.
