@@ -2018,11 +2018,19 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // We use this map because the order in which components are iterated
+  // through depends on the (undetermined) order of unordered multimaps
+  std::map<ComponentTypeId, bool> expectations;
+  expectations.insert(std::make_pair(e1c0.first, false));
+  expectations.insert(std::make_pair(e1c1.first, true));
+  expectations.insert(std::make_pair(e1c2.first, true));
 
   manager.RemoveComponent(e1, e1c1);
   manager.RemoveComponent(e1, e1c2);
@@ -2038,18 +2046,18 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
     auto compIter = e1Msg.components().begin();
 
     // First component
-    const auto &e1c2Msg = compIter->second;
+    const auto &c0 = compIter->second;
     compIter++;
-    EXPECT_TRUE(e1c2Msg.remove());
+    EXPECT_EQ(c0.remove(), expectations.find(c0.type())->second);
 
     // Second component
-    const auto &e1c1Msg = compIter->second;
+    const auto &c1 = compIter->second;
     compIter++;
-    EXPECT_TRUE(e1c1Msg.remove());
+    EXPECT_EQ(c1.remove(), expectations.find(c1.type())->second);
 
     // Third component
-    const auto &e1c0Msg = compIter->second;
-    EXPECT_FALSE(e1c0Msg.remove());
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectations.find(c2.type())->second);
   }
 
   // Check that removed components don't exist anymore after clearing them
@@ -2075,11 +2083,19 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
 {
   // Create entity
   Entity e1 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // We use this map because the order in which components are iterated
+  // through depends on the (undetermined) order of unordered multimaps
+  std::map<ComponentTypeId, bool> expectations;
+  expectations.insert(std::make_pair(e1c0.first, false));
+  expectations.insert(std::make_pair(e1c1.first, true));
+  expectations.insert(std::make_pair(e1c2.first, true));
 
   manager.RemoveComponent(e1, e1c1);
   manager.RemoveComponent(e1, e1c2);
@@ -2090,19 +2106,19 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
 
   // Check message
   {
-    auto entityMsg = stateMsg.entities(0);
+    auto const &entityMsg = stateMsg.entities(0);
 
     // First component
-    const auto &e1c0Msg = entityMsg.components(0);
-    EXPECT_FALSE(e1c0Msg.remove());
+    const auto &c0 = entityMsg.components(0);
+    EXPECT_EQ(c0.remove(), expectations.find(c0.type())->second);
 
     // Second component
-    const auto &e1c1Msg = entityMsg.components(1);
-    EXPECT_TRUE(e1c1Msg.remove());
+    const auto &c1 = entityMsg.components(1);
+    EXPECT_EQ(c1.remove(), expectations.find(c1.type())->second);
 
     // Third component
-    const auto &e1c2Msg = entityMsg.components(2);
-    EXPECT_TRUE(e1c2Msg.remove());
+    const auto &c2 = entityMsg.components(2);
+    EXPECT_EQ(c2.remove(), expectations.find(c2.type())->second);
   }
 
   // Check that removed components don't exist anymore after clearing them
@@ -2112,7 +2128,7 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
 
   // Check message
   {
-    auto entityMsg = newStateMsg.entities(0);
+    auto const &entityMsg = newStateMsg.entities(0);
     EXPECT_EQ(1, entityMsg.components_size());
 
     // First component
@@ -2129,11 +2145,19 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
 
   // Create entity
   Entity e1 = manager.CreateEntity();
-  manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
   auto e1c1 =
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
   auto e1c2 =
     manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // We use this map because the order in which components are iterated
+  // through depends on the (undetermined) order of unordered multimaps
+  std::map<ComponentTypeId, bool> expectationsBeforeRemoving;
+  expectationsBeforeRemoving.insert(std::make_pair(e1c0.first, false));
+  expectationsBeforeRemoving.insert(std::make_pair(e1c1.first, false));
+  expectationsBeforeRemoving.insert(std::make_pair(e1c2.first, false));
 
   // Serialize server ECM into a message
   msgs::SerializedStateMap stateMsg;
@@ -2151,19 +2175,24 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
     auto compIter = e1Msg.components().begin();
 
     // First component
-    const auto &e1c2Msg = compIter->second;
+    const auto &c0 = compIter->second;
     compIter++;
-    EXPECT_FALSE(e1c2Msg.remove());
+    EXPECT_EQ(c0.remove(), expectationsBeforeRemoving.find(c0.type())->second);
 
     // Second component
-    const auto &e1c1Msg = compIter->second;
+    const auto &c1 = compIter->second;
     compIter++;
-    EXPECT_FALSE(e1c1Msg.remove());
+    EXPECT_EQ(c1.remove(), expectationsBeforeRemoving.find(c1.type())->second);
 
     // Third component
-    const auto &e1c0Msg = compIter->second;
-    EXPECT_FALSE(e1c0Msg.remove());
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectationsBeforeRemoving.find(c2.type())->second);
   }
+
+  std::map<ComponentTypeId, bool> expectationsAfterRemoving;
+  expectationsAfterRemoving.insert(std::make_pair(e1c0.first, false));
+  expectationsAfterRemoving.insert(std::make_pair(e1c1.first, true));
+  expectationsAfterRemoving.insert(std::make_pair(e1c2.first, true));
 
   // Remove components and synchronize again
   manager.RemoveComponent(e1, e1c1);
@@ -2190,18 +2219,18 @@ TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
     auto compIter = e1Msg.components().begin();
 
     // First component
-    const auto &e1c2Msg = compIter->second;
+    const auto &c0 = compIter->second;
     compIter++;
-    EXPECT_TRUE(e1c2Msg.remove());
+    EXPECT_EQ(c0.remove(), expectationsAfterRemoving.find(c0.type())->second);
 
     // Second component
-    const auto &e1c1Msg = compIter->second;
+    const auto &c1 = compIter->second;
     compIter++;
-    EXPECT_TRUE(e1c1Msg.remove());
+    EXPECT_EQ(c1.remove(), expectationsAfterRemoving.find(c1.type())->second);
 
     // Third component
-    const auto &e1c0Msg = compIter->second;
-    EXPECT_FALSE(e1c0Msg.remove());
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectationsAfterRemoving.find(c2.type())->second);
   }
 }
 
