@@ -14,11 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LogPlayback_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LogPlayback_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
+#define IGNITION_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
 
 #include <ignition/msgs/log_playback_stats.pb.h>
-#include <ignition/gazebo/system/log/LogPlayback.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/components/Serialization.hh>
@@ -31,21 +30,14 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using LogPlaybackStatisticsSerializer =
-      serializers::ComponentToMsgSerializer<systems::LogPlayback,
-      msgs::LogPlaybackStatistics>;
-}
-
 namespace components
 {
   /// \brief A component type that contains log playback,
   /// systems::LogPlayback, information.
   /// The log playback is created from world entity upon the playback plugin
   /// being loaded
-  using LogPlaybackStatistics = Component<ignition::gazebo::systems::LogPlayback,
-      class LogPlaybackStatisticsTag, serializers::LogPlaybackStatisticsSerializer>;
+  using LogPlaybackStatistics = Component<ignition::msgs::LogPlaybackStatistics,
+      class LogPlaybackStatisticsTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogPlaybackStatistics",
       LogPlaybackStatistics)
 }
