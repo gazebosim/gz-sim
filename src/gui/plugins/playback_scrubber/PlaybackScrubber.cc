@@ -70,9 +70,12 @@ void PlaybackScrubber::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void PlaybackScrubber::OnDrag(double value)
+void PlaybackScrubber::OnDrag(double value, double from, double to)
 {
   ignwarn << "value: " << value << std::endl;
+  ignwarn << "from: " << from << std::endl;
+  ignwarn << "to: " << to << std::endl;
+  ignwarn << "percentage: " << ((value - from)/ (to - from)) << std::endl;
 }
 
 // Register this plugin
