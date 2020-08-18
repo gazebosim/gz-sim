@@ -112,10 +112,10 @@ class Vector2_TEST < Test::Unit::TestCase
      vec1 = Ignition::Math::Vector2d.new(0.1, 0.2)
      vec2 = Ignition::Math::Vector2d.new(0.3, 0.5)
      vec3 = Ignition::Math::Vector2d.new(0.4, 0.2)
-     
+
      assert((vec1.Max() - 0.2).abs() < 1e-10,
            "Vector2 vec1.Max should equal 0.2")
-     
+
      vec1.Max(vec2)
      assert(vec1 == Ignition::Math::Vector2d.new(0.3, 0.5),
             "Vector2 vec1 should equal [0.3, 0.5]")
@@ -129,17 +129,17 @@ class Vector2_TEST < Test::Unit::TestCase
      vec1 = Ignition::Math::Vector2d.new(0.3, 0.5)
      vec2 = Ignition::Math::Vector2d.new(0.1, 0.2)
      vec3 = Ignition::Math::Vector2d.new(0.05, 0.1)
-     
+
      assert((vec1.Min() - 0.3).abs() < 1e-10,
            "Vector2 vec1.Min should equal 0.3")
-     
+
      vec1.Min(vec2)
      assert(vec1 == Ignition::Math::Vector2d.new(0.1, 0.2),
             "Vector2 vec1 should equal [0.1, 0.2]")
 
-     vec1.Max(vec3)
-     assert(vec1 == Ignition::Math::Vector2d.new(0.05, 0.1),
-            "Vector2 vec1 should equal [0.05, 0.1]")
+     vec3.Max(vec2)
+     assert(vec3 == Ignition::Math::Vector2d.new(0.1, 0.2),
+            "Vector2 vec3 should equal [0.1, 0.2]")
   end
 
   def test_dot
