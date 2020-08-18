@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -33,7 +34,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TEST(GuiTest, PathManager)
+// https://github.com/ignitionrobotics/ign-gazebo/issues/8
+TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
 {
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;
