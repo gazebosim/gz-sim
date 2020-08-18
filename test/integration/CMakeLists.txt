@@ -6,6 +6,7 @@ set(tests
   apply_joint_force_system.cc
   battery_plugin.cc
   breadcrumbs.cc
+  buoyancy.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
