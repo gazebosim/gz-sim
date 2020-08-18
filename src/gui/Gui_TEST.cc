@@ -26,8 +26,8 @@
 #include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/test_config.hh"
 
-int g_argc = 1;
-char **g_argv = new char *[g_argc];
+int gg_argc = 1;
+char **gg_argv = new char *[gg_argc];
 
 using namespace ignition;
 using namespace gazebo;
@@ -81,7 +81,7 @@ TEST(GuiTest, PathManager)
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   igndbg << "Paths advertised" << std::endl;
 
-  auto app = ignition::gazebo::gui::createGui(g_argc, g_argv, nullptr);
+  auto app = ignition::gazebo::gui::createGui(gg_argc, gg_argv, nullptr);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
 
