@@ -37,7 +37,7 @@ namespace components
   /// The log playback is created from world entity upon the playback plugin
   /// being loaded
   using LogPlaybackStatistics = Component<ignition::msgs::LogPlaybackStatistics,
-      class LogPlaybackStatisticsTag>;
+      class LogPlaybackStatisticsTag, serializers::MsgSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LogPlaybackStatistics",
       LogPlaybackStatistics)
 }

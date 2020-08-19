@@ -21,6 +21,7 @@
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
+#include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
 {
@@ -30,7 +31,7 @@ namespace gazebo
 
   /// \brief Provides buttons for adding a box, sphere, or cylinder
   /// to the scene
-  class PlaybackScrubber : public ignition::gui::Plugin
+  class PlaybackScrubber : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -42,6 +43,9 @@ namespace gazebo
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+
+    // Documentation inherited
+    public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode

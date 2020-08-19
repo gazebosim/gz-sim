@@ -24,7 +24,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
@@ -49,8 +49,7 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-PlaybackScrubber::PlaybackScrubber()
-  : ignition::gui::Plugin(),
+PlaybackScrubber::PlaybackScrubber() : GuiSystem(),
   dataPtr(std::make_unique<PlaybackScrubberPrivate>())
 {
 }
@@ -67,6 +66,23 @@ void PlaybackScrubber::LoadConfig(const tinyxml2::XMLElement *)
   // For shapes requests
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
+
+}
+
+//////////////////////////////////////////////////
+void PlaybackScrubber::Update(const UpdateInfo &,
+    EntityComponentManager &_ecm)
+{
+  _ecm.Each<components::LogPlaybackStatistics>(
+    [&](const Entity &_logStats,
+         const components::LogPlaybackStatistics *_logStatComp)->bool
+    {
+      ignwarn << "start time s " << _logStatComp->Data().start_time().sec() << std::endl;
+      ignwarn << "start time ns " << _logStatComp->Data().start_time().nsec() << std::endl;
+      ignwarn << "end time s " << _logStatComp->Data().end_time().sec() << std::endl;
+      ignwarn << "end time ns " << _logStatComp->Data().end_time().nsec() << std::endl;
+      return true;
+    });
 }
 
 /////////////////////////////////////////////////
