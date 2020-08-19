@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.6">
+  <world name="optical_tactile_plugin">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-sensors-system.so"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="tactile_sensor">
+      <pose>0 0 0.0030 0 1.57 -1.57</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.005 0.02 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+        <sensor name="depth_camera" type="depth_camera">
+          <update_rate>1</update_rate>
+          <topic>depth_camera</topic>
+          <pose relative_to="tactile_sensor">-0.05 0 0 0 0 0</pose>
+          <camera>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.030</near>
+              <far>10.0</far>
+            </clip>
+          </camera>
+        </sensor>
+        <sensor name="contact_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+
+      </link>
+      <static>false</static>
+      <plugin
+        filename="libignition-gazebo-opticaltactileplugin-system.so"
+        name="ignition::gazebo::systems::OpticalTactilePlugin">
+        <enabled>false</enabled>
+        <namespace>optical_tactile_sensor</namespace>
+        <visualization_resolution>1</visualization_resolution>
+        <visualize_forces>true</visualize_forces>
+        <visualize_sensor>true</visualize_sensor>
+        <force_length>0.01</force_length>
+        <extended_sensing>0.05</extended_sensing>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>
