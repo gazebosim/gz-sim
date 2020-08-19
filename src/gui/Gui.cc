@@ -54,7 +54,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays
-  qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+  if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
+  {
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+  }
 
   // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
