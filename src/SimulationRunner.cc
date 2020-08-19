@@ -182,6 +182,13 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     this->guiMsg = convert<msgs::GUI>(*_world->Gui());
   }
 
+  if (!_config.LogPlaybackPath().empty())
+  {
+    auto pluginMsg = this->guiMsg.add_plugin();
+    pluginMsg->set_name("Playback Scrubber");
+    pluginMsg->set_filename("PlaybackScrubber");
+  }
+
   std::string infoService{"gui/info"};
   this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
 
