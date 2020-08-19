@@ -49,6 +49,11 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
 }
 
 //////////////////////////////////////////////////
+OpticalTactilePluginVisualization::~OpticalTactilePluginVisualization()
+{
+}
+
+//////////////////////////////////////////////////
 void OpticalTactilePluginVisualization::InitializeSensorMarkerMsg(
   ignition::msgs::Marker &_sensorMarkerMsg)
 {
@@ -79,8 +84,8 @@ void OpticalTactilePluginVisualization::RequestSensorMarkerMsg(
   ignition::msgs::Set(sensorMarkerMsg.mutable_pose(),
     ignition::math::Pose3d(_sensorPose.Pos().X(),
       _sensorPose.Pos().Y(), _sensorPose.Pos().Z(),
-      _sensorPose.Rot().X(), _sensorPose.Rot().Y(),
-      _sensorPose.Rot().Z(), _sensorPose.Rot().W()));
+      _sensorPose.Rot().W(), _sensorPose.Rot().X(),
+      _sensorPose.Rot().Y(), _sensorPose.Rot().Z()));
 
   this->node.Request("/marker", sensorMarkerMsg);
 }
@@ -201,6 +206,22 @@ void OpticalTactilePluginVisualization::RequestNormalForcesMarkerMsgs(
 
   // Let the messages be initialized again
   this->normalForcesMsgsAreInitialized = false;
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::RemoveNormalForcesMarkers()
+{
+  ignition::msgs::Marker positionMarkerMsg;
+  ignition::msgs::Marker forceMarkerMsg;
+
+  positionMarkerMsg.set_ns("positions_" + this->modelName);
+  positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+
+  forceMarkerMsg.set_ns("forces_" + this->modelName);
+  forceMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+
+  node.Request("/marker", forceMarkerMsg);
+  node.Request("/marker", positionMarkerMsg);
 }
 
 }

@@ -110,6 +110,9 @@ namespace optical_tactile_sensor
       ignition::msgs::Marker &_positionMarkerMsg,
       ignition::msgs::Marker &_forceMarkerMsg);
 
+    /// \brief Remove normal forces markers currently in the scene
+    public: void RemoveNormalForcesMarkers();
+
     /// \brief Transport node to request the /marker service
     private: ignition::transport::Node node;
 

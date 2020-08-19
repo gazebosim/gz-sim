@@ -42,9 +42,19 @@ namespace systems
     ///
     /// Parameters:
     ///
-    /// <enabled> (todo) Set this to true so the plugin works from the start and
+    /// <enabled> Set this to true so the plugin works from the start and
     /// doesn't need to be enabled. This element is optional, and the
     /// default value is true.
+    ///
+    /// <namespace> Namespace for transport topics/services. If there are more
+    /// than one optical tactile plugins, their namespaces should be different
+    /// This element is optional, and the default value is
+    /// "optical_tactile_sensor".
+    ///             /<namespace>/enable : Service used to enable and disable the
+    ///                                   plugin.
+    ///             /<namespace>/normal_forces : Topic where a message is
+    ///                                          published each time the
+    ///                                          normal forces are computed
     ///
     /// <visualization_resolution> Number n of pixels to skip when visualizing
     /// the forces. One vector representing a normal force is computed for
