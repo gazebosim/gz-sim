@@ -38,9 +38,15 @@ ToolBar {
     to: 100
     stepSize: 0.1
     Layout.alignment: Qt.AlignVCenter
+    /*
     onValueChanged: {
       print(slider.value)
-      PlaybackScrubber.OnDrag(slider.value, slider.from, slider.to);
+    }
+    */
+    onPressedChanged: {
+      if (!pressed) {
+        PlaybackScrubber.OnDrag(slider.value, slider.from, slider.to);
+      }
     }
   }
 }

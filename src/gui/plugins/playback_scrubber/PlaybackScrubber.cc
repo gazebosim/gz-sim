@@ -42,6 +42,10 @@ namespace ignition::gazebo
 
     /// \brief Transform control service name
     public: std::string service;
+
+    public: common::Time startTime;
+    
+    public: common::Time endTime;
   };
 }
 
@@ -74,13 +78,13 @@ void PlaybackScrubber::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
   _ecm.Each<components::LogPlaybackStatistics>(
-    [&](const Entity &_logStats,
+    [this](const Entity &_logStats,
          const components::LogPlaybackStatistics *_logStatComp)->bool
     {
-      ignwarn << "start time s " << _logStatComp->Data().start_time().sec() << std::endl;
-      ignwarn << "start time ns " << _logStatComp->Data().start_time().nsec() << std::endl;
-      ignwarn << "end time s " << _logStatComp->Data().end_time().sec() << std::endl;
-      ignwarn << "end time ns " << _logStatComp->Data().end_time().nsec() << std::endl;
+      this->dataPtr->startTime.sec = _logStatComp->Data().start_time().sec();
+      this->dataPtr->startTime.nsec = _logStatComp->Data().start_time().nsec();
+      this->dataPtr->endTime.sec = _logStatComp->Data().end_time().sec();
+      this->dataPtr->endTime.nsec = _logStatComp->Data().end_time().nsec();
       return true;
     });
 }
@@ -92,6 +96,14 @@ void PlaybackScrubber::OnDrag(double value, double from, double to)
   ignwarn << "from: " << from << std::endl;
   ignwarn << "to: " << to << std::endl;
   ignwarn << "percentage: " << ((value - from)/ (to - from)) << std::endl;
+  double percentageScrolled = (value - from)/ (to - from);
+  common::Time totalTime = this->dataPtr->endTime - this->dataPtr->startTime;
+  double totalTimeDouble = totalTime.Double();
+  ignwarn << "total time as double is " << totalTimeDouble << std::endl;
+  ignwarn << "scrolled to time as double is " << totalTimeDouble * percentageScrolled << std::endl;
+  // TODO make transport request on topic /world/shapes/playback/control
+  // with message type LogPlaybackControl, possibly find a way only to do
+  // it when mouse is released
 }
 
 // Register this plugin
