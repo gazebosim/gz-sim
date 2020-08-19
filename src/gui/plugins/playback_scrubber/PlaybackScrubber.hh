@@ -47,9 +47,15 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
+    public: double CalculateProgress(const common::Time &_currentTime);
+
+    public slots: double Progress();
+
     /// \brief Callback in Qt thread when mode changes.
     /// \param[in] _mode New transform mode
     public slots: void OnDrag(double value, double from, double to);
+
+    signals: void newProgress();
 
     /// \internal
     /// \brief Pointer to private data.

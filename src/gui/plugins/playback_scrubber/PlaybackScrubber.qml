@@ -26,17 +26,32 @@ ToolBar {
   id: shapes
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
+  property var isPressed: false
+
+  function updateSliderValue() {
+    if (!shapes.isPressed)
+    {
+      print("the progress is ");
+      print(PlaybackScrubber.Progress());
+      slider.value = PlaybackScrubber.Progress();
+    }
+  }
 
   background: Rectangle {
     color: "transparent"
   }
 
+  Connections {
+    target: PlaybackScrubber
+    onNewProgress: updateSliderValue()
+  }
+
   Slider {
     id: slider
-    from: 1
-    value: 1
-    to: 100
-    stepSize: 0.1
+    from: 0
+    value: updateSliderValue()
+    to: 1
+    stepSize: 0.001
     Layout.alignment: Qt.AlignVCenter
     /*
     onValueChanged: {
@@ -44,8 +59,14 @@ ToolBar {
     }
     */
     onPressedChanged: {
-      if (!pressed) {
+      if (!pressed)
+      {
         PlaybackScrubber.OnDrag(slider.value, slider.from, slider.to);
+        shapes.isPressed = false;
+      }
+      else
+      {
+        shapes.isPressed = true;
       }
     }
   }
