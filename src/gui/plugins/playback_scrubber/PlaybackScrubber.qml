@@ -23,16 +23,14 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 ToolBar {
-  id: shapes
+  id: playbackScrubber
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
   property var isPressed: false
 
   function updateSliderValue() {
-    if (!shapes.isPressed)
+    if (!playbackScrubber.isPressed)
     {
-      print("the progress is ");
-      print(PlaybackScrubber.Progress());
       slider.value = PlaybackScrubber.Progress();
     }
   }
@@ -61,12 +59,12 @@ ToolBar {
     onPressedChanged: {
       if (!pressed)
       {
-        PlaybackScrubber.OnDrag(slider.value, slider.from, slider.to);
-        shapes.isPressed = false;
+        PlaybackScrubber.OnDrag(slider.value);
+        playbackScrubber.isPressed = false;
       }
       else
       {
-        shapes.isPressed = true;
+        playbackScrubber.isPressed = true;
       }
     }
   }

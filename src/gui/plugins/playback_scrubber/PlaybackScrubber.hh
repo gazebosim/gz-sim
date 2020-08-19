@@ -47,14 +47,24 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
+    /// \brief Calculate the percentage that `_currentTime`, eg, halfway
+    /// through the log would evaluate to 0.50
+    /// \param[in] _currentTime The current time the log playback is at
+    /// \return The progress as a percentage of how far the log playback
+    /// has advanced
     public: double CalculateProgress(const common::Time &_currentTime);
 
+    /// \brief Get the current progress as a percentage of how far the log
+    /// playback has advanced
+    /// \return The progress as a value from 0 to 1, inclusive
     public slots: double Progress();
 
-    /// \brief Callback in Qt thread when mode changes.
-    /// \param[in] _mode New transform mode
-    public slots: void OnDrag(double value, double from, double to);
+    /// \brief Callback in Qt thread when the slider is released.
+    /// \param[in] _value The current value of the slider, from 0 to 1,
+    /// inclusive
+    public slots: void OnDrag(double _value);
 
+    /// \brief Notify that progress has advanced in the log file.
     signals: void newProgress();
 
     /// \internal

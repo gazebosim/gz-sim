@@ -298,15 +298,9 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     }
   }
 
-  ignwarn << "Start time " << this->log->StartTime().count() << std::endl;
-  ignwarn << "End time " << this->log->EndTime().count() << std::endl;
-
-  // TODO create component here
   msgs::LogPlaybackStatistics logStats;
   auto startTime = convert<msgs::Time>(this->log->StartTime());
   auto endTime = convert<msgs::Time>(this->log->EndTime());
-  ignwarn << "start time: " << startTime.sec() << ", ns: " << startTime.nsec() << std::endl;
-  ignwarn << "end time: " << endTime.sec() << ", ns: " << endTime.nsec() << std::endl;
   logStats.mutable_start_time()->set_sec(startTime.sec());
   logStats.mutable_start_time()->set_nsec(startTime.nsec());
   logStats.mutable_end_time()->set_sec(endTime.sec());
@@ -320,7 +314,8 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     return false;
   }
 
-  auto currLogStatComp = _ecm.Component<components::LogPlaybackStatistics>(worldEntity);
+  auto currLogStatComp =
+    _ecm.Component<components::LogPlaybackStatistics>(worldEntity);
 
   if (currLogStatComp)
   {
