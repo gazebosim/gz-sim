@@ -2,6 +2,10 @@
 
 ### Ignition Gazebo 3.x.x (20xx-xx-xx)
 
+1. Added buoyancy system plugin.
+    * [pull request 252](https://github.com/ignitionrobotics/ign-gazebo/pull/252)
+
+
 1. Backport collision bitmask changes
     * [pull request 223](https://github.com/ignitionrobotics/ign-gazebo/pull/223)
 

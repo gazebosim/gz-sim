@@ -22,18 +22,20 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "ignition/gazebo/test_config.hh"
 
-int g_argc = 1;
-char **g_argv = new char *[g_argc];
+int gg_argc = 1;
+char **gg_argv = new char *[gg_argc];
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TEST(GuiTest, PathManager)
+// https://github.com/ignitionrobotics/ign-gazebo/issues/8
+TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
 {
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;
@@ -81,7 +83,7 @@ TEST(GuiTest, PathManager)
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   igndbg << "Paths advertised" << std::endl;
 
-  auto app = ignition::gazebo::gui::createGui(g_argc, g_argv, nullptr);
+  auto app = ignition::gazebo::gui::createGui(gg_argc, gg_argv, nullptr);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
 
