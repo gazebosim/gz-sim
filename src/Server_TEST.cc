@@ -762,21 +762,27 @@ TEST_P(ServerFixture, GetResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, CachedFuelWorld)
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  auto cachedWorldFilePath = common::joinPaths(cachedWorldPath,
-    "fuel.ignitionrobotics.org", "OpenRobotics", "worlds",
-    "Test%20world", "2", "test.sdf");
-  auto fuelWorldURL =
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
 
   ServerConfig serverConfig;
-
+  auto fuelWorldURL =
+    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   EXPECT_TRUE(serverConfig.SetSdfFile(fuelWorldURL));
-  EXPECT_EQ(cachedWorldFilePath, serverConfig.SdfFile());
+
+  EXPECT_EQ(fuelWorldURL, serverConfig.SdfFile());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+
+  // Check that world was loaded
+  auto server = Server(serverConfig);
+  EXPECT_NE(std::nullopt, server.Running(0));
+  EXPECT_FALSE(*server.Running(0));
+
+  server.Run(true /*blocking*/, 1, false/*paused*/);
+
+  EXPECT_NE(std::nullopt, server.Running(0));
+  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////

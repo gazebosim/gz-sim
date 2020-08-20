@@ -148,9 +148,7 @@ namespace ignition
       /// or more simulation worlds, each of which may or may not be
       /// running. See Running(const unsigned int) to get the running status
       /// of a world.
-      /// \param[in] _worldIndex Index of the world to query.
-      /// \return True if the server is running, or std::nullopt
-      ///  if _worldIndex is invalid.
+      /// \return True if the server is running.
       public: bool Running() const;
 
       /// \brief Get whether a world simulation instance is running. When
