@@ -64,6 +64,10 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \param[in] _req The marker message.
   public: void OnMarkerMsg(const ignition::msgs::Marker &_req);
 
+  /// \brief Callback that receives multiple marker messages.
+  /// \param[in] _req The vector of marker messages
+  public: void OnMarkerMsgArray(const ignition::msgs::Marker_V &_req);
+
   /// \brief Services callback that returns a list of markers.
   /// \param[out] _rep Service reply
   /// \return True on success.
@@ -172,6 +176,14 @@ bool MarkerManager::Init(const ignition::rendering::ScenePtr &_scene)
   {
     ignerr << "Unable to advertise to the " << this->dataPtr->topicName
            << " service.\n";
+  }
+
+  // Advertise to the marker_array service
+  if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "_array",
+        &MarkerManagerPrivate::OnMarkerMsgArray, this->dataPtr.get()))
+  {
+    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+           << "_array service.\n";
   }
 
   return true;
@@ -600,4 +612,13 @@ void MarkerManagerPrivate::OnMarkerMsg(const ignition::msgs::Marker &_req)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->markerMsgs.push_back(_req);
+}
+
+/////////////////////////////////////////////////
+void MarkerManagerPrivate::OnMarkerMsgArray(const ignition::msgs::Marker_V &_req)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  std::copy(_req.marker().begin(), _req.marker().end(),
+            std::back_inserter(this->markerMsgs));
+  ignwarn << "marker callback " << std::endl;
 }
