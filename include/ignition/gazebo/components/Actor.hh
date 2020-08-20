@@ -86,7 +86,8 @@ namespace components
       AnimationTime)
 
   /// \brief Name of animation being currently played.
-  using AnimationName = Component<std::string, class AnimationNameTag>;
+  using AnimationName = Component<std::string, class AnimationNameTag,
+      serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AnimationName",
       AnimationName)
 }

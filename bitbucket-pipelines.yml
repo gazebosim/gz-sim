@@ -26,7 +26,7 @@ pipelines:
               libignition-transport8-dev
               libsdformat9-dev
               libignition-fuel-tools4-dev
-              libignition-physics2-dev
+              libignition-physics3-dev
           #    libignition-common3-dev
           #    libignition-gui3-dev
           #    libignition-sensors3-dev
