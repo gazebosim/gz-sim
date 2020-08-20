@@ -199,8 +199,16 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   // make sure the TestModelSystem was successfully loaded.
   transport::Node node;
   msgs::StringMsg rep;
-  bool result;
-  bool executed = node.Request("/test/service", 5000, rep, result);
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /test/service" << std::endl;
+    executed = node.Request("/test/service", 100, rep, result);
+    sleep++;
+  }
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestModelSystem", rep.data());
@@ -211,7 +219,6 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetUpdateRate(10000);
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/air_pressure.sdf");
 
@@ -225,21 +232,32 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
       sdf});
 
+  igndbg << "Create server" << std::endl;
   gazebo::Server server(serverConfig);
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
 
   // Run the server
+  igndbg << "Run server" << std::endl;
   EXPECT_TRUE(server.Run(false, 0, false));
   EXPECT_FALSE(*server.Paused());
 
   // The TestSensorSystem should have created a service. Call the service to
   // make sure the TestSensorSystem was successfully loaded.
+  igndbg << "Request service" << std::endl;
   transport::Node node;
   msgs::StringMsg rep;
-  bool result;
-  bool executed = node.Request("/test/service/sensor", 5000, rep, result);
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /test/service/sensor" << std::endl;
+    executed = node.Request("/test/service/sensor", 100, rep, result);
+    sleep++;
+  }
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestSensorSystem", rep.data());
@@ -761,8 +779,16 @@ TEST_P(ServerFixture, GetResourcePaths)
 
   transport::Node node;
   msgs::StringMsg_V res;
-  bool result;
-  bool executed = node.Request("/gazebo/resource_paths/get", 5000, res, result);
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /gazebo/resource_paths/get" << std::endl;
+    executed = node.Request("/gazebo/resource_paths/get", 100, res, result);
+    sleep++;
+  }
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ(2, res.data_size());
