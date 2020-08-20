@@ -620,5 +620,4 @@ void MarkerManagerPrivate::OnMarkerMsgArray(const ignition::msgs::Marker_V &_req
   std::lock_guard<std::mutex> lock(this->mutex);
   std::copy(_req.marker().begin(), _req.marker().end(),
             std::back_inserter(this->markerMsgs));
-  ignwarn << "marker callback " << std::endl;
 }
