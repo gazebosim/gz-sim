@@ -162,39 +162,19 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
     set_nsec(this->dataPtr->markerLifetime * 1000000);
 
   // Set material properties
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_ambient()->set_g(0);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_ambient()->set_b(1);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_g(0);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_b(1);
-  this->dataPtr->
-    positionMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+  ignition::msgs::Set(
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient(),
+    ignition::math::Color(0, 0, 1, 1));
+  ignition::msgs::Set(
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse(),
+    ignition::math::Color(0, 0, 1, 1));
 
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_ambient()->set_r(0);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_ambient()->set_g(1);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_ambient()->set_b(0);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_ambient()->set_a(1);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_g(1);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_b(0);
-  this->dataPtr->
-    forceMarkerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+  ignition::msgs::Set(
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_ambient(),
+    ignition::math::Color(0, 1, 0, 1));
+  ignition::msgs::Set(
+    this->dataPtr->forceMarkerMsg.mutable_material()->mutable_diffuse(),
+    ignition::math::Color(0, 1, 0, 1));
 
   // Set contact position scale
   ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
