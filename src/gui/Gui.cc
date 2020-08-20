@@ -29,6 +29,7 @@
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "GuiFileHandler.hh"
+#include "PathManager.hh"
 
 namespace ignition
 {
@@ -39,6 +40,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 
+//////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
@@ -63,6 +65,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
+
+  auto pathManager = new ignition::gazebo::gui::PathManager();
+  pathManager->setParent(app->Engine());
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
@@ -113,7 +118,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Get list of worlds
   ignition::transport::Node node;
-
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
@@ -255,6 +259,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
       return nullptr;
     }
   }
+
   return app;
 }
 
