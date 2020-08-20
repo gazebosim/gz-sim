@@ -304,7 +304,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
   EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPluginPrivate::PreUpdate");
+  IGN_PROFILE("OpticalTactilePlugin::PreUpdate");
 
   // Nothing left to do if paused
   if (_info.paused)
@@ -350,7 +350,7 @@ void OpticalTactilePlugin::PostUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("TouchPlugin::PostUpdate");
+  IGN_PROFILE("OpticalTactilePlugin::PostUpdate");
 
   // Nothing left to do if paused or failed to initialize.
   if (_info.paused || !this->dataPtr->initialized)
@@ -555,6 +555,8 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
 ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
   const uint64_t &_i, const uint64_t &_j)
 {
+  IGN_PROFILE("OpticalTactilePlugin::MapPointCloudData");
+
   // Initialize return variable
   ignition::math::Vector3f measuredPoint(0, 0, 0);
 
@@ -599,6 +601,8 @@ ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
 bool OpticalTactilePluginPrivate::PointInsideSensor(
   ignition::math::Vector3f _point)
 {
+  IGN_PROFILE("OpticalTactilePlugin::PointInsideSensor");
+
   // Nothing left to do if failed to initialize.
   if (!this->initialized)
     return false;
@@ -627,6 +631,8 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   const ignition::msgs::PointCloudPacked &_msg,
   const bool _visualizeForces)
 {
+  IGN_PROFILE("OpticalTactilePlugin::ComputeNormalForces");
+
   // Nothing left to do if failed to initialize.
   if (!this->initialized)
     return;

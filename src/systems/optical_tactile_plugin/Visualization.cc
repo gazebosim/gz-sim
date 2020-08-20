@@ -79,8 +79,8 @@ void OpticalTactilePluginVisualization::RequestSensorMarkerMsg(
   ignition::msgs::Set(sensorMarkerMsg.mutable_pose(),
     ignition::math::Pose3d(_sensorPose.Pos().X(),
       _sensorPose.Pos().Y(), _sensorPose.Pos().Z(),
-      _sensorPose.Rot().X(), _sensorPose.Rot().Y(),
-      _sensorPose.Rot().Z(), _sensorPose.Rot().W()));
+      _sensorPose.Rot().W(), _sensorPose.Rot().X(),
+      _sensorPose.Rot().Y(), _sensorPose.Rot().Z()));
 
   this->node.Request("/marker", sensorMarkerMsg);
 }
