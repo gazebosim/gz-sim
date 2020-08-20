@@ -24,7 +24,7 @@ GridLayout {
   columns: 6
   columnSpacing: 10
   Layout.minimumWidth: 250
-  Layout.minimumHeight: 200
+  Layout.minimumHeight: 400
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
@@ -110,4 +110,10 @@ GridLayout {
     stepSize: 50
     onEditingFinished: VisualizeContacts.UpdatePeriod(updatePeriod.value)
   }
+
+  // Bottom spacer 
+  Item { 
+   Layout.columnSpan: 4 
+   Layout.fillHeight: true 
+ } 
 }
