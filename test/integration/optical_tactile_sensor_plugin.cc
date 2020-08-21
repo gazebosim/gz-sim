@@ -120,9 +120,9 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerRightNormalForce);
 
-  // Let the plugin generate data
-  server->Run(true, 1100, false);
-  // Check that there are no contacts nor forces before the plugin is enabled
+  // Let the depth camera generate data
+  server->Run(true, 1000, false);
+  // Check that there are no forces before the plugin is enabled
   EXPECT_EQ(math::Vector3f(0, 0, 0), upperRightNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), upperLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerLeftNormalForce);
@@ -136,9 +136,9 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
   EXPECT_TRUE(executed);
 
   // Let the plugin generate data again
-  server->Run(true, 1100, false);
+  server->Run(true, 2000, false);
 
-  // Check the values of the contacts and forces
+  // Check the values of the forces
   EXPECT_EQ(math::Vector3f(-1, 0, 0), upperRightNormalForce);
   EXPECT_EQ(math::Vector3f(-1, 0, 0), upperLeftNormalForce);
   EXPECT_EQ(math::Vector3f(-1, 0, 0), lowerLeftNormalForce);
