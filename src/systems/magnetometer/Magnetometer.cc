@@ -151,8 +151,8 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
           data.SetTopic(topic);
         }
         std::unique_ptr<sensors::MagnetometerSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::MagnetometerSensor>(data);
+          std::make_unique<sensors::MagnetometerSensor>();
+        sensor->Load(data);
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();

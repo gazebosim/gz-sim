@@ -155,8 +155,8 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
           data.SetTopic(topic);
         }
         std::unique_ptr<sensors::ImuSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::ImuSensor>(data);
+          std::make_unique<sensors::ImuSensor>();
+        sensor->Load(data);
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();

@@ -134,8 +134,8 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
           data.SetTopic(topic);
         }
         std::unique_ptr<sensors::AirPressureSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::AirPressureSensor>(data);
+          std::make_unique<sensors::AirPressureSensor>();
+        sensor->Load(data);
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
