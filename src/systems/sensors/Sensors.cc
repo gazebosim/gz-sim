@@ -473,7 +473,25 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   // Create within ign-sensors
-  auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
+  ignition::sensors::SensorId sensorId;
+  if (_sdf.Type() == sdf::SensorType::CAMERA)
+  {
+    std::unique_ptr<sensors::CameraSensor> cameraSensor =
+      std::make_unique<sensors::CameraSensor>();
+    cameraSensor->Load(_sdf);
+    sensorId = this->dataPtr->sensorManager.AddSensor(std::move(cameraSensor));
+  }
+  else if (_sdf.Type() == sdf::SensorType::THERMAL_CAMERA)
+  {
+    std::unique_ptr<sensors::ThermalCameraSensor> thermalCameraSensor =
+      std::make_unique<sensors::ThermalCameraSensor>();
+    thermalCameraSensor->Load(_sdf);
+    sensorId = this->dataPtr->sensorManager.AddSensor(std::move(thermalCameraSensor));
+  }
+  else
+  {
+    sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
+  }
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
 
   // Add to sensorID -> entity map
