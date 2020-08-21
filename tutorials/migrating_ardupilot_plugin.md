@@ -876,7 +876,7 @@ each propeller looks like this:
 <!-- OLD -->
 <plugin
     name="rotor_0_blade_1"
-    filename="libLiftDragPlugin.so">
+    filename="LiftDragPlugin">
   <!-- ...configuration goes here... -->
   <link_name>iris::rotor_0</link_name>
 </plugin>
