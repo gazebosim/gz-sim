@@ -223,11 +223,11 @@
 
     <include>
     <pose>0 -0.7 0 0 0 3.14</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/OfficeChairBlue </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/OfficeChairBlue</uri>
     </include>
     
     <include>
-    <pose>-1.5 0 0 0 0 1.57</pose>
+    <pose>-1.5 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/VendingMachine</uri>
     </include>
 
