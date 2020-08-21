@@ -8,10 +8,13 @@ involving this type of sensors.
 Currently, the plugin is required to work within models that have one link, one
 contact sensor and one depth camera. In order to simulate the behaviour of the
 contact surface, which returns the contact forces of the object being touched,
-we merge the information coming from these two different sensors. Contact normals to 
-the surfaces being touched are computed from the depth image. (TODO pending ExtraContactData fields from https://github.com/ignitionrobotics/ign-physics/pull/40 are exposed in ign-gazebo) Next, these
-values are merged with the information returned by the contact sensor, i.e. force 
-magnitudes, penetration and depth.
+we use the information coming from these two different sensors. Contact normals to 
+the surfaces being touched are computed from the depth image. In order to visually
+check that the plugin is working correctly, both contacts and normal forces can be visualized.
+As a [future work](#future-work), information from the contact sensor, i.e. force magnitudes,
+penetration and depth (TODO pending ExtraContactData fields from 
+https://github.com/ignitionrobotics/ign-physics/pull/40 are exposed in ign-gazebo) 
+and the depth camera could be merged.
 
 The plugin allows the user to visualize the contact normals of the objects in 
 the proximity of contact. In the next image, we can see these normals 
@@ -155,6 +158,9 @@ element is optional, and the default value is 0.001.
 - `<visualize_sensor>`: Whether to visualize the sensor or not. This element
 is optional, and the default value is false.
 
+- `<visualize_contacts>`: Whether to visualize the contacts from the contact
+sensor or not. This element is optional, and the default value is false.
+
 ### Depth camera
 There are some parameters within the depth camera that influence the way the
 plugin works:
@@ -223,6 +229,9 @@ We found the following RTFs:
 
 ## Future work
 
-A more realistic behaviour of the current sensor like noise, 
-drift and hysteresis, as well as the extraction of higher level physical 
-properties by image processing can be added.
+In order to improve the plugin, contributions are welcome in the following areas:
+- Merging data coming from contact sensor and depth camera. As an initial step,
+the coherence of the information coming from both sensors could be checked. This would
+be a helpful heuristic used as a sanity check.
+- A more realistic behaviour of the current sensor like noise, drift and hysteresis.
+- The extraction of higher level physical properties by image processing.
