@@ -43,8 +43,8 @@ set(SDF_VER ${sdformat11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
-ign_find_package(ignition-plugin1 REQUIRED COMPONENTS loader register)
-set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
+ign_find_package(ignition-plugin2 REQUIRED COMPONENTS loader register)
+set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
