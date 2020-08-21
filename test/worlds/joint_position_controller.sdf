@@ -2,11 +2,11 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -149,7 +149,7 @@
         </axis>
       </joint>
       <plugin
-        filename="libignition-gazebo-joint-position-controller-system.so"
+        filename="ignition-gazebo-joint-position-controller-system"
         name="ignition::gazebo::systems::JointPositionController">
         <joint_name>j1</joint_name>
         <p_gain>1</p_gain>
