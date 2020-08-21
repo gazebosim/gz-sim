@@ -181,6 +181,7 @@ void SensorsPrivate::WaitForInit()
     {
       // Only initialize if there are rendering sensors
       igndbg << "Initializing render context" << std::endl;
+      //TODO get rendering engine component and set here
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->initialized = true;

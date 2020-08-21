@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RenderEnginePlugin.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -97,6 +98,12 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::PhysicsEnginePlugin(
       this->runner->serverConfig.PhysicsEngine()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEnginePlugin(
+      this->runner->serverConfig.RenderEngine()));
+
+  ignwarn << "Creating rendering engine plugin component " << std::endl;
 
   auto worldElem = this->runner->sdfWorld->Element();
 

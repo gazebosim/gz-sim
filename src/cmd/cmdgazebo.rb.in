@@ -107,6 +107,12 @@ COMMANDS = { 'gazebo' =>
   "                              Make sure custom plugins are in            \n"\
   "                              IGN_GAZEBO_PHYSICS_ENGINE_PATH.            \n"\
   "\n"\
+  "  --render-engine [arg]      Ignition Rendering engine plugin to load.   \n"\
+  "                              Gazebo will use OGRE by default.           \n"\
+  "                              (TODO enter name here)                     \n"\
+  "                              Make sure custom plugins are in            \n"\
+  "                              IGN_GAZEBO_RENDERING_ENGINE_PATH.            \n"\
+  "\n"\
   "  --version                   Print Gazebo version information.          \n"\
   "\n"\
   "  -z [arg]                    Update rate in Hertz.                      \n"\
@@ -181,7 +187,8 @@ class Cmd
       'server' => 0,
       'verbose' => '1',
       'gui_config' => '',
-      'physics_engine' => ''
+      'physics_engine' => '',
+      'render_engine' => ''
     }
 
     usage = COMMANDS[args[0]]
@@ -244,6 +251,9 @@ class Cmd
       end
       opts.on('--physics-engine [arg]', String) do |e|
         options['physics_engine'] = e
+      end
+      opts.on('--render-engine [arg]', String) do |f|
+        options['render_engine'] = f
       end
       opts.on('--version') do
         options['version'] = '1'
@@ -358,6 +368,12 @@ class Cmd
                                int, int, int, const char *, const char *,
                                const char *)'
 
+      # Import the runServerWithRender function
+      Importer.extern 'int runServerWithRender(const char *, int, int, float, int,
+                               const char *, int, int, const char *,
+                               int, int, int, const char *, const char *,
+                               const char *, const char *)'
+
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
 
@@ -369,13 +385,13 @@ class Cmd
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
           Process.setproctitle('ign gazebo server')
-          Importer.runServer(parsed, options['iterations'], options['run'],
+          Importer.runServerWithRender(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
-            options['file'])
+            options['render_engine'], options['file'])
         end
 
         guiPid = Process.fork do
@@ -403,13 +419,13 @@ class Cmd
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1
         ENV['RMT_PORT'] = '1500'
-        Importer.runServer(parsed, options['iterations'], options['run'],
+        Importer.runServerWithRender(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
-            options['file'])
+            options['render_engine'], options['file'])
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'

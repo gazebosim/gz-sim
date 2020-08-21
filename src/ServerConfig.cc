@@ -222,6 +222,7 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
+            renderEngine(_cfg->renderEngine),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -264,6 +265,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief File containing physics engine plugin. If empty, DART will be used.
   public: std::string physicsEngine = "";
+
+  /// \brief File containing render engine plugin. If empty, OGRE will be used.
+  public: std::string renderEngine = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -499,9 +503,21 @@ const std::string &ServerConfig::PhysicsEngine() const
 }
 
 /////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngine() const
+{
+  return this->dataPtr->renderEngine;
+}
+
+/////////////////////////////////////////////////
 void ServerConfig::SetPhysicsEngine(const std::string &_physicsEngine)
 {
   this->dataPtr->physicsEngine = _physicsEngine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngine(const std::string &_renderEngine)
+{
+  this->dataPtr->renderEngine = _renderEngine;
 }
 
 /////////////////////////////////////////////////
