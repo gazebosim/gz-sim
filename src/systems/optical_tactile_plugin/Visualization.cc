@@ -91,6 +91,57 @@ void OpticalTactilePluginVisualization::RequestSensorMarkerMsg(
 }
 
 //////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::InitializeContactsMarkerMsg(
+  ignition::msgs::Marker &_contactsMarkerMsg)
+{
+  // Initialize the marker for visualizing the contacts as red lines
+  _contactsMarkerMsg.set_ns("contacts_" + this->modelName);
+  _contactsMarkerMsg.set_id(1);
+  _contactsMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  _contactsMarkerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
+  _contactsMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+
+  ignition::msgs::Set(_contactsMarkerMsg.mutable_material()->
+    mutable_ambient(), math::Color(1, 0, 0, 1));
+  ignition::msgs::Set(_contactsMarkerMsg.mutable_material()->
+    mutable_diffuse(), math::Color(1, 0, 0, 1));
+  _contactsMarkerMsg.mutable_lifetime()->set_sec(1);
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::AddContactToMarkerMsg(
+  ignition::msgs::Contact const &_contact,
+  ignition::msgs::Marker &_contactMarkerMsg)
+{
+  // todo(anyone) once available, use normal field in the message
+  ignition::math::Vector3d contactNormal(0, 0, 0.03);
+
+  for (auto const &position : _contact.position())
+  {
+    ignition::math::Vector3d firstPoint = ignition::msgs::Convert(position);
+    ignition::math::Vector3d secondPoint = firstPoint + contactNormal;
+
+    ignition::msgs::Set(_contactMarkerMsg.add_point(), firstPoint);
+    ignition::msgs::Set(_contactMarkerMsg.add_point(), secondPoint);
+  }
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::RequestContactsMarkerMsg(
+  const components::ContactSensorData *_contacts)
+{
+  ignition::msgs::Marker contactsMarkerMsg;
+  this->InitializeContactsMarkerMsg(contactsMarkerMsg);
+
+  for (const auto &contact : _contacts->Data().contact())
+  {
+    this->AddContactToMarkerMsg(contact, contactsMarkerMsg);
+  }
+
+  this->node.Request("/marker", contactsMarkerMsg);
+}
+
+//////////////////////////////////////////////////
 void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   ignition::msgs::Marker &_positionMarkerMsg,
   ignition::msgs::Marker &_forceMarkerMsg)
@@ -201,18 +252,19 @@ void OpticalTactilePluginVisualization::RequestNormalForcesMarkerMsgs(
   ignition::msgs::Marker &_positionMarkerMsg,
   ignition::msgs::Marker &_forceMarkerMsg)
 {
-  this->node.Request("/marker", _forceMarkerMsg);
   this->node.Request("/marker", _positionMarkerMsg);
+  this->node.Request("/marker", _forceMarkerMsg);
 
   // Let the messages be initialized again
   this->normalForcesMsgsAreInitialized = false;
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginVisualization::RemoveNormalForcesMarkers()
+void OpticalTactilePluginVisualization::RemoveNormalForcesAndContactsMarkers()
 {
   ignition::msgs::Marker positionMarkerMsg;
   ignition::msgs::Marker forceMarkerMsg;
+  ignition::msgs::Marker contactMarkerMsg;
 
   positionMarkerMsg.set_ns("positions_" + this->modelName);
   positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
@@ -220,8 +272,12 @@ void OpticalTactilePluginVisualization::RemoveNormalForcesMarkers()
   forceMarkerMsg.set_ns("forces_" + this->modelName);
   forceMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
 
-  node.Request("/marker", forceMarkerMsg);
+  contactMarkerMsg.set_ns("contacts_" + this->modelName);
+  contactMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+
   node.Request("/marker", positionMarkerMsg);
+  node.Request("/marker", forceMarkerMsg);
+  node.Request("/marker", contactMarkerMsg);
 }
 
 }

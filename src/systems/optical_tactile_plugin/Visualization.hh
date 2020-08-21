@@ -24,6 +24,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
+#include "ignition/gazebo/components/ContactSensorData.hh"
 
 namespace ignition
 {
@@ -72,6 +73,25 @@ namespace optical_tactile_sensor
     public: void RequestSensorMarkerMsg(
       ignition::math::Pose3f const &_sensorPose);
 
+    /// \brief Initialize the marker message representing the contacts from the
+    /// contact sensor
+    /// \param[out] _contactsMarkerMsg Message for visualizing the contacts
+    private: void InitializeContactsMarkerMsg(
+      ignition::msgs::Marker &_contactsMarkerMsg);
+
+    /// \brief Add a contact to the marker message representing the contacts
+    /// from the contact sensor
+    /// \param[in] _contact Contact to be added
+    /// \param[out] _contactsMarkerMsg Message for visualizing the contacts
+    public: void AddContactToMarkerMsg(
+      ignition::msgs::Contact const &_contact,
+      ignition::msgs::Marker &_contactsMarkerMsg);
+
+    /// \brief Request the "/marker" service for the contacts marker.
+    /// \param[in] _contacts Contacts to visualize
+    public: void RequestContactsMarkerMsg(
+      components::ContactSensorData const *_contacts);
+
     /// \brief Initialize the marker messages representing the normal forces
     /// \param[out] _positionMarkerMsg Message for visualizing the contact
     /// positions
@@ -110,8 +130,8 @@ namespace optical_tactile_sensor
       ignition::msgs::Marker &_positionMarkerMsg,
       ignition::msgs::Marker &_forceMarkerMsg);
 
-    /// \brief Remove normal forces markers currently in the scene
-    public: void RemoveNormalForcesMarkers();
+    /// \brief Remove normal forces and contact markers currently in the scene
+    public: void RemoveNormalForcesAndContactsMarkers();
 
     /// \brief Transport node to request the /marker service
     private: ignition::transport::Node node;

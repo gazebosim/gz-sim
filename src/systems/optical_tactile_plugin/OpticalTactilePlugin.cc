@@ -94,6 +94,9 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// \brief Whether to visualize the normal forces.
   public: bool visualizeForces{false};
 
+  /// \brief Whether to visualize the contacts.
+  public: bool visualizeContacts{false};
+
   /// \brief Model interface.
   public: Model model{kNullEntity};
 
@@ -231,6 +234,16 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   else
   {
     this->dataPtr->visualizeForces = _sdf->Get<bool>("visualize_forces");
+  }
+
+  if (!_sdf->HasElement("visualize_contacts"))
+  {
+    ignlog << "Missing parameter <visualize_contacts>, "
+      << "setting to " << this->dataPtr->visualizeContacts << std::endl;
+  }
+  else
+  {
+    this->dataPtr->visualizeContacts = _sdf->Get<bool>("visualize_contacts");
   }
 
   if (!_sdf->HasElement("extended_sensing"))
@@ -390,7 +403,7 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void OpticalTactilePlugin::PostUpdate(
   const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+  const ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("TouchPlugin::PostUpdate");
 
@@ -399,6 +412,18 @@ void OpticalTactilePlugin::PostUpdate(
     return;
 
   // TODO(anyone) Get ContactSensor data and merge it with DepthCamera data
+
+  if (this->dataPtr->visualizeContacts)
+  {
+    auto* contacts =
+      _ecm.Component<components::ContactSensorData>(
+        this->dataPtr->sensorCollisionEntity);
+
+    if (contacts)
+    {
+      this->dataPtr->visualizePtr->RequestContactsMarkerMsg(contacts);
+    }
+  }
 
   // Process camera message if it's new
   {
@@ -565,8 +590,7 @@ void OpticalTactilePluginPrivate::Enable(const bool _enable)
 
   if (!_enable)
   {
-    // We don't remove the sensor marker because that's a plugin parameter
-    this->visualizePtr->RemoveNormalForcesMarkers();
+    this->visualizePtr->RemoveNormalForcesAndContactsMarkers();
   }
 }
 

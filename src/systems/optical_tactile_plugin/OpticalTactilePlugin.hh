@@ -75,6 +75,9 @@ namespace systems
     ///
     /// <visualize_sensor> Whether to visualize the sensor or not. This element
     /// is optional, and the default value is false.
+    ///
+    /// <visualize_contacts> Whether to visualize the contacts from the contact
+    /// sensor or not. This element is optional, and the default value is false.
 
     class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
       public System,

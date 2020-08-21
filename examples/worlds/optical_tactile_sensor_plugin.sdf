@@ -196,7 +196,7 @@
         </sensor>
 
       </link>
-      <static>true</static>
+      <static>false</static>
       <plugin
         filename="libignition-gazebo-opticaltactileplugin-system.so"
         name="ignition::gazebo::systems::OpticalTactilePlugin">
@@ -207,6 +207,7 @@
         <visualize_sensor>true</visualize_sensor>
         <force_length>0.01</force_length>
         <extended_sensing>0.001</extended_sensing>
+        <visualize_contacts>true</visualize_contacts>
       </plugin>
     </model>
 
