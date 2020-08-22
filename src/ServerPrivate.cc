@@ -387,25 +387,56 @@ void ServerPrivate::SetupTransport()
 {
   // Advertise available worlds.
   std::string worldsService{"/gazebo/worlds"};
-  this->node.Advertise(worldsService, &ServerPrivate::WorldsService, this);
-
-  ignmsg << "Serving world names on [" << worldsService << "]" << std::endl;
+  if (this->node.Advertise(worldsService, &ServerPrivate::WorldsService, this))
+  {
+    ignmsg << "Serving world names on [" << worldsService << "]" << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << worldsService
+           << "]" << std::endl;
+  }
 
   // Resource path management
   std::string addPathService{"/gazebo/resource_paths/add"};
-  this->node.Advertise(addPathService,
-      &ServerPrivate::AddResourcePathsService, this);
+  if (this->node.Advertise(addPathService,
+      &ServerPrivate::AddResourcePathsService, this))
+  {
+    ignmsg << "Resource path add service on [" << addPathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << addPathService
+           << "]" << std::endl;
+  }
 
   std::string getPathService{"/gazebo/resource_paths/get"};
-  this->node.Advertise(getPathService,
-      &ServerPrivate::ResourcePathsService, this);
+  if (this->node.Advertise(getPathService,
+      &ServerPrivate::ResourcePathsService, this))
+  {
+    ignmsg << "Resource path get service on [" << addPathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << getPathService
+           << "]" << std::endl;
+  }
 
   std::string pathTopic{"/gazebo/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
 
-  ignmsg << "Resource path interfaces on [" << addPathService
-         << "], [" << getPathService << "], and [" << pathTopic << "]."
-         << std::endl;
+  if (this->pathPub)
+  {
+    ignmsg << "Resource paths published on [" << pathTopic << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << pathTopic
+           << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
