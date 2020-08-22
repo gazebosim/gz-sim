@@ -20,33 +20,25 @@ classes and functions designed for robotic applications.
 
 # Table of Contents
 
-[Features](#markdown-header-features)
+[Features](#features)
 
-[Install](#markdown-header-install)
+[Install](#install)
 
-* [Binary Install](#markdown-header-binary-install)
+[Usage](#usage)
 
-* [Source Install](#markdown-header-source-install)
+[Documentation](#documentation)
 
-    * [Prerequisites](#markdown-header-prerequisites)
+[Testing](#testing)
 
-    * [Building from Source](#markdown-header-building-from-source)
+[Folder Structure](#folder-structure)
 
-[Usage](#markdown-header-usage)
+[Code of Conduct](#code-of-conduct)
 
-[Documentation](#markdown-header-documentation)
+[Contributing](#code-of-contributing)
 
-[Testing](#markdown-header-testing)
+[Versioning](#versioning)
 
-[Folder Structure](#markdown-header-folder-structure)
-
-[Code of Conduct](#markdown-header-code-of-conduct)
-
-[Contributing](#markdown-header-code-of-contributing)
-
-[Versioning](#markdown-header-versioning)
-
-[License](#markdown-header-license)
+[License](#license)
 
 # Features
 
@@ -60,69 +52,7 @@ Math types.
 
 # Install
 
-We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get up and running as quickly and painlessly as possible.
-
-The [Source Install](#markdown-header-source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
-
-## Binary Install
-
-On Ubuntu systems, `apt-get` can be used to install `ignition-math`:
-
-```
-sudo apt install libignition-math<#>-dev
-```
-
-Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
-which version you need.
-
-## Source Install
-
-Source installation can be performed in UNIX systems by first installing the
-necessary prerequisites followed by building from source.
-
-### Prerequisites
-
-The optional Eigen component of Ignition Math requires:
-
-  * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). Refer to the [Eigen Documentation](http://eigen.tuxfamily.org/index.php?title=Main_Page#Documentation) for installation instructions. On Ubuntu systems, `apt-get` can be used to install Eigen:
-
-    ```
-    sudo apt-get install libeigen3-dev
-    ```
-
-The optional Ruby tests of Ignition Math require:
-
- * [Ruby](https://www.ruby-lang.org/). Refer to the [Ruby Documentation](https://www.ruby-lang.org/downloads/) for installation instructions. On Ubuntu systems `apt-get` can be used to install Ubuntu Package `ruby-dev`:
-
-    ```
-    sudo apt-get install ruby-dev
-    ```
-
-  * [Swig](http://www.swig.org/). Refer to the [Swig Documentation](http://www.swig.org/download.html) for installation instructions. On Ubuntu systems `apt-get` can be used to install Swig:
-
-    ```
-    sudo apt-get install swig
-    ```
-
-### Building from source
-
-1. Clone the repository
-
-    ```
-    git clone https://github.com/ignitionrobotics/ign-math
-    ```
-
-2. Configure and build
-
-    ```
-    cd ign-math; mkdir build; cd build; cmake ..; make
-    ```
-
-3. Optionally, install Ignition Math
-
-    ```
-    sudo make install
-    ```
+See the [installation tutorial](https://ignitionrobotics.org/api/math/6.6/install.html).
 
 # Usage
 
@@ -162,7 +92,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 
-1. Follow the [source install instruction](#markdown-header-source-install).
+1. Follow the [source install instruction](https://ignitionrobotics.org/libs/math#source-install).
 
 2. Run tests.
 
