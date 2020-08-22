@@ -166,9 +166,6 @@ class Plotting : public ignition::gazebo::GuiSystem
                                                 std::string _attribute,
                                                 int _chart);
 
-  /// \brief send data to Qml to plot
-  public slots: void UpdateGui();
-
   /// \brief dataPtr holds Abstraction data of PlottingPrivate
   private: std::unique_ptr<PlottingPrivate> dataPtr;
 };

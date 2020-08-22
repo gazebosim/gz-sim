@@ -26,8 +26,6 @@ namespace ignition::gazebo
     public: ignition::gui::PlottingInterface *plottingIface;
 
     public: std::map<std::string, PlotComponent*> components;
-
-    public: QTimer *timer;
   };
 
   class PlotComponentPrivate
@@ -142,13 +140,6 @@ Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 {
   this->dataPtr->plottingIface = new ignition::gui::PlottingInterface();
 
-  // Plot Timer
-  this->dataPtr->timer = new QTimer();
-  auto timeout = this->dataPtr->plottingIface->Timeout();
-  this->dataPtr->timer->setInterval(timeout);
-  connect(this->dataPtr->timer, SIGNAL(timeout()), this, SLOT(UpdateGui()));
-  this->dataPtr->timer->start();
-
   // PlottingInterface connecting
   connect(this->dataPtr->plottingIface, SIGNAL(ComponentSubscribe
               (uint64_t, uint64_t, std::string, std::string, int)),
@@ -227,7 +218,7 @@ void Plotting::UnRegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
 }
 
 //////////////////////////////////////////////////
-void Plotting ::Update(const ignition::gazebo::UpdateInfo &,
+void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
                        ignition::gazebo::EntityComponentManager &_ecm)
 {
   for (auto component : this->dataPtr->components)
@@ -340,27 +331,21 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &,
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-  }
-}
 
-//////////////////////////////////////////////////
-void Plotting ::UpdateGui()
-{
-  // Complexty O(registered attributes)
-  for (auto component : this->dataPtr->components)
-  {
     for (auto attribute : component.second->Data())
     {
       for (auto chart : attribute.second->Charts())
       {
         QString attributeName = QString::fromStdString(
                     component.first + "," + attribute.first);
-        float x = this->dataPtr->plottingIface->Time();
         double y = attribute.second->Value();
+
+        double x = _info.simTime.count() * std::pow(10, -9);
 
         emit this->dataPtr->plottingIface->plot(chart, attributeName, x, y);
       }
     }
+
   }
 }
 
