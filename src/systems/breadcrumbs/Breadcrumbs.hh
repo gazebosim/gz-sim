@@ -52,7 +52,6 @@ namespace systems
   /// accomplished by creating a <model> that includes the Fuel model using the
   /// <include> tag. See the example in examples/worlds/breadcrumbs.sdf.
   ///
-  ///
   /// System Paramters
   ///
   /// `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is not
