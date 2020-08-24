@@ -116,6 +116,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Initialization flag
     public: bool initialized{false};
 
+    /// \brief Reset visual flag
+    public: bool resetVisual{false};
+
     /// \brief lidar visual display dirty flag
     public: bool visualDirty{false};
 
@@ -231,6 +234,11 @@ bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 
     if (this->dataPtr->lidar)
     {
+      if (this->dataPtr->resetVisual)
+      {
+        this->dataPtr->lidar->ClearPoints();
+        this->dataPtr->resetVisual = false;
+      }
       if (this->dataPtr->visualDirty)
       {
         this->dataPtr->lidar->SetWorldPose(this->dataPtr->lidarPose);
@@ -368,7 +376,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   this->dataPtr->topicName = _topicName.toStdString();
 
   // Reset visualization
-  this->ResetLidarVisual();
+  this->dataPtr->resetVisual = true;
 
   // Create new subscription
   if (!this->dataPtr->node.Subscribe(this->dataPtr->topicName,
@@ -378,6 +386,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
            << this->dataPtr->topicName << "]\n";
     return;
   }
+  this->dataPtr->visualDirty = false;
   ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
 }
 
@@ -496,12 +505,6 @@ void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
       }
     }
   }
-}
-
-//////////////////////////////////////////////////
-void VisualizeLidar::ResetLidarVisual()
-{
-  this->dataPtr->lidar->ClearPoints();
 }
 
 //////////////////////////////////////////////////

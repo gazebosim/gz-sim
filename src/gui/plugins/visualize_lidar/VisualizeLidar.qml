@@ -33,7 +33,8 @@ GridLayout {
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     id: displayVisual
-    Layout.columnSpan: 3
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
     text: qsTr("Display Lidar Visual")
     checked: true
     onClicked: {
@@ -44,7 +45,8 @@ GridLayout {
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     id: displayNonHitting
-    Layout.columnSpan: 3
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
     text: qsTr("Show Non Hitting Rays")
     checked: true
     onClicked: {

@@ -83,15 +83,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in]_msg LidarSensor message
     public: void OnScan(const msgs::LaserScan &_msg);
 
-    /// \brief Reset and clear visual
-    void ResetLidarVisual();
-
     /// \brief Load the scene and attach LidarVisual to the scene
     public: void LoadLidar();
 
     /// \brief Set visual type of LidarVisual
     /// \param[in] _type Index of selected visual type
-    public slots: void UpdateType(int _type);
+    public: Q_INVOKABLE void UpdateType(int _type);
 
     /// \brief Get the topic list as a string
     /// \return Message type
@@ -111,14 +108,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Set whether to display non-hitting rays
     /// \param[in] _value Boolean value for displaying non hitting rays
-    public slots: void UpdateNonHitting(bool _value);
+    public: Q_INVOKABLE void UpdateNonHitting(bool _value);
 
     /// \brief Set whether to display the lidar visual
     /// \param[in] _value Boolean value for displaying the visual
-    public slots: void DisplayVisual(bool _value);
+    public: Q_INVOKABLE void DisplayVisual(bool _value);
 
     /// \brief Callback when refresh button is pressed.
-    public slots: void OnRefresh();
+    public: Q_INVOKABLE void OnRefresh();
 
     /// \brief Notify that minimum range has changed
     signals: void MinRangeChanged();
