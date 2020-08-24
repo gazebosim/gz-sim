@@ -21,13 +21,8 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Uuid.hh>
-#include <ignition/common/VideoEncoder.hh>
 
 #include <ignition/plugin/Register.hh>
 
@@ -82,7 +77,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: rendering::LidarVisualPtr lidar;
 
     /// \brief Visual type for lidar visual
-    public: rendering::LidarVisualType visualType;
+    public: rendering::LidarVisualType visualType{
+                              rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
 
     /// \brief URI sequence to the lidar link
     public: std::string lidarString{""};
@@ -97,16 +93,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: bool checkboxState{false};
 
     /// \brief Topic name to subscribe
-    public: std::string topicName;
+    public: std::string topicName{""};
+
+    /// \brief List of topics publishing LaserScan messages.
+    public: QStringList topicList;
 
     /// \brief Entity representing the sensor in the world
     public: gazebo::Entity lidarEntity;
 
     /// \brief Minimum range for the visual
-    public: double minVisualRange;
+    public: double minVisualRange{0.0};
 
     /// \brief Maximum range for the visual
-    public: double maxVisualRange;
+    public: double maxVisualRange{0.0};
 
     /// \brief Mutex for variable mutated by the checkbox and spinboxes
     /// callbacks.
@@ -121,7 +120,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: bool visualDirty{false};
 
     /// \brief lidar sensor entity dirty flag
-    public: bool lidarEntityDirty{false};
+    public: bool lidarEntityDirty{true};
 
     /// \brief Name of the world
     public: std::string worldName;
@@ -190,14 +189,16 @@ void VisualizeLidar::LoadLidar()
   this->dataPtr->lidar = scene->CreateLidarVisual();
   if (!this->dataPtr->lidar)
   {
-    ignwarn << "Failed to create lidar, lidar visual plugin won't work."
+    ignwarn << "Failed to create lidar, visualize lidar plugin won't work."
             << std::endl;
+
+    this->dataPtr->lidar->Destroy();
 
     ignition::gui::App()->findChild<
         ignition::gui::MainWindow *>()->removeEventFilter(this);
     return;
   }
-  if (this->dataPtr->lidar)
+  else
   {
     root->AddChild(this->dataPtr->lidar);
     this->dataPtr->initialized = true;
@@ -274,7 +275,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
       {
         auto parent = baseEntity;
         bool success = false;
-        for (auto i = 0ul; i < lidarURIVec.size()-1; i++)
+        for (size_t i = 0u; i < lidarURIVec.size()-1; i++)
         {
           auto children = _ecm.EntitiesByComponents(
                             components::ParentEntity(parent));
@@ -295,14 +296,14 @@ void VisualizeLidar::Update(const UpdateInfo &,
               break;
             }
           }
-          if (foundChild == false)
+          if (!foundChild)
           {
             ignerr << "The entity could not be found."
                   << "Error displaying lidar visual" <<std::endl;
             return;
           }
         }
-        if (success == true)
+        if (success)
         {
           this->dataPtr->lidarEntity = parent;
           this->dataPtr->lidarEntityDirty = false;
@@ -310,7 +311,15 @@ void VisualizeLidar::Update(const UpdateInfo &,
       }
     }
   }
-  if (this->dataPtr->lidarEntity)
+
+  // Only update lidarPose if the lidarEntity exists and the lidar is initialized
+  // and the sensor message is yet to arrive.
+  //
+  // If we update the worldpose on the physics thread **after** the sensor
+  // data arrives, the visual is offset from the obstacle if the sensor is
+  // moving fast.
+  if (!this->dataPtr->lidarEntityDirty && this->dataPtr->initialized &&
+                                          !this->dataPtr->visualDirty)
   {
     this->dataPtr->lidarPose = worldPose(this->dataPtr->lidarEntity, _ecm);
   }
@@ -320,31 +329,42 @@ void VisualizeLidar::Update(const UpdateInfo &,
 void VisualizeLidar::UpdateType(int _type)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  switch (_type) {
-    case 0: this->dataPtr->visualType =
-                      rendering::LidarVisualType::LVT_NONE;
-            break;
-    case 1: this->dataPtr->visualType =
-                      rendering::LidarVisualType::LVT_RAY_LINES;
-            break;
-    case 2: this->dataPtr->visualType =
-                      rendering::LidarVisualType::LVT_POINTS;
-            break;
-    case 3: this->dataPtr->visualType =
-                      rendering::LidarVisualType::LVT_TRIANGLE_STRIPS;
-            break;
-    default: this->dataPtr->visualType =
-                      rendering::LidarVisualType::LVT_TRIANGLE_STRIPS;
-            break;
+  switch (_type)
+  {
+    case 0:
+      this->dataPtr->visualType = rendering::LidarVisualType::LVT_NONE;
+      break;
+
+    case 1:
+      this->dataPtr->visualType = rendering::LidarVisualType::LVT_RAY_LINES;
+      break;
+
+    case 2:
+      this->dataPtr->visualType = rendering::LidarVisualType::LVT_POINTS;
+      break;
+
+    case 3:
+      this->dataPtr->visualType =
+                            rendering::LidarVisualType::LVT_TRIANGLE_STRIPS;
+      break;
+
+    default:
+      this->dataPtr->visualType =
+                            rendering::LidarVisualType::LVT_TRIANGLE_STRIPS;
+      break;
   }
   this->dataPtr->lidar->SetType(this->dataPtr->visualType);
 }
 
 //////////////////////////////////////////////////
-void VisualizeLidar::SetTopicName(const QString &_topicName)
+void VisualizeLidar::OnTopic(const QString &_topicName)
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
-  this->dataPtr->node.Unsubscribe(this->dataPtr->topicName);
+  if (!this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
+  {
+    ignerr << "Unable to unsubscribe from topic ["
+           << this->dataPtr->topicName <<"]" <<std::endl; 
+  }
   this->dataPtr->topicName = _topicName.toStdString();
 
   // Reset visualization
@@ -354,18 +374,11 @@ void VisualizeLidar::SetTopicName(const QString &_topicName)
   if (!this->dataPtr->node.Subscribe(this->dataPtr->topicName,
                             &VisualizeLidar::OnScan, this))
   {
-    ignerr << "Input subscriber could not be created for topic ["
+    ignerr << "Unable to subscribe to topic ["
            << this->dataPtr->topicName << "]\n";
     return;
   }
   ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
-  this->TopicNameChanged();
-}
-
-//////////////////////////////////////////////////
-QString VisualizeLidar::TopicName() const
-{
-  return QString::fromStdString(this->dataPtr->topicName);
 }
 
 //////////////////////////////////////////////////
@@ -373,6 +386,68 @@ void VisualizeLidar::UpdateNonHitting(bool _value)
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetDisplayNonHitting(_value);
+}
+
+//////////////////////////////////////////////////
+void VisualizeLidar::DisplayVisual(bool _value)
+{
+  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  if (!_value)
+  {
+    ignmsg << "Lidar Visual Display OFF." << std::endl;
+    this->dataPtr->lidar->SetType(rendering::LidarVisualType::LVT_NONE);
+  }
+  else
+  {
+    ignmsg << "Lidar Visual Display ON." << std::endl;
+    this->dataPtr->lidar->SetType(this->dataPtr->visualType);
+  }
+}
+
+/////////////////////////////////////////////////
+void VisualizeLidar::OnRefresh()
+{
+  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  ignmsg << "Refreshing topic list for LaserScan messages." << std::endl;
+
+  // Clear
+  this->dataPtr->topicList.clear();
+
+  // Get updated list
+  std::vector<std::string> allTopics;
+  this->dataPtr->node.TopicList(allTopics);
+  for (auto topic : allTopics)
+  {
+    std::vector<transport::MessagePublisher> publishers;
+    this->dataPtr->node.TopicInfo(topic, publishers);
+    for (auto pub : publishers)
+    {
+      if (pub.MsgTypeName() == "ignition.msgs.LaserScan")
+      {
+        this->dataPtr->topicList.push_back(QString::fromStdString(topic));
+        break;
+      }
+    }
+  }
+  if (this->dataPtr->topicList.size() > 0)
+  {
+    this->OnTopic(this->dataPtr->topicList.at(0));
+  }
+
+  this->TopicListChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList VisualizeLidar::TopicList() const
+{
+  return this->dataPtr->topicList;
+}
+
+/////////////////////////////////////////////////
+void VisualizeLidar::SetTopicList(const QStringList &_topicList)
+{
+  this->dataPtr->topicList = _topicList;
+  this->TopicListChanged();
 }
 
 //////////////////////////////////////////////////
@@ -416,6 +491,7 @@ void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
           this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
           this->MinRangeChanged();
           this->MaxRangeChanged();
+          break;
         }
       }
     }

@@ -233,7 +233,6 @@
           <visualize>true</visualize>
         </sensor>
       </link>
-
       <static>true</static>
     </model>
 
@@ -473,14 +472,11 @@
         <wheel_radius>0.3</wheel_radius>
         <odom_publish_frequency>1</odom_publish_frequency>
       </plugin>
-
     </model>
 
     <include>
       <pose>0 0 0 0 0 1.57</pose>
-      <uri>
-      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Playground
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Playground</uri>
     </include>
 
   </world>

@@ -41,12 +41,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   {
     Q_OBJECT
 
-    /// \brief Message topic
+    /// \brief Topic list
     Q_PROPERTY(
-      QString topicName
-      READ TopicName
-      WRITE SetTopicName
-      NOTIFY TopicNameChanged
+      QStringList topicList
+      READ TopicList
+      WRITE SetTopicList
+      NOTIFY TopicListChanged
     )
 
     /// \brief Min Range
@@ -93,25 +93,37 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in] _type Index of selected visual type
     public slots: void UpdateType(int _type);
 
+    /// \brief Get the topic list as a string
+    /// \return Message type
+    public: Q_INVOKABLE QStringList TopicList() const;
+
+    /// \brief Set the topic list from a string, for example
+    /// 'ignition.msgs.StringMsg'
+    /// \param[in] _topicList Message type
+    public: Q_INVOKABLE void SetTopicList(const QStringList &_topicList);
+
+    /// \brief Notify that topic list has changed
+    signals: void TopicListChanged();
+
     /// \brief Set topic to subscribe for LidarSensor data
     /// \param[in] _topicName Name of selected topic
-    public: Q_INVOKABLE void SetTopicName(const QString &_topicName);
-
-    /// \brief Get the name of the topic currently beign visualised.
-    /// \return Name such as "/lidar"
-    public: Q_INVOKABLE QString TopicName() const;
+    public: Q_INVOKABLE void OnTopic(const QString &_topicName);
 
     /// \brief Set whether to display non-hitting rays
     /// \param[in] _value Boolean value for displaying non hitting rays
     public slots: void UpdateNonHitting(bool _value);
 
-    /// \brief Notify that topic name has changed
-    signals: void TopicNameChanged();
+    /// \brief Set whether to display the lidar visual
+    /// \param[in] _value Boolean value for displaying the visual
+    public slots: void DisplayVisual(bool _value);
 
-    /// \brief Notify that topic name has changed
+    /// \brief Callback when refresh button is pressed.
+    public slots: void OnRefresh();
+
+    /// \brief Notify that minimum range has changed
     signals: void MinRangeChanged();
 
-    /// \brief Notify that topic name has changed
+    /// \brief Notify that maximum range has changed
     signals: void MaxRangeChanged();
 
     /// \brief Get the maximum range of the lidar sensor (in metres).
