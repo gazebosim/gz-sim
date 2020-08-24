@@ -52,6 +52,7 @@ namespace systems
   /// accomplished by creating a <model> that includes the Fuel model using the
   /// <include> tag. See the example in examples/worlds/breadcrumbs.sdf.
   ///
+  ///
   /// System Paramters
   ///
   /// `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is not
@@ -63,7 +64,8 @@ namespace systems
   /// have no effect. If a negative number is set, the maximum deployment will
   /// be unbounded. If a value of zero is used, then the breadcrumb system will
   /// be disabled. A zero value is useful for situations where SDF files are
-  /// programmatically created.
+  /// programmatically created. The remaining deployment count is available on
+  /// the `<topic>/remaining` topic.
   /// `<disable_physics_time>`: The time in which the breadcrumb entity's
   /// dynamics remain enabled. After his specified time, the breadcrumb will
   /// be made static. If this value is <= 0 or the param is not specified, the
@@ -158,6 +160,9 @@ namespace systems
 
     /// \brief SDF DOM of a static model with empty link
     private: sdf::Model staticModelToSpawn;
+
+    /// \brief Publishes remaining deployments.
+    public: transport::Node::Publisher remainingPub;
   };
   }
 }
