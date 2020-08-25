@@ -19,10 +19,15 @@
 #include <csignal>
 #include <vector>
 #include <ignition/common/Console.hh>
+#include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
+#include <sdf/Mesh.hh>
 
+#include "ignition/gazebo/components/AxisAlignedBox.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/System.hh"
@@ -32,6 +37,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../test/helpers/Relay.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo;
@@ -193,8 +199,16 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   // make sure the TestModelSystem was successfully loaded.
   transport::Node node;
   msgs::StringMsg rep;
-  bool result;
-  bool executed = node.Request("/test/service", 5000, rep, result);
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /test/service" << std::endl;
+    executed = node.Request("/test/service", 100, rep, result);
+    sleep++;
+  }
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestModelSystem", rep.data());
@@ -205,7 +219,6 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetUpdateRate(10000);
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/air_pressure.sdf");
 
@@ -219,21 +232,32 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
       sdf});
 
+  igndbg << "Create server" << std::endl;
   gazebo::Server server(serverConfig);
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
 
   // Run the server
+  igndbg << "Run server" << std::endl;
   EXPECT_TRUE(server.Run(false, 0, false));
   EXPECT_FALSE(*server.Paused());
 
   // The TestSensorSystem should have created a service. Call the service to
   // make sure the TestSensorSystem was successfully loaded.
+  igndbg << "Request service" << std::endl;
   transport::Node node;
   msgs::StringMsg rep;
-  bool result;
-  bool executed = node.Request("/test/service/sensor", 5000, rep, result);
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /test/service/sensor" << std::endl;
+    executed = node.Request("/test/service/sensor", 100, rep, result);
+    sleep++;
+  }
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestSensorSystem", rep.data());
@@ -652,6 +676,193 @@ TEST_P(ServerFixture, Seed)
   serverConfig.SetSeed(mySeed);
   EXPECT_EQ(mySeed, serverConfig.Seed());
   EXPECT_EQ(mySeed, ignition::math::Rand::Seed());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ResourcePath)
+{
+  setenv("IGN_GAZEBO_RESOURCE_PATH",
+         (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
+          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str(), 1);
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile("resource_paths.sdf");
+  gazebo::Server server(serverConfig);
+
+  test::Relay testSystem;
+  unsigned int preUpdates{0};
+  testSystem.OnPreUpdate(
+    [&preUpdates](const gazebo::UpdateInfo &,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      // Create AABB so it is populated
+      unsigned int eachCount{0};
+      _ecm.Each<components::Model>(
+        [&](const Entity &_entity, components::Model *) -> bool
+        {
+          auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
+          EXPECT_EQ(bboxComp, nullptr);
+          _ecm.CreateComponent(_entity, components::AxisAlignedBox());
+          eachCount++;
+          return true;
+        });
+      EXPECT_EQ(1u, eachCount);
+      preUpdates++;
+    });
+
+  unsigned int postUpdates{0};
+  testSystem.OnPostUpdate([&postUpdates](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      // Check geometry components
+      unsigned int eachCount{0};
+      _ecm.Each<components::Geometry>(
+        [&eachCount](const Entity &, const components::Geometry *_geom)
+        -> bool
+        {
+          auto mesh = _geom->Data().MeshShape();
+
+          // ASSERT would fail at compile with
+          // "void value not ignored as it ought to be"
+          EXPECT_NE(nullptr, mesh);
+
+          if (mesh)
+          {
+            EXPECT_EQ("model://scheme_resource_uri/meshes/box.dae",
+                mesh->Uri());
+          }
+
+          eachCount++;
+          return true;
+        });
+      EXPECT_EQ(2u, eachCount);
+
+      // Check physics system loaded meshes and got their BB correct
+      eachCount = 0;
+      _ecm.Each<components::AxisAlignedBox>(
+        [&](const ignition::gazebo::Entity &,
+            const components::AxisAlignedBox *_box)->bool
+        {
+          auto box = _box->Data();
+          EXPECT_EQ(box, math::AxisAlignedBox(-0.4, -0.4, 0.6, 0.4, 0.4, 1.4));
+          eachCount++;
+          return true;
+        });
+      EXPECT_EQ(1u, eachCount);
+
+      postUpdates++;
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  EXPECT_FALSE(*server.Running(0));
+
+  EXPECT_TRUE(server.Run(true /*blocking*/, 1, false /*paused*/));
+  EXPECT_EQ(1u, preUpdates);
+  EXPECT_EQ(1u, postUpdates);
+
+  EXPECT_EQ(7u, *server.EntityCount());
+  EXPECT_TRUE(server.HasEntity("scheme_resource_uri"));
+  EXPECT_TRUE(server.HasEntity("the_link"));
+  EXPECT_TRUE(server.HasEntity("the_visual"));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, GetResourcePaths)
+{
+  setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path", 1);
+
+  ServerConfig serverConfig;
+  gazebo::Server server(serverConfig);
+
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+  msgs::StringMsg_V res;
+  bool result{false};
+  bool executed{false};
+  int sleep{0};
+  int maxSleep{30};
+  while (!executed && sleep < maxSleep)
+  {
+    igndbg << "Requesting /gazebo/resource_paths/get" << std::endl;
+    executed = node.Request("/gazebo/resource_paths/get", 100, res, result);
+    sleep++;
+  }
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_EQ(2, res.data_size());
+  EXPECT_EQ("/tmp/some/path", res.data(0));
+  EXPECT_EQ("/home/user/another_path", res.data(1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, AddResourcePaths)
+{
+  setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path", 1);
+  setenv("SDF_PATH", "", 1);
+  setenv("IGN_FILE_PATH", "", 1);
+
+  ServerConfig serverConfig;
+  gazebo::Server server(serverConfig);
+
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+
+  // Subscribe to path updates
+  bool receivedMsg{false};
+  auto resourceCb = std::function<void(const msgs::StringMsg_V &)>(
+      [&receivedMsg](const auto &_msg)
+      {
+        receivedMsg = true;
+        EXPECT_EQ(5, _msg.data_size());
+        EXPECT_EQ("/tmp/some/path", _msg.data(0));
+        EXPECT_EQ("/home/user/another_path", _msg.data(1));
+        EXPECT_EQ("/tmp/new_path", _msg.data(2));
+        EXPECT_EQ("/tmp/more", _msg.data(3));
+        EXPECT_EQ("/tmp/even_more", _msg.data(4));
+      });
+  node.Subscribe("/gazebo/resource_paths", resourceCb);
+
+  // Add path
+  msgs::StringMsg_V req;
+  req.add_data("/tmp/new_path");
+  req.add_data("/tmp/more:/tmp/even_more");
+  req.add_data("/tmp/some/path");
+  bool executed = node.Request("/gazebo/resource_paths/add", req);
+  EXPECT_TRUE(executed);
+
+  int sleep{0};
+  int maxSleep{30};
+  while (!receivedMsg && sleep < maxSleep)
+  {
+    IGN_SLEEP_MS(50);
+    sleep++;
+  }
+  EXPECT_TRUE(receivedMsg);
+
+  // Check environment variables
+  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  {
+    char *pathCStr = getenv(env);
+
+    auto paths = common::Split(pathCStr, ':');
+    paths.erase(std::remove_if(paths.begin(), paths.end(),
+        [](std::string const &_path)
+        {
+          return _path.empty();
+        }),
+        paths.end());
+
+    EXPECT_EQ(5u, paths.size());
+    EXPECT_EQ("/tmp/some/path", paths[0]);
+    EXPECT_EQ("/home/user/another_path", paths[1]);
+    EXPECT_EQ("/tmp/new_path", paths[2]);
+    EXPECT_EQ("/tmp/more", paths[3]);
+    EXPECT_EQ("/tmp/even_more", paths[4]);
+  }
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

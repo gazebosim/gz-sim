@@ -322,6 +322,25 @@
       <plugin filename="ignition-gazebo-performer-detector-system"
         name="ignition::gazebo::systems::PerformerDetector">
         <topic>/performer_detector</topic>
+      <header_data>
+        <key>no_value</key>
+      </header_data>
+      <header_data>
+        <value>no_key</value>
+      </header_data>
+      <header_data>
+        <key>unique_key</key>
+        <value>unique_value</value>
+      </header_data>
+      <header_data>
+        <key>duplicate_key</key>
+        <value>first_value</value>
+      </header_data>
+      <header_data>
+        <key>duplicate_key</key>
+        <value>second_value</value>
+      </header_data>
+
         <geometry>
           <box>
             <size>4 4 5</size>
@@ -354,6 +373,16 @@
         </box>
       </geometry>
     </performer>
+    <level name="level1">
+      <pose>5 3 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>30 30 10</size>
+        </box>
+      </geometry>
+      <buffer>5</buffer>
+      <ref>detector2</ref>
+    </level>
   </plugin>
 
 </world>
