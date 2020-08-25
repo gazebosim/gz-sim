@@ -205,6 +205,7 @@ set the value to less than 5, performance may decrease.
 
 \* This can differ from the no. of forces visualized, since it can be computed
 but not visualized.
+
 ** RTF values were most of the time ~0.9 for all of the cases, but from time to
 time dropped to these worst values for short periods of time (<1s). 
 
