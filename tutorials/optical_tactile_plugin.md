@@ -205,7 +205,6 @@ set the value to less than 5, performance may decrease.
 
 \* This can differ from the no. of forces visualized, since it can be computed
 but not visualized.
-
 ** RTF values were most of the time ~0.9 for all of the cases, but from time to
 time dropped to these worst values for short periods of time (<1s). 
 
@@ -225,13 +224,15 @@ In the following evaluation, they have been set as follows:
 We found the following RTFs:
 
 
-| No. of sensors  | Worst RTF (%) |
+| No. of sensors  | Worst RTF* |
 | ------------- | ------------- |
-| 1 | 88 |
-| 3 | 80 |
-| 5 | 77 |
-| 7 | 69 |
-| 10 | 39 |
+| 1 | 0.88 |
+| 3 | 0.80 |
+| 5 | 0.77 |
+| 7 | 0.69 |
+| 10 | 0.39 |
+
+\* Same as the previous table.
 
 ## Future work
 
