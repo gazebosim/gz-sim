@@ -5,14 +5,14 @@ Given the increasing number of this kind of sensors and their use cases, this
 plugin is the first step towards data collection and sanity check of algorithms
 involving this type of sensors.
 
-Currently, the plugin is required to work within models that have one link, one
-contact sensor and one depth camera. In order to simulate the behaviour of the
+Currently, the plugin must be in a model that has exactly one link, one
+contact sensor, and one depth camera. In order to simulate the behaviour of the
 contact surface, which returns the contact forces of the object being touched,
 we use the information coming from these two different sensors. Contact normals to 
 the surfaces being touched are computed from the depth image. In order to visually
 check that the plugin is working correctly, both contacts and normal forces can be visualized.
-As a [future work](#future-work), information from the contact sensor, i.e. force magnitudes,
-penetration and depth (TODO pending ExtraContactData fields from 
+As [future work](#future-work), information from the contact sensor, i.e. force normals,
+magnitudes, and penetration depth (TODO pending ExtraContactData fields from 
 https://github.com/ignitionrobotics/ign-physics/pull/40 are exposed in ign-gazebo) 
 and the depth camera could be merged.
 
@@ -196,12 +196,18 @@ have been tested for a sensor with a size of 20x20x5 mm:
 number of forces and check what the sensor is looking at. However, if we
 set the value to less than 5, performance may decrease.
 
-| `<visualization_resolution>`  | No. of forces computed (not the same as visualized) | Worst RTF (%) |
+| `<visualization_resolution>`  | No. of forces computed* | Worst RTF** |
 | ------------- | ------------- | ------------- |
-| 20 | 768 | 90 |
-| 10 | 1376 | 84 |
-| 5 | 3072 | 48 |
-| 1 | 304964 | 35 |    
+| 20 | 768 | 0.90 |
+| 10 | 1376 | 0.84 |
+| 5 | 3072 | 0.48 |
+| 1 | 304964 | 0.35 |    
+
+\* This can differ from the no. of forces visualized, since it can be computed
+but not visualized.
+
+** RTF values were most of the time ~0.9 for all of the cases, but from time to
+time dropped to these worst values for short periods of time (<1s). 
 
 It's important to know how many plugins could be loaded before the RTF becomes
 unacceptable. Of course, this depends on the parameters of each individual plugin.
@@ -231,7 +237,6 @@ We found the following RTFs:
 
 In order to improve the plugin, contributions are welcome in the following areas:
 - Merging data coming from contact sensor and depth camera. As an initial step,
-the coherence of the information coming from both sensors could be checked. This would
-be a helpful heuristic used as a sanity check.
+the coherence of the information coming from both sensors could be checked using a heuristic.
 - A more realistic behaviour of the current sensor like noise, drift and hysteresis.
 - The extraction of higher level physical properties by image processing.
