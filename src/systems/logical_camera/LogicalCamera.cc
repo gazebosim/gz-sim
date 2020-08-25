@@ -138,8 +138,8 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
           data->GetElement("topic")->Set(topic);
         }
         std::unique_ptr<sensors::LogicalCameraSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::LogicalCameraSensor>(data);
+          std::make_unique<sensors::LogicalCameraSensor>();
+        sensor->Load(data);
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
