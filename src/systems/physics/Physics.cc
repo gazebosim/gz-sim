@@ -280,6 +280,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
   public: using FrictionPyramidSlipComplianceFeatureList = physics::FeatureList<
             MinimumFeatureList,
+            ignition::physics::GetShapeFrictionPyramidSlipCompliance,
             ignition::physics::SetShapeFrictionPyramidSlipCompliance>;
 
   /// \brief Shape type with slip compliance features.
@@ -1200,7 +1201,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto shapeIt = this->entityCollisionMap.find(_entity);
         if (shapeIt == this->entityCollisionMap.end())
         {
-          ignwarn << "Failed to find model [" << _entity << "]." << std::endl;
+          ignwarn << "Failed to find shape [" << _entity << "]." << std::endl;
           return true;
         }
 
@@ -1217,10 +1218,13 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return false;
         }
 
-        slipComplianceShape->SetPrimarySlipCompliance(
-            _slipCmdComp->Data()[0]);
-        slipComplianceShape->SetSecondarySlipCompliance(
-            _slipCmdComp->Data()[1]);
+        if (_slipCmdComp->Data().size() == 2)
+        {
+          slipComplianceShape->SetPrimarySlipCompliance(
+              _slipCmdComp->Data()[0]);
+          slipComplianceShape->SetSecondarySlipCompliance(
+              _slipCmdComp->Data()[1]);
+        }
 
         return true;
       });

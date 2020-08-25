@@ -35,9 +35,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains the slip compliance parameters to be
-  /// set on a collision. The x and y values correspond to the slip compliance
-  /// parameters in friction direction 1 (fdir1) and friction direction 2
-  /// (fdir2) respectively.
+  /// set on a collision. The 0 and 1 index values correspond to the slip
+  /// compliance parameters in friction direction 1 (fdir1) and friction
+  /// direction 2 (fdir2) respectively.
   using SlipComplianceCmd =
     Component<std::vector<double>, class SlipComplianceCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SlipComplianceCmd ",

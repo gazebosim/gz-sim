@@ -95,6 +95,24 @@ class ignition::gazebo::systems::WheelSlipPrivate
   /// \brief The map relating links to their respective surface parameters.
   public: std::map<Entity, LinkSurfaceParams> mapLinkSurfaceParams;
 
+  /// \brief Vector2d equality comparison function.
+  public: std::function<bool(const std::vector<double> &,
+              const std::vector<double> &)>
+          vecEql { [](const std::vector<double> &_a,
+              const std::vector<double> &_b)
+                    {
+                      if (_a.size() != _b.size() ||
+                          _a.size() < 2 ||_b.size() < 2)
+                        return false;
+
+                      for (size_t i = 0; i < _a.size(); i++)
+                      {
+                        if (std::abs(_a[i] - _b[i]) > 1e-6)
+                          return false;
+                      }
+                      return true;
+                    }};
+
   public: bool validConfig{false};
   public: bool initialized{false};
 };
@@ -236,8 +254,7 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
       continue;
     double spinAngularVelocity = spinAngularVelocityComp->Data()[0];
 
-    // TODO(anyone): Update the below description to comply with the new units
-    // As discussed in WheelSlipPlugin.hh, the slip1 and slip2
+    // As discussed in WheelSlip.hh, the slip1 and slip2
     // parameters have units of inverse viscous damping:
     // [linear velocity / force] or [m / s / N].
     // Since the slip compliance parameters supplied to the plugin
@@ -258,17 +275,18 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     double slip1 = speed / force * params.slipComplianceLateral;
     double slip2 = speed / force * params.slipComplianceLongitudinal;
 
-    math::Vector2d slipCmd;
-    slipCmd.X() = slip1;
-    slipCmd.Y() = slip2;
-
     components::SlipComplianceCmd newSlipCmdComp({slip1, slip2});
 
     auto currSlipCmdComp =
         _ecm.Component<components::SlipComplianceCmd>(params.collision);
-    if (currSlipCmdComp )
+    if (currSlipCmdComp)
     {
-      *currSlipCmdComp = newSlipCmdComp;
+      auto state =
+        currSlipCmdComp->SetData(newSlipCmdComp.Data(), this->vecEql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+      _ecm.SetChanged(params.collision,
+          components::SlipComplianceCmd::typeId, state);
     }
     else
     {
