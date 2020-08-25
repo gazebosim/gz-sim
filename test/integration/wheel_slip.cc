@@ -47,6 +47,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -61,46 +62,50 @@ class WheelSlipTest : public ::testing::Test
                setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
                    (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
              }
-};
+  /// \brief Class to hold parameters for tire tests.
+  public: class WheelSlipState
+  {
+    /// \brief Constructor.
+    public: WheelSlipState()
+    {
+    }
 
-class Relay
-{
-  public: Relay()
-          {
-            auto plugin = loader.LoadPlugin("libMockSystem.so",
-                "ignition::gazebo::MockSystem",
-                nullptr);
-            EXPECT_TRUE(plugin.has_value());
+    /// \brief Destructor.
+    public: ~WheelSlipState() = default;
 
-            this->systemPtr = plugin.value();
+    /// \brief Axel force in lateral direction to expect.
+    public: double axelForceLateral = 0.0;
 
-            this->mockSystem = static_cast<MockSystem *>(
-                systemPtr->QueryInterface<System>());
-            EXPECT_NE(nullptr, this->mockSystem);
-          }
+    /// \brief Axel force in lateral direction to expect.
+    public: double axelForceLongitudinal = 0.0;
 
-  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
-          {
-            this->mockSystem->preUpdateCallback = std::move(_cb);
-            return *this;
-          }
+    /// \brief Description to print during test loop.
+    public: std::string description;
 
-  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
-          {
-            this->mockSystem->updateCallback = std::move(_cb);
-            return *this;
-          }
+    /// \brief Drum spin speed in rad/s.
+    public: double drumSpeed = 0.0;
 
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
-          {
-            this->mockSystem->postUpdateCallback = std::move(_cb);
-            return *this;
-          }
+    /// \brief Steer angle to apply.
+    public: ignition::math::Angle steer;
 
-  public: SystemPluginPtr systemPtr;
+    /// \brief Suspension force to apply in N.
+    public: double suspForce = 0.0;
 
-  private: SystemLoader loader;
-  private: MockSystem *mockSystem;
+    /// \brief Wheel slip compliance in lateral direction;
+    public: double wheelSlipComplianceLateral = 0.01;
+
+    /// \brief Wheel slip compliance in longitudinal direction;
+    public: double wheelSlipComplianceLongitudinal = 0.01;
+
+    /// \brief Wheel spin speed in rad/s.
+    public: double wheelSpeed = 0.0;
+
+    /// \brief P gain with wheel spin speed.
+    public: double wheelSpeedGain = 0.0;
+
+    /// \brief Wheel torque in Nm.
+    public: double wheelTorque = 0.0;
+  };
 };
 
 TEST_F(WheelSlipTest, TireDrum)
@@ -119,7 +124,7 @@ TEST_F(WheelSlipTest, TireDrum)
   EXPECT_FALSE(*server.Running(0));
 
   gazebo::EntityComponentManager *ecm = nullptr;
-  Relay testSystem;
+  test::Relay testSystem;
   testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
         gazebo::EntityComponentManager &_ecm)
       {
@@ -146,35 +151,62 @@ TEST_F(WheelSlipTest, TireDrum)
     ecm->EntityByComponents(components::Model(),
         components::Name("tire"));
 
+  Entity drumEntity =
+    ecm->EntityByComponents(components::Model(),
+        components::Name("drum"));
+
   EXPECT_NE(gazebo::kNullEntity, tireEntity);
+  EXPECT_NE(gazebo::kNullEntity, drumEntity);
 
   Entity wheelLinkEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
       components::Name("wheel"),
       components::Link());
 
+  Entity drumLinkEntity = ecm->EntityByComponents(
+      components::ParentEntity(drumEntity),
+      components::Name("link"),
+      components::Link());
+
   EXPECT_NE(gazebo::kNullEntity, wheelLinkEntity);
+  EXPECT_NE(gazebo::kNullEntity, drumLinkEntity);
 
   auto wheelInertialComp =
     ecm->Component<components::Inertial>(wheelLinkEntity);
 
+  auto drumInertialComp =
+    ecm->Component<components::Inertial>(drumLinkEntity);
+
   EXPECT_NE(nullptr, wheelInertialComp);
+  EXPECT_NE(nullptr, drumInertialComp);
 
   const double wheelMass = wheelInertialComp->Data().MassMatrix().Mass();
+  const double drumMass = drumInertialComp->Data().MassMatrix().Mass();
 
   EXPECT_DOUBLE_EQ(2.5, wheelMass);
+  EXPECT_DOUBLE_EQ(10.0, drumMass);
 
   auto collisionWheelLinkEntity = ecm->EntityByComponents(
       components::ParentEntity(wheelLinkEntity),
       components::Name("collision"),
       components::Collision());
 
+  auto collisionDrumLinkEntity = ecm->EntityByComponents(
+      components::ParentEntity(drumLinkEntity),
+      components::Name("collision"),
+      components::Collision());
+
   EXPECT_NE(gazebo::kNullEntity, collisionWheelLinkEntity);
+  EXPECT_NE(gazebo::kNullEntity, collisionDrumLinkEntity);
 
   auto wheelCollisionComp =
     ecm->Component<components::CollisionElement>(collisionWheelLinkEntity);
 
+  auto drumCollisionComp =
+    ecm->Component<components::CollisionElement>(collisionDrumLinkEntity);
+
   ASSERT_NE(nullptr, wheelCollisionComp);
+  ASSERT_NE(nullptr, drumCollisionComp);
 
   ASSERT_TRUE(
       (wheelCollisionComp->Data().Geom()->Type() ==
@@ -182,12 +214,24 @@ TEST_F(WheelSlipTest, TireDrum)
       (wheelCollisionComp->Data().Geom()->Type() ==
        sdf::GeometryType::CYLINDER));
 
+  ASSERT_TRUE(
+      (drumCollisionComp->Data().Geom()->Type() ==
+       sdf::GeometryType::SPHERE) ||
+      (drumCollisionComp->Data().Geom()->Type() ==
+       sdf::GeometryType::CYLINDER));
+
   double wheelRadius = 0.0;
+  double drumRadius = 0.0;
 
   if (wheelCollisionComp->Data().Geom()->Type() == sdf::GeometryType::SPHERE)
     wheelRadius = wheelCollisionComp->Data().Geom()->SphereShape()->Radius();
   if (wheelCollisionComp->Data().Geom()->Type() == sdf::GeometryType::CYLINDER)
     wheelRadius = wheelCollisionComp->Data().Geom()->CylinderShape()->Radius();
+
+  if (drumCollisionComp->Data().Geom()->Type() == sdf::GeometryType::SPHERE)
+    drumRadius = drumCollisionComp->Data().Geom()->SphereShape()->Radius();
+  if (drumCollisionComp->Data().Geom()->Type() == sdf::GeometryType::CYLINDER)
+    drumRadius = drumCollisionComp->Data().Geom()->CylinderShape()->Radius();
 
   // TODO(anyone) enable below tests when kp is supported
   // auto elem = collisionComp->Data().Element();
@@ -214,42 +258,7 @@ TEST_F(WheelSlipTest, TireDrum)
     modelMass += inertialComp->Data().MassMatrix().Mass();
   }
 
-  // Get drum radius
-  Entity drumEntity =
-    ecm->EntityByComponents(components::Model(),
-        components::Name("drum"));
-
-  ASSERT_NE(gazebo::kNullEntity, drumEntity);
-
-  Entity drumJointEntity = ecm->EntityByComponents(
-      components::ParentEntity(drumEntity),
-      components::Name("joint"),
-      components::Joint());
-
-  ASSERT_NE(gazebo::kNullEntity, drumJointEntity);
-
-  Entity drumLinkEntity = ecm->EntityByComponents(
-      components::ParentEntity(drumEntity),
-      components::Name("link"),
-      components::Link());
-
-  ASSERT_NE(gazebo::kNullEntity, drumLinkEntity);
-
-  Entity drumCollisionEntity = ecm->EntityByComponents(
-      components::ParentEntity(drumLinkEntity),
-      components::Name("collision"),
-      components::Collision());
-
-  ASSERT_NE(gazebo::kNullEntity, drumCollisionEntity);
-
-  auto drumCollisionComp =
-    ecm->Component<components::CollisionElement>(drumCollisionEntity);
-  ASSERT_NE(nullptr, drumCollisionComp);
-  ASSERT_EQ(sdf::GeometryType::CYLINDER,
-            drumCollisionComp->Data().Geom()->Type());
-
   // Get axle wheel and steer joint of wheel model
-
   Entity wheelAxleJointEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
       components::Name("axle_wheel"),
@@ -267,43 +276,102 @@ TEST_F(WheelSlipTest, TireDrum)
   const double wheelSpeed =
     -25.0 * metersPerMile / secondsPerHour / wheelRadius;
 
-  math::Vector2d slipCmd;
   double wheelNormalForce = 1000.0;
-
   double wheelSlip1 = 0.0;
   double wheelSlip2 = 0.0;
-
   double slipComplianceLateral = 0.1;
   double slipComplianceLongitudinal = 0.0;
 
   // Zero slip
   components::SlipComplianceCmd newSlipCmdComp({wheelSlip1, wheelSlip2});
 
-  Entity collisionEntity = ecm->EntityByComponents(
+  Entity tireCollisionEntity = ecm->EntityByComponents(
       components::ParentEntity(tireEntity),
       components::Name("collision"),
       components::Collision());
 
   auto currSlipCmdComp =
-    ecm->Component<components::SlipComplianceCmd>(collisionEntity);
+    ecm->Component<components::SlipComplianceCmd>(tireCollisionEntity);
 
   if (currSlipCmdComp)
     *currSlipCmdComp = newSlipCmdComp;
   else
-    ecm->CreateComponent(collisionEntity, newSlipCmdComp);
+    ecm->CreateComponent(tireCollisionEntity, newSlipCmdComp);
+
+  // TODO(john): Complete below tests to be equivalent to Gazebo classic's tests
+  WheelSlipState state0;
+  state0.drumSpeed = -25.0 * metersPerMile / secondsPerHour / drumRadius;
+  state0.wheelSpeed = -25.0 * metersPerMile / secondsPerHour / drumRadius;
+  state0.wheelSpeedGain = 1e2;
+  state0.suspForce = 1000.0;
+
+  std::vector<WheelSlipState> states;
+  {
+    WheelSlipState state = state0;
+    state.description = "Zero slip";
+    state.steer.Degree(0.0);
+    state.axelForceLateral = 0.0;
+    state.axelForceLongitudinal = 0.0;
+    states.push_back(state);
+  }
+  {
+    WheelSlipState state = state0;
+    state.description = "Lateral slip: low";
+    state.steer.Degree(3.0);
+    state.wheelSlipComplianceLateral = 0.1;
+    state.axelForceLateral = -state.suspForce *
+        sin(state.steer.Radian()) / state.wheelSlipComplianceLateral;
+    state.axelForceLongitudinal = 0.0;
+    states.push_back(state);
+  }
+  {
+    WheelSlipState state = state0;
+    state.description = "Lateral slip: high";
+    state.steer.Degree(10);
+    state.wheelSpeed *= cos(state.steer.Radian());
+    state.axelForceLateral = -state.suspForce;
+    state.axelForceLongitudinal = 0.0;
+    states.push_back(state);
+  }
+  {
+    WheelSlipState state = state0;
+    state.description = "Longitudinal torque control: low";
+    state.wheelSpeed = -1.055 * state.drumSpeed * drumRadius / wheelRadius;
+    state.wheelTorque = 0.25 * state.suspForce * wheelRadius;
+    state.steer.Degree(0.0);
+    state.wheelSlipComplianceLateral = 0.1;
+    state.axelForceLateral = 0.0;
+    state.axelForceLongitudinal = -250.0;
+    states.push_back(state);
+  }
+  {
+    WheelSlipState state = state0;
+    state.description = "Longitudinal torque control: moderate";
+    state.wheelSpeed = -1.12 * state.drumSpeed * drumRadius / wheelRadius;
+    state.wheelTorque = 0.5 * state.suspForce * wheelRadius;
+    state.steer.Degree(0.0);
+    state.wheelSlipComplianceLateral = 0.1;
+    state.axelForceLateral = 0.0;
+    state.axelForceLongitudinal = -600.0;
+    states.push_back(state);
+  }
 
   // Lateral slip: low
   wheelSlip1 = wheelSpeed / wheelNormalForce * slipComplianceLateral;
   wheelSlip2 = wheelSpeed / wheelNormalForce * slipComplianceLongitudinal;
   newSlipCmdComp = components::SlipComplianceCmd({wheelSlip1, wheelSlip2});
-  ecm->CreateComponent(collisionEntity, newSlipCmdComp);
+  ecm->CreateComponent(tireCollisionEntity, newSlipCmdComp);
+
+  server.Run(true, 250, false);
 
   // Lateral slip: high
   slipComplianceLateral = 1.0;
   wheelSlip1 = wheelSpeed / wheelNormalForce * slipComplianceLateral;
   wheelSlip2 = wheelSpeed / wheelNormalForce * slipComplianceLongitudinal;
   newSlipCmdComp = components::SlipComplianceCmd({wheelSlip1, wheelSlip2});
-  ecm->CreateComponent(collisionEntity, newSlipCmdComp);
+  ecm->CreateComponent(tireCollisionEntity, newSlipCmdComp);
+
+  server.Run(true, 250, false);
 }
 
 TEST_F(WheelSlipTest, TricyclesUphill)
@@ -318,7 +386,7 @@ TEST_F(WheelSlipTest, TricyclesUphill)
   EXPECT_FALSE(*server.Running(0));
 
   gazebo::EntityComponentManager *ecm = nullptr;
-  Relay testSystem;
+  test::Relay testSystem;
   testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
         gazebo::EntityComponentManager &_ecm)
       {
@@ -460,7 +528,7 @@ TEST_F(WheelSlipTest, TricyclesUphill)
       ecm->Component<components::WorldLinearVelocity>(trisphere1FrameEntity);
   }
 
-  Relay testSlipSystem;
+  test::Relay testSlipSystem;
   testSlipSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
         gazebo::EntityComponentManager &)
       {
