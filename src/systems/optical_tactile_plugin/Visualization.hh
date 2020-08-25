@@ -56,9 +56,6 @@ namespace optical_tactile_sensor
       ignition::math::Pose3f &_depthCameraOffset,
       int &_visualizationResolution);
 
-    /// \brief Destructor
-    public: ~OpticalTactilePluginVisualization();
-
     /// \brief Initialize the marker message representing the optical tactile
     /// sensor
     /// \param[out] _sensorMarkerMsg Message for visualizing the sensor

@@ -34,6 +34,8 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "sdf/Box.hh"
 
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
@@ -67,9 +69,10 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   /// of the image, pointing rightwards
   /// \param[in] _j Vertical camera coordinate defined in the top-left corner
   /// of the image, pointing downwards
+  /// \param[in] _msgBuffer Buffer with the point cloud data
   /// \returns The corresponding (X,Y,Z) point
   public: ignition::math::Vector3f MapPointCloudData(const uint64_t &_i,
-    const uint64_t &_j);
+    const uint64_t &_j, const char *_msgBuffer);
 
   /// \brief Check if a specific point from the depth camera is inside
   /// the contact surface.
@@ -120,10 +123,10 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: double forceLength{0.01};
 
   /// \brief Pose of the sensor model
-  public: ignition::math::Pose3f sensorWorldPose;
+  public: ignition::math::Pose3f tactileSensorWorldPose;
 
   /// \brief Pose of the sensor model in the previous iteration
-  public: ignition::math::Pose3f prevSensorWorldPose;
+  public: ignition::math::Pose3f prevTactileSensorWorldPose;
 
   /// \brief Offset between depth camera pose and model pose
   public: ignition::math::Pose3f depthCameraOffset;
@@ -136,9 +139,6 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Message returned by the depth camera
   public: ignition::msgs::PointCloudPacked cameraMsg;
-
-  /// \brief Preprocessed depth camera data
-  public: char *msgBuffer;
 
   /// \brief Mutex for variables mutated by the camera callback.
   /// The variables are: newCameraMsg, cameraMsg.
@@ -181,7 +181,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "Touch plugin should be attached to a model entity. "
+    ignerr << "Optical tactile plugin should be attached to a model entity. "
       << "Failed to initialize." << std::endl;
     return;
   }
@@ -190,7 +190,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("enabled"))
   {
-    ignlog << "Missing parameter <enabled>, "
+    igndbg << "Missing parameter <enabled>, "
       << "setting to " << this->dataPtr->enabled << std::endl;
   }
   else
@@ -200,7 +200,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualization_resolution"))
   {
-    ignlog << "Missing parameter <visualization_resolution>, "
+    igndbg << "Missing parameter <visualization_resolution>, "
       << "setting to " << this->dataPtr->visualizationResolution << std::endl;
   }
   else
@@ -219,7 +219,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualize_forces"))
   {
-    ignlog << "Missing parameter <visualize_forces>, "
+    igndbg << "Missing parameter <visualize_forces>, "
       << "setting to " << this->dataPtr->visualizeForces << std::endl;
   }
   else
@@ -229,7 +229,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("extended_sensing"))
   {
-    ignlog << "Missing parameter <extended_sensing>, "
+    igndbg << "Missing parameter <extended_sensing>, "
       << "setting to " << this->dataPtr->extendedSensing << std::endl;
   }
   else
@@ -247,7 +247,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualize_sensor"))
   {
-    ignlog << "Missing parameter <visualize_sensor>, "
+    igndbg << "Missing parameter <visualize_sensor>, "
       << "setting to " << this->dataPtr->visualizeSensor << std::endl;
   }
   else
@@ -257,7 +257,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("force_length"))
   {
-    ignlog << "Missing parameter <force_length>, "
+    igndbg << "Missing parameter <force_length>, "
       << "setting to " << this->dataPtr->forceLength << std::endl;
   }
   else
@@ -270,32 +270,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     else
     {
       this->dataPtr->forceLength = _sdf->Get<double>("force_length");
-    }
-  }
-
-  // Get the size of the sensor from the SDF
-  // If there's no <collision> specified inside <link>, a default one
-  // is set
-  if (_sdf->GetParent() != nullptr)
-  {
-    if (_sdf->GetParent()->GetElement("link") != nullptr)
-    {
-      if (_sdf->GetParent()->GetElement("link")->GetElement("collision")
-          != nullptr)
-      {
-        if (_sdf->GetParent()->GetElement("link")->GetElement("collision")->
-            GetElement("geometry") != nullptr)
-        {
-          if (_sdf->GetParent()->GetElement("link")->GetElement("collision")->
-              GetElement("geometry")->GetElement("box") != nullptr)
-          {
-            this->dataPtr->sensorSize =
-              _sdf->GetParent()->GetElement("link")->GetElement("collision")->
-              GetElement("geometry")->GetElement("box")->
-              Get<ignition::math::Vector3d>("size");
-          }
-        }
-      }
     }
   }
 }
@@ -332,16 +306,20 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
       break;
     }
 
-    // Get the model pose
-    ignition::math::Pose3d sensorPose =
+    // Get the tactile sensor pose, i.e. the model pose
+    ignition::math::Pose3d tactileSensorPose =
       _ecm.Component<components::Pose>(
         this->dataPtr->model.Entity())->Data();
 
     // Depth camera data is float, so convert Pose3d to Pose3f
-    this->dataPtr->sensorWorldPose = ignition::math::Pose3f(
-      sensorPose.Pos().X(), sensorPose.Pos().Y(), sensorPose.Pos().Z(),
-      sensorPose.Rot().W(), sensorPose.Rot().X(), sensorPose.Rot().Y(),
-      sensorPose.Rot().Z());
+    this->dataPtr->tactileSensorWorldPose = ignition::math::Pose3f(
+      tactileSensorPose.Pos().X(),
+      tactileSensorPose.Pos().Y(),
+      tactileSensorPose.Pos().Z(),
+      tactileSensorPose.Rot().W(),
+      tactileSensorPose.Rot().X(),
+      tactileSensorPose.Rot().Y(),
+      tactileSensorPose.Rot().Z());
   }
 }
 
@@ -372,32 +350,35 @@ void OpticalTactilePlugin::PostUpdate(
 
   // Publish sensor marker if required and sensor pose has changed
   if (this->dataPtr->visualizeSensor &&
-    (this->dataPtr->sensorWorldPose != this->dataPtr->prevSensorWorldPose))
+    (this->dataPtr->tactileSensorWorldPose !=
+    this->dataPtr->prevTactileSensorWorldPose))
   {
     this->dataPtr->visualizePtr->RequestSensorMarkerMsg(
-      this->dataPtr->sensorWorldPose);
+      this->dataPtr->tactileSensorWorldPose);
   }
 
   // Store the pose of the sensor in the current iteration
-  this->dataPtr->prevSensorWorldPose = this->dataPtr->sensorWorldPose;
+  this->dataPtr->prevTactileSensorWorldPose =
+    this->dataPtr->tactileSensorWorldPose;
 }
 
 //////////////////////////////////////////////////
 void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 {
-  igndbg << "Loading plugin [OpticalTactilePlugin]" << std::endl;
-
   // Check plugin structure
   auto allLinks =
     _ecm.ChildrenByComponents(this->model.Entity(), components::Link());
   // Model should only have 1 link
   // todo(anyone) The plugin should be able to handle more than one link. In
   // that case, one of the links would be the actual tactile sensor.
-  if (allLinks.size() != 1 && !this->initErrorPrinted)
+  if (allLinks.size() != 1)
   {
-    ignerr << "Plugin must have exactly 1 link (only printed once)"
-      << std::endl;
-    this->initErrorPrinted = true;
+    if (!this->initErrorPrinted)
+    {
+      ignerr << "Plugin must have exactly 1 link (only printed once)"
+        << std::endl;
+      this->initErrorPrinted = true;
+    }
     return;
   }
 
@@ -405,11 +386,14 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   auto linkCollisions =
     _ecm.ChildrenByComponents(allLinks[0], components::Collision());
 
-  if (linkCollisions.size() == 0  && !this->initErrorPrinted)
+  if (linkCollisions.size() == 0)
   {
-    ignerr << "Link must have at least 1 collision (only printed once)"
-      << std::endl;
-    this->initErrorPrinted = true;
+    if (!this->initErrorPrinted)
+    {
+      ignerr << "Link must have at least 1 collision (only printed once)"
+        << std::endl;
+      this->initErrorPrinted = true;
+    }
     return;
   }
 
@@ -422,8 +406,21 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 
       this->modelName = this->model.Name(_ecm);
 
-      igndbg << "Contact sensor detected within model "
-        << this->modelName << std::endl;
+      // Get the size of the collision element
+      const auto geometry =
+        _ecm.Component<components::Geometry>(colEntity)->Data();
+      const auto *box = geometry.BoxShape();
+      if (box == nullptr)
+      {
+        if (!this->initErrorPrinted)
+        {
+          ignerr << "Contact sensor geometry must be a box"
+            << " (only printed once)" << std::endl;
+          this->initErrorPrinted = true;
+        }
+        return;
+      }
+      this->sensorSize = geometry.BoxShape()->Size();
     }
   }
 
@@ -433,14 +430,16 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 
   int depthCameraCounter = 0;
   int contactSensorCounter = 0;
-  sdf::ElementPtr depthCameraSdf = nullptr;
+  sdf::Sensor depthCameraSdf;
+  components::Pose depthCameraPose = components::Pose();
   for (const Entity &sensor : sensorsInsideLink)
   {
     if (_ecm.EntityHasComponentType(sensor, components::DepthCamera::typeId))
     {
       depthCameraCounter += 1;
       depthCameraSdf =
-        _ecm.Component<components::DepthCamera>(sensor)->Data().Element();
+        _ecm.Component<components::DepthCamera>(sensor)->Data();
+      depthCameraPose = *(_ecm.Component<components::Pose>(sensor));
     }
 
     if (_ecm.EntityHasComponentType(sensor, components::ContactSensor::typeId))
@@ -449,34 +448,42 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
     }
   }
 
-  if (((depthCameraCounter != 1) || (contactSensorCounter != 1))
-      && !this->initErrorPrinted)
+  if (((depthCameraCounter != 1) || (contactSensorCounter != 1)))
   {
-    ignerr << "Link must have exactly 1 depth camera sensor and "
-      << "1 contact sensor (only printed once)" << std::endl;
-    this->initErrorPrinted = true;
+    if (!this->initErrorPrinted)
+    {
+      ignerr << "Link must have exactly 1 depth camera sensor and "
+        << "1 contact sensor (only printed once)" << std::endl;
+      this->initErrorPrinted = true;
+    }
     return;
   }
 
-  // Store depth camera update rate and offset from model
-  auto offset = depthCameraSdf->Get<ignition::math::Pose3d>("pose");
-  if (!depthCameraSdf->HasElement("update_rate") && !this->initErrorPrinted)
+  // Store depth camera update rate
+  if (!depthCameraSdf.Element()->HasElement("update_rate"))
   {
-    ignerr << "Depth camera should have an <update_rate> value "
-      << "(only printed once)" << std::endl;
-    this->initErrorPrinted = true;
+    if (!this->initErrorPrinted)
+    {
+      ignerr << "Depth camera should have an <update_rate> value "
+        << "(only printed once)" << std::endl;
+      this->initErrorPrinted = true;
+    }
     return;
   }
-  this->cameraUpdateRate = depthCameraSdf->Get<float>("update_rate");
+  this->cameraUpdateRate = depthCameraSdf.UpdateRate();
 
   // Depth camera data is float, so convert Pose3d to Pose3f
   this->depthCameraOffset = ignition::math::Pose3f(
-    offset.Pos().X(), offset.Pos().Y(), offset.Pos().Z(),
-    offset.Rot().W(), offset.Rot().X(), offset.Rot().Y(),
-    offset.Rot().Z());
+    depthCameraPose.Data().Pos().X(),
+    depthCameraPose.Data().Pos().Y(),
+    depthCameraPose.Data().Pos().Z(),
+    depthCameraPose.Data().Rot().W(),
+    depthCameraPose.Data().Rot().X(),
+    depthCameraPose.Data().Rot().Y(),
+    depthCameraPose.Data().Rot().Z());
 
   // Configure subscriber for depth camera images
-  if (!depthCameraSdf->HasElement("topic"))
+  if (!depthCameraSdf.Element()->HasElement("topic"))
   {
     ignwarn << "Depth camera publishing to __default__ topic. "
       << "It's possible that two depth cameras are publishing into the same "
@@ -484,19 +491,21 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   }
   else
   {
-    ignlog << "Depth camera publishing to "
-      << depthCameraSdf->Get<std::string>("topic") << " topic" << std::endl;
+    igndbg << "Depth camera publishing to "
+      << depthCameraSdf.Topic() << " topic" << std::endl;
   }
 
   std::string topic =
-    "/" + depthCameraSdf->Get<std::string>("topic") + "/points";
+    "/" + depthCameraSdf.Topic() + "/points";
   if (!this->node.Subscribe(topic,
-      &OpticalTactilePluginPrivate::DepthCameraCallback, this)
-      && !this->initErrorPrinted)
+      &OpticalTactilePluginPrivate::DepthCameraCallback, this))
   {
-    ignerr << "Error subscribing to topic " << "[" << topic << "]. "
-      << "<topic> must not contain '/' (only printing once)" << std::endl;
-    this->initErrorPrinted = true;
+    if (!this->initErrorPrinted)
+    {
+      ignerr << "Error subscribing to topic " << "[" << topic << "]. "
+        << "<topic> must not contain '/' (only printing once)" << std::endl;
+      this->initErrorPrinted = true;
+    }
     return;
   }
 
@@ -553,7 +562,7 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
 
 //////////////////////////////////////////////////
 ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
-  const uint64_t &_i, const uint64_t &_j)
+  const uint64_t &_i, const uint64_t &_j, const char *_msgBuffer)
 {
   IGN_PROFILE("OpticalTactilePlugin::MapPointCloudData");
 
@@ -565,7 +574,7 @@ ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
     return measuredPoint;
 
   // Save original position of the pointer
-  char *temporaryMsgBuffer = this->msgBuffer;
+  const char *temporaryMsgBuffer = _msgBuffer;
 
   // Number of bytes from the beginning of the pointer (image coordinates at
   // 0,0) to the desired (i,j) position
@@ -576,13 +585,13 @@ ignition::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
   int fieldIndex = 0;
 
   // X coordinate
-  measuredPoint.X() = *reinterpret_cast<float *>(
+  measuredPoint.X() = *reinterpret_cast<const float *>(
     temporaryMsgBuffer + this->cameraMsg.field(fieldIndex++).offset());
   // Y coordinate
-  measuredPoint.Y() = *reinterpret_cast<float *>(
+  measuredPoint.Y() = *reinterpret_cast<const float *>(
     temporaryMsgBuffer + this->cameraMsg.field(fieldIndex++).offset());
   // Z coordinate
-  measuredPoint.Z() = *reinterpret_cast<float *>(
+  measuredPoint.Z() = *reinterpret_cast<const float *>(
     temporaryMsgBuffer + this->cameraMsg.field(fieldIndex).offset());
 
   // Check if point is inside the sensor
@@ -638,8 +647,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
     return;
 
   // Get data from the message
-  std::string rawMsgBuffer = _msg.data();
-  this->msgBuffer = rawMsgBuffer.data();
+  const char *msgBuffer = _msg.data().data();
 
   // Declare variables for storing the XYZ points
   ignition::math::Vector3f p1, p2, p3, p4, markerPosition;
@@ -657,10 +665,10 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
         i += this->visualizationResolution)
     {
       // Get points for computing normal forces
-      p1 = this->MapPointCloudData(i + 1, j);
-      p2 = this->MapPointCloudData(i - 1, j);
-      p3 = this->MapPointCloudData(i, j + 1);
-      p4 = this->MapPointCloudData(i, j - 1);
+      p1 = this->MapPointCloudData(i + 1, j, msgBuffer);
+      p2 = this->MapPointCloudData(i - 1, j, msgBuffer);
+      p3 = this->MapPointCloudData(i, j + 1, msgBuffer);
+      p4 = this->MapPointCloudData(i, j - 1, msgBuffer);
 
       float dxdi = (p1.X() - p2.X()) / std::abs(p1.Y() - p2.Y());
       float dxdj =  (p3.X() - p4.X()) / std::abs(p3.Z() - p4.Z());
@@ -679,9 +687,10 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       if (!_visualizeForces)
         continue;
 
-      markerPosition = this->MapPointCloudData(i, j);
+      markerPosition = this->MapPointCloudData(i, j, msgBuffer);
       this->visualizePtr->AddNormalForceToMarkerMsgs(positionMarkerMsg,
-        forceMarkerMsg, markerPosition, normalForce, this->sensorWorldPose);
+        forceMarkerMsg, markerPosition, normalForce,
+        this->tactileSensorWorldPose);
     }
   }
 
