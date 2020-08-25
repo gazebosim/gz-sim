@@ -141,7 +141,7 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
   std::list<math::Pose3d> sensorPoses;
-  std::list<common::Time> timestamps;
+  std::list<std::chrono::system_clock::time_point> timestamps;
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
@@ -196,7 +196,7 @@ TEST_F(PosePublisherTest, PublishCmd)
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
-           common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+           common::Time::GetTime(simTimeSecNsec.first, simTimeSecNsec.second));
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -243,8 +243,10 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
       const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
   {
-    common::Time lt(_l.header().stamp().sec(), _l.header().stamp().nsec());
-    common::Time rt(_r.header().stamp().sec(), _r.header().stamp().nsec());
+    std::chrono::system_clock::time_point lt =
+      common::Time::GetTime(_l.header().stamp().sec(), _l.header().stamp().nsec());
+    std::chrono::system_clock::time_point rt =
+      common::Time::GetTime(_r.header().stamp().sec(), _r.header().stamp().nsec());
     return lt < rt;
   });
 
@@ -273,7 +275,8 @@ TEST_F(PosePublisherTest, PublishCmd)
     EXPECT_EQ(childFrame, msg.name());
 
     // verify timestamp
-    common::Time time(msg.header().stamp().sec(), msg.header().stamp().nsec());
+    std::chrono::system_clock::time_point time =
+      common::Time::GetTime(msg.header().stamp().sec(), msg.header().stamp().nsec());
     EXPECT_EQ(timestamps.front(), time);
     // assume msgs arrive in order and there is a pose msg for every link
     // so we only remove a timestamp from list after checking against all links
@@ -423,8 +426,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
   std::list<math::Pose3d> sensorPoses;
-  std::list<common::Time> timestamps;
-  std::list<common::Time> staticPoseTimestamps;
+  std::list<std::chrono::system_clock::time_point> timestamps;
+  std::list<std::chrono::system_clock::time_point> staticPoseTimestamps;
 
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
@@ -480,9 +483,9 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
-          common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+          common::Time::GetTime(simTimeSecNsec.first, simTimeSecNsec.second));
       staticPoseTimestamps.push_back(
-          common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+          common::Time::GetTime(simTimeSecNsec.first, simTimeSecNsec.second));
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -548,8 +551,9 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
-      common::Time time(msg.header().stamp().sec(),
-          msg.header().stamp().nsec());
+      std::chrono::system_clock::time_point time =
+        common::Time::GetTime(msg.header().stamp().sec(),
+        msg.header().stamp().nsec());
       EXPECT_EQ(timestamps.front(), time);
 
       // verify pose
@@ -602,7 +606,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
-      common::Time time(msg.header().stamp().sec(),
+      std::chrono::system_clock::time_point time =
+        common::Time::GetTime(msg.header().stamp().sec(),
           msg.header().stamp().nsec());
       EXPECT_EQ(staticPoseTimestamps.front(), time);
 

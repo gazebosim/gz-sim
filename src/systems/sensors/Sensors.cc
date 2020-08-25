@@ -111,7 +111,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: ignition::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
-  public: ignition::common::Time updateTime;
+  public: std::chrono::system_clock::time_point updateTime;
 
   /// \brief Sensors to include in the next rendering iteration
   public: std::vector<sensors::RenderingSensor *> activeSensors;
@@ -120,7 +120,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorMaskMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId, ignition::common::Time> sensorMask;
+  public: std::map<sensors::SensorId, std::chrono::system_clock::time_point> sensorMask;
 
   /// \brief Wait for initialization to happen
   private: void WaitForInit();
@@ -225,7 +225,8 @@ void SensorsPrivate::RunOnce()
     for (const auto & sensor : this->activeSensors)
     {
       // 90% of update delta (1/UpdateRate());
-      ignition::common::Time delta(0.9 / sensor->UpdateRate());
+      auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
+        std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
     }
     this->sensorMaskMutex.unlock();
@@ -412,7 +413,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
-    auto t = common::Time(time.first, time.second);
+    auto t = common::Time::GetTime(time.first, time.second);
 
     std::vector<sensors::RenderingSensor *> activeSensors;
 

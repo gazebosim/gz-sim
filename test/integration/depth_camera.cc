@@ -85,11 +85,12 @@ TEST_F(DepthCameraTest, DepthCameraBox)
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
 
-  ignition::common::Time waitTime = ignition::common::Time(0.001);
+  auto waitTime = std::chrono::duration_cast< std::chrono::milliseconds>(
+      std::chrono::duration<double>(0.001));
   int i = 0;
   while (i < 300)
   {
-    ignition::common::Time::Sleep(waitTime);
+    std::this_thread::sleep_for(waitTime);
     i++;
   }
   EXPECT_NE(depthBuffer, nullptr);
