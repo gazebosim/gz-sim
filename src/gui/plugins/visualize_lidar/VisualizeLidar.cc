@@ -78,7 +78,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Visual type for lidar visual
     public: rendering::LidarVisualType visualType{
-                              rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
+                            rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
 
     /// \brief URI sequence to the lidar link
     public: std::string lidarString{""};
@@ -88,9 +88,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Pose of the lidar visual
     public: math::Pose3d lidarPose{math::Pose3d::Zero};
-
-    /// \brief Current state of the checkbox
-    public: bool checkboxState{false};
 
     /// \brief Topic name to subscribe
     public: std::string topicName{""};
@@ -124,9 +121,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief lidar sensor entity dirty flag
     public: bool lidarEntityDirty{true};
-
-    /// \brief Name of the world
-    public: std::string worldName;
   };
 }
 }
@@ -143,7 +137,11 @@ VisualizeLidar::VisualizeLidar()
 }
 
 /////////////////////////////////////////////////
-VisualizeLidar::~VisualizeLidar() = default;
+VisualizeLidar::~VisualizeLidar()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->scene->DestroyVisual(this->dataPtr->lidar);
+}
 
 /////////////////////////////////////////////////
 void VisualizeLidar::LoadLidar()
@@ -195,7 +193,7 @@ void VisualizeLidar::LoadLidar()
     ignwarn << "Failed to create lidar, visualize lidar plugin won't work."
             << std::endl;
 
-    this->dataPtr->lidar->Destroy();
+    scene->DestroyVisual(this->dataPtr->lidar);
 
     ignition::gui::App()->findChild<
         ignition::gui::MainWindow *>()->removeEventFilter(this);
@@ -203,6 +201,7 @@ void VisualizeLidar::LoadLidar()
   }
   else
   {
+    this->dataPtr->scene = scene;
     root->AddChild(this->dataPtr->lidar);
     this->dataPtr->initialized = true;
   }
@@ -320,8 +319,8 @@ void VisualizeLidar::Update(const UpdateInfo &,
     }
   }
 
-  // Only update lidarPose if the lidarEntity exists and the lidar is initialized
-  // and the sensor message is yet to arrive.
+  // Only update lidarPose if the lidarEntity exists and the lidar is
+  // initialized and the sensor message is yet to arrive.
   //
   // If we update the worldpose on the physics thread **after** the sensor
   // data arrives, the visual is offset from the obstacle if the sensor is
@@ -371,7 +370,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   if (!this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
     ignerr << "Unable to unsubscribe from topic ["
-           << this->dataPtr->topicName <<"]" <<std::endl; 
+           << this->dataPtr->topicName <<"]" <<std::endl;
   }
   this->dataPtr->topicName = _topicName.toStdString();
 
@@ -401,16 +400,9 @@ void VisualizeLidar::UpdateNonHitting(bool _value)
 void VisualizeLidar::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
-  if (!_value)
-  {
-    ignmsg << "Lidar Visual Display OFF." << std::endl;
-    this->dataPtr->lidar->SetType(rendering::LidarVisualType::LVT_NONE);
-  }
-  else
-  {
-    ignmsg << "Lidar Visual Display ON." << std::endl;
-    this->dataPtr->lidar->SetType(this->dataPtr->visualType);
-  }
+  this->dataPtr->lidar->SetVisible(_value);
+  ignmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
+         << std::endl;
 }
 
 /////////////////////////////////////////////////
