@@ -670,7 +670,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
-      [&](const Entity &  _entity,
+      [&](const Entity &_entity,
           const components::Collision *,
           const components::Name *_name,
           const components::Pose *_pose,
