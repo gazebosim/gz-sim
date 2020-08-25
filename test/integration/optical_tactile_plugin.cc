@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ class OpticalTactilePluginTest : public ::testing::Test
 // The test checks the normal forces on the corners of the box-shaped sensor
 TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
 {
-  this->StartServer("/test/worlds/optical_tactile_sensor_plugin.sdf");
+  this->StartServer("/test/worlds/optical_tactile_plugin.sdf");
 
   math::Vector3f upperLeftNormalForce(0, 0, 0);
   math::Vector3f upperRightNormalForce(0, 0, 0);

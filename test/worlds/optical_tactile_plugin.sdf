@@ -44,7 +44,7 @@
 
     <model name="tactile_sensor">
       <pose>0 0 0.0030 0 1.57 -1.57</pose>
-      <link name="link">
+      <link name="contact_surface">
         <collision name="collision">
           <geometry>
             <box>
@@ -55,7 +55,7 @@
         <sensor name="depth_camera" type="depth_camera">
           <update_rate>1</update_rate>
           <topic>depth_camera</topic>
-          <pose relative_to="tactile_sensor">-0.05 0 0 0 0 0</pose>
+          <pose relative_to="contact_surface">-0.05 0 0 0 0 0</pose>
           <camera>
             <image>
               <width>640</width>
@@ -73,7 +73,6 @@
             <collision>collision</collision>
           </contact>
         </sensor>
-
       </link>
       <static>false</static>
       <plugin

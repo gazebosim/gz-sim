@@ -118,11 +118,11 @@ void OpticalTactilePluginVisualization::AddContactToMarkerMsg(
 
   for (auto const &position : _contact.position())
   {
-    ignition::math::Vector3d firstPoint = ignition::msgs::Convert(position);
-    ignition::math::Vector3d secondPoint = firstPoint + contactNormal;
+    ignition::math::Vector3d startPoint = ignition::msgs::Convert(position);
+    ignition::math::Vector3d endPoint = startPoint + contactNormal;
 
-    ignition::msgs::Set(_contactMarkerMsg.add_point(), firstPoint);
-    ignition::msgs::Set(_contactMarkerMsg.add_point(), secondPoint);
+    ignition::msgs::Set(_contactMarkerMsg.add_point(), startPoint);
+    ignition::msgs::Set(_contactMarkerMsg.add_point(), endPoint);
   }
 }
 
@@ -211,12 +211,12 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
     (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
   normalForcePoseFromWorld.Correct();
 
-  // Get the first point of the normal force
-  ignition::math::Vector3f firstPointFromWorld =
+  // Get the start point of the normal force
+  ignition::math::Vector3f startPointFromWorld =
     normalForcePoseFromWorld.Pos();
 
   // Move the normal force pose a distance of forceLength along the direction
-  // of _normalForce and get the second point
+  // of _normalForce and get the end point
   normalForcePoseFromSensor.Set(normalForcePositionFromSensor +
     _normalForce * this->forceLength, normalForceOrientationFromSensor);
 
@@ -224,27 +224,27 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
     (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
   normalForcePoseFromWorld.Correct();
 
-  ignition::math::Vector3f secondPointFromWorld =
+  ignition::math::Vector3f endPointFromWorld =
     normalForcePoseFromWorld.Pos();
 
   // Check invalid points to avoid data transfer overhead
-  if (firstPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0) ||
-      secondPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0))
+  if (startPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0) ||
+      endPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0))
     return;
 
   // Add points to the messages
 
   ignition::msgs::Set(_positionMarkerMsg.add_point(),
-    ignition::math::Vector3d(firstPointFromWorld.X(),
-      firstPointFromWorld.Y(), firstPointFromWorld.Z()));
+    ignition::math::Vector3d(startPointFromWorld.X(),
+      startPointFromWorld.Y(), startPointFromWorld.Z()));
 
   ignition::msgs::Set(_forceMarkerMsg.add_point(),
-    ignition::math::Vector3d(firstPointFromWorld.X(),
-      firstPointFromWorld.Y(), firstPointFromWorld.Z()));
+    ignition::math::Vector3d(startPointFromWorld.X(),
+      startPointFromWorld.Y(), startPointFromWorld.Z()));
 
   ignition::msgs::Set(_forceMarkerMsg.add_point(),
-    ignition::math::Vector3d(secondPointFromWorld.X(),
-      secondPointFromWorld.Y(), secondPointFromWorld.Z()));
+    ignition::math::Vector3d(endPointFromWorld.X(),
+      endPointFromWorld.Y(), endPointFromWorld.Z()));
 }
 
 //////////////////////////////////////////////////

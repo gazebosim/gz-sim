@@ -328,7 +328,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     }
   }
 
-  // Advertise topics for normal forces
+  // Advertise topic for normal forces
   std::string normalForcesTopic = "/" + this->dataPtr->ns + "/normal_forces";
   this->dataPtr->normalForcesPub =
     this->dataPtr->node.Advertise<ignition::msgs::Image>(normalForcesTopic);
@@ -336,7 +336,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   {
     ignerr << "Error advertising topic [" << normalForcesTopic << "]"
       << std::endl;
-    return;
   }
 
   // Advertise enabling service
@@ -351,7 +350,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   {
     ignerr << "Error advertising service [" << enableService << "]"
       << std::endl;
-    return;
   }
 }
 
@@ -756,7 +754,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       // Add force to buffer
       // Forces buffer is composed of XYZ coordinates, while _msg buffer is
       // made up of XYZRGB values
-      bufferIndex = j*(_msg.row_step()/2) + i*(_msg.point_step()/2);
+      bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
       normalForcesBuffer[bufferIndex] = normalForce.X();
       normalForcesBuffer[bufferIndex + sizeof(float)] = normalForce.Y();
       normalForcesBuffer[bufferIndex + 2 * sizeof(float)] = normalForce.Z();
