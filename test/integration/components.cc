@@ -525,7 +525,8 @@ TEST_F(ComponentsTest, Joint)
 TEST_F(ComponentsTest, JointAxis)
 {
   auto data1 = sdf::JointAxis();
-  data1.SetXyz(math::Vector3d(1, 2, 3));
+  sdf::Errors errors = data1.SetXyz(math::Vector3d(1, 2, 3));
+  ASSERT_TRUE(errors.empty());
   data1.SetXyzExpressedIn("__model__");
   data1.SetDamping(0.1);
   data1.SetFriction(0.2);
@@ -551,7 +552,7 @@ TEST_F(ComponentsTest, JointAxis)
   components::JointAxis comp3;
   comp3.Deserialize(istr);
 
-  EXPECT_EQ(math::Vector3d(1, 2, 3), comp3.Data().Xyz());
+  EXPECT_EQ(math::Vector3d(1, 2, 3).Normalize(), comp3.Data().Xyz());
   EXPECT_DOUBLE_EQ(0.1, comp3.Data().Damping());
   EXPECT_DOUBLE_EQ(0.2, comp3.Data().Friction());
   EXPECT_DOUBLE_EQ(0.3, comp3.Data().Lower());

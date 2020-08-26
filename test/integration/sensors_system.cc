@@ -126,7 +126,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
     };
 
   server.AddSystem(this->systemPtr);
-  server.Run(true, 10, false);
+  server.Run(true, 50, false);
   ASSERT_NE(nullptr, ecm);
 
   testDefaultTopics();
