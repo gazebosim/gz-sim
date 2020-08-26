@@ -196,7 +196,7 @@ TEST_F(PosePublisherTest, PublishCmd)
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
-           common::Time::GetTime(simTimeSecNsec.first, simTimeSecNsec.second));
+           math::secNsecToTimePoint(simTimeSecNsec.first, simTimeSecNsec.second));
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -244,9 +244,9 @@ TEST_F(PosePublisherTest, PublishCmd)
       const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
   {
     std::chrono::system_clock::time_point lt =
-      common::Time::GetTime(_l.header().stamp().sec(), _l.header().stamp().nsec());
+      math::secNsecToTimePoint(_l.header().stamp().sec(), _l.header().stamp().nsec());
     std::chrono::system_clock::time_point rt =
-      common::Time::GetTime(_r.header().stamp().sec(), _r.header().stamp().nsec());
+      math::secNsecToTimePoint(_r.header().stamp().sec(), _r.header().stamp().nsec());
     return lt < rt;
   });
 
@@ -276,7 +276,7 @@ TEST_F(PosePublisherTest, PublishCmd)
 
     // verify timestamp
     std::chrono::system_clock::time_point time =
-      common::Time::GetTime(msg.header().stamp().sec(), msg.header().stamp().nsec());
+      math::secNsecToTimePoint(msg.header().stamp().sec(), msg.header().stamp().nsec());
     EXPECT_EQ(timestamps.front(), time);
     // assume msgs arrive in order and there is a pose msg for every link
     // so we only remove a timestamp from list after checking against all links
@@ -483,9 +483,9 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
-          common::Time::GetTime(simTimeSecNsec.first, simTimeSecNsec.second));
+          math::secNsecToTimePoint(simTimeSecNsec.first, simTimeSecNsec.second));
       staticPoseTimestamps.push_back(
-          common::Time::GetTime(simTimeSecNsec.first, simTimeSecNsec.second));
+          math::secNsecToTimePoint(simTimeSecNsec.first, simTimeSecNsec.second));
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -552,7 +552,7 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
 
       // verify timestamp
       std::chrono::system_clock::time_point time =
-        common::Time::GetTime(msg.header().stamp().sec(),
+        math::secNsecToTimePoint(msg.header().stamp().sec(),
         msg.header().stamp().nsec());
       EXPECT_EQ(timestamps.front(), time);
 
@@ -607,7 +607,7 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
 
       // verify timestamp
       std::chrono::system_clock::time_point time =
-        common::Time::GetTime(msg.header().stamp().sec(),
+        math::secNsecToTimePoint(msg.header().stamp().sec(),
           msg.header().stamp().nsec());
       EXPECT_EQ(staticPoseTimestamps.front(), time);
 

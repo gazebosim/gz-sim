@@ -413,7 +413,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
-    auto t = common::Time::GetTime(time.first, time.second);
+    auto t = math::secNsecToTimePoint(time.first, time.second);
 
     std::vector<sensors::RenderingSensor *> activeSensors;
 

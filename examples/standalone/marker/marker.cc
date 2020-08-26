@@ -54,15 +54,15 @@ int main(int _argc, char **_argv)
   // Read the terminal statements to figure out what each node.Request
   // call accomplishes.
   std::cout << "Spawning a blue sphere with lifetime 2s\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d(2, 2, 0, 0, 0, 0));
   node.Request("/marker", markerMsg);
   std::cout << "Sleeping for 2 seconds\n";
-  ignition::common::Time::Sleep(ignition::common::Time(2));
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 
   std::cout << "Spawning a black sphere at the origin with no lifetime\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(1);
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d::Zero);
@@ -72,13 +72,13 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Moving the sphere to x=0, y=1, z=1\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d(0, 1, 1, 0, 0, 0));
   node.Request("/marker", markerMsg);
 
   std::cout << "Shrinking the sphere\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(0.2, 0.2, 0.2));
   node.Request("/marker", markerMsg);
@@ -90,7 +90,7 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_diffuse()->set_r(1);
   markerMsg.mutable_material()->mutable_diffuse()->set_g(0);
   markerMsg.mutable_material()->mutable_diffuse()->set_b(0);
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding a green box\n";
@@ -100,7 +100,7 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_material()->mutable_diffuse()->set_r(0);
   markerMsg.mutable_material()->mutable_diffuse()->set_g(1);
   markerMsg.mutable_material()->mutable_diffuse()->set_b(0);
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(2);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::BOX);
@@ -111,12 +111,12 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Changing the green box to a cylinder\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
   node.Request("/marker", markerMsg);
 
   std::cout << "Connecting the sphere and cylinder with a line\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(3);
   ignition::msgs::Set(markerMsg.mutable_pose(),
                     ignition::math::Pose3d(0, 0, 0, 0, 0, 0));
@@ -129,7 +129,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding a square around the origin\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(4);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::LINE_STRIP);
@@ -146,7 +146,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding 100 points inside the square\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(5);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::POINTS);
@@ -162,7 +162,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding a semi-circular triangle fan\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(6);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::TRIANGLE_FAN);
@@ -180,7 +180,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding two triangles using a triangle list\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(7);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::TRIANGLE_LIST);
@@ -204,7 +204,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Adding a rectangular triangle strip\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(8);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::TRIANGLE_STRIP);
@@ -228,7 +228,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
 
   std::cout << "Deleting all the markers\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
   node.Request("/marker", markerMsg);
 }
