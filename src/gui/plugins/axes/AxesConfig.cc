@@ -29,7 +29,6 @@
 
 namespace ignition::gazebo
 {
-  const std::string worldOriginAxes = std::string("worldOriginAxes");
   class AxesConfigPrivate
   {
     /// \brief axes ptr in a scene
@@ -55,6 +54,9 @@ namespace ignition::gazebo
 
     /// \brief structure to save active axes
     public: std::map<std::string, math::Pose3d> activeAxesMap;
+
+    /// \brief Flag that indicates whether there are new updates to be rendered.
+    public: bool dirty{true};
   };
 }
 
@@ -65,7 +67,7 @@ using namespace gazebo;
 AxesConfig::AxesConfig()
   : ignition::gui::Plugin(), dataPtr(std::make_unique<AxesConfigPrivate>())
 {
-  this->dataPtr->name_axes = std::string(worldOriginAxes);
+  this->dataPtr->name_axes = "";
 }
 
 /////////////////////////////////////////////////
@@ -135,6 +137,7 @@ bool AxesConfig::eventFilter(QObject *_obj, QEvent *_event)
   return QObject::eventFilter(_obj, _event);
 }
 
+/////////////////////////////////////////////////
 void AxesConfig::UpdateActiveAxes()
 {
   for (auto vis : this->dataPtr->activeAxesMap)
@@ -156,6 +159,9 @@ void AxesConfig::UpdateActiveAxes()
 /////////////////////////////////////////////////
 void AxesConfig::UpdateOriginArrows()
 {
+  if (this->dataPtr->name_axes.empty())
+    return;
+
   // Load axes if they don't already exist
   this->LoadAxesbyName(this->dataPtr->name_axes);
 
@@ -163,8 +169,13 @@ void AxesConfig::UpdateOriginArrows()
   if (!this->dataPtr->axes)
     return;
 
-  // Save the axesVisual in the structure if it doesn't exist or
-  // update the pose
+  // Updating the poses
+  this->UpdateActiveAxes();
+
+  if (!this->dataPtr->dirty)
+    return;
+
+  // Save the axesVisual in the structure if it doesn't exist or update the pose
   auto it = this->dataPtr->activeAxesMap.find(this->dataPtr->name_axes);
   if (it == this->dataPtr->activeAxesMap.end())
   {
@@ -178,9 +189,6 @@ void AxesConfig::UpdateOriginArrows()
     it->second = this->dataPtr->pose;
   }
 
-  // Updating the poses
-  this->UpdateActiveAxes();
-
   // update visibility
   this->dataPtr->axes->SetVisible(this->dataPtr->visible);
   // Update type: arrow or line
@@ -190,36 +198,39 @@ void AxesConfig::UpdateOriginArrows()
   }
   // update scale
   this->dataPtr->axes->SetLocalScale(1, 1, this->dataPtr->length * 2);
+
+  this->dataPtr->dirty = false;
 }
 
+/////////////////////////////////////////////////
 const QStringList AxesConfig::comboList()
 {
   return itemComboList;
 }
 
+/////////////////////////////////////////////////
 void AxesConfig::SetComboList(const QStringList &comboList)
 {
-  if (itemComboList != comboList)
-  {
-    itemComboList = comboList;
-    emit ComboListChanged();
-  }
+   if (itemComboList != comboList)
+   {
+       itemComboList = comboList;
+       if (itemComboList.size() > 0 && this->dataPtr->name_axes.empty()) {
+         this->dataPtr->name_axes = itemComboList[0].toStdString();
+       }
+       emit ComboListChanged();
+   }
 }
 
+/////////////////////////////////////////////////
 void AxesConfig::LoadAxesbyName(const std::string & name)
 {
-  if (this->dataPtr->name_axes.compare(name) == 0 && this->dataPtr->axes)
+  if ((this->dataPtr->name_axes.compare(name) == 0 && this->dataPtr->axes)
+      && !this->dataPtr->dirty)
     return;
 
   this->dataPtr->name_axes = name;
-  if (this->dataPtr->name_axes.compare(worldOriginAxes) != 0)
-  {
-    this->dataPtr->axes = std::dynamic_pointer_cast<rendering::AxisVisual>(
-        this->dataPtr->scene->VisualByName(this->dataPtr->name_axes + "Axes"));
-  } else {
-    this->dataPtr->axes = std::dynamic_pointer_cast<rendering::AxisVisual>(
-        this->dataPtr->scene->VisualByName(worldOriginAxes));
-  }
+  this->dataPtr->axes = std::dynamic_pointer_cast<rendering::AxisVisual>(
+    this->dataPtr->scene->VisualByName(this->dataPtr->name_axes + "Axes"));
 
   if (!this->dataPtr->axes)
   {
@@ -231,12 +242,75 @@ void AxesConfig::LoadAxesbyName(const std::string & name)
   }
 }
 
+/////////////////////////////////////////////////
 void AxesConfig::onCurrentIndexChanged(int _index)
 {
-  std::string name_entity = itemComboList[_index].toStdString();
-  LoadAxesbyName(name_entity);
+  this->dataPtr->name_axes = itemComboList[_index].toStdString();
+  this->dataPtr->dirty = true;
+  auto axes = std::dynamic_pointer_cast<rendering::AxisVisual>(
+    this->dataPtr->scene->VisualByName(this->dataPtr->name_axes + "Axes"));
+  if (axes)
+  {
+    this->dataPtr->length = axes->LocalScale().Z() / 2.0;
+    // Save the axesVisual in the structure if it doesn't exist or update the pose
+    auto it = this->dataPtr->activeAxesMap.find(this->dataPtr->name_axes);
+    if (it != this->dataPtr->activeAxesMap.end())
+    {
+      this->dataPtr->pose = it->second;
+    } else
+    {
+      this->dataPtr->pose = math::Pose3d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    }
+  }
+  else
+  {
+    this->dataPtr->length = 1.0;
+    this->dataPtr->pose = math::Pose3d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  }
 }
 
+/////////////////////////////////////////////////
+double AxesConfig::length() const {
+  return this->dataPtr->length;
+}
+
+/////////////////////////////////////////////////
+double AxesConfig::axesX() const
+{
+  return this->dataPtr->pose.Pos().X();
+}
+
+/////////////////////////////////////////////////
+double AxesConfig::axesY() const
+{
+  return this->dataPtr->pose.Pos().Y();
+}
+
+/////////////////////////////////////////////////
+double AxesConfig::axesZ() const
+{
+  return this->dataPtr->pose.Pos().Z();
+}
+
+/////////////////////////////////////////////////
+double AxesConfig::axesRoll() const
+{
+  return this->dataPtr->pose.Rot().Euler().X();
+}
+
+/////////////////////////////////////////////////
+double AxesConfig::axesPitch() const
+{
+  return this->dataPtr->pose.Rot().Euler().Y();
+}
+
+/////////////////////////////////////////////////
+double AxesConfig::axesYaw() const
+{
+  return this->dataPtr->pose.Rot().Euler().Z();
+}
+
+/////////////////////////////////////////////////
 void AxesConfig::EntitiesInScene()
 {
   std::set<std::string> set_entities;
@@ -267,6 +341,7 @@ void AxesConfig::EntitiesInScene()
 void AxesConfig::UpdateLength(double _length)
 {
   this->dataPtr->length = _length;
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -275,17 +350,20 @@ void AxesConfig::SetPose(
   double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->pose = math::Pose3d(_x, _y, _z, _roll, _pitch, _yaw);
+  this->dataPtr->dirty = true;
 }
 
 void AxesConfig::OnTypeAxes(bool _checked)
 {
   this->dataPtr->isArrow = _checked;
+  this->dataPtr->dirty = true;
 }
 
 /////////////////////////////////////////////////
 void AxesConfig::OnShow(bool _checked)
 {
   this->dataPtr->visible = _checked;
+  this->dataPtr->dirty = true;
 }
 
 // Register this plugin

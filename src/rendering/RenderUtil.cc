@@ -320,7 +320,6 @@ void RenderUtil::Update()
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
-    this->ShowOriginAxes();
     // only one scene so break
     break;
   }
@@ -1030,13 +1029,34 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // Trajectory origin
         this->entityPoses[_entity] = _pose->Data();
 
-        if (this->actorManualSkeletonUpdate)
+        auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
+        auto animNameComp = _ecm.Component<components::AnimationName>(_entity);
+
+        // Animation time set through ECM so ign-rendering can calculate bone
+        // transforms
+        if (animTimeComp && animNameComp)
         {
-          // Bone poses calculated by ign-common
+          auto skel = this->sceneManager.ActorSkeletonById(_entity);
+          if (nullptr != skel)
+          {
+            AnimationUpdateData animData;
+            animData.loop = true;
+            animData.followTrajectory = true;
+            animData.animationName = animNameComp->Data();
+            animData.time = animTimeComp->Data();
+            animData.rootTransform = skel->RootNode()->Transform();
+            animData.valid = true;
+            this->actorAnimationData[_entity] = animData;
+          }
+        }
+        // Bone poses calculated by ign-common
+        else if (this->actorManualSkeletonUpdate)
+        {
           this->actorTransforms[_entity] =
               this->sceneManager.ActorSkeletonTransformsAt(
               _entity, this->simTime);
         }
+        // Trajectory info from SDF so ign-rendering can calculate bone poses
         else
         {
           this->actorAnimationData[_entity] =
@@ -1259,15 +1279,6 @@ void RenderUtil::ShowGrid()
   visual->SetLocalPosition(0, 0, 0.015);
   visual->SetMaterial(gray);
   root->AddChild(visual);
-}
-
-/////////////////////////////////////////////////
-void RenderUtil::ShowOriginAxes()
-{
-  rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
-
-  auto worldOriginAxes = this->dataPtr->scene->CreateAxisVisual("worldOriginAxes");
-  root->AddChild(worldOriginAxes);
 }
 
 /////////////////////////////////////////////////
