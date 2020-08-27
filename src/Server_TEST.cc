@@ -489,6 +489,7 @@ TEST_P(ServerFixture, RunOnceUnpaused)
     while (*server.IterationCount() < 100)
       server.RunOnce(false);
 
+    EXPECT_EQ(*server.IterationCount(), 100);
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
 }
@@ -507,6 +508,7 @@ TEST_P(ServerFixture, RunOncePaused)
     while (*server.IterationCount() < 100)
       server.RunOnce(true);
 
+    EXPECT_EQ(*server.IterationCount(), 100);
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
 }
