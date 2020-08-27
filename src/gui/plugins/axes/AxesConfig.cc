@@ -211,14 +211,14 @@ const QStringList AxesConfig::comboList()
 /////////////////////////////////////////////////
 void AxesConfig::SetComboList(const QStringList &comboList)
 {
-   if (itemComboList != comboList)
-   {
-       itemComboList = comboList;
-       if (itemComboList.size() > 0 && this->dataPtr->name_axes.empty()) {
-         this->dataPtr->name_axes = itemComboList[0].toStdString();
-       }
-       emit ComboListChanged();
-   }
+  if (itemComboList != comboList)
+  {
+    itemComboList = comboList;
+    if (itemComboList.size() > 0 && this->dataPtr->name_axes.empty()) {
+      this->dataPtr->name_axes = itemComboList[0].toStdString();
+    }
+    emit ComboListChanged();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -252,12 +252,14 @@ void AxesConfig::onCurrentIndexChanged(int _index)
   if (axes)
   {
     this->dataPtr->length = axes->LocalScale().Z() / 2.0;
-    // Save the axesVisual in the structure if it doesn't exist or update the pose
+    // Save the axesVisual in the structure if it doesn't exist or update
+    // the pose
     auto it = this->dataPtr->activeAxesMap.find(this->dataPtr->name_axes);
     if (it != this->dataPtr->activeAxesMap.end())
     {
       this->dataPtr->pose = it->second;
-    } else
+    }
+    else
     {
       this->dataPtr->pose = math::Pose3d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
