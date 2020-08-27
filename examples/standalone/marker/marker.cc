@@ -228,7 +228,7 @@ int main(int _argc, char **_argv)
   node.Request("/marker", markerMsg);
   std::cout << "Adding multiple markers via /marker_array\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
-  
+
   ignition::msgs::Marker_V markerMsgs;
   ignition::msgs::Boolean res;
   bool result;
@@ -241,7 +241,7 @@ int main(int _argc, char **_argv)
   markerMsg1->set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg1->set_type(ignition::msgs::Marker::SPHERE);
   markerMsg1->set_visibility(ignition::msgs::Marker::GUI);
-  
+
   // Set color to Blue
   markerMsg1->mutable_material()->mutable_ambient()->set_r(0);
   markerMsg1->mutable_material()->mutable_ambient()->set_g(0);
@@ -255,7 +255,7 @@ int main(int _argc, char **_argv)
                     ignition::math::Vector3d(1.0, 1.0, 1.0));
   ignition::msgs::Set(markerMsg1->mutable_pose(),
                       ignition::math::Pose3d(3, 3, 0, 0, 0, 0));
-  
+
   // Create second red box marker
   auto markerMsg2 = markerMsgs.add_marker();
   markerMsg2->set_ns("default");
@@ -263,7 +263,7 @@ int main(int _argc, char **_argv)
   markerMsg2->set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg2->set_type(ignition::msgs::Marker::BOX);
   markerMsg2->set_visibility(ignition::msgs::Marker::GUI);
-  
+
   // Set color to Red
   markerMsg2->mutable_material()->mutable_ambient()->set_r(1);
   markerMsg2->mutable_material()->mutable_ambient()->set_g(0);
@@ -287,7 +287,7 @@ int main(int _argc, char **_argv)
   markerMsg3->set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg3->set_type(ignition::msgs::Marker::CYLINDER);
   markerMsg3->set_visibility(ignition::msgs::Marker::GUI);
-  
+
   // Set color to Green
   markerMsg3->mutable_material()->mutable_ambient()->set_r(0);
   markerMsg3->mutable_material()->mutable_ambient()->set_g(1);
