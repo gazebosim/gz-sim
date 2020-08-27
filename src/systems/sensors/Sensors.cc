@@ -120,7 +120,8 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorMaskMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId, std::chrono::system_clock::time_point> sensorMask;
+  public: std::map<sensors::SensorId,
+    std::chrono::system_clock::time_point> sensorMask;
 
   /// \brief Wait for initialization to happen
   private: void WaitForInit();
