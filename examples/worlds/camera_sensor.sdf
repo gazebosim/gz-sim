@@ -15,11 +15,7 @@
     <plugin
       filename="libignition-gazebo-sensors-system.so"
       name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre</render_engine>
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
+      <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
@@ -42,7 +38,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>1.0 1.0 1.0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -118,6 +114,28 @@
       </attenuation>
       <direction>-0.5 0.1 -0.9</direction>
     </light>
+
+    <!-- Model with meshes -->
+    <model name="Radio">
+      <pose>3 -1.5 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
 
     <model name="ground_plane">
       <static>true</static>
@@ -257,9 +275,7 @@
 
     <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
-      <uri>
-      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Cone
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Cone</uri>
     </include>
 
   </world>

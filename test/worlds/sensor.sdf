@@ -76,47 +76,6 @@
     <model name="default_topics">
       <pose>10 0 0.5 0 0 0.0 </pose>
       <static>true</static>
-      <link name="camera_link">
-        <sensor name="camera" type="camera">
-          <camera>
-            <horizontal_fov>1.047</horizontal_fov>
-            <image>
-              <width>320</width>
-              <height>240</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-          </camera>
-        </sensor>
-      </link>
-
-      <link name="gpu_lidar_link">
-        <sensor name='gpu_lidar' type='gpu_lidar'>"
-          <ray>
-            <scan>
-              <horizontal>
-                <samples>640</samples>
-                <resolution>1</resolution>
-                <min_angle>-1.396263</min_angle>
-                <max_angle>1.396263</max_angle>
-              </horizontal>
-              <vertical>
-                <samples>1</samples>
-                <resolution>0.01</resolution>
-                <min_angle>0</min_angle>
-                <max_angle>0</max_angle>
-              </vertical>
-            </scan>
-            <range>
-              <min>0.08</min>
-              <max>10.0</max>
-              <resolution>0.01</resolution>
-            </range>
-          </ray>
-        </sensor>
-      </link>
 
       <link name="depth_camera_link">
         <sensor name="depth_camera" type="depth_camera">
@@ -135,21 +94,7 @@
         </sensor>
       </link>
 
-      <link name="rgbd_camera_link">
-        <sensor name="rgbd_camera" type="rgbd_camera">
-          <camera>
-            <horizontal_fov>1.05</horizontal_fov>
-            <image>
-              <width>256</width>
-              <height>256</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>10.0</far>
-            </clip>
-          </camera>
-        </sensor>
-      </link>
+
     </model>
   </world>
 </sdf>

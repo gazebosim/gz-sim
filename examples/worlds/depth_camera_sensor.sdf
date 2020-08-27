@@ -226,9 +226,7 @@
 
     <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
-      <uri>
-      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Barrel
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Barrel/3</uri>
     </include>
 
   </world>

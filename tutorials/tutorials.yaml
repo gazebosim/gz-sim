@@ -1,0 +1,9 @@
+pages:
+  - name: Battery
+    title: Battery
+    description: The battery system keeps track of the battery charge on a robot model.
+    file: battery.md
+  - name: Debugging
+    title: Debugging
+    description: Using GDB with the command line tools
+    file: debugging.md

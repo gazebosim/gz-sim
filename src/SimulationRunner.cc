@@ -203,7 +203,29 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 //////////////////////////////////////////////////
 SimulationRunner::~SimulationRunner()
 {
+  std::cerr << "SimulationRunner begins" << '\n';
   this->StopWorkerThreads();
+  // for(auto & configure: systemsConfigure){
+  //   if (configure)
+  //     delete configure;
+  // }
+  // systemsConfigure.clear();
+  // for(auto & preupdate: systemsPreupdate){
+  //   if (preupdate)
+  //     delete preupdate;
+  // }
+  // systemsPreupdate.clear();
+  // for(auto & update: systemsUpdate){
+  //   if (update)
+  //     delete update;
+  // }
+  // systemsUpdate.clear();
+  // for(auto & postupdate: systemsPostupdate){
+  //   if (postupdate)
+  //     delete postupdate;
+  // }
+  // systemsPostupdate.clear();
+  std::cerr << "SimulationRunner ends" << '\n';
 }
 
 /////////////////////////////////////////////////
