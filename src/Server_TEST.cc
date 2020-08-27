@@ -483,11 +483,11 @@ TEST_P(ServerFixture, RunOnceUnpaused)
     EXPECT_FALSE(*server.Running(0));
     EXPECT_EQ(0u, *server.IterationCount());
 
-    // Make the server run fast.
+    // Make the server run fast
     server.SetUpdatePeriod(1ns);
 
     while (*server.IterationCount() < 100)
-        server.RunOnce(false);
+      server.RunOnce(false);
 
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
@@ -501,11 +501,11 @@ TEST_P(ServerFixture, RunOncePaused)
     EXPECT_FALSE(*server.Running(0));
     EXPECT_EQ(0u, *server.IterationCount());
 
-    // Make the server run fast.
+    // Make the server run fast
     server.SetUpdatePeriod(1ns);
 
     while (*server.IterationCount() < 100)
-        server.RunOnce(true);
+      server.RunOnce(true);
 
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
