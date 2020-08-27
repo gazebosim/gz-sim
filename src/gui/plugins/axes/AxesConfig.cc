@@ -112,7 +112,8 @@ void AxesConfig::LoadConfig(const tinyxml2::XMLElement *)
     return;
   }
 
-  if (!this->dataPtr->scene->IsInitialized() || this->dataPtr->scene->VisualCount() == 0)
+  if (!this->dataPtr->scene->IsInitialized() ||
+    this->dataPtr->scene->VisualCount() == 0)
   {
     return;
   }
@@ -136,7 +137,7 @@ bool AxesConfig::eventFilter(QObject *_obj, QEvent *_event)
 
 void AxesConfig::UpdateActiveAxes()
 {
-  for(auto vis : this->dataPtr->activeAxesMap)
+  for (auto vis : this->dataPtr->activeAxesMap)
   {
     auto visAxes = std::dynamic_pointer_cast<rendering::AxisVisual>(
           this->dataPtr->scene->VisualByName(vis.first + "Axes"));
@@ -144,7 +145,8 @@ void AxesConfig::UpdateActiveAxes()
     auto visEntity = std::dynamic_pointer_cast<rendering::Visual>(
           this->dataPtr->scene->VisualByName(vis.first));
 
-    if (visEntity && visAxes){
+    if (visEntity && visAxes)
+    {
       math::Pose3d pose_entity = visEntity->LocalPose();
       visAxes->SetLocalPose(vis.second + pose_entity);
     }
@@ -161,13 +163,18 @@ void AxesConfig::UpdateOriginArrows()
   if (!this->dataPtr->axes)
     return;
 
-  // Save the axesVisual in the structure if it doesn't exist or update the pose
+  // Save the axesVisual in the structure if it doesn't exist or
+  // update the pose
   auto it = this->dataPtr->activeAxesMap.find(this->dataPtr->name_axes);
   if (it == this->dataPtr->activeAxesMap.end())
   {
     this->dataPtr->activeAxesMap.insert(
-      std::pair<std::string, math::Pose3d>(this->dataPtr->name_axes, this->dataPtr->pose));
-  } else {
+      std::pair<std::string, math::Pose3d>(
+        this->dataPtr->name_axes,
+        this->dataPtr->pose));
+  }
+  else
+  {
     it->second = this->dataPtr->pose;
   }
 
@@ -187,16 +194,16 @@ void AxesConfig::UpdateOriginArrows()
 
 const QStringList AxesConfig::comboList()
 {
-    return itemComboList;
+  return itemComboList;
 }
 
 void AxesConfig::SetComboList(const QStringList &comboList)
 {
-   if (itemComboList != comboList)
-   {
-       itemComboList = comboList;
-       emit ComboListChanged();
-   }
+  if (itemComboList != comboList)
+  {
+    itemComboList = comboList;
+    emit ComboListChanged();
+  }
 }
 
 void AxesConfig::LoadAxesbyName(const std::string & name)
@@ -218,7 +225,8 @@ void AxesConfig::LoadAxesbyName(const std::string & name)
   {
     rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
 
-    auto axes = this->dataPtr->scene->CreateAxisVisual(this->dataPtr->name_axes + "Axes");
+    auto axes = this->dataPtr->scene->CreateAxisVisual(
+      this->dataPtr->name_axes + "Axes");
     root->AddChild(axes);
   }
 }

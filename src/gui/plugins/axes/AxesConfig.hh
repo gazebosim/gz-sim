@@ -19,10 +19,10 @@
 #define IGNITION_GAZEBO_GUI_AXESCONFIG_HH_
 
 #include <memory>
+#include <string>
 
 #include <ignition/gui/Plugin.hh>
 #include <ignition/rendering.hh>
-#include <QComboBox>
 
 namespace ignition
 {
@@ -34,7 +34,10 @@ namespace gazebo
   {
     Q_OBJECT
 
-    Q_PROPERTY(QStringList comboList READ comboList WRITE SetComboList NOTIFY ComboListChanged)
+    Q_PROPERTY(QStringList comboList
+               READ comboList
+               WRITE SetComboList
+               NOTIFY ComboListChanged)
 
     /// \brief Constructor
     public: AxesConfig();
@@ -55,10 +58,12 @@ namespace gazebo
     public: void LoadAxesbyName(const std::string & name);
 
     /// \brief update the active axes
-    /// We need to do that in other to render the axes when moving a object in the scene
+    /// We need to do that in other to render the axes when moving
+    /// a object in the scene
     private: void UpdateActiveAxes();
 
-    /// \brief function to find all the entities in the scene based on the visual names
+    /// \brief function to find all the entities in the scene based
+    /// on the visual names
     private: void EntitiesInScene();
 
     /// \brief set a new combobox list and emit the signal ComboListChanged
