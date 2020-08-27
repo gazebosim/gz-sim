@@ -486,7 +486,8 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     std::unique_ptr<sensors::ThermalCameraSensor> thermalCameraSensor =
       std::make_unique<sensors::ThermalCameraSensor>();
     thermalCameraSensor->Load(_sdf);
-    sensorId = this->dataPtr->sensorManager.AddSensor(std::move(thermalCameraSensor));
+    sensorId = this->dataPtr->sensorManager.AddSensor(
+      std::move(thermalCameraSensor));
   }
   else
   {
