@@ -230,6 +230,9 @@ int main(int _argc, char **_argv)
   ignition::common::Time::Sleep(ignition::common::Time(4));
   
   ignition::msgs::Marker_V markerMsgs;
+  ignition::msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
 
   // Create first blue sphere marker
   auto markerMsg1 = markerMsgs.add_marker();
@@ -302,7 +305,7 @@ int main(int _argc, char **_argv)
                       ignition::math::Pose3d(3, 3, 4, 0, 0, 0));
 
   // Publish the three created markers above simultaneously
-  node.Request("/marker_array", markerMsgs);
+  node.Request("/marker_array", markerMsgs, timeout, res, result);
 
   std::cout << "Deleting all the markers\n";
   ignition::common::Time::Sleep(ignition::common::Time(4));
