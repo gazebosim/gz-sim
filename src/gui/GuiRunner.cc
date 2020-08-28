@@ -102,5 +102,6 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   }
   this->ecm.ClearNewlyCreatedEntities();
   this->ecm.ProcessRemoveEntityRequests();
+  this->ecm.ClearRemovedComponents();
 }
 
