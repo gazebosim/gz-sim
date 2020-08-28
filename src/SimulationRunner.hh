@@ -344,6 +344,13 @@ namespace ignition
       public: void AddToFuelUriMap(const std::string &_path,
                                    const std::string &_uri);
 
+      /// \brief Get whether the next step is going to be executed as paused.
+      /// \return True if the next step is being executed as paused, false otherwise.
+      public: bool NextStepIsBlockingPaused() const;
+
+      /// \brief Set the next step to be blocking and paused.
+      public: void SetNextStepAsBlockingPaused(const bool value);
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -494,7 +501,6 @@ namespace ignition
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
 
-      friend class Server;
       friend class LevelManager;
     };
     }

@@ -1178,3 +1178,13 @@ void SimulationRunner::AddToFuelUriMap(const std::string &_path,
 {
   this->fuelUriMap[_path] = _uri;
 }
+
+bool SimulationRunner::NextStepIsBlockingPaused() const
+{
+  return this->blockingPausedStepPending;
+}
+
+void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
+{
+  this->blockingPausedStepPending = value;
+}
