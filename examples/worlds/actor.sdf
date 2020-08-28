@@ -58,8 +58,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/actors/control</service>
-        <stats_topic>/world/actors/stats</stats_topic>
 
       </plugin>
 
@@ -84,7 +82,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/actors/stats</topic>
 
       </plugin>
 

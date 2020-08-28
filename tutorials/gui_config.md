@@ -3,7 +3,7 @@
 Ignition Gazebo's graphical user interface is powered by
 [Ignition GUI](https://ignitionrobotics.org/libs/gui). Therefore, Gazebo's
 GUI layout can be defined in
-[Ignition GUI configuration files](https://ignitionrobotics.org/api/gui/2.1/config.html).
+[Ignition GUI configuration files](https://ignitionrobotics.org/api/gui/3.2/config.html).
 These are XML files that describe what plugins to be loaded and with what
 settings.
 
