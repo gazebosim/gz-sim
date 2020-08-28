@@ -297,8 +297,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
       // hack! subscribe to the camera sensor topic in order to make the sensor
       // active, otherwise the sensor thinks there are no subscribers and so
       // does not actually render.
-      // todo(anyone) Get a pointer to the sensor object so we can manually
-      // override its active state to ensure image data are generated
+      // todo(anyone) Make it possible to get a pointer to the sensor object so
+      // we can connect to its new image event
       this->node.Subscribe(this->sensorTopic,
           &CameraVideoRecorderPrivate::OnImage, this);
 
