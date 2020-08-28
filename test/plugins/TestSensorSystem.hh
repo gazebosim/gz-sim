@@ -53,6 +53,7 @@ class TestSensorSystem :
 
   private: bool Service(msgs::StringMsg &_msg)
            {
+             igndbg << "TestSensorSystem service called" << std::endl;
              _msg.set_data("TestSensorSystem");
              return true;
            }
