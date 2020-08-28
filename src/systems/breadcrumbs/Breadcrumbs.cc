@@ -130,6 +130,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
     topic = _sdf->Get<std::string>("topic");
 
   this->node.Subscribe(topic, &Breadcrumbs::OnDeploy, this);
+  this->remainingPub = this->node.Advertise<msgs::Int32>(topic + "/remaining");
 
   ignmsg << "Breadcrumbs subscribing to deploy messages on [" << topic << "]"
          << std::endl;
@@ -242,6 +243,11 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                << " but the maximum number of deployments has reached the "
                << "limit of " << this->maxDeployments << std::endl;
       }
+
+      // Publish remaining deployments
+      msgs::Int32 remainingMsg;
+      remainingMsg.set_data(this->maxDeployments - this->numDeployments);
+      this->remainingPub.Publish(remainingMsg);
     }
 
     std::set<Entity> processedEntities;

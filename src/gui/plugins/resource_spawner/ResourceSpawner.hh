@@ -42,6 +42,15 @@ namespace gazebo
     /// \brief The absolute path to the thumbnail of the local model, will be
     /// empty if no thumbnail is found
     std::string thumbnailPath = "";
+
+    /// \brief Bool to indicate if this model is fuel or not
+    // cppcheck-suppress unusedStructMember
+    bool isFuel = false;
+
+    /// \brief Bool to indicate if this model has been downloaded or not, will
+    /// always be false with local models as it is irrelevant in this case
+    // cppcheck-suppress unusedStructMember
+    bool isDownloaded = false;
   };
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
@@ -76,15 +85,30 @@ namespace gazebo
     /// \brief Destructor
     public: ~ResourceModel() override = default;
 
-    /// \brief Add a resource to the grid view.
-    /// param[in] _model The resource to be added
+    /// \brief Add a local resource to the grid view.
+    /// param[in] _resource The local resource to be added
     public slots: void AddResource(Resource &_resource);
 
     /// \brief Clear the current resource model
     public: void Clear();
 
+    /// \brief Updates the resource at the provided index with the values in
+    /// the passed in resource.
+    /// \param[in] index The index of the resources within the resource model
+    /// \param[in] _resource The resource values with which to update the
+    /// existing resource
+    public: void UpdateResourceModel(int index, Resource &_resource);
+
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
+
+    // \brief Index to keep track of the position of each fuel resource,
+    // used primarily to access currently loaded resources for updates
+    public: int fuelGridIndex = 0;
+
+    // \brief Index to keep track of the position of each local resource,
+    // used primarily to access currently loaded resources for updates
+    public: int localGridIndex = 0;
   };
 
   /// \brief Provides interface for communicating to backend for generation
@@ -111,8 +135,8 @@ namespace gazebo
     /// \param[in] _path The path to search
     public: void LoadLocalResource(const std::string &_path);
 
-    /// \brief Add a path to the QML grid view.
-    /// \param[in] _path The path to be added
+    /// \brief Adds a path to the path list model.
+    /// \param[in] _path The path to add
     public: void AddPath(const std::string &_path);
 
     /// \brief Recursively searches the provided path for all model.config's
@@ -120,10 +144,34 @@ namespace gazebo
     /// \param[in] _path The path to search
     public: void FindLocalResources(const std::string &_path);
 
+    /// \brief Searches through the previously loaded fuel resources to locate
+    /// the models belonging to the passed in owner.
+    /// \param[in] _owner The name of the owner
+    public: void FindFuelResources(const std::string &_owner);
+
     /// \brief Callback when a resource path is selected, will clear the
     /// currently loaded resources and load the ones at the specified path
     /// \param[in] _path The path to search resources
     public slots: void OnPathClicked(const QString &_path);
+
+    /// \brief Callback when a fuel owner is selected, will clear the
+    /// currently loaded resources and load the ones belonging to the
+    /// specified owner.
+    /// \param[in] _owner The name of the owner
+    public slots: void OnOwnerClicked(const QString &_owner);
+
+    /// \brief Callback when a request is made to download a fuel resource.
+    /// \param[in] _path URI to the fuel resource
+    /// \param[in] index The index of the grid pane to update
+    public slots: void OnDownloadFuelResource(const QString &_path, int index);
+
+    /// \brief Finds a thumbnail on the provided thumbnail path and
+    /// sets the model's thumbnail path attribute to it, no action is
+    /// taken if no thumbnail is found.
+    /// \param[in] _thumbnailPath The path to search for a thumbnail
+    /// \param[in] _model The model to update with the thumbnail information
+    public: void SetThumbnail(const std::string &_thumbnailPath,
+                Resource &_resource);
 
     /// \internal
     /// \brief Pointer to private data.

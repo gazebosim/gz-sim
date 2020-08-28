@@ -306,6 +306,9 @@ class Cmd
 
     begin
 
+      # Import the findFuelResource function
+      Importer.extern 'const char *findFuelResource(const char *)'
+
       if options.key?('version')
         Importer.extern 'char *gazeboVersionHeader()'
         puts Importer.gazeboVersionHeader.to_s
@@ -342,8 +345,12 @@ class Cmd
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
             if !File.exists?(path)
-              puts "Unable to find file " + options['file']
-              exit(-1)
+              path = Importer.findFuelResource(options['file']).to_s
+              options['file'] = path
+              if path == ""
+                puts "Unable to find or download file " + options['file']
+                exit(-1)
+              end
             end
           end
         end
