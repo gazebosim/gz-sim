@@ -17,10 +17,8 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
-#include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -53,29 +51,6 @@ TEST_F(CameraVideoRecorderTest, RecordVideo)
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-
-//  // Create a system that checks for thermal component
-//  test::Relay testSystem;
-//
-//  std::map<std::string, math::Temperature> entityTemp;
-//  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-//    const gazebo::EntityComponentManager &_ecm)
-//    {
-//      _ecm.Each<components::Temperature, components::Name>(
-//          [&](const ignition::gazebo::Entity &_id,
-//              const components::Temperature *_temp,
-//              const components::Name *_name) -> bool
-//          {
-//            // store temperature data
-//            entityTemp[_name->Data()] = _temp->Data();
-//
-//            // verify temperature data belongs to a visual
-//            EXPECT_NE(nullptr, _ecm.Component<components::Visual>(_id));
-//
-//            return true;
-//          });
-//    });
-//  server.AddSystem(testSystem.systemPtr);
 
   // Run server
   server.Run(true, 1, false);
