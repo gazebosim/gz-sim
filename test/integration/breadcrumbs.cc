@@ -66,6 +66,43 @@ class BreadcrumbsTest : public ::testing::Test
   public: std::unique_ptr<Server> server;
 };
 
+int kRemaining;
+
+/////////////////////////////////////////////////
+void remainingCb(const msgs::Int32 &_msg)
+{
+  kRemaining = _msg.data();
+}
+
+/////////////////////////////////////////////////
+// This test checks the .../deploy/remaining topic
+TEST_F(BreadcrumbsTest, Remaining)
+{
+  // Start server
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  kRemaining = 0;
+
+  test::Relay testSystem;
+  transport::Node node;
+  auto deployB1 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
+  node.Subscribe("/model/vehicle_blue/breadcrumbs/B1/deploy/remaining",
+      &remainingCb);
+  EXPECT_EQ(0, kRemaining);
+  deployB1.Publish(msgs::Empty());
+  this->server->Run(true, 1, false);
+  EXPECT_EQ(2, kRemaining);
+  deployB1.Publish(msgs::Empty());
+  this->server->Run(true, 1, false);
+  EXPECT_EQ(1, kRemaining);
+  deployB1.Publish(msgs::Empty());
+  this->server->Run(true, 1, false);
+  EXPECT_EQ(0, kRemaining);
+  deployB1.Publish(msgs::Empty());
+  this->server->Run(true, 1, false);
+  EXPECT_EQ(0, kRemaining);
+}
+
 /////////////////////////////////////////////////
 // The test checks breadcrumbs are deployed at the correct pose
 TEST_F(BreadcrumbsTest, DeployAtOffset)
@@ -184,6 +221,7 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
   this->server->AddSystem(testSystem.systemPtr);
   this->server->Run(true, iterTestStart + 5001, false);
 }
+
 
 /////////////////////////////////////////////////
 // The test checks that including models from fuel works. Also checks custom
