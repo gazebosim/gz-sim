@@ -69,8 +69,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     worldPath = path;
   }
   else if (ignition::fuel_tools::Result result =
-    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
-    result)
+    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path))
   {
     ignmsg << "Successfully downloaded world from fuel." << std::endl;
     worldPath = path;
