@@ -18,6 +18,7 @@
 #ifndef IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
 #define IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
 
+#include <chrono>
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
@@ -49,20 +50,27 @@ namespace gazebo
 
     /// \brief Calculate the percentage that `_currentTime`, eg, halfway
     /// through the log would evaluate to 0.50
-    /// \param[in] _currentTime The current time the log playback is at
     /// \return The progress as a percentage of how far the log playback
     /// has advanced
-    public: double CalculateProgress(const common::Time &_currentTime);
+    public: double CalculateProgress();
 
     /// \brief Get the current progress as a percentage of how far the log
     /// playback has advanced
     /// \return The progress as a value from 0 to 1, inclusive
     public slots: double Progress();
 
+    public slots: QString StartTimeAsString();
+
+    public slots: QString EndTimeAsString();
+
+    public slots: QString CurrentTimeAsString();
+
     /// \brief Callback in Qt thread when the slider is released.
     /// \param[in] _value The current value of the slider, from 0 to 1,
     /// inclusive
     public slots: void OnDrag(double _value);
+
+    public slots: void OnTimeEntered(const QString &_time);
 
     /// \brief Notify that progress has advanced in the log file.
     signals: void newProgress();

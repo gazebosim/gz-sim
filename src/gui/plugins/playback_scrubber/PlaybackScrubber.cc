@@ -18,7 +18,10 @@
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/math/Helpers.hh>
 
+#include <chrono>
+#include <ctime>
 #include <iostream>
+#include <regex>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -41,10 +44,15 @@ namespace ignition::gazebo
     public: transport::Node node;
 
     /// \brief The start time of the log file
-    public: common::Time startTime = common::Time::Zero;
+    public: std::chrono::system_clock::time_point startTime =
+            std::chrono::system_clock::from_time_t(0);
 
-    /// \brief The end time of the log fiel
-    public: common::Time endTime = common::Time::Zero;
+    /// \brief The end time of the log file
+    public: std::chrono::system_clock::time_point endTime =
+            std::chrono::system_clock::from_time_t(0);
+
+    /// \brief The current time of the log file
+    public: std::chrono::system_clock::time_point currentTime;
 
     /// \brief The progress as a percentage of how far we
     /// are into the log file
@@ -72,18 +80,23 @@ void PlaybackScrubber::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-double PlaybackScrubber::CalculateProgress(const common::Time &_currentTime)
+double PlaybackScrubber::CalculateProgress()
 {
   if (this->dataPtr->startTime == this->dataPtr->endTime)
     return 0.0;
 
-  double currentTime = _currentTime.Double();
-  double startTime = this->dataPtr->startTime.Double();
-  double endTime = this->dataPtr->endTime.Double();
+  auto startTime = this->dataPtr->startTime;
+  auto endTime = this->dataPtr->endTime;
+  auto currentTime = this->dataPtr->currentTime;
 
-  double numerator = currentTime - startTime;
-  double denominator = endTime - startTime;
-  double percentage = numerator / denominator;
+  auto totalDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      endTime - startTime).count();
+  auto currentDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      currentTime - startTime).count();
+
+  auto percentage =
+    static_cast<double>(currentDuration) / static_cast<double>(totalDuration);
+
   if (percentage < 0.0)
     percentage = 0;
   if (percentage > 1.0)
@@ -95,29 +108,37 @@ double PlaybackScrubber::CalculateProgress(const common::Time &_currentTime)
 void PlaybackScrubber::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->startTime == common::Time::Zero &&
-      this->dataPtr->endTime == common::Time::Zero)
+  // TODO(john): check for paused simulation
+  auto startTime = this->dataPtr->startTime;
+  auto endTime = this->dataPtr->endTime;
+  auto totalDuration =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        endTime - startTime).count();
+  if (totalDuration <= 0)
   {
     _ecm.Each<components::LogPlaybackStatistics>(
       [this](const Entity &,
            const components::LogPlaybackStatistics *_logStatComp)->bool
       {
-        this->dataPtr->startTime.sec =
+        auto startSeconds =
           _logStatComp->Data().start_time().sec();
-        this->dataPtr->startTime.nsec =
+        auto startNanoseconds =
           _logStatComp->Data().start_time().nsec();
-
-        this->dataPtr->endTime.sec =
+        auto endSeconds =
           _logStatComp->Data().end_time().sec();
-        this->dataPtr->endTime.nsec =
+        auto endNanoseconds =
           _logStatComp->Data().end_time().nsec();
-
+        this->dataPtr->startTime =
+          math::secNsecToTimePoint(startSeconds, startNanoseconds);
+        this->dataPtr->endTime =
+          math::secNsecToTimePoint(endSeconds, endNanoseconds);
         return true;
       });
   }
   auto simTime = math::durationToSecNsec(_info.simTime);
-  auto currentTime = common::Time(simTime.first, simTime.second);
-  this->dataPtr->progress = CalculateProgress(currentTime);
+  this->dataPtr->currentTime =
+    math::secNsecToTimePoint(simTime.first, simTime.second);
+  this->dataPtr->progress = CalculateProgress();
   this->newProgress();
 }
 
@@ -128,6 +149,60 @@ double PlaybackScrubber::Progress()
 }
 
 /////////////////////////////////////////////////
+QString PlaybackScrubber::StartTimeAsString()
+{
+  return QString::fromStdString(
+      math::timePointToString(this->dataPtr->startTime));
+}
+
+/////////////////////////////////////////////////
+QString PlaybackScrubber::EndTimeAsString()
+{
+  return QString::fromStdString(
+      math::timePointToString(this->dataPtr->endTime));
+}
+
+/////////////////////////////////////////////////
+QString PlaybackScrubber::CurrentTimeAsString()
+{
+  return QString::fromStdString(
+      math::timePointToString(this->dataPtr->currentTime));
+}
+
+/////////////////////////////////////////////////
+void PlaybackScrubber::OnTimeEntered(const QString &_time)
+{
+  std::string time = _time.toStdString();
+  std::chrono::system_clock::time_point enteredTime =
+    math::stringToTimePoint(time);
+  if (enteredTime == std::chrono::system_clock::from_time_t(-1))
+  {
+    ignmsg << "Invalid time entered."
+      "The format is dd hh:mm:ss.nnn" << std::endl;
+    return;
+  }
+
+  // Check for time out of bounds
+  if (enteredTime < this->dataPtr->startTime)
+    enteredTime = this->dataPtr->startTime;
+  else if (enteredTime > this->dataPtr->endTime)
+    enteredTime = this->dataPtr->endTime;
+
+  auto pairTime = math::timePointToSecNsec(enteredTime);
+  const std::string topic = "/world/default/playback/control";
+  unsigned int timeout = 1000;
+  msgs::Boolean res;
+  bool result{false};
+  msgs::LogPlaybackControl playbackMsg;
+
+  // Set time and make request
+  playbackMsg.mutable_seek()->set_sec(pairTime.first);
+  playbackMsg.mutable_seek()->set_nsec(pairTime.second);
+  playbackMsg.set_pause(true);
+  this->dataPtr->node.Request(topic, playbackMsg, timeout, res, result);
+}
+
+/////////////////////////////////////////////////
 void PlaybackScrubber::OnDrag(double _value)
 {
   const std::string topic = "/world/default/playback/control";
@@ -135,14 +210,18 @@ void PlaybackScrubber::OnDrag(double _value)
   msgs::Boolean res;
   bool result{false};
 
-  common::Time totalTime = this->dataPtr->endTime - this->dataPtr->startTime;
-  double totalTimeDouble = totalTime.Double();
-  common::Time newTime(totalTimeDouble * _value);
+  auto totalDuration =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        this->dataPtr->endTime - this->dataPtr->startTime);
+  auto newTime = this->dataPtr->startTime +
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        totalDuration * _value);
+  std::pair<int64_t, int64_t> jumpToTime = math::timePointToSecNsec(newTime);
 
   msgs::LogPlaybackControl playbackMsg;
 
-  playbackMsg.mutable_seek()->set_sec(newTime.sec);
-  playbackMsg.mutable_seek()->set_nsec(newTime.nsec);
+  playbackMsg.mutable_seek()->set_sec(jumpToTime.first);
+  playbackMsg.mutable_seek()->set_nsec(jumpToTime.second);
   playbackMsg.set_pause(true);
   this->dataPtr->node.Request(topic, playbackMsg, timeout, res, result);
 }

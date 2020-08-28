@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 import QtQuick 2.9
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.1
@@ -21,11 +21,12 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
+import "qrc:/qml"
 
 ToolBar {
   id: playbackScrubber
   Layout.minimumWidth: 200
-  Layout.minimumHeight: 100
+  Layout.minimumHeight: 300
   property var isPressed: false
 
   function updateSliderValue() {
@@ -35,36 +36,94 @@ ToolBar {
     }
   }
 
+  function updateEndTime() {
+    endTime.text = PlaybackScrubber.EndTimeAsString();
+    maxTime.text = qsTr("/ ") + PlaybackScrubber.EndTimeAsString();
+  }
+
+  function updateStartTime() {
+    startTime.text = PlaybackScrubber.StartTimeAsString();
+  }
+
+  function updateCurrentTime() {
+    textField.placeholderText = PlaybackScrubber.CurrentTimeAsString();
+    currentTime.text = PlaybackScrubber.CurrentTimeAsString();
+  }
+
   background: Rectangle {
     color: "transparent"
   }
 
   Connections {
     target: PlaybackScrubber
-    onNewProgress: updateSliderValue()
+    onNewProgress: {
+      updateSliderValue();
+      updateStartTime();
+      updateEndTime();
+      updateCurrentTime();
+    }
   }
 
-  Slider {
-    id: slider
-    from: 0
-    value: updateSliderValue()
-    to: 1
-    stepSize: 0.001
-    Layout.alignment: Qt.AlignVCenter
-    /*
-    onValueChanged: {
-      print(slider.value)
-    }
-    */
-    onPressedChanged: {
-      if (!pressed)
-      {
-        PlaybackScrubber.OnDrag(slider.value);
-        playbackScrubber.isPressed = false;
+  Column {
+    anchors.fill: parent
+    spacing: 2
+    topPadding: 10
+    leftPadding: 10
+    RowLayout {
+      Text {
+        text: "Current time: "
       }
-      else
-      {
-        playbackScrubber.isPressed = true;
+      Text {
+        id: currentTime
+        text: PlaybackScrubber.CurrentTimeAsString()
+      }
+    }
+    RowLayout {
+      Text {
+        id: startTime
+        font.pointSize: 9
+        text: PlaybackScrubber.StartTimeAsString()
+      }
+      Slider {
+        id: slider
+        from: 0
+        value: updateSliderValue()
+        to: 1
+        stepSize: 0.001
+        /*
+         onValueChanged: {
+           print(slider.value)
+         }
+         */
+        onPressedChanged: {
+          if (!pressed)
+          {
+            PlaybackScrubber.OnDrag(slider.value);
+            playbackScrubber.isPressed = false;
+          }
+          else
+          {
+            playbackScrubber.isPressed = true;
+          }
+        }
+      }
+      Text {
+        id: endTime
+        font.pointSize: 9
+        text: PlaybackScrubber.EndTimeAsString()
+      }
+    }
+    RowLayout {
+      TextField {
+        id: textField
+        placeholderText: PlaybackScrubber.CurrentTimeAsString()
+        onAccepted: {
+          PlaybackScrubber.OnTimeEntered(textField.text);
+        }
+      }
+      Text {
+        id: maxTime
+        text: qsTr("/ ") + PlaybackScrubber.EndTimeAsString()
       }
     }
   }
