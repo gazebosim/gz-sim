@@ -1,13 +1,38 @@
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.x.x (20xx-xx-xx)
+### Ignition Gazebo 3.3.0 (2020-08-31)
+
+1. Add markery array service.
+    * [pull request 302](https://github.com/ignitionrobotics/ign-gazebo/pull/302)
+
+1. Introduced a new parameter in the scene3D plugin to launch in fullscreen.
+    * [pull request 254](https://github.com/ignitionrobotics/ign-gazebo/pull/254)
+
+1. Fix issue #285 by added checks for a marker's parent.
+    * [pull request 290](https://github.com/ignitionrobotics/ign-gazebo/pull/290)
+
+1. Fix non-specified material error.
+    * [pull request 292](https://github.com/ignitionrobotics/ign-gazebo/pull/292)
+
+1. Added simulation world with large number of entities.
+    * [pull request 283](https://github.com/ignitionrobotics/ign-gazebo/pull/283)
+
+1. Fix touch plugin enabled flag parsing.
+    * [pull request 275](https://github.com/ignitionrobotics/ign-gazebo/pull/275)
 
 1. Added buoyancy system plugin.
     * [pull request 252](https://github.com/ignitionrobotics/ign-gazebo/pull/252)
 
+1. Implemented shift + drag = rotate in the GUI.
+    * [pull request 247](https://github.com/ignitionrobotics/ign-gazebo/pull/247)
 
 1. Backport collision bitmask changes
     * [pull request 223](https://github.com/ignitionrobotics/ign-gazebo/pull/223)
+
+1. Added velocity command to TPE.
+    * [pull request 169](https://github.com/ignitionrobotics/ign-gazebo/pull/169)
+
+1. This version includes all features in Gazebo 2.23.0
 
 ### Ignition Gazebo 3.2.0 (2020-05-20)
 
