@@ -75,8 +75,6 @@ moment the box hits the ground, the second box should start falling.
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/triggered_publisher/control</service>
-        <stats_topic>/world/triggered_publisher/stats</stats_topic>
 
       </plugin>
 
@@ -101,7 +99,6 @@ moment the box hits the ground, the second box should start falling.
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/triggered_publisher/stats</topic>
 
       </plugin>
 

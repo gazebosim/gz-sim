@@ -59,8 +59,6 @@ Example:
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/wind_demo/control</service>
-        <stats_topic>/world/wind_demo/stats</stats_topic>
 
       </plugin>
 
@@ -85,7 +83,6 @@ Example:
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/wind_demo/stats</topic>
 
       </plugin>
 

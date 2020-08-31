@@ -192,6 +192,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
       else if (!result)
         ignerr << "Service call failed for [" << service << "]" << std::endl;
 
+      // GUI runner
+      auto runner = new ignition::gazebo::GuiRunner(worldName);
+      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
+                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
+      runner->setParent(ignition::gui::App());
+      ++runnerCount;
+
+      // Load plugins after creating GuiRunner, so they can access worldName
       if (_loadPluginsFromSdf)
       {
         for (int p = 0; p < res.plugin_size(); ++p)
@@ -208,13 +216,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
               pluginDoc.FirstChildElement("plugin"));
         }
       }
-
-      // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
-                      runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
-      runner->setParent(ignition::gui::App());
-      ++runnerCount;
     }
     mainWin->configChanged();
   }
