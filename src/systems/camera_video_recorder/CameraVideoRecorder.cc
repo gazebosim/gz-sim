@@ -79,7 +79,7 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   public: rendering::CameraPtr camera;
 
   /// \brief Name of service for recording video
-  public: std::string topic;
+  public: std::string service;
 
   /// \brief Camera entity.
   public: Entity entity;
@@ -134,12 +134,7 @@ bool CameraVideoRecorderPrivate::OnRecordVideo(const msgs::VideoRecord &_msg,
     // create filename with timestamped suffix if path is not specified
     if (this->recordVideoSavePath.empty())
     {
-      std::chrono::system_clock::time_point p =
-          std::chrono::system_clock::now();
-      std::time_t t = std::chrono::system_clock::to_time_t(p);
-      char buffer[80];
-      strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", localtime(&t));
-      std::string str(buffer);
+      std::string str = common::systemTimeISO();
       std::string prefix = this->cameraName;
       prefix = std::regex_replace(prefix, std::regex("::"), "_");
       this->recordVideoSavePath = prefix + "_" + str + "." +
@@ -181,22 +176,22 @@ void CameraVideoRecorder::Configure(
       _ecm.Component<components::Camera>(_entity);
   if (!cameraEntComp)
   {
-    ignerr << "The Camera video recorder system can only be attached to a "
-           << "camera sensor" << std::endl;
+    ignerr << "The camera video recorder system can only be attached to a "
+           << "camera sensor." << std::endl;
   }
 
   this->dataPtr->entity = _entity;
 
   // video recorder service topic name
-  if (_sdf->HasElement("topic"))
+  if (_sdf->HasElement("service"))
   {
-    this->dataPtr->topic = _sdf->Get<std::string>("topic");
+    this->dataPtr->service = _sdf->Get<std::string>("service");
   }
   this->dataPtr->eventMgr = &_eventMgr;
 
   // get sensor topic
   sdf::Sensor sensorSdf = cameraEntComp->Data();
-  std::string topic = sensorSdf.Topic();
+  std::string topic  = sensorSdf.Topic();
   if (topic.empty())
     topic = scopedName(_entity, _ecm) + "/image";
   this->dataPtr->sensorTopic = topic;
@@ -305,7 +300,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
       this->videoEncoder.Start(this->recordVideoFormat,
           this->tmpVideoFilename, width, height);
 
-      ignmsg << "Start video recording on [" << this->topic << "]. "
+      ignmsg << "Start video recording on [" << this->service << "]. "
              << "Encoding to tmp file: ["
              << this->tmpVideoFilename << "]" << std::endl;
     }
@@ -328,7 +323,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
       // Remove old temp file, if it exists.
       std::remove(this->tmpVideoFilename.c_str());
     }
-    ignmsg << "Stop video recording on [" << this->topic << "]. "
+    ignmsg << "Stop video recording on [" << this->service << "]. "
            << "Saving file to: [" << this->recordVideoSavePath << "]"
            << std::endl;
 
@@ -351,16 +346,16 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &,
   if (this->dataPtr->cameraName.empty())
     return;
 
-  if (this->dataPtr->topic.empty())
+  if (this->dataPtr->service.empty())
   {
-    this->dataPtr->topic = scopedName(this->dataPtr->entity, _ecm) +
+    this->dataPtr->service = scopedName(this->dataPtr->entity, _ecm) +
       "/record_video";
   }
 
-  this->dataPtr->node.Advertise(this->dataPtr->topic,
+  this->dataPtr->node.Advertise(this->dataPtr->service,
        &CameraVideoRecorderPrivate::OnRecordVideo, this->dataPtr.get());
   ignmsg << "Record video service on ["
-       << this->dataPtr->topic << "]" << std::endl;
+       << this->dataPtr->service << "]" << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(CameraVideoRecorder,
