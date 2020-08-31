@@ -22,8 +22,13 @@
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/AirPressureSensor.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
+
+#include "../helpers/Relay.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -53,6 +58,43 @@ TEST_F(AirPressureTest, AirPressure)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
+  const std::string sensorName = "air_pressure_sensor";
+
+  auto topic = "world/air_pressure_sensor/model/air_pressure_model/link/link/"
+      "sensor/air_pressure_sensor/air_pressure";
+
+  bool updateChecked{false};
+
+  // Create a system that checks sensor topic
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                              const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::AirPressureSensor, components::Name>(
+            [&](const ignition::gazebo::Entity &_entity,
+                const components::AirPressureSensor *,
+                const components::Name *_name) -> bool
+            {
+              EXPECT_EQ(_name->Data(), sensorName);
+
+              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+              EXPECT_NE(nullptr, sensorComp);
+
+              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+              EXPECT_NE(nullptr, topicComp);
+              if (topicComp)
+              {
+                EXPECT_EQ(topic, topicComp->Data());
+              }
+
+              updateChecked = true;
+
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
   // Subscribe to air_pressure topic
   bool received{false};
   msgs::FluidPressure msg;
@@ -69,12 +111,11 @@ TEST_F(AirPressureTest, AirPressure)
   };
 
   transport::Node node;
-  node.Subscribe(std::string("/world/air_pressure_sensor/model/") +
-      "air_pressure_model/link/link/sensor/air_pressure_sensor/air_pressure",
-      cb);
+  node.Subscribe(topic, cb);
 
   // Run server
   server.Run(true, 100, false);
+  EXPECT_TRUE(updateChecked);
 
   // Wait for message to be received
   for (int sleep = 0; !received && sleep < 30; ++sleep)
