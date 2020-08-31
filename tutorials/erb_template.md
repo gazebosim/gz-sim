@@ -1,10 +1,24 @@
 \page erbtemplate ERB Template
 
-This tutorial shows how to place a large number of entites in a simulation world using ERB. ERB is the commonly used templating language to generate structured text files with Ruby code. In this case, since most simulation world used in gazebo is defined with sdformat (XML documents), ERB works conveniently.
+This tutorial shows how to use ERB to generate simulation world files.
+[ERB](https://docs.ruby-lang.org/en/2.3.0/ERB.html) is the commonly used templating language to generate structured text files with Ruby code.
+In this case, since most simulation world used in gazebo is defined with [SDFormat](http://sdformat.org/), ERB works conveniently.
+
+## Why ERB
+
+There are many use cases and advantages of using ERB in your SDF file. 
+Some of them are listed below and demonstrated in this [example ERB file](https://github.com/osrf/srcsim/blob/master/worlds/unique.world.erb):
+
+1. Embedding logic into the SDF, such as loops and conditionals
+2. Full access to Ruby's math library, for simple things like PI,  to more elaborate ones like matrices and randomization
+3. Breaking the SDF into multiple smaller files for better organization
+4. Placing multiple instances of the same model into simulation world without manually copy-pasting every tag
 
 ## Set up Ruby
 
-Firstly, Ruby needs to be installed. If you have gone through [ignition libraries installation guide](https://ignitionrobotics.org/docs/latest/install), it's most likely you already have ruby installed. To check if Ruby is installed, use 
+Firstly, Ruby needs to be installed.
+If you have gone through [Ignition's installation guide](https://ignitionrobotics.org/docs/latest/install), it's most likely you already have Ruby installed.
+To check if Ruby is installed, use 
 ```{.sh}
 ruby --version
 ```
@@ -16,7 +30,29 @@ sudo apt-get install -y ruby
 
 ## Create an ERB template
 
-To make a distinction between ERB templates and normal sdformat files, `.sdf.erb` is used as file suffix. ERB language is usually embedded in the sdformat file. Below is a simple example to generate 1000 shapes using ERB templating language. Ruby syntax is used in the template part.
+To make a distinction between ERB templates and normal sdformat files, `.erb` is commonly used as file suffix.
+ERB language is usually embedded in the SDF file.
+Below is a step-by-step tutorial to generate 1000 box shapes in a simulation world using ERB template.
+You can copy-and-paste the code block into an editor to try it out.
+
+First is to create a world using SDFormat syntax.
+You need to specify both the ``xml`` and ``sdf`` versions you are using.
+And don't forget to give your simulation world a name.
+
+```
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="shapes">
+    <!-- This is where you put ``<plugin>``, ``<model>`` and etc. tags -->
+  </world>
+</sdf>
+```
+
+To create 1000 instances of simple box shapes, you can use a ``for`` loop in Ruby syntax in the ERB template.
+This code block can be inserted in between the "``<world>`` ... ``</world>``" tags.
+Note that the ``<model>`` tags are wrapped in between the ERB template.
+``<% end %>`` is to mark the end of loops or ``if`` statements.
+Each box model also has a different name and pose to ensure they show up as individuals in simulation.
 
 ```
     <%
@@ -66,8 +102,9 @@ To make a distinction between ERB templates and normal sdformat files, `.sdf.erb
     %>
 ```
 
+[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo3/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
 
-You can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
+Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
 
 ```
     <%
@@ -108,22 +145,23 @@ You can also use a nested loop to generate 100 actors spaced out evenly in a sim
       end
     %>
 ```
-One thing to note is that each ``<model>`` tag must have their distinct names to show up in simulation as individual entities. 
-
-[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo3/examples/worlds/shapes_population.sdf.erb) is a complete simulation world example.
  
 ## Generate SDF from ERB template
 
-Now that a template file is ready, you can then use it to generate the sdf file which can be passed into Ignition Gazebo. Use the following command to generate the sdf file
+Now that an ERB template file is ready and saved as ``my_first_erb.erb``, you can run the following terminal command to generate SDF file.
 
 ```{.sh}
-erb -T 1 FILENAME.sdf.erb > FILENAME.sdf
+# generate SDF with the ERB template
+erb my_first_erb.erb > my_first_erb.sdf
 ```
 
 ## Run simulation world
 
-To test if the template worked as intended, run the sdf file with igniton command
+To test if the ERB template works, run the SDF file with igniton command
 
 ```{.sh}
-ign gazebo FILENAME.sdf
+# run with Ignition Gazebo
+ign gazebo my_first_erb.sdf
 ```
+
+If there is any error or warning from running the SDF file, you would need to go back to the ERB file and see if any coding mistakes are made.
