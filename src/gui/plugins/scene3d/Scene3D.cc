@@ -781,7 +781,7 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   if (_e->key() == Qt::Key_F11)
   {
     if (ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->visibility() 
+        <ignition::gui::MainWindow *>()->QuickWindow()->visibility()
         == QWindow::FullScreen)
     {
       ignition::gui::App()->findChild

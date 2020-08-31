@@ -22,11 +22,13 @@
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 
 #include <ignition/fuel_tools/Interface.hh>
 
 #include <ignition/gui/Application.hh>
 
+#include "ignition/gazebo/Util.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
@@ -384,7 +386,57 @@ void ServerPrivate::CreateEntities()
 void ServerPrivate::SetupTransport()
 {
   // Advertise available worlds.
-  this->node.Advertise("/gazebo/worlds", &ServerPrivate::WorldsService, this);
+  std::string worldsService{"/gazebo/worlds"};
+  if (this->node.Advertise(worldsService, &ServerPrivate::WorldsService, this))
+  {
+    ignmsg << "Serving world names on [" << worldsService << "]" << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << worldsService
+           << "]" << std::endl;
+  }
+
+  // Resource path management
+  std::string addPathService{"/gazebo/resource_paths/add"};
+  if (this->node.Advertise(addPathService,
+      &ServerPrivate::AddResourcePathsService, this))
+  {
+    ignmsg << "Resource path add service on [" << addPathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << addPathService
+           << "]" << std::endl;
+  }
+
+  std::string getPathService{"/gazebo/resource_paths/get"};
+  if (this->node.Advertise(getPathService,
+      &ServerPrivate::ResourcePathsService, this))
+  {
+    ignmsg << "Resource path get service on [" << addPathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << getPathService
+           << "]" << std::endl;
+  }
+
+  std::string pathTopic{"/gazebo/resource_paths"};
+  this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
+
+  if (this->pathPub)
+  {
+    ignmsg << "Resource paths published on [" << pathTopic << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << pathTopic
+           << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -397,6 +449,49 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
   for (const auto &name : this->worldNames)
   {
     _res.add_data(name);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::AddResourcePathsService(
+    const ignition::msgs::StringMsg_V &_req)
+{
+  std::vector<std::string> paths;
+  for (int i = 0; i < _req.data_size(); ++i)
+  {
+    paths.push_back(_req.data(i));
+  }
+  addResourcePaths(paths);
+
+  // Notify new paths
+  msgs::StringMsg_V msg;
+  auto gzPaths = resourcePaths();
+  for (const auto &path : gzPaths)
+  {
+    if (!path.empty())
+      msg.add_data(path);
+  }
+
+  this->pathPub.Publish(msg);
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ResourcePathsService(
+    ignition::msgs::StringMsg_V &_res)
+{
+  _res.Clear();
+
+  // Update paths
+  addResourcePaths();
+
+  // Get paths
+  auto gzPaths = resourcePaths();
+  for (const auto &path : gzPaths)
+  {
+    if (!path.empty())
+      _res.add_data(path);
   }
 
   return true;
