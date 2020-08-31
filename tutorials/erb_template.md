@@ -22,7 +22,7 @@ To check if Ruby is installed, use
 ```{.sh}
 ruby --version
 ```
-If it is not found, run the follwing to install Ruby
+If it is not found, run the following to install Ruby
 
 ```{.sh}
 sudo apt-get install -y ruby
