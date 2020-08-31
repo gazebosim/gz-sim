@@ -130,7 +130,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   }
   cmpPath += ".zip";
 
-  std::cout << "Record Topic[" << _recordTopics << std::endl;
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
     _record > 0 || _recordResources > 0 ||
