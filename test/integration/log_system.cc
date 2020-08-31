@@ -33,6 +33,7 @@
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/MsgIter.hh>
+#include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
 #include <ignition/math/Pose3.hh>
 
@@ -1745,4 +1746,80 @@ TEST_F(LogSystemTest, LogResources)
 
   // Remove artifacts
   this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogTopics)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_resources.sdf");
+
+  // Change environment variable so that downloaded fuel files aren't written
+  // to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
+  const std::string recordPath = this->logDir;
+  std::string statePath = common::joinPaths(recordPath, "state.tlog");
+
+#ifndef __APPLE__
+  // Log only the /clock topic from command line
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-topic /clock "
+      + "--record-path " + recordPath + " "
+      + kSdfFileOpt + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  std::string consolePath = common::joinPaths(recordPath, "server_console.log");
+  EXPECT_TRUE(common::exists(consolePath)) << consolePath;
+  EXPECT_TRUE(common::exists(statePath)) << statePath;
+
+  // Recorded models should exist
+  EXPECT_GT(entryCount(recordPath), 1);
+
+  // Load the state log file into a player.
+  transport::log::Playback player(statePath);
+  const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
+
+  // There should be only 1 topic
+  EXPECT_EQ(1, addTopicResult);
+
+  int clockMsgCount = 0;
+  std::function<void(const msgs::Clock &)> clockCb =
+      [&](const msgs::Clock &) -> void
+  {
+    clockMsgCount++;
+  };
+
+  // Subscribe to the clock topic
+  transport::Node node;
+  node.Subscribe("/clock", clockCb);
+
+  // Begin playback
+  transport::log::PlaybackHandlePtr handle =
+    player.Start(std::chrono::seconds(5), false);
+  handle->WaitUntilFinished();
+
+  // There were five iterations of simulation, so there should be 5 clock
+  // messages.
+  EXPECT_EQ(5, clockMsgCount);
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+#endif
 }
