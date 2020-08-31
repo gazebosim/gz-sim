@@ -2,13 +2,13 @@
 
 ### Ignition Gazebo 3.3.0 (2020-08-31)
 
-1. Add markery array service.
+1. Added marker array service.
     * [pull request 302](https://github.com/ignitionrobotics/ign-gazebo/pull/302)
 
 1. Introduced a new parameter in the scene3D plugin to launch in fullscreen.
     * [pull request 254](https://github.com/ignitionrobotics/ign-gazebo/pull/254)
 
-1. Fix issue #285 by added checks for a marker's parent.
+1. Fix issue #285 by adding checks for a marker's parent.
     * [pull request 290](https://github.com/ignitionrobotics/ign-gazebo/pull/290)
 
 1. Fix non-specified material error.
@@ -17,7 +17,7 @@
 1. Added simulation world with large number of entities.
     * [pull request 283](https://github.com/ignitionrobotics/ign-gazebo/pull/283)
 
-1. Fix touch plugin enabled flag parsing.
+1. Fixed parsing of the touch plugin' enabled flag.
     * [pull request 275](https://github.com/ignitionrobotics/ign-gazebo/pull/275)
 
 1. Added buoyancy system plugin.
