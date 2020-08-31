@@ -83,11 +83,11 @@ COMMANDS = { 'gazebo' =>
   "                              using multiple --record-topic options.     \n"\
   "                              Regular expressions can be used, which     \n"\
   "                              likely requires quotes. If no topics are   \n"\
-  "                              specified, then a default set are used.    \n"\
-  "                              Enable debug console output with the -v 4  \n"\
-  "                              option and look for                        \n"\
-  "                              'Recording default topic' for the set of   \n"\
-  "                              default topics.                            \n"\
+  "                              specified, then a default set of topics are\n"\
+  "                              used. Enable debug console output with     \n"\
+  "                              the -v 4 option and look for               \n"\
+  "                              'Recording default topic' in order to      \n"\
+  "                              determine the default set of topics.       \n"\
   "                              Use examples:                              \n"\
   "                                1. Record all topics.                    \n"\
   "                                    --record-topic \".*\"                \n"\
