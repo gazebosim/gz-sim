@@ -108,15 +108,20 @@ void VideoRecorder::OnSave(const QString &_url)
 {
   std::string path = QUrl(_url).toLocalFile().toStdString();
 
-  // Get the user selected file extension
-  std::string filenameBaseName = common::basename(this->dataPtr->filename);
-  std::string::size_type filenameExtensionIndex =
-    filenameBaseName.rfind(".");
-  std::string fileExtension =
-    filenameBaseName.substr(filenameExtensionIndex + 1);
+  // If we cannot find an extension in the user entered file name,
+  // append the format of the selected codec
+  if (common::basename(path).find(".") == std::string::npos)
+  {
+    // Get the user selected file extension
+    std::string filenameBaseName = common::basename(this->dataPtr->filename);
+    std::string::size_type filenameExtensionIndex =
+      filenameBaseName.rfind(".");
+    std::string fileExtension =
+      filenameBaseName.substr(filenameExtensionIndex + 1);
 
-  // Append file extension to the user entered path
-  path += "." + fileExtension;
+    // Append file extension to the user entered path
+    path += "." + fileExtension;
+  }
 
   bool result = common::moveFile(this->dataPtr->filename, path);
 
