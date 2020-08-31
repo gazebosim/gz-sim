@@ -549,7 +549,7 @@ ServerConfig::Timestamp() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::AddLogRecordTopic(const std::string _topic)
+void ServerConfig::AddLogRecordTopic(const std::string &_topic)
 {
   this->dataPtr->logRecordTopics.push_back(_topic);
 }

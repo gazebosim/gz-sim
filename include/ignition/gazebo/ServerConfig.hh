@@ -22,6 +22,7 @@
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
+#include <vector>
 #include <sdf/Element.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -264,7 +265,7 @@ namespace ignition
 
       /// \brief Add a topic to record.
       /// \param[in] _topic Topic name, which can include wildcards.
-      public: void AddLogRecordTopic(const std::string _topic);
+      public: void AddLogRecordTopic(const std::string &_topic);
 
       /// \brief Clear topics to record. This will remove all topics set
       /// using AddLogRecordTopic.
