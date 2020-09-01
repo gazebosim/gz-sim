@@ -22,7 +22,6 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
