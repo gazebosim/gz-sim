@@ -361,8 +361,9 @@ class Cmd
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
 
+      # If playback is specified, set the gui config to load th playback
+      # gui config
       if (options['playback'] != '')
-        puts "Setting gui config"
         options['gui_config'] = "_playback_"
       end
 
