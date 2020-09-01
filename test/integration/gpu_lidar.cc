@@ -21,6 +21,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -57,7 +58,7 @@ void laserCb(const msgs::LaserScan &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Gpu Lidar readings when it faces a box
-TEST_F(GpuLidarTest, GpuLidarBox)
+TEST_F(GpuLidarTest, IGN_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
 {
   const int horzSamples = 640;
 
