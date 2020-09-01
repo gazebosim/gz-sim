@@ -216,7 +216,7 @@ namespace sdf_generator
       // absolute path, so there is no need to update it.
       if (uriStr.find("file://") == std::string::npos)
       {
-        if(uriStr.find("http://") == std::string::npos &&
+        if (uriStr.find("http://") == std::string::npos &&
            uriStr.find("https://") == std::string::npos)
         {
           if (uriStr[0] != '/')
