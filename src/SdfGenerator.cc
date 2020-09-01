@@ -216,12 +216,16 @@ namespace sdf_generator
       // absolute path, so there is no need to update it.
       if (uriStr.find("file://") == std::string::npos)
       {
-        if (uriStr[0] != '/')
+        if(uriStr.find("http://") == std::string::npos &&
+           uriStr.find("https://") == std::string::npos)
         {
-          // relative uri
-          uriStr = common::joinPaths(_prefixPath, uriStr);
+          if (uriStr[0] != '/')
+          {
+            // relative uri
+            uriStr = common::joinPaths(_prefixPath, uriStr);
+          }
+          uriStr = std::string("file://") + uriStr;
         }
-        uriStr = std::string("file://") + uriStr;
         uriElem->Set(uriStr);
       }
     }
