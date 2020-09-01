@@ -129,8 +129,22 @@ bool CameraVideoRecorderPrivate::OnRecordVideo(const msgs::VideoRecord &_msg,
     this->recordVideoSavePath = _msg.save_filename();
 
     if (this->recordVideoFormat.empty())
+    {
       this->recordVideoFormat = "mp4";
-
+    }
+    else
+    {
+      this->recordVideoFormat = common::lowercase(this->recordVideoFormat);
+      if (this->recordVideoFormat != "mp4" && this->recordVideoFormat!= "ogv" &&
+          this->recordVideoFormat != "avi")
+      {
+        ignerr << "Video encoding format: '" << this->recordVideoFormat
+               << "' not supported. Available formats are: mp4, ogv, and avi."
+               << std::endl;
+        _res.set_data(false);
+        return true;
+      }
+    }
     // create filename with timestamped suffix if path is not specified
     if (this->recordVideoSavePath.empty())
     {
