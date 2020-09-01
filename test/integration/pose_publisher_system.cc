@@ -141,7 +141,7 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
   std::list<math::Pose3d> sensorPoses;
-  std::list<std::chrono::system_clock::time_point> timestamps;
+  std::list<std::chrono::steady_clock::time_point> timestamps;
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
@@ -245,11 +245,11 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
       const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
   {
-    std::chrono::system_clock::time_point lt =
+    std::chrono::steady_clock::time_point lt =
       math::secNsecToTimePoint(
         _l.header().stamp().sec(),
         _l.header().stamp().nsec());
-    std::chrono::system_clock::time_point rt =
+    std::chrono::steady_clock::time_point rt =
       math::secNsecToTimePoint(
         _r.header().stamp().sec(),
         _r.header().stamp().nsec());
@@ -281,7 +281,7 @@ TEST_F(PosePublisherTest, PublishCmd)
     EXPECT_EQ(childFrame, msg.name());
 
     // verify timestamp
-    std::chrono::system_clock::time_point time =
+    std::chrono::steady_clock::time_point time =
       math::secNsecToTimePoint(
         msg.header().stamp().sec(),
         msg.header().stamp().nsec());
@@ -434,8 +434,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
   std::list<math::Pose3d> sensorPoses;
-  std::list<std::chrono::system_clock::time_point> timestamps;
-  std::list<std::chrono::system_clock::time_point> staticPoseTimestamps;
+  std::list<std::chrono::steady_clock::time_point> timestamps;
+  std::list<std::chrono::steady_clock::time_point> staticPoseTimestamps;
 
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
@@ -561,7 +561,7 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
-      std::chrono::system_clock::time_point time =
+      std::chrono::steady_clock::time_point time =
         math::secNsecToTimePoint(msg.header().stamp().sec(),
         msg.header().stamp().nsec());
       EXPECT_EQ(timestamps.front(), time);
@@ -616,7 +616,7 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
-      std::chrono::system_clock::time_point time =
+      std::chrono::steady_clock::time_point time =
         math::secNsecToTimePoint(msg.header().stamp().sec(),
           msg.header().stamp().nsec());
       EXPECT_EQ(staticPoseTimestamps.front(), time);

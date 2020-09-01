@@ -110,7 +110,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: ignition::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
-  public: std::chrono::system_clock::time_point updateTime;
+  public: std::chrono::steady_clock::time_point updateTime;
 
   /// \brief Sensors to include in the next rendering iteration
   public: std::vector<sensors::RenderingSensor *> activeSensors;
@@ -120,7 +120,7 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Mask sensor updates for sensors currently being rendered
   public: std::map<sensors::SensorId,
-    std::chrono::system_clock::time_point> sensorMask;
+    std::chrono::steady_clock::time_point> sensorMask;
 
   /// \brief Wait for initialization to happen
   private: void WaitForInit();
