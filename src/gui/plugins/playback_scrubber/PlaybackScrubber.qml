@@ -25,7 +25,7 @@ import QtQuick.Controls.Styles 1.4
 GridLayout {
   id: playbackScrubber
   columns: 5
-  Layout.minimumWidth: 100
+  Layout.minimumWidth: 425
   Layout.minimumHeight: 200
   anchors.fill: parent
   anchors.leftMargin: 10
@@ -89,7 +89,7 @@ GridLayout {
   Text {
     text: "Current time: " + currentTime
     Layout.columnSpan: 3
-    color: "dimgrey"
+    color: Material.theme == Material.Light ? "black" : "white"
     font.bold: true
   }
 
@@ -104,7 +104,7 @@ GridLayout {
         id: startTime
         font.pointSize: 9
         text: PlaybackScrubber.StartTimeAsString()
-        color: "dimgrey"
+        color: Material.theme == Material.Light ? "black" : "white"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         
@@ -112,7 +112,7 @@ GridLayout {
     }
     Rectangle {
       height: 50
-      width: 200
+      width: 220
       color: "transparent"
       Slider {
         id: slider
@@ -141,7 +141,7 @@ GridLayout {
         id: endTime
         font.pointSize: 9
         text: PlaybackScrubber.EndTimeAsString()
-        color: "dimgrey"
+        color: Material.theme == Material.Light ? "black" : "white"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
       }
@@ -155,12 +155,14 @@ GridLayout {
     onAccepted: {
       PlaybackScrubber.OnTimeEntered(textField.text);
     }
+    color: Material.theme == Material.Light ? "black" : "white"
   }
   Text {
     id: maxTime
     text: qsTr("/ ") + PlaybackScrubber.EndTimeAsString()
     Layout.columnSpan: 1
     Layout.alignment: Qt.AlignLeft
+    color: Material.theme == Material.Light ? "black" : "white"
   }
   Item {
     Layout.columnSpan: 1
