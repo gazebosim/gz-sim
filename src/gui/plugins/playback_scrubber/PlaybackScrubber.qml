@@ -21,13 +21,17 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import "qrc:/qml"
 
-ToolBar {
+GridLayout {
   id: playbackScrubber
-  Layout.minimumWidth: 200
-  Layout.minimumHeight: 300
+  columns: 5
+  Layout.minimumWidth: 100
+  Layout.minimumHeight: 200
+  anchors.fill: parent
+  anchors.leftMargin: 10
+  anchors.rightMargin: 10
   property var isPressed: false
+  property var currentTime: ""
 
   function updateSliderValue() {
     if (!playbackScrubber.isPressed)
@@ -47,11 +51,7 @@ ToolBar {
 
   function updateCurrentTime() {
     textField.placeholderText = PlaybackScrubber.CurrentTimeAsString();
-    currentTime.text = PlaybackScrubber.CurrentTimeAsString();
-  }
-
-  background: Rectangle {
-    color: "transparent"
+    currentTime = PlaybackScrubber.CurrentTimeAsString();
   }
 
   Connections {
@@ -64,67 +64,103 @@ ToolBar {
     }
   }
 
-  Column {
-    anchors.fill: parent
-    spacing: 2
-    topPadding: 10
-    leftPadding: 10
-    RowLayout {
-      Text {
-        text: "Current time: "
+  /*
+  // Top spacer
+  Item {
+    Layout.columnSpan: 6
+    height: 12
+    Layout.fillWidth: true
+  }
+  */ 
+  // Left spacer
+  Item {
+    Layout.columnSpan: 1
+    Layout.rowSpan: 15
+    Layout.fillWidth: true
+  }
+
+  // Top spacer
+  Item {
+    Layout.columnSpan: 3
+    Layout.fillWidth: true
+    height: 12
+  }
+
+  // Right spacer
+  Item {
+    Layout.columnSpan: 1
+    Layout.rowSpan: 15
+    Layout.fillWidth: true
+  }
+
+  Text {
+    text: "Current time: " + currentTime
+    Layout.columnSpan: 3
+    color: "dimgrey"
+    font.bold: true
+  }
+
+
+  Text {
+    id: startTime
+    font.pointSize: 9
+    Layout.columnSpan: 1
+    text: PlaybackScrubber.StartTimeAsString()
+    color: "dimgrey"
+  }
+  Slider {
+    id: slider
+    from: 0
+    value: updateSliderValue()
+    to: 1
+    stepSize: 0.001
+    Layout.columnSpan: 1
+    Layout.fillWidth: true
+    Layout.alignment: Qt.AlignVCenter
+    Layout.leftMargin: 0
+    /*
+     onValueChanged: {
+       print(slider.value)
+     }
+     */
+    onPressedChanged: {
+      if (!pressed)
+      {
+        PlaybackScrubber.OnDrag(slider.value);
+        playbackScrubber.isPressed = false;
       }
-      Text {
-        id: currentTime
-        text: PlaybackScrubber.CurrentTimeAsString()
+      else
+      {
+        playbackScrubber.isPressed = true;
       }
     }
-    RowLayout {
-      Text {
-        id: startTime
-        font.pointSize: 9
-        text: PlaybackScrubber.StartTimeAsString()
-      }
-      Slider {
-        id: slider
-        from: 0
-        value: updateSliderValue()
-        to: 1
-        stepSize: 0.001
-        /*
-         onValueChanged: {
-           print(slider.value)
-         }
-         */
-        onPressedChanged: {
-          if (!pressed)
-          {
-            PlaybackScrubber.OnDrag(slider.value);
-            playbackScrubber.isPressed = false;
-          }
-          else
-          {
-            playbackScrubber.isPressed = true;
-          }
-        }
-      }
-      Text {
-        id: endTime
-        font.pointSize: 9
-        text: PlaybackScrubber.EndTimeAsString()
-      }
+  }
+  Text {
+    id: endTime
+    font.pointSize: 9
+    Layout.columnSpan: 1
+    text: PlaybackScrubber.EndTimeAsString()
+    color: "dimgrey"
+  }
+  
+  TextField {
+    id: textField
+    Layout.columnSpan: 1
+    placeholderText: PlaybackScrubber.CurrentTimeAsString()
+    onAccepted: {
+      PlaybackScrubber.OnTimeEntered(textField.text);
     }
-    RowLayout {
-      TextField {
-        id: textField
-        placeholderText: PlaybackScrubber.CurrentTimeAsString()
-        onAccepted: {
-          PlaybackScrubber.OnTimeEntered(textField.text);
-        }
-      }
-      Text {
-        id: maxTime
-        text: qsTr("/ ") + PlaybackScrubber.EndTimeAsString()
-      }
-    }
+  }
+  Text {
+    id: maxTime
+    text: qsTr("/ ") + PlaybackScrubber.EndTimeAsString()
+    Layout.columnSpan: 2
+  }
+
+  // Bottom spacer
+  Item {
+    Layout.columnSpan: 3
+    height: 12
+    Layout.fillWidth: true
   }
 }

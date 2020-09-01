@@ -361,6 +361,11 @@ class Cmd
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
 
+      if (options['playback'] != '')
+        puts "Setting gui config"
+        options['gui_config'] = "_playback_"
+      end
+
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
