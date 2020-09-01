@@ -1769,7 +1769,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
                 math::eigen3::convert(worldPose) *
                 linkPoseFromTopLevelModel.Inverse());
 
-            _ecm.SetChanged(_parent->Data(), components::Pose::typeId,
+            _ecm.SetChanged(topLevelModel, components::Pose::typeId,
                 ComponentState::PeriodicChange);
           }
           else
