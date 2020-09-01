@@ -74,7 +74,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // Set default config file for Gazebo
   std::string defaultConfig;
-  ignwarn << "default gui config is " << defaultConfig << std::endl;
   if (nullptr == _defaultGuiConfig)
   {
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
@@ -280,7 +279,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
-  ignwarn << "gui config is " << _guiConfig << std::endl;
   auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
   if (nullptr != app)
   {

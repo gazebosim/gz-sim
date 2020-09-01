@@ -351,6 +351,5 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  ignwarn << "gui config is " << _guiConfig << std::endl;
   return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
 }
