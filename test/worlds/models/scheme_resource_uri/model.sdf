@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<sdf version='1.6'>
+  <!-- Note: The meshes in this file do not actually exist.
+  This file is used for testing scheme URIs -->
+  <model name='scheme_resource_uri'>
+    <pose>0 0 1 0 0 0</pose>
+    <link name='the_link'>
+      <visual name='the_visual'>
+        <geometry>
+          <mesh>
+            <uri>model://scheme_resource_uri/meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name='the_collision'>
+        <geometry>
+          <mesh>
+            <uri>model://scheme_resource_uri/meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
+

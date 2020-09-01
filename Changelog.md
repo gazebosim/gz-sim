@@ -36,6 +36,15 @@
 
 ## Ignition Gazebo 3.x
 
+### Ignition Gazebo 3.x.x (20xx-xx-xx)
+
+1. Added buoyancy system plugin.
+    * [pull request 252](https://github.com/ignitionrobotics/ign-gazebo/pull/252)
+
+
+1. Backport collision bitmask changes
+    * [pull request 223](https://github.com/ignitionrobotics/ign-gazebo/pull/223)
+
 ### Ignition Gazebo 3.2.0 (2020-05-20)
 
 1. Merge ign-gazebo2 to ign-gazebo3
@@ -111,6 +120,35 @@
 
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.23.0 (2020-07-28)
+
+1. Deactivate PerformerDetector if its parent model gets removed.
+    * [Pull Request 260](https://github.com/ignitionrobotics/ign-gazebo/pull/260)
+
+1. Backport support for <uri>s from Fuel #255
+    * [Pull Request 255](https://github.com/ignitionrobotics/ign-gazebo/pull/255)
+
+### Ignition Gazebo 2.22.0 (2020-07-22)
+
+1. Allow zero or more key/value pairs to be added to detection header information.
+    * [Pull Request 257](https://github.com/ignitionrobotics/ign-gazebo/pull/257)
+
+### Ignition Gazebo 2.21.0 (2020-07-16)
+
+1. Added support for controlling which joints are published by the
+   JointStatePublisher.
+    * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
+
+1. Added an additional pose offset for the performer detector plugin.
+    * [Pull Request 236](https://github.com/ignitionrobotics/ign-gazebo/pull/236)
+
+1. Fixed battery issues and updated tutorial.
+    * [Pull Request 230](https://github.com/ignitionrobotics/ign-gazebo/pull/230)
+
+### Ignition Gazebo 2.20.1 (2020-06-18)
+
+1. Properly add new models into the scenegraph. With this fix, when a model is spawned it will be added into the graph and resulting calls to the `scene/info` service will return a correct `msgs::Scene`.
+    * [Pull Request 212](https://github.com/ignitionrobotics/ign-gazebo/pull/212)
 
 ### Ignition Gazebo 2.20.0 (2020-06-09)
 

@@ -513,6 +513,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::SensorTopic::typeId)
+    {
+      auto comp =
+          _ecm.Component<components::SensorTopic>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::TrajectoryPose::typeId)
     {
       auto comp = _ecm.Component<components::TrajectoryPose>(
