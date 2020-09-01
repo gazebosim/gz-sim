@@ -290,7 +290,8 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
 /////////////////////////////////////////////////
 bool Server::RunOnce(const bool _paused)
 {
-  if (_paused) {
+  if (_paused)
+  {
     for (auto &runner : this->dataPtr->simRunners)
       runner->SetNextStepAsBlockingPaused(true);
   }
@@ -434,4 +435,3 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 
   return false;
 }
-

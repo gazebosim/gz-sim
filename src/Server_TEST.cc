@@ -478,95 +478,95 @@ TEST_P(ServerFixture, RunNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunOnceUnpaused)
 {
-    gazebo::Server server;
-    EXPECT_FALSE(server.Running());
-    EXPECT_FALSE(*server.Running(0));
-    EXPECT_EQ(0u, *server.IterationCount());
+  gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(0u, *server.IterationCount());
 
-    // Load a system
-    gazebo::SystemLoader systemLoader;
-    auto mockSystemPlugin = systemLoader.LoadPlugin(
-        "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
-    ASSERT_TRUE(mockSystemPlugin.has_value());
+  // Load a system
+  gazebo::SystemLoader systemLoader;
+  auto mockSystemPlugin = systemLoader.LoadPlugin(
+      "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
+  ASSERT_TRUE(mockSystemPlugin.has_value());
 
-    // Check that it was loaded
-    const size_t systemCount = *server.SystemCount();
-    EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
-    EXPECT_EQ(systemCount + 1, *server.SystemCount());
+  // Check that it was loaded
+  const size_t systemCount = *server.SystemCount();
+  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
+  EXPECT_EQ(systemCount + 1, *server.SystemCount());
 
-    // Query the interface from the plugin
-    auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
-    EXPECT_NE(system, nullptr);
-    auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
-    EXPECT_NE(mockSystem, nullptr);
+  // Query the interface from the plugin
+  auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
+  EXPECT_NE(system, nullptr);
+  auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  EXPECT_NE(mockSystem, nullptr);
 
-    // No steps should have been executed
-    EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
-    EXPECT_EQ(0u, mockSystem->updateCallCount);
-    EXPECT_EQ(0u, mockSystem->postUpdateCallCount);
+  // No steps should have been executed
+  EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
+  EXPECT_EQ(0u, mockSystem->updateCallCount);
+  EXPECT_EQ(0u, mockSystem->postUpdateCallCount);
 
-    // Make the server run fast
-    server.SetUpdatePeriod(1ns);
+  // Make the server run fast
+  server.SetUpdatePeriod(1ns);
 
-    while (*server.IterationCount() < 100)
-      server.RunOnce(false);
+  while (*server.IterationCount() < 100)
+    server.RunOnce(false);
 
-    // Check that the server provides the correct information
-    EXPECT_EQ(*server.IterationCount(), 100u);
-    EXPECT_FALSE(server.Running());
-    EXPECT_FALSE(*server.Running(0));
+  // Check that the server provides the correct information
+  EXPECT_EQ(*server.IterationCount(), 100u);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 
-    // Check that the system has been called correctly
-    EXPECT_EQ(100u, mockSystem->preUpdateCallCount);
-    EXPECT_EQ(100u, mockSystem->updateCallCount);
-    EXPECT_EQ(100u, mockSystem->postUpdateCallCount);
+  // Check that the system has been called correctly
+  EXPECT_EQ(100u, mockSystem->preUpdateCallCount);
+  EXPECT_EQ(100u, mockSystem->updateCallCount);
+  EXPECT_EQ(100u, mockSystem->postUpdateCallCount);
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunOncePaused)
 {
-    gazebo::Server server;
-    EXPECT_FALSE(server.Running());
-    EXPECT_FALSE(*server.Running(0));
-    EXPECT_EQ(0u, *server.IterationCount());
+  gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(0u, *server.IterationCount());
 
-    // Load a system
-    gazebo::SystemLoader systemLoader;
-    auto mockSystemPlugin = systemLoader.LoadPlugin(
-        "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
-    ASSERT_TRUE(mockSystemPlugin.has_value());
+  // Load a system
+  gazebo::SystemLoader systemLoader;
+  auto mockSystemPlugin = systemLoader.LoadPlugin(
+      "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
+  ASSERT_TRUE(mockSystemPlugin.has_value());
 
-    // Check that it was loaded
-    const size_t systemCount = *server.SystemCount();
-    EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
-    EXPECT_EQ(systemCount + 1, *server.SystemCount());
+  // Check that it was loaded
+  const size_t systemCount = *server.SystemCount();
+  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
+  EXPECT_EQ(systemCount + 1, *server.SystemCount());
 
-    // Query the interface from the plugin
-    auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
-    EXPECT_NE(system, nullptr);
-    auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
-    EXPECT_NE(mockSystem, nullptr);
+  // Query the interface from the plugin
+  auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
+  EXPECT_NE(system, nullptr);
+  auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  EXPECT_NE(mockSystem, nullptr);
 
-    // No steps should have been executed
-    EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
-    EXPECT_EQ(0u, mockSystem->updateCallCount);
-    EXPECT_EQ(0u, mockSystem->postUpdateCallCount);
+  // No steps should have been executed
+  EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
+  EXPECT_EQ(0u, mockSystem->updateCallCount);
+  EXPECT_EQ(0u, mockSystem->postUpdateCallCount);
 
-    // Make the server run fast
-    server.SetUpdatePeriod(1ns);
+  // Make the server run fast
+  server.SetUpdatePeriod(1ns);
 
-    while (*server.IterationCount() < 100)
-      server.RunOnce(true);
+  while (*server.IterationCount() < 100)
+    server.RunOnce(true);
 
-    // Check that the server provides the correct information
-    EXPECT_EQ(*server.IterationCount(), 100u);
-    EXPECT_FALSE(server.Running());
-    EXPECT_FALSE(*server.Running(0));
+  // Check that the server provides the correct information
+  EXPECT_EQ(*server.IterationCount(), 100u);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 
-    // Check that the system has been called correctly
-    EXPECT_EQ(100u, mockSystem->preUpdateCallCount);
-    EXPECT_EQ(100u, mockSystem->updateCallCount);
-    EXPECT_EQ(100u, mockSystem->postUpdateCallCount);
+  // Check that the system has been called correctly
+  EXPECT_EQ(100u, mockSystem->preUpdateCallCount);
+  EXPECT_EQ(100u, mockSystem->updateCallCount);
+  EXPECT_EQ(100u, mockSystem->postUpdateCallCount);
 }
 
 /////////////////////////////////////////////////
