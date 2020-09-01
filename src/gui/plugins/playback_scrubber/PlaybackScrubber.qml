@@ -64,14 +64,6 @@ GridLayout {
     }
   }
 
-  /*
-  // Top spacer
-  Item {
-    Layout.columnSpan: 6
-    height: 12
-    Layout.fillWidth: true
-  }
-  */ 
   // Left spacer
   Item {
     Layout.columnSpan: 1
@@ -94,17 +86,28 @@ GridLayout {
   }
 
   Text {
-    text: "Current time: " + currentTime
-    Layout.columnSpan: 3
+    text: "Current time: "
+    Layout.columnSpan: 1
     color: "dimgrey"
     font.bold: true
   }
-
+  Text {
+    text: currentTime
+    Layout.columnSpan: 1
+    Layout.alignment: Qt.AlignHCenter
+    color: "dimgrey"
+    font.bold: true
+  }
+  Item {
+    Layout.columnSpan: 1
+    Layout.fillWidth: true
+  }
 
   Text {
     id: startTime
     font.pointSize: 9
     Layout.columnSpan: 1
+    Layout.alignment: Qt.AlignHCenter
     text: PlaybackScrubber.StartTimeAsString()
     color: "dimgrey"
   }
@@ -116,13 +119,8 @@ GridLayout {
     stepSize: 0.001
     Layout.columnSpan: 1
     Layout.fillWidth: true
-    Layout.alignment: Qt.AlignVCenter
+    Layout.alignment: Qt.AlignHCenter
     Layout.leftMargin: 0
-    /*
-     onValueChanged: {
-       print(slider.value)
-     }
-     */
     onPressedChanged: {
       if (!pressed)
       {
@@ -139,6 +137,7 @@ GridLayout {
     id: endTime
     font.pointSize: 9
     Layout.columnSpan: 1
+    Layout.alignment: Qt.AlignHCenter
     text: PlaybackScrubber.EndTimeAsString()
     color: "dimgrey"
   }
