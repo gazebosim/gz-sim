@@ -21,7 +21,7 @@ cmake ..
 make
 ~~~
 
-This will generate the `libGuiSystemPlugin.so` library under `build`.
+This will generate the `GuiSystemPlugin` library under `build`.
 
 ## Run
 
