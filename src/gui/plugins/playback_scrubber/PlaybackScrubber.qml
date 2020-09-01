@@ -83,65 +83,71 @@ GridLayout {
     Layout.columnSpan: 1
     Layout.rowSpan: 15
     Layout.fillWidth: true
+    width: 30
   }
 
   Text {
-    text: "Current time: "
-    Layout.columnSpan: 1
+    text: "Current time: " + currentTime
+    Layout.columnSpan: 3
     color: "dimgrey"
     font.bold: true
-  }
-  Text {
-    text: currentTime
-    Layout.columnSpan: 1
-    Layout.alignment: Qt.AlignHCenter
-    color: "dimgrey"
-    font.bold: true
-  }
-  Item {
-    Layout.columnSpan: 1
-    Layout.fillWidth: true
   }
 
-  Text {
-    id: startTime
-    font.pointSize: 9
-    Layout.columnSpan: 1
-    Layout.alignment: Qt.AlignHCenter
-    text: PlaybackScrubber.StartTimeAsString()
-    color: "dimgrey"
-  }
-  Slider {
-    id: slider
-    from: 0
-    value: updateSliderValue()
-    to: 1
-    stepSize: 0.001
-    Layout.columnSpan: 1
-    Layout.fillWidth: true
-    Layout.alignment: Qt.AlignHCenter
-    Layout.leftMargin: 0
-    onPressedChanged: {
-      if (!pressed)
-      {
-        PlaybackScrubber.OnDrag(slider.value);
-        playbackScrubber.isPressed = false;
+  Row {
+    Layout.columnSpan: 3
+    spacing: 3
+    Rectangle {
+      height: 50
+      width: 80
+      color: "transparent"
+      Text {
+        id: startTime
+        font.pointSize: 9
+        text: PlaybackScrubber.StartTimeAsString()
+        color: "dimgrey"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        
       }
-      else
-      {
-        playbackScrubber.isPressed = true;
+    }
+    Rectangle {
+      height: 50
+      width: 200
+      color: "transparent"
+      Slider {
+        id: slider
+        from: 0
+        value: updateSliderValue()
+        to: 1
+        stepSize: 0.001
+        onPressedChanged: {
+          if (!pressed)
+          {
+            PlaybackScrubber.OnDrag(slider.value);
+            playbackScrubber.isPressed = false;
+          }
+          else
+          {
+            playbackScrubber.isPressed = true;
+          }
+        }
+      }
+    }
+    Rectangle {
+      height: 50
+      width: 80
+      color: "transparent"
+      Text {
+        id: endTime
+        font.pointSize: 9
+        text: PlaybackScrubber.EndTimeAsString()
+        color: "dimgrey"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
       }
     }
   }
-  Text {
-    id: endTime
-    font.pointSize: 9
-    Layout.columnSpan: 1
-    Layout.alignment: Qt.AlignHCenter
-    text: PlaybackScrubber.EndTimeAsString()
-    color: "dimgrey"
-  }
-  
+
   TextField {
     id: textField
     Layout.columnSpan: 1
@@ -153,7 +159,12 @@ GridLayout {
   Text {
     id: maxTime
     text: qsTr("/ ") + PlaybackScrubber.EndTimeAsString()
-    Layout.columnSpan: 2
+    Layout.columnSpan: 1
+    Layout.alignment: Qt.AlignLeft
+  }
+  Item {
+    Layout.columnSpan: 1
+    Layout.fillWidth: true
   }
 
   // Bottom spacer

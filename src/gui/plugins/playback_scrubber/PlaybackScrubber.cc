@@ -56,7 +56,10 @@ namespace ignition::gazebo
 
     /// \brief The progress as a percentage of how far we
     /// are into the log file
-    public: double progress;
+    public: double progress{0.0};
+
+    /// \brief Bool holding if the simulation is currently paused.
+    public: bool paused{false};
   };
 }
 
@@ -135,10 +138,12 @@ void PlaybackScrubber::Update(const UpdateInfo &_info,
         return true;
       });
   }
+
   auto simTime = math::durationToSecNsec(_info.simTime);
   this->dataPtr->currentTime =
     math::secNsecToTimePoint(simTime.first, simTime.second);
   this->dataPtr->progress = CalculateProgress();
+  this->dataPtr->paused = _info.paused;
   this->newProgress();
 }
 
@@ -222,7 +227,7 @@ void PlaybackScrubber::OnDrag(double _value)
 
   playbackMsg.mutable_seek()->set_sec(jumpToTime.first);
   playbackMsg.mutable_seek()->set_nsec(jumpToTime.second);
-  playbackMsg.set_pause(true);
+  playbackMsg.set_pause(this->dataPtr->paused);
   this->dataPtr->node.Request(topic, playbackMsg, timeout, res, result);
 }
 

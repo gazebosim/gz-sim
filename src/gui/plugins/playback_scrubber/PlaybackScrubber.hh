@@ -59,10 +59,16 @@ namespace gazebo
     /// \return The progress as a value from 0 to 1, inclusive
     public slots: double Progress();
 
+    /// \brief Get the starting time of the log playback.
+    /// \return The start time in format dd hh:mm:ss.nnn as a QString.
     public slots: QString StartTimeAsString();
 
+    /// \brief Get the end time of the log playback.
+    /// \return The end time in format dd hh:mm:ss.nnn as a QString.
     public slots: QString EndTimeAsString();
 
+    /// \brief Get the current time of the log playback.
+    /// \return The current time in format dd hh:mm:ss.nnn as a QString.
     public slots: QString CurrentTimeAsString();
 
     /// \brief Callback in Qt thread when the slider is released.
@@ -70,6 +76,8 @@ namespace gazebo
     /// inclusive
     public slots: void OnDrag(double _value);
 
+    /// \brief Callback when a time is entered by the user.
+    /// \param[in] _time The time in format dd hh:mm:ss.nnn
     public slots: void OnTimeEntered(const QString &_time);
 
     /// \brief Notify that progress has advanced in the log file.
