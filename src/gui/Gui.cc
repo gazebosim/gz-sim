@@ -149,6 +149,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   std::size_t runnerCount = 0;
   std::string defaultGuiConfigName = "gui.config";
+
+  // The playback flag was specified from the command line
   if (_guiConfig != nullptr && std::string(_guiConfig) == "_playback_")
   {
     ignition::common::env(IGN_HOMEDIR, defaultConfig);

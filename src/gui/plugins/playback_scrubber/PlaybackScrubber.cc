@@ -111,7 +111,6 @@ double PlaybackScrubber::CalculateProgress()
 void PlaybackScrubber::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  // TODO(john): check for paused simulation
   auto startTime = this->dataPtr->startTime;
   auto endTime = this->dataPtr->endTime;
   auto totalDuration =
