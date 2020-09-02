@@ -92,43 +92,42 @@ TEST_F(BreadcrumbsTest, Remaining)
   kRemaining = -1;
 
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
-
   int sleep = 0;
   int maxSleep = 30;
   for (; kRemaining != 2 && sleep < maxSleep; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   EXPECT_EQ(2, kRemaining);
   kRemaining = -1;
 
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
   sleep = 0;
   for (; kRemaining != 1 && sleep < maxSleep; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   EXPECT_EQ(1, kRemaining);
   kRemaining = -1;
 
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
   sleep = 0;
   for (; kRemaining != 0 && sleep < maxSleep; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   EXPECT_EQ(0, kRemaining);
   kRemaining = -1;
 
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
   sleep = 0;
   for (; kRemaining != 0 && sleep < maxSleep; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   EXPECT_EQ(0, kRemaining);
 }
