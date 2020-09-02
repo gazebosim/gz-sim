@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -177,14 +177,14 @@ Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 
   // PlottingInterface connecting
   connect(this->dataPtr->plottingIface, SIGNAL(ComponentSubscribe
-              (Entity, ComponentTypeId, std::string, std::string, int)),
+              (uint64_t, uint64_t, std::string, std::string, int)),
           this, SLOT(RegisterChartToComponent
-              (Entity, ComponentTypeId, std::string, std::string, int)));
+              (uint64_t, uint64_t, std::string, std::string, int)));
 
   connect(this->dataPtr->plottingIface, SIGNAL(ComponentUnSubscribe
-              (Entity, ComponentTypeId, std::string, int)),
+              (uint64_t, uint64_t, std::string, int)),
           this, SLOT(UnRegisterChartToComponent
-              (Entity, ComponentTypeId, std::string, int)));
+              (uint64_t, uint64_t, std::string, int)));
 }
 
 //////////////////////////////////////////////////
@@ -221,7 +221,7 @@ void Plotting::SetData(std::string _Id, const double &_value)
 
 
 //////////////////////////////////////////////////
-void Plotting::RegisterChartToComponent(Entity _entity, ComponentTypeId _typeId,
+void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
                                         std::string _type,
                                         std::string _attribute,
                                         int _chart)
@@ -237,7 +237,7 @@ void Plotting::RegisterChartToComponent(Entity _entity, ComponentTypeId _typeId,
 }
 
 //////////////////////////////////////////////////
-void Plotting::UnRegisterChartToComponent(Entity _entity, ComponentTypeId _typeId,
+void Plotting::UnRegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
                                           std::string _attribute, int _chart)
 {
   std::string id = std::to_string(_entity) + "," + std::to_string(_typeId);

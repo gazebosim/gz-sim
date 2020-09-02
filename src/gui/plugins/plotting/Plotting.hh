@@ -124,8 +124,8 @@ class Plotting : public ignition::gazebo::GuiSystem
   /// \param[in] _attribute component attribute to add the chart to it
   /// ex: x attribute in Pose3d Component will be "x"
   /// \param [in] _chart chart ID to be registered
-  public slots: void RegisterChartToComponent(Entity _entity,
-                                              ComponentTypeId _typeId,
+  public slots: void RegisterChartToComponent(uint64_t _entity,
+                                              uint64_t _typeId,
                                               std::string _type,
                                               std::string _attribute,
                                               int _chart);
@@ -136,8 +136,8 @@ class Plotting : public ignition::gazebo::GuiSystem
   /// \param[in] _attribute component attribute to remove the chart from it
   /// ex: x attribute in Pose3d Component will be "x"
   /// \param[in] _chart chart ID to be unregistered
-  public slots: void UnRegisterChartToComponent(Entity _entity,
-                                                ComponentTypeId _typeId,
+  public slots: void UnRegisterChartToComponent(uint64_t _entity,
+                                                uint64_t _typeId,
                                                 std::string _attribute,
                                                 int _chart);
 
