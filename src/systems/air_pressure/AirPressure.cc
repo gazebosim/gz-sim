@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -136,6 +137,13 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         std::unique_ptr<sensors::AirPressureSensor> sensor =
             this->sensorFactory.CreateSensor<
             sensors::AirPressureSensor>(data);
+        if (nullptr == sensor)
+        {
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
+        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
@@ -146,6 +154,9 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         // set sensor world pose
         math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
         sensor->SetPose(sensorWorldPose);
+
+        // Set topic
+        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));

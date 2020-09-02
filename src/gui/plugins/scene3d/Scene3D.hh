@@ -72,6 +72,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// * \<camera_follow\> :
   ///     * \<p_gain\>    : Camera follow movement p gain.
   ///     * \<target\>    : Target to follow.
+  /// * \<fullscreen\> : Optional starting the window in fullscreen.
   class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
