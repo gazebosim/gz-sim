@@ -266,7 +266,8 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief File containing physics engine plugin. If empty, DART will be used.
   public: std::string physicsEngine = "";
 
-  /// \brief File containing render engine plugin. If empty, OGRE will be used.
+  /// \brief File containing render engine plugin. If empty, OGRE2
+  /// will be used.
   public: std::string renderEngine = "";
 
   /// \brief List of plugins to load.

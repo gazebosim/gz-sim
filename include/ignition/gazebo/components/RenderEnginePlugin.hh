@@ -31,7 +31,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Holds the physics engine shared library.
+  /// \brief Holds the render engine shared library.
   using RenderEnginePlugin = Component<std::string,
       class RenderEnginePluginTag, serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.RenderEnginePlugin",
