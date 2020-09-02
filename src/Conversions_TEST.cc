@@ -434,7 +434,7 @@ TEST(Conversions, Inertial)
 TEST(Conversions, JointAxis)
 {
   sdf::JointAxis jointAxis;
-  jointAxis.SetXyz(math::Vector3d(1, 2, 3));
+  EXPECT_TRUE(jointAxis.SetXyz(math::Vector3d(1, 2, 3)).empty());
   jointAxis.SetXyzExpressedIn("__model__");
   jointAxis.SetDamping(0.1);
   jointAxis.SetFriction(0.2);
@@ -444,7 +444,7 @@ TEST(Conversions, JointAxis)
   jointAxis.SetMaxVelocity(0.6);
 
   auto axisMsg = convert<msgs::Axis>(jointAxis);
-  EXPECT_EQ(math::Vector3d(1, 2, 3), msgs::Convert(axisMsg.xyz()));
+  EXPECT_EQ(math::Vector3d(1, 2, 3).Normalized(), msgs::Convert(axisMsg.xyz()));
   EXPECT_DOUBLE_EQ(0.1, axisMsg.damping());
   EXPECT_DOUBLE_EQ(0.2, axisMsg.friction());
   EXPECT_DOUBLE_EQ(0.3, axisMsg.limit_lower());
@@ -454,7 +454,7 @@ TEST(Conversions, JointAxis)
   EXPECT_EQ(axisMsg.xyz_expressed_in(), "__model__");
 
   auto newJointAxis = convert<sdf::JointAxis>(axisMsg);
-  EXPECT_EQ(math::Vector3d(1, 2, 3), newJointAxis.Xyz());
+  EXPECT_EQ(math::Vector3d(1, 2, 3).Normalized(), newJointAxis.Xyz());
   EXPECT_DOUBLE_EQ(0.1, newJointAxis.Damping());
   EXPECT_DOUBLE_EQ(0.2, newJointAxis.Friction());
   EXPECT_DOUBLE_EQ(0.3, newJointAxis.Lower());
