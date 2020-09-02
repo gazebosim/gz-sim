@@ -512,14 +512,14 @@ TEST_P(ServerFixture, RunOnceUnpaused)
       server.RunOnce(false);
 
     // Check that the server provides the correct information
-    EXPECT_EQ(*server.IterationCount(), 100);
+    EXPECT_EQ(*server.IterationCount(), 100u);
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
 
     // Check that the system has been called correctly
-    EXPECT_EQ(100, mockSystem->preUpdateCallCount);
-    EXPECT_EQ(100, mockSystem->updateCallCount);
-    EXPECT_EQ(100, mockSystem->postUpdateCallCount);
+    EXPECT_EQ(100u, mockSystem->preUpdateCallCount);
+    EXPECT_EQ(100u, mockSystem->updateCallCount);
+    EXPECT_EQ(100u, mockSystem->postUpdateCallCount);
 }
 
 /////////////////////////////////////////////////
@@ -559,14 +559,14 @@ TEST_P(ServerFixture, RunOncePaused)
       server.RunOnce(true);
 
     // Check that the server provides the correct information
-    EXPECT_EQ(*server.IterationCount(), 100);
+    EXPECT_EQ(*server.IterationCount(), 100u);
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
 
     // Check that the system has been called correctly
-    EXPECT_EQ(100, mockSystem->preUpdateCallCount);
-    EXPECT_EQ(100, mockSystem->updateCallCount);
-    EXPECT_EQ(100, mockSystem->postUpdateCallCount);
+    EXPECT_EQ(100u, mockSystem->preUpdateCallCount);
+    EXPECT_EQ(100u, mockSystem->updateCallCount);
+    EXPECT_EQ(100u, mockSystem->postUpdateCallCount);
 }
 
 /////////////////////////////////////////////////
