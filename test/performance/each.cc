@@ -125,20 +125,17 @@ TEST(EntityComponentManagerPerfrormance, Each)
         static_cast<double>(eachIterations);
       double cachelessEntityAvg = cachelessIterAvg / matchingEntityCount;
 
-     // Debug output
-     // std::cout << "=================================\n"
-     // std::cout << "Matching Entity Count =\t\t"
-     // << matchingEntityCount << "\n"
-     // << "Nonmatching Entity Count =\t" << nonmatchingEntityCount << "\n"
-     // << "Each Iterations =\t\t" << eachIterations << "\n"
-     // << "Cache total =\t\t\t" << cacheDuration.count() << " ns\n"
-     // << "Cache avg per iter =\t\t" << cacheIterAvg << " ns\n"
-     // << "Cache avg per iter*entity =\t" << cacheEntityAvg << " ns\n"
-     // << "Cacheless total =\t\t" << cachelessDuration.count() << " ns\n"
-     // << "Cacheless avg per iter=\t\t" << cachelessIterAvg << " ns\n"
-     // << "Cacheless avg per iter*entity=\t" << cachelessEntityAvg << " ns\n"
-
-      EXPECT_LT(cacheEntityAvg, cachelessEntityAvg);
+      EXPECT_LT(cacheEntityAvg, cachelessEntityAvg)
+        << "Matching Entity Count =\t\t"
+        << matchingEntityCount << "\n"
+        << "Nonmatching Entity Count =\t" << nonmatchingEntityCount << "\n"
+        << "Each Iterations =\t\t" << eachIterations << "\n"
+        << "Cache total =\t\t\t" << cacheDuration.count() << " ns\n"
+        << "Cache avg per iter =\t\t" << cacheIterAvg << " ns\n"
+        << "Cache avg per iter*entity =\t" << cacheEntityAvg << " ns\n"
+        << "Cacheless total =\t\t" << cachelessDuration.count() << " ns\n"
+        << "Cacheless avg per iter=\t\t" << cachelessIterAvg << " ns\n"
+        << "Cacheless avg per iter*entity=\t" << cachelessEntityAvg << " ns\n";
     }
   }
 }
