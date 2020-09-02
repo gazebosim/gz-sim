@@ -175,7 +175,8 @@ void AxesConfig::UpdateOriginArrows()
   if (!this->dataPtr->dirty)
     return;
 
-  // Save the axesVisual in the structure if it doesn't exist or update the pose
+  // Save the axesVisual in the structure if it doesn't exist or
+  // update the pose
   auto it = this->dataPtr->activeAxesMap.find(this->dataPtr->name_axes);
   if (it == this->dataPtr->activeAxesMap.end())
   {
@@ -315,7 +316,7 @@ double AxesConfig::axesYaw() const
 /////////////////////////////////////////////////
 void AxesConfig::EntitiesInScene()
 {
-  std::set<std::string> set_entities;
+  std::set<std::string> setEntities;
 
   for (unsigned int i = 0; i < this->dataPtr->scene->VisualCount(); ++i)
   {
@@ -326,12 +327,12 @@ void AxesConfig::EntitiesInScene()
     std::vector<std::string> tokens = ignition::common::split(vis_name, "::");
     if (tokens.size() == 1)
     {
-      set_entities.insert(tokens[0]);
+      setEntities.insert(tokens[0]);
     }
   }
 
   QStringList localCombolist;
-  for (auto s : set_entities)
+  for (auto s : setEntities)
   {
     localCombolist << s.c_str();
   }

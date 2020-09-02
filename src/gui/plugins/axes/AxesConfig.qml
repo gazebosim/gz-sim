@@ -39,7 +39,7 @@ GridLayout {
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     Layout.columnSpan: 2
-    text: qsTr("Show/Hide Axes")
+    text: qsTr("Show Axes")
     checked: true
     onClicked: {
       AxesConfig.OnShow(checked)
@@ -63,7 +63,7 @@ GridLayout {
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     Layout.columnSpan: 2
-    text: qsTr("Lines/Arrow Axes")
+    text: qsTr("Show arrows")
     checked: true
     onClicked: {
       AxesConfig.OnTypeAxes(checked)
