@@ -66,7 +66,7 @@ class BreadcrumbsTest : public ::testing::Test
   public: std::unique_ptr<Server> server;
 };
 
-int kRemaining;
+int kRemaining{-1};
 
 /////////////////////////////////////////////////
 void remainingCb(const msgs::Int32 &_msg)
@@ -89,17 +89,47 @@ TEST_F(BreadcrumbsTest, Remaining)
   node.Subscribe("/model/vehicle_blue/breadcrumbs/B1/deploy/remaining",
       &remainingCb);
   EXPECT_EQ(0, kRemaining);
+  kRemaining = -1;
+
   deployB1.Publish(msgs::Empty());
   this->server->Run(true, 1, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; kRemaining != 2 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   EXPECT_EQ(2, kRemaining);
+  kRemaining = -1;
+
   deployB1.Publish(msgs::Empty());
   this->server->Run(true, 1, false);
+  sleep = 0;
+  for (; kRemaining != 1 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   EXPECT_EQ(1, kRemaining);
+  kRemaining = -1;
+
   deployB1.Publish(msgs::Empty());
   this->server->Run(true, 1, false);
+  sleep = 0;
+  for (; kRemaining != 0 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   EXPECT_EQ(0, kRemaining);
+  kRemaining = -1;
+
   deployB1.Publish(msgs::Empty());
   this->server->Run(true, 1, false);
+  sleep = 0;
+  for (; kRemaining != 0 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   EXPECT_EQ(0, kRemaining);
 }
 
