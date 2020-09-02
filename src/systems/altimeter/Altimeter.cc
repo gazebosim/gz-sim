@@ -137,7 +137,17 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         }
         std::unique_ptr<sensors::AltimeterSensor> sensor =
           std::make_unique<sensors::AltimeterSensor>();
-        sensor->Load(data);
+        if (!sensor->Load(data))
+        {
+          ignerr << "Sensor::Load failed for plugin [AltimeterSensor]\n";
+          return false;
+        }
+        if (!sensor->Init())
+        {
+          ignerr << "Sensor::Init failed for plugin [AltimeterSensor]\n";
+          return false;
+        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();

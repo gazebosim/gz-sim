@@ -156,7 +156,17 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
         }
         std::unique_ptr<sensors::ImuSensor> sensor =
           std::make_unique<sensors::ImuSensor>();
-        sensor->Load(data);
+        if (!sensor->Load(data))
+        {
+          ignerr << "Sensor::Load failed for plugin [ImuSensor]\n";
+          return false;
+        }
+        if (!sensor->Init())
+        {
+          ignerr << "Sensor::Init failed for plugin [ImuSensor]\n";
+          return false;
+        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
