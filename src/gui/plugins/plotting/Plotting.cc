@@ -17,6 +17,38 @@
 #include <ignition/plugin/Register.hh>
 
 #include "Plotting.hh"
+#include <memory>
+
+#include "ignition/gazebo/components/Actor.hh"
+#include "ignition/gazebo/components/AngularAcceleration.hh"
+#include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Level.hh"
+#include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LinearAcceleration.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocitySeed.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/MagneticField.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerAffinity.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/WindMode.hh"
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition::gazebo
 {
@@ -25,16 +57,18 @@ namespace ignition::gazebo
     /// \brief Interface to communicate with Qml
     public: ignition::gui::PlottingInterface *plottingIface;
 
+    /// \brief registered components for plotting
+    /// map key: string contains EntityID + "," + ComponentID
     public: std::map<std::string, PlotComponent*> components;
   };
 
   class PlotComponentPrivate
   {
     /// \brief entity id in the simulation
-    public: uint64_t entity;
+    public: Entity entity;
 
     /// \brief type identifier unique to each component type
-    public: uint64_t typeId;
+    public: ComponentTypeId typeId;
 
     /// \brief component data type (Pose3d, Vector3d, double)
     public: std::string type;
@@ -49,8 +83,9 @@ using namespace ignition::gazebo;
 using namespace ignition::gui;
 
 //////////////////////////////////////////////////
-PlotComponent::PlotComponent(std::string _type, uint64_t _entity,
-                             uint64_t _typeId) :
+PlotComponent::PlotComponent(std::string _type,
+                             ignition::gazebo::Entity _entity,
+                             ComponentTypeId _typeId) :
     dataPtr(new PlotComponentPrivate)
 {
   this->dataPtr->entity = _entity;
@@ -124,13 +159,13 @@ std::map<std::string, PlotData*> PlotComponent::Data() const
 }
 
 //////////////////////////////////////////////////
-uint64_t PlotComponent::Entity()
+Entity PlotComponent::Entity()
 {
   return this->dataPtr->entity;
 }
 
 //////////////////////////////////////////////////
-uint64_t PlotComponent::TypeId()
+ComponentTypeId PlotComponent::TypeId()
 {
   return this->dataPtr->typeId;
 }
@@ -142,14 +177,14 @@ Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 
   // PlottingInterface connecting
   connect(this->dataPtr->plottingIface, SIGNAL(ComponentSubscribe
-              (uint64_t, uint64_t, std::string, std::string, int)),
+              (Entity, ComponentTypeId, std::string, std::string, int)),
           this, SLOT(RegisterChartToComponent
-              (uint64_t, uint64_t, std::string, std::string, int)));
+              (Entity, ComponentTypeId, std::string, std::string, int)));
 
   connect(this->dataPtr->plottingIface, SIGNAL(ComponentUnSubscribe
-              (uint64_t, uint64_t, std::string, int)),
+              (Entity, ComponentTypeId, std::string, int)),
           this, SLOT(UnRegisterChartToComponent
-              (uint64_t, uint64_t, std::string, int)));
+              (Entity, ComponentTypeId, std::string, int)));
 }
 
 //////////////////////////////////////////////////
@@ -186,7 +221,7 @@ void Plotting::SetData(std::string _Id, const double &_value)
 
 
 //////////////////////////////////////////////////
-void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
+void Plotting::RegisterChartToComponent(Entity _entity, ComponentTypeId _typeId,
                                         std::string _type,
                                         std::string _attribute,
                                         int _chart)
@@ -194,27 +229,27 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
   std::string Id = std::to_string(_entity) + "," + std::to_string(_typeId);
 
   if (this->dataPtr->components.count(Id) == 0)
-      this->dataPtr->components[Id] = new PlotComponent(_type,
-                                                        _entity,
-                                                        _typeId);
+    this->dataPtr->components[Id] = new PlotComponent(_type,
+                                                      _entity,
+                                                      _typeId);
 
   this->dataPtr->components[Id]->RegisterChart(_attribute, _chart);
 }
 
 //////////////////////////////////////////////////
-void Plotting::UnRegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
+void Plotting::UnRegisterChartToComponent(Entity _entity, ComponentTypeId _typeId,
                                           std::string _attribute, int _chart)
 {
-  std::string Id = std::to_string(_entity) + "," + std::to_string(_typeId);
-  std::cout << "UnRegister " << Id << std::endl;
+  std::string id = std::to_string(_entity) + "," + std::to_string(_typeId);
+  igndbg << "UnRegister [" << id  << "]" << std::endl;
 
-  if (this->dataPtr->components.count(Id) == 0)
-      return;
+  if (this->dataPtr->components.count(id) == 0)
+    return;
 
-  this->dataPtr->components[Id]->UnRegisterChart(_attribute, _chart);
+  this->dataPtr->components[id]->UnRegisterChart(_attribute, _chart);
 
-  if (!this->dataPtr->components[Id]->HasCharts())
-      this->dataPtr->components.erase(Id);
+  if (!this->dataPtr->components[id]->HasCharts())
+    this->dataPtr->components.erase(id);
 }
 
 //////////////////////////////////////////////////

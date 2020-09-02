@@ -26,38 +26,6 @@
 
 #include <map>
 #include <string>
-#include <memory>
-
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AngularAcceleration.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition {
 
@@ -65,13 +33,17 @@ namespace gazebo {
 
 class PlotComponentPrivate;
 
+/// \brief A container of the component data that keeps track of the registered
+/// attributes and update their values and their registered charts
 class PlotComponent
 {
   /// \brief Constructor
   /// \param[in] _type component data type (Pose3d, Vector3d, double)
   /// \param [in] _entity entity id of that component
   /// \param [in] _typeId type identifier unique to each component type
-  public: PlotComponent(std::string _type, uint64_t _entity, uint64_t _typeId);
+  public: PlotComponent(std::string _type,
+                        ignition::gazebo::Entity _entity,
+                        ComponentTypeId _typeId);
 
   /// \brief Add a registered chart to the attribute
   /// \param[in] _attribute component attribute to add the chart to it
@@ -99,12 +71,12 @@ class PlotComponent
   public: std::map<std::string, ignition::gui::PlotData*> Data() const;
 
   /// \brief Get the Component entity ID
-  /// \return entity ID
-  public: uint64_t Entity();
+  /// \return Entity ID
+  public: ignition::gazebo::Entity Entity();
 
   /// \brief Get the Component type ID
   /// \return component type ID
-  public: uint64_t TypeId();
+  public: ComponentTypeId TypeId();
 
   /// \brief dataPtr holds Abstraction data of PlottingPrivate
   private: std::unique_ptr<PlotComponentPrivate> dataPtr;
@@ -112,6 +84,8 @@ class PlotComponent
 
 class PlottingPrivate;
 
+/// \brief Physics data plotting handler that keeps track of the
+/// registered components, update them and update the plot
 class Plotting : public ignition::gazebo::GuiSystem
 {
   Q_OBJECT
@@ -121,7 +95,7 @@ class Plotting : public ignition::gazebo::GuiSystem
   /// \brief Destructor
   public: ~Plotting();
 
-    /// \brief called every simulation iteration to access components
+  // Documentation inherited
   public: void Update(const ignition::gazebo::UpdateInfo &_info,
                       ignition::gazebo::EntityComponentManager &_ecm) override;
 
@@ -144,25 +118,26 @@ class Plotting : public ignition::gazebo::GuiSystem
   public: void SetData(std::string _Id, const double &_value);
 
   /// \brief Add a chart to a specefic component attribute
-  /// \param [in] _entity entity id in the simulation
-  /// \param [in] _typeId type identifier unique to each component type
-  /// \param [in] _attribute component attribute to add the chart to it
-  /// ex: x attribute in Pose3d Component
+  /// \param[in] _entity entity id in the simulation
+  /// \param[in] _typeId type identifier unique to each component type
+  /// \param[in] _type Component Datatype could be ("Pose3d","Vector3d","double")
+  /// \param[in] _attribute component attribute to add the chart to it
+  /// ex: x attribute in Pose3d Component will be "x"
   /// \param [in] _chart chart ID to be registered
-  public slots: void RegisterChartToComponent(uint64_t _entity,
-                                              uint64_t _typeId,
+  public slots: void RegisterChartToComponent(Entity _entity,
+                                              ComponentTypeId _typeId,
                                               std::string _type,
                                               std::string _attribute,
                                               int _chart);
 
   /// \brief Remove a chart from a specefic component attribute
-  /// \param [in] _entity entity id in the simulation
-  /// \param [in] _typeId type identifier unique to each component type
-  /// \param [in] _attribute component attribute to remove the chart from it
-  /// ex: x attribute in Pose3d Component
-  /// \param [in] _chart chart ID to be unregistered
-  public slots: void UnRegisterChartToComponent(uint64_t _entity,
-                                                uint64_t _typeId,
+  /// \param[in] _entity entity id in the simulation
+  /// \param[in] _typeId type identifier unique to each component type
+  /// \param[in] _attribute component attribute to remove the chart from it
+  /// ex: x attribute in Pose3d Component will be "x"
+  /// \param[in] _chart chart ID to be unregistered
+  public slots: void UnRegisterChartToComponent(Entity _entity,
+                                                ComponentTypeId _typeId,
                                                 std::string _attribute,
                                                 int _chart);
 
