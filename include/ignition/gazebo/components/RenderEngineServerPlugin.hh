@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_RENDERENGINEPLUGIN_HH_
-#define IGNITION_GAZEBO_COMPONENTS_RENDERENGINEPLUGIN_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_RENDERENGINESERVERPLUGIN_HH_
+#define IGNITION_GAZEBO_COMPONENTS_RENDERENGINESERVERPLUGIN_HH_
 
 #include <string>
 #include <ignition/gazebo/components/Factory.hh>
@@ -31,11 +31,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Holds the render engine shared library.
-  using RenderEnginePlugin = Component<std::string,
-      class RenderEnginePluginTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.RenderEnginePlugin",
-      RenderEnginePlugin)
+  /// \brief Holds the render engine server shared library.
+  using RenderEngineServerPlugin = Component<std::string,
+      class RenderEngineServerPluginTag, serializers::StringSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.RenderEngineServerPlugin",
+      RenderEngineServerPlugin)
 }
 }
 }

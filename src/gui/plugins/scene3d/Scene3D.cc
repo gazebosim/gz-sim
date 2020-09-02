@@ -54,7 +54,7 @@
 #include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/RenderEnginePlugin.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -1368,12 +1368,6 @@ void IgnRenderer::Initialize()
     return;
 
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
-  // TODO set render engine from component here
-  //auto worldComp = _ecm.Component<components::RenderEnginePlugin>(_entity);
-  //auto engineComp = _ecm.Component<components::RenderEnginePlugin>(_entity);
-
-  ignwarn << "Initializing render util " << std::endl;
-  //this->dataPtr->renderUtil.SetEngineName();
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
@@ -2189,23 +2183,23 @@ void Scene3D::Update(const UpdateInfo &_info,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
-
           return true;
         });
 
     auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     renderWindow->SetWorldName(this->dataPtr->worldName);
-    auto worldEntity = _ecm.EntityByComponents(components::Name(this->dataPtr->worldName), components::World());
-    auto renderEngineComp = _ecm.Component<components::RenderEnginePlugin>(worldEntity);
-    if (renderEngineComp && !renderEngineComp->Data().empty())
+    auto worldEntity =
+      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
+          components::World());
+    auto renderEngineGuiComp = _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
     {
-      this->dataPtr->renderUtil->SetEngineName(renderEngineComp->Data());
+      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
     }
     else
     {
       ignwarn << "Render engine not found" << std::endl;
     }
-    //this->dataPtr->renderUtil.SetEngineName();
   }
 
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);

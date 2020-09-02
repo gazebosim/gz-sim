@@ -222,7 +222,8 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
-            renderEngine(_cfg->renderEngine),
+            renderEngineServer(_cfg->renderEngineServer),
+            renderEngineGui(_cfg->renderEngineGui),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -266,9 +267,13 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief File containing physics engine plugin. If empty, DART will be used.
   public: std::string physicsEngine = "";
 
-  /// \brief File containing render engine plugin. If empty, OGRE2
+  /// \brief File containing render engine server plugin. If empty, OGRE2
   /// will be used.
-  public: std::string renderEngine = "";
+  public: std::string renderEngineServer = "";
+
+  /// \brief File containing render engine gui plugin. If empty, OGRE2
+  /// will be used.
+  public: std::string renderEngineGui = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -504,9 +509,15 @@ const std::string &ServerConfig::PhysicsEngine() const
 }
 
 /////////////////////////////////////////////////
-const std::string &ServerConfig::RenderEngine() const
+const std::string &ServerConfig::RenderEngineServer() const
 {
-  return this->dataPtr->renderEngine;
+  return this->dataPtr->renderEngineServer;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineGui() const
+{
+  return this->dataPtr->renderEngineGui;
 }
 
 /////////////////////////////////////////////////
@@ -516,9 +527,15 @@ void ServerConfig::SetPhysicsEngine(const std::string &_physicsEngine)
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetRenderEngine(const std::string &_renderEngine)
+void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
 {
-  this->dataPtr->renderEngine = _renderEngine;
+  this->dataPtr->renderEngineServer = _renderEngineServer;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineGui(const std::string &_renderEngineGui)
+{
+  this->dataPtr->renderEngineGui = _renderEngineGui;
 }
 
 /////////////////////////////////////////////////

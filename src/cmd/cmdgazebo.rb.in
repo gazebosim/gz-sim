@@ -33,11 +33,11 @@ LIBRARY_NAME = '@library_location@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 
 COMMON_OPTIONS =
-               "  -h [--help]                Print this help message.\n"\
+               "  -h [--help]                  Print this help message.\n"\
                "                                                    \n"        +
-               "  --force-version <VERSION>  Use a specific library version.\n"\
+               "  --force-version <VERSION>    Use a specific library version.\n"\
                "                                                    \n"        +
-               '  --versions                 Show the available versions.'
+               '  --versions                   Show the available versions.'
 
 COMMANDS = { 'gazebo' =>
   "Run and manage Gazebo simulations.                                       \n"\
@@ -46,76 +46,79 @@ COMMANDS = { 'gazebo' =>
   "                                                                         \n"\
   "                                                                         \n"\
   "Available Options:                                                       \n"\
-  "  -g                          Run only the GUI.                          \n"\
+  "  -g                           Run only the GUI.                          \n"\
   "\n"\
-  "  --iterations [arg]          Number of iterations to execute.           \n"\
+  "  --iterations [arg]           Number of iterations to execute.           \n"\
   "\n"\
-  "  --levels                    Use the level system. The default is false,\n"\
-  "                              which loads all models. It's always true   \n"\
-  "                              with --network-role.                       \n"\
+  "  --levels                     Use the level system. The default is false,\n"\
+  "                               which loads all models. It's always true   \n"\
+  "                               with --network-role.                       \n"\
   "\n"\
-  "  --network-role [arg]        Participant role used in a distributed     \n"\
-  "                              simulation environment. Role is one of     \n"\
-  "                              [primary, secondary]. It implies --levels. \n"\
+  "  --network-role [arg]         Participant role used in a distributed     \n"\
+  "                               simulation environment. Role is one of     \n"\
+  "                               [primary, secondary]. It implies --levels. \n"\
   "\n"\
-  "  --network-secondaries [arg] Number of secondary participants expected  \n"\
-  "                              to join a distributed simulation           \n"\
-  "                              environment. (Primary only).               \n"\
+  "  --network-secondaries [arg]  Number of secondary participants expected  \n"\
+  "                               to join a distributed simulation           \n"\
+  "                               environment. (Primary only).               \n"\
   "\n"\
-  "  --record                    Use logging system to record states and    \n"\
-  "                              console messages to the default location,  \n"\
-  "                              in ~/.ignition/gazebo/log.                 \n"\
+  "  --record                     Use logging system to record states and    \n"\
+  "                               console messages to the default location,  \n"\
+  "                               in ~/.ignition/gazebo/log.                 \n"\
   "\n"\
-  "  --record-path [arg]         Implicitly invokes --record, and specifies \n"\
-  "                              custom path to put recorded files. Argument\n"\
-  "                              is path to record states and console       \n"\
-  "                              messages. Specifying this argument will    \n"\
-  "                              enable console logging to a console.log    \n"\
-  "                              file in the specified path.                \n"\
+  "  --record-path [arg]          Implicitly invokes --record, and specifies \n"\
+  "                               custom path to put recorded files. Argument\n"\
+  "                               is path to record states and console       \n"\
+  "                               messages. Specifying this argument will    \n"\
+  "                               enable console logging to a console.log    \n"\
+  "                               file in the specified path.                \n"\
   "\n"\
-  "  --record-resources          Implicitly invokes --record, and records   \n"\
-  "                              meshes and material files, in addition to  \n"\
-  "                              states and console messages.               \n"\
+  "  --record-resources           Implicitly invokes --record, and records   \n"\
+  "                               meshes and material files, in addition to  \n"\
+  "                               states and console messages.               \n"\
   "\n"\
-  "  --log-overwrite             When recording, overwrite existing files.  \n"\
-  "                              Only valid if recording is enabled.        \n"\
+  "  --log-overwrite              When recording, overwrite existing files.  \n"\
+  "                               Only valid if recording is enabled.        \n"\
   "\n"\
-  "  --log-compress              When recording, compress final log files.  \n"\
-  "                              Only valid if recording is enabled.        \n"\
+  "  --log-compress               When recording, compress final log files.  \n"\
+  "                               Only valid if recording is enabled.        \n"\
   "\n"\
-  "  --playback [arg]            Use logging system to play back states.    \n"\
-  "                              Argument is path to recorded states.       \n"\
+  "  --playback [arg]             Use logging system to play back states.    \n"\
+  "                               Argument is path to recorded states.       \n"\
   "\n"\
-  "  -r                          Run simulation on start.                   \n"\
+  "  -r                           Run simulation on start.                   \n"\
   "\n"\
-  "  -s                          Run only the server (headless mode). This  \n"\
-  "                              overrides -g, if it is also present.       \n"\
+  "  -s                           Run only the server (headless mode). This  \n"\
+  "                               overrides -g, if it is also present.       \n"\
   "\n"\
-  "  -v [ --verbose ] [arg]      Adjust the level of console output (0~4).  \n"\
-  "                              The default verbosity is 1, use -v without \n"\
-  "                              arguments for level 3.                     \n"\
+  "  -v [ --verbose ] [arg]       Adjust the level of console output (0~4).  \n"\
+  "                               The default verbosity is 1, use -v without \n"\
+  "                               arguments for level 3.                     \n"\
   "\n"\
-  "  --gui-config [arg]          Ignition GUI configuration file to load.   \n"\
-  "                              If no config is given, the configuration in\n"\
-  "                              the SDF file is used. And if that's not    \n"\
-  "                              provided, the default installed config is  \n"\
-  "                              used.                                      \n"\
+  "  --gui-config [arg]           Ignition GUI configuration file to load.   \n"\
+  "                               If no config is given, the configuration in\n"\
+  "                               the SDF file is used. And if that's not    \n"\
+  "                               provided, the default installed config is  \n"\
+  "                               used.                                      \n"\
   "\n"\
-  "  --physics-engine [arg]      Ignition Physics engine plugin to load.    \n"\
-  "                              Gazebo will use DART by default.           \n"\
-  "                              (ignition-physics-dartsim-plugin)          \n"\
-  "                              Make sure custom plugins are in            \n"\
-  "                              IGN_GAZEBO_PHYSICS_ENGINE_PATH.            \n"\
+  "  --physics-engine [arg]       Ignition Physics engine plugin to load.    \n"\
+  "                               Gazebo will use DART by default.           \n"\
+  "                               (ignition-physics-dartsim-plugin)          \n"\
+  "                               Make sure custom plugins are in            \n"\
+  "                               IGN_GAZEBO_PHYSICS_ENGINE_PATH.            \n"\
   "\n"\
-  "  --render-engine [arg]       Ignition Rendering engine plugin to load.  \n"\
-  "                              Gazebo will use OGRE by default.           \n"\
-  "                              (TODO enter name here)                     \n"\
-  "                              Make sure custom plugins are in            \n"\
-  "                              IGN_GAZEBO_RENDERING_ENGINE_PATH.            \n"\
+  "  --render-engine [arg]        Ignition Rendering engine plugin to load.  \n"\
+  "                               Gazebo will use OGRE2 by default.          \n"\
   "\n"\
-  "  --version                   Print Gazebo version information.          \n"\
+  "  --render-engine-client [arg] Ignition Rendering engine plugin to load.  \n"\
+  "                               Gazebo will use OGRE2 by default.          \n"\
   "\n"\
-  "  -z [arg]                    Update rate in Hertz.                      \n"\
+  "  --render-engine-server [arg] Ignition Rendering engine plugin to load.  \n"\
+  "                               Gazebo will use OGRE2 by default.          \n"\
+  "\n"\
+  "  --version                    Print Gazebo version information.          \n"\
+  "\n"\
+  "  -z [arg]                     Update rate in Hertz.                      \n"\
   "\n"+
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                  \n"\
@@ -188,7 +191,8 @@ class Cmd
       'verbose' => '1',
       'gui_config' => '',
       'physics_engine' => '',
-      'render_engine' => ''
+      'render_engine_gui' => '',
+      'render_engine_server' => ''
     }
 
     usage = COMMANDS[args[0]]
@@ -252,8 +256,15 @@ class Cmd
       opts.on('--physics-engine [arg]', String) do |e|
         options['physics_engine'] = e
       end
+      opts.on('--render-engine-gui [arg]', String) do |g|
+        options['render_engine_gui'] = g
+      end
+      opts.on('--render-engine-server [arg]', String) do |k|
+        options['render_engine_server'] = k
+      end
       opts.on('--render-engine [arg]', String) do |f|
-        options['render_engine'] = f
+        options['render_engine_gui'] = f
+        options['render_engine_server'] = f
       end
       opts.on('--version') do
         options['version'] = '1'
@@ -366,7 +377,7 @@ class Cmd
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
                                int, int, int, const char *, const char *,
-                               const char *, const char *)'
+                               const char *, const char *, const char *)'
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
@@ -385,7 +396,8 @@ class Cmd
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
-            options['render_engine'], options['file'])
+            options['render_engine_server'], options['render_engine_gui'],
+            options['file'])
         end
 
         guiPid = Process.fork do
@@ -419,7 +431,8 @@ class Cmd
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
-            options['render_engine'], options['file'])
+            options['render_engine_server'], options['render_engine_gui'],
+            options['file'])
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'

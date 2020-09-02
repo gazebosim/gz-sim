@@ -56,7 +56,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
-    const char *_renderEngine, const char *_file)
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -261,9 +262,14 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
-  if (_renderEngine != nullptr && std::strlen(_renderEngine) > 0)
+  if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
-    serverConfig.SetRenderEngine(_renderEngine);
+    serverConfig.SetRenderEngineServer(_renderEngineServer);
+  }
+
+  if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
+  {
+    serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
   // Create the Gazebo server

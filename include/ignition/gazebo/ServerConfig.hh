@@ -315,11 +315,20 @@ namespace ignition
 
       /// \brief Render engine plugin library to load.
       /// \return File containing render engine library.
-      public: const std::string &RenderEngine() const;
+      public: const std::string &RenderEngineServer() const;
 
-      /// \brief Set the render engine plugin library.
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineGui() const;
+
+      /// \brief Set the render engine server plugin library.
       /// \param[in] _renderEngine File containing render engine library.
-      public: void SetRenderEngine(const std::string &_renderEngine);
+      public: void SetRenderEngineServer(
+                  const std::string &_renderEngineServer);
+
+      /// \brief Set the render engine gui plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineGui(const std::string &_renderEngineGui);
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.

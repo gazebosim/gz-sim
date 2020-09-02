@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -182,6 +183,7 @@ void SensorsPrivate::WaitForInit()
       // Only initialize if there are rendering sensors
       igndbg << "Initializing render context" << std::endl;
       //TODO get rendering engine component and set here
+
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->initialized = true;
@@ -371,6 +373,13 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       auto atmosphereSdf = atmosphere->Data();
       this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
+    }
+
+    // Set render engine if specified from command line
+    auto renderEngineServerComp = _ecm.Component<components::RenderEngineServerPlugin>(worldEntity);
+    if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
+    {
+      this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
     }
   }
 

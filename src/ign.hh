@@ -56,8 +56,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
     int _logCompress, const char *_playback,
-    const char *_physicsEngine, const char *_renderEngine,
-    const char *_file);
+    const char *_physicsEngine, const char *_renderEngineServer,
+    const char *_renderEngineGui, const char *_file);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
