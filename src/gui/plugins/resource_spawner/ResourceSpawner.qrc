@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="ResourceSpawner/">
+  <file>CloudDownload.png</file>
+  <file>DownloadToUse.png</file>
+  <file>folder_closed.png</file>
+  <file>folder_open.png</file>
+  <file>NoThumbnail.png</file>
+  <file>ResourceSpawner.qml</file>
+</qresource>
+</RCC>
