@@ -288,6 +288,18 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
 }
 
 /////////////////////////////////////////////////
+bool Server::RunOnce(const bool _paused)
+{
+  if (_paused)
+  {
+    for (auto &runner : this->dataPtr->simRunners)
+      runner->SetNextStepAsBlockingPaused(true);
+  }
+
+  return this->Run(true, 1, _paused);
+}
+
+/////////////////////////////////////////////////
 void Server::SetUpdatePeriod(
     const std::chrono::steady_clock::duration &_updatePeriod,
     const unsigned int _worldIndex)
@@ -423,4 +435,3 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 
   return false;
 }
-
