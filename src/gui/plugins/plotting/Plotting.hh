@@ -141,6 +141,11 @@ class Plotting : public ignition::gazebo::GuiSystem
                                                 std::string _attribute,
                                                 int _chart);
 
+  /// \brief Get Component Name based on its type Id
+  /// \param[in] _typeId type Id of the component
+  /// \return Component name
+  public slots: std::string ComponentName(const uint64_t &_typeId);
+
   /// \brief dataPtr holds Abstraction data of PlottingPrivate
   private: std::unique_ptr<PlottingPrivate> dataPtr;
 };
