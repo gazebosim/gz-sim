@@ -7,11 +7,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-imu-system.so"
+      filename="ignition-gazebo-imu-system"
       name="ignition::gazebo::systems::Imu">
     </plugin>
     <light type="directional" name="sun">
@@ -257,7 +257,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-pose-publisher-system.so"
+        filename="ignition-gazebo-pose-publisher-system"
         name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>true</publish_sensor_pose>
@@ -472,7 +472,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-pose-publisher-system.so"
+        filename="ignition-gazebo-pose-publisher-system"
         name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>true</publish_sensor_pose>
@@ -487,7 +487,7 @@
     <model name="test_update_freq">
       <link name="link1"/>
       <plugin
-         filename="libignition-gazebo-pose-publisher-system.so"
+         filename="ignition-gazebo-pose-publisher-system"
          name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>false</publish_sensor_pose>
@@ -501,7 +501,7 @@
     <model name="test_static_pose_update_freq">
       <link name="link1"/>
       <plugin
-         filename="libignition-gazebo-pose-publisher-system.so"
+         filename="ignition-gazebo-pose-publisher-system"
          name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>false</publish_sensor_pose>

@@ -19,83 +19,17 @@
 <sdf version="1.6">
   <world name="lift_drag">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-    <gui fullscreen="0">
-
-      <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-
-        <engine>ogre2</engine>
-        <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-      </plugin>
-
-      <!-- World control -->
-      <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
-          <title>World control</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="height">72</property>
-          <property type="double" key="width">121</property>
-          <property type="double" key="z">1</property>
-
-          <property type="string" key="state">floating</property>
-          <anchors target="3D View">
-            <line own="left" target="left"/>
-            <line own="bottom" target="bottom"/>
-          </anchors>
-        </ignition-gui>
-
-        <play_pause>true</play_pause>
-        <step>true</step>
-        <start_paused>true</start_paused>
-        <service>/world/lift_drag/control</service>
-        <stats_topic>/world/lift_drag/stats</stats_topic>
-
-      </plugin>
-
-      <!-- World statistics -->
-      <plugin filename="WorldStats" name="World stats">
-        <ignition-gui>
-          <title>World stats</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="height">110</property>
-          <property type="double" key="width">290</property>
-          <property type="double" key="z">1</property>
-
-          <property type="string" key="state">floating</property>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="bottom" target="bottom"/>
-          </anchors>
-        </ignition-gui>
-
-        <sim_time>true</sim_time>
-        <real_time>true</real_time>
-        <real_time_factor>true</real_time_factor>
-        <iterations>true</iterations>
-        <topic>/world/lift_drag/stats</topic>
-      </plugin>
-    </gui>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -316,11 +250,11 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-joint-state-publisher-system.so"
+        filename="ignition-gazebo-joint-state-publisher-system"
         name="ignition::gazebo::systems::JointStatePublisher"></plugin>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>0.1</cla>
@@ -334,7 +268,7 @@
         <link_name>blade_1</link_name>
       </plugin>
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>0.1</cla>
@@ -348,11 +282,11 @@
         <link_name>blade_2</link_name>
       </plugin>
       <plugin
-        filename="libignition-gazebo-apply-joint-force-system.so"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="ignition::gazebo::systems::ApplyJointForce">
         <joint_name>rod_1_joint</joint_name>
       </plugin>
-      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
