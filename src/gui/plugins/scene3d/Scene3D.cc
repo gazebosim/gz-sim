@@ -54,6 +54,7 @@
 #include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -2207,6 +2208,18 @@ void Scene3D::Update(const UpdateInfo &_info,
 
     auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     renderWindow->SetWorldName(this->dataPtr->worldName);
+    auto worldEntity =
+      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
+        components::World());
+    auto renderEngineGuiComp = _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+    {
+      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
+    }
+    else
+    {
+      ignwarn << "Render engine not found" << std::endl;
+    }
   }
 
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
