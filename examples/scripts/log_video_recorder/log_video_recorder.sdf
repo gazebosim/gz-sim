@@ -10,15 +10,15 @@
 -->
 <sdf version='1.6'>
   <world name='default'>
-    <plugin filename='libignition-gazebo-scene-broadcaster-system.so'
+    <plugin filename='ignition-gazebo-scene-broadcaster-system'
             name='ignition::gazebo::systems::SceneBroadcaster'>
     </plugin>
     <plugin
-      filename='libignition-gazebo-log-system.so'
+      filename='ignition-gazebo-log-system'
       name='ignition::gazebo::systems::LogPlayback'>
       <path>tmp_record</path>
     </plugin>
-    <plugin filename='libignition-gazebo-log-video-recorder-system.so'
+    <plugin filename='ignition-gazebo-log-video-recorder-system'
             name='ignition::gazebo::systems::LogVideoRecorder'>
       <region>
         <min>-5 -5 0.001</min>

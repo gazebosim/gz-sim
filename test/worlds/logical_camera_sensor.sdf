@@ -7,11 +7,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-logical-camera-system.so"
+      filename="ignition-gazebo-logical-camera-system"
       name="ignition::gazebo::systems::LogicalCamera">
       <render_engine>ogre2</render_engine>
     </plugin>
