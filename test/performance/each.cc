@@ -47,7 +47,7 @@ void warmstart()
 
 TEST(EntityComponentManagerPerfrormance, Each)
 {
-  int eachIterations = 1000;
+  int eachIterations = 100;
   int maxEntityCount = 1000;
   int step = maxEntityCount/10;
 
@@ -111,7 +111,7 @@ TEST(EntityComponentManagerPerfrormance, Each)
       watch.Stop();
       auto cachelessDuration = watch.ElapsedRunTime();
 
-      // Make sure the entity count matches between caches and not cached
+      // Make sure the entity count matches between cached and not cached
       EXPECT_EQ(cachedMatchedEntityCount,
           matchingEntityCount * eachIterations);
       EXPECT_EQ(cachelessMatchedEntityCount,
