@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="placeholder">
-    <plugin name="joy_to_twist" filename="libJoyToTwistPlugin.so">
+    <plugin name="joy_to_twist" filename="JoyToTwistPlugin">
 
       <!-- Topic to subscribe to get joy messages -->
       <joy_topic>/joy</joy_topic>

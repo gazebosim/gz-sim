@@ -90,16 +90,16 @@ TEST_F(BreadcrumbsTest, Remaining)
       &remainingCb);
   EXPECT_EQ(0, kRemaining);
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
+  this->server->Run(true, 10, false);
   EXPECT_EQ(2, kRemaining);
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
+  this->server->Run(true, 10, false);
   EXPECT_EQ(1, kRemaining);
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
+  this->server->Run(true, 10, false);
   EXPECT_EQ(0, kRemaining);
   deployB1.Publish(msgs::Empty());
-  this->server->Run(true, 1, false);
+  this->server->Run(true, 10, false);
   EXPECT_EQ(0, kRemaining);
 }
 
