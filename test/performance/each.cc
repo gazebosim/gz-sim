@@ -47,7 +47,7 @@ void warmstart()
 
 TEST(EntityComponentManagerPerfrormance, Each)
 {
-  int eachIterations = 100;
+  int eachIterations = 1000;
   int maxEntityCount = 1000;
   int step = maxEntityCount/10;
 
