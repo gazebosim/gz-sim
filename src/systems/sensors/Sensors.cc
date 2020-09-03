@@ -340,7 +340,8 @@ void Sensors::Configure(const Entity &/*_id*/,
     }
 
     // Set render engine if specified from command line
-    auto renderEngineServerComp = _ecm.Component<components::RenderEngineServerPlugin>(worldEntity);
+    auto renderEngineServerComp =
+      _ecm.Component<components::RenderEngineServerPlugin>(worldEntity);
     if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());

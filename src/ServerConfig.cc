@@ -225,7 +225,7 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
-	          renderEngineServer(_cfg->renderEngineServer),
+            renderEngineServer(_cfg->renderEngineServer),
             renderEngineGui(_cfg->renderEngineGui),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),

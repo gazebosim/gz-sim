@@ -2211,7 +2211,8 @@ void Scene3D::Update(const UpdateInfo &_info,
     auto worldEntity =
       _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
         components::World());
-    auto renderEngineGuiComp = _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+    auto renderEngineGuiComp =
+      _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
     if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
     {
       this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
