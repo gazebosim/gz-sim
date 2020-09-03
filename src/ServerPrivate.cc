@@ -42,7 +42,7 @@ struct LoggingPlugin
   public: static std::string &LoggingPluginFileName()
   {
     static std::string recordPluginFileName =
-      std::string("libignition-gazebo") +
+      std::string("ignition-gazebo") +
       IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
     return recordPluginFileName;
   }
