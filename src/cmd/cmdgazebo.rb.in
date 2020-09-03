@@ -77,18 +77,19 @@ COMMANDS = { 'gazebo' =>
   "                              meshes and material files, in addition to  \n"\
   "                              states and console messages.               \n"\
   "\n"\
-  "  --record-topic [arg]        Specify the name of a topic to record.     \n"\
-  "                              Implicitly invokes --record.               \n"\
+  "  --record-topic [arg]        Specify the name of an additional topic to \n"\
+  "                              record. Implicitly invokes --record.       \n"\
   "                              Zero or more topics can be specified by    \n"\
   "                              using multiple --record-topic options.     \n"\
   "                              Regular expressions can be used, which     \n"\
-  "                              likely requires quotes. If no topics are   \n"\
-  "                              specified, then a default set of topics are\n"\
-  "                              used. Enable debug console output with     \n"\
-  "                              the -v 4 option and look for               \n"\
-  "                              'Recording default topic' in order to      \n"\
-  "                              determine the default set of topics.       \n"\
-  "                              Use examples:                              \n"\
+  "                              likely requires quotes. A default set of   \n"\
+  "                              topics are also recorded, which support    \n"\
+  "                              simulation state playback. Enable debug    \n"\
+  "                              console output with the -v 4 option        \n"\
+  "                              and look for 'Recording default topic' in  \n"\
+  "                              order to determine the default set of      \n"\
+  "                              topics.                                    \n"\
+  "                              Examples:                                  \n"\
   "                                1. Record all topics.                    \n"\
   "                                    --record-topic \".*\"                \n"\
   "                                2. Record only the /stats topic.         \n"\

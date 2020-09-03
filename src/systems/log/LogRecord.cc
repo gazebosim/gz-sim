@@ -308,6 +308,17 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   // Use ign-transport directly
   sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
 
+  // Add default topics if no topics were specified.
+  std::string dynPoseTopic = "/world/" + this->worldName +
+    "/dynamic_pose/info";
+
+  igndbg << "Recording default topic[" << dynPoseTopic << "].\n";
+  igndbg << "Recording default topic[" << sdfTopic << "].\n";
+  igndbg << "Recording default topic[" << stateTopic << "].\n";
+  this->recorder.AddTopic(dynPoseTopic);
+  this->recorder.AddTopic(sdfTopic);
+  this->recorder.AddTopic(stateTopic);
+
   // Get the topics to record, if any.
   if (this->sdf->HasElement("record_topic"))
   {
@@ -331,19 +342,6 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
       }
       recordTopicElem = recordTopicElem->GetNextElement("record_topic");
     }
-  }
-  // Add default topics if no topics were specified.
-  else
-  {
-    std::string dynPoseTopic = "/world/" + this->worldName +
-      "/dynamic_pose/info";
-
-    igndbg << "Recording default topic[" << dynPoseTopic << "].\n";
-    igndbg << "Recording default topic[" << sdfTopic << "].\n";
-    igndbg << "Recording default topic[" << stateTopic << "].\n";
-    this->recorder.AddTopic(dynPoseTopic);
-    this->recorder.AddTopic(sdfTopic);
-    this->recorder.AddTopic(stateTopic);
   }
 
   // Timestamp messages with sim time and republish that time on

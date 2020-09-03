@@ -1795,8 +1795,8 @@ TEST_F(LogSystemTest, LogTopics)
   transport::log::Playback player(statePath);
   const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
 
-  // There should be only 1 topic
-  EXPECT_EQ(1, addTopicResult);
+  // There should be 4 topics, with the clock topic.
+  EXPECT_EQ(4, addTopicResult);
 
   int clockMsgCount = 0;
   std::function<void(const msgs::Clock &)> clockCb =
