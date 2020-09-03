@@ -138,13 +138,14 @@
     </include>
 
     <%
-      # number of population
-      total = 10
-      for i in (0..total-1)
-        for j in (1..total)
+      # population = column * row
+      column = 100
+      for j in (0..column-1)
+        row = 100
+        for i in (0..row-1)
     %>
 
-    <actor name="actor_<%= 10*i+j %>">
+    <actor name="actor_<%= j*column + i %>">
       <skin>
         <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
@@ -157,14 +158,14 @@
       <script>
         <loop>true</loop>
         <auto_start>true</auto_start>
-        <trajectory id="<%= 10*i+j %>" type="talk_b">
+        <trajectory id="<%= j*column + i %>" type="talk_b">
           <waypoint>
             <time>0</time>
-            <pose><%= -5 + 2*j %> <%= 5 + -2*i %> 1.0 0 0 0</pose>
+            <pose><%= -(row/2) + i %> <%= j %> 1.0 0 0 0</pose>
           </waypoint>
           <waypoint>
             <time>30</time>
-            <pose><%= -5 + 2*j %> <%= 5 + -2*i %> 1.0 0 0 0</pose>
+            <pose><%= -(row/2) + i %> <%= j %> 1.0 0 0 0</pose>
           </waypoint>
         </trajectory>
       </script>
