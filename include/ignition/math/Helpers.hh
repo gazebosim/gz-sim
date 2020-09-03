@@ -17,16 +17,18 @@
 #ifndef IGNITION_MATH_FUNCTIONS_HH_
 #define IGNITION_MATH_FUNCTIONS_HH_
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <algorithm>
-#include <limits>
-#include <string>
+#include <cstdint>
+#include <iomanip>
 #include <iostream>
-#include <vector>
+#include <limits>
+#include <sstream>
+#include <string>
 #include <tuple>
 #include <utility>
-#include <cstdint>
+#include <vector>
 
 #include <ignition/math/config.hh>
 #include "ignition/math/Export.hh"
@@ -727,8 +729,46 @@ namespace ignition
       }
     }
 
+    /// \brief Convert a std::chrono::steady_clock::time_point to a seconds and
+    /// nanoseconds pair.
+    // and on macOS, microsecond precision.
+    /// \param[in] _time The time point to convert.
+    /// \return A pair where the first element is the number of seconds and
+    /// the second is the number of nanoseconds.
+    inline std::pair<int64_t, int64_t> timePointToSecNsec(
+        const std::chrono::steady_clock::time_point &_time)
+    {
+      auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        _time.time_since_epoch());
+      auto now_s = std::chrono::duration_cast<std::chrono::seconds>(
+        _time.time_since_epoch());
+      int64_t seconds = now_s.count();
+      int64_t nanoseconds = std::chrono::duration_cast
+        <std::chrono::nanoseconds>(now_ns - now_s).count();
+      return {seconds, nanoseconds};
+    }
+
+    /// \brief Convert seconds and nanoseconds to
+    /// std::chrono::steady_clock::time_point.
+    // and on macOS, microsecond precision.
+    /// \param[in] _sec The seconds to convert.
+    /// \param[in] _nanosec The nanoseconds to convert.
+    /// \return A std::chrono::steady_clock::time_point based on the number of
+    /// seconds and the number of nanoseconds.
+    inline std::chrono::steady_clock::time_point secNsecToTimePoint(
+        const uint64_t &_sec, const uint64_t &_nanosec)
+    {
+      auto duration = std::chrono::seconds(_sec) + std::chrono::nanoseconds(
+        _nanosec);
+      std::chrono::steady_clock::time_point result;
+      using std::chrono::duration_cast;
+      result += duration_cast<std::chrono::steady_clock::duration>(duration);
+      return result;
+    }
+
     /// \brief Convert a std::chrono::steady_clock::duration to a seconds and
     /// nanoseconds pair.
+    // and on macOS, microsecond precision.
     /// \param[in] _dur The duration to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
@@ -738,6 +778,56 @@ namespace ignition
       auto s = std::chrono::duration_cast<std::chrono::seconds>(_dur);
       auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_dur-s);
       return {s.count(), ns.count()};
+    }
+
+    // TODO(anyone): Replace this with std::chrono::days.
+    /// This will exist in C++-20
+    typedef std::chrono::duration<uint64_t, std::ratio<86400>> days;
+
+    /// \brief break down durations
+    /// NOTE: the template arguments must be properly ordered according
+    /// to magnitude and there can be no duplicates.
+    /// This function uses the braces initializer to split all the templated
+    /// duration. The initializer will be called recursievely due the `...`
+    /// \param[in] d Duration to break down
+    /// \return A tuple based on the durations specified
+    template<class...Durations, class DurationIn>
+    std::tuple<Durations...> breakDownDurations(DurationIn d) {
+      std::tuple<Durations...> retval;
+      using discard = int[];
+      (void)discard{0, (void((
+        (std::get<Durations>(retval) =
+          std::chrono::duration_cast<Durations>(d)),
+        (d -= std::chrono::duration_cast<DurationIn>(
+          std::get<Durations>(retval))))), 0)...};
+      return retval;
+    }
+
+    /// \brief Convert a std::chrono::steady_clock::time_point to a string
+    /// \param[in] _point The std::chrono::steady_clock::time_point to convert.
+    /// \return A string formatted with the time_point
+    inline std::string timePointToString(
+      const std::chrono::steady_clock::time_point &_point)
+    {
+      auto duration = _point - secNsecToTimePoint(0, 0);
+      auto cleanDuration = breakDownDurations<days,
+                                              std::chrono::hours,
+                                              std::chrono::minutes,
+                                              std::chrono::seconds,
+                                              std::chrono::milliseconds>(
+                                                duration);
+      std::ostringstream output_string;
+      output_string << std::setw(2) << std::setfill('0')
+                    << std::get<0>(cleanDuration).count() << " "
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<1>(cleanDuration).count() << ":"
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<2>(cleanDuration).count() << ":"
+                    << std::setfill('0') << std::setw(6)
+                    << std::fixed << std::setprecision(3)
+                    << std::get<3>(cleanDuration).count() +
+                       std::get<4>(cleanDuration).count()/1000.0;
+      return output_string.str();
     }
 
     // Degrade precision on Windows, which cannot handle 'long double'

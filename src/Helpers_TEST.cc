@@ -519,6 +519,74 @@ TEST(HelpersTest, Pair)
 }
 
 /////////////////////////////////////////////////
+TEST(HelpersTest, timePointToSecNsec)
+{
+  std::pair<int64_t, int64_t> parts = math::timePointToSecNsec(
+      math::secNsecToTimePoint(0, 0));
+  EXPECT_EQ(parts.first, 0);
+  EXPECT_EQ(parts.second, 0);
+
+  std::chrono::steady_clock::time_point point;
+  point += std::chrono::nanoseconds(1000);
+  parts = math::timePointToSecNsec(point);
+
+  EXPECT_EQ(parts.first, 0);
+  EXPECT_EQ(parts.second, 1000);
+
+  point = math::secNsecToTimePoint(0, 0);
+  point += std::chrono::seconds(60);
+  point += std::chrono::nanoseconds(57989);
+  parts = math::timePointToSecNsec(point);
+
+  EXPECT_EQ(parts.first, 60);
+  EXPECT_EQ(parts.second, 57989);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, secNsecToTimePoint)
+{
+  using std::chrono::duration_cast;
+  using std::chrono::nanoseconds;
+  using std::chrono::steady_clock;
+
+  std::chrono::steady_clock::time_point point =
+    math::secNsecToTimePoint(0, 0);
+  point += std::chrono::hours(24);
+
+  std::chrono::steady_clock::time_point s =
+    math::secNsecToTimePoint(24*60*60, 0);
+  EXPECT_EQ(s, point);
+
+  point = math::secNsecToTimePoint(0, 0);
+  point += std::chrono::nanoseconds(1000);
+  s = math::secNsecToTimePoint(0, 1000);
+  EXPECT_EQ(s, point);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, timePointToString)
+{
+  std::chrono::steady_clock::time_point time_clock =
+    math::secNsecToTimePoint(0, 0);
+  std::string s = math::timePointToString(time_clock);
+
+  EXPECT_STREQ(s.c_str(), std::string("00 00:00:00.000").c_str());
+
+  std::chrono::steady_clock::time_point point;
+  point += std::chrono::hours(24);
+
+  s = math::timePointToString(point);
+  EXPECT_STREQ(s.c_str(), std::string("01 00:00:00.000").c_str());
+
+  point = math::secNsecToTimePoint(0, 0);
+  point += std::chrono::minutes(1);
+  point += std::chrono::seconds(23);
+  point += std::chrono::milliseconds(125);
+  s = math::timePointToString(point);
+  EXPECT_STREQ(s.c_str(), std::string("00 00:01:23.125").c_str());
+}
+
+/////////////////////////////////////////////////
 TEST(HelpersTest, durationToSecNsec)
 {
   std::pair<int64_t, int64_t> parts;
