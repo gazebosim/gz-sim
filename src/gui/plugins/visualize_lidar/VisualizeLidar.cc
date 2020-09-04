@@ -197,7 +197,6 @@ void VisualizeLidar::LoadLidar()
 
     ignition::gui::App()->findChild<
         ignition::gui::MainWindow *>()->removeEventFilter(this);
-    return;
   }
   else
   {
