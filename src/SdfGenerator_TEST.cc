@@ -39,6 +39,8 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/UniqueTestDirectoryEnv.hh"
+
 #include "SdfGenerator.hh"
 
 using namespace ignition;
@@ -50,9 +52,14 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
                      const sdf::ElementPtr &_elemB)
 {
   if (_elemA->GetName() != _elemB->GetName())
+  {
     return false;
+  }
+
   if (_elemA->GetAttributeCount() != _elemB->GetAttributeCount())
+  {
     return false;
+  }
 
   // Compare attributes
   for (std::size_t i = 0; i < _elemA->GetAttributeCount(); ++i)
@@ -60,9 +67,13 @@ static bool isSubset(const sdf::ElementPtr &_elemA,
     sdf::ParamPtr attrA = _elemA->GetAttribute(i);
     sdf::ParamPtr attrB = _elemB->GetAttribute(attrA->GetKey());
     if (attrA->GetTypeName() != attrB->GetTypeName())
+    {
       return false;
+    }
     if (attrA->GetAsString() != attrB->GetAsString())
+    {
       return false;
+    }
   }
   // Compare values
   {
@@ -142,9 +153,14 @@ class ElementUpdateFixture : public ::testing::Test
   {
     ignition::common::Console::SetVerbosity(4);
 
+    fuel_tools::ClientConfig config;
+    config.SetCacheLocation(test::UniqueTestDirectoryEnv::Path());
+    this->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
+
     auto fuelCb = [&](const std::string &_uri)
     {
-      auto out = fuel_tools::fetchResource(_uri);
+      auto out =
+          fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
       if (!out.empty())
       {
         this->includeUriMap[out] = _uri;
@@ -198,6 +214,7 @@ class ElementUpdateFixture : public ::testing::Test
   public: std::unique_ptr<SdfEntityCreator> creator;
   public: msgs::SdfGeneratorConfig sdfGenConfig;
   public: sdf_generator::IncludeUriMap includeUriMap;
+  public: std::unique_ptr<fuel_tools::FuelClient> fuelClient;
 };
 
 /////////////////////////////////////////////////
@@ -526,17 +543,17 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/1";
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/1";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
       // Thes following two URIs are valid, but have a trailing '/'
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/",
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/1/",
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/",
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/1/",
       // Thes following two URIs are invalid, and will not be saved
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/"
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
       "notInt",
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack/"
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
       "notInt/",
   };
 
@@ -591,7 +608,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 {
   const std::vector<std::string> includeUris = {
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack",
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack",
       std::string("file://") + PROJECT_SOURCE_PATH +
           "/test/worlds/models/sphere"};
 
@@ -836,8 +853,6 @@ TEST_F(GenerateWorldFixture, ModelsInline)
     const std::optional<std::string> worldStr = sdf_generator::generateWorld(
         this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
     ASSERT_TRUE(worldStr.has_value());
-    // std::cout << "Generated world:" << std::endl;
-    // std::cout << worldStr << std::endl;
     sdf::Root newRoot;
     newRoot.LoadSdfString(*worldStr);
     EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
@@ -858,4 +873,14 @@ TEST_F(GenerateWorldFixture, ModelsInline)
     EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
     EXPECT_TRUE(isSubset(this->root.Element(), newRoot.Element()));
   }
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("sdf_gen_test_cache"));
+  return RUN_ALL_TESTS();
 }

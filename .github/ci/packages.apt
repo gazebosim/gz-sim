@@ -23,6 +23,7 @@ libxi-dev
 libxmu-dev
 qml-module-qt-labs-folderlistmodel
 qml-module-qt-labs-settings
+qml-module-qtqml-models2
 qml-module-qtgraphicaleffects
 qml-module-qtquick-controls
 qml-module-qtquick-controls2
