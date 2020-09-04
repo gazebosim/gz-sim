@@ -60,9 +60,6 @@ namespace ignition::gazebo
     /// \brief registered components for plotting
     /// map key: string contains EntityID + "," + ComponentID
     public: std::map<std::string, PlotComponent*> components;
-
-    /// \brief Factory to convert typeIDs to names
-    public: components::Factory *factory;
   };
 
   class PlotComponentPrivate
@@ -177,7 +174,6 @@ ComponentTypeId PlotComponent::TypeId()
 Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 {
   this->dataPtr->plottingIface = new ignition::gui::PlottingInterface();
-  this->dataPtr->factory = new components::Factory;
 
   // PlottingInterface connecting
   connect(this->dataPtr->plottingIface, SIGNAL(ComponentSubscribe
@@ -262,7 +258,7 @@ void Plotting::UnRegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
 //////////////////////////////////////////////////
 std::string Plotting::ComponentName(const uint64_t &_typeId)
 {
-  std::string name = this->dataPtr->factory->Name(_typeId);
+  std::string name = components::Factory::Instance()->Name(_typeId);
 
   // 22 is size of "ign.gazebo.components."
   if (name.size() > 22)
