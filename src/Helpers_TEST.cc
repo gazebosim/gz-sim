@@ -102,14 +102,14 @@ TEST(HelpersTest, FixNaN)
 {
   EXPECT_DOUBLE_EQ(math::fixnan(1.0 / 0.0), 0.0);
   EXPECT_DOUBLE_EQ(math::fixnan(-1.0 / 0.0), 0.0);
-  EXPECT_DOUBLE_EQ(math::fixnan(0.0 / 0.0), 0.0);
+  EXPECT_DOUBLE_EQ(math::fixnan(1.0 / 0.0), 0.0);
 
   EXPECT_DOUBLE_EQ(math::fixnan(42.0), 42.0);
   EXPECT_DOUBLE_EQ(math::fixnan(-42.0), -42.0);
 
   EXPECT_FLOAT_EQ(math::fixnan(1.0f / 0.0f), 0.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-1.0f / 0.0f), 0.0f);
-  EXPECT_FLOAT_EQ(math::fixnan(0.0f / 0.0f), 0.0f);
+  EXPECT_FLOAT_EQ(math::fixnan(1.0f / 0.0f), 0.0f);
 
   EXPECT_FLOAT_EQ(math::fixnan(42.0f), 42.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-42.0f), -42.0f);
@@ -516,6 +516,200 @@ TEST(HelpersTest, Pair)
     }
 #endif
   }
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, timePointToSecNsec)
+{
+  std::pair<int64_t, int64_t> parts = math::timePointToSecNsec(
+      math::secNsecToTimePoint(0, 0));
+  EXPECT_EQ(parts.first, 0);
+  EXPECT_EQ(parts.second, 0);
+
+  std::chrono::steady_clock::time_point point;
+  point += std::chrono::nanoseconds(1000);
+  parts = math::timePointToSecNsec(point);
+
+  EXPECT_EQ(parts.first, 0);
+  EXPECT_EQ(parts.second, 1000);
+
+  point = math::secNsecToTimePoint(0, 0);
+  point += std::chrono::seconds(60);
+  point += std::chrono::nanoseconds(57989);
+  parts = math::timePointToSecNsec(point);
+
+  EXPECT_EQ(parts.first, 60);
+  EXPECT_EQ(parts.second, 57989);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, secNsecToTimePoint)
+{
+  using std::chrono::duration_cast;
+  using std::chrono::nanoseconds;
+  using std::chrono::steady_clock;
+
+  std::chrono::steady_clock::time_point point =
+    math::secNsecToTimePoint(0, 0);
+  point += std::chrono::hours(24);
+
+  std::chrono::steady_clock::time_point s =
+    math::secNsecToTimePoint(24*60*60, 0);
+  EXPECT_EQ(s, point);
+
+  point = math::secNsecToTimePoint(0, 0);
+  point += std::chrono::nanoseconds(1000);
+  s = math::secNsecToTimePoint(0, 1000);
+  EXPECT_EQ(s, point);
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, timePointToString)
+{
+  std::chrono::steady_clock::time_point time_clock =
+    math::secNsecToTimePoint(0, 0);
+  std::string s = math::timePointToString(time_clock);
+
+  EXPECT_STREQ(s.c_str(), std::string("00 00:00:00.000").c_str());
+
+  std::chrono::steady_clock::time_point point;
+  point += std::chrono::hours(24);
+
+  s = math::timePointToString(point);
+  EXPECT_STREQ(s.c_str(), std::string("01 00:00:00.000").c_str());
+
+  point = math::secNsecToTimePoint(0, 0);
+  point += std::chrono::minutes(1);
+  point += std::chrono::seconds(23);
+  point += std::chrono::milliseconds(125);
+  s = math::timePointToString(point);
+  EXPECT_STREQ(s.c_str(), std::string("00 00:01:23.125").c_str());
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, stringToTimePoint)
+{
+  std::chrono::steady_clock::time_point zeroTime =
+    math::secNsecToTimePoint(0, 0);
+  std::chrono::steady_clock::time_point negTime =
+    math::secNsecToTimePoint(-1, 0);
+
+  std::string time = "0 00:00:00.000";
+  std::chrono::steady_clock::time_point resultTime =
+    math::stringToTimePoint(time);
+  std::chrono::steady_clock::time_point point = zeroTime;
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "10 0";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::hours(10 * 24);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "7";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::seconds(7);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "7:10";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::minutes(7);
+  point += std::chrono::seconds(10);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "17:10";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::minutes(17);
+  point += std::chrono::seconds(10);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "7:10.4";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::minutes(7);
+  point += std::chrono::seconds(10);
+  point += std::chrono::milliseconds(400);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "7:10.45";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::minutes(7);
+  point += std::chrono::seconds(10);
+  point += std::chrono::milliseconds(450);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "7:10.456";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::minutes(7);
+  point += std::chrono::seconds(10);
+  point += std::chrono::milliseconds(456);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "2 23:18:25.902";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::hours(2 * 24);
+  point += std::chrono::hours(23);
+  point += std::chrono::minutes(18);
+  point += std::chrono::seconds(25);
+  point += std::chrono::milliseconds(902);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = ".9";
+  resultTime = math::stringToTimePoint(time);
+  point = zeroTime;
+  point += std::chrono::milliseconds(900);
+
+  EXPECT_EQ(resultTime, point);
+
+  time = "bad time";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
+
+  time = "";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
+
+  time = "60";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
+
+  time = "60:12";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
+
+  time = "12:12.9999";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
+
+  time = "25:12:12.99";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
+
+  time = "999999999999999 5:12:12.5";
+  resultTime = math::stringToTimePoint(time);
+
+  EXPECT_EQ(resultTime, negTime);
 }
 
 /////////////////////////////////////////////////

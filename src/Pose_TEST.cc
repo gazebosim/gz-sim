@@ -140,10 +140,10 @@ TEST(PoseTest, Pose)
 /////////////////////////////////////////////////
 TEST(PoseTest, ConstPose)
 {
-  const math::Pose3d pose(0, 1, 2, 0, 0, 0);
+  const math::Pose3d pose(0, 1, 2, 1, 0, 0);
 
   EXPECT_TRUE(pose.Pos() == math::Vector3d(0, 1, 2));
-  EXPECT_TRUE(pose.Rot() == math::Quaterniond(0, 0, 0));
+  EXPECT_TRUE(pose.Rot() == math::Quaterniond(1, 0, 0));
 }
 
 /////////////////////////////////////////////////
@@ -155,47 +155,3 @@ TEST(PoseTest, OperatorStreamOut)
   EXPECT_EQ(stream.str(), "0.1 1.2 2.3 0 0.1 1");
 }
 
-/////////////////////////////////////////////////
-TEST(PoseTEst, EqualTol)
-{
-  math::Pose3d p(1, 2, 3, 4, 5, 6);
-  math::Pose3d p2(math::Vector3d(1, 2, 3),
-                  math::Quaterniond(math::Vector3d(4, 5, 6)));
-
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Pos().X() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Pos().X() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Pos().Y() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Pos().Y() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Pos().Z() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Pos().Z() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Rot().X() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Rot().X() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Rot().Y() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Rot().Y() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Rot().Z() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Rot().Z() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-
-  p2.Rot().W() += 0.1;
-  EXPECT_FALSE(p.Equal(p2, 1e-6));
-  p2.Rot().W() -= 0.1;
-  EXPECT_TRUE(p.Equal(p2, 1e-6));
-}

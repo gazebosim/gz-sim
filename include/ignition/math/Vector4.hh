@@ -17,6 +17,8 @@
 #ifndef IGNITION_MATH_VECTOR4_HH_
 #define IGNITION_MATH_VECTOR4_HH_
 
+#include <algorithm>
+
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/config.hh>
@@ -82,6 +84,17 @@ namespace ignition
                     (this->data[3]-_pt[3])*(this->data[3]-_pt[3]));
       }
 
+      /// \brief Calc distance to the given point
+      /// \param[in] _x value along x
+      /// \param[in] _y value along y
+      /// \param[in] _z value along z
+      /// \param[in] _w value along w
+      /// \return the distance
+      public: T Distance(T _x, T _y, T _z, T _w) const
+      {
+        return this->Distance(Vector4(_x, _y, _z, _w));
+      }
+
       /// \brief Returns the length (magnitude) of the vector
       /// \return The length
       public: T Length() const
@@ -99,6 +112,39 @@ namespace ignition
              + std::pow(this->data[3], 2);
       }
 
+      /// \brief Round to near whole number.
+      public: void Round()
+      {
+        this->data[0] = nearbyint(this->data[0]);
+        this->data[1] = nearbyint(this->data[1]);
+        this->data[2] = nearbyint(this->data[2]);
+        this->data[3] = nearbyint(this->data[3]);
+      }
+
+      /// \brief Get a rounded version of this vector
+      /// \return a rounded vector
+      public: Vector4 Rounded() const
+      {
+        Vector4<T> result = *this;
+        result.Round();
+        return result;
+      }
+
+      /// \brief Corrects any nan values
+      public: inline void Correct()
+      {
+        // std::isfinite works with floating point values,
+        // need to explicit cast to avoid ambiguity in vc++.
+        if (!std::isfinite(static_cast<double>(this->data[0])))
+          this->data[0] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[1])))
+          this->data[1] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[2])))
+          this->data[2] = 0;
+        if (!std::isfinite(static_cast<double>(this->data[3])))
+          this->data[3] = 0;
+      }
+
       /// \brief Normalize the vector length
       public: void Normalize()
       {
@@ -113,6 +159,52 @@ namespace ignition
         }
       }
 
+      /// \brief Return a normalized vector
+      /// \return unit length vector
+      public: Vector4 Normalized() const
+      {
+        Vector4<T> result = *this;
+        result.Normalize();
+        return result;
+      }
+
+      /// \brief Return the dot product of this vector and another vector
+      /// \param[in] _v the vector
+      /// \return the dot product
+      public: T Dot(const Vector4<T> &_v) const
+      {
+        return this->data[0] * _v[0] +
+               this->data[1] * _v[1] +
+               this->data[2] * _v[2] +
+               this->data[3] * _v[3];
+      }
+
+      /// \brief Return the absolute dot product of this vector and
+      /// another vector. This is similar to the Dot function, except the
+      /// absolute value of each component of the vector is used.
+      ///
+      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 * z2) + abs(w1 * w2)
+      ///
+      /// \param[in] _v the vector
+      /// \return The absolute dot product
+      public: T AbsDot(const Vector4<T> &_v) const
+      {
+        return std::abs(this->data[0] * _v[0]) +
+               std::abs(this->data[1] * _v[1]) +
+               std::abs(this->data[2] * _v[2]) +
+               std::abs(this->data[3] * _v[3]);
+      }
+
+      /// \brief Get the absolute value of the vector
+      /// \return a vector with positive elements
+      public: Vector4 Abs() const
+      {
+        return Vector4(std::abs(this->data[0]),
+                       std::abs(this->data[1]),
+                       std::abs(this->data[2]),
+                       std::abs(this->data[3]));
+      }
+
       /// \brief Set the contents of the vector
       /// \param[in] _x value along x axis
       /// \param[in] _y value along y axis
@@ -124,6 +216,49 @@ namespace ignition
         this->data[1] = _y;
         this->data[2] = _z;
         this->data[3] = _w;
+      }
+
+      /// \brief Set this vector's components to the maximum of itself and the
+      ///        passed in vector
+      /// \param[in] _v the maximum clamping vector
+      public: void Max(const Vector4<T> &_v)
+      {
+        this->data[0] = std::max(_v[0], this->data[0]);
+        this->data[1] = std::max(_v[1], this->data[1]);
+        this->data[2] = std::max(_v[2], this->data[2]);
+        this->data[3] = std::max(_v[3], this->data[3]);
+      }
+
+      /// \brief Set this vector's components to the minimum of itself and the
+      ///        passed in vector
+      /// \param[in] _v the minimum clamping vector
+      public: void Min(const Vector4<T> &_v)
+      {
+        this->data[0] = std::min(_v[0], this->data[0]);
+        this->data[1] = std::min(_v[1], this->data[1]);
+        this->data[2] = std::min(_v[2], this->data[2]);
+        this->data[3] = std::min(_v[3], this->data[3]);
+      }
+
+      /// \brief Get the maximum value in the vector
+      /// \return the maximum element
+      public: T Max() const
+      {
+        return *std::max_element(this->data, this->data+4);
+      }
+
+      /// \brief Get the minimum value in the vector
+      /// \return the minimum element
+      public: T Min() const
+      {
+        return *std::min_element(this->data, this->data+4);
+      }
+
+      /// \brief Return the sum of the values
+      /// \return the sum
+      public: T Sum() const
+      {
+        return this->data[0] + this->data[1] + this->data[2] + this->data[3];
       }
 
       /// \brief Assignment operator
@@ -546,6 +681,16 @@ namespace ignition
       public: inline void W(const T &_v)
       {
         this->data[3] = _v;
+      }
+
+      /// \brief Less than operator.
+      /// \param[in] _pt Vector to compare.
+      /// \return True if this vector's X(), Y(), Z() or W() value is less
+      /// than the given vector's corresponding values.
+      public: bool operator<(const Vector4<T> &_pt) const
+      {
+        return this->data[0] < _pt[0] || this->data[1] < _pt[1] ||
+               this->data[2] < _pt[2] || this->data[3] < _pt[3];
       }
 
       /// \brief Stream insertion operator

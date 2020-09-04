@@ -48,6 +48,10 @@ TEST(Vector2Test, Vector2)
   v.Set(4, 5);
   EXPECT_TRUE(v == math::Vector2d(4, 5));
 
+  // operator GetAbs
+  v.Set(-1, -2);
+  EXPECT_TRUE(v.Abs() == math::Vector2d(1, 2));
+
   // ::operator=
   v = math::Vector2d(6, 7);
   EXPECT_TRUE(v == math::Vector2d(6, 7));
@@ -157,6 +161,40 @@ TEST(Vector2Test, TestNormalized)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector2Test, Max)
+{
+  math::Vector2d vec1(0.1, 0.2);
+  math::Vector2d vec2(0.3, 0.5);
+  math::Vector2d vec3(0.4, 0.2);
+
+  EXPECT_DOUBLE_EQ(vec1.Max(), 0.2);
+  EXPECT_DOUBLE_EQ(vec3.Max(), 0.4);
+
+  vec1.Max(vec2);
+  EXPECT_EQ(vec1, math::Vector2d(0.3, 0.5));
+
+  vec1.Max(vec3);
+  EXPECT_EQ(vec1, math::Vector2d(0.4, 0.5));
+}
+
+/////////////////////////////////////////////////
+TEST(Vector2Test, Min)
+{
+  math::Vector2d vec1(0.3, 0.5);
+  math::Vector2d vec2(0.1, 0.2);
+  math::Vector2d vec3(0.05, 0.1);
+
+  EXPECT_DOUBLE_EQ(vec1.Min(), 0.3);
+  EXPECT_DOUBLE_EQ(vec3.Min(), 0.05);
+
+  vec1.Min(vec2);
+  EXPECT_EQ(vec1, math::Vector2d(0.1, 0.2));
+
+  vec1.Min(vec3);
+  EXPECT_EQ(vec1, math::Vector2d(0.05, 0.1));
+}
+
+/////////////////////////////////////////////////
 TEST(Vector2Test, NoException)
 {
   math::Vector2d v(1, 2);
@@ -187,6 +225,33 @@ TEST(Vector2Test, Dot)
   EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(0, 0)), 0.0);
   EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(1, 0)), 1.0);
   EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(0, 1)), 2.0);
+}
+
+//////////////////////////////////////////////
+TEST(Vector2Test, Correct)
+{
+  math::Vector2d vec1(0, NAN);
+  math::Vector2d vec2(INFINITY, -1);
+  math::Vector2d vec3(10, -2);
+
+  vec1.Correct();
+  vec2.Correct();
+  vec3.Correct();
+
+  EXPECT_EQ(vec1, math::Vector2d(0, 0));
+  EXPECT_EQ(vec2, math::Vector2d(0, -1));
+  EXPECT_EQ(vec3, math::Vector2d(10, -2));
+}
+
+/////////////////////////////////////////////////
+TEST(Vector2Test, AbsDot)
+{
+  math::Vector2d v(1, -2);
+
+  EXPECT_DOUBLE_EQ(v.AbsDot(math::Vector2d(3, 4)), 11.0);
+  EXPECT_DOUBLE_EQ(v.AbsDot(math::Vector2d(0, 0)), 0.0);
+  EXPECT_DOUBLE_EQ(v.AbsDot(math::Vector2d(1, 0)), 1.0);
+  EXPECT_DOUBLE_EQ(v.AbsDot(math::Vector2d(0, 1)), 2.0);
 }
 
 /////////////////////////////////////////////////

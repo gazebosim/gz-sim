@@ -43,8 +43,10 @@ TEST(Vector4dTest, Vector4d)
   math::Vector4d v(v1);
   EXPECT_EQ(v, v1);
 
+  // ::Distance
   EXPECT_TRUE(math::equal(v.Distance(
           math::Vector4d(0, 0, 0, 0)), 5.4772, 1e-3));
+  EXPECT_TRUE(math::equal(v.Distance(1, 2, 3, 4), 0.0));
 
   // ::Length()
   v.Set(1, 2, 3, 4);
@@ -53,13 +55,43 @@ TEST(Vector4dTest, Vector4d)
   // ::SquaredLength()
   EXPECT_TRUE(math::equal(v.SquaredLength(), 30.0));
 
+  // ::Rounded
+  v.Set(1.23, 2.34, 3.55, 8.49);
+  EXPECT_TRUE(v.Rounded() == math::Vector4d(1, 2, 4, 8));
+
+  // ::Round
+  v.Round();
+  EXPECT_TRUE(v == math::Vector4d(1, 2, 4, 8));
+
+  // ::Correct
+  v.Set(1, 1, std::nan("1"), 1);
+  v.Correct();
+  EXPECT_TRUE(v == math::Vector4d(1, 1, 0, 1));
+
   // ::Normalize
+  v.Set(1, 2, 3, 4);
   v.Normalize();
   EXPECT_EQ(v, math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
+
+  // ::Normalized
+  v.Set(1, 2, 3, 4);
+  EXPECT_EQ(v.Normalized(),
+            math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
 
   // ::Set
   v.Set(2, 4, 6, 8);
   EXPECT_EQ(v, math::Vector4d(2, 4, 6, 8));
+
+  // ::DotProd
+  EXPECT_TRUE(math::equal(60.0, v.Dot(math::Vector4d(1, 2, 3, 4)), 1e-2));
+
+  // ::AbsDotProd
+  v1.Set(-1, -2, -3, -4);
+  EXPECT_TRUE(math::equal(60.0, v.AbsDot(v1), 1e-2));
+
+  // ::GetAbs
+  EXPECT_TRUE(v1.Abs() == math::Vector4d(1, 2, 3, 4));
+  EXPECT_TRUE(v.Abs() == math::Vector4d(2, 4, 6, 8));
 
   // ::operator= vector4
   v = v1;
@@ -129,6 +161,10 @@ TEST(Vector4dTest, Vector4d)
   // ::operator != vector4
   EXPECT_NE(v, math::Vector4d());
 
+  // ::operator < vector4
+  v.Set(1, 2, 3, 4);
+  EXPECT_TRUE(v < math::Vector4d(4, 3, 2, 1));
+
   // ::IsFinite
   EXPECT_TRUE(v.IsFinite());
 
@@ -157,6 +193,38 @@ TEST(Vector4dTest, NoException)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector4dTest, Max)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.3, 0.2);
+  math::Vector4d vec2(0.2, 0.3, 0.4, 0.3);
+  math::Vector4d vec3(0.1, 0.2, 0.3, 0.4);
+
+  EXPECT_DOUBLE_EQ(vec1.Max(), 0.3);
+
+  vec1.Max(vec2);
+  EXPECT_EQ(vec1, math::Vector4d(0.2, 0.3, 0.4, 0.3));
+
+  vec1.Max(vec3);
+  EXPECT_EQ(vec1, math::Vector4d(0.2, 0.3, 0.4, 0.4));
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Min)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.3, 0.4);
+  math::Vector4d vec2(0.2, 0.3, 0.4, 0.3);
+  math::Vector4d vec3(0.05, 0.1, 0.2, 0.2);
+
+  EXPECT_DOUBLE_EQ(vec1.Min(), 0.1);
+
+  vec1.Min(vec2);
+  EXPECT_EQ(vec1, math::Vector4d(0.1, 0.2, 0.3, 0.3));
+
+  vec1.Min(vec3);
+  EXPECT_EQ(vec1, math::Vector4d(0.05, 0.1, 0.2, 0.2));
+}
+
+/////////////////////////////////////////////////
 // Test Equal function with specified tolerance
 TEST(Vector2Test, EqualTolerance)
 {
@@ -165,6 +233,16 @@ TEST(Vector2Test, EqualTolerance)
   EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-1));
   EXPECT_TRUE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1));
   EXPECT_TRUE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1.1));
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Sum)
+{
+  math::Vector4d vec1(1.5, 2.5, 3.5, -4.5);
+
+  EXPECT_TRUE(math::equal(math::Vector4d::Zero.Sum(), 0.0, 1e-6));
+  EXPECT_TRUE(math::equal(math::Vector4d::One.Sum(), 4.0, 1e-6));
+  EXPECT_TRUE(math::equal(vec1.Sum(), 3.0, 1e-6));
 }
 
 /////////////////////////////////////////////////

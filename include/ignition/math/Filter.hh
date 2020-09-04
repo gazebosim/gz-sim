@@ -78,7 +78,7 @@ namespace ignition
       }
 
       // Documentation Inherited.
-      public: virtual void Fc(double _fc, double _fs)
+      public: virtual void Fc(double _fc, double _fs) override
       {
         b1 = exp(-2.0 * IGN_PI * _fc / _fs);
         a0 = 1.0 - b1;
@@ -168,7 +168,7 @@ namespace ignition
       }
 
       // Documentation Inherited.
-      public: void Fc(double _fc, double _fs)
+      public: void Fc(double _fc, double _fs) override
       {
         this->Fc(_fc, _fs, 0.5);
       }
@@ -191,7 +191,7 @@ namespace ignition
 
       /// \brief Set the current filter's output.
       /// \param[in] _val New filter's output.
-      public: virtual void Set(const T &_val)
+      public: virtual void Set(const T &_val) override
       {
         this->y0 = this->y1 = this->y2 = this->x1 = this->x2 = _val;
       }

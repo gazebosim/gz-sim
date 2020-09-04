@@ -31,7 +31,8 @@ if (SWIG_FOUND)
     Rand
     Temperature
     Vector2
-    Vector3)
+    Vector3
+    Vector4)
 endif()
 
 #################################################
