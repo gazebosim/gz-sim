@@ -26,9 +26,10 @@
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -84,6 +85,9 @@ TEST_F(ImuTest, ModelFalling)
 
   const std::string sensorName = "imu_sensor";
 
+  auto topic =
+      "world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu";
+
   // Create a system that records imu data
   test::Relay testSystem;
   math::Vector3d worldGravity;
@@ -98,7 +102,7 @@ TEST_F(ImuTest, ModelFalling)
                   components::WorldPose,
                   components::AngularVelocity,
                   components::LinearAcceleration>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const ignition::gazebo::Entity &_entity,
                 const components::Imu *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,
@@ -110,6 +114,16 @@ TEST_F(ImuTest, ModelFalling)
               poses.push_back(_worldPose->Data());
               accelerations.push_back(_linearAcc->Data());
               angularVelocities.push_back(_angularVel->Data());
+
+              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+              EXPECT_NE(nullptr, sensorComp);
+
+              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+              EXPECT_NE(nullptr, topicComp);
+              if (topicComp)
+              {
+                EXPECT_EQ(topic, topicComp->Data());
+              }
 
               return true;
             });
@@ -130,9 +144,7 @@ TEST_F(ImuTest, ModelFalling)
 
   // subscribe to imu topic
   transport::Node node;
-  node.Subscribe(
-      "/world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu",
-      &imuCb);
+  node.Subscribe(topic, &imuCb);
 
   // step world and verify imu's linear acceleration is zero on free fall
   // Run server

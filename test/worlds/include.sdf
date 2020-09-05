@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="default">
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/ground plane/1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/ground plane/1</uri>
     </include>
   </world>
 </sdf>

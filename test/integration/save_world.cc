@@ -23,12 +23,14 @@
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "helpers/UniqueTestDirectoryEnv.hh"
 #include "plugins/MockSystem.hh"
 
 using namespace ignition;
@@ -45,6 +47,7 @@ class SdfGeneratorFixture : public ::testing::Test
   public: void LoadWorld(const std::string &_path)
   {
     ServerConfig serverConfig;
+    serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
     serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH, _path));
 
     std::cout << "Loading: " << serverConfig.SdfFile() << std::endl;
@@ -95,7 +98,7 @@ TEST_F(SdfGeneratorFixture, WorldWithModelsSpawnedAfterLoad)
   // This has to be different from the backpack in order to test SDFormat
   // generation for a Fuel URI that was not known when simulation started.
   const std::string groundPlaneUri =
-      "https://fuel.ignitionrobotics.org/1.0/openrobotics/models/ground plane";
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/ground plane";
 
   transport::Node node;
   {
@@ -232,4 +235,14 @@ TEST_F(SdfGeneratorFixture, ModelSpawnedWithNewName)
   auto *world = root.WorldByIndex(0);
   ASSERT_NE(nullptr, world);
   EXPECT_TRUE(world->ModelNameExists("new_model_name"));
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("save_world_test_cache"));
+  return RUN_ALL_TESTS();
 }
