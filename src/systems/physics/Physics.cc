@@ -29,6 +29,7 @@
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/eigen3/Conversions.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/physics/config.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -75,6 +76,7 @@
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
 #include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -95,6 +97,7 @@
 #include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -458,6 +461,25 @@ class ignition::gazebo::systems::PhysicsPrivate
       entityJointVelocityCommandMap;
 
   //////////////////////////////////////////////////
+  // World velocity command
+  public: using WorldVelocityCommandFeatureList =
+            ignition::physics::FeatureList<
+              ignition::physics::SetFreeGroupWorldVelocity>;
+
+  /// \brief Free group type with world velocity command.
+  public: using FreeGroupVelocityCmdPtrType =
+            ignition::physics::FreeGroupPtr<
+              ignition::physics::FeaturePolicy3d,
+                WorldVelocityCommandFeatureList>;
+
+  /// \brief A map between free group entity ids in the ECM
+  /// to FreeGroup Entities in ign-physics, with velocity command feature.
+  /// All FreeGroup on this map are casted for
+  /// `WorldVelocityCommandFeatureList`.
+  public: std::unordered_map<Entity, FreeGroupVelocityCmdPtrType>
+      entityWorldVelocityCommandMap;
+
+  //////////////////////////////////////////////////
   // Meshes
 
   /// \brief Feature list for meshes.
@@ -765,7 +787,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
-      [&](const Entity &  _entity,
+      [&](const Entity &_entity,
           const components::Collision *,
           const components::Name *_name,
           const components::Pose *_pose,
@@ -1352,6 +1374,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Update model pose
   _ecm.Each<components::Model, components::WorldPoseCmd>(
       [&](const Entity &_entity, const components::Model *,
           const components::WorldPoseCmd *_poseCmd)
@@ -1396,6 +1419,68 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _ecm.SetChanged(_entity, components::Pose::typeId, state);
           }
         }
+
+        return true;
+      });
+
+  // Update model angular velocity
+  _ecm.Each<components::Model, components::AngularVelocityCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::AngularVelocityCmd *_angularVelocityCmd)
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+          return true;
+
+        auto freeGroup = modelIt->second->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        const components::Pose *poseComp =
+            _ecm.Component<components::Pose>(_entity);
+        math::Vector3d worldAngularVel = poseComp->Data().Rot() *
+            _angularVelocityCmd->Data();
+
+        auto worldAngularVelFeature = entityCast(_entity, freeGroup,
+            this->entityWorldVelocityCommandMap);
+        if (!worldAngularVelFeature)
+        {
+          return true;
+        }
+
+        worldAngularVelFeature->SetWorldAngularVelocity(
+            math::eigen3::convert(worldAngularVel));
+
+        return true;
+      });
+
+  // Update model linear velocity
+  _ecm.Each<components::Model, components::LinearVelocityCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::LinearVelocityCmd *_linearVelocityCmd)
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+          return true;
+
+        auto freeGroup = modelIt->second->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        const components::Pose *poseComp =
+            _ecm.Component<components::Pose>(_entity);
+        math::Vector3d worldLinearVel = poseComp->Data().Rot() *
+            _linearVelocityCmd->Data();
+
+        auto worldLinearVelFeature = entityCast(_entity, freeGroup,
+              this->entityWorldVelocityCommandMap);
+        if (!worldLinearVelFeature)
+        {
+          return true;
+        }
+
+        worldLinearVelFeature->SetWorldLinearVelocity(
+            math::eigen3::convert(worldLinearVel));
 
         return true;
       });

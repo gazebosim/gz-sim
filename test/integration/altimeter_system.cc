@@ -25,10 +25,11 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -77,6 +78,9 @@ TEST_F(AltimeterTest, ModelFalling)
 
   const std::string sensorName = "altimeter_sensor";
 
+  auto topic = "world/altimeter_sensor/"
+      "model/altimeter_model/link/link/sensor/altimeter_sensor/altimeter";
+
   // Create a system that records altimeter data
   test::Relay testSystem;
   std::vector<math::Pose3d> poses;
@@ -87,7 +91,7 @@ TEST_F(AltimeterTest, ModelFalling)
         _ecm.Each<components::Altimeter, components::Name,
                   components::WorldPose,
                   components::WorldLinearVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const ignition::gazebo::Entity &_entity,
                 const components::Altimeter *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,
@@ -98,6 +102,16 @@ TEST_F(AltimeterTest, ModelFalling)
               poses.push_back(_worldPose->Data());
               velocities.push_back(_worldLinearVel->Data());
 
+              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+              EXPECT_NE(nullptr, sensorComp);
+
+              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+              EXPECT_NE(nullptr, topicComp);
+              if (topicComp)
+              {
+                EXPECT_EQ(topic, topicComp->Data());
+              }
+
               return true;
             });
       });
@@ -106,9 +120,7 @@ TEST_F(AltimeterTest, ModelFalling)
 
   // subscribe to altimeter topic
   transport::Node node;
-  node.Subscribe(std::string("/world/altimeter_sensor/") +
-      "model/altimeter_model/link/link/sensor/altimeter_sensor/altimeter",
-      &altimeterCb);
+  node.Subscribe(topic, &altimeterCb);
 
   // Run server
   size_t iters100 = 100u;

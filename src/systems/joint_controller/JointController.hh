@@ -33,6 +33,42 @@ namespace systems
 
   /// \brief Joint controller which can be attached to a model with a reference
   /// to a single joint. Currently only the first axis of a joint is actuated.
+  ///
+  /// ## System Parameters
+  ///
+  /// `<joint_name>` The name of the joint to control. Required parameter.
+  ///
+  /// `<use_force_commands>` True to enable the controller implementation
+  /// using force commands. If this parameter is not set or is false, the
+  /// controller will use velocity commands internally.
+  ///
+  /// ### Velocity mode: No additional parameters are required.
+  ///
+  /// ### Force mode: The controller accepts the next optional parameters:
+  ///
+  /// `<p_gain>` The proportional gain of the PID.
+  ///  The default value is 1.
+  ///
+  /// `<i_gain>` The integral gain of the PID.
+  ///  The default value is 0.
+  ///
+  /// `<d_gain>` The derivative gain of the PID.
+  ///  The default value is 0.
+  ///
+  /// `<i_max>` The integral upper limit of the PID.
+  ///  The default value is 1.
+  ///
+  /// `<i_min>` The integral lower limit of the PID.
+  ///  The default value is -1.
+  ///
+  /// `<cmd_max>` Output max value of the PID.
+  ///  The default value is 1000.
+  ///
+  /// `<cmd_min>` Output min value of the PID.
+  ///  The default value is -1000.
+  ///
+  /// `<cmd_offset>` Command offset (feed-forward) of the PID.
+  /// The default value is 0.
   class IGNITION_GAZEBO_VISIBLE JointController
       : public System,
         public ISystemConfigure,

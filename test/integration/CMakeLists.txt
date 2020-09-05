@@ -6,6 +6,7 @@ set(tests
   apply_joint_force_system.cc
   battery_plugin.cc
   breadcrumbs.cc
+  buoyancy.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -17,6 +18,8 @@ set(tests
   follow_actor_system.cc
   imu_system.cc
   joint_controller_system.cc
+  joint_position_controller_system.cc
+  joint_state_publisher_system.cc
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
@@ -38,6 +41,7 @@ set(tests
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
+  velocity_control_system.cc
   log_system.cc
   wind_effects.cc
 )

@@ -23,10 +23,11 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -78,6 +79,9 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
 
   const std::string sensorName = "magnetometer_sensor";
 
+  auto topic = "world/magnetometer_sensor/model/magnetometer_model/link/link/"
+      "sensor/magnetometer_sensor/magnetometer";
+
   // Create a system that records magnetometer data
   test::Relay testSystem;
 
@@ -88,13 +92,23 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
         _ecm.Each<components::Magnetometer,
                   components::Name,
                   components::WorldPose>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const ignition::gazebo::Entity &_entity,
                 const components::Magnetometer *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose) -> bool
             {
               EXPECT_EQ(_name->Data(), sensorName);
               poses.push_back(_worldPose->Data());
+
+              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+              EXPECT_NE(nullptr, sensorComp);
+
+              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+              EXPECT_NE(nullptr, topicComp);
+              if (topicComp)
+              {
+                EXPECT_EQ(topic, topicComp->Data());
+              }
 
               return true;
             });
@@ -104,10 +118,7 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
 
   // subscribe to magnetometer topic
   transport::Node node;
-  node.Subscribe(
-      "/world/magnetometer_sensor/model/magnetometer_model/link/link/"
-      "sensor/magnetometer_sensor/magnetometer",
-      &magnetometerCb);
+  node.Subscribe(topic, &magnetometerCb);
 
   // step world and verify magnetometer's detected field
   // Run server
