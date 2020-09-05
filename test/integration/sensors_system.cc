@@ -127,7 +127,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     };
 
   server.AddSystem(this->systemPtr);
-  server.Run(true, 10, false);
+  server.Run(true, 50, false);
   ASSERT_NE(nullptr, ecm);
 
   testDefaultTopics();
