@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-math6 VERSION 6.4.0)
+project(ignition-math6 VERSION 6.5.0)
 
 #============================================================================
 # Find ignition-cmake

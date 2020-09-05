@@ -835,12 +835,13 @@ namespace ignition
     /// \param[in] _timeString The string to convert in general format
     /// "dd hh:mm:ss.nnn" where n is millisecond value
     /// \return A std::chrono::steady_clock::time_point containing the
-    /// string's time value
+    /// string's time value. If it isn't possible to convert, the time will
+    /// be negative 1 second.
     inline std::chrono::steady_clock::time_point stringToTimePoint(
         const std::string &_timeString)
     {
-      std::chrono::steady_clock::time_point timePoint =
-        math::secNsecToTimePoint(-1, 0);
+      using namespace std::chrono_literals;
+      std::chrono::steady_clock::time_point timePoint{-1s};
 
       if (_timeString.empty())
         return timePoint;
@@ -908,7 +909,7 @@ namespace ignition
         {
           numberDays = std::stoi(dayString);
         }
-        catch (const std::out_of_range &oor)
+        catch (const std::out_of_range &)
         {
           return timePoint;
         }
