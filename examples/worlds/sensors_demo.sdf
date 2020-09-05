@@ -63,8 +63,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/lidar_sensor/control</service>
-        <stats_topic>/world/lidar_sensor/stats</stats_topic>
 
       </plugin>
 
@@ -89,7 +87,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/lidar_sensor/stats</topic>
       </plugin>
 
       <plugin filename="EntityTree" name="Entity tree">
@@ -470,7 +467,7 @@
     <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Construction Cone
+      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
     </include>
 

@@ -693,13 +693,18 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     std::lock_guard<std::mutex> lock(this->graphMutex);
     for (const auto &[id, vert] : newGraph.Vertices())
     {
+      // Add the vertex only if it's not already in the graph
       if (!this->sceneGraph.VertexFromId(id).Valid())
         this->sceneGraph.AddVertex(vert.get().Name(), vert.get().Data(), id);
     }
     for (const auto &[id, edge] : newGraph.Edges())
     {
-      if (!this->sceneGraph.EdgeFromId(id).Valid())
+      // Add the edge only if it's not already in the graph
+      if (!this->sceneGraph.EdgeFromVertices(edge.get().Vertices().first,
+            edge.get().Vertices().second).Valid())
+      {
         this->sceneGraph.AddEdge(edge.get().Vertices(), edge.get().Data());
+      }
     }
   }
 

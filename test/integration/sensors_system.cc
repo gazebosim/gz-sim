@@ -25,6 +25,7 @@
 #include <sdf/World.hh>
 
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
@@ -101,7 +102,7 @@ void testDefaultTopics()
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
-TEST_F(SensorsFixture, HandleRemovedEntities)
+TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
   ignition::gazebo::ServerConfig serverConfig;
 

@@ -231,6 +231,11 @@
         <!-- no odom_publisher_frequency defaults to 50 Hz -->
       </plugin>
 
+      <plugin
+        filename="libignition-gazebo-joint-state-publisher-system.so"
+        name="ignition::gazebo::systems::JointStatePublisher">
+      </plugin>
+
     </model>
 
   </world>
