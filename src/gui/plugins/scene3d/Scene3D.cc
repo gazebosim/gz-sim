@@ -1783,7 +1783,13 @@ TextureNode::TextureNode(QQuickWindow *_window)
     : window(_window)
 {
   // Our texture node must have a texture, so use the default 0 texture.
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->texture = this->window->createTextureFromId(0, QSize(1, 1));
+#else
+  this->texture = this->window->createTextureFromNativeObject(
+      QQuickWindow::NativeObjectTexture, nullptr, 0, QSize(1, 1),
+      QQuickWindow::TextureIsOpaque);
+#endif
   this->setTexture(this->texture);
 }
 
@@ -1819,8 +1825,23 @@ void TextureNode::PrepareNode()
     delete this->texture;
     // note: include QQuickWindow::TextureHasAlphaChannel if the rendered
     // content has alpha.
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     this->texture = this->window->createTextureFromId(
         newId, sz, QQuickWindow::TextureIsOpaque);
+#else
+    // TODO(anyone) Use createTextureFromNativeObject
+    // https://github.com/ignitionrobotics/ign-gui/issues/113
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    this->texture = this->window->createTextureFromId(
+        newId, sz, QQuickWindow::TextureIsOpaque);
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
+
+#endif
     this->setTexture(this->texture);
 
     this->markDirty(DirtyMaterial);
@@ -2533,7 +2554,11 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
   this->forceActiveFocus();
 
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
+#else
+  this->dataPtr->mouseEvent.SetPos(_e->position().x(), _e->position().y());
+#endif
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
