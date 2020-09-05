@@ -42,8 +42,8 @@ struct LoggingPlugin
   public: static std::string &LoggingPluginFileName()
   {
     static std::string recordPluginFileName =
-      std::string("libignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so";
+      std::string("ignition-gazebo") +
+      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
     return recordPluginFileName;
   }
 
@@ -52,7 +52,7 @@ struct LoggingPlugin
   /// \return A string that contains the record plugin suffix.
   public: static std::string &LoggingPluginSuffix()
   {
-    static std::string recordPluginSuffix = "-log-system.so";
+    static std::string recordPluginSuffix = "-log-system";
     return recordPluginSuffix;
   }
 
