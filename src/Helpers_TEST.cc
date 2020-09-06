@@ -589,10 +589,10 @@ TEST(HelpersTest, timePointToString)
 /////////////////////////////////////////////////
 TEST(HelpersTest, stringToTimePoint)
 {
-  std::chrono::steady_clock::time_point zeroTime =
-    math::secNsecToTimePoint(0, 0);
-  std::chrono::steady_clock::time_point negTime =
-    math::secNsecToTimePoint(-1, 0);
+  using namespace std::chrono_literals;
+
+  std::chrono::steady_clock::time_point zeroTime{0s};
+  std::chrono::steady_clock::time_point negTime{-1s};
 
   std::string time = "0 00:00:00.000";
   std::chrono::steady_clock::time_point resultTime =
