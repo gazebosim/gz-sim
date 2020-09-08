@@ -17,6 +17,10 @@
 #include <cstring>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+#include <ignition/fuel_tools/Result.hh>
+#include <ignition/fuel_tools/WorldIdentifier.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
@@ -48,6 +52,60 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
 extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 {
   return IGN_GAZEBO_WORLD_INSTALL_DIR;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+    char *_pathToResource)
+{
+  std::string path;
+  std::string worldPath;
+  ignition::fuel_tools::FuelClient fuelClient;
+
+  // Attempt to find cached copy, and then attempt download
+  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
+  {
+    ignmsg << "Cached world found." << std::endl;
+    worldPath = path;
+  }
+  else if (ignition::fuel_tools::Result result =
+    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
+    result)
+  {
+    ignmsg << "Successfully downloaded world from fuel." << std::endl;
+    worldPath = path;
+  }
+  else
+  {
+    ignwarn << "Fuel world download failed because " << result.ReadableResult()
+        << std::endl;
+    return "";
+  }
+
+  if (!ignition::common::exists(worldPath))
+    return "";
+
+
+  // Find the first sdf file in the world path for now, the later intention is
+  // to load an optional world config file first and if that does not exist,
+  // continue to load the first sdf file found as done below
+  for (ignition::common::DirIter file(worldPath);
+       file != ignition::common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (ignition::common::isFile(current))
+    {
+      std::string fileName = ignition::common::basename(current);
+      std::string::size_type fileExtensionIndex = fileName.rfind(".");
+      std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+      if (fileExtension == "sdf")
+      {
+        return strdup(current.c_str());
+      }
+    }
+  }
+  return "";
 }
 
 //////////////////////////////////////////////////

@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
@@ -153,6 +154,13 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
         std::unique_ptr<sensors::MagnetometerSensor> sensor =
             this->sensorFactory.CreateSensor<
             sensors::MagnetometerSensor>(data);
+        if (nullptr == sensor)
+        {
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
+        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
@@ -167,6 +175,9 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
         // We'll compute the world pose manually here
         math::Pose3d p = worldPose(_entity, _ecm);
         sensor->SetWorldPose(p);
+
+        // Set topic
+        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));

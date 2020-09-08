@@ -47,8 +47,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/default/control</service>
-        <stats_topic>/world/default/stats</stats_topic>
 
       </plugin>
     </gui>
