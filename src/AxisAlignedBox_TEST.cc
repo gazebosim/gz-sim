@@ -209,6 +209,17 @@ TEST(AxisAlignedBoxTest, Minus)
 }
 
 /////////////////////////////////////////////////
+TEST(AxisAlignedBoxTest, Plus)
+{
+  AxisAlignedBox box1(1, 2, 3, 4, 5, 6);
+  Vector3d add(1, 1, 1);
+
+  AxisAlignedBox box2 = box1 + add;
+  EXPECT_EQ(box2.Min(), box1.Min() + add);
+  EXPECT_EQ(box2.Max(), box1.Max() + add);
+}
+
+/////////////////////////////////////////////////
 TEST(AxisAlignedBoxTest, PlusEmpty)
 {
   AxisAlignedBox box1;
@@ -239,6 +250,12 @@ TEST_F(ExampleAxisAlignedBox, Merge)
   box.Merge(AxisAlignedBox(Vector3d(-1, -1, -1), Vector3d(2, 2, 2)));
   EXPECT_TRUE(box == AxisAlignedBox(Vector3d(-1, -2, -1),
                                Vector3d(2, 2, 3)));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ExampleAxisAlignedBox, Volume)
+{
+  EXPECT_DOUBLE_EQ(1.0, box.Volume());
 }
 
 /////////////////////////////////////////////////
@@ -565,4 +582,14 @@ TEST(AxisAlignedBoxTest, Intersect)
   EXPECT_NEAR(std::get<1>(b.Intersect(Vector3d(1.2, 0, 0.5),
       Vector3d(-0.707107, 0, -0.707107), 0, 1000)), dist, 1e-5);
   EXPECT_EQ(pt, Vector3d(1, 0, 0.3));
+}
+
+/////////////////////////////////////////////////
+TEST(AxisAlignedBoxTest, Volume)
+{
+  AxisAlignedBox box;
+  EXPECT_DOUBLE_EQ(0.0, box.Volume());
+
+  AxisAlignedBox box2(math::Vector3d(-1, -2, -3), math::Vector3d(1, 2, 3));
+  EXPECT_DOUBLE_EQ(48.0, box2.Volume());
 }

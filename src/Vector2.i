@@ -46,6 +46,13 @@ namespace ignition
       public: void Normalize();
       public: void Set(T _x, T _y);
       public: T Dot(const Vector2<T> &_v) const;
+      public: Vector2 Abs() const;
+      public: T AbsDot(const Vector2<T> &_v) const;
+      public: inline void Correct();
+      public: void Max(const Vector2<T> &_v);
+      public: void Min(const Vector2<T> &_v);
+      public: T Max() const;
+      public: T Min() const;
       public: Vector2 operator+(const Vector2 &_v) const;
       public: inline Vector2<T> operator+(const T _s) const;
       public: inline Vector2 operator-() const;

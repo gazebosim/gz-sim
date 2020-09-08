@@ -159,6 +159,12 @@ AxisAlignedBox AxisAlignedBox::operator-(const Vector3d &_v)
 }
 
 //////////////////////////////////////////////////
+AxisAlignedBox AxisAlignedBox::operator+(const Vector3d &_v)
+{
+  return AxisAlignedBox(this->dataPtr->min + _v, this->dataPtr->max + _v);
+}
+
+//////////////////////////////////////////////////
 bool AxisAlignedBox::Intersects(const AxisAlignedBox &_box) const
 {
   // Check the six separating planes.
@@ -277,6 +283,11 @@ std::tuple<bool, double, Vector3d>  AxisAlignedBox::Intersect(
   Vector3d dir = _dir;
   dir.Normalize();
   return this->Intersect(Line3d(_origin + dir * _min, _origin + dir * _max));
+}
+/////////////////////////////////////////////////
+double AxisAlignedBox::Volume() const
+{
+  return this->XLength() * this->YLength() * this->ZLength();
 }
 
 /////////////////////////////////////////////////

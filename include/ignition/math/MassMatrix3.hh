@@ -817,7 +817,6 @@ namespace ignition
                    + std::pow(cos(phi11c.Radian()) - cos(phi12c.Radian()), 2);
             if (errc < err)
             {
-              err = errc;
               phi1 = phi11c.Radian();
               signsPhi23.Set(-1, -1);
             }

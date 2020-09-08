@@ -85,14 +85,14 @@ namespace ignition
     class IGNITION_MATH_VISIBLE SignalMaximum : public SignalStatistic
     {
       // Documentation inherited.
-      public: virtual double Value() const;
+      public: virtual double Value() const override;
 
       /// \brief Get a short version of the name of this statistical measure.
       /// \return "max"
-      public: virtual std::string ShortName() const;
+      public: virtual std::string ShortName() const override;
 
       // Documentation inherited.
-      public: virtual void InsertData(const double _data);
+      public: virtual void InsertData(const double _data) override;
     };
     /// \}
 
@@ -101,14 +101,14 @@ namespace ignition
     class IGNITION_MATH_VISIBLE SignalMean : public SignalStatistic
     {
       // Documentation inherited.
-      public: virtual double Value() const;
+      public: virtual double Value() const override;
 
       /// \brief Get a short version of the name of this statistical measure.
       /// \return "mean"
-      public: virtual std::string ShortName() const;
+      public: virtual std::string ShortName() const override;
 
       // Documentation inherited.
-      public: virtual void InsertData(const double _data);
+      public: virtual void InsertData(const double _data) override;
     };
     /// \}
 
@@ -117,14 +117,14 @@ namespace ignition
     class IGNITION_MATH_VISIBLE SignalMinimum : public SignalStatistic
     {
       // Documentation inherited.
-      public: virtual double Value() const;
+      public: virtual double Value() const override;
 
       /// \brief Get a short version of the name of this statistical measure.
       /// \return "min"
-      public: virtual std::string ShortName() const;
+      public: virtual std::string ShortName() const override;
 
       // Documentation inherited.
-      public: virtual void InsertData(const double _data);
+      public: virtual void InsertData(const double _data) override;
     };
     /// \}
 
@@ -134,14 +134,14 @@ namespace ignition
     class IGNITION_MATH_VISIBLE SignalRootMeanSquare : public SignalStatistic
     {
       // Documentation inherited.
-      public: virtual double Value() const;
+      public: virtual double Value() const override;
 
       /// \brief Get a short version of the name of this statistical measure.
       /// \return "rms"
-      public: virtual std::string ShortName() const;
+      public: virtual std::string ShortName() const override;
 
       // Documentation inherited.
-      public: virtual void InsertData(const double _data);
+      public: virtual void InsertData(const double _data) override;
     };
     /// \}
 
@@ -153,14 +153,14 @@ namespace ignition
     class IGNITION_MATH_VISIBLE SignalMaxAbsoluteValue : public SignalStatistic
     {
       // Documentation inherited.
-      public: virtual double Value() const;
+      public: virtual double Value() const override;
 
       /// \brief Get a short version of the name of this statistical measure.
       /// \return "maxAbs"
-      public: virtual std::string ShortName() const;
+      public: virtual std::string ShortName() const override;
 
       // Documentation inherited.
-      public: virtual void InsertData(const double _data);
+      public: virtual void InsertData(const double _data) override;
     };
     /// \}
 
@@ -170,14 +170,14 @@ namespace ignition
     class IGNITION_MATH_VISIBLE SignalVariance : public SignalStatistic
     {
       // Documentation inherited.
-      public: virtual double Value() const;
+      public: virtual double Value() const override;
 
       /// \brief Get a short version of the name of this statistical measure.
       /// \return "var"
-      public: virtual std::string ShortName() const;
+      public: virtual std::string ShortName() const override;
 
       // Documentation inherited.
-      public: virtual void InsertData(const double _data);
+      public: virtual void InsertData(const double _data) override;
     };
     /// \}
 

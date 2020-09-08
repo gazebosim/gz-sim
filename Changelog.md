@@ -25,6 +25,74 @@
 
 ### Ignition Math 6.x.x
 
+## Ignition Math 6.5.0 (2020-09-04)
+
+1. Add string to time function
+    * [Pull request 152](https://github.com/ignitionrobotics/ign-math/pull/152)
+
+1. Added functions to convert between time_point and secNsec
+    * [Pull request 150](https://github.com/ignitionrobotics/ign-math/pull/150)
+
+1. Fix IGNITION_MATH_XXX_VERSION
+    * [Pull request 151](https://github.com/ignitionrobotics/ign-math/pull/151)
+
+1. Add Max and Min function to Vector2.hh
+    * [Pull request 133](https://github.com/ignitionrobotics/ign-math/pull/133)
+    * [Pull request 148](https://github.com/ignitionrobotics/ign-math/pull/148)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Round, Rounded, Correct, Distance(x, y, z, w) and operator< addition to Vector 4
+    * [Pull request 146](https://github.com/ignitionrobotics/ign-math/pull/146)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Sum and normalized functions for Vector4
+    * [Pull request 140](https://github.com/ignitionrobotics/ign-math/pull/140)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Vector4 Ruby tests - Vector4.i and Vector4_TEST.rb
+    * [Pull request 137](https://github.com/ignitionrobotics/ign-math/pull/137)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Vector3 to vector4 functions
+    * [Pull request 132](https://github.com/ignitionrobotics/ign-math/pull/132)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Update vector2 fuctions from vector3
+    * [Pull request 130](https://github.com/ignitionrobotics/ign-math/pull/130)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Add Abs, Dot and AbsDot and respective tests to Vector4
+    * [Pull request 135](https://github.com/ignitionrobotics/ign-math/pull/135)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Create abs, absDot and Correct functions for Vector2d
+    * [Pull request 143](https://github.com/ignitionrobotics/ign-math/pull/143)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Document Ruby tests
+    * [Pull request 145](https://github.com/ignitionrobotics/ign-math/pull/145)
+
+1. Add header for numeric_limits allowing build on ubuntu 16.04
+    * [Pull request 119](https://github.com/ignitionrobotics/ign-math/pull/119)
+
+1. Add setter/getter for Pose's each element
+    * [Pull request 125](https://github.com/ignitionrobotics/ign-math/pull/125)
+    * [Issue 35](https://github.com/ignitionrobotics/ign-math/issues/35)
+
+1. Implement AxisAlignedBox Volume function
+    * [Pull request 126](https://github.com/ignitionrobotics/ign-math/pull/126)
+
+1. Add operator + for AxisAlignedBox and Vector3.
+    * [Pull request 122](https://github.com/ignitionrobotics/ign-math/pull/122)
+
+1. Make alpha optional when parsing a Color from an input stream.
+    * [Pull request 106](https://github.com/ignitionrobotics/ign-math/pull/106)
+
+1. GitHub actions CI and workflow updates
+    * [Pull request 117](https://github.com/ignitionrobotics/ign-math/pull/117)
+    * [Pull request 139](https://github.com/ignitionrobotics/ign-math/pull/139)
+    * [Pull request 110](https://github.com/ignitionrobotics/ign-math/pull/110)
+
 1. Added a Gauss-Markov Process class.
     * [BitBucket pull request 342](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-math/pull-requests/342)
 

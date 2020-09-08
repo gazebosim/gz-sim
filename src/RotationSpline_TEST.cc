@@ -94,7 +94,6 @@ TEST(RotationSplineTest, RecalcTangents)
   EXPECT_EQ(s.Interpolate(0, 0.5),
       math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 
-  math::Quaterniond q = s.Interpolate(1, 0.5);
   EXPECT_EQ(s.Interpolate(1, 0.5),
       math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 }

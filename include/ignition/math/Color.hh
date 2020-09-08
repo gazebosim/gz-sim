@@ -247,13 +247,27 @@ namespace ignition
       }
 
       /// \brief Stream insertion operator
-      /// \param[in] _in the input stream
+      /// \param[in] _in the input stream. If the input stream does not include
+      /// an alpha value, a default alpha value of 1.0 will be used.
       /// \param[in] _pt
       public: friend std::istream &operator>> (std::istream &_in, Color &_pt)
       {
         // Skip white spaces
         _in.setf(std::ios_base::skipws);
-        _in >> _pt.r >> _pt.g >> _pt.b >> _pt.a;
+        _in >> _pt.r >> _pt.g >> _pt.b;
+        // Since alpha is optional, check if it's there before parsing
+        while (!_in.eof() && std::isspace(_in.peek()))
+        {
+          _in.get();
+        }
+        if (!_in.eof())
+        {
+          _in >> _pt.a;
+        }
+        else
+        {
+          _pt.a = 1.0;
+        }
         return _in;
       }
 

@@ -416,6 +416,51 @@ namespace ignition
         return this->p;
       }
 
+      /// \brief Get the X value of the position.
+      /// \return Value X of the origin of the pose.
+      /// \note The return is made by value since
+      /// Vector3<T>.X() is already a reference.
+      public: inline const T X() const
+      {
+        return this->p.X();
+      }
+
+      /// \brief Set X value of the position.
+      public: inline void SetX(T x)
+      {
+       this->p.X() = x;
+      }
+
+      /// \brief Get the Y value of the position.
+      /// \return Value Y of the origin of the pose.
+      /// \note The return is made by value since
+      /// Vector3<T>.Y() is already a reference.
+      public: inline const T Y() const
+      {
+        return this->p.Y();
+      }
+
+      /// \brief Set the Y value of the position.
+      public: inline void SetY(T y)
+      {
+        this->p.Y() = y;
+      }
+
+      /// \brief Get the Z value of the position.
+      /// \return Value Z of the origin of the pose.
+      /// \note The return is made by value since
+      /// Vector3<T>.Z() is already a reference.
+      public: inline const T Z() const
+      {
+        return this->p.Z();
+      }
+
+      /// \brief Set the Z value of the position.
+      public: inline void SetZ(T z)
+      {
+        this->p.Z() = z;
+      }
+
       /// \brief Get the rotation.
       /// \return Quaternion representation of the rotation.
       public: inline const Quaternion<T> &Rot() const
@@ -428,6 +473,33 @@ namespace ignition
       public: inline Quaternion<T> &Rot()
       {
         return this->q;
+      }
+
+      /// \brief Get the Roll value of the rotation.
+      /// \return Roll value of the orientation.
+      /// \note The return is made by value since
+      ///  Quaternion<T>.Roll() is already a reference.
+      public: inline const T Roll() const
+      {
+        return this->q.Roll();
+      }
+
+      /// \brief Get the Pitch value of the rotation.
+      /// \return Pitch value of the orientation.
+      /// \note The return is made by value since
+      ///  Quaternion<T>.Pitch() is already a reference.
+      public: inline const T Pitch() const
+      {
+        return this->q.Pitch();
+      }
+
+      /// \brief Get the Yaw value of the rotation.
+      /// \return Yaw value of the orientation.
+      /// \note The return is made by value since
+      ///  Quaternion<T>.Yaw() is already a reference.
+      public: inline const T Yaw() const
+      {
+        return this->q.Yaw();
       }
 
       /// \brief Stream insertion operator
