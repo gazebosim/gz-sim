@@ -44,15 +44,13 @@ namespace ignition::gazebo
     public: transport::Node node;
 
     /// \brief The start time of the log file
-    public: std::chrono::system_clock::time_point startTime =
-            std::chrono::system_clock::from_time_t(0);
+    public: std::chrono::steady_clock::time_point startTime;
 
     /// \brief The end time of the log file
-    public: std::chrono::system_clock::time_point endTime =
-            std::chrono::system_clock::from_time_t(0);
+    public: std::chrono::steady_clock::time_point endTime;
 
     /// \brief The current time of the log file
-    public: std::chrono::system_clock::time_point currentTime;
+    public: std::chrono::steady_clock::time_point currentTime;
 
     /// \brief The progress as a percentage of how far we
     /// are into the log file
@@ -177,9 +175,9 @@ QString PlaybackScrubber::CurrentTimeAsString()
 void PlaybackScrubber::OnTimeEntered(const QString &_time)
 {
   std::string time = _time.toStdString();
-  std::chrono::system_clock::time_point enteredTime =
+  std::chrono::steady_clock::time_point enteredTime =
     math::stringToTimePoint(time);
-  if (enteredTime == std::chrono::system_clock::from_time_t(-1))
+  if (enteredTime == math::secNsecToTimePoint(-1, 0))
   {
     ignwarn << "Invalid time entered. "
       "The format is dd hh:mm:ss.nnn" << std::endl;
@@ -207,7 +205,7 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
 }
 
 /////////////////////////////////////////////////
-void PlaybackScrubber::OnDrag(double _value)
+void PlaybackScrubber::OnDrop(double _value)
 {
   const std::string topic = "/world/default/playback/control";
   unsigned int timeout = 1000;

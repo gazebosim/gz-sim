@@ -25,7 +25,7 @@ import QtQuick.Controls.Styles 1.4
 GridLayout {
   id: playbackScrubber
   columns: 5
-  Layout.minimumWidth: 425
+  Layout.minimumWidth: 430
   Layout.minimumHeight: 200
   anchors.fill: parent
   anchors.leftMargin: 10
@@ -97,8 +97,8 @@ GridLayout {
     Layout.columnSpan: 3
     spacing: 3
     Rectangle {
-      height: 50
-      width: 80
+      height: 40
+      width: 100
       color: "transparent"
       Text {
         id: startTime
@@ -111,10 +111,12 @@ GridLayout {
       }
     }
     Rectangle {
-      height: 50
-      width: 220
+      height: 40
+      width: 200
       color: "transparent"
       Slider {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
         id: slider
         from: 0
         value: updateSliderValue()
@@ -123,7 +125,7 @@ GridLayout {
         onPressedChanged: {
           if (!pressed)
           {
-            PlaybackScrubber.OnDrag(slider.value);
+            PlaybackScrubber.OnDrop(slider.value);
             playbackScrubber.isPressed = false;
           }
           else
@@ -134,8 +136,8 @@ GridLayout {
       }
     }
     Rectangle {
-      height: 50
-      width: 80
+      height: 40
+      width: 100
       color: "transparent"
       Text {
         id: endTime

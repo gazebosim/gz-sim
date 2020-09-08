@@ -74,7 +74,7 @@ namespace gazebo
     /// \brief Callback in Qt thread when the slider is released.
     /// \param[in] _value The current value of the slider, from 0 to 1,
     /// inclusive
-    public slots: void OnDrag(double _value);
+    public slots: void OnDrop(double _value);
 
     /// \brief Callback when a time is entered by the user.
     /// \param[in] _time The time in format dd hh:mm:ss.nnn

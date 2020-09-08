@@ -150,23 +150,19 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
   std::string defaultGuiConfigName = "gui.config";
 
-  // The playback flag was specified from the command line
-  if (_guiConfig != nullptr && std::string(_guiConfig) == "_playback_")
-  {
-    ignition::common::env(IGN_HOMEDIR, defaultConfig);
-    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", "playback_gui.config");
-    defaultGuiConfigName = "playback_gui.config";
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
-    runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
-    ++runnerCount;
-    runner->setParent(ignition::gui::App());
-  }
   // Configuration file from command line
-  else if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
+  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
   {
-    if (!app->LoadConfig(_guiConfig))
+    // The playback flag (and not the gui-config flag) was
+    // specified from the command line
+    if (std::string(_guiConfig) == "_playback_")
+    {
+      ignition::common::env(IGN_HOMEDIR, defaultConfig);
+      defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+          "gazebo", "playback_gui.config");
+      defaultGuiConfigName = "playback_gui.config";
+    }
+    else if (!app->LoadConfig(_guiConfig))
     {
       ignwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
