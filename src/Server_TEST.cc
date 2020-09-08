@@ -77,6 +77,7 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_TRUE(serverConfig.ResourceCache().empty());
   EXPECT_TRUE(serverConfig.PhysicsEngine().empty());
   EXPECT_TRUE(serverConfig.Plugins().empty());
+  EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -300,6 +301,14 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
+
+    EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
+    serverConfig.AddLogRecordTopic("test_topic1");
+    EXPECT_EQ(1u, serverConfig.LogRecordTopics().size());
+    serverConfig.AddLogRecordTopic("test_topic2");
+    EXPECT_EQ(2u, serverConfig.LogRecordTopics().size());
+    serverConfig.ClearLogRecordTopics();
+    EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
   }
 
   EXPECT_TRUE(common::exists(logFile));
