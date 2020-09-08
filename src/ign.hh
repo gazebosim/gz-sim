@@ -49,6 +49,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _logCompress --log-compress option
 /// \param[in] _playback --playback option
 /// \param[in] _physicsEngine --physics-engine option
+/// \param[in] _renderEngineServer --render-engine-server option
+/// \param[in] _renderEngineGui --render-engine-gui option
 /// \param[in] _file Path to file being loaded
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,

@@ -108,7 +108,7 @@ COMMANDS = { 'gazebo' =>
   "                               IGN_GAZEBO_PHYSICS_ENGINE_PATH.                  \n"\
   "\n"\
   "  --render-engine [arg]        Ignition Rendering engine plugin to load.        \n"\
-  "                               Gazebo will use OGRE2 by default.                \n"\
+  "                               Gazebo will use OGRE2 by default. (ogre2)        \n"\
   "\n"\
   "  --render-engine-client [arg] Ignition Rendering gui engine plugin to load.    \n"\
   "                               Gazebo will use OGRE2 by defaut.                 \n"\

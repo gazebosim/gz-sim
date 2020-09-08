@@ -2219,7 +2219,8 @@ void Scene3D::Update(const UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "Render engine not found" << std::endl;
+      igndbg << "RenderEngineGuiPlugin component not found, "
+        "render engine won't be set from the ECM" << std::endl;
     }
   }
 
