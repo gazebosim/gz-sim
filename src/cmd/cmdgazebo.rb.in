@@ -77,6 +77,27 @@ COMMANDS = { 'gazebo' =>
   "                              meshes and material files, in addition to  \n"\
   "                              states and console messages.               \n"\
   "\n"\
+  "  --record-topic [arg]        Specify the name of an additional topic to \n"\
+  "                              record. Implicitly invokes --record.       \n"\
+  "                              Zero or more topics can be specified by    \n"\
+  "                              using multiple --record-topic options.     \n"\
+  "                              Regular expressions can be used, which     \n"\
+  "                              likely requires quotes. A default set of   \n"\
+  "                              topics are also recorded, which support    \n"\
+  "                              simulation state playback. Enable debug    \n"\
+  "                              console output with the -v 4 option        \n"\
+  "                              and look for 'Recording default topic' in  \n"\
+  "                              order to determine the default set of      \n"\
+  "                              topics.                                    \n"\
+  "                              Examples:                                  \n"\
+  "                                1. Record all topics.                    \n"\
+  "                                    --record-topic \".*\"                \n"\
+  "                                2. Record only the /stats topic.         \n"\
+  "                                    --record-topic /stats                \n"\
+  "                                3. Record the /stats and /clock topics.  \n"\
+  "                                    --record-topic /stats \              \n"\
+  "                                    --record-topic /clock                \n"\
+  "\n"\
   "  --log-overwrite             When recording, overwrite existing files.  \n"\
   "                              Only valid if recording is enabled.        \n"\
   "\n"\
@@ -174,6 +195,7 @@ class Cmd
       'record' => 0,
       'record-path' => '',
       'record-resources' => 0,
+      'record-topics' => [],
       'log-overwrite' => 0,
       'log-compress' => 0,
       'playback' => '',
@@ -226,6 +248,9 @@ class Cmd
       end
       opts.on('--record-resources') do
         options['record-resources'] = 1
+      end
+      opts.on('--record-topic [arg]', String) do |t|
+        options['record-topics'].append(t)
       end
       opts.on('--log-overwrite') do
         options['log-overwrite'] = 1
@@ -356,7 +381,7 @@ class Cmd
       Importer.extern 'int runServer(const char *, int, int, float, int,
                                const char *, int, int, const char *,
                                int, int, int, const char *, const char *,
-                               const char *)'
+                               const char *, const char *)'
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
@@ -382,7 +407,7 @@ class Cmd
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
-            options['file'])
+            options['file'], options['record-topics'].join(':'))
         end
 
         guiPid = Process.fork do
@@ -416,7 +441,7 @@ class Cmd
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
-            options['file'])
+            options['file'], options['record-topics'].join(':'))
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'
