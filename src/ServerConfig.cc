@@ -14,15 +14,17 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/ServerConfig.hh"
+
+#include <tinyxml2.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/Result.hh>
 #include <ignition/math/Rand.hh>
-#include "ignition/gazebo/ServerConfig.hh"
 
-#include <tinyxml2.h>
 
 
 using namespace ignition;
