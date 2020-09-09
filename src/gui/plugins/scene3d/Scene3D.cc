@@ -1922,18 +1922,24 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     // and makeCurrent down below while setting up our own context.
     current->doneCurrent();
 
-    auto surfaceFormat = QSurfaceFormat();
-    surfaceFormat.setMajorVersion(3);
-    surfaceFormat.setMinorVersion(3);
-    surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
-    
     this->dataPtr->renderThread->context = new QOpenGLContext();
-    // Although it seems unbelievable, we can request another format for a
-    // shared context; it is needed because Qt selects by default a compat
-    // context which is much less likely to provide OpenGL 3.3 (only closed
-    // NVidia drivers). This means there will be mismatch between what is
-    // reported by QSG_INFO=1 and by OGRE.
-    this->dataPtr->renderThread->context->setFormat(surfaceFormat);
+    if (this->RenderUtil()->EngineName() == "ogre2")
+    {
+      // Although it seems unbelievable, we can request another format for a
+      // shared context; it is needed because Qt selects by default a compat
+      // context which is much less likely to provide OpenGL 3.3 (only closed
+      // NVidia drivers). This means there will be mismatch between what is
+      // reported by QSG_INFO=1 and by OGRE.
+      auto surfaceFormat = QSurfaceFormat();
+      surfaceFormat.setMajorVersion(3);
+      surfaceFormat.setMinorVersion(3);
+      surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+      this->dataPtr->renderThread->context->setFormat(surfaceFormat);
+    }
+    else
+    {
+      this->dataPtr->renderThread->context->setFormat(current->format());
+    }
     this->dataPtr->renderThread->context->setShareContext(current);
     this->dataPtr->renderThread->context->create();
     this->dataPtr->renderThread->context->moveToThread(
