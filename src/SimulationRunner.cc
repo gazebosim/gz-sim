@@ -162,24 +162,23 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // If we have reached this point and no systems have been loaded, then load
   // a default set of systems.
   // Order:
-  // 1. File at IGN_GAZEBO_DEFAULT_SYSTEMS
-  // 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/systems.config
-  // 3. File at ${IGN_DATA_INSTALL_DIR}/systems/systems.config
+  // 1. File at IGN_GAZEBO_SERVER_CONFIG
+  // 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/server.config
+  // 3. File at ${IGN_DATA_INSTALL_DIR}/server.config
 
   if (this->systems.empty() && this->pendingSystems.empty())
   {
     ignmsg << "No systems loaded, loading defaults" << std::endl;
 
     std::string envConfig;
-    ignition::common::env("IGN_GAZEBO_DEFAULT_SYSTEMS", envConfig);
+    ignition::common::env("IGN_GAZEBO_SERVER_CONFIG", envConfig);
 
     std::string defaultConfig;
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", "systems.config");
+      "gazebo", "server.config");
 
-    auto installedConfig = ignition::common::joinPaths(
-        IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
+    auto installedConfig = IGNITION_GAZEBO_SERVER_CONFIG_PATH;
 
     std::string configPath;
     if (envConfig.size() && ignition::common::exists(envConfig))
