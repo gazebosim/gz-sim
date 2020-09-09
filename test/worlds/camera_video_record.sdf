@@ -298,7 +298,7 @@
           <plugin
             filename="libignition-gazebo-camera-video-recorder-system.so"
             name="ignition::gazebo::systems::CameraVideoRecorder">
-            <topic>camera/record_video</topic>
+            <service>camera/record_video</service>
           </plugin>
 
         </sensor>
