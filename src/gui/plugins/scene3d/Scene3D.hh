@@ -348,8 +348,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return True on success, false if failure
     public: bool GeneratePreview(const sdf::Root &_sdf);
 
-    /// \brief Delete the visuals generated from the shapes plugin.
-    public: void TerminatePreviewModel();
+    /// \brief Delete the visuals generated while an entity is being spawned.
+    public: void TerminateSpawnPreview();
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
