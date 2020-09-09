@@ -222,8 +222,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// model with the shapes plugin or not
     public: bool placingModel = false;
 
-    /// \brief The sdf string of the model to be used with the shapes plugin
+    /// \brief The sdf string of the model to be used with plugins that spawn
+    /// models.
     public: std::string modelSdfString;
+
+    /// \brief The path of SDF file of the model to be used with plugins that
+    /// spawn models.
+    public: std::string modelSdfPath;
 
     /// \brief The pose of the preview model
     public: ignition::math::Pose3d previewModelPose =
@@ -232,8 +237,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief The currently hovered mouse position in screen coordinates
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
-    /// \brief The model generated from the modelSdfString upon the user
-    /// clicking a shape in the shapes plugin
+    /// \brief The model generated from the modelSdfString / modelSdfPath upon
+    /// the user clicking a shape in the shapes plugin
     public: rendering::VisualPtr spawnPreviewModel = nullptr;
 
     /// \brief A record of the ids currently used by the model generation
@@ -599,8 +604,20 @@ void IgnRenderer::Render()
       // Generate preview model
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
-      this->dataPtr->placingModel =
-        this->GeneratePreviewModel(this->dataPtr->modelSdfString);
+      sdf::Root root;
+      if (!this->dataPtr->modelSdfString.empty())
+      {
+        root.LoadSdfString(this->dataPtr->modelSdfString);
+      }
+      else if (!this->dataPtr->modelSdfPath.empty())
+      {
+        root.Load(this->dataPtr->modelSdfPath);
+      }
+      else
+      {
+        ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
+      }
+      this->dataPtr->placingModel = this->GeneratePreview(root);
       this->dataPtr->spawnModel = false;
     }
   }
@@ -614,22 +631,19 @@ void IgnRenderer::Render()
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
+bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 {
   // Terminate any pre-existing visualized models
   this->TerminatePreviewModel();
 
-  sdf::Root root;
-  root.LoadSdfString(_modelSdfString);
-
-  if (!root.ModelCount())
+  if (!_sdf.ModelCount())
   {
     this->TerminatePreviewModel();
     return false;
   }
 
   // Only preview first model
-  sdf::Model model = *(root.ModelByIndex(0));
+  sdf::Model model = *(_sdf.ModelByIndex(0));
   this->dataPtr->previewModelPose = model.RawPose();
   model.SetName(ignition::common::Uuid().String());
   Entity modelId = this->UniqueId();
@@ -893,7 +907,18 @@ void IgnRenderer::HandleModelPlacement()
     math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
     pos.Z(modelPose.Pos().Z());
     msgs::EntityFactory req;
-    req.set_sdf(this->dataPtr->modelSdfString);
+    if (!this->dataPtr->modelSdfString.empty())
+    {
+      req.set_sdf(this->dataPtr->modelSdfString);
+    }
+    else if (!this->dataPtr->modelSdfPath.empty())
+    {
+      req.set_sdf_filename(this->dataPtr->modelSdfPath);
+    }
+    else
+    {
+      ignwarn << "Failed to find SDF string or file path" << std::endl;
+    }
     req.set_allow_renaming(true);
     msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
 
@@ -1565,6 +1590,14 @@ void IgnRenderer::SetModel(const std::string &_model)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetModelPath(const std::string &_filePath)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->spawnModel = true;
+  this->dataPtr->modelSdfPath = _filePath;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
     const std::string &_savePath)
 {
@@ -2196,7 +2229,7 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
-    _ecm.EachNew<components::World, components::Name>(
+    _ecm.Each<components::World, components::Name>(
         [&](const Entity &/*_entity*/,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
@@ -2404,6 +2437,17 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetModel(spawnPreviewModelEvent->ModelSdfString());
     }
   }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::SpawnPreviewPath::kType)
+  {
+    auto spawnPreviewPathEvent =
+      reinterpret_cast<gui::events::SpawnPreviewPath *>(_event);
+    if (spawnPreviewPathEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
@@ -2427,6 +2471,12 @@ void RenderWindowItem::SetTransformMode(const std::string &_mode)
 void RenderWindowItem::SetModel(const std::string &_model)
 {
   this->dataPtr->renderThread->ignRenderer.SetModel(_model);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetModelPath(const std::string &_filePath)
+{
+  this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
 }
 
 /////////////////////////////////////////////////
