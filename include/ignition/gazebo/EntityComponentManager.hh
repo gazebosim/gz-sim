@@ -696,6 +696,12 @@ namespace ignition
           const Entity _entity, const ComponentTypeId _type,
           gazebo::ComponentState _c = ComponentState::OneTimeChange);
 
+      /// \brief All future entities will have an id that starts at _offset.
+      /// This can be used to avoid entity id collisions, such as during log
+      /// playback.
+      /// \param[in] _offset Offset value.
+      public: void SetEntityCreateOffset(uint64_t _offset);
+
       /// \brief Mark all components as not changed.
       protected: void SetAllComponentsUnchanged();
 

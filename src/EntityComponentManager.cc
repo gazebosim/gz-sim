@@ -1224,3 +1224,9 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
 
   return result;
 }
+
+/////////////////////////////////////////////////
+void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
+{
+  this->dataPtr->entityCount = _offset;
+}
