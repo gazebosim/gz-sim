@@ -19,6 +19,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 // Include all components so they have first-class support
 #include "ignition/gazebo/components/components.hh"
@@ -33,6 +34,12 @@ using namespace gazebo;
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
   this->setProperty("worldName", QString::fromStdString(_worldName));
+
+  auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
+  auto winWorldNames = win->property("worldNames").toStringList();
+  winWorldNames.append(QString::fromStdString(_worldName));
+  win->setProperty("worldNames", winWorldNames);
+
   this->stateTopic = "/world/" + _worldName + "/state";
 
   common::addFindFileURICallback([] (common::URI _uri)
@@ -44,9 +51,6 @@ GuiRunner::GuiRunner(const std::string &_worldName)
          << std::endl;
 
   this->RequestState();
-
-  // Periodic change updates
-  this->node.Subscribe(this->stateTopic, &GuiRunner::OnState, this);
 }
 
 /////////////////////////////////////////////////
@@ -83,6 +87,10 @@ void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
     return;
   }
   this->OnState(_res);
+
+  // Only subscribe to periodic updates after receiving initial state
+  if (this->node.SubscribedTopics().empty())
+    this->node.Subscribe(this->stateTopic, &GuiRunner::OnState, this);
 }
 
 /////////////////////////////////////////////////

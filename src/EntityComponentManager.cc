@@ -136,7 +136,7 @@ Entity EntityComponentManager::CreateEntity()
 {
   Entity entity = ++this->dataPtr->entityCount;
 
-  if (entity == std::numeric_limits<int64_t>::max())
+  if (entity == std::numeric_limits<uint64_t>::max())
   {
     ignwarn << "Reached maximum number of entities [" << entity << "]"
             << std::endl;
