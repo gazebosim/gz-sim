@@ -60,7 +60,7 @@ namespace ignition
     /// can be checked against different types. For example, if the
     /// entity is a model, this will be true:
     ///
-    /// `ignition::gazebo::components::Model::typeId == entityTypeId(entity, ecm)`
+    /// `gazebo::components::Model::typeId == entityTypeId(entity, ecm)`
     ///
     /// In case the entity isn't of any known type, this will return
     /// `ignition::gazebo::kComponentTypeIdInvalid`.
