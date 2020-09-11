@@ -211,7 +211,7 @@ void LogPlayback::Configure(const Entity &,
 
   // Set the entity offset.
   // \todo This number should be included in the log file.
-  _ecm.SetEntityOffset(90000);
+  _ecm.SetEntityCreateOffset(math::MAX_I64 / 2);
 
   // If path is a file, assume it is a compressed file
   // (Otherwise assume it is a directory containing recorded files.)
