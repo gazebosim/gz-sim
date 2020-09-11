@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <ignition/math/Pose3.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
@@ -154,6 +156,24 @@ namespace ignition
       /// \return All links in this model.
       public: std::vector<gazebo::Entity> Links(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the number of joints which are immediate children of this
+      /// model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Number of joints in this model.
+      public: uint64_t JointCount(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the number of links which are immediate children of this
+      /// model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Number of links in this model.
+      public: uint64_t LinkCount(const EntityComponentManager &_ecm) const;
+
+      /// \brief Set a command to change the model's pose.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _pose New model pose.
+      public: void SetWorldPoseCmd(EntityComponentManager &_ecm,
+          const math::Pose3d &_pose);
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<ModelPrivate> dataPtr;

@@ -112,7 +112,7 @@ SetWindMode |
 SetWorldPose | `ignition::gazebo::Model::SetWorldPoseCmd`
 SetWorldTwist |
 StopAnimation |
-TypeStr | `Type::typeName`
+TypeStr | `ignition::gazebo::entityTypeStr`
 URI |
 UnscaledSDF |
 UpdateParameters |
@@ -138,7 +138,7 @@ Classic | Ignition
 GetByName | Use type-specific `ignition::gazebo::Model::*ByName`
 GetChild | Use type-specific `ignition::gazebo::Model::*ByName`
 GetChildCollision |  See link API
-GetChildCount | `ignition::gazebo::Model::ChildCount`
+GetChildCount | Use type-specific `ignition::gazebo::Model::*Count`
 GetChildLink | `ignition::gazebo::Model::LinkByName`
 GetGripper |
 GetGripperCount |
@@ -150,7 +150,7 @@ GetLinks | const `ignition::gazebo::Model::Links`
 GetParent | `ignition::gazebo::Model::Parent`
 GetParentId | `ignition::gazebo::Model::Parent`
 GetParentModel | `ignition::gazebo::Model::Parent`
-GetSensorCount |
+GetSensorCount | See link API
 GetWorld | const `ignition::gazebo::Model::World`
 NestedModel | `ignition::gazebo::Model::NestedModelByName`
 NestedModels | const `ignition::gazebo::Model::NestedModels`
@@ -190,7 +190,7 @@ LoadJoints | `ignition::gazebo::SdfEntityCreator::CreateEntities`
 LoadPlugins |
 Reset |
 ResetPhysicsStates |
-Update | Models are updated by systems
+Update | Entities are updated by systems
 
 ## Others
 
