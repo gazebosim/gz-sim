@@ -18,13 +18,17 @@
 #include <gtest/gtest.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Model.hh>
+#include <ignition/gazebo/components/SelfCollide.hh>
+#include <ignition/gazebo/components/SourceFilePath.hh>
+#include <ignition/gazebo/components/Static.hh>
+#include <ignition/gazebo/components/WindMode.hh>
 
 using namespace ignition::gazebo;
 
@@ -80,6 +84,99 @@ TEST_F(ModelIntegrationTest, Name)
   // Add name
   ecm.CreateComponent<components::Name>(id, components::Name("model_name"));
   EXPECT_EQ("model_name", model.Name(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, Parent)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(id, components::Model());
+
+  Model model(id);
+
+  // No parent
+  EXPECT_EQ(kNullEntity, model.Parent(ecm));
+
+  // Add parent
+  ecm.CreateComponent<components::ParentEntity>(id,
+      components::ParentEntity(100u));
+  EXPECT_EQ(100u, model.Parent(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, Static)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(id, components::Model());
+
+  Model model(id);
+
+  // Not static
+  EXPECT_FALSE(model.Static(ecm));
+
+  // Make static
+  ecm.CreateComponent<components::Static>(id, components::Static(true));
+  EXPECT_TRUE(model.Static(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, SelfCollide)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(id, components::Model());
+
+  Model model(id);
+
+  // Not self collide
+  EXPECT_FALSE(model.SelfCollide(ecm));
+
+  // Make self collide
+  ecm.CreateComponent<components::SelfCollide>(id,
+      components::SelfCollide(true));
+  EXPECT_TRUE(model.SelfCollide(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, WindMode)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(id, components::Model());
+
+  Model model(id);
+
+  // Not static
+  EXPECT_FALSE(model.WindMode(ecm));
+
+  // Make static
+  ecm.CreateComponent<components::WindMode>(id, components::WindMode(true));
+  EXPECT_TRUE(model.WindMode(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, SourceFilePath)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(id, components::Model());
+
+  Model model(id);
+
+  // No path
+  EXPECT_TRUE(model.SourceFilePath(ecm).empty());
+
+  // Add path
+  ecm.CreateComponent<components::SourceFilePath>(id,
+      components::SourceFilePath("/tmp/path"));
+  EXPECT_EQ("/tmp/path", model.SourceFilePath(ecm));
 }
 
 //////////////////////////////////////////////////

@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
@@ -95,11 +96,41 @@ namespace ignition
       /// \return Model's name.
       public: std::string Name(const EntityComponentManager &_ecm) const;
 
+      /// \brief Get the ID of the entity which is the immediate parent of this
+      /// model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Parent entity ID.
+      public: gazebo::Entity Parent(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get whether this model is static.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if self-colliding.
+      public: bool Static(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get whether this model has self-collide enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if self-colliding.
+      public: bool SelfCollide(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get whether this model has wind enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if wind mode is on.
+      public: bool WindMode(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the source file where this model came from. If empty,
+      /// the model wasn't loaded directly from a file, probably from an SDF
+      /// string.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Path to the source SDF file.
+      public: std::string SourceFilePath(const EntityComponentManager &_ecm)
+          const;
+
       /// \brief Get the ID of a joint entity which is an immediate child of
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Joint name.
       /// \return Joint entity.
+      /// \todo(anyone) Make const
       public: gazebo::Entity JointByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
@@ -108,8 +139,21 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Link name.
       /// \return Link entity.
+      /// \todo(anyone) Make const
       public: gazebo::Entity LinkByName(const EntityComponentManager &_ecm,
           const std::string &_name);
+
+      /// \brief Get all joints which are immediate children of this model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return All joints in this model.
+      public: std::vector<gazebo::Entity> Joints(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get all links which are immediate children of this model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return All links in this model.
+      public: std::vector<gazebo::Entity> Links(
+          const EntityComponentManager &_ecm) const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<ModelPrivate> dataPtr;
