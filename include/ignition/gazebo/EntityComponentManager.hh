@@ -402,7 +402,7 @@ namespace ignition
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// PostUpdate, callback. The result of call after PreUpdate is invalid
       public: template<typename ...ComponentTypeTs>
               void EachRemoved(typename identity<std::function<
                   bool(const Entity &_entity,
