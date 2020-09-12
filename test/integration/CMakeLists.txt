@@ -7,7 +7,6 @@ set(tests
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
-  camera_video_record_system.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -48,6 +47,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
   rgbd_camera.cc

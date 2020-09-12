@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -41,7 +42,7 @@ class CameraVideoRecorderTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(CameraVideoRecorderTest, RecordVideo)
+TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
 {
   // Start server
   ServerConfig serverConfig;
