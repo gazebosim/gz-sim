@@ -27,6 +27,8 @@
 #include <memory>
 #include <mutex>
 
+#include <sdf/Root.hh>
+
 #include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector2.hh>
@@ -185,6 +187,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _model Sdf string of the model to load in for the user.
     public: void SetModel(const std::string &_model);
 
+    /// \brief Set the path to the model to hover over the scene.
+    /// \param[in] _filePath Sdf path of the model to load in for the user.
+    public: void SetModelPath(const std::string &_filePath);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
@@ -337,13 +343,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return The unique entity id
     private: Entity UniqueId();
 
-    /// \brief Generate a preview of a model.
-    /// \param[in] _modelSdfString The sdf string of the model to be generated
+    /// \brief Generate a preview of a resource.
+    /// \param[in] _sdf The SDF to be previewed.
     /// \return True on success, false if failure
-    public: bool GeneratePreviewModel(const std::string &_modelSdfString);
+    public: bool GeneratePreview(const sdf::Root &_sdf);
 
-    /// \brief Delete the visuals generated from the shapes plugin.
-    public: void TerminatePreviewModel();
+    /// \brief Delete the visuals generated while an entity is being spawned.
+    public: void TerminateSpawnPreview();
 
     /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
     /// ray cast from the given 2D screen coordinates.
@@ -474,6 +480,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the model to hover.
     /// \param[in] _model Sdf string of the model to load in for the user.
     public: void SetModel(const std::string &_model);
+
+    /// \brief Set the path of the model to hover.
+    /// \param[in] _filePath File path of the model to load in for the user.
+    public: void SetModelPath(const std::string &_filePath);
 
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
