@@ -1,0 +1,2841 @@
+<?xml version="1.0" ?>
+<!--
+  To generate sdf file using this erb template, run `erb -T 1 actors_population.sdf.erb > actors_population.sdf`
+-->
+<sdf version="1.6">
+  <world name="actors">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/actors/control</service>
+        <stats_topic>/world/actors/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/actors/stats</topic>
+
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+    </include>
+
+    
+    <actor name="actor_1">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="1" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_2">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="2" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_3">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="3" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_4">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="4" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_5">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="5" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_6">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="6" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_7">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="7" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_8">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="8" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_9">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="9" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_10">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="10" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_11">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="11" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_12">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="12" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_13">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="13" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_14">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="14" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_15">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="15" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_16">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="16" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_17">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="17" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_18">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="18" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_19">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="19" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_20">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="20" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_21">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="21" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_22">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="22" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_23">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="23" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_24">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="24" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_25">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="25" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_26">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="26" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_27">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="27" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_28">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="28" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_29">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="29" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_30">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="30" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_31">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="31" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_32">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="32" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_33">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="33" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_34">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="34" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_35">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="35" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_36">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="36" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_37">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="37" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_38">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="38" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_39">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="39" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_40">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="40" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -1 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -1 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_41">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="41" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_42">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="42" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_43">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="43" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_44">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="44" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_45">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="45" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_46">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="46" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_47">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="47" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_48">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="48" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_49">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="49" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_50">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="50" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -3 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -3 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_51">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="51" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_52">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="52" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_53">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="53" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_54">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="54" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_55">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="55" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_56">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="56" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_57">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="57" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_58">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="58" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_59">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="59" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_60">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="60" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -5 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -5 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_61">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="61" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_62">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="62" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_63">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="63" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_64">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="64" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_65">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="65" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_66">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="66" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_67">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="67" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_68">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="68" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_69">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="69" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_70">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="70" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -7 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -7 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_71">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="71" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_72">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="72" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_73">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="73" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_74">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="74" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_75">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="75" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_76">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="76" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_77">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="77" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_78">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="78" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_79">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="79" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_80">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="80" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -9 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -9 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_81">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="81" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_82">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="82" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_83">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="83" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_84">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="84" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_85">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="85" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_86">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="86" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_87">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="87" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_88">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="88" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_89">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="89" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_90">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="90" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -11 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -11 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_91">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="91" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-3 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-3 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_92">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="92" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>-1 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>-1 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_93">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="93" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>1 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>1 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_94">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="94" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>3 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>3 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_95">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="95" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>5 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>5 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_96">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="96" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>7 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>7 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_97">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="97" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>9 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>9 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_98">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="98" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>11 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>11 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_99">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="99" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>13 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>13 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    
+    <actor name="actor_100">
+      <skin>
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="talk_b">
+        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <scale>0.055</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="100" type="talk_b">
+          <waypoint>
+            <time>0</time>
+            <pose>15 -13 1.0 0 0 0</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>15 -13 1.0 0 0 0</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+      </world>
+</sdf>

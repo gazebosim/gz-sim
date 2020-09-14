@@ -63,4 +63,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
 
+/// \brief External hook to find or download a fuel world provided a URL.
+/// \param[in] _pathToResource Path to the fuel world resource, ie,
+/// https://staging-fuel.ignitionrobotics.org/1.0/gmas/worlds/ShapesClone
+/// \return C-string containing the path to the local world sdf file
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+    char *_pathToResource);
+
 #endif

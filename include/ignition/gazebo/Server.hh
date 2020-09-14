@@ -82,6 +82,12 @@ namespace ignition
     ///   1. /world/<world_name>/scene/info(none) : ignition::msgs::Scene
     ///     + Returns the current scene information.
     ///
+    ///   2. /gazebo/resource_paths/get : ignition::msgs::StringMsg_V
+    ///     + Get list of resource paths.
+    ///
+    ///   3. /gazebo/resource_paths/add : ignition::msgs::Empty
+    ///     + Add new resource paths.
+    ///
     /// ## Topics
     ///
     /// The following are topics provided by the Server.
@@ -94,6 +100,9 @@ namespace ignition
     ///
     /// 2. /world/<world_name>/stats : ignition::msgs::WorldStatistics
     ///   + This topic is throttled to 5Hz.
+    ///
+    /// 3. /gazebo/resource_paths : ignition::msgs::StringMsg_V
+    ///   + Updated list of resource paths.
     ///
     class IGNITION_GAZEBO_VISIBLE Server
     {
@@ -139,9 +148,7 @@ namespace ignition
       /// or more simulation worlds, each of which may or may not be
       /// running. See Running(const unsigned int) to get the running status
       /// of a world.
-      /// \param[in] _worldIndex Index of the world to query.
-      /// \return True if the server is running, or std::nullopt
-      ///  if _worldIndex is invalid.
+      /// \return True if the server is running.
       public: bool Running() const;
 
       /// \brief Get whether a world simulation instance is running. When

@@ -280,8 +280,8 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
   node.Subscribe("/model/vehicle/odometry", odomCb);
 
   msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+  msgs::Set(msg.mutable_linear(), math::Vector3d(2.0, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 2.0));
 
   pub.Publish(msg);
 
@@ -294,7 +294,7 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
   int maxSleep = 30;
   for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
   EXPECT_NE(maxSleep, sleep);
 
