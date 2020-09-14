@@ -596,6 +596,7 @@ void IgnRenderer::Render()
     IGN_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->spawnModel)
     {
+      // Generate preview model
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
       this->dataPtr->placingModel =
@@ -615,6 +616,9 @@ void IgnRenderer::Render()
 /////////////////////////////////////////////////
 bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
 {
+  // Terminate any pre-existing visualized models
+  this->TerminatePreviewModel();
+
   sdf::Root root;
   root.LoadSdfString(_modelSdfString);
 
@@ -771,6 +775,23 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   {
     this->dataPtr->transformControl.Start();
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
+  }
+
+  // fullscreen
+  if (_e->key() == Qt::Key_F11)
+  {
+    if (ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->visibility()
+        == QWindow::FullScreen)
+    {
+      ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->showNormal();
+    }
+    else
+    {
+      ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+    }
   }
 
   switch (_e->key())
@@ -1326,7 +1347,10 @@ void IgnRenderer::HandleMouseViewControl()
     // Pan with left button
     if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::LEFT)
     {
-      this->dataPtr->viewControl.Pan(this->dataPtr->drag);
+      if (Qt::ShiftModifier == QGuiApplication::queryKeyboardModifiers())
+        this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+      else
+        this->dataPtr->viewControl.Pan(this->dataPtr->drag);
     }
     // Orbit with middle button
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::MIDDLE)
@@ -2105,6 +2129,17 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         offsetStr << std::string(offsetElem->GetText());
         offsetStr >> offset;
         renderWindow->SetFollowOffset(offset);
+      }
+    }
+
+    if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
+    {
+      auto fullscreen = false;
+      elem->QueryBoolText(&fullscreen);
+      if (fullscreen)
+      {
+        ignition::gui::App()->findChild
+          <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
       }
     }
 

@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -64,7 +65,7 @@ void depthCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Depth Camera readings when it faces a box
-TEST_F(DepthCameraTest, DepthCameraBox)
+TEST_F(DepthCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

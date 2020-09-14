@@ -225,6 +225,86 @@ int main(int _argc, char **_argv)
       ignition::math::Vector3d(1, 2, 0.05));
 
   node.Request("/marker", markerMsg);
+  std::cout << "Adding multiple markers via /marker_array\n";
+  ignition::common::Time::Sleep(ignition::common::Time(4));
+
+  ignition::msgs::Marker_V markerMsgs;
+  ignition::msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+
+  // Create first blue sphere marker
+  auto markerMsg1 = markerMsgs.add_marker();
+  markerMsg1->set_ns("default");
+  markerMsg1->set_id(0);
+  markerMsg1->set_action(ignition::msgs::Marker::ADD_MODIFY);
+  markerMsg1->set_type(ignition::msgs::Marker::SPHERE);
+  markerMsg1->set_visibility(ignition::msgs::Marker::GUI);
+
+  // Set color to Blue
+  markerMsg1->mutable_material()->mutable_ambient()->set_r(0);
+  markerMsg1->mutable_material()->mutable_ambient()->set_g(0);
+  markerMsg1->mutable_material()->mutable_ambient()->set_b(1);
+  markerMsg1->mutable_material()->mutable_ambient()->set_a(1);
+  markerMsg1->mutable_material()->mutable_diffuse()->set_r(0);
+  markerMsg1->mutable_material()->mutable_diffuse()->set_g(0);
+  markerMsg1->mutable_material()->mutable_diffuse()->set_b(1);
+  markerMsg1->mutable_material()->mutable_diffuse()->set_a(1);
+  ignition::msgs::Set(markerMsg1->mutable_scale(),
+                    ignition::math::Vector3d(1.0, 1.0, 1.0));
+  ignition::msgs::Set(markerMsg1->mutable_pose(),
+                      ignition::math::Pose3d(3, 3, 0, 0, 0, 0));
+
+  // Create second red box marker
+  auto markerMsg2 = markerMsgs.add_marker();
+  markerMsg2->set_ns("default");
+  markerMsg2->set_id(0);
+  markerMsg2->set_action(ignition::msgs::Marker::ADD_MODIFY);
+  markerMsg2->set_type(ignition::msgs::Marker::BOX);
+  markerMsg2->set_visibility(ignition::msgs::Marker::GUI);
+
+  // Set color to Red
+  markerMsg2->mutable_material()->mutable_ambient()->set_r(1);
+  markerMsg2->mutable_material()->mutable_ambient()->set_g(0);
+  markerMsg2->mutable_material()->mutable_ambient()->set_b(0);
+  markerMsg2->mutable_material()->mutable_ambient()->set_a(1);
+  markerMsg2->mutable_material()->mutable_diffuse()->set_r(1);
+  markerMsg2->mutable_material()->mutable_diffuse()->set_g(0);
+  markerMsg2->mutable_material()->mutable_diffuse()->set_b(0);
+  markerMsg2->mutable_material()->mutable_diffuse()->set_a(1);
+  markerMsg2->mutable_lifetime()->set_sec(2);
+  markerMsg2->mutable_lifetime()->set_nsec(0);
+  ignition::msgs::Set(markerMsg2->mutable_scale(),
+                    ignition::math::Vector3d(1.0, 1.0, 1.0));
+  ignition::msgs::Set(markerMsg2->mutable_pose(),
+                      ignition::math::Pose3d(3, 3, 2, 0, 0, 0));
+
+  // Create third green cylinder marker
+  auto markerMsg3 = markerMsgs.add_marker();
+  markerMsg3->set_ns("default");
+  markerMsg3->set_id(0);
+  markerMsg3->set_action(ignition::msgs::Marker::ADD_MODIFY);
+  markerMsg3->set_type(ignition::msgs::Marker::CYLINDER);
+  markerMsg3->set_visibility(ignition::msgs::Marker::GUI);
+
+  // Set color to Green
+  markerMsg3->mutable_material()->mutable_ambient()->set_r(0);
+  markerMsg3->mutable_material()->mutable_ambient()->set_g(1);
+  markerMsg3->mutable_material()->mutable_ambient()->set_b(0);
+  markerMsg3->mutable_material()->mutable_ambient()->set_a(1);
+  markerMsg3->mutable_material()->mutable_diffuse()->set_r(0);
+  markerMsg3->mutable_material()->mutable_diffuse()->set_g(1);
+  markerMsg3->mutable_material()->mutable_diffuse()->set_b(0);
+  markerMsg3->mutable_material()->mutable_diffuse()->set_a(1);
+  markerMsg3->mutable_lifetime()->set_sec(2);
+  markerMsg3->mutable_lifetime()->set_nsec(0);
+  ignition::msgs::Set(markerMsg3->mutable_scale(),
+                    ignition::math::Vector3d(1.0, 1.0, 1.0));
+  ignition::msgs::Set(markerMsg3->mutable_pose(),
+                      ignition::math::Pose3d(3, 3, 4, 0, 0, 0));
+
+  // Publish the three created markers above simultaneously
+  node.Request("/marker_array", markerMsgs, timeout, res, result);
 
   std::cout << "Deleting all the markers\n";
   std::this_thread::sleep_for(std::chrono::seconds(4));

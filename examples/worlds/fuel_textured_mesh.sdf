@@ -71,8 +71,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/fuel/control</service>
-        <stats_topic>/world/fuel/stats</stats_topic>
 
       </plugin>
 
@@ -97,7 +95,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/fuel/stats</topic>
 
       </plugin>
 
@@ -169,7 +166,7 @@
       <static>true</static>
       <name>Rescue Randy</name>
       <pose>0 0 0 0 0 1.57</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Rescue Randy</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
     </include>
 
     <!-- Tube Light -->
