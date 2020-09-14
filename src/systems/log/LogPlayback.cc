@@ -212,6 +212,10 @@ void LogPlayback::Configure(const Entity &,
   // Prepend working directory if path is relative
   this->dataPtr->logPath = common::absPath(this->dataPtr->logPath);
 
+  // Set the entity offset.
+  // \todo This number should be included in the log file.
+  _ecm.SetEntityCreateOffset(math::MAX_I64 / 2);
+
   // If path is a file, assume it is a compressed file
   // (Otherwise assume it is a directory containing recorded files.)
   if (common::isFile(this->dataPtr->logPath))
