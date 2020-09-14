@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -155,6 +156,9 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         // set sensor world pose
         math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
         sensor->SetPose(sensorWorldPose);
+
+        // Set topic
+        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));

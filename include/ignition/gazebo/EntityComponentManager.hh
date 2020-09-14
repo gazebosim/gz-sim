@@ -534,6 +534,10 @@ namespace ignition
       /// is protected to facilitate testing.
       protected: void ClearNewlyCreatedEntities();
 
+      /// \brief Clear the list of removed components so that a call to
+      /// RemoveComponent doesn't make the list grow indefinitely.
+      protected: void ClearRemovedComponents();
+
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.

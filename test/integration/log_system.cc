@@ -829,7 +829,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   playServer.Run(true, playbackSteps, false);
 
   int sleep = 0;
-  int maxSleep = 16;
+  int maxSleep = 30;
   for (; nTotal < expectedPoseCount && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -840,7 +840,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   /// \todo(anyone) there seems to be a race condition that sometimes cause an
   /// additional messages to be published by the scene broadcaster
   // 60Hz
-  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
+  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1)
+      << "nTotal [" << nTotal << "] expectedPoseCount [" << expectedPoseCount
+      << "]";
   #endif
 
   this->RemoveLogsDir();
@@ -1534,7 +1536,7 @@ TEST_F(LogSystemTest, LogResources)
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "OpenRobotics",
       "models", "X2 Config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1569,7 +1571,7 @@ TEST_F(LogSystemTest, LogResources)
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "OpenRobotics",
       "models", "X2 Config 1")));
 
   // Revert environment variable after test is done

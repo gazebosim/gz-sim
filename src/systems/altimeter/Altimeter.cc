@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
@@ -159,6 +160,9 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         double verticalReference = worldPose(_entity, _ecm).Pos().Z();
         sensor->SetVerticalReference(verticalReference);
         sensor->SetPosition(verticalReference);
+
+        // Set topic
+        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
