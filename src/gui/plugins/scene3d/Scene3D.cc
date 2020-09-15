@@ -100,6 +100,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Move the camera to look at the specified target
     /// param[in] _camera Camera to be moved
+    /// param[in] _target Target to move to
+    /// param[in] _duration Duration of the move to animation, in seconds.
+    /// param[in] _onAnimationComplete Callback function when animation is
+    /// complete
+    public: void MoveTo(const rendering::CameraPtr &_camera,
+        const math::Pose3d &_target, double _duration,
+        std::function<void()> _onAnimationComplete);
+
+    /// \brief Move the camera to look at the specified target
+    /// param[in] _camera Camera to be moved
     /// param[in] _direction The pose to assume relative to the entit(y/ies),
     /// (0, 0, 0) indicates to return the camera back to the home pose
     /// originally loaded in from the sdf.
@@ -215,6 +225,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
 
+    /// \brief Flag for indicating whether we are in move to pose mode or not
+    public: bool moveToPose = false;
+
     /// \brief Flag for indicating whether we are in shapes mode or not
     public: bool spawnModel = false;
 
@@ -245,6 +258,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// The vector (0, 0, 0) indicates to return the camera back to the home
     /// pose originally loaded from the sdf.
     public: math::Vector3d viewAngleDirection = math::Vector3d::Zero;
+
+    /// \brief The pose set from the move to pose service.
+    public: math::Pose3d moveToPoseValue = math::Pose3d::Zero;
 
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
@@ -344,11 +360,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Follow service
     public: std::string followService;
 
-    /// \brief Follow service
+    /// \brief View angle service
     public: std::string viewAngleService;
+
+    /// \brief Move to pose service
+    public: std::string moveToPoseService;
 
     /// \brief Shapes service
     public: std::string shapesService;
+
+    /// \brief Camera pose topic
+    public: std::string cameraPoseTopic;
+
+    /// \brief Camera pose topic
+    public: transport::Node::Publisher cameraPosePub;
+
   };
 }
 }
@@ -487,6 +513,32 @@ void IgnRenderer::Render()
                  << this->dataPtr->moveToTarget << "' not found" << std::endl;
           this->dataPtr->moveToTarget.clear();
         }
+      }
+      else
+      {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
+        this->dataPtr->moveToHelper.AddTime(dt.count());
+        this->dataPtr->prevMoveToTime = now;
+      }
+    }
+  }
+
+  // Move to position
+  {
+    IGN_PROFILE("IgnRenderer::Render MoveToPose");
+    if (this->dataPtr->moveToPose)
+    {
+      if (this->dataPtr->moveToHelper.Idle())
+      {
+        std::vector<Entity> selectedEntities =
+          this->dataPtr->renderUtil.SelectedEntities();
+
+
+        this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera,
+            this->dataPtr->moveToPoseValue,
+            0.5, std::bind(&IgnRenderer::OnMoveToPoseComplete, this));
+        this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
       else
       {
@@ -1599,6 +1651,14 @@ void IgnRenderer::SetViewAngle(const math::Vector3d &_direction)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToPose = true;
+  this->dataPtr->moveToPoseValue = _pose;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowPGain(double _gain)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1662,6 +1722,13 @@ void IgnRenderer::OnViewAngleComplete()
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::OnMoveToPoseComplete()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToPose = false;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1700,6 +1767,14 @@ math::Vector3d IgnRenderer::ScreenToPlane(
   math::Vector3d direction = this->dataPtr->rayQuery->Direction();
   double distance = plane.Distance(origin, direction);
   return origin + direction * distance;
+}
+
+/////////////////////////////////////////////////
+math::Pose3d IgnRenderer::CameraPose() const
+{
+  if (this->dataPtr->camera)
+    return this->dataPtr->camera->WorldPose();
+  return math::Pose3d::Zero;
 }
 
 /////////////////////////////////////////////////
@@ -2181,6 +2256,21 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
 
+  // view pose service
+  this->dataPtr->moveToPoseService =
+      "/gui/move_to/pose";
+  this->dataPtr->node.Advertise(this->dataPtr->moveToPoseService,
+      &Scene3D::OnMoveToPose, this);
+  ignmsg << "Move to pose service on ["
+         << this->dataPtr->moveToPoseService << "]" << std::endl;
+
+  // camera position topic
+  this->dataPtr->cameraPoseTopic = "/gui/camera/pose";
+  this->dataPtr->cameraPosePub =
+    this->dataPtr->node.Advertise<msgs::Pose>(this->dataPtr->cameraPoseTopic);
+  ignmsg << "Camera pose topic published on ["
+         << this->dataPtr->cameraPoseTopic << "]" << std::endl;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -2193,6 +2283,7 @@ void Scene3D::Update(const UpdateInfo &_info,
     return;
 
   IGN_PROFILE("Scene3D::Update");
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
@@ -2205,10 +2296,11 @@ void Scene3D::Update(const UpdateInfo &_info,
           return true;
         });
 
-    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     renderWindow->SetWorldName(this->dataPtr->worldName);
   }
 
+  msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
+  this->dataPtr->cameraPosePub.Publish(poseMsg);
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
 }
 
@@ -2267,6 +2359,33 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewAngle(msgs::Convert(_msg));
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnMoveToPose(const msgs::Pose &_msg, msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  math::Pose3d pose = msgs::Convert(_msg);
+
+  // If there is no orientation in the message, then set a Rot value in the
+  // math::Pose3d object to infinite. This will prevent the orientation from
+  // being used when positioning the camera.
+  // See the MoveToHelper::MoveTo function
+  if (!_msg.has_orientation())
+    pose.Rot().X() = math::INF_D;
+
+  // If there is no position in the message, then set a Pos value in the
+  // math::Pose3d object to infinite. This will prevent the orientation from
+  // being used when positioning the camera.
+  // See the MoveToHelper::MoveTo function
+  if (!_msg.has_position())
+    pose.Pos().X() = math::INF_D;
+
+  renderWindow->SetMoveToPose(pose);
 
   _res.set_data(true);
   return true;
@@ -2467,6 +2586,12 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
+{
+  this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
@@ -2488,6 +2613,14 @@ void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
 void RenderWindowItem::SetCameraPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.cameraPose = _pose;
+}
+
+/////////////////////////////////////////////////
+math::Pose3d RenderWindowItem::CameraPose() const
+{
+  if (this->dataPtr->renderThread)
+    return this->dataPtr->renderThread->ignRenderer.CameraPose();
+  return math::Pose3d::Zero;
 }
 
 /////////////////////////////////////////////////
@@ -2612,6 +2745,34 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 //  }
 // }
 //
+
+////////////////////////////////////////////////
+void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
+    const ignition::math::Pose3d &_target,
+    double _duration, std::function<void()> _onAnimationComplete)
+{
+  this->camera = _camera;
+  this->poseAnim = std::make_unique<common::PoseAnimation>(
+      "move_to", _duration, false);
+  this->onAnimationComplete = std::move(_onAnimationComplete);
+
+  math::Pose3d start = _camera->WorldPose();
+
+  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
+  key->Translation(start.Pos());
+  key->Rotation(start.Rot());
+
+  key = this->poseAnim->CreateKeyFrame(_duration);
+  if (_target.Pos().IsFinite())
+    key->Translation(_target.Pos());
+  else
+    key->Translation(start.Pos());
+
+  if (_target.Rot().IsFinite())
+    key->Rotation(_target.Rot());
+  else
+    key->Rotation(start.Rot());
+}
 
 ////////////////////////////////////////////////
 void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
