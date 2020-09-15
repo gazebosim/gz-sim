@@ -20,6 +20,7 @@
 #include <ignition/msgs/pose_v.pb.h>
 
 #include <string>
+#include <unordered_map>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
@@ -69,10 +70,10 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \return String of prepended path.
   public: std::string PrependLogPath(const std::string &_uri);
 
-  /// \brief Updates the ECM according to the given message.
-  /// \param[in] _ecm Mutable ECM.
+  /// \brief Keeps track of which entity poses have updated
+  /// according to the given message.
   /// \param[in] _msg Message containing pose updates.
-  public: void Parse(EntityComponentManager &_ecm, const msgs::Pose_V &_msg);
+  public: void Parse(const msgs::Pose_V &_msg);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -113,6 +114,10 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Flag for backward compatibility with log files recorded in older
   /// plugin versions that did not record resources. False for older log files.
   public: bool doReplaceResourceURIs{true};
+
+  /// \brief Saves which entity poses have changed according to the latest
+  /// LogPlaybackPrivate::Parse call.
+  public: std::unordered_map<Entity, msgs::Pose> recentEntityPoseUpdates;
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -133,53 +138,15 @@ LogPlayback::~LogPlayback()
 }
 
 //////////////////////////////////////////////////
-void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
-    const msgs::Pose_V &_msg)
+void LogPlaybackPrivate::Parse(const msgs::Pose_V &_msg)
 {
-  // Maps entity to pose recorded
-  // Key: entity. Value: pose
-  std::map <Entity, msgs::Pose> idToPose;
-
-  for (int i = 0; i < _msg.pose_size(); ++i)
+  // save the new entity pose updates
+  this->recentEntityPoseUpdates.clear();
+  for (auto i=0; i < _msg.pose_size(); ++i)
   {
-    msgs::Pose pose = _msg.pose(i);
-
-    // Update entity pose in map
-    idToPose.insert_or_assign(pose.id(), pose);
+    const auto &pose = _msg.pose(i);
+    this->recentEntityPoseUpdates.insert_or_assign(pose.id(), pose);
   }
-
-  // Loop through entities in world
-  _ecm.Each<components::Pose>(
-      [&](const Entity &_entity, components::Pose *_poseComp) -> bool
-  {
-    // Check if we have an updated pose for this entity
-    if (idToPose.find(_entity) == idToPose.end())
-      return true;
-
-    // Look for pose in log entry loaded
-    msgs::Pose pose = idToPose.at(_entity);
-    // Set current pose to recorded pose
-    // Use copy assignment operator
-    *_poseComp = components::Pose(msgs::Convert(pose));
-
-    // The ComponentState::OneTimeChange argument forces the
-    // SceneBroadcaster system to publish a message. This parameter used to
-    // be ComponentState::PeriodicChange. The problem with PeriodicChange is
-    // that state updates could be missed by the SceneBroadscaster, which
-    // publishes at 60Hz using the wall clock. If a 60Hz tick
-    // doesn't fall on the same update cycle as this state change then the
-    // GUI will not receive the state information. The result is jumpy
-    // playback.
-    //
-    // \todo(anyone) I don't think using OneTimeChange is necessarily bad, but
-    // it would be nice if other systems could know that log playback is
-    // active/enabled. Then a system could make decisions on how to process
-    // information.
-    _ecm.SetChanged(_entity, components::Pose::typeId,
-        ComponentState::OneTimeChange);
-
-    return true;
-  });
 }
 
 //////////////////////////////////////////////////
@@ -516,7 +483,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Only set the last pose of a sequence of poses.
     if (msgType != "ignition.msgs.Pose_V" && queuedPose.pose_size() > 0)
     {
-      this->dataPtr->Parse(_ecm, queuedPose);
+      this->dataPtr->Parse(queuedPose);
       queuedPose.Clear();
     }
 
@@ -593,8 +560,26 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
   if (queuedPose.pose_size() > 0)
   {
-    this->dataPtr->Parse(_ecm, queuedPose);
+    this->dataPtr->Parse(queuedPose);
   }
+
+  // flag changed entity poses as periodically changed based on
+  // the latest LogPlaybackPrivate::Parse results
+  _ecm.Each<components::Pose>(
+      [&](const Entity &_entity, components::Pose *_poseComp) -> bool
+  {
+    if (this->dataPtr->recentEntityPoseUpdates.find(_entity) ==
+        this->dataPtr->recentEntityPoseUpdates.end())
+      return true;
+
+    msgs::Pose pose = this->dataPtr->recentEntityPoseUpdates.at(_entity);
+    *_poseComp = components::Pose(msgs::Convert(pose));
+
+    _ecm.SetChanged(_entity, components::Pose::typeId,
+        ComponentState::PeriodicChange);
+
+    return true;
+  });
 
   // for seek back in time only
   // remove entities that should not be present in the current time step
