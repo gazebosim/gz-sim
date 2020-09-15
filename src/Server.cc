@@ -68,7 +68,13 @@ struct DefaultWorld
         std::string("<plugin filename='libignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
         "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-      }};
+      },
+      {
+        std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
+        "name='ignition::gazebo::systems::UserCommands'></plugin>"
+      }
+    };
 
     // The set of default gazebo plugins.
     if (_config.LogPlaybackPath().empty())
@@ -76,9 +82,6 @@ struct DefaultWorld
       pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
         "name='ignition::gazebo::systems::Physics'></plugin>");
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
-        "name='ignition::gazebo::systems::UserCommands'></plugin>");
     }
 
     // Playback plugin
