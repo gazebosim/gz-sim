@@ -41,6 +41,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "Sensors.hh"
@@ -116,6 +117,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Mask sensor updates for sensors currently being rendered
   public: std::map<sensors::SensorId, ignition::common::Time> sensorMask;
+
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
 
   /// \brief Wait for initialization to happen
   private: void WaitForInit();
@@ -205,6 +209,7 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
+
   if (!this->activeSensors.empty())
   {
     this->sensorMaskMutex.lock();
@@ -227,6 +232,7 @@ void SensorsPrivate::RunOnce()
 
     {
       IGN_PROFILE("PreRender");
+      this->eventManager->Emit<events::PreRender>();
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -238,6 +244,7 @@ void SensorsPrivate::RunOnce()
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+      this->eventManager->Emit<events::PostRender>();
     }
 
     this->activeSensors.clear();
@@ -338,6 +345,8 @@ void Sensors::Configure(const Entity &/*_id*/,
       this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
     }
   }
+
+  this->dataPtr->eventManager = &_eventMgr;
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
