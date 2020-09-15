@@ -345,8 +345,8 @@ namespace ignition
                                    const std::string &_uri);
 
       /// \brief Get whether the next step is going to be executed as paused.
-      /// \return True if the next step is being executed as paused,
-      /// false otherwise.
+      /// \return True if the next step is being executed as paused, false
+      /// otherwise.
       public: bool NextStepIsBlockingPaused() const;
 
       /// \brief Set the next step to be blocking and paused.
