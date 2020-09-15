@@ -94,16 +94,16 @@ PlotComponent::PlotComponent(std::string _type,
     this->dataPtr->data["yaw"] = new PlotData();
   }
   else if (_type == "double")
-      this->dataPtr->data["value"] = new PlotData();
+    this->dataPtr->data["value"] = new PlotData();
   else
-      ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
+    ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
 
 //////////////////////////////////////////////////
 PlotComponent::~PlotComponent()
 {
   for (auto plotData : this->dataPtr->data)
-      delete plotData.second;
+    delete plotData.second;
 }
 
 //////////////////////////////////////////////////
@@ -133,7 +133,7 @@ bool PlotComponent::HasCharts()
 {
   for (auto field : this->dataPtr->data)
     if (field.second->ChartCount() > 0)
-        return true;
+      return true;
   return false;
 }
 
@@ -189,7 +189,7 @@ Plotting ::~Plotting()
   delete this->dataPtr->plottingIface;
 
   for (auto component : this->dataPtr->components)
-      delete component.second;
+    delete component.second;
 }
 
 //////////////////////////////////////////////////
@@ -237,7 +237,7 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
 
 //////////////////////////////////////////////////
 void Plotting::UnRegisterChartFromComponent(uint64_t _entity, uint64_t _typeId,
-                                          std::string _attribute, int _chart)
+                                            std::string _attribute, int _chart)
 {
   std::string id = std::to_string(_entity) + "," + std::to_string(_typeId);
   igndbg << "UnRegister [" << id  << "]" << std::endl;
@@ -259,7 +259,7 @@ std::string Plotting::ComponentName(const uint64_t &_typeId)
   auto pos = name.find("ign.gazebo.components.");
 
   if (pos != std::string::npos)
-      name.erase(pos, 22);
+    name.erase(pos, 22);
 
   return name;
 }
