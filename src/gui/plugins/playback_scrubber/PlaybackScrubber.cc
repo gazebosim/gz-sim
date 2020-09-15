@@ -24,6 +24,7 @@
 #include <regex>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/Helpers.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -51,6 +52,9 @@ namespace ignition::gazebo
 
     /// \brief The current time of the log file
     public: std::chrono::steady_clock::time_point currentTime;
+
+    /// \brief The name of the world
+    public: std::string worldName = "";
 
     /// \brief The progress as a percentage of how far we
     /// are into the log file
@@ -114,6 +118,8 @@ void PlaybackScrubber::Update(const UpdateInfo &_info,
   auto totalDuration =
     std::chrono::duration_cast<std::chrono::nanoseconds>(
         endTime - startTime).count();
+
+  // Set the start and end times
   if (totalDuration <= 0)
   {
     _ecm.Each<components::LogPlaybackStatistics>(
@@ -134,6 +140,17 @@ void PlaybackScrubber::Update(const UpdateInfo &_info,
           math::secNsecToTimePoint(endSeconds, endNanoseconds);
         return true;
       });
+  }
+
+  // Populate the world name
+  if (this->dataPtr->worldName == "")
+  {
+    // TODO(anyone) Only one world is supported for now
+    auto worldNames = ignition::gui::worldNames();
+    if (worldNames.size() >= 1)
+    {
+      this->dataPtr->worldName = worldNames[0].toStdString();
+    }
   }
 
   auto simTime = math::durationToSecNsec(_info.simTime);
@@ -191,7 +208,7 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
     enteredTime = this->dataPtr->endTime;
 
   auto pairTime = math::timePointToSecNsec(enteredTime);
-  const std::string topic = "/world/default/playback/control";
+
   unsigned int timeout = 1000;
   msgs::Boolean res;
   bool result{false};
@@ -201,13 +218,14 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
   playbackMsg.mutable_seek()->set_sec(pairTime.first);
   playbackMsg.mutable_seek()->set_nsec(pairTime.second);
   playbackMsg.set_pause(true);
-  this->dataPtr->node.Request(topic, playbackMsg, timeout, res, result);
+  this->dataPtr->node.Request(
+      "/world/" + this->dataPtr->worldName + "/playback/control",
+      playbackMsg, timeout, res, result);
 }
 
 /////////////////////////////////////////////////
 void PlaybackScrubber::OnDrop(double _value)
 {
-  const std::string topic = "/world/default/playback/control";
   unsigned int timeout = 1000;
   msgs::Boolean res;
   bool result{false};
@@ -225,7 +243,9 @@ void PlaybackScrubber::OnDrop(double _value)
   playbackMsg.mutable_seek()->set_sec(jumpToTime.first);
   playbackMsg.mutable_seek()->set_nsec(jumpToTime.second);
   playbackMsg.set_pause(this->dataPtr->paused);
-  this->dataPtr->node.Request(topic, playbackMsg, timeout, res, result);
+  this->dataPtr->node.Request(
+      "/world/" + this->dataPtr->worldName + "/playback/control",
+      playbackMsg, timeout, res, result);
 }
 
 // Register this plugin
