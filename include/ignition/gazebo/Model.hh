@@ -106,7 +106,7 @@ namespace ignition
 
       /// \brief Get whether this model is static.
       /// \param[in] _ecm Entity-component manager.
-      /// \return True if self-colliding.
+      /// \return True if static.
       public: bool Static(const EntityComponentManager &_ecm) const;
 
       /// \brief Get whether this model has self-collide enabled.

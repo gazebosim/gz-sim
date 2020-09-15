@@ -68,6 +68,8 @@ namespace ignition
     /// In case the entity has more than one type, only one of them will be
     /// returned. This is not standard usage.
     ///
+    /// \param[in] _entity Entity to get the type for.
+    /// \param[in] _ecm Immutable reference to ECM.
     /// \return ID of entity's type-defining components.
     ComponentTypeId IGNITION_GAZEBO_VISIBLE entityTypeId(const Entity &_entity,
         const EntityComponentManager &_ecm);
@@ -86,11 +88,15 @@ namespace ignition
     ///
     /// Note that this is different from  component type names.
     ///
+    /// \param[in] _entity Entity to get the type for.
+    /// \param[in] _ecm Immutable reference to ECM.
     /// \return ID of entity's type-defining components.
     std::string IGNITION_GAZEBO_VISIBLE entityTypeStr(const Entity &_entity,
         const EntityComponentManager &_ecm);
 
     /// \brief Get the world to which the given entity belongs.
+    /// \param[in] _entity Entity to get the world for.
+    /// \param[in] _ecm Immutable reference to ECM.
     /// \return World entity ID.
     Entity IGNITION_GAZEBO_VISIBLE worldEntity(const Entity &_entity,
         const EntityComponentManager &_ecm);
