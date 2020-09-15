@@ -265,7 +265,7 @@ Rectangle {
           Component.onCompleted: loaderZ.item.componentInfo = "z"
 
           Text {
-            text: 'Z (' + unit + ')'
+            text: ' Z (' + unit + ')'
             leftPadding: 5
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
             font.pointSize: 12

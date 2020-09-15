@@ -19,33 +19,19 @@
 #include "Plotting.hh"
 #include <memory>
 
-#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -110,7 +96,14 @@ PlotComponent::PlotComponent(std::string _type,
   else if (_type == "double")
       this->dataPtr->data["value"] = new PlotData();
   else
-    ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
+      ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
+}
+
+//////////////////////////////////////////////////
+PlotComponent::~PlotComponent()
+{
+  for (auto plotData : this->dataPtr->data)
+      delete plotData.second;
 }
 
 //////////////////////////////////////////////////
@@ -170,7 +163,7 @@ ComponentTypeId PlotComponent::TypeId()
   return this->dataPtr->typeId;
 }
 
-// ======================= Plotting =========================
+//////////////////////////////////////////////////
 Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 {
   this->dataPtr->plottingIface = new ignition::gui::PlottingInterface();
@@ -194,6 +187,9 @@ Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 Plotting ::~Plotting()
 {
   delete this->dataPtr->plottingIface;
+
+  for (auto component : this->dataPtr->components)
+      delete component.second;
 }
 
 //////////////////////////////////////////////////
@@ -240,7 +236,7 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
 }
 
 //////////////////////////////////////////////////
-void Plotting::UnRegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
+void Plotting::UnRegisterChartFromComponent(uint64_t _entity, uint64_t _typeId,
                                           std::string _attribute, int _chart)
 {
   std::string id = std::to_string(_entity) + "," + std::to_string(_typeId);
@@ -260,9 +256,10 @@ std::string Plotting::ComponentName(const uint64_t &_typeId)
 {
   std::string name = components::Factory::Instance()->Name(_typeId);
 
-  // 22 is size of "ign.gazebo.components."
-  if (name.size() > 22)
-      name.erase(0,22);
+  auto pos = name.find("ign.gazebo.components.");
+
+  if (pos != std::string::npos)
+      name.erase(pos, 22);
 
   return name;
 }

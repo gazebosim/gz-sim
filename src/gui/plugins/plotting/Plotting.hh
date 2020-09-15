@@ -45,6 +45,9 @@ class PlotComponent
                         ignition::gazebo::Entity _entity,
                         ComponentTypeId _typeId);
 
+  /// \brief Destructor
+  public: ~PlotComponent();
+
   /// \brief Add a registered chart to the attribute
   /// \param[in] _attribute component attribute to add the chart to it
   /// \param[in] _chart chart ID to be added to the attribute
@@ -136,10 +139,10 @@ class Plotting : public ignition::gazebo::GuiSystem
   /// \param[in] _attribute component attribute to remove the chart from it
   /// ex: x attribute in Pose3d Component will be "x"
   /// \param[in] _chart chart ID to be unregistered
-  public slots: void UnRegisterChartToComponent(uint64_t _entity,
-                                                uint64_t _typeId,
-                                                std::string _attribute,
-                                                int _chart);
+  public slots: void UnRegisterChartFromComponent(uint64_t _entity,
+                                                  uint64_t _typeId,
+                                                  std::string _attribute,
+                                                  int _chart);
 
   /// \brief Get Component Name based on its type Id
   /// \param[in] _typeId type Id of the component
