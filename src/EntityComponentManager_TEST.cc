@@ -2009,6 +2009,19 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
       manager.ComponentState(e2, c2.first));
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
+{
+  // First entity should have a value of 1.
+  Entity entity = manager.CreateEntity();
+  EXPECT_EQ(1u, entity);
+
+  // Apply an offset.
+  manager.SetEntityCreateOffset(1000);
+  Entity entity2 = manager.CreateEntity();
+  EXPECT_EQ(1001u, entity2);
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
