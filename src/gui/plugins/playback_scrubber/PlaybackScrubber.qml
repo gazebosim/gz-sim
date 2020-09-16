@@ -130,6 +130,7 @@ GridLayout {
       placeholderText: currentTime
       onAccepted: {
         PlaybackScrubber.OnTimeEntered(textField.text);
+        textField.text = "";
       }
       color: Material.theme == Material.Light ? "black" : "white"
     }
