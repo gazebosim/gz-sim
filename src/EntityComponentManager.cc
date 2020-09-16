@@ -1224,3 +1224,16 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
 
   return result;
 }
+
+/////////////////////////////////////////////////
+void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
+{
+  if (_offset < this->dataPtr->entityCount)
+  {
+    ignwarn << "Setting an entity offset of [" << _offset << "] is less than "
+     << "the current entity count of [" << this->dataPtr->entityCount << "]. "
+     << "Incorrect behavior should be expected.\n";
+  }
+
+  this->dataPtr->entityCount = _offset;
+}
