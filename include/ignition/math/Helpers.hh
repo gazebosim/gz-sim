@@ -732,7 +732,6 @@ namespace ignition
 
     /// \brief Convert a std::chrono::steady_clock::time_point to a seconds and
     /// nanoseconds pair.
-    // and on macOS, microsecond precision.
     /// \param[in] _time The time point to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
@@ -751,7 +750,6 @@ namespace ignition
 
     /// \brief Convert seconds and nanoseconds to
     /// std::chrono::steady_clock::time_point.
-    // and on macOS, microsecond precision.
     /// \param[in] _sec The seconds to convert.
     /// \param[in] _nanosec The nanoseconds to convert.
     /// \return A std::chrono::steady_clock::time_point based on the number of
@@ -767,9 +765,21 @@ namespace ignition
       return result;
     }
 
+    /// \brief Convert seconds and nanoseconds to
+    /// std::chrono::steady_clock::duration.
+    /// \param[in] _sec The seconds to convert.
+    /// \param[in] _nanosec The nanoseconds to convert.
+    /// \return A std::chrono::steady_clock::duration based on the number of
+    /// seconds and the number of nanoseconds.
+    inline std::chrono::steady_clock::duration secNsecToDuration(
+        const uint64_t &_sec, const uint64_t &_nanosec)
+    {
+      return std::chrono::seconds(_sec) + std::chrono::nanoseconds(
+        _nanosec);
+    }
+
     /// \brief Convert a std::chrono::steady_clock::duration to a seconds and
     /// nanoseconds pair.
-    // and on macOS, microsecond precision.
     /// \param[in] _dur The duration to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
@@ -831,45 +841,72 @@ namespace ignition
       return output_string.str();
     }
 
-    /// \brief Convert a string to a std::chrono::steady_clock::time_point
-    /// \param[in] _timeString The string to convert in general format
-    /// "dd hh:mm:ss.nnn" where n is millisecond value
-    /// \return A std::chrono::steady_clock::time_point containing the
-    /// string's time value. If it isn't possible to convert, the time will
-    /// be negative 1 second.
-    inline std::chrono::steady_clock::time_point stringToTimePoint(
-        const std::string &_timeString)
+    /// \brief Convert a std::chrono::steady_clock::duration to a string
+    /// \param[in] _duration The std::chrono::steady_clock::duration to convert.
+    /// \return A string formatted with the duration
+    inline std::string durationToString(
+      const std::chrono::steady_clock::duration &_duration)
     {
-      using namespace std::chrono_literals;
-      std::chrono::steady_clock::time_point timePoint{-1s};
+      auto cleanDuration = breakDownDurations<days,
+                                              std::chrono::hours,
+                                              std::chrono::minutes,
+                                              std::chrono::seconds,
+                                              std::chrono::milliseconds>(
+                                                _duration);
+      std::ostringstream outputString;
+      outputString << std::setw(2) << std::setfill('0')
+                    << std::get<0>(cleanDuration).count() << " "
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<1>(cleanDuration).count() << ":"
+                    << std::setw(2) << std::setfill('0')
+                    << std::get<2>(cleanDuration).count() << ":"
+                    << std::setfill('0') << std::setw(6)
+                    << std::fixed << std::setprecision(3)
+                    << std::get<3>(cleanDuration).count() +
+                       std::get<4>(cleanDuration).count()/1000.0;
+      return outputString.str();
+    }
 
-      if (_timeString.empty())
-        return timePoint;
+    // The following regex takes a time string in the general format of
+    // "dd hh:mm:ss.nnn" where n is milliseconds, if just one number is
+    // provided, it is assumed to be seconds
+    static const std::regex time_regex(
+        "^([0-9]+ ){0,1}"                       // day:
+                                                // Any positive integer
 
-      // The following regex takes a time string in the general format of
-      // "dd hh:mm:ss.nnn" where n is milliseconds, if just one number is
-      // provided, it is assumed to be seconds
-      std::regex time_regex(
-          "^([0-9]+ ){0,1}"                       // day:
-                                                  // Any positive integer
+        "(?:([1-9]:|[0-1][0-9]:|2[0-3]:){0,1}"  // hour:
+                                                // 1 - 9:
+                                                // 01 - 19:
+                                                // 20 - 23:
 
-          "(?:([1-9]:|[0-1][0-9]:|2[0-3]:){0,1}"  // hour:
-                                                  // 1 - 9:
-                                                  // 01 - 19:
-                                                  // 20 - 23:
+        "([0-9]:|[0-5][0-9]:)){0,1}"            // minute:
+                                                // 0 - 9:
+                                                // 00 - 59:
 
-          "([0-9]:|[0-5][0-9]:)){0,1}"            // minute:
-                                                  // 0 - 9:
-                                                  // 00 - 59:
+        "(?:([0-9]|[0-5][0-9]){0,1}"            // second:
+                                                // 0 - 9
+                                                // 00 - 59
 
-          "(?:([0-9]|[0-5][0-9]){0,1}"            // second:
-                                                  // 0 - 9
-                                                  // 00 - 59
+        "(\\.[0-9]{1,3}){0,1})$");              // millisecond:
+                                                // .0 - .9
+                                                // .00 - .99
+                                                // .000 - 0.999
 
-          "(\\.[0-9]{1,3}){0,1})$");              // millisecond:
-                                                  // .0 - .9
-                                                  // .00 - .99
-                                                  // .000 - 0.999
+
+    /// \brief Split a std::chrono::steady_clock::duration to a string
+    /// \param[in] _timeString The string to convert in general format
+    /// \param[out] numberDays number of days in the string
+    /// \param[out] numberHours number of hours in the string
+    /// \param[out] numberMinutes number of minutes in the string
+    /// \param[out] numberSeconds number of seconds in the string
+    /// \param[out] numberMilliseconds number of milliseconds in the string
+    /// \return True if the regex was able to split the string otherwise False
+    inline bool splitTimeBasedOnTimeRegex(
+        const std::string &_timeString,
+        uint64_t & numberDays, uint64_t & numberHours,
+        uint64_t & numberMinutes, uint64_t & numberSeconds,
+        uint64_t & numberMilliseconds)
+    {
       std::smatch matches;
 
       // `matches` should always be a size of 6 as there are 6 matching
@@ -886,13 +923,8 @@ namespace ignition
       // remain in the millisecond match
       if (!std::regex_search(_timeString, matches, time_regex) ||
           matches.size() != 6)
-        return timePoint;
+        return false;
 
-      uint64_t numberDays = 0;
-      uint64_t numberHours = 0;
-      uint64_t numberMinutes = 0;
-      uint64_t numberSeconds = 0;
-      uint64_t numberMilliseconds = 0;
       std::string dayString = matches[1];
       std::string hourString = matches[2];
       std::string minuteString = matches[3];
@@ -911,7 +943,7 @@ namespace ignition
         }
         catch (const std::out_of_range &)
         {
-          return timePoint;
+          return false;
         }
       }
 
@@ -942,6 +974,78 @@ namespace ignition
         // Multiplier because "4" = 400 ms, "04" = 40 ms, and "004" = 4 ms
         numberMilliseconds = std::stoi(millisecondString) *
           static_cast<uint64_t>(1000 / pow(10, millisecondString.length()));
+      }
+      return true;
+    }
+
+    /// \brief Convert a string to a std::chrono::steady_clock::duration
+    /// \param[in] _timeString The string to convert in general format
+    /// "dd hh:mm:ss.nnn" where n is millisecond value
+    /// \return A std::chrono::steady_clock::duration containing the
+    /// string's time value. If it isn't possible to convert, the duration will
+    /// be zero.
+    inline std::chrono::steady_clock::duration stringToDuration(
+        const std::string &_timeString)
+    {
+      using namespace std::chrono_literals;
+      std::chrono::steady_clock::duration duration{
+        std::chrono::steady_clock::duration::zero()};
+
+      if (_timeString.empty())
+        return duration;
+
+      uint64_t numberDays = 0;
+      uint64_t numberHours = 0;
+      uint64_t numberMinutes = 0;
+      uint64_t numberSeconds = 0;
+      uint64_t numberMilliseconds = 0;
+
+      if (!splitTimeBasedOnTimeRegex(_timeString, numberDays, numberHours,
+                                     numberMinutes, numberSeconds,
+                                     numberMilliseconds))
+      {
+        return duration;
+      }
+
+      // TODO(anyone): Replace below day conversion with std::chrono::days.
+      /// This will exist in C++-20
+      duration = std::chrono::steady_clock::duration::zero();
+      auto delta = std::chrono::milliseconds(numberMilliseconds) +
+        std::chrono::seconds(numberSeconds) +
+        std::chrono::minutes(numberMinutes) +
+        std::chrono::hours(numberHours) +
+        std::chrono::hours(24 * numberDays);
+      duration += delta;
+
+      return duration;
+    }
+
+    /// \brief Convert a string to a std::chrono::steady_clock::time_point
+    /// \param[in] _timeString The string to convert in general format
+    /// "dd hh:mm:ss.nnn" where n is millisecond value
+    /// \return A std::chrono::steady_clock::time_point containing the
+    /// string's time value. If it isn't possible to convert, the time will
+    /// be negative 1 second.
+    inline std::chrono::steady_clock::time_point stringToTimePoint(
+        const std::string &_timeString)
+    {
+      using namespace std::chrono_literals;
+      std::chrono::steady_clock::time_point timePoint{-1s};
+
+      if (_timeString.empty())
+        return timePoint;
+
+      uint64_t numberDays = 0;
+      uint64_t numberHours = 0;
+      uint64_t numberMinutes = 0;
+      uint64_t numberSeconds = 0;
+      uint64_t numberMilliseconds = 0;
+
+      if (!splitTimeBasedOnTimeRegex(_timeString, numberDays, numberHours,
+                                     numberMinutes, numberSeconds,
+                                     numberMilliseconds))
+      {
+        return timePoint;
       }
 
       // TODO(anyone): Replace below day conversion with std::chrono::days.
