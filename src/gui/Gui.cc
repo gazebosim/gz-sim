@@ -71,14 +71,21 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  std::string defaultGuiConfigName = "gui.config";
 
   // Set default config file for Gazebo
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
   {
+    // The playback flag (and not the gui-config flag) was
+    // specified from the command line
+    if (std::string(_guiConfig) == "_playback_")
+    {
+      defaultGuiConfigName = "playback_gui.config";
+    }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", "gui.config");
+        "gazebo", defaultGuiConfigName);
   }
   else
   {
@@ -148,26 +155,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
     return nullptr;
 
   std::size_t runnerCount = 0;
-  std::string defaultGuiConfigName = "gui.config";
 
   // Configuration file from command line
   if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
   {
-    // The playback flag (and not the gui-config flag) was
-    // specified from the command line
-    if (std::string(_guiConfig) == "_playback_")
-    {
-      ignition::common::env(IGN_HOMEDIR, defaultConfig);
-      defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-          "gazebo", "playback_gui.config");
-      defaultGuiConfigName = "playback_gui.config";
-    }
-    else if (!app->LoadConfig(_guiConfig))
-    {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
-              << std::endl;
-    }
-
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.

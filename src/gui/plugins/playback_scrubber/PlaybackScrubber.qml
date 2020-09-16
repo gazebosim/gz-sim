@@ -24,15 +24,36 @@ import QtQuick.Controls.Styles 1.4
 
 GridLayout {
   id: playbackScrubber
-  columns: 5
+  columns: 3
   Layout.minimumWidth: 430
-  Layout.minimumHeight: 200
+  Layout.minimumHeight: 170
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
+
+  /**
+   * True if the playback scrubber is currently being pressed/dragged.
+   */
   property var isPressed: false
+
+  /**
+   * The current time the playback scrubber is at.
+   */
   property var currentTime: ""
 
+  /**
+   * The start time of the log playback file.
+   */
+  property var startTime: ""
+
+  /**
+   * The end time of the log playback file.
+   */
+  property var endTime: ""
+
+  /**
+   * Update the slider to the new values if it is currently being dragged.
+   */
   function updateSliderValue() {
     if (!playbackScrubber.isPressed)
     {
@@ -40,17 +61,24 @@ GridLayout {
     }
   }
 
+  /**
+   * Update the end time of the log playback file.
+   */
   function updateEndTime() {
-    endTime.text = PlaybackScrubber.EndTimeAsString();
-    maxTime.text = qsTr("/ ") + PlaybackScrubber.EndTimeAsString();
+    endTime = PlaybackScrubber.EndTimeAsString();
   }
 
+  /**
+   * Update the start time of the log playback file.
+   */
   function updateStartTime() {
-    startTime.text = PlaybackScrubber.StartTimeAsString();
+    startTime = PlaybackScrubber.CurrentTimeAsString();
   }
 
+  /**
+   * Update the current time the playback scrubber is at.
+   */
   function updateCurrentTime() {
-    textField.placeholderText = PlaybackScrubber.CurrentTimeAsString();
     currentTime = PlaybackScrubber.CurrentTimeAsString();
   }
 
@@ -63,118 +91,69 @@ GridLayout {
       updateCurrentTime();
     }
   }
-
-  // Left spacer
-  Item {
-    Layout.columnSpan: 1
-    Layout.rowSpan: 15
-    Layout.fillWidth: true
-  }
-
-  // Top spacer
-  Item {
+  Rectangle {
+    height: 40
+    width: 400
+    color: "transparent"
     Layout.columnSpan: 3
-    Layout.fillWidth: true
-    height: 12
-  }
-
-  // Right spacer
-  Item {
-    Layout.columnSpan: 1
-    Layout.rowSpan: 15
-    Layout.fillWidth: true
-    width: 30
-  }
-
-  Text {
-    text: "Current time: " + currentTime
-    Layout.columnSpan: 3
-    color: Material.theme == Material.Light ? "black" : "white"
-    font.bold: true
-  }
-
-  Row {
-    Layout.columnSpan: 3
-    spacing: 3
-    Rectangle {
-      height: 40
-      width: 100
-      color: "transparent"
-      Text {
-        id: startTime
-        font.pointSize: 9
-        text: PlaybackScrubber.StartTimeAsString()
-        color: Material.theme == Material.Light ? "black" : "white"
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        
-      }
-    }
-    Rectangle {
-      height: 40
-      width: 200
-      color: "transparent"
-      Slider {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        id: slider
-        from: 0
-        value: updateSliderValue()
-        to: 1
-        stepSize: 0.001
-        onPressedChanged: {
-          if (!pressed)
-          {
-            PlaybackScrubber.OnDrop(slider.value);
-            playbackScrubber.isPressed = false;
-          }
-          else
-          {
-            playbackScrubber.isPressed = true;
-          }
+    Slider {
+      anchors.horizontalCenter: parent.horizontalCenter
+      id: slider
+      from: 0
+      value: updateSliderValue()
+      to: 1
+      stepSize: 0.001
+      width: 380
+      topPadding: 17
+      onPressedChanged: {
+        if (!pressed)
+        {
+          PlaybackScrubber.OnDrop(slider.value);
+          playbackScrubber.isPressed = false;
+        }
+        else
+        {
+          playbackScrubber.isPressed = true;
         }
       }
     }
-    Rectangle {
-      height: 40
-      width: 100
-      color: "transparent"
-      Text {
-        id: endTime
-        font.pointSize: 9
-        text: PlaybackScrubber.EndTimeAsString()
-        color: Material.theme == Material.Light ? "black" : "white"
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
+  }
+
+  Rectangle {
+    height: 40
+    width: 170
+    color: "transparent"
+    Layout.columnSpan: 1
+    TextField {
+      id: textField
+      anchors.right: parent.right
+      placeholderText: currentTime
+      onAccepted: {
+        PlaybackScrubber.OnTimeEntered(textField.text);
       }
+      color: Material.theme == Material.Light ? "black" : "white"
     }
   }
 
-  TextField {
-    id: textField
-    Layout.columnSpan: 1
-    placeholderText: PlaybackScrubber.CurrentTimeAsString()
-    onAccepted: {
-      PlaybackScrubber.OnTimeEntered(textField.text);
+  Rectangle {
+    height: 40
+    width: 200
+    color: "transparent"
+    Layout.columnSpan: 2
+    Text {
+      id: maxTime
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      text: qsTr("/   ") + endTime
+      Layout.alignment: Qt.AlignLeft
+      font.pointSize: 11.5
+      color: Material.theme == Material.Light ? "black" : "white"
     }
-    color: Material.theme == Material.Light ? "black" : "white"
   }
-  Text {
-    id: maxTime
-    text: qsTr("/ ") + PlaybackScrubber.EndTimeAsString()
-    Layout.columnSpan: 1
-    Layout.alignment: Qt.AlignLeft
-    color: Material.theme == Material.Light ? "black" : "white"
-  }
-  Item {
-    Layout.columnSpan: 1
-    Layout.fillWidth: true
-  }
-
   // Bottom spacer
   Item {
     Layout.columnSpan: 3
-    height: 12
+    height: 15
     Layout.fillWidth: true
   }
 }

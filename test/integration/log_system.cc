@@ -42,6 +42,7 @@
 #include <sdf/Element.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
@@ -273,6 +274,56 @@ class LogSystemTest : public ::testing::Test
   public: std::string logPlaybackDir =
       common::joinPaths(this->logsDir, "test_logs_playback");
 };
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogPlaybackStatistics)
+{
+  auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "rolling_shapes_log");
+
+  ServerConfig config;
+  config.SetLogPlaybackPath(logPath);
+
+  Server server(config);
+
+  test::Relay testSystem;
+  math::Pose3d spherePose;
+  std::chrono::steady_clock::time_point startTime;
+  std::chrono::steady_clock::time_point endTime;
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::LogPlaybackStatistics>(
+            [&](const Entity &,
+                const components::LogPlaybackStatistics *_logStatComp)->bool
+            {
+              auto startSeconds =
+                _logStatComp->Data().start_time().sec();
+              auto startNanoseconds =
+                _logStatComp->Data().start_time().nsec();
+              auto endSeconds =
+                _logStatComp->Data().end_time().sec();
+              auto endNanoseconds =
+                _logStatComp->Data().end_time().nsec();
+              startTime =
+                math::secNsecToTimePoint(startSeconds, startNanoseconds);
+              endTime =
+                math::secNsecToTimePoint(endSeconds, endNanoseconds);
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
+
+  auto startTimePair = math::timePointToSecNsec(startTime);
+  auto endTimePair = math::timePointToSecNsec(endTime);
+
+  EXPECT_EQ(0, startTimePair.first);
+  EXPECT_EQ(0, startTimePair.second);
+  EXPECT_EQ(9, endTimePair.first);
+  EXPECT_EQ(721000000, endTimePair.second);
+}
 
 /////////////////////////////////////////////////
 // Logging behavior when no paths are specified
