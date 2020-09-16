@@ -98,9 +98,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const rendering::NodePtr &_target, double _duration,
         std::function<void()> _onAnimationComplete);
 
-    /// \brief Move the camera to look at the specified target
+    /// \brief Move the camera to the specified pose.
     /// param[in] _camera Camera to be moved
-    /// param[in] _target Target to move to
+    /// param[in] _target Pose to move to
     /// param[in] _duration Duration of the move to animation, in seconds.
     /// param[in] _onAnimationComplete Callback function when animation is
     /// complete
@@ -225,9 +225,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
 
-    /// \brief Flag for indicating whether we are in move to pose mode or not
-    public: bool moveToPose = false;
-
     /// \brief Flag for indicating whether we are spawning or not.
     public: bool isSpawning = false;
 
@@ -263,7 +260,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d viewAngleDirection = math::Vector3d::Zero;
 
     /// \brief The pose set from the move to pose service.
-    public: math::Pose3d moveToPoseValue = math::Pose3d::Zero;
+    public: std::optional<math::Pose3d> moveToPoseValue;
 
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
@@ -375,9 +372,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Camera pose topic
     public: std::string cameraPoseTopic;
 
-    /// \brief Camera pose topic
+    /// \brief Camera pose publisher
     public: transport::Node::Publisher cameraPosePub;
-
   };
 }
 }
@@ -530,16 +526,12 @@ void IgnRenderer::Render()
   // Move to pose
   {
     IGN_PROFILE("IgnRenderer::Render MoveToPose");
-    if (this->dataPtr->moveToPose)
+    if (this->dataPtr->moveToPoseValue)
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        std::vector<Entity> selectedEntities =
-          this->dataPtr->renderUtil.SelectedEntities();
-
-
         this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera,
-            this->dataPtr->moveToPoseValue,
+            *(this->dataPtr->moveToPoseValue),
             0.5, std::bind(&IgnRenderer::OnMoveToPoseComplete, this));
         this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
@@ -1688,7 +1680,6 @@ void IgnRenderer::SetViewAngle(const math::Vector3d &_direction)
 void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->moveToPose = true;
   this->dataPtr->moveToPoseValue = _pose;
 }
 
@@ -1759,7 +1750,7 @@ void IgnRenderer::OnViewAngleComplete()
 void IgnRenderer::OnMoveToPoseComplete()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->moveToPose = false;
+  this->dataPtr->moveToPoseValue.reset();
 }
 
 /////////////////////////////////////////////////
@@ -2302,7 +2293,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   this->dataPtr->cameraPoseTopic = "/gui/camera/pose";
   this->dataPtr->cameraPosePub =
     this->dataPtr->node.Advertise<msgs::Pose>(this->dataPtr->cameraPoseTopic);
-  ignmsg << "Camera pose topic published on ["
+  ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
   ignition::gui::App()->findChild<
@@ -2399,24 +2390,24 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
 }
 
 /////////////////////////////////////////////////
-bool Scene3D::OnMoveToPose(const msgs::Pose &_msg, msgs::Boolean &_res)
+bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
 {
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
-  math::Pose3d pose = msgs::Convert(_msg);
+  math::Pose3d pose = msgs::Convert(_msg.pose());
 
   // If there is no orientation in the message, then set a Rot value in the
   // math::Pose3d object to infinite. This will prevent the orientation from
   // being used when positioning the camera.
   // See the MoveToHelper::MoveTo function
-  if (!_msg.has_orientation())
+  if (!_msg.pose().has_orientation())
     pose.Rot().X() = math::INF_D;
 
   // If there is no position in the message, then set a Pos value in the
   // math::Pose3d object to infinite. This will prevent the orientation from
   // being used when positioning the camera.
   // See the MoveToHelper::MoveTo function
-  if (!_msg.has_position())
+  if (!_msg.pose().has_position())
     pose.Pos().X() = math::INF_D;
 
   renderWindow->SetMoveToPose(pose);

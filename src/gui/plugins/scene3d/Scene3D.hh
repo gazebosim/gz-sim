@@ -19,7 +19,7 @@
 #define IGNITION_GAZEBO_GUI_SCENE3D_HH_
 
 #include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 #include <ignition/msgs/video_record.pb.h>
@@ -148,10 +148,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         msgs::Boolean &_res);
 
     /// \brief Callback for a move to pose request.
-    /// \param[in] _msg Request message to set the camera's pose to.
+    /// \param[in] _msg GUICamera request message.
     /// \param[in] _res Response data
     /// \return True if the request is received
-    private: bool OnMoveToPose(const msgs::Pose &_msg, msgs::Boolean &_res);
+    private: bool OnMoveToPose(const msgs::GUICamera &_msg,
+                 msgs::Boolean &_res);
 
     /// \internal
     /// \brief Pointer to private data.
