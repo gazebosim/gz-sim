@@ -292,6 +292,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Timestamp that marks when this ServerConfig was created.
   public: std::chrono::time_point<std::chrono::system_clock> timestamp;
+
+  /// \brief Topics to record.
+  public: std::vector<std::string> logRecordTopics;
 };
 
 //////////////////////////////////////////////////
@@ -565,4 +568,22 @@ const std::chrono::time_point<std::chrono::system_clock> &
 ServerConfig::Timestamp() const
 {
   return this->dataPtr->timestamp;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::AddLogRecordTopic(const std::string &_topic)
+{
+  this->dataPtr->logRecordTopics.push_back(_topic);
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::ClearLogRecordTopics()
+{
+  this->dataPtr->logRecordTopics.clear();
+}
+
+/////////////////////////////////////////////////
+const std::vector<std::string> &ServerConfig::LogRecordTopics() const
+{
+  return this->dataPtr->logRecordTopics;
 }
