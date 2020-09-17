@@ -4,6 +4,7 @@
 
 1. Added wheel slip system plugin.
     * [Pull Request 134](https://github.com/ignitionrobotics/ign-gazebo/pull/134)
+    * [Pull Request 357](https://github.com/ignitionrobotics/ign-gazebo/pull/357)
 
 1. Enhanced log playback performance.
     * [Pull Request 351](https://github.com/ignitionrobotics/ign-gazebo/pull/351)
