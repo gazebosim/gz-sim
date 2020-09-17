@@ -20,6 +20,7 @@
 #include <cstdlib>
 
 #include <string>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
@@ -96,7 +97,8 @@ TEST(CmdLine, Server)
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, CachedFuelWorld)
+// Not supported on Mac's command line tool
+TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_MAC(CachedFuelWorld))
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str(), true);
