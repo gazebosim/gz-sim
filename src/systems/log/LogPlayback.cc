@@ -73,10 +73,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Keeps track of which entity poses have updated
   /// according to the given message.
   /// \param[in] _msg Message containing pose updates.
-  /// \param[in] _clear Whether the most recently cached pose updates
-  /// should be deleted or not. Useful for when Parse is called multiple
-  /// times in the same Update cycle.
-  public: void Parse(const msgs::Pose_V &_msg, bool &_clear);
+  public: void Parse(const msgs::Pose_V &_msg);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -141,21 +138,14 @@ LogPlayback::~LogPlayback()
 }
 
 //////////////////////////////////////////////////
-void LogPlaybackPrivate::Parse(const msgs::Pose_V &_msg, bool &_clear)
+void LogPlaybackPrivate::Parse(const msgs::Pose_V &_msg)
 {
-  if (_clear)
-    this->recentEntityPoseUpdates.clear();
-
   // save the new entity pose updates
   for (auto i=0; i < _msg.pose_size(); ++i)
   {
     const auto &pose = _msg.pose(i);
     this->recentEntityPoseUpdates.insert_or_assign(pose.id(), pose);
   }
-
-  // make sure that any future detected pose updates from the same Update
-  // cycle don't overwrite already-cached pose updates from the same cycle
-  _clear = false;
 }
 
 //////////////////////////////////////////////////
@@ -484,9 +474,8 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
   msgs::Pose_V queuedPose;
 
-  // if new pose updates are received, make sure that only the cached poses
-  // from a previous Update cycle are cleared
-  bool clearCachedPoseUpdates = true;
+  // Clear cached poses once.
+  this->dataPtr->recentEntityPoseUpdates.clear();
 
   auto iter = this->dataPtr->batch.begin();
   while (iter != this->dataPtr->batch.end())
@@ -496,7 +485,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Only set the last pose of a sequence of poses.
     if (msgType != "ignition.msgs.Pose_V" && queuedPose.pose_size() > 0)
     {
-      this->dataPtr->Parse(queuedPose, clearCachedPoseUpdates);
+      this->dataPtr->Parse(queuedPose);
       queuedPose.Clear();
     }
 
@@ -573,7 +562,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
   if (queuedPose.pose_size() > 0)
   {
-    this->dataPtr->Parse(queuedPose, clearCachedPoseUpdates);
+    this->dataPtr->Parse(queuedPose);
   }
 
   // flag changed entity poses as periodically changed based on
