@@ -13,12 +13,15 @@ There are a few places where the GUI configuration can come from:
 
 1. A file passed to the `--gui-config` command line argument
 2. A `<gui>` element inside an SDF file
-3. The default configuration file at `$HOME/.ignition/gazebo/gui.config`
+3. The default configuration file at `$HOME/.ignition/gazebo/gui.config` \*
 
 Each of the items above takes precedence over the ones below it. For example,
 if a user chooses a `--gui-config`, the SDF's `<gui>` element is ignored. And
 the default configuration file is only loaded if no configuration is passed
 through the command line or the SDF file.
+
+> \* For log-playback, the default file is
+> `$HOME/.ignition/gazebo/playback_gui.config`
 
 ## Try it out
 

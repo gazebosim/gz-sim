@@ -157,7 +157,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
-  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
+  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
+      std::string(_guiConfig) != "_playback_")
   {
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
