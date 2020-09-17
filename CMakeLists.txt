@@ -85,7 +85,7 @@ ign_find_package(ignition-physics1
     mesh
     sdf
   REQUIRED
-  VERSION 1.7)
+  VERSION 1.9)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
