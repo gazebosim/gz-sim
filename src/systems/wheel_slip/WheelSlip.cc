@@ -281,12 +281,9 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
         _ecm.Component<components::SlipComplianceCmd>(params.collision);
     if (currSlipCmdComp)
     {
-      auto state =
-        currSlipCmdComp->SetData(newSlipCmdComp.Data(), this->vecEql) ?
-        ComponentState::OneTimeChange :
-        ComponentState::NoChange;
-      _ecm.SetChanged(params.collision,
-          components::SlipComplianceCmd::typeId, state);
+      *currSlipCmdComp = newSlipCmdComp;
+      _ecm.SetChanged(params.collision, components::SlipComplianceCmd::typeId,
+                      ComponentState::PeriodicChange);
     }
     else
     {
