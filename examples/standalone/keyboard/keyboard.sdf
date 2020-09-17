@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="placeholder">
-    <plugin name="keyboard" filename="libKeyboardPlugin.so">
+    <plugin name="keyboard" filename="KeyboardPlugin">
       <twist_arrows>/model/vehicle_green/cmd_vel</twist_arrows>
 
       <twist_wasd>/model/vehicle_blue/cmd_vel</twist_wasd>

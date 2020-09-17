@@ -4,12 +4,12 @@
     <gravity>0 0 0</gravity>
 
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
 
     <plugin
-      filename="libignition-gazebo-wind-effects-system.so"
+      filename="ignition-gazebo-wind-effects-system"
       name="ignition::gazebo::systems::WindEffects">
       <force_approximation_scaling_factor>1</force_approximation_scaling_factor>
       <horizontal>
