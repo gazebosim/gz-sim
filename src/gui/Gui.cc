@@ -159,6 +159,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Configuration file from command line
   if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
   {
+    if (!app->LoadConfig(_guiConfig))
+    {
+      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+              << std::endl;
+    }
+
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
