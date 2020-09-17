@@ -101,6 +101,9 @@ class Plotting : public ignition::gazebo::GuiSystem
   public: ~Plotting();
 
   // Documentation inherited
+  public: void LoadConfig(const tinyxml2::XMLElement *) override;
+
+  // Documentation inherited
   public: void Update(const ignition::gazebo::UpdateInfo &_info,
                       ignition::gazebo::EntityComponentManager &_ecm) override;
 

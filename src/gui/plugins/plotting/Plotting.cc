@@ -40,7 +40,7 @@ namespace ignition::gazebo
   class PlottingPrivate
   {
     /// \brief Interface to communicate with Qml
-    public: ignition::gui::PlottingInterface *plottingIface;
+    public: std::unique_ptr<gui::PlottingInterface> plottingIface{nullptr};
 
     /// \brief registered components for plotting
     /// map key: string contains EntityID + "," + ComponentID
@@ -73,7 +73,7 @@ using namespace ignition::gui;
 PlotComponent::PlotComponent(const std::string &_type,
                              ignition::gazebo::Entity _entity,
                              ComponentTypeId _typeId) :
-    dataPtr(new PlotComponentPrivate)
+    dataPtr(std::make_unique<PlotComponentPrivate>())
 {
   this->dataPtr->entity = _entity;
   this->dataPtr->typeId = _typeId;
@@ -81,21 +81,21 @@ PlotComponent::PlotComponent(const std::string &_type,
 
   if (_type == "Vector3d")
   {
-    this->dataPtr->data["x"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["y"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["z"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["x"] = std::make_shared<PlotData>();
+    this->dataPtr->data["y"] = std::make_shared<PlotData>();
+    this->dataPtr->data["z"] = std::make_shared<PlotData>();
   }
   else if (_type == "Pose3d")
   {
-    this->dataPtr->data["x"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["y"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["z"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["roll"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["pitch"] = std::shared_ptr<PlotData> (new PlotData());
-    this->dataPtr->data["yaw"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["x"] = std::make_shared<PlotData>();
+    this->dataPtr->data["y"] = std::make_shared<PlotData>();
+    this->dataPtr->data["z"] = std::make_shared<PlotData>();
+    this->dataPtr->data["roll"] = std::make_shared<PlotData>();
+    this->dataPtr->data["pitch"] = std::make_shared<PlotData>();
+    this->dataPtr->data["yaw"] = std::make_shared<PlotData>();
   }
   else if (_type == "double")
-    this->dataPtr->data["value"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["value"] = std::make_shared<PlotData>();
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
@@ -163,29 +163,36 @@ ComponentTypeId PlotComponent::TypeId()
 }
 
 //////////////////////////////////////////////////
-Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
+Plotting ::Plotting() : GuiSystem(),
+  dataPtr(std::make_unique<PlottingPrivate>())
 {
-  this->dataPtr->plottingIface = new ignition::gui::PlottingInterface();
+  this->dataPtr->plottingIface = std::make_unique<gui::PlottingInterface>();
 
   // PlottingInterface connecting
-  connect(this->dataPtr->plottingIface, SIGNAL(ComponentSubscribe
+  this->connect(this->dataPtr->plottingIface.get(), SIGNAL(ComponentSubscribe
               (uint64_t, uint64_t, std::string, std::string, int)),
           this, SLOT(RegisterChartToComponent
               (uint64_t, uint64_t, std::string, std::string, int)));
 
-  connect(this->dataPtr->plottingIface, SIGNAL(ComponentUnSubscribe
+  this->connect(this->dataPtr->plottingIface.get(), SIGNAL(ComponentUnSubscribe
               (uint64_t, uint64_t, std::string, int)),
           this, SLOT(UnRegisterChartToComponent
               (uint64_t, uint64_t, std::string, int)));
 
-  connect(this->dataPtr->plottingIface, SIGNAL(ComponentName(uint64_t)),
-          this, SLOT(ComponentName(uint64_t)));
+  this->connect(this->dataPtr->plottingIface.get(),
+          SIGNAL(ComponentName(uint64_t)), this, SLOT(ComponentName(uint64_t)));
 }
 
 //////////////////////////////////////////////////
 Plotting ::~Plotting()
 {
-  delete this->dataPtr->plottingIface;
+}
+
+//////////////////////////////////////////
+void Plotting::LoadConfig(const tinyxml2::XMLElement *)
+{
+  if (this->title.empty())
+    this->title = "Plotting";
 }
 
 //////////////////////////////////////////////////
@@ -224,10 +231,10 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
   std::string Id = std::to_string(_entity) + "," + std::to_string(_typeId);
 
   if (this->dataPtr->components.count(Id) == 0)
-    this->dataPtr->components[Id] = std::shared_ptr<PlotComponent>
-          (new PlotComponent(_type,
-                             _entity,
-                             _typeId));
+  {
+    this->dataPtr->components[Id] = std::make_shared<PlotComponent>(
+          _type, _entity, _typeId);
+  }
 
   this->dataPtr->components[Id]->RegisterChart(_attribute, _chart);
 }
