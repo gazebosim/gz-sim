@@ -24,7 +24,8 @@ import QtQuick.Controls.Styles 1.4
 
 GridLayout {
   id: playbackScrubber
-  columns: 3
+  columns: 2
+  rowSpacing: 0
   Layout.minimumWidth: 430
   Layout.minimumHeight: 170
   anchors.fill: parent
@@ -91,70 +92,58 @@ GridLayout {
       updateCurrentTime();
     }
   }
-  Rectangle {
+  Slider {
+    id: slider
     height: 40
-    width: 400
-    color: "transparent"
-    Layout.columnSpan: 3
-    Slider {
-      anchors.horizontalCenter: parent.horizontalCenter
-      id: slider
-      from: 0
-      value: updateSliderValue()
-      to: 1
-      stepSize: 0.001
-      width: 380
-      topPadding: 17
-      onPressedChanged: {
-        if (!pressed)
-        {
-          PlaybackScrubber.OnDrop(slider.value);
-          playbackScrubber.isPressed = false;
-        }
-        else
-        {
-          playbackScrubber.isPressed = true;
-        }
-      }
-    }
-  }
-
-  Rectangle {
-    height: 40
-    width: 170
-    color: "transparent"
-    Layout.columnSpan: 1
-    TextField {
-      id: textField
-      anchors.right: parent.right
-      placeholderText: currentTime
-      onAccepted: {
-        PlaybackScrubber.OnTimeEntered(textField.text);
-        textField.text = "";
-      }
-      color: Material.theme == Material.Light ? "black" : "white"
-    }
-  }
-
-  Rectangle {
-    height: 40
-    width: 200
-    color: "transparent"
+    Layout.fillWidth: true
     Layout.columnSpan: 2
-    Text {
-      id: maxTime
-      anchors.left: parent.left
-      anchors.verticalCenter: parent.verticalCenter
-      text: qsTr("/   ") + endTime
-      Layout.alignment: Qt.AlignLeft
-      font.pointSize: 11.5
-      color: Material.theme == Material.Light ? "black" : "white"
+    from: 0
+    value: updateSliderValue()
+    to: 1
+    stepSize: 0.001
+    topPadding: 17
+    onPressedChanged: {
+      if (!pressed)
+      {
+        PlaybackScrubber.OnDrop(slider.value);
+        playbackScrubber.isPressed = false;
+      }
+      else
+      {
+        playbackScrubber.isPressed = true;
+      }
     }
   }
+
+  TextField {
+    id: textField
+    height: 40
+    width: 30
+    Layout.columnSpan: 1
+    Layout.alignment: Qt.AlignRight
+    placeholderText: currentTime
+    onAccepted: {
+      PlaybackScrubber.OnTimeEntered(textField.text);
+      textField.text = "";
+    }
+    color: Material.theme == Material.Light ? "black" : "white"
+  }
+
+  Text {
+    id: maxTime
+    height: 40
+    width: 30
+    Layout.columnSpan: 1
+    text: qsTr("/   ") + endTime
+    Layout.alignment: Qt.AlignLeft
+    font.pointSize: 11.5
+    color: Material.theme == Material.Light ? "black" : "white"
+  }
+
   // Bottom spacer
   Item {
-    Layout.columnSpan: 3
-    height: 15
+    Layout.columnSpan: 2
+    height: 10
     Layout.fillWidth: true
   }
 }
