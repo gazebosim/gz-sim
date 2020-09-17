@@ -22,6 +22,7 @@
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
+#include <vector>
 #include <sdf/Element.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -252,6 +253,19 @@ namespace ignition
       /// for example.
       /// \param[in] _ignore Whether to ignore the path specified in SDF
       public: void IGN_DEPRECATED(4) SetLogIgnoreSdfPath(bool _ignore);
+
+      /// \brief Add a topic to record.
+      /// \param[in] _topic Topic name, which can include wildcards.
+      public: void AddLogRecordTopic(const std::string &_topic);
+
+      /// \brief Clear topics to record. This will remove all topics set
+      /// using AddLogRecordTopic.
+      public: void ClearLogRecordTopics();
+
+      /// \brief Get the topics to record that were added using
+      /// AddLogRecordTopic.
+      /// \return The topics to record.
+      public: const std::vector<std::string> &LogRecordTopics() const;
 
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
