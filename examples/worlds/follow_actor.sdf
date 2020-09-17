@@ -11,15 +11,15 @@
 <sdf version="1.6">
   <world name="actors">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -307,7 +307,7 @@
       <!-- Root node pose (torso) -->
       <pose>0 -2 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="libignition-gazebo-follow-actor-system.so"
+      <plugin filename="ignition-gazebo-follow-actor-system"
               name="ignition::gazebo::systems::FollowActor">
         <target>red_box</target>
         <min_distance>1.0</min_distance>
@@ -321,7 +321,7 @@
       <name>walker_fast_green</name>
       <pose>0 0 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="libignition-gazebo-follow-actor-system.so"
+      <plugin filename="ignition-gazebo-follow-actor-system"
               name="ignition::gazebo::systems::FollowActor">
         <target>green_box</target>
         <min_distance>1.0</min_distance>
@@ -335,7 +335,7 @@
       <name>runner_slow_blue</name>
       <pose>0 2 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="libignition-gazebo-follow-actor-system.so"
+      <plugin filename="ignition-gazebo-follow-actor-system"
               name="ignition::gazebo::systems::FollowActor">
         <target>blue_box</target>
         <min_distance>1.0</min_distance>
@@ -350,7 +350,7 @@
       <name>runner_fast_yellow</name>
       <pose>0 4 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="libignition-gazebo-follow-actor-system.so"
+      <plugin filename="ignition-gazebo-follow-actor-system"
               name="ignition::gazebo::systems::FollowActor">
         <target>yellow_box</target>
         <min_distance>1.0</min_distance>

@@ -25,7 +25,7 @@ the change to the `DiffDrive` system is shown below:
   ...
 
   <plugin
-    filename="libignition-gazebo-diff-drive-system.so"
+    filename="ignition-gazebo-diff-drive-system"
     name="ignition::gazebo::systems::DiffDrive">
     <left_joint>front_left_wheel_joint</left_joint>
     <left_joint>rear_left_wheel_joint</left_joint>
@@ -44,7 +44,7 @@ a predetermined `Twist` message to the `DiffDrive` vehicle in response to
 a "start" message from the user:
 
 ```xml
-<plugin filename="libignition-gazebo-triggered-publisher-system.so"
+<plugin filename="ignition-gazebo-triggered-publisher-system"
         name="ignition::gazebo::systems::TriggeredPublisher">
   <input type="ignition.msgs.Empty" topic="/start"/>
   <output type="ignition.msgs.Twist" topic="/cmd_vel">
@@ -117,14 +117,14 @@ indicating where the sensor is on the ground.
       </sensor>
     </link>
     <plugin
-      filename="libignition-gazebo-touchplugin-system.so"
+      filename="ignition-gazebo-touchplugin-system"
       name="ignition::gazebo::systems::TouchPlugin">
       <target>vehicle_blue</target>
       <namespace>trigger</namespace>
       <time>0.001</time>
       <enabled>true</enabled>
     </plugin>
-    <plugin filename="libignition-gazebo-detachable-joint-system.so"
+    <plugin filename="ignition-gazebo-detachable-joint-system"
             name="ignition::gazebo::systems::DetachableJoint">
       <parent_link>body</parent_link>
       <child_model>box1</child_model>
@@ -140,7 +140,7 @@ indicating where the sensor is on the ground.
     <world>
       ...
       <plugin
-        filename="libignition-gazebo-contact-system.so"
+        filename="ignition-gazebo-contact-system"
         name="ignition::gazebo::systems::Contact">
       </plugin>
       ...
@@ -162,7 +162,7 @@ to demonstrate the use of matchers, we will only trigger when the Boolean input
 message is `true`
 
 ```xml
-<plugin filename="libignition-gazebo-triggered-publisher-system.so"
+<plugin filename="ignition-gazebo-triggered-publisher-system"
         name="ignition::gazebo::systems::TriggeredPublisher">
   <input type="ignition.msgs.Boolean" topic="/trigger/touched">
     <match>data: true</match>
@@ -195,7 +195,7 @@ the link "box_body" in `box1`
 ```xml
     <world>
       ...
-      <plugin filename="libignition-gazebo-altimeter-system.so"
+      <plugin filename="ignition-gazebo-altimeter-system"
         name="ignition::gazebo::systems::Altimeter">
       </plugin>
       ...
@@ -218,7 +218,7 @@ static model `trigger` by adding the following to `trigger`
 ```xml
 <model name="trigger">
   ...
-  <plugin filename="libignition-gazebo-detachable-joint-system.so"
+  <plugin filename="ignition-gazebo-detachable-joint-system"
           name="ignition::gazebo::systems::DetachableJoint">
     <parent_link>body</parent_link>
     <child_model>box2</child_model>
@@ -242,7 +242,7 @@ we do not know the exact value and an exact comparison of floating point
 numbers is not advised, we will set a tolerance of 0.2.
 
 ```xml
-<plugin filename="libignition-gazebo-triggered-publisher-system.so"
+<plugin filename="ignition-gazebo-triggered-publisher-system"
         name="ignition::gazebo::systems::TriggeredPublisher">
   <input type="ignition.msgs.Altimeter" topic="/altimeter">
     <match field="vertical_position" tol="0.2">-7.5</match>
