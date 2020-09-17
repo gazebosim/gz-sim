@@ -16,7 +16,7 @@ cmake ..
 make
 ~~~
 
-This will generate the `libCustomComponent.so` library under `build`.
+This will generate the `CustomComponent` library under `build`.
 
 ## Run
 

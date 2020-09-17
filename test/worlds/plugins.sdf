@@ -2,21 +2,21 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="libTestWorldSystem.so"
+      filename="TestWorldSystem"
       name="ignition::gazebo::TestWorldSystem">
       <world_key>0.123</world_key>
     </plugin>
 
     <model name="box">
       <plugin
-        filename="libTestModelSystem.so"
+        filename="TestModelSystem"
         name="ignition::gazebo::TestModelSystem">
         <model_key>987</model_key>
       </plugin>
       <link name="link_1">
         <sensor name="camera" type="camera">
           <plugin
-            filename="libTestSensorSystem.so"
+            filename="TestSensorSystem"
             name="ignition::gazebo::TestSensorSystem">
             <sensor_key>456</sensor_key>
           </plugin>
