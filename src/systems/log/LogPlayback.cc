@@ -484,8 +484,16 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
   msgs::Pose_V queuedPose;
 
-  // if new pose updates are received, make sure that only the cached poses
-  // from a previous Update cycle are cleared
+  // If new pose updates are received, make sure that only the cached poses
+  // from a previous Update cycle are cleared.
+  //
+  // Since Parse can be called multiple times in a single Update,
+  // it's important to make sure that new poses from a given Update aren't
+  // overwritten by poses received in a later Parse call from the same Update.
+  // Since Parse may not be called at all for a given Update (it depends on the
+  // timestamp being investigated from the log file), we will only clear cached
+  // poses from a previous Update if there are new poses to be saved in the current
+  // Update (we know that there are new poses to be saved if Parse is called).
   bool clearCachedPoseUpdates = true;
 
   auto iter = this->dataPtr->batch.begin();
