@@ -14,11 +14,10 @@
  * limitations under the License.
  *
 */
-#include <ignition/plugin/Register.hh>
 
 #include "Plotting.hh"
-#include <memory>
 
+#include <ignition/plugin/Register.hh>
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -45,7 +44,8 @@ namespace ignition::gazebo
 
     /// \brief registered components for plotting
     /// map key: string contains EntityID + "," + ComponentID
-    public: std::map<std::string, PlotComponent*> components;
+    public: std::map<std::string,
+      std::shared_ptr<PlotComponent>> components;
   };
 
   class PlotComponentPrivate
@@ -61,7 +61,8 @@ namespace ignition::gazebo
 
     /// \brief attributes of the components,
     /// ex: x,y,z attributes in Vector3d type component
-    public: std::map<std::string, ignition::gui::PlotData*> data;
+    public: std::map<std::string,
+      std::shared_ptr<ignition::gui::PlotData>> data;
   };
 }
 
@@ -69,7 +70,7 @@ using namespace ignition::gazebo;
 using namespace ignition::gui;
 
 //////////////////////////////////////////////////
-PlotComponent::PlotComponent(std::string _type,
+PlotComponent::PlotComponent(const std::string &_type,
                              ignition::gazebo::Entity _entity,
                              ComponentTypeId _typeId) :
     dataPtr(new PlotComponentPrivate)
@@ -80,21 +81,21 @@ PlotComponent::PlotComponent(std::string _type,
 
   if (_type == "Vector3d")
   {
-    this->dataPtr->data["x"] = new PlotData();
-    this->dataPtr->data["y"] = new PlotData();
-    this->dataPtr->data["z"] = new PlotData();
+    this->dataPtr->data["x"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["y"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["z"] = std::shared_ptr<PlotData> (new PlotData());
   }
   else if (_type == "Pose3d")
   {
-    this->dataPtr->data["x"] = new PlotData();
-    this->dataPtr->data["y"] = new PlotData();
-    this->dataPtr->data["z"] = new PlotData();
-    this->dataPtr->data["roll"] = new PlotData();
-    this->dataPtr->data["pitch"] = new PlotData();
-    this->dataPtr->data["yaw"] = new PlotData();
+    this->dataPtr->data["x"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["y"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["z"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["roll"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["pitch"] = std::shared_ptr<PlotData> (new PlotData());
+    this->dataPtr->data["yaw"] = std::shared_ptr<PlotData> (new PlotData());
   }
   else if (_type == "double")
-    this->dataPtr->data["value"] = new PlotData();
+    this->dataPtr->data["value"] = std::shared_ptr<PlotData> (new PlotData());
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
@@ -102,8 +103,6 @@ PlotComponent::PlotComponent(std::string _type,
 //////////////////////////////////////////////////
 PlotComponent::~PlotComponent()
 {
-  for (auto plotData : this->dataPtr->data)
-    delete plotData.second;
 }
 
 //////////////////////////////////////////////////
@@ -146,7 +145,7 @@ void PlotComponent::SetAttributeValue(std::string _attribute,
 }
 
 //////////////////////////////////////////////////
-std::map<std::string, PlotData*> PlotComponent::Data() const
+std::map<std::string, std::shared_ptr<PlotData>> PlotComponent::Data() const
 {
   return this->dataPtr->data;
 }
@@ -187,9 +186,6 @@ Plotting ::Plotting ()  : GuiSystem() , dataPtr(new PlottingPrivate)
 Plotting ::~Plotting()
 {
   delete this->dataPtr->plottingIface;
-
-  for (auto component : this->dataPtr->components)
-    delete component.second;
 }
 
 //////////////////////////////////////////////////
@@ -228,9 +224,10 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
   std::string Id = std::to_string(_entity) + "," + std::to_string(_typeId);
 
   if (this->dataPtr->components.count(Id) == 0)
-    this->dataPtr->components[Id] = new PlotComponent(_type,
-                                                      _entity,
-                                                      _typeId);
+    this->dataPtr->components[Id] = std::shared_ptr<PlotComponent>
+          (new PlotComponent(_type,
+                             _entity,
+                             _typeId));
 
   this->dataPtr->components[Id]->RegisterChart(_attribute, _chart);
 }
@@ -392,7 +389,6 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
         emit this->dataPtr->plottingIface->plot(chart, attributeName, x, y);
       }
     }
-
   }
 }
 

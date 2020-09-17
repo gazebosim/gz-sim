@@ -26,6 +26,7 @@
 
 #include <map>
 #include <string>
+#include <memory>
 
 namespace ignition {
 
@@ -41,7 +42,7 @@ class PlotComponent
   /// \param[in] _type component data type (Pose3d, Vector3d, double)
   /// \param [in] _entity entity id of that component
   /// \param [in] _typeId type identifier unique to each component type
-  public: PlotComponent(std::string _type,
+  public: PlotComponent(const std::string &_type,
                         ignition::gazebo::Entity _entity,
                         ComponentTypeId _typeId);
 
@@ -71,7 +72,8 @@ class PlotComponent
 
   /// \brief Get all attributes of the component
   /// \return component attributes
-  public: std::map<std::string, ignition::gui::PlotData*> Data() const;
+  public: std::map<std::string, std::shared_ptr<ignition::gui::PlotData>>
+    Data() const;
 
   /// \brief Get the Component entity ID
   /// \return Entity ID
@@ -123,7 +125,7 @@ class Plotting : public ignition::gazebo::GuiSystem
   /// \brief Add a chart to a specefic component attribute
   /// \param[in] _entity entity id in the simulation
   /// \param[in] _typeId type identifier unique to each component type
-  /// \param[in] _type Component Datatype could be ("Pose3d","Vector3d","double")
+  /// \param[in] _type Component Datatype ("Pose3d","Vector3d","double")
   /// \param[in] _attribute component attribute to add the chart to it
   /// ex: x attribute in Pose3d Component will be "x"
   /// \param [in] _chart chart ID to be registered
