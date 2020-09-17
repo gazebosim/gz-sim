@@ -109,6 +109,41 @@
 
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.24.0 (2020-09-03)
+
+1. Resource env var, with transport interface.
+    * [Pull Request 172](https://github.com/ignitionrobotics/ign-gazebo/pull/172)
+
+1. Save http URIs (fix tests)
+    * [Pull Request 271](https://github.com/ignitionrobotics/ign-gazebo/pull/271)
+
+1. Insert Local Models.
+    * [Pull Request 173](https://github.com/ignitionrobotics/ign-gazebo/pull/173)
+
+1. Modernize actions CI.
+    * [Pull Request 269](https://github.com/ignitionrobotics/ign-gazebo/pull/269)
+
+1. Sensor topics available through components and GUI.
+    * [Pull Request 266](https://github.com/ignitionrobotics/ign-gazebo/pull/266)
+
+1. Customizable layouts - fully functional.
+    * [Pull Request 278](https://github.com/ignitionrobotics/ign-gazebo/pull/278)
+
+1. Add Fuel World Support.
+    * [Pull Request 274](https://github.com/ignitionrobotics/ign-gazebo/pull/274)
+
+1. Insert Fuel Models.
+    * [Pull Request 263](https://github.com/ignitionrobotics/ign-gazebo/pull/263)
+
+1. Disable rendering tests on macOS that are known to fail.
+    * [Pull Request 209](https://github.com/ignitionrobotics/ign-gazebo/pull/209)
+
+1. Fix tests on Blueprint.
+    * [Pull Request 295](https://github.com/ignitionrobotics/ign-gazebo/pull/295)
+
+1. Publish remaining breadcrumb deployments.
+    * [Pull Request 308](https://github.com/ignitionrobotics/ign-gazebo/pull/308)
+
 ### Ignition Gazebo 2.23.0 (2020-07-28)
 
 1. Deactivate PerformerDetector if its parent model gets removed.
