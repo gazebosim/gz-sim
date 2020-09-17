@@ -492,8 +492,9 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // overwritten by poses received in a later Parse call from the same Update.
   // Since Parse may not be called at all for a given Update (it depends on the
   // timestamp being investigated from the log file), we will only clear cached
-  // poses from a previous Update if there are new poses to be saved in the current
-  // Update (we know that there are new poses to be saved if Parse is called).
+  // poses from a previous Update if there are new poses to be saved in the
+  // current Update (we know that there are new poses to be saved if Parse
+  // is called).
   bool clearCachedPoseUpdates = true;
 
   auto iter = this->dataPtr->batch.begin();
