@@ -79,7 +79,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   {
     // The playback flag (and not the gui-config flag) was
     // specified from the command line
-    if (std::string(_guiConfig) == "_playback_")
+    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
     {
       defaultGuiConfigName = "playback_gui.config";
     }
