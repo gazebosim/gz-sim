@@ -128,14 +128,17 @@ COMMANDS = { 'gazebo' =>
   "                               Make sure custom plugins are in                  \n"\
   "                               IGN_GAZEBO_PHYSICS_ENGINE_PATH.                  \n"\
   "\n"\
-  "  --render-engine [arg]        Ignition Rendering engine plugin to load.        \n"\
-  "                               Gazebo will use OGRE2 by default. (ogre2)        \n"\
+  "  --render-engine [arg]        Ignition Rendering engine plugin to load for     \n"\
+  "                               both the server and the GUI. Gazebo will use     \n"\
+  "                               OGRE2 by default. (ogre2)                        \n"\
   "\n"\
-  "  --render-engine-gui [arg]    Ignition Rendering gui engine plugin to load.    \n"\
-  "                               Gazebo will use OGRE2 by default. (ogre2)        \n"\
+  "  --render-engine-gui [arg]    Ignition Rendering engine plugin to load for     \n"\
+  "                               the GUI. Gazebo will use OGRE2 by default.       \n"\
+  "                               (ogre2)                                          \n"\
   "\n"\
-  "  --render-engine-server [arg] Ignition Rendering server engine plugin to load. \n"\
-  "                               Gazebo will use OGRE2 by default. (ogre2)        \n"\
+  "  --render-engine-server [arg] Ignition Rendering engine plugin to load for     \n"\
+  "                               the server. Gazebo will use OGRE2 by default.    \n"\
+  "                               (ogre2)                                          \n"\
   "\n"\
   "  --version                    Print Gazebo version information.                \n"\
   "\n"\
