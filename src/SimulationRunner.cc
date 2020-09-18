@@ -668,6 +668,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       this->Step(this->currentInfo);
     }
+
+    // Handle Server::RunOnce(false) in which a single paused run is executed
+    if (this->currentInfo.paused && this->blockingPausedStepPending)
+    {
+      processedIterations++;
+      this->currentInfo.iterations++;
+      this->blockingPausedStepPending = false;
+    }
   }
 
   this->running = false;
@@ -1172,4 +1180,16 @@ void SimulationRunner::AddToFuelUriMap(const std::string &_path,
                                        const std::string &_uri)
 {
   this->fuelUriMap[_path] = _uri;
+}
+
+//////////////////////////////////////////////////
+bool SimulationRunner::NextStepIsBlockingPaused() const
+{
+  return this->blockingPausedStepPending;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
+{
+  this->blockingPausedStepPending = value;
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="detachable_joint">
-    <plugin filename="libignition-gazebo-physics-system.so"
+    <plugin filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics"/>
 
     <model name="ground_plane">
@@ -40,7 +40,7 @@
         </collision>
       </link>
 
-      <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>M2</child_model>
         <child_link>body</child_link>
@@ -115,7 +115,7 @@
           </geometry>
         </collision>
       </link>
-      <plugin filename="libignition-gazebo-detachable-joint-system.so" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
         <parent_link>body1</parent_link>
         <child_model>__model__</child_model>
         <child_link>body2</child_link>

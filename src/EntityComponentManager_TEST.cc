@@ -2014,6 +2014,19 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
 }
 
 //////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
+{
+  // First entity should have a value of 1.
+  Entity entity = manager.CreateEntity();
+  EXPECT_EQ(1u, entity);
+
+  // Apply an offset.
+  manager.SetEntityCreateOffset(1000);
+  Entity entity2 = manager.CreateEntity();
+  EXPECT_EQ(1001u, entity2);
+}
+
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
 {
   // Create entity

@@ -7,15 +7,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -376,7 +376,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
@@ -385,7 +385,7 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <breadcrumb>
          <sdf version="1.6">
@@ -427,7 +427,7 @@
         </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <disable_physics_time>0.5</disable_physics_time>
        <breadcrumb>
@@ -471,7 +471,7 @@
         </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
         <max_deployments>-1</max_deployments>
         <topic>/fuel_deploy</topic>
         <breadcrumb>
@@ -487,7 +487,7 @@
           </sdf>
         </breadcrumb>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <performer_volume>
          <geometry>
@@ -537,7 +537,7 @@
        </breadcrumb>
       </plugin>
       <!-- Breadcrumb with large performer volume -->
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <performer_volume>
          <geometry>
@@ -588,7 +588,7 @@
       </plugin>
 
       <!-- Two Breadcrumbs containing a breadcrumb model that is already spawned (B1).-->
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <allow_renaming>false</allow_renaming>
        <topic>/no_rename_deploy</topic>
@@ -613,7 +613,7 @@
         </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
         <max_deployments>3</max_deployments>
         <allow_renaming>true</allow_renaming>
         <topic>/rename_deploy</topic>
