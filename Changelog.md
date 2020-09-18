@@ -1,5 +1,32 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.25.0 (2020-09-17)
+
+1. Added wheel slip system plugin.
+    * [Pull Request 134](https://github.com/ignitionrobotics/ign-gazebo/pull/134)
+    * [Pull Request 357](https://github.com/ignitionrobotics/ign-gazebo/pull/357)
+
+1. Enhanced log playback performance.
+    * [Pull Request 351](https://github.com/ignitionrobotics/ign-gazebo/pull/351)
+
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+    * [Pull Request 327](https://github.com/ignitionrobotics/ign-gazebo/pull/327)
+
+1. Added support for specifying topics to record.
+    * [Pull Request 315](https://github.com/ignitionrobotics/ign-gazebo/pull/315)
+
+1. Make sure OpenGL core profile context is used by GzScene3D.
+    * [Pull Request 339](https://github.com/ignitionrobotics/ign-gazebo/pull/339)
+
+1. Support relative paths for PBR materials
+    * [Pull Request 328](https://github.com/ignitionrobotics/ign-gazebo/pull/328)
+
+1. Add file extension automatically for record plugin.
+    * [Pull Request 303](https://github.com/ignitionrobotics/ign-gazebo/pull/303)
+
+1. Support spawning during log playback.
+    * [Pull Request 346](https://github.com/ignitionrobotics/ign-gazebo/pull/346)
+
 ### Ignition Gazebo 2.24.0 (2020-09-03)
 
 1. Resource env var, with transport interface.
