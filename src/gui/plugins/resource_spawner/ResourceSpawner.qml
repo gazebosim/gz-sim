@@ -30,7 +30,7 @@ import QtQml.Models 2.2
 Rectangle {
   id: resourceSpawner
   color: Material.background
-  Layout.minimumWidth: 500
+  Layout.minimumWidth: 600
   Layout.minimumHeight: 500
   anchors.fill: parent
 
@@ -305,7 +305,35 @@ Rectangle {
         Layout.fillWidth: true
         Layout.minimumWidth: 300
         height: 40
-        color: evenColor
+        RowLayout {
+          spacing: 10
+          TextField {
+            id: searchField
+            placeholderText: "Search"
+            color: Material.theme == Material.Light ? "black" : "white"
+            Layout.minimumWidth: 135
+            onAccepted: {
+              print(searchField.text)
+            }
+          }
+          ComboBox {
+            Layout.minimumWidth: 140
+            model: ListModel {
+              id: cbItems
+              ListElement { text: "Most Recent"}
+              ListElement { text: "A - Z"}
+              ListElement { text: "Z - A"}
+              ListElement { text: "Downloaded"}
+            }
+            onCurrentIndexChanged: print(cbItems.get(currentIndex).text)
+          }
+        }
+      }
+      Rectangle {
+        Layout.fillWidth: true
+        Layout.minimumWidth: 300
+        height: 40
+        color: "blue"
         Label {
           text: currentPath
           font.pointSize: 12
@@ -316,6 +344,7 @@ Rectangle {
           anchors.right: parent.right
         }
       }
+      
       Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
