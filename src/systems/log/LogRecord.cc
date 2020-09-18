@@ -190,6 +190,7 @@ LogRecord::~LogRecord()
       this->dataPtr->CompressStateAndResources();
     this->dataPtr->savedModels.clear();
 
+    LogRecordPrivate::started = false;
     ignmsg << "Stopping recording" << std::endl;
   }
 }

@@ -45,6 +45,7 @@ set(CMAKE_AUTORCC OFF)
 
 install(TARGETS ${gui_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
 install (FILES gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
+install (FILES playback_gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
 
 # Tests
 set (gtest_sources
