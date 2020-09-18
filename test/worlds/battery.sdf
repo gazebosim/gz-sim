@@ -6,11 +6,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -42,7 +42,7 @@
         </visual>
       </link>
 
-      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>

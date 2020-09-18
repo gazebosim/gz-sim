@@ -161,13 +161,17 @@ namespace events
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 3);
   };
 
-  /// \brief Event called to spawn a preview model.  Used in shapes plugin.
+  /// \brief Event called to spawn a preview model.
+  /// Used by plugins that spawn models.
   class SpawnPreviewModel : public QEvent
   {
+    /// \brief Constructor
+    /// \param[in] _modelSdfString The model's SDF file as a string.
     public: explicit SpawnPreviewModel(std::string &_modelSdfString)
         : QEvent(kType), modelSdfString(_modelSdfString)
     {
     }
+
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 4);
 
@@ -180,6 +184,31 @@ namespace events
 
     /// \brief The sdf string of the model to be previewed.
     std::string modelSdfString;
+  };
+
+  /// \brief Event called to spawn a preview resource, which takes the path
+  /// to the SDF file. Used by plugins that spawn resources.
+  class SpawnPreviewPath : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _filePath The path to an SDF file.
+    public: explicit SpawnPreviewPath(const std::string &_filePath)
+        : QEvent(kType), filePath(_filePath)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 5);
+
+    /// \brief Get the path of the SDF file.
+    /// \return The file path.
+    public: std::string FilePath() const
+    {
+      return this->filePath;
+    }
+
+    /// \brief The path of SDF file to be previewed.
+    std::string filePath;
   };
 }  // namespace events
 }

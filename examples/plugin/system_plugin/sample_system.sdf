@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
-    <plugin filename="libSampleSystem.so"
+    <plugin filename="SampleSystem"
             name="sample_system::SampleSystem">
     </plugin>
-    <plugin filename="libSampleSystem.so"
+    <plugin filename="SampleSystem"
             name="sample_system::SampleSystem2">
     </plugin>
   </world>

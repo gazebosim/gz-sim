@@ -55,7 +55,7 @@ For the example above, you can load it like this:
 
 ```{.xml}
 <plugin
-  filename="libignition-gazebo-physics-system.so"
+  filename="ignition-gazebo-physics-system"
   name="ignition::gazebo::systems::Physics">
   <engine>
     <filename>CustomEngine</filename>
