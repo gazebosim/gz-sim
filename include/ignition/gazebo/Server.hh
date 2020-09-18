@@ -144,6 +144,15 @@ namespace ignition
                        const uint64_t _iterations = 0,
                        const bool _paused = true);
 
+      /// \brief Run the server once, all systems will be updated once and
+      /// then this returns. This is a blocking call.
+      /// \param[in] _paused True to run the simulation in a paused state,
+      /// false to run simulation unpaused. The simulation iterations will
+      /// be increased by 1.
+      /// \return False if the server was terminated before completing,
+      /// not being initialized, or if the server is already running.
+      public: bool RunOnce(const bool _paused = true);
+
       /// \brief Get whether the server is running. The server can have zero
       /// or more simulation worlds, each of which may or may not be
       /// running. See Running(const unsigned int) to get the running status
