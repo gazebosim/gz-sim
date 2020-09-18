@@ -377,13 +377,36 @@ namespace ignition
     /// \param[in] _fname Absolute path to the configuration file to parse.
     /// \return A list of all of the plugins found in the configuration file
     std::list<ServerConfig::PluginInfo>
-    ParsePluginsFromFile(const std::string &_fname);
+    IGNITION_GAZEBO_VISIBLE
+    parsePluginsFromFile(const std::string &_fname);
 
     /// \brief Parse plugins from XML configuration string.
     /// \param[in] _str XML configuration content to parse
     /// \return A list of all of the plugins found in the configuration string.
     std::list<ServerConfig::PluginInfo>
-    ParsePluginsFromString(const std::string &_str);
+    IGNITION_GAZEBO_VISIBLE
+    parsePluginsFromString(const std::string &_str);
+
+    /// \brief Load plugin information, following ordering.
+    ///
+    /// This method is used when no plugins are found in an SDF
+    /// file to load either a default or custom set of plugins.
+    ///
+    /// The following order is used to resolve:
+    /// 1. Config file located at IGN_GAZEBO_SERVER_CONFIG environment
+    ///    variable.
+    ///   * If IGN_GAZEBO_SERVER_CONFIG is set but empty, no plugins
+    ///     are loaded.
+    /// 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/server.config
+    /// 3. File at ${IGN_DATA_INSTALL_DIR}/server.config
+    ///
+    /// If any of the above files exist but are empty, resolution
+    /// stops and the plugin list will be empty.
+    ///
+    /// \return A list of plugins to load, based on above ordering
+    std::list<ServerConfig::PluginInfo>
+    IGNITION_GAZEBO_VISIBLE
+    loadPluginInfo();
     }
   }
 }

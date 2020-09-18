@@ -622,15 +622,29 @@ void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 }
 
 /////////////////////////////////////////////////
-std::list<ServerConfig::PluginInfo> Parse(const tinyxml2::XMLDocument &_doc)
+std::list<ServerConfig::PluginInfo>
+parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 {
   auto ret =  std::list<ServerConfig::PluginInfo>();
-  auto _elem = _doc.RootElement();
-  const tinyxml2::XMLElement *elem;
+  auto root = _doc.RootElement();
+  if (root == nullptr)
+  {
+    ignerr << "No <server_config> element found when parsing plugins\n";
+    return ret;
+  }
+
+  auto plugins = root->FirstChildElement("plugins");
+  if (plugins == nullptr)
+  {
+    ignerr << "No <plugins> element found when parsing plugins\n";
+    return ret;
+  }
+
+  const tinyxml2::XMLElement *elem{nullptr};
 
   // Note, this was taken from ign-launch, where this type of parsing happens.
   // Process all the plugins.
-  for (elem = _elem->FirstChildElement("plugin"); elem;
+  for (elem = plugins->FirstChildElement("plugin"); elem;
        elem = elem->NextSiblingElement("plugin"))
   {
     // Get the plugin's name
@@ -687,18 +701,100 @@ std::list<ServerConfig::PluginInfo> Parse(const tinyxml2::XMLDocument &_doc)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::ParsePluginsFromFile(const std::string &_fname)
+ignition::gazebo::parsePluginsFromFile(const std::string &_fname)
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile(_fname.c_str());
-  return Parse(doc);
+  return parsePluginsFromDoc(doc);
 }
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::ParsePluginsFromString(const std::string &_str)
+ignition::gazebo::parsePluginsFromString(const std::string &_str)
 {
   tinyxml2::XMLDocument doc;
   doc.Parse(_str.c_str());
-  return Parse(doc);
+  return parsePluginsFromDoc(doc);
 }
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+ignition::gazebo::loadPluginInfo()
+{
+  std::list<ServerConfig::PluginInfo> ret;
+  bool resolved = false;
+
+  // 1. Check contents of environment variable
+  std::string envConfig;
+  bool configSet = ignition::common::env("IGN_GAZEBO_SERVER_CONFIG",
+                                         envConfig);
+
+  if (configSet)
+  {
+    if (ignition::common::exists(envConfig)) {
+      // Parse configuration stored in environment variable
+      ret = ignition::gazebo::parsePluginsFromFile(envConfig);
+      if (ret.empty())
+      {
+        // This may be desired behavior, but warn just in case.
+        // Some users may want to defer all loading until later
+        // during runtime.
+        ignwarn << "IGN_GAZEBO_SERVER_CONFIG set but no plugins found\n";
+      }
+      resolved = true;
+    }
+    else
+    {
+      // This may be desired behavior, but warn just in case.
+      // Some users may want to defer all loading until late
+      // during runtime.
+      ignwarn << "IGN_GAZEBO_SERVER_CONFIG set but no file found,"
+              << " no plugins loaded\n";
+      resolved = true;
+    }
+  }
+
+  if (!resolved)
+  {
+    std::string defaultConfig;
+    ignition::common::env(IGN_HOMEDIR, defaultConfig);
+    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", "server.config");
+
+    if (!ignition::common::exists(defaultConfig))
+    {
+      auto installedConfig = IGNITION_GAZEBO_SERVER_CONFIG_PATH;
+
+      if (!ignition::common::exists(installedConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+        return ret;
+      }
+      else if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      {
+        ignerr << "Failed to copy installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+        return ret;
+      }
+      else
+      {
+        ignmsg << "Copied installed config [" << installedConfig
+               << "] to default config [" << defaultConfig << "]."
+               << std::endl;
+      }
+    }
+
+    ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
+    if (ret.empty())
+    {
+      // This may be desired behavior, but warn just in case.
+      ignwarn << "Loaded IGN_HOME config, but no plugins found\n";
+    }
+  }
+
+  return ret;
+}
+
