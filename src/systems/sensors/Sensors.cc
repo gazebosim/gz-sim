@@ -436,7 +436,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         }
       }
 
-      if (rs && rs->NextUpdateTime() <= t)
+      if (rs && rs->NextDataUpdateTime() <= t)
       {
         activeSensors.push_back(rs);
       }
