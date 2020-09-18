@@ -1139,6 +1139,29 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 }
 
 /////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadServer_NoPlugins)
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/plugins_empty.sdf");
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // ServerConfig will fall back to environment variable
+  auto config = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/server_valid2.config";
+  ASSERT_EQ(0, setenv("IGN_GAZEBO_SERVER_CONFIG",
+                      config.c_str(), true));
+  ServerConfig serverConfig;
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+      serverConfig);
+
+  ASSERT_EQ(2u, runner.SystemCount());
+}
+
+/////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
 {
   sdf::Root rootWithout;
@@ -1146,34 +1169,16 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
       "/test/worlds/plugins_empty.sdf");
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
-  std::string plugins = R"(
-  <server_config>
-    <plugin
-      entity_name="default"
-      entity_type="world"
-      filename="libTestWorldSystem.so"
-      name="ignition::gazebo::TestWorldSystem">
-      <world_key>0.123</world_key>
-    </plugin>
-    <plugin
-      entity_name="box"
-      entity_type="model"
-      filename="libTestModelSystem.so"
-      name="ignition::gazebo::TestModelSystem">
-      <model_key>987</model_key>
-    </plugin>
-    <plugin
-      entity_name="default::box::link_1::camera"
-      entity_type="sensor"
-      filename="libTestSensorSystem.so"
-      name="ignition::gazebo::TestSensorSystem">
-      <sensor_key>456</sensor_key>
-    </plugin>
-  </server_config>)";
-
   // Create a server configuration with plugins
+  // No fallback expected
+  auto config = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/server_valid.config";
+
+  auto plugins = parsePluginsFromFile(config);
+  ASSERT_EQ(3u, plugins.size());
+
   ServerConfig serverConfig;
-  for (auto plugin : ParsePluginsFromString(plugins))
+  for (auto plugin : plugins)
   {
     serverConfig.AddPlugin(plugin);
   }
@@ -1264,10 +1269,16 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
       "/test/worlds/plugins_empty.sdf");
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
+  auto config = std::string(PROJECT_SOURCE_PATH) +
+    "/inclue/ignition/gazebo/server.config";
+  ASSERT_EQ(0, setenv("IGN_GAZEBO_SERVER_CONFIG",
+                      config.c_str(), true));
+
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
   ASSERT_EQ(3u, runner.SystemCount());
+  unsetenv("IGN_GAZEBO_SERVER_CONFIG");
 }
 
 /////////////////////////////////////////////////

@@ -74,6 +74,7 @@ set (gtest_sources
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc
+  ServerConfig_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
