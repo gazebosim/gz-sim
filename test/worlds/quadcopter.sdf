@@ -2,11 +2,11 @@
 <sdf version="1.6">
   <world name="quadcopter">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -245,7 +245,7 @@
         </axis>
       </joint>
       <plugin
-        filename="libignition-gazebo-multicopter-motor-model-system.so"
+        filename="ignition-gazebo-multicopter-motor-model-system"
         name="ignition::gazebo::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>rotor_0_joint</jointName>
@@ -265,7 +265,7 @@
         <motorType>velocity</motorType>
       </plugin>
       <plugin
-        filename="libignition-gazebo-multicopter-motor-model-system.so"
+        filename="ignition-gazebo-multicopter-motor-model-system"
         name="ignition::gazebo::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>rotor_1_joint</jointName>
@@ -285,7 +285,7 @@
         <motorType>velocity</motorType>
       </plugin>
       <plugin
-        filename="libignition-gazebo-multicopter-motor-model-system.so"
+        filename="ignition-gazebo-multicopter-motor-model-system"
         name="ignition::gazebo::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>rotor_2_joint</jointName>
@@ -305,7 +305,7 @@
         <motorType>velocity</motorType>
       </plugin>
       <plugin
-        filename="libignition-gazebo-multicopter-motor-model-system.so"
+        filename="ignition-gazebo-multicopter-motor-model-system"
         name="ignition::gazebo::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>rotor_3_joint</jointName>
