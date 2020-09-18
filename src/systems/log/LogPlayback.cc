@@ -18,6 +18,7 @@
 #include "LogPlayback.hh"
 
 #include <ignition/msgs/pose_v.pb.h>
+#include <ignition/msgs/log_playback_stats.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -41,8 +42,10 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -138,6 +141,8 @@ LogPlayback::~LogPlayback()
   {
     common::removeAll(this->dataPtr->extDest);
   }
+  if (this->dataPtr->instStarted)
+    LogPlaybackPrivate::started = false;
 }
 
 //////////////////////////////////////////////////
@@ -273,6 +278,34 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
       this->Parse(_ecm, msg);
       break;
     }
+  }
+
+  msgs::LogPlaybackStatistics logStats;
+  auto startTime = convert<msgs::Time>(this->log->StartTime());
+  auto endTime = convert<msgs::Time>(this->log->EndTime());
+  logStats.mutable_start_time()->set_sec(startTime.sec());
+  logStats.mutable_start_time()->set_nsec(startTime.nsec());
+  logStats.mutable_end_time()->set_sec(endTime.sec());
+  logStats.mutable_end_time()->set_nsec(endTime.nsec());
+  components::LogPlaybackStatistics newLogStatComp(logStats);
+
+  auto worldEntity = _ecm.EntityByComponents(components::World());
+  if (kNullEntity == worldEntity)
+  {
+    ignerr << "Missing world entity." << std::endl;
+    return false;
+  }
+
+  auto currLogStatComp =
+    _ecm.Component<components::LogPlaybackStatistics>(worldEntity);
+
+  if (currLogStatComp)
+  {
+    *currLogStatComp = newLogStatComp;
+  }
+  else
+  {
+    _ecm.CreateComponent(worldEntity, newLogStatComp);
   }
 
   this->ReplaceResourceURIs(_ecm);
