@@ -141,6 +141,8 @@ LogPlayback::~LogPlayback()
   {
     common::removeAll(this->dataPtr->extDest);
   }
+  if (this->dataPtr->instStarted)
+    LogPlaybackPrivate::started = false;
 }
 
 //////////////////////////////////////////////////

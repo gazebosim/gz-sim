@@ -583,7 +583,8 @@ TEST_F(LogSystemTest, LogPaths)
     // tlog-journal file
   }
 
-  EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
+  auto stateLogFilePath = common::joinPaths(stateLogPath, "state.tlog");
+  EXPECT_TRUE(common::exists(stateLogFilePath)) << stateLogFilePath;
 #ifndef __APPLE__
   EXPECT_EQ(1, entryCount(stateLogPath));
   EXPECT_EQ(0, entryCount(consoleLogPath));
