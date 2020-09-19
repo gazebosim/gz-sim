@@ -48,7 +48,9 @@
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
@@ -520,10 +522,24 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::SelfCollide::typeId)
+    {
+      auto comp =
+          _ecm.Component<components::SelfCollide>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::SensorTopic::typeId)
     {
       auto comp =
           _ecm.Component<components::SensorTopic>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::SourceFilePath::typeId)
+    {
+      auto comp =
+          _ecm.Component<components::SourceFilePath>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
