@@ -402,7 +402,7 @@ namespace ignition
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// PostUpdate callback.
       public: template<typename ...ComponentTypeTs>
               void EachRemoved(typename identity<std::function<
                   bool(const Entity &_entity,
@@ -528,6 +528,12 @@ namespace ignition
       /// \return Component's current state
       public: gazebo::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
+
+      /// \brief All future entities will have an id that starts at _offset.
+      /// This can be used to avoid entity id collisions, such as during log
+      /// playback.
+      /// \param[in] _offset Offset value.
+      public: void SetEntityCreateOffset(uint64_t _offset);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
