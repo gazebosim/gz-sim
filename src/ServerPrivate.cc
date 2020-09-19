@@ -42,8 +42,8 @@ struct LoggingPlugin
   public: static std::string &LoggingPluginFileName()
   {
     static std::string recordPluginFileName =
-      std::string("libignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so";
+      std::string("ignition-gazebo") +
+      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
     return recordPluginFileName;
   }
 
@@ -52,7 +52,7 @@ struct LoggingPlugin
   /// \return A string that contains the record plugin suffix.
   public: static std::string &LoggingPluginSuffix()
   {
-    static std::string recordPluginSuffix = "-log-system.so";
+    static std::string recordPluginSuffix = "-log-system";
     return recordPluginSuffix;
   }
 
@@ -301,6 +301,17 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
               cPathElem->Set<std::string>(cmpPath);
             }
 
+            // If record topics specified, add in SDF
+            for (const std::string &topic : _config.LogRecordTopics())
+            {
+              sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
+              topicElem->SetName("record_topic");
+              pluginElem->AddElementDescription(topicElem);
+              topicElem = pluginElem->AddElement("record_topic");
+              topicElem->AddValue("string", "false", false, "");
+              topicElem->Set<std::string>(topic);
+            }
+
             return;
           }
 
@@ -360,6 +371,17 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   cPathElem = recordElem->GetElement("compress_path");
   cPathElem->AddValue("string", "", false, "");
   cPathElem->Set<std::string>(_config.LogRecordCompressPath());
+
+  // If record topics specified, add in SDF
+  for (const std::string &topic : _config.LogRecordTopics())
+  {
+    sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
+    topicElem->SetName("record_topic");
+    recordElem->AddElementDescription(topicElem);
+    topicElem = recordElem->AddElement("record_topic");
+    topicElem->AddValue("string", "false", false, "");
+    topicElem->Set<std::string>(topic);
+  }
 }
 
 //////////////////////////////////////////////////
