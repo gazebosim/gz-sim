@@ -13,11 +13,11 @@
 <sdf version="1.6">
   <world name="apply_joint_force">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -143,7 +143,7 @@
         </axis>
       </joint>
       <plugin
-        filename="libignition-gazebo-apply-joint-force-system.so"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="ignition::gazebo::systems::ApplyJointForce">
         <joint_name>j1</joint_name>
       </plugin>

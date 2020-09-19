@@ -27,19 +27,19 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-buoyancy-system.so"
+      filename="ignition-gazebo-buoyancy-system"
       name="ignition::gazebo::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
@@ -271,13 +271,13 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-apply-joint-force-system.so"
+        filename="ignition-gazebo-apply-joint-force-system"
         name="ignition::gazebo::systems::ApplyJointForce">
         <joint_name>propeller_joint</joint_name>
       </plugin>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
@@ -294,7 +294,7 @@
       </plugin>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
@@ -311,7 +311,7 @@
       </plugin>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
 
         <air_density>1000</air_density>
@@ -329,7 +329,7 @@
       </plugin>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
 
         <air_density>1000</air_density>

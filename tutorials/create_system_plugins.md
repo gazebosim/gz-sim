@@ -102,11 +102,11 @@ In the SDF file representing your simulation, add the plugin to the `world` sect
   <world name="default">
     ...
     <plugin
-      filename="libSampleSystem.so"
+      filename="SampleSystem"
       name="sample_system::SampleSystem">
     </plugin>
     <plugin
-      filename="libSampleSystem.so"
+      filename="SampleSystem"
       name="sample_system::SampleSystem2">
     </plugin>
     ...

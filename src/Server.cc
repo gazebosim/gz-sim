@@ -65,27 +65,30 @@ struct DefaultWorld
   {
     std::vector<std::string> pluginsV = {
       {
-        std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
+        std::string("<plugin filename='ignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system' "
         "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-      }};
+      },
+      {
+        std::string("<plugin filename='ignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system' " +
+        "name='ignition::gazebo::systems::UserCommands'></plugin>"
+      }
+    };
 
     // The set of default gazebo plugins.
     if (_config.LogPlaybackPath().empty())
     {
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
+      pluginsV.push_back(std::string("<plugin filename='ignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system' "
         "name='ignition::gazebo::systems::Physics'></plugin>");
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
-        "name='ignition::gazebo::systems::UserCommands'></plugin>");
     }
 
     // Playback plugin
     else
     {
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so' "
+      pluginsV.push_back(std::string("<plugin filename='ignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system' "
         "name='ignition::gazebo::systems::LogPlayback'><path>" +
         _config.LogPlaybackPath() + "</path></plugin>");
     }
@@ -288,6 +291,18 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
 }
 
 /////////////////////////////////////////////////
+bool Server::RunOnce(const bool _paused)
+{
+  if (_paused)
+  {
+    for (auto &runner : this->dataPtr->simRunners)
+      runner->SetNextStepAsBlockingPaused(true);
+  }
+
+  return this->Run(true, 1, _paused);
+}
+
+/////////////////////////////////////////////////
 void Server::SetUpdatePeriod(
     const std::chrono::steady_clock::duration &_updatePeriod,
     const unsigned int _worldIndex)
@@ -423,4 +438,3 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 
   return false;
 }
-
