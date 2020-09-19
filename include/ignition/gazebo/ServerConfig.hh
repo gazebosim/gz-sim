@@ -329,6 +329,23 @@ namespace ignition
       /// \param[in] _physicsEngine File containing physics engine library.
       public: void SetPhysicsEngine(const std::string &_physicsEngine);
 
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineServer() const;
+
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineGui() const;
+
+      /// \brief Set the render engine server plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineServer(
+                  const std::string &_renderEngineServer);
+
+      /// \brief Set the render engine gui plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineGui(const std::string &_renderEngineGui);
+
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.
       /// \param[in] _info Information about the plugin to load.
