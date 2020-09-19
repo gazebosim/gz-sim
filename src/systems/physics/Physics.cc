@@ -1532,6 +1532,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             this->entityWorldVelocityCommandMap);
         if (!worldAngularVelFeature)
         {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set model angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
           return true;
         }
 
@@ -1571,6 +1580,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               this->entityWorldVelocityCommandMap);
         if (!worldLinearVelFeature)
         {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set model linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
           return true;
         }
 
