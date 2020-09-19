@@ -24,6 +24,7 @@
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -293,6 +294,12 @@ namespace sdf_generator
         [&](const Entity &_modelEntity, const components::Model *,
             const components::ModelSdf *_modelSdf)
         {
+          // skip nested models as they are not direct children of world
+          auto parentComp = _ecm.Component<components::ParentEntity>(
+              _modelEntity);
+          if (parentComp && parentComp->Data() != _entity)
+            return true;
+
           auto modelDir =
               common::parentPath(_modelSdf->Data().Element()->FilePath());
           const std::string modelName =

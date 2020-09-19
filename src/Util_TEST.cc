@@ -285,3 +285,60 @@ TEST(UtilTest, AsFullPath)
   }
 #endif
 }
+
+/////////////////////////////////////////////////
+TEST(UtilTest, TopLevelModel)
+{
+  EntityComponentManager ecm;
+
+  // world
+  //  - modelA
+  //    - linkA
+  //    - modelB
+  //      - linkB
+  //  - modelC
+
+  // World
+  auto worldEntity = ecm.CreateEntity();
+  ecm.CreateComponent(worldEntity, components::World());
+  ecm.CreateComponent(worldEntity, components::Name("world_name"));
+
+  // Model A
+  auto modelAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAEntity, components::Model());
+  ecm.CreateComponent(modelAEntity, components::Name("modelA_name"));
+  ecm.CreateComponent(modelAEntity, components::ParentEntity(worldEntity));
+
+  // Link A - Child of Model A
+  auto linkAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkAEntity, components::Link());
+  ecm.CreateComponent(linkAEntity, components::Name("linkA_name"));
+  ecm.CreateComponent(linkAEntity, components::ParentEntity(modelAEntity));
+
+  // Model B - nested inside Model A
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Model());
+  ecm.CreateComponent(modelBEntity, components::Name("modelB_name"));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(modelAEntity));
+
+  // Link B - child of Model B
+  auto linkBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkBEntity, components::Link());
+  ecm.CreateComponent(linkBEntity, components::Name("linkB_name"));
+  ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
+
+  // Model C
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Model());
+  ecm.CreateComponent(modelCEntity, components::Name("modelC_name"));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
+
+  // model A, link A, model B and link B should have model A as top level entity
+  EXPECT_EQ(modelAEntity, topLevelModel(modelAEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(linkAEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(modelBEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(linkBEntity, ecm));
+
+  // model C should have itself as the top level entity
+  EXPECT_EQ(modelCEntity, topLevelModel(modelCEntity, ecm));
+}
