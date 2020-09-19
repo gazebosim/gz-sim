@@ -165,6 +165,10 @@ namespace gazebo
     /// \param[in] index The index of the grid pane to update
     public slots: void OnDownloadFuelResource(const QString &_path, int index);
 
+    public slots: void OnSortChosen(const QString &_sortType);
+    
+    public slots: void OnSearchEntered(const QString &_searchKeyword);
+
     /// \brief Finds a thumbnail on the provided thumbnail path and
     /// sets the model's thumbnail path attribute to it, no action is
     /// taken if no thumbnail is found.

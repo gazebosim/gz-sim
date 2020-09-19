@@ -313,7 +313,7 @@ Rectangle {
             color: Material.theme == Material.Light ? "black" : "white"
             Layout.minimumWidth: 135
             onAccepted: {
-              print(searchField.text)
+              ResourceSpawner.OnSearchEntered(searchField.text);
             }
           }
           ComboBox {
@@ -325,7 +325,9 @@ Rectangle {
               ListElement { text: "Z - A"}
               ListElement { text: "Downloaded"}
             }
-            onCurrentIndexChanged: print(cbItems.get(currentIndex).text)
+            onCurrentIndexChanged: {
+              ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
+            }
           }
         }
       }

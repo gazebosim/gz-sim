@@ -316,45 +316,10 @@ void ResourceSpawner::FindFuelResources(const std::string &_owner)
     {
       this->dataPtr->resourceModel.AddResource(resource);
     }
+    ignwarn << "Already cached" << std::endl;
     return;
   }
-
-  auto servers = this->dataPtr->fuelClient->Config().Servers();
-
-  // Iterate through the loaded servers and search for any models belonging
-  // to the owner
-  std::vector<Resource> ownerResources;
-  for (auto const &server : servers)
-  {
-    std::string serverUrl = server.Url().Str();
-    for (auto id : this->dataPtr->fuelDetails[serverUrl])
-    {
-      if (_owner == id.Owner())
-      {
-        Resource resource;
-        resource.name = id.Name();
-        resource.isFuel = true;
-        resource.isDownloaded = false;
-        resource.sdfPath = id.UniqueName();
-        std::string path;
-
-        // If the resource is cached, we can go ahead and populate the
-        // respective information
-        if (this->dataPtr->fuelClient->CachedModel(
-              ignition::common::URI(id.UniqueName()), path))
-        {
-          resource.isDownloaded = true;
-          resource.sdfPath = ignition::common::joinPaths(path, "model.sdf");
-          std::string thumbnailPath = common::joinPaths(path, "thumbnails");
-          this->SetThumbnail(thumbnailPath, resource);
-        }
-
-        ownerResources.push_back(resource);
-        this->dataPtr->resourceModel.AddResource(resource);
-      }
-    }
-  }
-  this->dataPtr->ownerModelMap[_owner] = ownerResources;
+  ignwarn << "No resources found for owner [" << _owner << "]" << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -448,12 +413,29 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
       }
       std::string serverUrl = server.Url().Str();
       this->dataPtr->fuelDetails[serverUrl] = models;
-      for (auto id : this->dataPtr->fuelDetails[serverUrl])
+      for (auto id : models)
       {
-        auto ownerName = id.Owner();
-        ownerSet.insert(ownerName);
-        auto url = id.Server().Url();
+        Resource resource;
+        resource.name = id.Name();
+        resource.isFuel = true;
+        resource.isDownloaded = false;
+        resource.sdfPath = id.UniqueName();
+        std::string path;
+
+        // If the resource is cached, we can go ahead and populate the
+        // respective information
+        if (this->dataPtr->fuelClient->CachedModel(
+              ignition::common::URI(id.UniqueName()), path))
+        {
+          resource.isDownloaded = true;
+          resource.sdfPath = ignition::common::joinPaths(path, "model.sdf");
+          std::string thumbnailPath = common::joinPaths(path, "thumbnails");
+          this->SetThumbnail(thumbnailPath, resource);
+        }
+        this->dataPtr->ownerModelMap[id.Owner()].push_back(resource);
+        ownerSet.insert(id.Owner());
       }
+      // Perhaps create the map data for the resources here
     }
 
     // Clear the loading message
@@ -467,6 +449,19 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     ignmsg << "Fuel resources loaded.\n";
   });
   t.detach();
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnSearchEntered(const QString &_searchKeyword)
+{
+  std::cout << _searchKeyword.toStdString() << std::endl;
+
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnSortChosen(const QString &_sortType)
+{
+  std::cout << _sortType.toStdString() << std::endl;
 }
 
 /////////////////////////////////////////////////
