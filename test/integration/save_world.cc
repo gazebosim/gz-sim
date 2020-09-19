@@ -19,7 +19,11 @@
 #include <ignition/msgs/sdf_generator_config.pb.h>
 #include <tinyxml2.h>
 
+#include <sdf/Collision.hh>
+#include <sdf/Model.hh>
+#include <sdf/Link.hh>
 #include <sdf/Root.hh>
+#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
@@ -54,7 +58,7 @@ class SdfGeneratorFixture : public ::testing::Test
     this->server = std::make_unique<Server>(serverConfig);
     EXPECT_FALSE(server->Running());
   }
-  public: std::string RequestGeneratedSdf()
+  public: std::string RequestGeneratedSdf(const std::string &_worldName)
   {
     transport::Node node;
     msgs::SdfGeneratorConfig req;
@@ -62,7 +66,7 @@ class SdfGeneratorFixture : public ::testing::Test
     msgs::StringMsg worldGenSdfRes;
     bool result;
     unsigned int timeout = 5000;
-    std::string service{"/world/save_world/generate_world_sdf"};
+    std::string service{"/world/" + _worldName + "/generate_world_sdf"};
     EXPECT_TRUE(node.Request(service, req, timeout, worldGenSdfRes, result));
     EXPECT_TRUE(result);
     return worldGenSdfRes.data();
@@ -133,7 +137,7 @@ TEST_F(SdfGeneratorFixture, WorldWithModelsSpawnedAfterLoad)
   EXPECT_TRUE(this->server->EntityByName("spawned_model").has_value());
   EXPECT_NE(kNullEntity, this->server->EntityByName("spawned_model"));
 
-  const std::string worldGenSdfRes = this->RequestGeneratedSdf();
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("save_world");
   sdf::Root root;
   sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
   EXPECT_TRUE(err.empty());
@@ -228,13 +232,70 @@ TEST_F(SdfGeneratorFixture, ModelSpawnedWithNewName)
   EXPECT_TRUE(this->server->EntityByName("new_model_name").has_value());
   EXPECT_NE(kNullEntity, this->server->EntityByName("new_model_name"));
 
-  const std::string worldGenSdfRes = this->RequestGeneratedSdf();
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("save_world");
   sdf::Root root;
   sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
   EXPECT_TRUE(err.empty());
   auto *world = root.WorldByIndex(0);
   ASSERT_NE(nullptr, world);
   EXPECT_TRUE(world->ModelNameExists("new_model_name"));
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfGeneratorFixture, WorldWithNestedModel)
+{
+  this->LoadWorld("test/worlds/nested_model.sdf");
+
+  EXPECT_NE(kNullEntity, this->server->EntityByName("model_00"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("link_00"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("collision_00"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("visual_00"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("model_01"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("link_01"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("collision_01"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("visual_01"));
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("nested_model_world");
+
+  sdf::Root root;
+  sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
+  EXPECT_TRUE(err.empty());
+  auto *world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+  EXPECT_EQ(1u, world->ModelCount());
+
+  EXPECT_TRUE(world->ModelNameExists("model_00"));
+  EXPECT_FALSE(world->ModelNameExists("model_01"));
+
+  auto *model00 = world->ModelByName("model_00");
+  ASSERT_NE(nullptr, model00);
+  EXPECT_EQ(1u, model00->LinkCount());
+  EXPECT_EQ(1u, model00->ModelCount());
+
+  auto *link00 = model00->LinkByName("link_00");
+  ASSERT_NE(nullptr, link00);
+  EXPECT_EQ(1u, link00->CollisionCount());
+  EXPECT_NE(nullptr, link00->CollisionByName("collision_00"));
+  EXPECT_EQ(1u, link00->VisualCount());
+  EXPECT_NE(nullptr, link00->VisualByName("visual_00"));
+
+  auto *model01 = model00->ModelByName("model_01");
+  ASSERT_NE(nullptr, model01);
+  EXPECT_EQ(1u, model01->LinkCount());
+
+  auto *link01 = model01->LinkByName("link_01");
+  ASSERT_NE(nullptr, link01);
+  EXPECT_EQ(1u, link01->CollisionCount());
+  EXPECT_NE(nullptr, link01->CollisionByName("collision_01"));
+  EXPECT_EQ(1u, link01->VisualCount());
+  EXPECT_NE(nullptr, link01->VisualByName("visual_01"));
+
+  tinyxml2::XMLDocument genSdfDoc;
+  genSdfDoc.Parse(worldGenSdfRes.c_str());
+  ASSERT_NE(nullptr, genSdfDoc.RootElement());
+  auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
+  ASSERT_NE(nullptr, genWorld);
 }
 
 /////////////////////////////////////////////////

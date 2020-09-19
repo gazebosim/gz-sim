@@ -191,13 +191,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: physics::FrameData3d LinkFrameDataAtOffset(
       const LinkPtrType &_link, const math::Pose3d &_pose) const;
 
-  /// \brief Get the top level model of an entity
-  /// \param[in] _entity Input entity
-  /// \param[in] _ecm Constant reference to ECM.
-  /// \return Entity of top level model
-  public: ignition::gazebo::Entity TopLevelModel(const Entity &_entity,
-      const EntityComponentManager &_ecm) const;
-
   /// \brief Get transform from one ancestor entity to a descendant entity
   /// that are in the same model.
   /// \param[in] _from An ancestor of the _to entity.
@@ -738,11 +731,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
                 this->entityWorldNestedModelMap);
             if (!nestedModelFeature)
             {
-              igndbg << "Attempting to construct nested models, but the physics"
-                     << " engine doesn't support feature "
-                     << "[ConstructSdfNestedModelFeature]. "
-                     << "Nested model will be ignored."
-                     << std::endl;
+              static bool informed{false};
+              if (!informed)
+              {
+                igndbg << "Attempting to construct nested models, but the physics"
+                       << " engine doesn't support feature "
+                       << "[ConstructSdfNestedModelFeature]. "
+                       << "Nested model will be ignored."
+                       << std::endl;
+              }
               return true;
             }
             auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
@@ -1455,7 +1452,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         // world pose cmd currently not supported for nested models
-        if (_entity != this->TopLevelModel(_entity, _ecm))
+        if (_entity != topLevelModel(_entity, _ecm))
         {
           ignerr << "Unable to set world pose for nested models."
                  << std::endl;
@@ -1515,7 +1512,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         // angular vel cmd currently not supported for nested models
-        if (_entity != this->TopLevelModel(_entity, _ecm))
+        if (_entity != topLevelModel(_entity, _ecm))
         {
           ignerr << "Unable to set angular velocity for nested models."
                  << std::endl;
@@ -1554,7 +1551,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         // linear vel cmd currently not supported for nested models
-        if (_entity != this->TopLevelModel(_entity, _ecm))
+        if (_entity != topLevelModel(_entity, _ecm))
         {
           ignerr << "Unable to set linear velocity for nested models."
                  << std::endl;
@@ -1660,30 +1657,6 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 }
 
 //////////////////////////////////////////////////
-ignition::gazebo::Entity PhysicsPrivate::TopLevelModel(const Entity &_entity,
-    const EntityComponentManager &_ecm) const
-{
-  auto entity = _entity;
-
-  // check if parent is a model
-  auto parentComp = _ecm.Component<components::ParentEntity>(entity);
-  while (parentComp)
-  {
-    // check if parent is a model
-    auto parentEntity = parentComp->Data();
-    auto modelComp = _ecm.Component<components::Model>(
-        parentEntity);
-    if (!modelComp)
-      break;
-
-    // set current model entity
-    entity = parentEntity;
-    parentComp = _ecm.Component<components::ParentEntity>(entity);
-  }
-  return entity;
-}
-
-//////////////////////////////////////////////////
 ignition::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
   const Entity &_to, const EntityComponentManager &_ecm) const
 {
@@ -1730,9 +1703,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        // If model is static, don't process pose changes as periodic
+        // If parent is static, don't process pose changes as periodic
         const auto *staticComp =
-          _ecm.Component<components::Static>(_entity);
+          _ecm.Component<components::Static>(_parent->Data());
 
         if (staticComp && staticComp->Data())
           return true;
@@ -1741,7 +1714,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         if (linkIt != this->entityLinkMap.end())
         {
           // get top level model of this link
-          auto topLevelModel = this->TopLevelModel(_parent->Data(), _ecm);
+          auto topLevelModelEnt = topLevelModel(_parent->Data(), _ecm);
 
           auto canonicalLink =
               _ecm.Component<components::CanonicalLink>(_entity);
@@ -1760,16 +1733,16 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             // transform of the link w.r.t to its top level model.
             math::Pose3d linkPoseFromTopLevelModel;
             linkPoseFromTopLevelModel =
-                this->RelativePose(topLevelModel, _entity, _ecm);
+                this->RelativePose(topLevelModelEnt, _entity, _ecm);
 
             // update top level model's pose
             auto mutableModelPose =
-               _ecm.Component<components::Pose>(topLevelModel);
+               _ecm.Component<components::Pose>(topLevelModelEnt);
             *(mutableModelPose) = components::Pose(
                 math::eigen3::convert(worldPose) *
                 linkPoseFromTopLevelModel.Inverse());
 
-            _ecm.SetChanged(topLevelModel, components::Pose::typeId,
+            _ecm.SetChanged(topLevelModelEnt, components::Pose::typeId,
                 ComponentState::PeriodicChange);
           }
           else
@@ -1777,21 +1750,19 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             // Compute the relative pose of this link from the top level model
             // first get the world pose of the top level model
             auto worldComp =
-                _ecm.Component<components::ParentEntity>(topLevelModel);
+                _ecm.Component<components::ParentEntity>(topLevelModelEnt);
             // if the worldComp is a nullptr, something is wrong with ECS
             if (!worldComp)
             {
-              ignerr << "The parent component of " << topLevelModel
+              ignerr << "The parent component of " << topLevelModelEnt
                      << " could not be found. This should never happen!\n";
               return true;
             }
             math::Pose3d parentWorldPose =
                 this->RelativePose(worldComp->Data(), _parent->Data(), _ecm);
 
-            // Note that if the canonical link is inside a nested model, the
-            // immediate parent model of this link will not have its pose
-            // updated. Nested models have a fixed pose relative to the top
-            // level model.
+            // Unlike canonical links, pose of regular links can move relative.
+            // to the parent. Same for links inside nested models.
             *_pose = components::Pose(math::eigen3::convert(worldPose) +
                                       parentWorldPose.Inverse());
             _ecm.SetChanged(_entity, components::Pose::typeId,

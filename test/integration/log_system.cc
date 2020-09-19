@@ -568,7 +568,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Terminate server to close tlog file, otherwise we get a temporary
     // tlog-journal file
   }
-
   EXPECT_TRUE(common::exists(cppPath));
   EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
 #ifndef __APPLE__
