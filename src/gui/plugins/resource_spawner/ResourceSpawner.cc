@@ -61,16 +61,12 @@ namespace ignition::gazebo
     public: std::unique_ptr<ignition::fuel_tools::FuelClient>
             fuelClient = nullptr;
 
-    /// \brief Stores details about all Fuel servers providing assets.
-    /// The key is the server URI and the value is the list of models
-    /// corresponding to that URI.
-    public: std::unordered_map<std::string,
-            std::vector<ignition::fuel_tools::ModelIdentifier>> fuelDetails;
-
     /// \brief The map to cache resources after a search is made on an owner,
     /// reduces redundant searches
     public: std::unordered_map<std::string,
             std::vector<Resource>> ownerModelMap;
+
+    public: Display displayData;
   };
 }
 
@@ -127,6 +123,13 @@ void ResourceModel::Clear()
 }
 
 /////////////////////////////////////////////////
+void ResourceModel::AddResources(std::vector<Resource> &_resources)
+{
+  for (auto &resource : _resources)
+    this->AddResource(resource);
+}
+
+/////////////////////////////////////////////////
 void ResourceModel::AddResource(Resource &_resource)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
@@ -171,6 +174,7 @@ void ResourceModel::UpdateResourceModel(int index, Resource &_resource)
 
   auto resource = parentItem->child(index);
 
+  ignwarn << "index " << index << std::endl;
   resource->setData(_resource.isFuel,
                       this->roleNames().key("isFuel"));
   resource->setData(_resource.isDownloaded,
@@ -247,14 +251,15 @@ void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::LoadLocalResource(const std::string &_path)
+Resource ResourceSpawner::LocalResource(const std::string &_path)
 {
   std::string fileName = common::basename(_path);
+  Resource resource;
+
   if (!common::isFile(_path) || fileName != "model.config")
-    return;
+    return resource;
 
   // If we have found model.config, extract thumbnail and sdf
-  Resource resource;
   std::string resourcePath = common::parentPath(_path);
   std::string thumbnailPath = common::joinPaths(resourcePath, "thumbnails");
   std::string configFileName = common::joinPaths(resourcePath, "model.config");
@@ -274,52 +279,165 @@ void ResourceSpawner::LoadLocalResource(const std::string &_path)
 
   // Get first thumbnail image found
   this->SetThumbnail(thumbnailPath, resource);
-  this->dataPtr->resourceModel.AddResource(resource);
+  return resource;
+  //this->dataPtr->resourceModel.AddResource(resource);
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::FindLocalResources(const std::string &_path)
+std::vector<Resource> ResourceSpawner::LocalResources(const std::string &_path)
 {
   // Only searches one directory deep for potential files named `model.config`
   std::string path = _path;
+  std::vector<Resource> localResources;
   if (common::isDirectory(path))
   {
     for (common::DirIter file(path); file != common::DirIter(); ++file)
     {
       std::string currentPath(*file);
+      Resource resource;
       if (common::isDirectory(currentPath))
       {
         std::string modelConfigPath =
           common::joinPaths(currentPath, "model.config");
-          this->LoadLocalResource(modelConfigPath);
+          resource = this->LocalResource(modelConfigPath);
       }
       else
       {
-        this->LoadLocalResource(currentPath);
+        resource = this->LocalResource(currentPath);
       }
+      if (resource.sdfPath != "")
+        localResources.push_back(resource);
     }
   }
   else
   {
-    this->LoadLocalResource(path);
+    Resource resource = this->LocalResource(path);
+    if (resource.sdfPath != "")
+      localResources.push_back(resource);
   }
+  return localResources;
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::FindFuelResources(const std::string &_owner)
+std::vector<Resource> ResourceSpawner::FuelResources(const std::string &_owner)
 {
-  // If we have already made this search, load the stored results
+  // TODO get the current desired display criteria,
+  // search keyword, sort method, current owner
+
+  std::vector<Resource> fuelResources;
+
   if (this->dataPtr->ownerModelMap.find(_owner) !=
       this->dataPtr->ownerModelMap.end())
   {
     for (Resource resource : this->dataPtr->ownerModelMap[_owner])
     {
-      this->dataPtr->resourceModel.AddResource(resource);
+      fuelResources.push_back(resource);
     }
-    ignwarn << "Already cached" << std::endl;
-    return;
   }
-  ignwarn << "No resources found for owner [" << _owner << "]" << std::endl;
+  return fuelResources;
+}
+
+bool compareByAlphabet(const Resource &a, const Resource &b)
+{
+  std::string aName = a.name;
+  std::string bName = b.name;
+  std::for_each(aName.begin(), aName.end(), [](char & c){
+    c = ::tolower(c);
+  });
+
+  std::for_each(bName.begin(), bName.end(), [](char & c){
+    c = ::tolower(c);
+  });
+
+  return (aName.compare(bName) < 0);
+}
+
+bool compareByDownloaded(const Resource &a, const Resource &)
+{
+  return a.isDownloaded;
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::DisplayResources()
+{
+  // this->dataPtr->displayData
+  // contains all of the data needed to organize the
+  // resources to the user
+  // Process:
+  // 	- Filter by the search keyword, if any
+  // 	- Sort the final results
+
+  // Get the resources for an owner or path
+  std::vector<Resource> resources;
+  if (this->dataPtr->displayData.isFuel)
+  {
+    resources = this->FuelResources(this->dataPtr->displayData.ownerPath);
+  }
+  else
+  {
+    resources = this->LocalResources(this->dataPtr->displayData.ownerPath);
+  }
+  
+  // Filter the results if the search keyword is non-empty
+  if (this->dataPtr->displayData.searchKeyword != "")
+  {
+    std::string searchKeyword = this->dataPtr->displayData.searchKeyword;
+    std::for_each(searchKeyword.begin(), searchKeyword.end(), [](char & c){
+      c = ::tolower(c);
+    });
+    auto it = resources.begin();
+
+    while (it != resources.end())
+    {
+      // Check for matches in the owner and name of the resource
+      std::string name = it->name;
+      std::string owner = it->owner;
+      std::for_each(name.begin(), name.end(), [](char & c){
+        c = ::tolower(c);
+      });
+      std::for_each(owner.begin(), owner.end(), [](char & c){
+        c = ::tolower(c);
+      });
+      if (name.find(searchKeyword) == std::string::npos &&
+          owner.find(searchKeyword) == std::string::npos)
+      {
+        it = resources.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+  }
+
+  // Sort the results by the desired sort, don't do anything
+  // in the fourth case (Most Recent) as that is the order
+  // by default
+  if (this->dataPtr->displayData.sortMethod == "A - Z")
+  {
+    // Sort std::vector<Resource> resource from a to z
+    std::sort(resources.begin(), resources.end(), compareByAlphabet);
+  }
+  else if (this->dataPtr->displayData.sortMethod == "Z - A")
+  {
+    // Sort std::vector<Resource> resource from z to a
+    std::sort(resources.begin(), resources.end(), compareByAlphabet);
+    std::reverse(resources.begin(), resources.end());
+  }
+  else if (this->dataPtr->displayData.sortMethod == "Downloaded")
+  {
+    ignwarn << "Sorting by downloaded\n";
+    // Sort std::vector<Resource> resource from downloaded to not downloaded
+    std::sort(resources.begin(), resources.end(), compareByDownloaded);
+    ignwarn << "After sorting by downloaded\n";
+  }
+
+  for (auto &resource : resources)
+  {
+    ignwarn << resource.name << std::endl;
+  }
+  this->dataPtr->resourceModel.Clear();
+  this->dataPtr->resourceModel.AddResources(resources);
 }
 
 /////////////////////////////////////////////////
@@ -331,10 +449,8 @@ void ResourceSpawner::AddPath(const std::string &_path)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnPathClicked(const QString &_path)
 {
-  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  this->dataPtr->resourceModel.Clear();
-  this->FindLocalResources(_path.toStdString());
-  QGuiApplication::restoreOverrideCursor();
+  this->dataPtr->displayData.ownerPath = _path.toStdString();
+  this->dataPtr->displayData.isFuel = false;
 }
 
 /////////////////////////////////////////////////
@@ -352,9 +468,11 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
     this->SetThumbnail(thumbnailPath, resource);
     resource.isDownloaded = true;
+    ignwarn << "Setting " << resource.name << " to downloaded true" << std::endl;
     resource.sdfPath = common::joinPaths(localPath, "model.sdf");
     resource.isFuel = true;
     this->dataPtr->resourceModel.UpdateResourceModel(index, resource);
+    // TODO also update owner model map
   }
   else
   {
@@ -367,10 +485,8 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path, int index)
 void ResourceSpawner::OnOwnerClicked(const QString &_owner)
 {
   // This may take a few seconds, set waiting cursor
-  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  this->dataPtr->resourceModel.Clear();
-  this->FindFuelResources(_owner.toStdString());
-  QGuiApplication::restoreOverrideCursor();
+  this->dataPtr->displayData.ownerPath = _owner.toStdString();
+  this->dataPtr->displayData.isFuel = true;
 }
 
 /////////////////////////////////////////////////
@@ -412,13 +528,14 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
         models.push_back(iter->Identification());
       }
       std::string serverUrl = server.Url().Str();
-      this->dataPtr->fuelDetails[serverUrl] = models;
       for (auto id : models)
       {
         Resource resource;
         resource.name = id.Name();
         resource.isFuel = true;
         resource.isDownloaded = false;
+	resource.owner = id.Owner();
+	ignwarn << "Setting owner for " << resource.name << " to " << resource.owner << std::endl;
         resource.sdfPath = id.UniqueName();
         std::string path;
 
@@ -455,13 +572,16 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 void ResourceSpawner::OnSearchEntered(const QString &_searchKeyword)
 {
   std::cout << _searchKeyword.toStdString() << std::endl;
-
+  this->dataPtr->displayData.searchKeyword =
+    _searchKeyword.toStdString();
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::OnSortChosen(const QString &_sortType)
 {
   std::cout << _sortType.toStdString() << std::endl;
+  this->dataPtr->displayData.sortMethod =
+    _sortType.toStdString();
 }
 
 /////////////////////////////////////////////////

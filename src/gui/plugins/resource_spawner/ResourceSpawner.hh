@@ -33,8 +33,12 @@ namespace gazebo
   /// \brief Resource used to update the ResourceModel
   struct Resource
   {
-    /// \brief The name of the local model
+    /// \brief The name of the resource.
     std::string name = "";
+
+    /// \brief The owner of the resource, if the resource is local,
+    /// owner will be empty.
+    std::string owner = "";
 
     /// \brief The absolute path to the sdf corresponding to the local model
     std::string sdfPath = "";
@@ -51,6 +55,19 @@ namespace gazebo
     /// always be false with local models as it is irrelevant in this case
     // cppcheck-suppress unusedStructMember
     bool isDownloaded = false;
+  };
+
+  /// \brief Data for a search query
+  struct Display
+  {
+    std::string searchKeyword = "";
+
+    // TODO possibly make enum
+    std::string sortMethod = "";
+
+    std::string ownerPath = "";
+
+    bool isFuel = false;
   };
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
@@ -85,9 +102,14 @@ namespace gazebo
     /// \brief Destructor
     public: ~ResourceModel() override = default;
 
-    /// \brief Add a local resource to the grid view.
+    /// \brief Add a resource to the grid view.
     /// param[in] _resource The local resource to be added
-    public slots: void AddResource(Resource &_resource);
+    public: void AddResource(Resource &_resource);
+
+    /// TODO update the description
+    /// \brief Add a vector of resources to the grid view.
+    /// param[in] _resource The local resource to be added
+    public: void AddResources(std::vector<Resource> &_resources);
 
     /// \brief Clear the current resource model
     public: void Clear();
@@ -130,24 +152,30 @@ namespace gazebo
     /// \param[in] _sdfPath The absolute path to the resource's sdf file
     public slots: void OnResourceSpawn(const QString &_sdfPath);
 
+    // TODO update
     /// \brief Loads a local model from an absolute path to a model.config,
     /// does nothing if a path not containing model.config is passed in
     /// \param[in] _path The path to search
-    public: void LoadLocalResource(const std::string &_path);
+    public: Resource LocalResource(const std::string &_path);
 
     /// \brief Adds a path to the path list model.
     /// \param[in] _path The path to add
     public: void AddPath(const std::string &_path);
 
+    // TODO update
     /// \brief Recursively searches the provided path for all model.config's
     /// and populates a vector of local models with the information
     /// \param[in] _path The path to search
-    public: void FindLocalResources(const std::string &_path);
+    public: std::vector<Resource> LocalResources(const std::string &_path);
 
+    /// TODO redo the brief
     /// \brief Searches through the previously loaded fuel resources to locate
     /// the models belonging to the passed in owner.
     /// \param[in] _owner The name of the owner
-    public: void FindFuelResources(const std::string &_owner);
+    public: std::vector<Resource> FuelResources(const std::string &_owner);
+
+    // TODO update
+    public slots: void DisplayResources();
 
     /// \brief Callback when a resource path is selected, will clear the
     /// currently loaded resources and load the ones at the specified path

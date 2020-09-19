@@ -171,6 +171,7 @@ Rectangle {
                 hoverEnabled: true
                 onClicked: {
                   ResourceSpawner.OnPathClicked(model.path);
+                  ResourceSpawner.DisplayResources();
                   currentPath = model.path
                   gridView.currentIndex = -1
                   mouse.accepted = false
@@ -274,6 +275,7 @@ Rectangle {
                 hoverEnabled: true
                 onClicked: {
                   ResourceSpawner.OnOwnerClicked(model.path)
+                  ResourceSpawner.DisplayResources();
                   treeView2.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
                   treeView.selection.clearSelection()
                   currentPath = model.path
@@ -314,6 +316,7 @@ Rectangle {
             Layout.minimumWidth: 135
             onAccepted: {
               ResourceSpawner.OnSearchEntered(searchField.text);
+              ResourceSpawner.DisplayResources();
             }
           }
           ComboBox {
@@ -327,6 +330,7 @@ Rectangle {
             }
             onCurrentIndexChanged: {
               ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
+              ResourceSpawner.DisplayResources();
             }
           }
         }
@@ -432,7 +436,7 @@ Rectangle {
                 Label {
                   width: downloadDialog.width - 50
                   height: downloadDialog.height
-                  text: "Please download the model first by clicking the cloud icon."
+                  text: "Please download the resource first by clicking the cloud icon."
                   wrapMode: Text.WordWrap
                 }
               }
@@ -465,8 +469,11 @@ Rectangle {
                 sourceSize.height: 35;
               }
               onClicked: {
-                ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
+                // ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
                 model.isDownloaded = true
+		print(model.owner)
+		print(model.sdf)
+		print(model.name)
               }
             }
           }
