@@ -80,7 +80,7 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::ElementPtr> newSensors;
 
-  /// \brief Keep track of new nested models being added, so we load their plugins
+  /// \brief Keep track of new models being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::ElementPtr> newModels;
 
@@ -334,7 +334,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::ModelSdf(*_model));
 
-  // Keep track of (nested) models so we can load their plugins after loading the entire
+  // Keep track of models so we can load their plugins after loading the entire
   // model and having its full scoped name.
   this->dataPtr->newModels[modelEntity] = _model->Element();
 
