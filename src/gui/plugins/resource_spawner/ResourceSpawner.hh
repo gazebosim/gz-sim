@@ -191,7 +191,7 @@ namespace gazebo
     /// \brief Callback when a request is made to download a fuel resource.
     /// \param[in] _path URI to the fuel resource
     /// \param[in] index The index of the grid pane to update
-    public slots: void OnDownloadFuelResource(const QString &_path, int index);
+    public slots: void OnDownloadFuelResource(const QString &_path, const QString &_name, const QString &_owner, int index);
 
     public slots: void OnSortChosen(const QString &_sortType);
     

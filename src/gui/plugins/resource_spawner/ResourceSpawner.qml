@@ -328,7 +328,7 @@ Rectangle {
               ListElement { text: "Z - A"}
               ListElement { text: "Downloaded"}
             }
-            onCurrentIndexChanged: {
+            onActivated: {
               ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
               ResourceSpawner.DisplayResources();
             }
@@ -469,11 +469,8 @@ Rectangle {
                 sourceSize.height: 35;
               }
               onClicked: {
-                // ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
+                ResourceSpawner.OnDownloadFuelResource(model.sdf, model.name, model.owner, model.index)
                 model.isDownloaded = true
-		print(model.owner)
-		print(model.sdf)
-		print(model.name)
               }
             }
           }
