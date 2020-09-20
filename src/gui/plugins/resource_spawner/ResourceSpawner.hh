@@ -177,11 +177,25 @@ namespace gazebo
     /// \return The vector of resources
     public: std::vector<Resource> FuelResources(const std::string &_owner);
 
-    public: void FilterSearch(std::vector<Resource> &_resources);
-    public: void SortResources(std::vector<Resource> &_resources);
+    /// \brief Populates the passed in `_resources` vector with the
+    /// currently selected group of resources.
+    /// \param[in,out] _resources The vector of resources to populate
     public: void Resources(std::vector<Resource> &_resources);
 
-    /// \brief Displays the resources to the qml grid.
+    /// \brief Filters the vector of resources by the previously entered
+    /// search keyword.
+    /// \param[in,out] _resources The vector of resources to filter
+    public: void FilterResources(std::vector<Resource> &_resources);
+
+    /// \brief Sorts the vector of resources by the previously entered
+    /// sort method.  The sorting types as a string, are "Most Recent",
+    /// "A - Z", "Z - A", and "Downloaded." The sort defaults to
+    /// "Most Recent."
+    /// \param[in,out] _resources The vector of resources to sort
+    public: void SortResources(std::vector<Resource> &_resources);
+
+    /// \brief Displays the resources to the qml grid abiding by all search
+    /// and sort criteria.
     public slots: void DisplayResources();
 
     /// \brief Callback when a resource path is selected, will clear the
@@ -201,8 +215,15 @@ namespace gazebo
     public slots: void OnDownloadFuelResource(const QString &_path,
         const QString &_name, const QString &_owner, int index);
 
+    /// \brief Callback when a sort request is made.
+    /// \param[in] _sortType The sorting type as a string, accepts
+    /// "Most Recent", "A - Z", "Z - A", and "Downloaded." Defaults to
+    /// "Most Recent."
     public slots: void OnSortChosen(const QString &_sortType);
 
+    /// \brief Callback when a search request is made.
+    /// \param[in] _searchKeyword The search keyword, applies to either the
+    /// resource's name or owner
     public slots: void OnSearchEntered(const QString &_searchKeyword);
 
     /// \brief Finds a thumbnail on the provided thumbnail path and

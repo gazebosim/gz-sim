@@ -366,9 +366,9 @@ bool compareByDownloaded(const Resource &a, const Resource &b)
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::FilterSearch(std::vector<Resource> &_resources)
+void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
 {
-  if (this->dataPtr->displayData.searchKeyword != "")
+  if (this->dataPtr->displayData.searchKeyword == "")
     return;
 
   std::string searchKeyword = this->dataPtr->displayData.searchKeyword;
@@ -446,8 +446,8 @@ void ResourceSpawner::DisplayResources()
   std::vector<Resource> resources;
   this->Resources(resources);
 
-  // Filter the resource vector with the entered keyword
-  this->FilterSearch(resources);
+  // Filter the resource vector with the entered search keyword
+  this->FilterResources(resources);
 
   // Sort the resources by the provided search method
   this->SortResources(resources);
@@ -564,7 +564,6 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
       {
         models.push_back(iter->Identification());
       }
-      std::string serverUrl = server.Url().Str();
 
       // Create each fuel resource and add them to the ownerModelMap
       for (auto id : models)

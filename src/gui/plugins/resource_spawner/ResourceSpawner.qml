@@ -339,7 +339,7 @@ Rectangle {
         Layout.fillWidth: true
         Layout.minimumWidth: 300
         height: 40
-        color: "blue"
+        color: "transparent"
         Label {
           text: currentPath
           font.pointSize: 12
