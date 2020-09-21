@@ -2318,7 +2318,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
 
-  // view pose service
+  // move to pose service
   this->dataPtr->moveToPoseService =
       "/gui/move_to/pose";
   this->dataPtr->node.Advertise(this->dataPtr->moveToPoseService,
@@ -2361,8 +2361,11 @@ void Scene3D::Update(const UpdateInfo &_info,
     renderWindow->SetWorldName(this->dataPtr->worldName);
   }
 
-  msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
-  this->dataPtr->cameraPosePub.Publish(poseMsg);
+  if (this->dataPtr->cameraPosePub.HasConnections())
+  {
+    msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
+    this->dataPtr->cameraPosePub.Publish(poseMsg);
+  }
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
 }
 
