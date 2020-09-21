@@ -557,6 +557,9 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   // Pull in fuel models asynchronously
   std::thread t([this, servers]
   {
+    // A set isn't necessary to keep track of the owners, but it
+    // maintains alphabetical order
+    std::set<std::string> ownerSet;
     for (auto const &server : servers)
     {
       std::vector<ignition::fuel_tools::ModelIdentifier> models;
@@ -586,6 +589,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
           this->SetThumbnail(thumbnailPath, resource);
         }
+        ownerSet.insert(id.Owner());
         this->dataPtr->ownerModelMap[id.Owner()].push_back(resource);
       }
     }
@@ -594,9 +598,9 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     this->dataPtr->ownerModel.clear();
 
     // Add all unique owners to the owner model
-    for (const auto &resource : this->dataPtr->ownerModelMap)
+    for (const auto &resource : ownerSet)
     {
-      this->dataPtr->ownerModel.AddPath(resource.first);
+      this->dataPtr->ownerModel.AddPath(resource);
     }
     ignmsg << "Fuel resources loaded.\n";
   });

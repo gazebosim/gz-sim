@@ -83,7 +83,7 @@ Rectangle {
     SplitView {
       orientation: Qt.Vertical
       Layout.minimumHeight: 400
-      Layout.minimumWidth: 300
+      Layout.minimumWidth: 315
       anchors.bottom: parent.bottom
       anchors.top: parent.top
       anchors.left: parent.left
@@ -92,12 +92,17 @@ Rectangle {
         id: localColumn
         Layout.minimumHeight: 100
         Layout.fillWidth: true
+        spacing: 0
         Rectangle {
           color: evenColor
+          border.color: "gray"
+          border.width: 1
           Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 20
+          Layout.preferredHeight: 25
           Layout.fillWidth: true
           Label {
+            topPadding: 2
+            leftPadding: 5
             text: "Local resources"
             anchors.fill: parent
             font.pointSize: 12
@@ -197,13 +202,17 @@ Rectangle {
       ColumnLayout {
         id: fuelColumn
         Layout.minimumHeight: 100
+        spacing: 0
         Rectangle {
           color: evenColor
+          border.color: "gray"
           Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 20
+          Layout.preferredHeight: 25
           Layout.fillWidth: true
           Label {
             text: "Fuel resources"
+            topPadding: 2
+            leftPadding: 5
             anchors.fill: parent
             font.pointSize: 12
           }
@@ -304,23 +313,42 @@ Rectangle {
       Layout.fillWidth: true
       spacing: 0
       Rectangle {
+        id: searchSortBar
+        color: evenColor
+        height: 50
+        Layout.minimumWidth: 290
+        Layout.minimumHeight: 50
         Layout.fillWidth: true
-        Layout.minimumWidth: 300
-        height: 40
         RowLayout {
-          spacing: 10
+        id: rowLayout
+        spacing: 20
+        Rectangle {
+          color: "transparent"
+          height: 50
+          Layout.minimumWidth: 100
+          Layout.minimumHeight: 50
+          Layout.preferredWidth: (searchSortBar.width - 80) / 2
+          Layout.leftMargin: 10
           TextField {
             id: searchField
+            anchors.fill: parent
             placeholderText: "Search"
+            leftPadding: 2
+            topPadding: 15
             color: Material.theme == Material.Light ? "black" : "white"
-            Layout.minimumWidth: 135
             onAccepted: {
               ResourceSpawner.OnSearchEntered(searchField.text);
               ResourceSpawner.DisplayResources();
             }
           }
+        }
+        Rectangle {
+          color: "transparent"
+          height: 50
+          Layout.minimumWidth: 140
+          Layout.preferredWidth: (searchSortBar.width - 80) / 2
           ComboBox {
-            Layout.minimumWidth: 140
+            anchors.fill: parent
             model: ListModel {
               id: cbItems
               ListElement { text: "Most Recent"}
@@ -335,6 +363,8 @@ Rectangle {
           }
         }
       }
+      }
+
       Rectangle {
         Layout.fillWidth: true
         Layout.minimumWidth: 300
@@ -350,7 +380,7 @@ Rectangle {
           anchors.right: parent.right
         }
       }
-      
+
       Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -397,9 +427,9 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.margins: 1
                 source: (model.isFuel && !model.isDownloaded) ?
-                        "DownloadToUse.png" :
-                        (model.thumbnail == "" ?
-                        "NoThumbnail.png" : "file:" + model.thumbnail)
+                "DownloadToUse.png" :
+                (model.thumbnail == "" ?
+                "NoThumbnail.png" : "file:" + model.thumbnail)
                 fillMode: Image.PreserveAspectFit
               }
             }
