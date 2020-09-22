@@ -134,7 +134,7 @@ Rectangle {
           sourceSize.height: indentation
           sourceSize.width: indentation
           fillMode: Image.Pad
-          anchors.verticalCenter: parent.verticalCenter
+          Layout.alignment : Qt.AlignVCenter
           source: content.show ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
