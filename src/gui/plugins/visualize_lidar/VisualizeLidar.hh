@@ -73,7 +73,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation Inherited
-    public: bool eventFilter(QObject *_obj, QEvent *_event);
+    public: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &,
