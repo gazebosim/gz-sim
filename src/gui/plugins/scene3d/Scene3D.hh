@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_GUI_SCENE3D_HH_
 
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 #include <ignition/msgs/video_record.pb.h>
@@ -146,6 +147,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewAngle(const msgs::Vector3d &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a move to pose request.
+    /// \param[in] _msg GUICamera request message.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnMoveToPose(const msgs::GUICamera &_msg,
+                 msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -215,6 +223,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// (0, 0, 0) indicates to return the camera back to the home pose
     /// originally loaded in from the sdf
     public: void SetViewAngle(const math::Vector3d &_direction);
+
+    /// \brief Set the world pose of the camera
+    /// \param[in] _pose The world pose to set the camera to.
+    public: void SetMoveToPose(const math::Pose3d &_pose);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -365,11 +377,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
 
+    /// \brief Get the current camera pose.
+    /// \return Pose of the camera.
+    public: math::Pose3d CameraPose() const;
+
     /// \brief Callback when a move to animation is complete
     private: void OnMoveToComplete();
 
     /// \brief Callback when a view angle animation is complete
     private: void OnViewAngleComplete();
+
+    /// \brief Callback when a move to  pose animation is complete
+    private: void OnMoveToPoseComplete();
 
     /// \brief Process a node's selection
     /// \param[in] _node The node to be selected.
@@ -469,6 +488,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose Pose to set the camera to
     public: void SetCameraPose(const math::Pose3d &_pose);
 
+    /// \brief Get the user camera pose.
+    /// \return Pose of the user camera.
+    public: math::Pose3d CameraPose() const;
+
     /// \brief Set the initial user camera pose
     /// \param[in] _pose Pose to set the camera to
     public: void SetInitCameraPose(const math::Pose3d &_pose);
@@ -509,6 +532,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// (0, 0, 0) indicates to return the camera back to the home pose
     /// originally loaded in from the sdf
     public: void SetViewAngle(const math::Vector3d &_direction);
+
+    /// \brief Set the pose of the camera
+    /// \param[in] _pose The new camera pose in the world frame.
+    public: void SetMoveToPose(const math::Pose3d &_pose);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
