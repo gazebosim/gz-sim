@@ -256,7 +256,8 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
           std::pair(102, "shortName"),
           std::pair(103, "dataType"),
           std::pair(104, "unit"),
-          std::pair(105, "data")};
+          std::pair(105, "data"),
+          std::pair(106, "entity")};
 }
 
 /////////////////////////////////////////////////
@@ -382,6 +383,9 @@ void ComponentInspector::Update(const UpdateInfo &,
           Q_RETURN_ARG(QStandardItem *, item),
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
+
+    item->setData(QString::number(this->dataPtr->entity),
+                  ComponentsModel::RoleNames().key("entity"));
 
     if (nullptr == item)
     {
