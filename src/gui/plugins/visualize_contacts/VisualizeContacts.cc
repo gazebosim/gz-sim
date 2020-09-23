@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/msgs/contacts.pb.h>
 #include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
 
 #include <string>
 #include <vector>
@@ -24,33 +24,27 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Animation.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Uuid.hh>
-#include <ignition/common/VideoEncoder.hh>
 
 #include <ignition/plugin/Register.hh>
 
-#include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/Vector3.hh>
 
 #include <ignition/transport/Node.hh>
 
-#include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/Conversions.hh>
 #include <ignition/gui/MainWindow.hh>
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
 
 #include "VisualizeContacts.hh"
 
@@ -129,9 +123,6 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Visualize contacts";
-
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
 
   // Configure Marker messages for position and force of the contacts
 
@@ -256,12 +247,9 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
   // Store simulation time
   this->dataPtr->lastMarkersUpdateTime = _info.simTime;
 
-  // todo(anyone) Get the contacts of the links that don't have a
-  // contact sensor
-
   // Get the contacts and publish them
   // Since we are setting a lifetime for the markers, we get all the
-  // contacts instead of getting news and removed ones
+  // contacts instead of getting new and removed ones
 
   // Variable for setting the markers id through the iteration
   int markerID = 1;
@@ -271,25 +259,18 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
     {
       for (const auto &contact : _contacts->Data().contact())
       {
-        // todo(anyone) add information about contact normal, depth
-        // and wrench
         for (int i = 0; i < contact.position_size(); ++i)
         {
-          // Skip dummy data set by physics
-          bool dataIsDummy = std::fabs(
-            contact.position(i).x() -
-            static_cast<float>(ignition::math::NAN_I)) < 0.001;
-          if (dataIsDummy)
-            return true;
-
           // Set marker id, poses and request service
-          this->dataPtr->positionMarkerMsg.set_id(markerID);
+          this->dataPtr->positionMarkerMsg.set_id(markerID++);
           ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
             ignition::math::Pose3d(contact.position(i).x(),
               contact.position(i).y(), contact.position(i).z(),
               0, 0, 0));
 
-          // Placeholder for the force value (see todo comment above)
+          // todo(anyone) add information about contact normal, depth
+          // and wrench in the following commented code
+          /*
           double force = 1;
 
           double forceLength = this->dataPtr->forceScale * force;
@@ -306,9 +287,11 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
               0, 0, 0));
 
           this->dataPtr->node.Request(
-            "/marker", this->dataPtr->positionMarkerMsg);
-          this->dataPtr->node.Request(
             "/marker", this->dataPtr->forceMarkerMsg);
+          */
+
+          this->dataPtr->node.Request(
+            "/marker", this->dataPtr->positionMarkerMsg);
         }
       }
       return true;

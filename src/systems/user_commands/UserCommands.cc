@@ -68,6 +68,13 @@ class UserCommandsInterface
 
   /// \brief World entity.
   public: Entity worldEntity{kNullEntity};
+
+  /// \brief Check if there's a contact sensor connected to a collision
+  /// component
+  /// \param[in] _collision Collision entity to be checked
+  /// \return True if a contact sensor is connected to the collision entity,
+  /// false otherwise
+  public: bool HasContactSensor(const Entity _collision);
 };
 
 /// \brief All user commands should inherit from this class so they can be
@@ -156,13 +163,6 @@ class EnableCollisionCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
-
-  /// \brief Check if there's a contact sensor connected to a collision
-  /// component
-  /// \param[in] _collision Collision entity to be checked
-  /// \return True if a Contact sensor is connected to the collision entity,
-  /// false otherwise
-  public: bool HasContactSensor(const Entity _collision);
 };
 
 /// \brief Command to disable a collision component.
@@ -176,13 +176,6 @@ class DisableCollisionCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
-
-  /// \brief Check if there's a contact sensor connected to a collision
-  /// component
-  /// \param[in] _collision Collision entity to be checked
-  /// \return True if a Contact sensor is connected to the collision entity,
-  /// false otherwise
-  public: bool HasContactSensor(const Entity _collision);
 };
 }
 }
@@ -260,6 +253,38 @@ UserCommands::UserCommands() : System(),
 
 //////////////////////////////////////////////////
 UserCommands::~UserCommands() = default;
+
+//////////////////////////////////////////////////
+bool UserCommandsInterface::HasContactSensor(const Entity _collision)
+{
+  auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
+  auto allLinkSensors =
+    ecm->EntitiesByComponents(components::Sensor(),
+      components::ParentEntity(*linkEntity));
+
+  for (auto const &sensor : allLinkSensors)
+  {
+    // Check if it is a contact sensor
+    auto isContactSensor =
+      ecm->EntityHasComponentType(sensor, components::ContactSensor::typeId);
+    if (!isContactSensor)
+      continue;
+
+    // Check if sensor is connected to _collision
+    auto componentName = ecm->Component<components::Name>(_collision);
+    std::string collisionName = componentName->Data();
+    auto sensorSDF = ecm->Component<components::ContactSensor>(sensor)->Data();
+    auto sensorCollisionName =
+      sensorSDF->GetElement("contact")->Get<std::string>("collision");
+
+    if (collisionName == sensorCollisionName)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 //////////////////////////////////////////////////
 void UserCommands::Configure(const Entity &_entity,
@@ -824,7 +849,7 @@ bool EnableCollisionCommand::Execute()
   }
 
   // Check if collision is connected to a contact sensor
-  if (this->HasContactSensor(entityMsg->id()))
+  if (this->iface->HasContactSensor(entityMsg->id()))
   {
     ignwarn << "Requested collision is connected to a contact sensor, "
       << "exiting service..." << std::endl;
@@ -846,40 +871,6 @@ bool EnableCollisionCommand::Execute()
   igndbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
-}
-
-//////////////////////////////////////////////////
-bool EnableCollisionCommand::HasContactSensor(const Entity _collision)
-{
-  auto *ecm = this->iface->ecm;
-
-  auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
-  auto allLinkSensors =
-    ecm->EntitiesByComponents(components::Sensor(),
-      components::ParentEntity(*linkEntity));
-
-  for (auto const &sensor : allLinkSensors)
-  {
-    // Check if it is a contact sensor
-    auto isContactSensor =
-      ecm->EntityHasComponentType(sensor, components::ContactSensor::typeId);
-    if (!isContactSensor)
-      continue;
-
-    // Check if sensor is connected to _collision
-    auto componentName = ecm->Component<components::Name>(_collision);
-    std::string collisionName = componentName->Data();
-    auto sensorSDF = ecm->Component<components::ContactSensor>(sensor)->Data();
-    auto sensorCollisionName =
-      sensorSDF->GetElement("contact")->Get<std::string>("collision");
-
-    if (collisionName == sensorCollisionName)
-    {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 //////////////////////////////////////////////////
@@ -908,7 +899,7 @@ bool DisableCollisionCommand::Execute()
   }
 
   // Check if collision is connected to a contact sensor
-  if (this->HasContactSensor(entityMsg->id()))
+  if (this->iface->HasContactSensor(entityMsg->id()))
   {
     ignwarn << "Requested collision is connected to a contact sensor, "
       << "exiting service..." << std::endl;
@@ -932,40 +923,6 @@ bool DisableCollisionCommand::Execute()
   igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
-}
-
-//////////////////////////////////////////////////
-bool DisableCollisionCommand::HasContactSensor(const Entity _collision)
-{
-  auto *ecm = this->iface->ecm;
-
-  auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
-  auto allLinkSensors =
-    ecm->EntitiesByComponents(components::Sensor(),
-      components::ParentEntity(*linkEntity));
-
-  for (auto const &sensor : allLinkSensors)
-  {
-    // Check if it is a contact sensor
-    auto isContactSensor =
-      ecm->EntityHasComponentType(sensor, components::ContactSensor::typeId);
-    if (!isContactSensor)
-      continue;
-
-    // Check if sensor is connected to _collision
-    auto componentName = ecm->Component<components::Name>(_collision);
-    std::string collisionName = componentName->Data();
-    auto sensorSDF = ecm->Component<components::ContactSensor>(sensor)->Data();
-    auto sensorCollisionName =
-      sensorSDF->GetElement("contact")->Get<std::string>("collision");
-
-    if (collisionName == sensorCollisionName)
-    {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 IGNITION_ADD_PLUGIN(UserCommands, System,

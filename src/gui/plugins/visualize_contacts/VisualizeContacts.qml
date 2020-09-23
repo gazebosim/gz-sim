@@ -16,7 +16,6 @@
 */
 import QtQuick 2.9
 import QtQuick.Controls 2.1
-import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
 
@@ -73,6 +72,9 @@ GridLayout {
     onEditingFinished: VisualizeContacts.UpdateRadius(radius.value)
   }
 
+  // Uncomment when plugin is available to get the force information from the
+  // contact message
+  /*
   Text {
     Layout.columnSpan: 2
     id: scaleText
@@ -91,6 +93,7 @@ GridLayout {
     stepSize: 0.05
     onEditingFinished: VisualizeContacts.UpdateScale(scale.value)
   }
+  */
 
   Text {
     Layout.columnSpan: 2
