@@ -667,9 +667,10 @@ void IgnRenderer::Render()
 
   if (ignition::gui::App())
   {
+    gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        new gui::events::Render());
+        &event);
   }
 }
 
@@ -1012,10 +1013,10 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   if (_sendEvent)
   {
-    auto deselectEvent = new gui::events::DeselectAllEntities();
+    gui::events::DeselectAllEntities deselectEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        deselectEvent);
+        &deselectEvent);
   }
 }
 
@@ -1596,11 +1597,11 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    auto selectEvent = new gui::events::EntitiesSelected(
+    gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        selectEvent);
+        &selectEvent);
   }
 }
 
