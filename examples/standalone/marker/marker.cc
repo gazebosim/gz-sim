@@ -226,7 +226,7 @@ int main(int _argc, char **_argv)
 
   node.Request("/marker", markerMsg);
   std::cout << "Adding multiple markers via /marker_array\n";
-  ignition::common::Time::Sleep(ignition::common::Time(4));
+  std::this_thread::sleep_for(std::chrono::seconds(4));
 
   ignition::msgs::Marker_V markerMsgs;
   ignition::msgs::Boolean res;
