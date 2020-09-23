@@ -472,15 +472,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
-  std::string modelSdfPath = _sdfPath.toStdString();
-  // Parse the sdf from the path
-  std::ifstream nameFileout;
-  nameFileout.open(modelSdfPath);
-  std::string line;
-  std::string modelSdfString = "";
-  while (std::getline(nameFileout, line))
-    modelSdfString += line + "\n";
-  auto event = new gui::events::SpawnPreviewModel(modelSdfString);
+  auto event = new gui::events::SpawnPreviewPath(_sdfPath.toStdString());
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       event);

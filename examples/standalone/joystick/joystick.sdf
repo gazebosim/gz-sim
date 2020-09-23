@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="placeholder">
-    <plugin name="joy" filename="libJoyPlugin.so">
+    <plugin name="joy" filename="JoyPlugin">
       <sticky_buttons>false</sticky_buttons>
       <dead_zone>0.05</dead_zone>
       <rate>60</rate>

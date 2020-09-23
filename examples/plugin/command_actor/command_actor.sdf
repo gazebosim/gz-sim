@@ -2,11 +2,11 @@
 <sdf version="1.6">
   <world name="actors">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -121,7 +121,7 @@
     <include>
       <pose>1 1 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="libCommandActor.so"
+      <plugin filename="CommandActor"
               name="command_actor::CommandActor">
 
         <!-- From 5 seconds sim time, offset the entire trajectory by pose -->
