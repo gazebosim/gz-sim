@@ -20,6 +20,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
