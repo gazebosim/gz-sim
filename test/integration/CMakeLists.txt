@@ -43,6 +43,7 @@ set(tests
   velocity_control_system.cc
   log_system.cc
   wind_effects.cc
+  world.cc
 )
 
 # Tests that require a valid display

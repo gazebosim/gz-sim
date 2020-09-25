@@ -90,11 +90,7 @@ bool Link::Valid(const EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 std::optional<std::string> Link::Name(const EntityComponentManager &_ecm) const
 {
-  auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
-  if (!comp)
-    return std::nullopt;
-
-  return std::make_optional(comp->Data());
+  return _ecm.ComponentData<components::Name, std::string>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -112,11 +108,8 @@ std::optional<Model> Link::ParentModel(const EntityComponentManager &_ecm) const
 std::optional<math::Pose3d> Link::WorldPose(
     const EntityComponentManager &_ecm) const
 {
-  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
-  if (!worldPose)
-    return std::nullopt;
-
-  return std::make_optional(worldPose->Data());
+  return _ecm.ComponentData<components::WorldPose, math::Pose3d>(
+      this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -136,13 +129,8 @@ std::optional<math::Pose3d> Link::WorldInertialPose(
 std::optional<math::Vector3d> Link::WorldLinearVelocity(
     const EntityComponentManager &_ecm) const
 {
-  auto worldLinVel =
-      _ecm.Component<components::WorldLinearVelocity>(this->dataPtr->id);
-
-  if (!worldLinVel)
-    return std::nullopt;
-
-  return std::make_optional(worldLinVel->Data());
+  return _ecm.ComponentData<components::WorldLinearVelocity, math::Vector3d>(
+      this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -169,26 +157,16 @@ std::optional<math::Vector3d> Link::WorldLinearVelocity(
 std::optional<math::Vector3d> Link::WorldAngularVelocity(
     const EntityComponentManager &_ecm) const
 {
-  auto worldAngVel =
-      _ecm.Component<components::WorldAngularVelocity>(this->dataPtr->id);
-
-  if (!worldAngVel)
-    return std::nullopt;
-
-  return std::make_optional(worldAngVel->Data());
+  return _ecm.ComponentData<components::WorldAngularVelocity, math::Vector3d>(
+      this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
-  auto worldLinAccel =
-      _ecm.Component<components::WorldLinearAcceleration>(this->dataPtr->id);
-
-  if (!worldLinAccel)
-    return std::nullopt;
-
-  return std::make_optional(worldLinAccel->Data());
+  return _ecm.ComponentData<components::WorldLinearAcceleration,
+      math::Vector3d>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
