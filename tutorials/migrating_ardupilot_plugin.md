@@ -24,7 +24,7 @@ documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.h
 As context to understand what we're migrating, here's a system diagram for how
 the ArduPilot Gazebo plugin works is used:
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/add_ardupilot_migration_tutorial2/tutorials/files/ardupilot_diagram.png"/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/ardupilot_diagram.png"/>
 
 *UAV icon credit: By Julian Herzog, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=60965475*
 

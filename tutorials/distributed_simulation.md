@@ -68,25 +68,6 @@ The secondary instances will only read the role command line option
 * **--network-role=secondary** - Dictates that the role of this
     participant is a Secondary. Capitalization of "secondary" is not important.
 
-#### Environment variables
-
-**WARNING:** Environment variables for distributed simulation configuration
-is deprecated in version 2.x.x of Ignition Gazebo. Please use the
-command-line options instead.
-
-The primary instance will read several environment variables to dictate its behavior.
-
-* **IGN_GAZEBO_NETWORK_ROLE=PRIMARY** - Dictates that the role of this
-    participant is a Primary. Capitalization of "primary" is not important.
-* **IGN_GAZEBO_NETWORK_SECONDARIES=<N>** - The number of secondaries expected
-    to join. Simulation will not begin until **N** secondaries have been
-    discovered.
-
-The secondary instances will only read the role environment variable
-
-* **IGN_GAZEBO_NETWORK_ROLE=SECONDARY** - Dictates that the role of this
-    participant is a Secondary. Capitalization of "secondary" is not important.
-
 ### Discovery
 
 Once the `ign gazebo` instance is started, it will begin a process of
@@ -134,22 +115,22 @@ containing:
     * The latest secondary-to-performer affinity changes.
     * **Upcoming**: The updated state of all performers which are changing secondaries.
 
-1. Each secondary receives the step message, and:
+2. Each secondary receives the step message, and:
 
     * Loads / unloads performers according to the received affinities
     * Runs one simulation update iteration
     * Then publishes its updated  performer states on the `/step_ack` topic.
 
-1. The primary waits until it gets step acks from all secondaries.
+3. The primary waits until it gets step acks from all secondaries.
 
-1. The primary runs a step update:
+4. The primary runs a step update:
 
     * Update its state with the states received from secondaries.
     * The `LevelManager` checks for level changes according to these new states
     * The `SceneBroadcaster` plugin publishes an updated scene to the GUI
       for any level changes.
 
-1. The primary initiates a new iteration.
+5. The primary initiates a new iteration.
 
 ### Interaction
 
