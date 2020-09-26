@@ -141,6 +141,7 @@ Instead of simple shapes, you can also use a nested loop to generate 100 actors 
     </actor>
 
     <%
+        end
       end
     %>
 ```
