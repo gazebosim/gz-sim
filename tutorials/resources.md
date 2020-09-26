@@ -123,8 +123,8 @@ Ignition will look for URIs (path / URL) in the following, in order:
     1. Cache (i.e. `$HOME/.ignition/fuel`)
     2. Web server
 
-> \* The `SDF_PATH` environment variable also works in some scenarios, but
-    it's not recommended when using Ignition Gazebo.
+\* The `SDF_PATH` environment variable also works in some scenarios, but
+  it's not recommended when using Ignition Gazebo.
 
 ## Meshes
 
@@ -141,8 +141,8 @@ Ignition will look for URIs (path / URL) in the following, in order:
 2. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if path
    is URI, scheme is stripped)
 
-> \* The `IGN_FILE_PATH` environment variable also works in some scenarios, but
-    it's not recommended when using Ignition Gazebo.
+\* The `IGN_FILE_PATH` environment variable also works in some scenarios, but
+  it's not recommended when using Ignition Gazebo.
 
 ### GUI configuration
 
