@@ -83,9 +83,7 @@
 
     <include>
       <name>radio_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio</uri>
       <pose>241.500000 220.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -169,9 +167,7 @@
 
     <include>
       <name>backpack_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
       <pose>219.000000 202.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -207,17 +203,13 @@
 
     <include>
       <name>tile_24</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Tall
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Tall</uri>
       <pose>160.000000 160.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>phone_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone</uri>
       <pose>260.000000 160.000000 -14.996000 -1.570796 0 0.000000</pose>
     </include>
 
@@ -241,9 +233,7 @@
 
     <include>
       <name>toolbox_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Toolbox
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Toolbox</uri>
       <pose>342.000000 160.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -267,9 +257,7 @@
 
     <include>
       <name>extinguisher_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Extinguisher
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Extinguisher</uri>
       <pose>158.000000 140.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -353,9 +341,7 @@
 
     <include>
       <name>radio_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio</uri>
       <pose>260.000000 82.300000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -403,9 +389,7 @@
 
     <include>
       <name>toolbox_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Toolbox
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Toolbox</uri>
       <pose>278.000000 60.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -441,9 +425,7 @@
 
     <include>
       <name>phone_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone</uri>
       <pose>201.800000 20.000000 -14.996000 -1.570796 0 0.000000</pose>
     </include>
 
@@ -473,9 +455,7 @@
 
     <include>
       <name>electrical_box_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Electrical Box
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Electrical Box</uri>
       <pose>400.000000 -1.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
@@ -655,9 +635,7 @@
 
     <include>
       <name>backpack_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
       <pose>340.000000 -22.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
@@ -717,17 +695,13 @@
 
     <include>
       <name>phone_3</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone</uri>
       <pose>120.800000 -98.400000 -9.996000 1.570796 0 0.000000</pose>
     </include>
 
     <include>
       <name>valve_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Valve
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Valve</uri>
       <pose>240.000000 -58.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
@@ -751,9 +725,7 @@
 
     <include>
       <name>valve_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Valve
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Valve</uri>
       <pose>141.750000 -119.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
@@ -765,9 +737,7 @@
 
     <include>
       <name>tile_102</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Short
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Short</uri>
       <pose>140.000000 -160.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
@@ -779,9 +749,7 @@
 
     <include>
       <name>electrical_box_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Electrical Box
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Electrical Box</uri>
       <pose>138.000000 -180.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
@@ -793,9 +761,7 @@
 
     <include>
       <name>backpack_3</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
       <pose>180.000000 -198.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
@@ -867,9 +833,7 @@
 
     <include>
       <name>extinguisher_2</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Extinguisher
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Extinguisher</uri>
       <pose>278.000000 -220.000000 -10.000000 0 0 0.000000</pose>
     </include>
 

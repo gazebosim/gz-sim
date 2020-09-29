@@ -76,9 +76,7 @@
     </model>
 
     <include>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X3 UAV/4
-      </uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X3 UAV/4</uri>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
         name="ignition::gazebo::systems::MulticopterMotorModel">
@@ -162,4 +160,3 @@
     </include>
   </world>
 </sdf>
-
