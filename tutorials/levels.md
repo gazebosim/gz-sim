@@ -235,7 +235,9 @@ successfuly added.
 ign gazebo levels_no_performers.sdf -v 4 --levels
 ```
 
-2. In another terminal call the add performer service.
+Here you will see the two vehicles, which are regular models that do not trigger level loading. They are not performers until you call the service.
+
+2. In another terminal call the add performer service for the blue vehicle.
 
 ```
 ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
