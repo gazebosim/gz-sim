@@ -472,10 +472,10 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
-  auto event = new gui::events::SpawnPreviewPath(_sdfPath.toStdString());
+  gui::events::SpawnPreviewPath event(_sdfPath.toStdString());
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      event);
+      &event);
 }
 
 // Register this plugin
