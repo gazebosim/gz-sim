@@ -18,6 +18,7 @@
 #define IGNITION_MATH_COLOR_HH_
 
 #include <iostream>
+#include <cctype>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
