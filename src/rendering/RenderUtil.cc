@@ -188,6 +188,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Whether the transform gizmo is being dragged.
   public: bool transformActive{false};
 
+  /// \brief Environment variable which holds paths to look for engine plugins.
+  public: std::string pluginPathEnv = "IGN_GAZEBO_RENDER_ENGINE_PATH";
+
   /// \brief Highlight a node and all its children.
   /// \param[in] _node Node to be highlighted
   /// TODO(anyone) On future versions, use a bounding box instead
@@ -1014,6 +1017,10 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  ignition::common::SystemPaths pluginPath;
+  pluginPath.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
+  rendering::setPluginPaths(pluginPath.PluginPaths());
+
   std::map<std::string, std::string> params;
   if (this->dataPtr->useCurrentGLContext)
     params["useCurrentGLContext"] = "1";
