@@ -441,6 +441,9 @@ void IgnRenderer::Render()
   if (!this->dataPtr->followTarget.empty())
   {
     rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+    if (!scene)
+      return;
+
     rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
     if (!target && !this->dataPtr->followTargetWait)
     {
@@ -499,6 +502,9 @@ void IgnRenderer::Render()
       if (this->dataPtr->moveToHelper.Idle())
       {
         rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+        if (!scene)
+          return;
+
         rendering::NodePtr target = scene->NodeByName(
             this->dataPtr->moveToTarget);
         if (target)
@@ -555,6 +561,9 @@ void IgnRenderer::Render()
     if (!this->dataPtr->followTarget.empty())
     {
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      if (!scene)
+        return;
+
       rendering::NodePtr target = scene->NodeByName(
           this->dataPtr->followTarget);
       if (target)
@@ -646,6 +655,9 @@ void IgnRenderer::Render()
     {
       // Generate spawn preview
       rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      if (!scene)
+        return;
+
       rendering::VisualPtr rootVis = scene->RootVisual();
       sdf::Root root;
       if (!this->dataPtr->spawnSdfString.empty())
@@ -1466,6 +1478,9 @@ void IgnRenderer::Initialize()
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+    return;
+
   auto root = scene->RootVisual();
 
   // Camera
@@ -1496,6 +1511,7 @@ void IgnRenderer::Destroy()
   auto scene = engine->SceneByName(this->dataPtr->renderUtil.SceneName());
   if (!scene)
     return;
+
   scene->DestroySensor(this->dataPtr->camera);
 
   // If that was the last sensor, destroy scene
