@@ -22,10 +22,11 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation
 
-**Migration from Gazebo-classic**
+**Migration from Gazebo classic**
 
-* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
-* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
+* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Ignition Gazebo
+* \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Ignition Gazebo
+* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Classic Gazebo to Ignition Gazebo.
 
 ## License
