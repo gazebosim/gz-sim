@@ -30,7 +30,7 @@ import QtQml.Models 2.2
 Rectangle {
   id: resourceSpawner
   color: Material.background
-  Layout.minimumWidth: 600
+  Layout.minimumWidth: 700
   Layout.minimumHeight: 500
   anchors.fill: parent
 
@@ -320,49 +320,59 @@ Rectangle {
         Layout.minimumHeight: 50
         Layout.fillWidth: true
         RowLayout {
-        id: rowLayout
-        spacing: 20
-        Rectangle {
-          color: "transparent"
-          height: 50
-          Layout.minimumWidth: 100
-          Layout.minimumHeight: 50
-          Layout.preferredWidth: (searchSortBar.width - 80) / 2
-          Layout.leftMargin: 10
-          TextField {
-            id: searchField
-            anchors.fill: parent
-            placeholderText: "Search"
-            leftPadding: 2
-            topPadding: 15
-            color: Material.theme == Material.Light ? "black" : "white"
-            onAccepted: {
-              ResourceSpawner.OnSearchEntered(searchField.text);
-              ResourceSpawner.DisplayResources();
+          id: rowLayout
+          spacing: 7
+          Rectangle {
+            color: "transparent"
+            height: 25
+            width: 25
+            Layout.leftMargin: 15
+            Image {
+              id: searchIcon
+              source: "Search.svg"
+              anchors.verticalCenter: parent.verticalCenter
+            }
+          }
+          Rectangle {
+            color: oddColor
+            height: 35
+            Layout.minimumWidth: 100
+            Layout.minimumHeight: 30
+            Layout.preferredWidth: (searchSortBar.width - 80) / 2
+            TextInput {
+              id: searchField
+              anchors.fill: parent
+              topPadding: 12
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "black" : "white"
+              onTextEdited: {
+                print(searchField.text)
+                ResourceSpawner.OnSearchEntered(searchField.text);
+                ResourceSpawner.DisplayResources();
+              }
+            }
+          }
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.minimumWidth: 140
+            Layout.preferredWidth: (searchSortBar.width - 80) / 2
+            ComboBox {
+              anchors.fill: parent
+              model: ListModel {
+                id: cbItems
+                ListElement { text: "Most Recent"}
+                ListElement { text: "A - Z"}
+                ListElement { text: "Z - A"}
+                ListElement { text: "Downloaded"}
+              }
+              onActivated: {
+                ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
+                ResourceSpawner.DisplayResources();
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 50
-          Layout.minimumWidth: 140
-          Layout.preferredWidth: (searchSortBar.width - 80) / 2
-          ComboBox {
-            anchors.fill: parent
-            model: ListModel {
-              id: cbItems
-              ListElement { text: "Most Recent"}
-              ListElement { text: "A - Z"}
-              ListElement { text: "Z - A"}
-              ListElement { text: "Downloaded"}
-            }
-            onActivated: {
-              ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
-              ResourceSpawner.DisplayResources();
-            }
-          }
-        }
-      }
       }
 
       Rectangle {
