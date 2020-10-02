@@ -30,7 +30,7 @@ import QtQml.Models 2.2
 Rectangle {
   id: resourceSpawner
   color: Material.background
-  Layout.minimumWidth: 700
+  Layout.minimumWidth: 730
   Layout.minimumHeight: 500
   anchors.fill: parent
 
@@ -342,11 +342,10 @@ Rectangle {
             TextInput {
               id: searchField
               anchors.fill: parent
-              topPadding: 12
+              topPadding: 8
               leftPadding: 5
               color: Material.theme == Material.Light ? "black" : "white"
               onTextEdited: {
-                print(searchField.text)
                 ResourceSpawner.OnSearchEntered(searchField.text);
                 ResourceSpawner.DisplayResources();
               }
