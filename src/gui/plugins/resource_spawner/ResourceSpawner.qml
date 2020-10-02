@@ -30,7 +30,7 @@ import QtQml.Models 2.2
 Rectangle {
   id: resourceSpawner
   color: Material.background
-  Layout.minimumWidth: 730
+  Layout.minimumWidth: 740
   Layout.minimumHeight: 500
   anchors.fill: parent
 
