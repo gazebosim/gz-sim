@@ -113,7 +113,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
-    const char *_playback, const char *_physicsEngine, const char *_file)
+    const char *_playback, const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file, const char *_recordTopics)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -131,7 +133,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
-    _record > 0 || _recordResources > 0)
+    _record > 0 || _recordResources > 0 ||
+    (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -262,6 +265,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
       serverConfig.SetLogRecordPath(recordPathMod);
     }
+
+    std::vector<std::string> topics = ignition::common::split(
+        _recordTopics, ":");
+    for (const std::string &topic : topics)
+    {
+      serverConfig.AddLogRecordTopic(topic);
+    }
   }
   else
   {
@@ -325,6 +335,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
     serverConfig.SetPhysicsEngine(_physicsEngine);
+  }
+
+  if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
+  {
+    serverConfig.SetRenderEngineServer(_renderEngineServer);
+  }
+
+  if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
+  {
+    serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
   // Create the Gazebo server

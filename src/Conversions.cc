@@ -384,12 +384,12 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   for (int i = 0; i < _in.animations_size(); ++i)
   {
     const auto &anim = _in.animations(i);
-    auto newAnim = new sdf::Animation();
-    newAnim->SetName(anim.name());
-    newAnim->SetFilename(anim.filename());
-    newAnim->SetScale(anim.scale());
-    newAnim->SetInterpolateX(anim.interpolate_x());
-    out.AddAnimation(*newAnim);
+    sdf::Animation newAnim;
+    newAnim.SetName(anim.name());
+    newAnim.SetFilename(anim.filename());
+    newAnim.SetScale(anim.scale());
+    newAnim.SetInterpolateX(anim.interpolate_x());
+    out.AddAnimation(newAnim);
   }
   out.SetScriptLoop(_in.script_loop());
   out.SetScriptDelayStart(_in.script_delay_start());
@@ -397,19 +397,19 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   for (int i = 0; i < _in.trajectories_size(); ++i)
   {
     const auto &traj = _in.trajectories(i);
-    auto newTraj = new sdf::Trajectory();
-    newTraj->SetId(traj.id());
-    newTraj->SetType(traj.type());
-    newTraj->SetTension(traj.tension());
+    sdf::Trajectory newTraj;
+    newTraj.SetId(traj.id());
+    newTraj.SetType(traj.type());
+    newTraj.SetTension(traj.tension());
     for (int j = 0; j < traj.waypoints_size(); ++j)
     {
       const auto &point = traj.waypoints(j);
-      auto newPoint = new sdf::Waypoint();
-      newPoint->SetTime(point.time());
-      newPoint->SetPose(msgs::Convert(point.pose()));
-      newTraj->AddWaypoint(*newPoint);
+      sdf::Waypoint newPoint;
+      newPoint.SetTime(point.time());
+      newPoint.SetPose(msgs::Convert(point.pose()));
+      newTraj.AddWaypoint(newPoint);
     }
-    out.AddTrajectory(*newTraj);
+    out.AddTrajectory(newTraj);
   }
   return out;
 }
