@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <!--
-  To generate sdf file using this erb template, run `erb -T 1 actors_population.sdf.erb > actors_population.sdf`
+  To generate sdf file using this erb template,
+  run `erb actors_population.sdf.erb > actors_population.sdf`
+  To specify number of actors,
+  run `erb r=10 c=10 actors_population.sdf.erb > actors_population.sdf`
+  where `r` means row, `c` means column, and population = r * c.
 -->
 <sdf version="1.6">
   <world name="actors">
@@ -144,10 +148,16 @@
       k, v = var.split('=', 2)
       TOPLEVEL_BINDING.eval %Q(#{k} = "#{v}")
       end
-      # population = column * row
-      column = c.to_i
+      # population = column * row, default to 100 actors
+      column = 10
+      row = 10
+      if (defined? c)
+        column = c.to_i
+      end
       for j in (0..column-1)
-        row = r.to_i
+        if (defined? r)
+          row = r.to_i
+        end
         for i in (0..row-1)
     %>
 
