@@ -138,10 +138,16 @@
     </include>
 
     <%
+      vars = ARGV.take_while {|arg| arg[/^\w+=/]}
+      ARGV.slice!(0, vars.size)
+      vars.each do |var|
+      k, v = var.split('=', 2)
+      TOPLEVEL_BINDING.eval %Q(#{k} = "#{v}")
+      end
       # population = column * row
-      column = 100
+      column = c.to_i
       for j in (0..column-1)
-        row = 100
+        row = r.to_i
         for i in (0..row-1)
     %>
 
