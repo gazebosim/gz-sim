@@ -137,13 +137,7 @@ for dependency installation instructions for each supported operating system.
 
 **[Ubuntu Bionic](http://releases.ubuntu.com/18.04/)**
 
-1. Install third-party libraries:
-
-    ```
-    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libbenchmark-dev libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev
-    ```
-
-2. Install required Ignition libraries:
+1. Enable the Ignition software repositories:
 
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
@@ -161,8 +155,12 @@ for dependency installation instructions for each supported operating system.
     sudo apt-get update
     ```
 
+2. Install package dependencies:
+
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libignition-gui3-dev libignition-msgs5-dev libsdformat9-dev libignition-sensors3-dev libignition-fuel-tools4-dev
+    export SYSTEM_VERSION=bionic
+    sudo apt -y install \
+      $(sort -u $(find . -iname 'packages-'$SYSTEM_VERSION'.apt' -o -iname 'packages.apt') | tr '\n' ' ')
     ```
 
 ### Building from source
@@ -172,6 +170,10 @@ for dependency installation instructions for each supported operating system.
 2. Configure gcc8
 
     * Ubuntu
+
+        ```
+        sudo apt-get install g++-8
+        ```
 
         ```
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
