@@ -1467,6 +1467,86 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+    // Update link angular velocity
+  _ecm.Each<components::Link, components::AngularVelocityCmd>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::AngularVelocityCmd *_angularVelocityCmd)
+      {
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt == this->entityLinkMap.end())
+          return true;
+        
+        auto freeGroup = linkIt->second->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+        
+        const components::Pose *poseComp =
+            _ecm.Component<components::Pose>(_entity);
+        math::Vector3d worldAngularVel = poseComp->Data().Rot() *
+            _angularVelocityCmd->Data();
+
+        auto worldAngularVelFeature = entityCast(_entity, freeGroup,
+            this->entityWorldVelocityCommandMap);
+        if (!worldAngularVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set link angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+
+        worldAngularVelFeature->SetWorldAngularVelocity(
+            math::eigen3::convert(worldAngularVel));
+
+        return true;
+      });
+
+  // Update link linear velocity
+  _ecm.Each<components::Link, components::LinearVelocityCmd>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::LinearVelocityCmd *_linearVelocityCmd)
+      {
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt == this->entityLinkMap.end())
+          return true;
+        
+        auto freeGroup = linkIt->second->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+        
+        const components::Pose *poseComp =
+            _ecm.Component<components::Pose>(_entity);
+        math::Vector3d worldLinearVel = poseComp->Data().Rot() *
+            _linearVelocityCmd->Data();
+
+        auto worldLinearVelFeature = entityCast(_entity, freeGroup,
+              this->entityWorldVelocityCommandMap);
+        if (!worldLinearVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set link linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+
+        worldLinearVelFeature->SetWorldLinearVelocity(
+            math::eigen3::convert(worldLinearVel));
+
+        return true;
+      });
+
   // Clear pending commands
   // Note: Removing components from inside an Each call can be dangerous.
   // Instead, we collect all the entities that have the desired components and
