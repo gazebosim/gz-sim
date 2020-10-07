@@ -140,7 +140,7 @@ for dependency installation instructions for each supported operating system.
 1. Install third-party libraries:
 
     ```
-    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libbenchmark-dev libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev qtdeclarative5-models-plugin
+    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libbenchmark-dev libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev
     ```
 
 2. Install required Ignition libraries:
@@ -162,7 +162,7 @@ for dependency installation instructions for each supported operating system.
     ```
 
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libignition-gui3-dev libignition-msgs5-dev libsdformat9-dev
+    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libignition-gui3-dev libignition-msgs5-dev libsdformat9-dev libignition-sensors3-dev libignition-fuel-tools4-dev
     ```
 
 ### Building from source
