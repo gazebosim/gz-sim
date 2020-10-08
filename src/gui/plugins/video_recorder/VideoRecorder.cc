@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -106,6 +107,22 @@ void VideoRecorder::OnStop()
 void VideoRecorder::OnSave(const QString &_url)
 {
   std::string path = QUrl(_url).toLocalFile().toStdString();
+
+  // If we cannot find an extension in the user entered file name,
+  // append the format of the selected codec
+  if (common::basename(path).find(".") == std::string::npos)
+  {
+    // Get the user selected file extension
+    std::string filenameBaseName = common::basename(this->dataPtr->filename);
+    std::string::size_type filenameExtensionIndex =
+      filenameBaseName.rfind(".");
+    std::string fileExtension =
+      filenameBaseName.substr(filenameExtensionIndex + 1);
+
+    // Append file extension to the user entered path
+    path += "." + fileExtension;
+  }
+
   bool result = common::moveFile(this->dataPtr->filename, path);
 
   if (!result)
