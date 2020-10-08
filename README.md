@@ -99,7 +99,7 @@ are handled for you. The downside of a binary install is that you won't be able 
 the code. See [Source Install](#source-install) for information on
 installing Ignition Gazebo from source.
 
-**Ubuntu Bionic (version 2)**
+**Ubuntu Bionic**
 
 1. Configure package repositories.
 
@@ -122,10 +122,10 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo2-dev
+    sudo apt-get install libignition-gazebo3-dev
     ```
 
-## Source Install (version 3)
+## Source Install
 
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
@@ -137,13 +137,7 @@ for dependency installation instructions for each supported operating system.
 
 **[Ubuntu Bionic](http://releases.ubuntu.com/18.04/)**
 
-1. Install third-party libraries:
-
-    ```
-    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libbenchmark-dev libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev qtdeclarative5-models-plugin
-    ```
-
-2. Install required Ignition libraries:
+1. Enable the Ignition software repositories:
 
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
@@ -161,8 +155,16 @@ for dependency installation instructions for each supported operating system.
     sudo apt-get update
     ```
 
+2. Install package dependencies:
+
     ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics2-dev libignition-rendering3-dev libignition-tools-dev libignition-transport8-dev libignition-gui3-dev libignition-msgs5-dev libsdformat9-dev
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
+    ```
+
+    ```
+    export SYSTEM_VERSION=bionic
+    sudo apt -y install \
+      $(sort -u $(find . -iname 'packages-'$SYSTEM_VERSION'.apt' -o -iname 'packages.apt') | tr '\n' ' ')
     ```
 
 ### Building from source
@@ -174,16 +176,20 @@ for dependency installation instructions for each supported operating system.
     * Ubuntu
 
         ```
+        sudo apt-get install g++-8
+        ```
+
+        ```
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
         ```
 
-1. Clone the repository.
+3. Clone the repository if you haven't already.
 
     ```
     git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
     ```
 
-2. Configure and  build.
+4. Configure and build.
 
     ```
     cd ign-gazebo
