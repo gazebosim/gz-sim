@@ -91,25 +91,6 @@ TEST_F(ModelIntegrationTest, Name)
 }
 
 //////////////////////////////////////////////////
-TEST_F(ModelIntegrationTest, Parent)
-{
-  EntityComponentManager ecm;
-
-  auto id = ecm.CreateEntity();
-  ecm.CreateComponent<components::Model>(id, components::Model());
-
-  Model model(id);
-
-  // No parent
-  EXPECT_EQ(kNullEntity, model.Parent(ecm));
-
-  // Add parent
-  ecm.CreateComponent<components::ParentEntity>(id,
-      components::ParentEntity(100u));
-  EXPECT_EQ(100u, model.Parent(ecm));
-}
-
-//////////////////////////////////////////////////
 TEST_F(ModelIntegrationTest, Static)
 {
   EntityComponentManager ecm;
