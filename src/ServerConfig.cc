@@ -717,9 +717,10 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
   return parsePluginsFromDoc(doc);
 }
 
+
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::loadPluginInfo()
+ignition::gazebo::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
   bool resolved = false;
@@ -756,14 +757,26 @@ ignition::gazebo::loadPluginInfo()
 
   if (!resolved)
   {
+    std::string configFilename;
+    if (_isPlayback)
+    {
+      configFilename = "server_playback.config";
+    }
+    else
+    {
+      configFilename = "server.config";
+    }
+
     std::string defaultConfig;
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", "server.config");
+      "gazebo", configFilename);
 
     if (!ignition::common::exists(defaultConfig))
     {
-      auto installedConfig = IGNITION_GAZEBO_SERVER_CONFIG_PATH;
+      auto installedConfig = ignition::common::joinPaths(
+          IGNITION_GAZEBO_SERVER_CONFIG_PATH,
+          configFilename);
 
       if (!ignition::common::exists(installedConfig))
       {

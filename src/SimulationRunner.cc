@@ -164,7 +164,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     ignmsg << "No SDF systems loaded, loading defaults" << std::endl;
 
     ServerConfig tmpConfig;
-    auto plugins = ignition::gazebo::loadPluginInfo();
+    bool isPlayback = !this->serverConfig.LogPlaybackPath.empty();
+    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+
     for (const auto &plugin : plugins)
     {
       tmpConfig.AddPlugin(plugin);
@@ -848,14 +850,10 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
               << plugin.EntityType() << "]" << std::endl;
     }
 
+
     if (kNullEntity != entity)
     {
       this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
-    }
-    else
-    {
-      ignwarn << "Attempting to attach plugin [" << plugin.Name() <<
-        " to an unknown entity. Plugin won't be loaded" << std::endl;
     }
   }
 }
