@@ -87,16 +87,6 @@ std::string Model::Name(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
-Entity Model::Parent(const EntityComponentManager &_ecm) const
-{
-  auto comp = _ecm.Component<components::ParentEntity>(this->dataPtr->id);
-  if (comp)
-    return comp->Data();
-
-  return kNullEntity;
-}
-
-//////////////////////////////////////////////////
 bool Model::Static(const EntityComponentManager &_ecm) const
 {
   auto comp = _ecm.Component<components::Static>(this->dataPtr->id);
