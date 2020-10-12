@@ -424,6 +424,13 @@ class Cmd
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
 
+      # If playback is specified, and the user has not specified a
+      # custom gui config, set the gui config to load the playback
+      # gui config
+      if (options['playback'] != '' and options['gui_config'] == '')
+        options['gui_config'] = "_playback_"
+      end
+
       # Neither the -s nor -g options were used, so run both the server
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
