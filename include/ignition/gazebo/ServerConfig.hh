@@ -404,12 +404,13 @@ namespace ignition
     /// stops and the plugin list will be empty.
     ///
     //
-    /// \param[in] _isPlayback Is the server in playback mode
+    /// \param[in] _isPlayback Is the server in playback mode. If so, fallback
+    /// to server_playback.config.
     //
     /// \return A list of plugins to load, based on above ordering
     std::list<ServerConfig::PluginInfo>
     IGNITION_GAZEBO_VISIBLE
-    loadPluginInfo(bool _isPlayback);
+    loadPluginInfo(bool _isPlayback = false);
     }
   }
 }
