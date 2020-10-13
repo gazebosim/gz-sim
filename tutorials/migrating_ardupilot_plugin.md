@@ -11,7 +11,7 @@ study the migration of one particular `ModelPlugin`,
 this example provides useful tips to others who are migrating their existing
 plugins from Gazebo to Ignition.
 
-The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial 
+The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial
 can be found in [this fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition).
 
 ## Background
@@ -805,7 +805,7 @@ In the new code we explicitly reference each Ignition package that we use:
 # NEW
 find_package(sdformat9 REQUIRED)
 find_package(ignition-common3-all REQUIRED)
-find_package(ignition-gazebo4-all REQUIRED)
+find_package(ignition-gazebo5-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs6-all REQUIRED)
 find_package(ignition-physics3-all REQUIRED)
