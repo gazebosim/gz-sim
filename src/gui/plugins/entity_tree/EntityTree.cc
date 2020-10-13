@@ -125,8 +125,8 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 
   if (nullptr == parentItem)
   {
-    ignerr << "Failed to find parent entity [" << _parentEntity << "]"
-           << std::endl;
+    this->pendingEntities.push_back(
+      {_entity, _entityName, _parentEntity, _type});
     return;
   }
 
@@ -140,6 +140,19 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
   parentItem->appendRow(entityItem);
 
   this->entityItems[_entity] = entityItem;
+
+  // Check if there are pending children
+  auto sep = std::partition(this->pendingEntities.begin(),
+      this->pendingEntities.end(), [&_entity](const EntityInfo &_entityInfo)
+      {
+        return _entityInfo.parentEntity != _entity;
+      });
+
+  for (auto it = sep; it != this->pendingEntities.end(); ++it)
+  {
+    this->AddEntity(it->entity, it->name, it->parentEntity, it->type);
+  }
+  this->pendingEntities.erase(sep, this->pendingEntities.end());
 }
 
 /////////////////////////////////////////////////
@@ -155,6 +168,14 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 
   if (nullptr == item)
   {
+    // See if it's pending
+    auto toRemove = std::remove_if(this->pendingEntities.begin(),
+        this->pendingEntities.end(), [&_entity](const EntityInfo &_entityInfo)
+        {
+          return _entityInfo.entity == _entity;
+        });
+    this->pendingEntities.erase(toRemove, this->pendingEntities.end());
+
     return;
   }
 
