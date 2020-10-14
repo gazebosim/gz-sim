@@ -33,7 +33,11 @@ any arguments:
 `ign gazebo`
 
 You should see an empty world with several plugins loaded by default, such as the
-3D Scene, the play/pause button, etc. By default, you're loading this file:
+3D Scene, the play/pause button, etc.
+
+@image html files/gui_config/default_gui.png
+
+By default, you're loading this file:
 
 `$HOME/.ignition/gazebo/gui.config`
 
@@ -56,6 +60,8 @@ Let's try customizing it:
 
 Note how the UI is now in dark mode!
 
+@image html files/gui_config/dark_gui.png
+
 You'll often want to restore default settings or to use the latest default
 provided by Ignition (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
@@ -71,7 +77,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
 ```
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="fuel_preview.sdf">
+  <world name="fuel_preview">
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
@@ -113,8 +119,14 @@ Now let's load this world:
 `ign gazebo <path to>/fuel_preview.sdf`
 
 Notice how the application has only one GUI plugin loaded, the 3D scene, as defined
-on the SDF file above. If you delete the `<gui>` element from the file above and
-reload it, you'll see the same model loaded into the default GUI layout.
+on the SDF file above.
+
+@image html files/gui_config/fuel_preview.png
+
+If you delete the `<gui>` element from the file above and reload it, you'll see
+the same model loaded into the default GUI layout.
+
+@image html files/gui_config/fuel_preview_no_gui.png
 
 ### Command line
 
@@ -126,7 +138,7 @@ configuration files from the command line.
 Let's start by creating a custom configuration file, but instead of editing by
 hand, we'll create it from the UI.
 
-1. Let's start loading the SDF world we created above:
+1. Let's start loading the SDF world we created above, with the `<gui>` element back:
 
 `ign gazebo <path to>/fuel_preview.sdf`
 
@@ -144,17 +156,21 @@ hand, we'll create it from the UI.
 
 7. Close Gazebo
 
-8. Take a look at the saved file if you're curious, it will look a lot like
+@image html files/gui_config/save_config.gif
+
+1. Take a look at the saved file if you're curious, it will look a lot like
    the default file, but with more properties defined.
 
-9. Finally, let's load the previous world, with our custom configuration:
+2. Finally, let's load the previous world, with our custom configuration:
 
     `ign gazebo <path to>/fuel_preview.sdf --gui-config <path to>saved.config`
 
-10. Gazebo should open with your custom layout.
+3. Gazebo should open with your custom layout.
 
 **Tip**: From the top-left menu, you can choose "Save client configuration" to
 save directly to `$HOME/.ignition/gazebo/gui.config`.
+
+@image html files/gui_config/cmd_line.png
 
 
 
