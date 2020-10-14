@@ -1,8 +1,8 @@
 \page migrationplugins
 
-# Migration from Gazebo-classic: Plugins
+# Migration from Gazebo Classic: Plugins
 
-Classic Gazebo supports
+Gazebo Classic supports
 [6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),
 each providing access to different parts of the API, like physics, rendering,
 sensors, GUI, etc. Due to Ignition Gazebo's architecture based on an
@@ -15,7 +15,7 @@ while others are specific plugin types from other Ignition libraries.
 
 For example, plugins which get and set properties of simulation entities would be
 Ignition Gazebo systems. On the other hand, there are now plugin interfaces which didn't
-exist in Gazebo, such as integrating a new physics or rendering engine, and these can
+exist in Gazebo Classic, such as integrating a new physics or rendering engine, and these can
 be also used in projects outside of Ignition Gazebo.
 
 Take a look at the comparison below:
@@ -39,14 +39,14 @@ System | Access command line arguments | TBD | -
 ---
 
 Another key difference is that systems will be able to access all entity
-properties at once, despite the entity type. So while in Gazebo you may
+properties at once, despite the entity type. So while in Gazebo Classic you may
 need 3 different plugins to interact with physics, rendering and sensors, on
 Ignition you could, for example, set a camera's visual color, its velocity and
 frame rate, all from a single plugin.
 
 ## Plugin interfaces
 
-Let's take a look at a typical Gazebo plugin which accesses a property from an
+Let's take a look at a typical Gazebo Classic plugin which accesses a property from an
 entity and does something with it. In this case, it will print the current pose
 of a link.
 
@@ -223,7 +223,7 @@ IGNITION_ADD_PLUGIN(MyPlugin,
 IGNITION_ADD_PLUGIN_ALIAS(MyPlugin,"ignition::gazebo::systems::MyPlugin")
 ```
 
-In summary, the key differences between classic and Igntion Gazebo are:
+In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
 
 * Plugins must inherit from the `ISystemConfigure` class to be able to override
   the `Configure` callback that gives access to many things, such as the SDF
@@ -234,7 +234,7 @@ In summary, the key differences between classic and Igntion Gazebo are:
 
 * Plugins don't have direct access to physics objects such as `physics::Model`.
   Instead, they can either deal directly with entities and their components by
-  calling functions in the ECM, or use convenient objects such as
+  calling functions in the ECM, or using convenient objects such as
   `ignition::gazebo::Model` which wrap the ECM interface.
 
 All these changes are meant to give plugin developers more flexibility to

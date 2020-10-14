@@ -366,7 +366,8 @@ void VisualizeLidar::UpdateType(int _type)
 void VisualizeLidar::OnTopic(const QString &_topicName)
 {
   std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
-  if (!this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
+  if (!this->dataPtr->topicName.empty() &&
+      !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
     ignerr << "Unable to unsubscribe from topic ["
            << this->dataPtr->topicName <<"]" <<std::endl;
