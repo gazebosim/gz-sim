@@ -125,9 +125,12 @@ void GridConfig::UpdateGrid()
     visual->SetLocalPose(this->dataPtr->gridParam.pose);
 
     auto mat = visual->Material();
-    mat->SetAmbient(this->dataPtr->gridParam.color);
-    mat->SetDiffuse(this->dataPtr->gridParam.color);
-    mat->SetSpecular(this->dataPtr->gridParam.color);
+    if (mat)
+    {
+      mat->SetAmbient(this->dataPtr->gridParam.color);
+      mat->SetDiffuse(this->dataPtr->gridParam.color);
+      mat->SetSpecular(this->dataPtr->gridParam.color);
+    }
 
     visual->SetVisible(this->dataPtr->gridParam.visible);
   }
