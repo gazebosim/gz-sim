@@ -2,6 +2,31 @@
 
 ### Ignition Gazebo 3.4.0 (2020-10-14)
 
+1. Remove `lib`+`.so` from plugin's name #279.
+    * [Pull Request 335](https://github.com/ignitionrobotics/ign-gazebo/pull/335)
+    * [Pull Request 335](https://github.com/ignitionrobotics/ign-gazebo/pull/335)
+
+1. EntityComponentManager::EachRemoved documentation fix.
+    * [Pull Request 348](https://github.com/ignitionrobotics/ign-gazebo/pull/348)
+
+1. Add more model APIs.
+    * [Pull Request 349](https://github.com/ignitionrobotics/ign-gazebo/pull/349)
+
+1. Update dimensions of the grid config.
+    * [Pull Request 383](https://github.com/ignitionrobotics/ign-gazebo/pull/383)
+
+1. Fix top-left toolbar layout so magnet shows.
+    * [Pull Request 381](https://github.com/ignitionrobotics/ign-gazebo/pull/381)
+
+1. Add instructions to bitmask world.
+    * [Pull Request 377](https://github.com/ignitionrobotics/ign-gazebo/pull/377)
+
+1. Add search and sort for resource spawner.
+    * [Pull Request 359](https://github.com/ignitionrobotics/ign-gazebo/pull/359)
+
+1. Fix source build instructions for ign-gazebo3.
+    * [Pull Request 395](https://github.com/ignitionrobotics/ign-gazebo/pull/395)
+
 1. Added playback scrubber GUI
     * [Pull Request 299](https://github.com/ignitionrobotics/ign-gazebo/pull/299)
     * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
