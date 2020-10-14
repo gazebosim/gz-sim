@@ -1,6 +1,6 @@
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X (2020-XX-XX)
+### Ignition Gazebo 3.4.0 (2020-10-14)
 
 1. Added playback scrubber GUI
     * [Pull Request 299](https://github.com/ignitionrobotics/ign-gazebo/pull/299)
