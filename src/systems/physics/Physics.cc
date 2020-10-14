@@ -789,8 +789,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               static bool informed{false};
               if (!informed)
               {
-                igndbg << "Attempting to construct nested models, but the physics"
-                       << " engine doesn't support feature "
+                igndbg << "Attempting to construct nested models, but the "
+                       << "physics engine doesn't support feature "
                        << "[ConstructSdfNestedModelFeature]. "
                        << "Nested model will be ignored."
                        << std::endl;
