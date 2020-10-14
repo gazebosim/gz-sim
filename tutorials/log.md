@@ -64,19 +64,10 @@ Recording can be specified in the SDF, under `<world>` tag:
     <plugin
       filename="ignition-gazebo-log-system"
       name="ignition::gazebo::systems::LogRecord">
-      <!--
-         Deprecated: Specifying the path on SDF is deprecated on Blueprint and
-         Citadel, and will be removed on Dome. Use one of the other methods to
-         speficy the path instead.
-      -->
-      <!--path>/tmp/log</path-->
     </plugin>
     ...
 </world>
 ```
-
-Use of `<path>` results in the console log and state recording being written
-to different locations. Existing paths are overwritten by default. See below.
 
 Currently, it is enforced that only one recording instance is allowed to
 start during a Gazebo run.
@@ -95,12 +86,6 @@ The final record path will depend on a few options:
         * If no `--log-overwrite`, logs are recorded to a new path with a number
           appended, i.e. `/tmp/log(1)`, `/tmp/log(2)`...
         * If `--log-overwrite`, the directory is cleared and logs recorded to it.
-* If `<path>` in SDF (deprecated, not recommended):
-    * It will be used unless the path is specified through the command line or API.
-    * The SDF doesn't affect the console log, so that file will still go to the
-      timestamped directory.
-    * If the path exists, it will always be overwritten and there's no way to
-      disable this behaviour.
 
 ## Playback
 

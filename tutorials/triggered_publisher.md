@@ -136,6 +136,7 @@ indicating where the sensor is on the ground.
 ```
 
 \note The contact sensor needs the `Contact` system under `<world>`
+
 ```xml
     <world>
       ...

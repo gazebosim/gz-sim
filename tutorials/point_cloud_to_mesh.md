@@ -93,7 +93,7 @@ Our tunnel has turned into a blob shape.
 This is because the mesh that CloudCompare creates will always be water tight even if it has to add polygons where there are no points.
 We just want our tunnels, though, so we need to remove those unnecessary polygons.
 
-![The "blob shape"](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/point_cloud_to_mesh/blob2.png)
+![The blob shape](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/point_cloud_to_mesh/blob2.png)
 
 This is where our scalar field comes in.
 In the mesh's `Properties` window go to `SF display params` and take the left handle in the graph and drag it to the right until it hits the area where the bulk of the scalar field starts.
