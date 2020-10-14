@@ -41,7 +41,7 @@ Rectangle {
   // Read-only / write
   property bool readOnly: {
     var isModel = entityType == "model"
-    return !(isModel)
+    return !(isModel) || nestedModel
   }
 
   // Loaded item for X

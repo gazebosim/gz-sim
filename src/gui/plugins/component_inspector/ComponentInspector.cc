@@ -79,6 +79,9 @@ namespace ignition::gazebo
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
 
+    /// \brief Nested model or not
+    public: bool nestedModel = false;
+
     /// \brief Whether currently locked on a given entity
     public: bool locked{false};
 
@@ -310,6 +313,17 @@ void ComponentInspector::Update(const UpdateInfo &,
     if (typeId == components::Model::typeId)
     {
       this->SetType("model");
+
+      // check if entity is nested model
+      auto parentComp = _ecm.Component<components::ParentEntity>(
+           this->dataPtr->entity);
+      if (parentComp)
+      {
+        auto modelComp = _ecm.Component<components::Model>(parentComp->Data());
+        this->dataPtr->nestedModel = (modelComp);
+      }
+      this->NestedModelChanged();
+
       continue;
     }
 
@@ -701,6 +715,12 @@ void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
   auto poseCmdService = "/world/" + this->dataPtr->worldName
       + "/set_pose";
   this->dataPtr->node.Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::NestedModel() const
+{
+  return this->dataPtr->nestedModel;
 }
 
 // Register this plugin

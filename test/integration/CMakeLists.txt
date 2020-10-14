@@ -42,6 +42,7 @@ set(tests
   user_commands.cc
   velocity_control_system.cc
   log_system.cc
+  wheel_slip.cc
   wind_effects.cc
   world.cc
 )
