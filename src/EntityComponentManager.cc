@@ -832,27 +832,28 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
   // Empty means all types
 #define noop
-  /*
+  ignwarn << "types size: " << _types.size() << std::endl;
+  ignwarn << "entity is " << _entity << std::endl;
   for (const ComponentTypeId type : _types)
   {
-    if (this->dataPtr->entityComponents[_entity].find(type) ==
-        this->dataPtr->entityComponents[_entity].end())
-    {
-      continue;
-    }
-    const ComponentKey comp = this->dataPtr->entityComponents[_entity].find(type)
-  }*/
-  /*
-  for (const ComponentKey &comp : this->dataPtr->entityComponents[_entity])
-  {
+    ignwarn << "iterating types" << std::endl;
     IGN_PROFILE("IterateEntityComponents");
     {
     IGN_PROFILE("1");
-    if (!_types.empty() && _types.find(comp.first) == _types.end())
+    if (this->dataPtr->entityComponents[_entity].find(type) ==
+        this->dataPtr->entityComponents[_entity].end())
     {
+      ignwarn << "Did not find entity, continuing" << std::endl;
       continue;
     }
+    else
+    {
+      ignwarn << "Found entity" << std::endl;
     }
+    }
+    auto iter = this->dataPtr->entityComponents.find(_entity);
+    auto typeIter = iter->second.find(type);
+    ComponentKey comp = (typeIter->second);
 
     const components::BaseComponent *compBase;
     {
@@ -928,7 +929,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     _msg.mutable_entities()->erase(entIter);
   }
   }
-  */
 }
 
 //////////////////////////////////////////////////
