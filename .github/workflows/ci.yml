@@ -1,6 +1,6 @@
 name: Ubuntu CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   bionic-ci:
@@ -23,5 +23,3 @@ jobs:
       - name: Compile and test
         id: ci
         uses: ignition-tooling/action-ignition-ci@focal
-        with:
-          codecov-token: ${{ secrets.CODECOV_TOKEN }}
