@@ -92,9 +92,9 @@ namespace ignition
       /// \return True if it's a valid world in the manager.
       public: bool Valid(const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the link's unscoped name.
+      /// \brief Get the world's unscoped name.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Link's name or nullopt if the entity does not have a
+      /// \return World's name or nullopt if the entity does not have a
       /// components::Name component
       public: std::optional<std::string> Name(
           const EntityComponentManager &_ecm) const;
@@ -106,7 +106,7 @@ namespace ignition
       public: std::optional<math::Vector3d> Gravity(
           const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the magnetic field in T.
+      /// \brief Get the magnetic field in Tesla.
       /// \param[in] _ecm Entity-component manager.
       /// \return Magnetic field vector or nullopt if the entity does not
       /// have a components::MagneticField component.
@@ -125,27 +125,24 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Light name.
       /// \return Light entity.
-      /// \todo(anyone) Make const
       public: gazebo::Entity LightByName(const EntityComponentManager &_ecm,
-          const std::string &_name);
+          const std::string &_name) const;
 
       /// \brief Get the ID of a actor entity which is an immediate child of
       /// this world.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Actor name.
       /// \return Actor entity.
-      /// \todo(anyone) Make const
       public: gazebo::Entity ActorByName(const EntityComponentManager &_ecm,
-          const std::string &_name);
+          const std::string &_name) const;
 
       /// \brief Get the ID of a model entity which is an immediate child of
       /// this world.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Model name.
       /// \return Model entity.
-      /// \todo(anyone) Make const
       public: gazebo::Entity ModelByName(const EntityComponentManager &_ecm,
-          const std::string &_name);
+          const std::string &_name) const;
 
       /// \brief Get all lights which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.

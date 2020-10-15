@@ -107,7 +107,7 @@ std::optional<math::Vector3d> World::MagneticField(
 
 //////////////////////////////////////////////////
 Entity World::LightByName(const EntityComponentManager &_ecm,
-    const std::string &_name)
+    const std::string &_name) const
 {
   // Can't use components::Light in EntityByComponents, see
   // https://github.com/ignitionrobotics/ign-gazebo/issues/376
@@ -125,7 +125,7 @@ Entity World::LightByName(const EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 Entity World::ActorByName(const EntityComponentManager &_ecm,
-    const std::string &_name)
+    const std::string &_name) const
 {
   // Can't use components::Actor in EntityByComponents, see
   // https://github.com/ignitionrobotics/ign-gazebo/issues/376
@@ -143,7 +143,7 @@ Entity World::ActorByName(const EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 Entity World::ModelByName(const EntityComponentManager &_ecm,
-    const std::string &_name)
+    const std::string &_name) const
 {
   return _ecm.EntityByComponents(
       components::ParentEntity(this->dataPtr->id),
