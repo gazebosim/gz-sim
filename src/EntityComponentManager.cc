@@ -287,12 +287,14 @@ bool EntityComponentManager::RemoveComponent(
   if (!this->EntityHasComponent(_entity, _key))
     return false;
 
-  auto entityComponentIter = std::find(
-      this->dataPtr->entityComponents[_entity].begin(),
-      this->dataPtr->entityComponents[_entity].end(), _key);
+  // TODO find the 
+  //auto entityComponentIter = std::find(
+  //    this->dataPtr->entityComponents[_entity].begin(),
+  //    this->dataPtr->entityComponents[_entity].end(), _key);
 
   this->dataPtr->components.at(_key.first)->Remove(_key.second);
-  this->dataPtr->entityComponents[_entity].erase(entityComponentIter);
+  //this->dataPtr->entityComponents[_entity].erase(entityComponentIter);
+  this->dataPtr->entityComponents[_entity].erase(_key.first);
   this->dataPtr->oneTimeChangedComponents.erase(_key);
   this->dataPtr->periodicChangedComponents.erase(_key);
 
@@ -305,9 +307,8 @@ bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
   return this->HasEntity(_entity) &&
-    std::find(this->dataPtr->entityComponents[_entity].begin(),
-        this->dataPtr->entityComponents[_entity].end(), _key) !=
-    this->dataPtr->entityComponents[_entity].end();
+    this->dataPtr->entityComponents[_entity].find(_key.first) !=
+      this->dataPtr->entityComponents[_entity].end();
 }
 
 /////////////////////////////////////////////////
@@ -322,11 +323,16 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
   if (iter == this->dataPtr->entityComponents.end())
     return false;
 
+  auto typeIter = iter->second.find(_typeId);
+  return (typeIter != iter->second.end());
+
+  /*
   return std::find_if(iter->second.begin(), iter->second.end(),
       [&] (const ComponentKey &_key)
       {
         return _key.first == _typeId;
       }) != iter->second.end();
+  */
 }
 
 /////////////////////////////////////////////////
@@ -504,6 +510,12 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
   for (const ComponentTypeId &type : _types)
   {
     bool found = false;
+    // TODO find type in the this->dataPtr->entityComponents[entity] map
+    auto typeIter = iter->second.find(type);
+    if (typeIter == iter->second.end())
+      return false;
+
+    /*
     for (const ComponentKey &comp : iter->second)
     {
       if (comp.first == type)
@@ -514,6 +526,7 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
     }
     if (!found)
       return false;
+    */
   }
 
   return true;
@@ -528,15 +541,18 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
   if (ecIter == this->dataPtr->entityComponents.end())
     return -1;
 
+  /*
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
       [&] (const ComponentKey &_key)
   {
     return _key.first == _type;
   });
+  */
 
-  if (iter != ecIter->second.end())
-    return iter->second;
+  auto typeIter = ecIter->second.find(_type);
+  if (typeIter != ecIter->second.end())
+    return typeIter->second.second;
 
   return -1;
 }
@@ -552,14 +568,17 @@ const components::BaseComponent
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
+  /*
   auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
       [&] (const ComponentKey &_key)
   {
     return _key.first == _type;
   });
+  */
 
-  if (iter != ecIter->second.end())
-    return this->dataPtr->components.at(iter->first)->Component(iter->second);
+  auto typeIter = ecIter->second.find(_type);
+  if (typeIter != ecIter->second.end())
+    return this->dataPtr->components.at(typeIter->second.first)->Component(typeIter->second.second);
 
   return nullptr;
 }
@@ -573,15 +592,18 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
+  /*
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
         [&] (const ComponentKey &_key)
   {
     return _key.first == _type;
   });
+  */
 
-  if (iter != ecIter->second.end())
-    return this->dataPtr->components.at(iter->first)->Component(iter->second);
+  auto typeIter = ecIter->second.find(_type);
+  if (typeIter != ecIter->second.end())
+    return this->dataPtr->components.at(typeIter->second.first)->Component(typeIter->second.second);
 
   return nullptr;
 }
@@ -820,6 +842,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     }
     const ComponentKey comp = this->dataPtr->entityComponents[_entity].find(type)
   }*/
+  /*
   for (const ComponentKey &comp : this->dataPtr->entityComponents[_entity])
   {
     IGN_PROFILE("IterateEntityComponents");
@@ -905,6 +928,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     _msg.mutable_entities()->erase(entIter);
   }
   }
+  */
 }
 
 //////////////////////////////////////////////////
@@ -1224,6 +1248,7 @@ void EntityComponentManager::SetChanged(
   if (ecIter == this->dataPtr->entityComponents.end())
     return;
 
+  /*
   auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
         [&] (const ComponentKey &_key)
   {
@@ -1232,21 +1257,26 @@ void EntityComponentManager::SetChanged(
 
   if (iter == ecIter->second.end())
     return;
+  */
+
+  auto typeIter = ecIter->second.find(_type);
+  if (typeIter == ecIter->second.end())
+    return;
 
   if (_c == ComponentState::PeriodicChange)
   {
-    this->dataPtr->periodicChangedComponents.insert(*iter);
-    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+    this->dataPtr->periodicChangedComponents.insert(typeIter->second);
+    this->dataPtr->oneTimeChangedComponents.erase(typeIter->second);
   }
   else if (_c == ComponentState::OneTimeChange)
   {
-    this->dataPtr->periodicChangedComponents.erase(*iter);
-    this->dataPtr->oneTimeChangedComponents.insert(*iter);
+    this->dataPtr->periodicChangedComponents.erase(typeIter->second);
+    this->dataPtr->oneTimeChangedComponents.insert(typeIter->second);
   }
   else
   {
-    this->dataPtr->periodicChangedComponents.erase(*iter);
-    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+    this->dataPtr->periodicChangedComponents.erase(typeIter->second);
+    this->dataPtr->oneTimeChangedComponents.erase(typeIter->second);
   }
 }
 
