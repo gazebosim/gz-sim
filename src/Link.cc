@@ -94,7 +94,7 @@ bool Link::Valid(const EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 std::optional<std::string> Link::Name(const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::Name, std::string>(this->dataPtr->id);
+  return _ecm.ComponentData<components::Name>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -177,8 +177,7 @@ bool Link::WindMode(const EntityComponentManager &_ecm) const
 std::optional<math::Pose3d> Link::WorldPose(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::WorldPose, math::Pose3d>(
-      this->dataPtr->id);
+  return _ecm.ComponentData<components::WorldPose>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -198,8 +197,7 @@ std::optional<math::Pose3d> Link::WorldInertialPose(
 std::optional<math::Vector3d> Link::WorldLinearVelocity(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::WorldLinearVelocity, math::Vector3d>(
-      this->dataPtr->id);
+  return _ecm.ComponentData<components::WorldLinearVelocity>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -226,7 +224,7 @@ std::optional<math::Vector3d> Link::WorldLinearVelocity(
 std::optional<math::Vector3d> Link::WorldAngularVelocity(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::WorldAngularVelocity, math::Vector3d>(
+  return _ecm.ComponentData<components::WorldAngularVelocity>(
       this->dataPtr->id);
 }
 
@@ -234,8 +232,8 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::WorldLinearAcceleration,
-      math::Vector3d>(this->dataPtr->id);
+  return _ecm.ComponentData<components::WorldLinearAcceleration>(
+      this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////

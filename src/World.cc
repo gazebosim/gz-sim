@@ -81,31 +81,28 @@ bool World::Valid(const EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 std::optional<std::string> World::Name(const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::Name, std::string>(this->dataPtr->id);
+  return _ecm.ComponentData<components::Name>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
 std::optional<sdf::Atmosphere> World::Atmosphere(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::Atmosphere, sdf::Atmosphere>(
-      this->dataPtr->id);
+  return _ecm.ComponentData<components::Atmosphere>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
 std::optional<math::Vector3d> World::Gravity(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::Gravity, math::Vector3d>(
-      this->dataPtr->id);
+  return _ecm.ComponentData<components::Gravity>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
 std::optional<math::Vector3d> World::MagneticField(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::MagneticField, math::Vector3d>(
-      this->dataPtr->id);
+  return _ecm.ComponentData<components::MagneticField>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////

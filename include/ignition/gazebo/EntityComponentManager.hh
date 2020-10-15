@@ -219,10 +219,12 @@ namespace ignition
       /// * If the entity doesn't have that component, it will return nullopt.
       /// * If the entity has the component, return its data.
       /// \param[in] _entity The entity.
+      /// \tparam ComponentTypeT Component type
       /// \return The data of the component of the specified type assigned to
       /// specified Entity, or nullptr if the component could not be found.
-      public: template<typename ComponentTypeT, typename DataType>
-              std::optional<DataType> ComponentData(const Entity _entity) const;
+      public: template<typename ComponentTypeT>
+              std::optional<typename ComponentTypeT::Type> ComponentData(
+              const Entity _entity) const;
 
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.

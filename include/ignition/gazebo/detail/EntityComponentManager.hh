@@ -79,9 +79,9 @@ ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 }
 
 //////////////////////////////////////////////////
-template<typename ComponentTypeT, typename DataType>
-std::optional<DataType> EntityComponentManager::ComponentData(
-    const Entity _entity) const
+template<typename ComponentTypeT>
+std::optional<typename ComponentTypeT::Type>
+    EntityComponentManager::ComponentData(const Entity _entity) const
 {
   auto comp = this->Component<ComponentTypeT>(_entity);
   if (!comp)
