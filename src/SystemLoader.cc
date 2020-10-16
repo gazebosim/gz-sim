@@ -57,6 +57,8 @@ class ignition::gazebo::SystemLoaderPrivate
     systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
+    std::cerr << "ign-gazebo _filename " << _filename << '\n';
+
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
     {
@@ -78,7 +80,13 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    auto pluginName = *pluginNames.begin();
+    std::string pluginName = *pluginNames.begin();
+    for (auto name : pluginNames)
+    {
+      if (name.find("gazebo")!=std::string::npos)
+        pluginName = name;
+    }
+
     if (pluginName.empty())
     {
       ignerr << "Failed to load system plugin [" << _filename <<
@@ -182,4 +190,3 @@ std::string SystemLoader::PrettyStr() const
 {
   return this->dataPtr->loader.PrettyStr();
 }
-
