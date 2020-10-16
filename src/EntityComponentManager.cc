@@ -17,9 +17,9 @@
 
 #include <map>
 #include <set>
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
@@ -728,7 +728,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     }
   }
 
-  auto components = this->dataPtr->entityComponents[_entity];
   // Empty means all types
   for (const ComponentTypeId type : types)
   {
@@ -928,13 +927,10 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  IGN_PROFILE("EntityComponentManager::State IterateEntityComponents");
   for (const auto &it : this->dataPtr->entityComponents)
   {
     if (_entities.empty() || _entities.find(it.first) != _entities.end())
-    {
       this->AddEntityToMessage(_state, it.first, _types, _full);
-    }
   }
 }
 
