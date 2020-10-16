@@ -16,7 +16,8 @@
 */
 
 #include <map>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -41,7 +42,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \param[in] _entity Entity to be inserted.
   /// \param[in, out] _set Set to be filled.
   public: void InsertEntityRecursive(Entity _entity,
-      std::set<Entity> &_set);
+      std::unordered_set<Entity> &_set);
 
   /// \brief Register a new component type.
   /// \param[in] _typeId Type if of the new component.
@@ -50,7 +51,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
-  public: std::map<ComponentTypeId,
+  public: std::unordered_map<ComponentTypeId,
           std::unique_ptr<ComponentStorageBase>> components;
 
   /// \brief A graph holding all entities, arranged according to their
@@ -64,16 +65,16 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::set<ComponentKey> oneTimeChangedComponents;
 
   /// \brief Entities that have just been created
-  public: std::set<Entity> newlyCreatedEntities;
+  public: std::unordered_set<Entity> newlyCreatedEntities;
 
   /// \brief Entities that need to be removed.
-  public: std::set<Entity> toRemoveEntities;
+  public: std::unordered_set<Entity> toRemoveEntities;
 
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
 
   /// \brief The set of components that each entity has
-  public: std::map<Entity, std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
+  public: std::unordered_map<Entity, std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
 
   /// \brief A mutex to protect newly created entityes.
   public: std::mutex entityCreatedMutex;
@@ -90,7 +91,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Cache of previously queried descendants. The key is the parent
   /// entity for which descendants were queried, and the value are all its
   /// descendants.
-  public: mutable std::map<Entity, std::unordered_set<Entity>> descendantCache;
+  public: mutable std::unordered_map<Entity, std::unordered_set<Entity>> descendantCache;
 
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
@@ -158,7 +159,7 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 
 /////////////////////////////////////////////////
 void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
-    std::set<Entity> &_set)
+    std::unordered_set<Entity> &_set)
 {
   for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
   {
@@ -173,7 +174,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 {
   // Store the to-be-removed entities in a temporary set so we can call
   // UpdateViews on each of them
-  std::set<Entity> tmpToRemoveEntities;
+  std::unordered_set<Entity> tmpToRemoveEntities;
   if (!_recursive)
   {
     tmpToRemoveEntities.insert(_entity);
@@ -780,12 +781,16 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   // Empty means all types
   bool allTypes = _types.empty();
 
+  // TODO update for new format
   auto components = this->dataPtr->entityComponents[_entity];
   for (const auto &comp : components)
   {
     if (!allTypes && _types.find(comp.first) == _types.end())
     {
       continue;
+    }
+    else
+    {
     }
 
     auto compMsg = entityMsg->add_components();
@@ -808,10 +813,12 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     bool _full) const
 {
   IGN_PROFILE("EntityComponentManager::AddEntityToMessage AddingEntity");
+  auto iter = this->dataPtr->entityComponents.find(_entity);
+  if (iter == this->dataPtr->entityComponents.end())
+    return;
   // Set the default entity iterator to the end. This will allow us to know
   // if the entity has been added to the message.
   auto entIter = _msg.mutable_entities()->end();
-
   // Add an entity to the message and set it to be removed if the entity
   // exists in the toRemoveEntities list.
   if (this->dataPtr->toRemoveEntities.find(_entity) !=
@@ -830,29 +837,29 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     entIter->second.set_remove(true);
   }
 
+  auto types = _types;
+  if (types.empty())
+  {
+    for (auto &type : this->dataPtr->entityComponents[_entity])
+    {
+      types.insert(type.first);
+    }
+  }
+
   // Empty means all types
 #define noop
-  ignwarn << "types size: " << _types.size() << std::endl;
-  ignwarn << "entity is " << _entity << std::endl;
-  for (const ComponentTypeId type : _types)
+  for (const ComponentTypeId type : types)
   {
-    ignwarn << "iterating types" << std::endl;
     IGN_PROFILE("IterateEntityComponents");
+    std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter = iter->second.find(type);
     {
     IGN_PROFILE("1");
-    if (this->dataPtr->entityComponents[_entity].find(type) ==
-        this->dataPtr->entityComponents[_entity].end())
+    //if (!this->EntityHasComponentType(_entity, type))
+    if (typeIter == iter->second.end())
     {
-      ignwarn << "Did not find entity, continuing" << std::endl;
       continue;
     }
-    else
-    {
-      ignwarn << "Found entity" << std::endl;
     }
-    }
-    auto iter = this->dataPtr->entityComponents.find(_entity);
-    auto typeIter = iter->second.find(type);
     ComponentKey comp = (typeIter->second);
 
     const components::BaseComponent *compBase;
@@ -1004,7 +1011,12 @@ void EntityComponentManager::State(
   for (const auto &it : this->dataPtr->entityComponents)
   {
     if (_entities.empty() || _entities.find(it.first) != _entities.end())
+    {
       this->AddEntityToMessage(_state, it.first, _types, _full);
+    }
+    else
+    {
+    }
   }
 }
 
@@ -1121,6 +1133,7 @@ void EntityComponentManager::SetState(
     const auto &entityMsg = iter.second;
 
     Entity entity{entityMsg.id()};
+
 
     // Remove entity
     if (entityMsg.remove())
