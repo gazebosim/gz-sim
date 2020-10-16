@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 3.X.X (20XX-XX-XX)
 
+1. Enable alpha based transparency on PBR materials by default
+    * [Pull Request 249](https://github.com/ignitionrobotics/ign-gazebo/pull/249)
+
 ### Ignition Gazebo 3.4.0 (2020-10-14)
 
 1. Fix gui sendEvent memory leaks
