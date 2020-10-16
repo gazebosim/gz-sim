@@ -25,6 +25,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 **Migration from Gazebo-classic**
 
 * \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
+* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
 * \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Classic Gazebo to Ignition Gazebo.
 

@@ -392,6 +392,30 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   // SDF is evaluated at find call
   systemPaths->SetFilePathEnv(systemPaths->FilePathEnv());
 }
+
+//////////////////////////////////////////////////
+ignition::gazebo::Entity topLevelModel(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto entity = _entity;
+
+  // check if parent is a model
+  auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+  while (parentComp)
+  {
+    // check if parent is a model
+    auto parentEntity = parentComp->Data();
+    auto modelComp = _ecm.Component<components::Model>(
+        parentEntity);
+    if (!modelComp)
+      break;
+
+    // set current model entity
+    entity = parentEntity;
+    parentComp = _ecm.Component<components::ParentEntity>(entity);
+  }
+  return entity;
+}
 }
 }
 }

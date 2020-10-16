@@ -178,6 +178,13 @@ namespace gazebo
       NOTIFY PausedChanged
     )
 
+    /// \brief Nested Model
+    Q_PROPERTY(
+      bool nestedModel
+      READ NestedModel
+      NOTIFY NestedModelChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -199,6 +206,13 @@ namespace gazebo
     /// \param[in] _yaw Yaw
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
+
+    /// \brief Get whether the entity is a nested model or not
+    /// \return True if the entity is a nested model, false otherwise
+    public: Q_INVOKABLE bool NestedModel() const;
+
+    /// \brief Notify that is nested model property has changed
+    signals: void NestedModelChanged();
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
