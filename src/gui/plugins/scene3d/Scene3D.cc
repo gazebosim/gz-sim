@@ -15,8 +15,10 @@
  *
 */
 
+#include <condition_variable>
 #include <cmath>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -61,6 +63,15 @@
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "Scene3D.hh"
+
+/// \brife True if rendering has been initialized
+bool g_renderInit = false;
+
+/// \brief condition variable for lockstepping video recording
+std::condition_variable g_renderCv;
+
+/// \brief mutex for lockstepping video recording
+std::mutex g_renderMutex;
 
 Q_DECLARE_METATYPE(std::string)
 
@@ -379,6 +390,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Camera pose publisher
     public: transport::Node::Publisher cameraPosePub;
+
+    /// \brief lockstep ECM updates with rendering
+    public: bool recordVideoLockstep = false;
+
+    /// \brief True to indicate video recording in progress
+    public: bool recording = false;
+
+    /// \brief mutex to protect the recording variable
+    public: std::mutex recordMutex;
   };
 }
 }
@@ -686,6 +706,10 @@ void IgnRenderer::Render()
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
   }
+
+  // only has an effect in video recording lockstep mode
+  // this notifes ECM to continue updating the scene
+  g_renderCv.notify_one();
 }
 
 /////////////////////////////////////////////////
@@ -2049,6 +2073,8 @@ void RenderWindowItem::Ready()
 
   this->dataPtr->renderThread->start();
   this->update();
+
+  g_renderInit = true;
 }
 
 /////////////////////////////////////////////////
@@ -2307,6 +2333,22 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
                  << std::endl;
         }
       }
+      if (auto lockstepElem = elem->FirstChildElement("lockstep"))
+      {
+        std::string lockstepStr =
+            common::lowercase(lockstepElem->GetText());
+        if (lockstepStr == "true" || lockstepStr == "1")
+        {
+          this->dataPtr->recordVideoLockstep = true;
+        }
+        else if (lockstepStr == "false" || lockstepStr == "0")
+          this->dataPtr->recordVideoLockstep = false;
+        else
+        {
+          ignerr << "Faild to parse <lockstep> value: " << lockstepStr
+                 << std::endl;
+        }
+      }
     }
 
     if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
@@ -2422,6 +2464,16 @@ void Scene3D::Update(const UpdateInfo &_info,
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+
+  // check if video recording is enabled and if we need to lock step
+  // ECM updates with GUI rendering during video recording
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep &&
+      g_renderInit)
+  {
+    std::unique_lock<std::mutex> lock2(g_renderMutex);
+    g_renderCv.wait(lock2);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -2445,6 +2497,12 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
   renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
 
   _res.set_data(true);
+
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  this->dataPtr->recording = record;
+  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep)
+    ignmsg << "Recording video in lockstep mode" << std::endl;
+
   return true;
 }
 
