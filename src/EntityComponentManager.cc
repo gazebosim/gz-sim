@@ -718,7 +718,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     entityMsg->set_remove(true);
   }
 
-  // Empty means all types
+  // Insert all of the entity's components if the passed in types
+  // set is empty
   auto types = _types;
   if (types.empty())
   {
@@ -728,9 +729,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     }
   }
 
-  // Empty means all types
   for (const ComponentTypeId type : types)
   {
+    // If the entity does not have the component, continue
     std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter =
       iter->second.find(type);
     if (typeIter == iter->second.end())
@@ -760,6 +761,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   auto iter = this->dataPtr->entityComponents.find(_entity);
   if (iter == this->dataPtr->entityComponents.end())
     return;
+
   // Set the default entity iterator to the end. This will allow us to know
   // if the entity has been added to the message.
   auto entIter = _msg.mutable_entities()->end();
@@ -781,6 +783,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     entIter->second.set_remove(true);
   }
 
+  // Insert all of the entity's components if the passed in types
+  // set is empty
   auto types = _types;
   if (types.empty())
   {
@@ -799,11 +803,11 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     {
       continue;
     }
-    ComponentKey comp = (typeIter->second);
 
-    const components::BaseComponent *compBase;
-    compBase =
+    ComponentKey comp = typeIter->second;
+    const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, comp.first);
+
     // If not sending full state, skip unchanged components
     if (!_full &&
         this->dataPtr->oneTimeChangedComponents.find(comp) ==
