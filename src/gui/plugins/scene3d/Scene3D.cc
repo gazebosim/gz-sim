@@ -2403,7 +2403,6 @@ void Scene3D::Update(const UpdateInfo &_info,
     auto worldEntity =
       _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
         components::World());
-    std::cout << "\n\n\nWorldName[" << this->dataPtr->worldName << "]\n\n\n";
     auto renderEngineGuiComp =
       _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
     if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())

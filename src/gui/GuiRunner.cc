@@ -59,7 +59,8 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
-  std::cout << "\n\nRequest State from[" << this->stateTopic << "]\n";
+  // \todo: HACK warning. This sleep is here to prevent a deadlock in
+  // ignition-transport.
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   this->node.Request(this->stateTopic, &GuiRunner::OnStateService, this);
 }
@@ -82,7 +83,6 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
     const bool _result)
 {
-  std::cout << "\n\nOnStateService\n\n" << std::endl;
   if (!_result)
   {
     ignerr << "Service call failed for [" << this->stateTopic << "]"
