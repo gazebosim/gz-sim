@@ -438,6 +438,7 @@ class Cmd
       if options['server'] == 0 && options['gui'] == 0
 
         ENV['RMT_PORT'] = '1500'
+        Process.setproctitle('ign gazebo')
         Importer.runCombined(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
@@ -451,6 +452,7 @@ class Cmd
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1
         ENV['RMT_PORT'] = '1500'
+        Process.setproctitle('ign gazebo -s')
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
@@ -462,6 +464,7 @@ class Cmd
       # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'
+        Process.setproctitle('ign gazebo -g')
         Importer.runGui(options['gui_config'])
       end
     rescue
