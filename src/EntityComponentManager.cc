@@ -16,9 +16,10 @@
 */
 
 #include <map>
+#include <set>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/GraphAlgorithms.hh>
@@ -74,7 +75,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: bool removeAllEntities{false};
 
   /// \brief The set of components that each entity has
-  public: std::unordered_map<Entity, std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
+  public: std::unordered_map<Entity,
+          std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
 
   /// \brief A mutex to protect newly created entityes.
   public: std::mutex entityCreatedMutex;
@@ -91,7 +93,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Cache of previously queried descendants. The key is the parent
   /// entity for which descendants were queried, and the value are all its
   /// descendants.
-  public: mutable std::unordered_map<Entity, std::unordered_set<Entity>> descendantCache;
+  public: mutable std::unordered_map<Entity, std::unordered_set<Entity>>
+          descendantCache;
 
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
@@ -249,7 +252,8 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
         for (const auto &key :
             this->dataPtr->entityComponents.at(entity))
         {
-          this->dataPtr->components.at(key.second.first)->Remove(key.second.second);
+          this->dataPtr->components.at(key.second.first)->Remove(
+              key.second.second);
         }
 
         // Remove the entry in the entityComponent map
@@ -288,13 +292,7 @@ bool EntityComponentManager::RemoveComponent(
   if (!this->EntityHasComponent(_entity, _key))
     return false;
 
-  // TODO find the 
-  //auto entityComponentIter = std::find(
-  //    this->dataPtr->entityComponents[_entity].begin(),
-  //    this->dataPtr->entityComponents[_entity].end(), _key);
-
   this->dataPtr->components.at(_key.first)->Remove(_key.second);
-  //this->dataPtr->entityComponents[_entity].erase(entityComponentIter);
   this->dataPtr->entityComponents[_entity].erase(_key.first);
   this->dataPtr->oneTimeChangedComponents.erase(_key);
   this->dataPtr->periodicChangedComponents.erase(_key);
@@ -326,14 +324,6 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
 
   auto typeIter = iter->second.find(_typeId);
   return (typeIter != iter->second.end());
-
-  /*
-  return std::find_if(iter->second.begin(), iter->second.end(),
-      [&] (const ComponentKey &_key)
-      {
-        return _key.first == _typeId;
-      }) != iter->second.end();
-  */
 }
 
 /////////////////////////////////////////////////
@@ -367,23 +357,9 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   if (ecIter == this->dataPtr->entityComponents.end())
     return result;
 
-  // TODO look up the _typeId in the map
   auto typeKey = ecIter->second.find(_typeId);
   if (typeKey == ecIter->second.end())
     return result;
-
-  //typeMap is a ComponentKey at this point
-
-  /*
-  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key)
-  {
-    return _key.first == _typeId;
-  });
-
-  if (iter == ecIter->second.end())
-    return result;
-  */
 
   if (this->dataPtr->oneTimeChangedComponents.find(typeKey->second) !=
       this->dataPtr->oneTimeChangedComponents.end())
@@ -484,7 +460,8 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 
   ComponentKey componentKey{_componentTypeId, componentIdPair.first};
 
-  this->dataPtr->entityComponents[_entity].insert({_componentTypeId, componentKey});
+  this->dataPtr->entityComponents[_entity].insert(
+      {_componentTypeId, componentKey});
   this->dataPtr->oneTimeChangedComponents.insert(componentKey);
 
   if (componentIdPair.second)
@@ -503,31 +480,15 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
   if (iter == this->dataPtr->entityComponents.end())
     return false;
 
-  // \todo(nkoenig) The performance of this could be improved. Ideally we
-  // wouldn't need two loops to confirm that an entity matches a set of
-  // types. It might be possible to create bitmask for component sets.
+  // \todo(nkoenig) The performance of this could be improved.
+  // It might be possible to create bitmask for component sets.
   // Fixing this might not be high priority, unless we expect frequent
   // creation of entities and/or queries.
   for (const ComponentTypeId &type : _types)
   {
-    bool found = false;
-    // TODO find type in the this->dataPtr->entityComponents[entity] map
     auto typeIter = iter->second.find(type);
     if (typeIter == iter->second.end())
       return false;
-
-    /*
-    for (const ComponentKey &comp : iter->second)
-    {
-      if (comp.first == type)
-      {
-        found = true;
-        break;
-      }
-    }
-    if (!found)
-      return false;
-    */
   }
 
   return true;
@@ -541,15 +502,6 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return -1;
-
-  /*
-  auto iter =
-    std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key)
-  {
-    return _key.first == _type;
-  });
-  */
 
   auto typeIter = ecIter->second.find(_type);
   if (typeIter != ecIter->second.end())
@@ -569,17 +521,10 @@ const components::BaseComponent
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  /*
-  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key)
-  {
-    return _key.first == _type;
-  });
-  */
-
   auto typeIter = ecIter->second.find(_type);
   if (typeIter != ecIter->second.end())
-    return this->dataPtr->components.at(typeIter->second.first)->Component(typeIter->second.second);
+    return this->dataPtr->components.at(typeIter->second.first)->Component(
+        typeIter->second.second);
 
   return nullptr;
 }
@@ -593,18 +538,10 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  /*
-  auto iter =
-    std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key)
-  {
-    return _key.first == _type;
-  });
-  */
-
   auto typeIter = ecIter->second.find(_type);
   if (typeIter != ecIter->second.end())
-    return this->dataPtr->components.at(typeIter->second.first)->Component(typeIter->second.second);
+    return this->dataPtr->components.at(typeIter->second.first)->Component(
+        typeIter->second.second);
 
   return nullptr;
 }
@@ -771,6 +708,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 {
   auto entityMsg = _msg.add_entities();
   entityMsg->set_id(_entity);
+  auto iter = this->dataPtr->entityComponents.find(_entity);
+  if (iter == this->dataPtr->entityComponents.end())
+    return;
 
   if (this->dataPtr->toRemoveEntities.find(_entity) !=
       this->dataPtr->toRemoveEntities.end())
@@ -779,22 +719,28 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   }
 
   // Empty means all types
-  bool allTypes = _types.empty();
-
-  // TODO update for new format
-  auto components = this->dataPtr->entityComponents[_entity];
-  for (const auto &comp : components)
+  auto types = _types;
+  if (types.empty())
   {
-    if (!allTypes && _types.find(comp.first) == _types.end())
+    for (auto &type : this->dataPtr->entityComponents[_entity])
+    {
+      types.insert(type.first);
+    }
+  }
+
+  auto components = this->dataPtr->entityComponents[_entity];
+  // Empty means all types
+  for (const ComponentTypeId type : types)
+  {
+    std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter =
+      iter->second.find(type);
+    if (typeIter == iter->second.end())
     {
       continue;
     }
-    else
-    {
-    }
+    ComponentKey comp = (typeIter->second);
 
     auto compMsg = entityMsg->add_components();
-
     auto compBase = this->ComponentImplementation(_entity, comp.first);
     compMsg->set_type(compBase->TypeId());
 
@@ -847,29 +793,19 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   }
 
   // Empty means all types
-#define noop
   for (const ComponentTypeId type : types)
   {
-    IGN_PROFILE("IterateEntityComponents");
-    std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter = iter->second.find(type);
-    {
-    IGN_PROFILE("1");
-    //if (!this->EntityHasComponentType(_entity, type))
+    std::unordered_map<ComponentTypeId, ComponentKey>::iterator typeIter =
+      iter->second.find(type);
     if (typeIter == iter->second.end())
     {
       continue;
     }
-    }
     ComponentKey comp = (typeIter->second);
 
     const components::BaseComponent *compBase;
-    {
-    IGN_PROFILE("2");
     compBase =
       this->ComponentImplementation(_entity, comp.first);
-    }
-    {
-    IGN_PROFILE("3");
     // If not sending full state, skip unchanged components
     if (!_full &&
         this->dataPtr->oneTimeChangedComponents.find(comp) ==
@@ -879,10 +815,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     {
       continue;
     }
-    }
 
-    {
-    IGN_PROFILE("4");
     /// Find the entity in the message, if not already found.
     /// Add the entity to the message, if not already added.
     if (entIter == _msg.mutable_entities()->end())
@@ -896,11 +829,8 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
         entIter = _msg.mutable_entities()->find(_entity);
       }
     }
-    }
 
     auto compIter = entIter->second.mutable_components()->find(comp.first);
-    {
-    IGN_PROFILE("5");
     // Find the component in the message, and add the component to the
     // message if it's not present.
     if (compIter == entIter->second.mutable_components()->end())
@@ -912,21 +842,15 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
         static_cast<int64_t>(comp.first)] = cmp;
       compIter = entIter->second.mutable_components()->find(comp.first);
     }
-    }
 
     // Serialize and store the message
-    {
-      IGN_PROFILE("6");
-      std::ostringstream ostr;
-      compBase->Serialize(ostr);
-      compIter->second.set_component(ostr.str());
-    }
+    std::ostringstream ostr;
+    compBase->Serialize(ostr);
+    compIter->second.set_component(ostr.str());
 
     // TODO(anyone) Set component being removed once we have a way to queue it
   }
 
-  {
-      IGN_PROFILE("7");
   // Remove the entity from the message if a component for the entity was
   // not modified or added. This will allow the state message to shrink.
   if (entIter == _msg.mutable_entities()->end() &&
@@ -934,7 +858,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
       _msg.mutable_entities()->end())
   {
     _msg.mutable_entities()->erase(entIter);
-  }
   }
 }
 
@@ -1260,17 +1183,6 @@ void EntityComponentManager::SetChanged(
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return;
-
-  /*
-  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key)
-  {
-    return _key.first == _type;
-  });
-
-  if (iter == ecIter->second.end())
-    return;
-  */
 
   auto typeIter = ecIter->second.find(_type);
   if (typeIter == ecIter->second.end())

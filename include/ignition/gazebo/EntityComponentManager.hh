@@ -21,10 +21,8 @@
 #include <ignition/msgs/serialized_map.pb.h>
 
 #include <map>
-#include <unordered_map>
 #include <memory>
 #include <set>
-#include <unordered_set>
 #include <string>
 #include <typeinfo>
 #include <type_traits>
