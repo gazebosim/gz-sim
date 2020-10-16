@@ -621,7 +621,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Terminate server to close tlog file, otherwise we get a temporary
     // tlog-journal file
   }
-
   EXPECT_TRUE(common::exists(cppPath));
   EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
 #ifndef __APPLE__
@@ -781,7 +780,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   msgs::SerializedStateMap stateMsg;
   stateMsg.ParseFromString(recordedIter->Data());
-  EXPECT_EQ(28, stateMsg.entities_size());
+  // entity size = 28 in dbl pendulum + 4 in nested model
+  EXPECT_EQ(32, stateMsg.entities_size());
   EXPECT_EQ(batch.end(), ++recordedIter);
 
   // Pass changed SDF to server
@@ -849,9 +849,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       entityRecordedPose[recordedMsg.pose(i).name()] = recordedMsg.pose(i);
     }
 
-    // Has 4 dynamic entities
-    EXPECT_EQ(4, _playedMsg.pose().size());
-    EXPECT_EQ(4u, entityRecordedPose.size());
+    // Has 6 dynamic entities: 4 in dbl pendulum and 2 in nested model
+    EXPECT_EQ(6, _playedMsg.pose().size());
+    EXPECT_EQ(6u, entityRecordedPose.size());
 
     // Loop through all entities and compare played poses to recorded ones
     for (int i = 0; i < _playedMsg.pose_size(); ++i)

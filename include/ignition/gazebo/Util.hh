@@ -131,6 +131,14 @@ namespace ignition
     void IGNITION_GAZEBO_VISIBLE addResourcePaths(
         const std::vector<std::string> &_paths = {});
 
+    /// \brief Get the top level model of an entity
+    /// \param[in] _entity Input entity
+    /// \param[in] _ecm Constant reference to ECM.
+    /// \return Entity of top level model
+    ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
+        const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
 
