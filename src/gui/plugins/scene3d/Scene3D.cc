@@ -493,6 +493,8 @@ void IgnRenderer::Render()
       // Video recorder is idle. Start recording.
       else
       {
+        if (this->dataPtr->recordVideoUseSimTime)
+          ignmsg << "Recording video using sim time." << std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
             this->dataPtr->recordVideoSavePath, width, height);
       }
