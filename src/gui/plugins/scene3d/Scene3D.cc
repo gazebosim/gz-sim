@@ -194,6 +194,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path to save the recorded video
     public: std::string recordVideoSavePath;
 
+    /// \brief Use sim time as timestamp during video recording
+    /// By default (false), video encoding is done using real time.
+    public: bool recordVideoUseSimTime = false;
+
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
 
@@ -475,8 +479,16 @@ void IgnRenderer::Render()
       if (this->dataPtr->videoEncoder.IsEncoding())
       {
         this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
+
+        std::chrono::steady_clock::time_point t =
+            std::chrono::steady_clock::now();
+        if (this->dataPtr->recordVideoUseSimTime)
+        {
+          t = std::chrono::steady_clock::time_point(
+              this->dataPtr->renderUtil.SimTime());
+        }
         this->dataPtr->videoEncoder.AddFrame(
-            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
       }
       // Video recorder is idle. Start recording.
       else
@@ -1655,6 +1667,13 @@ void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoUseSimTime = _useSimTime;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetMoveTo(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2270,6 +2289,24 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       }
     }
 
+    if (auto elem = _pluginElem->FirstChildElement("record_video"))
+    {
+      if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
+      {
+        std::string useSimTimeStr =
+            common::lowercase(useSimTimeElem->GetText());
+        if (useSimTimeStr == "true" || useSimTimeStr == "1")
+          renderWindow->SetRecordVideoUseSimTime(true);
+        else if (useSimTimeStr == "false" || useSimTimeStr == "0")
+          renderWindow->SetRecordVideoUseSimTime(false);
+        else
+        {
+          ignerr << "Faild to parse <use_sim_time> value: " << useSimTimeStr
+                 << std::endl;
+        }
+      }
+    }
+
     if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
     {
       auto fullscreen = false;
@@ -2731,6 +2768,13 @@ void RenderWindowItem::SetInitCameraPose(const math::Pose3d &_pose)
 void RenderWindowItem::SetWorldName(const std::string &_name)
 {
   this->dataPtr->renderThread->ignRenderer.worldName = _name;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
+      _useSimTime);
 }
 
 /////////////////////////////////////////////////

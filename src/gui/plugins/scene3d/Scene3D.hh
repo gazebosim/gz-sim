@@ -206,6 +206,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
 
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
@@ -514,6 +518,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
     /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
