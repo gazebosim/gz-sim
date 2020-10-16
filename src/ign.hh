@@ -76,4 +76,12 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
 extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     char *_pathToResource);
 
+extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
+    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+    int _networkSecondaries, int _record, const char *_recordPath,
+    int _recordResources, int _logOverwrite, int _logCompress,
+    const char *_playback, const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file, const char *_recordTopics, const char *_guiConfig);
+
 #endif

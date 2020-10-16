@@ -50,7 +50,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
          << std::endl;
 
-  this->RequestState();
+  std::thread *requestThread(new std::thread([&](){this->RequestState();}));
 }
 
 /////////////////////////////////////////////////
@@ -59,6 +59,8 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
+  std::cout << "\n\nRequest State from[" << this->stateTopic << "]\n";
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   this->node.Request(this->stateTopic, &GuiRunner::OnStateService, this);
 }
 
@@ -80,6 +82,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
     const bool _result)
 {
+  std::cout << "\n\nOnStateService\n\n" << std::endl;
   if (!_result)
   {
     ignerr << "Service call failed for [" << this->stateTopic << "]"

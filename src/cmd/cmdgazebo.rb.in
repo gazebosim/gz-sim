@@ -418,6 +418,14 @@ class Cmd
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
 
+      # Import the runCombined function
+      Importer.extern 'int runCombined(const char *, int, int, float, int,
+                               const char *, int, int, const char *,
+                               int, int, int, const char *, const char *,
+                               const char *, const char *, const char *,
+                               const char *, const char *)'
+
+
       # If playback is specified, and the user has not specified a
       # custom gui config, set the gui config to load the playback
       # gui config
@@ -429,41 +437,52 @@ class Cmd
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
 
-        serverPid = Process.fork do
-          ENV['RMT_PORT'] = '1500'
-          Process.setpgid(0, 0)
-          Process.setproctitle('ign gazebo server')
-          Importer.runServer(parsed, options['iterations'], options['run'],
+        ENV['RMT_PORT'] = '1500'
+        Importer.runCombined(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
             options['record-path'], options['record-resources'],
             options['log-overwrite'], options['log-compress'],
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
-            options['file'], options['record-topics'].join(':'))
-        end
+            options['file'], options['record-topics'].join(':'),
+            options['gui_config'])
 
-        guiPid = Process.fork do
-          ENV['RMT_PORT'] = '1501'
-          Process.setpgid(0, 0)
-          Process.setproctitle('ign gazebo gui')
-          Importer.runGui(options['gui_config'])
-        end
+        # serverPid = Process.fork do
+        #   ENV['RMT_PORT'] = '1500'
+        #   Process.setpgid(0, 0)
+        #   Process.setproctitle('ign gazebo server')
+        #   Importer.runServer(parsed, options['iterations'], options['run'],
+        #     options['hz'], options['levels'], options['network_role'],
+        #     options['network_secondaries'], options['record'],
+        #     options['record-path'], options['record-resources'],
+        #     options['log-overwrite'], options['log-compress'],
+        #     options['playback'], options['physics_engine'],
+        #     options['render_engine_server'], options['render_engine_gui'],
+        #     options['file'], options['record-topics'].join(':'))
+        # end
 
-        Signal.trap("INT") {
-          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
-          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
-          return 1
-        }
+        # guiPid = Process.fork do
+        #   ENV['RMT_PORT'] = '1501'
+        #   Process.setpgid(0, 0)
+        #   Process.setproctitle('ign gazebo gui')
+        #   Importer.runGui(options['gui_config'])
+        # end
 
-        # Wait for a child process to end
-        pid, status = Process.wait2
+        # Signal.trap("INT") {
+        #   self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
+        #   self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+        #   return 1
+        # }
 
-        if pid == serverPid
-          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
-        else
-          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
-        end
+        # # Wait for a child process to end
+        # pid, status = Process.wait2
+
+        # if pid == serverPid
+        #   self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
+        # else
+        #   self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+        # end
 
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1
