@@ -30,6 +30,8 @@
 using namespace ignition;
 using namespace gazebo;
 
+std::thread *gRequestThread = nullptr;
+
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
@@ -50,11 +52,20 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
          << std::endl;
 
-  std::thread *requestThread(new std::thread([&](){this->RequestState();}));
+  // \todo: HACK warning. This thread should be removed when the deadlock
+  // in ignition transport is resolved. See also the todo in RequestState.
+  gRequestThread = new std::thread([&](){this->RequestState();});
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner() = default;
+GuiRunner::~GuiRunner()
+{
+  if (gRequestThread)
+  {
+    gRequestThread->join();
+    delete gRequestThread;
+  }
+}
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
