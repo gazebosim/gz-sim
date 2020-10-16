@@ -758,7 +758,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     Entity _entity, const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  IGN_PROFILE("EntityComponentManager::AddEntityToMessage AddingEntity");
   auto iter = this->dataPtr->entityComponents.find(_entity);
   if (iter == this->dataPtr->entityComponents.end())
     return;
@@ -835,7 +834,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     // message if it's not present.
     if (compIter == entIter->second.mutable_components()->end())
     {
-      IGN_PROFILE("AddCompToMsg");
       msgs::SerializedComponent cmp;
       cmp.set_type(compBase->TypeId());
       (*(entIter->second.mutable_components()))[
@@ -936,9 +934,6 @@ void EntityComponentManager::State(
     if (_entities.empty() || _entities.find(it.first) != _entities.end())
     {
       this->AddEntityToMessage(_state, it.first, _types, _full);
-    }
-    else
-    {
     }
   }
 }
@@ -1056,7 +1051,6 @@ void EntityComponentManager::SetState(
     const auto &entityMsg = iter.second;
 
     Entity entity{entityMsg.id()};
-
 
     // Remove entity
     if (entityMsg.remove())
