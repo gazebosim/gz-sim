@@ -44,6 +44,14 @@ TEST(Vector2Test, Vector2)
   v.Normalize();
   EXPECT_TRUE(v == math::Vector2d(0.447214, 0.894427));
 
+  // ::Rounded
+  v.Set(3.55, 8.49);
+  EXPECT_TRUE(v.Rounded() == math::Vector2d(4, 8));
+
+  // ::Round
+  v.Round();
+  EXPECT_TRUE(v == math::Vector2d(4, 8));
+
   // ::Set
   v.Set(4, 5);
   EXPECT_TRUE(v == math::Vector2d(4, 5));
