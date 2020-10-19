@@ -23,8 +23,8 @@ import "qrc:/qml"
 GridLayout {
   columns: 6
   columnSpacing: 10
-  Layout.minimumWidth: 240
-  Layout.minimumHeight: 600
+  Layout.minimumWidth: 300
+  Layout.minimumHeight: 625
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
