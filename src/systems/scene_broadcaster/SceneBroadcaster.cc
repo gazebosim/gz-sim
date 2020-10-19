@@ -298,7 +298,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
-      IGN_PROFILE("SceneBroadcast::PoseUpdate Publish State");
+      IGN_PROFILE("SceneBroadcast::PostUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }

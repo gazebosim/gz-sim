@@ -32,14 +32,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains angular velocity cmd of an entity
-  /// represented by ignition::math::Vector3d.
+  /// \brief A component type that contains the commanded angular velocity of
+  /// an entity, in its own frame, represented by ignition::math::Vector3d.
   using AngularVelocityCmd =
     Component<math::Vector3d, class AngularVelocityCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
     "ign_gazebo_components.AngularVelocityCmd", AngularVelocityCmd)
 
-  /// \brief A component type that contains angular velocity cmd
+  /// \brief A component type that contains the commanded angular velocity
   /// of an entity in the world frame represented by ignition::math::Vector3d.
   using WorldAngularVelocityCmd =
       Component<math::Vector3d, class WorldAngularVelocityCmdTag>;

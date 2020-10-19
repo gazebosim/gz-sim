@@ -105,12 +105,12 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
 
-  auto event = new gui::events::SnapIntervals(
+  gui::events::SnapIntervals event(
       this->dataPtr->xyzSnapVals,
       this->dataPtr->rpySnapVals,
       this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
 
   this->newSnapValues();
 }
