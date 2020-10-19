@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <numeric>
+#include <sstream>
+
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Helpers.hh"
 
@@ -414,5 +417,9 @@ TEST(Vector3dTest, NoException)
 
   EXPECT_NO_THROW(math::equal(v[3], 4.0));
   EXPECT_DOUBLE_EQ(v[3], 3.0);
+
+  std::ostringstream ss;
+  math::Vector3d vInf(0, 0, std::numeric_limits<double>::infinity());
+  EXPECT_NO_THROW(ss << vInf);
 }
 
