@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo3 VERSION 3.3.0)
+project(ignition-gazebo3 VERSION 3.4.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat9 REQUIRED VERSION 9.2.0)
+ign_find_package(sdformat9 REQUIRED VERSION 9.3.0)
 set(SDF_VER ${sdformat9_VERSION_MAJOR})
 
 #--------------------------------------
