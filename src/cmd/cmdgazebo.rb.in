@@ -156,6 +156,8 @@ COMMANDS = { 'gazebo' =>
   " resources such as worlds and models.                                 \n\n"\
   "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
   " locate system plugins.                                               \n\n"\
+  "  IGN_GAZEBO_SERVER_CONFIG_PATH    Colon separated paths used to        \n"\
+  " locate server configurations.                                        \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
   " plugins.                                                             \n\n"\
   "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\

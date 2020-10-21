@@ -13,12 +13,12 @@ a simulation.
 There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
-2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG` environment variable.
+2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
 3. The default configuration file at `$HOME/.ignition/gazebo/server.config` \*
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the
-`IGN_GAZEBO_SERVER_CONFIG` variable is ignored. And the default configuration
+`IGN_GAZEBO_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
 file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 
@@ -253,7 +253,7 @@ system:
 
 And point the environment variable to that file:
 
-`export IGN_GAZEBO_SERVER_CONFIG=$HOME/.ignition/gazebo/rendering_sensors_server.config`
+`export IGN_GAZEBO_SERVER_CONFIG_PATH=$HOME/.ignition/gazebo/rendering_sensors_server.config`
 
 Now when we launch the simulation again, refreshing the image display will
 show the camera topic, and we can see the camera data.
