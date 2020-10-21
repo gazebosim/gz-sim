@@ -192,10 +192,6 @@
 1. Support spawning during log playback.
     * [Pull Request 346](https://github.com/ignitionrobotics/ign-gazebo/pull/346)
 
-1. Added wheel slip system plugin.
-    * [Pull Request 134](https://github.com/ignitionrobotics/ign-gazebo/pull/134)
-    * [Pull Request 357](https://github.com/ignitionrobotics/ign-gazebo/pull/357)
-
 1. Add Render Engine Cmd Line option
     * [Pull Request 331](https://github.com/ignitionrobotics/ign-gazebo/pull/331)
 
