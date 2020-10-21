@@ -723,7 +723,6 @@ std::list<ServerConfig::PluginInfo>
 ignition::gazebo::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
-  bool resolved = false;
 
   // 1. Check contents of environment variable
   std::string envConfig;
@@ -744,7 +743,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
         ignwarn << gazebo:kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
-      resolved = true;
+      return true;
     }
     else
     {
@@ -754,53 +753,50 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
       ignwarn << gazebo::kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
-      resolved = true;
+      return true;
     }
   }
 
-  if (!resolved)
+  std::string configFilename;
+  if (_isPlayback)
   {
-    std::string configFilename;
-    if (_isPlayback)
+    configFilename = "playback_server.config";
+  }
+  else
+  {
+    configFilename = "server.config";
+  }
+
+  std::string defaultConfig;
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+    "gazebo", configFilename);
+
+  if (!ignition::common::exists(defaultConfig))
+  {
+    auto installedConfig = ignition::common::joinPaths(
+        IGNITION_GAZEBO_SERVER_CONFIG_PATH,
+        configFilename);
+
+    if (!ignition::common::exists(installedConfig))
     {
-      configFilename = "playback_server.config";
+      ignerr << "Failed to copy installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+      return ret;
+    }
+    else if (!ignition::common::copyFile(installedConfig, defaultConfig))
+    {
+      ignerr << "Failed to copy installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+      return ret;
     }
     else
     {
-      configFilename = "server.config";
-    }
-
-    std::string defaultConfig;
-    ignition::common::env(IGN_HOMEDIR, defaultConfig);
-    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", configFilename);
-
-    if (!ignition::common::exists(defaultConfig))
-    {
-      auto installedConfig = ignition::common::joinPaths(
-          IGNITION_GAZEBO_SERVER_CONFIG_PATH,
-          configFilename);
-
-      if (!ignition::common::exists(installedConfig))
-      {
-        ignerr << "Failed to copy installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-        return ret;
-      }
-      else if (!ignition::common::copyFile(installedConfig, defaultConfig))
-      {
-        ignerr << "Failed to copy installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-        return ret;
-      }
-      else
-      {
-        ignmsg << "Copied installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-      }
+      ignmsg << "Copied installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
     }
 
     ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
