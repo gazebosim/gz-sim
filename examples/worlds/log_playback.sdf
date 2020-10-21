@@ -2,6 +2,9 @@
 <!--
   Log playback demo.
 
+  This file will be removed in Ignition Dome. Use the command line argument
+  for playback instead.
+
   Running this world will playback log files located at /tmp/log.
 
   You can record such a log by running one of the `log_record*.sdf` files,
@@ -15,6 +18,8 @@
     <plugin
       filename='libignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::LogPlayback'>
+      <!-- Deprecation warning: This parameter will be removed in Ignition Dome.
+           Use the command line argument for playback instead. -->
       <path>/tmp/log</path>
     </plugin>
   </world>
