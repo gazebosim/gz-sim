@@ -144,7 +144,7 @@ TEST(loadPluginInfo, from_empty_env)
 //////////////////////////////////////////////////
 TEST(loadPluginInfo, from_valid_env)
 {
-  auto valid_path = std::string(PROJECT_SOURCE_PATH) +
+  auto validPath = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/server_valid2.config";
 
   ASSERT_EQ(0, setenv(gazeob::kServerConfigPathEnv, valid_path.c_str(), true));
@@ -159,5 +159,4 @@ TEST(loadPluginInfo, from_valid_env)
 
   unsetenv(gazebo::kServerConfigPathEnv);
 }
-
 
