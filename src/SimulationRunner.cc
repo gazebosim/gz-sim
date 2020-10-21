@@ -163,7 +163,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // a default set of systems.
   if (this->systems.empty() && this->pendingSystems.empty())
   {
-    ignmsg << "No SDF systems loaded, loading defaults" << std::endl;
+    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
 
     ServerConfig tmpConfig;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
