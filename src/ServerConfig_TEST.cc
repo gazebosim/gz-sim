@@ -19,6 +19,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/ServerConfig.hh>
+#include <ignition/gazebo/Util.hh>
 #include <ignition/gazebo/test_config.hh>
 
 using namespace ignition;
