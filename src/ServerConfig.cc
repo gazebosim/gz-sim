@@ -763,7 +763,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     std::string configFilename;
     if (_isPlayback)
     {
-      configFilename = "server_playback.config";
+      configFilename = "playback_server.config";
     }
     else
     {

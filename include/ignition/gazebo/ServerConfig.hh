@@ -405,7 +405,7 @@ namespace ignition
     ///
     //
     /// \param[in] _isPlayback Is the server in playback mode. If so, fallback
-    /// to server_playback.config.
+    /// to playback_server.config.
     //
     /// \return A list of plugins to load, based on above ordering
     std::list<ServerConfig::PluginInfo>
