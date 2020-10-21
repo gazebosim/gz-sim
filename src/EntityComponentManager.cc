@@ -245,12 +245,11 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       // Remove from graph
       this->dataPtr->entities.RemoveVertex(entity);
 
+      auto entityIter = this->dataPtr->entityComponents.find(entity);
       // Remove the components, if any.
-      if (this->dataPtr->entityComponents.find(entity) !=
-          this->dataPtr->entityComponents.end())
+      if (entityIter != this->dataPtr->entityComponents.end())
       {
-        for (const auto &key :
-            this->dataPtr->entityComponents.at(entity))
+        for (const auto &key : entityIter->second)
         {
           this->dataPtr->components.at(key.second.first)->Remove(
               key.second.second);
@@ -305,9 +304,10 @@ bool EntityComponentManager::RemoveComponent(
 bool EntityComponentManager::EntityHasComponent(const Entity _entity,
     const ComponentKey &_key) const
 {
-  return this->HasEntity(_entity) &&
-    this->dataPtr->entityComponents[_entity].find(_key.first) !=
-      this->dataPtr->entityComponents[_entity].end();
+  if (!this->HasEntity(_entity))
+    return false;
+  auto &compMap = this->dataPtr->entityComponents[_entity];
+  return compMap.find(_key.first) != compMap.end();
 }
 
 /////////////////////////////////////////////////
