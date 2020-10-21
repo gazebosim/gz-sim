@@ -88,8 +88,8 @@ TEST(parsePluginsFromString, invalid)
 //////////////////////////////////////////////////
 TEST(parsePluginsFromFile, valid)
 {
-  auto config = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/server_valid.config";
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/test/worlds/server_valid.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
@@ -103,8 +103,8 @@ TEST(parsePluginsFromFile, valid)
 //////////////////////////////////////////////////
 TEST(parsePluginsFromFile, invalid)
 {
-  auto config = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/server_invalid.config";
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/test/worlds/server_invalid.config");
 
   // Valid file without valid content
   auto plugins = parsePluginsFromFile(config);
@@ -122,33 +122,32 @@ TEST(parsePluginsFromFile, defaultConfig)
   // configuration always parses.
   // If more systems are added, then the number needs
   // to be adjusted below.
-  auto config = std::string(PROJECT_SOURCE_PATH) +
-    "/include/ignition/gazebo/server.config";
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/include/ignition/gazebo/server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
 }
 
 //////////////////////////////////////////////////
-TEST(loadPluginInfo, from_empty_env)
+TEST(loadPluginInfo, fromEmptyEnv)
 {
   // ignition::common::env doesn't respect zero-length
   // See ignitionrobotics/ign-common#97
-  ASSERT_EQ(0, setenv(gazebo::kServerConfigPathEnv, "0", true));
+  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, ""));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
-
-  unsetenv(gazebo::kServerConfigPathEnv);
+  EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
-TEST(loadPluginInfo, from_valid_env)
+TEST(loadPluginInfo, fromValidEnv)
 {
-  auto validPath = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/server_valid2.config";
+  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/test/worlds/server_valid2.config");
 
-  ASSERT_EQ(0, setenv(gazeob::kServerConfigPathEnv, valid_path.c_str(), true));
+  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, validPath));
 
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
@@ -158,6 +157,6 @@ TEST(loadPluginInfo, from_valid_env)
   EXPECT_EQ("TestWorldSystem", plugins.begin()->Filename());
   EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugins.begin()->Name());
 
-  unsetenv(gazebo::kServerConfigPathEnv);
+  EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
 }
 
