@@ -209,6 +209,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// By default (false), video encoding is done using real time.
     public: bool recordVideoUseSimTime = false;
 
+    /// \brief Video recorder bitrate (bps)
+    public: unsigned int recordVideoBitrate = 2070000;
+
+    /// \brief Start tiem of video recording
+    public: std::chrono::steady_clock::time_point recordStartTime;
+
+    /// \brief Camera pose publisher
+    public: transport::Node::Publisher recorderStatsPub;
+
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
 
@@ -414,6 +423,13 @@ IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
   this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
+
+  // recorder stats topic
+  std::string recorderStatsTopic = "/gui/record_video/stats";
+  this->dataPtr->recorderStatsPub =
+    this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
+  ignmsg << "Video recorder stats topic advertised on ["
+         << recorderStatsTopic << "]" << std::endl;
 }
 
 
@@ -507,16 +523,42 @@ void IgnRenderer::Render()
           t = std::chrono::steady_clock::time_point(
               this->dataPtr->renderUtil.SimTime());
         }
-        this->dataPtr->videoEncoder.AddFrame(
+        bool frameAdded = this->dataPtr->videoEncoder.AddFrame(
             this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
+
+        if (frameAdded)
+        {
+          // publish recorder stats
+          if (this->dataPtr->recordStartTime ==
+              std::chrono::steady_clock::time_point(
+              std::chrono::duration(std::chrono::seconds(0))))
+          {
+            // start time, i.e. time when first frame is added
+            this->dataPtr->recordStartTime = t;
+          }
+
+          std::chrono::steady_clock::duration dt;
+          dt = t - this->dataPtr->recordStartTime;
+          int64_t sec, nsec;
+          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          msgs::Time msg;
+          msg.set_sec(sec);
+          msg.set_nsec(nsec);
+          this-dataPtr->recorderStatsPub.Publish(msg);
+        }
       }
       // Video recorder is idle. Start recording.
       else
       {
         if (this->dataPtr->recordVideoUseSimTime)
           ignmsg << "Recording video using sim time." << std::endl;
+        ignmsg << "Recording video using bitrate: "
+               << this->dataPtr->recordVideoBitrate <<  std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
-            this->dataPtr->recordVideoSavePath, width, height);
+            this->dataPtr->recordVideoSavePath, width, height, 25,
+            this->dataPtr->recordVideoBitrate);
+        this->dataPtr->recordStartTime = std::chrono::steady_clock::time_point(
+            std::chrono::duration(std::chrono::seconds(0)));
       }
     }
     else if (this->dataPtr->videoEncoder.IsEncoding())
@@ -1700,6 +1742,13 @@ void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoBitrate = _bitrate;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetMoveTo(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2349,6 +2398,22 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
                  << std::endl;
         }
       }
+      if (auto bitrateElem = elem->FirstChildElement("bitrate"))
+      {
+        unsigned int bitrate = 0u;
+        std::stringstream bitrateStr;
+        bitrateStr << std::string(bitrateElem->GetText());
+        bitrateStr >> bitrate;
+        if (bitrate > 0u)
+        {
+          renderWindow->SetRecordVideoBitrate(bitrate);
+        }
+        else
+        {
+          ignerr << "Video recorder bitrate must be larger than 0"
+                 << std::endl;
+        }
+      }
     }
 
     if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
@@ -2835,6 +2900,13 @@ void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
       _useSimTime);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
+      _bitrate);
 }
 
 /////////////////////////////////////////////////
