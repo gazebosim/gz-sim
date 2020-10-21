@@ -89,8 +89,8 @@ struct DefaultWorld
     {
       pluginsV.push_back(std::string("<plugin filename='ignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system' "
-        "name='ignition::gazebo::systems::LogPlayback'><path>" +
-        _config.LogPlaybackPath() + "</path></plugin>");
+        "name='ignition::gazebo::systems::LogPlayback'><playback_path>" +
+        _config.LogPlaybackPath() + "</playback_path></plugin>");
     }
 
     static std::string plugins = std::accumulate(pluginsV.begin(),

@@ -17,6 +17,9 @@ release will remove the deprecated code.
           std::string(const gazebo::Entity &,
           const sdf::Sensor &, const std::string &)>)`
 
+* Log playback using `<path>` SDF parameter is removed. Use --playback command
+  line argument instead.
+
 ## Ignition Gazebo 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.

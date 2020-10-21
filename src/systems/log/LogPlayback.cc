@@ -201,7 +201,7 @@ void LogPlayback::Configure(const Entity &,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  this->dataPtr->logPath = _sdf->Get<std::string>("path");
+  this->dataPtr->logPath = _sdf->Get<std::string>("playback_path");
 
   this->dataPtr->eventManager = &_eventMgr;
 

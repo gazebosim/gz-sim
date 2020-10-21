@@ -96,31 +96,10 @@ directory specified to record:
 
 `ign gazebo -r -v 4 --playback <path>`
 
-
 ### From plugin in SDF
 
-Alternatively, playback can be specified in an SDF file. See example file
-`examples/worlds/log_playback.sdf`:
-
-```{.xml}
-<world name="default">
-    ...
-    <plugin
-      filename='ignition-gazebo-log-system'
-      name='ignition::gazebo::systems::LogPlayback'>
-      <path>/tmp/log</path>
-    </plugin>
-    ...
-</world>
-```
-
-\note The physics plugin should not be specified in the SDF. If specified,
-it will be automatically removed so that physics does not clash with the
-recorded poses.
-
-\note If both a world file `<file>` and `--playback <path>` are
-specified, an error is printed. This is not allowed, because the world file
-may be a very different world from the one that was recorded.
+Playing back via the SDF tag `<path>` has been removed.
+Please use the command line argument.
 
 ## Known issues
 
