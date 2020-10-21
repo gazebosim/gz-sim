@@ -8,13 +8,11 @@ RUN apt-get -qq update && apt-get -y install \
     g++-8 \
     lsb-release \
     sudo \
-    vim \
     wget \
   && rm -rf /var/lib/apt/lists/*
 
 # set up repositories
 RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
-  && sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list' \
   && wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
 
 # install dependencies
