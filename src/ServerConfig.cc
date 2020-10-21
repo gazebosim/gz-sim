@@ -782,6 +782,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     {
       ignerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
+             << "(file " << installedConfig << " doesn't exist)"
              << std::endl;
       return ret;
     }
