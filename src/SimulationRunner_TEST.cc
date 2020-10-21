@@ -51,6 +51,7 @@
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
 #include "SimulationRunner.hh"
 

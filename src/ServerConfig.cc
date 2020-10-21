@@ -25,7 +25,7 @@
 #include <ignition/fuel_tools/Result.hh>
 #include <ignition/math/Rand.hh>
 
-
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -740,10 +740,10 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << gazebo:kServerConfigPathEnv
+        ignwarn << gazebo::kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
-      return true;
+      return ret;
     }
     else
     {
@@ -753,7 +753,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
       ignwarn << gazebo::kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
-      return true;
+      return ret;
     }
   }
 
