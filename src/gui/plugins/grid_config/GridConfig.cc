@@ -131,8 +131,16 @@ void GridConfig::UpdateGrid()
       mat->SetDiffuse(this->dataPtr->gridParam.color);
       mat->SetSpecular(this->dataPtr->gridParam.color);
     }
+    else
+    {
+      ignerr << "Grid visual missing material" << std::endl;
+    }
 
     visual->SetVisible(this->dataPtr->gridParam.visible);
+  }
+  else
+  {
+    ignerr << "Grid missing parent visual" << std::endl;
   }
 
   this->dataPtr->dirty = false;
@@ -173,7 +181,7 @@ void GridConfig::LoadGrid()
     return;
   }
 
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  if (!scene->IsInitialized() || nullptr == scene->RootVisual())
   {
     return;
   }
@@ -234,6 +242,7 @@ void GridConfig::LoadGrid()
   mat->SetAmbient(this->dataPtr->gridParam.color);
   mat->SetDiffuse(this->dataPtr->gridParam.color);
   mat->SetSpecular(this->dataPtr->gridParam.color);
+  vis->SetMaterial(mat);
 }
 
 /////////////////////////////////////////////////
