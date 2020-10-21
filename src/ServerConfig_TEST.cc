@@ -133,12 +133,12 @@ TEST(loadPluginInfo, from_empty_env)
 {
   // ignition::common::env doesn't respect zero-length
   // See ignitionrobotics/ign-common#97
-  ASSERT_EQ(0, setenv("IGN_GAZEBO_SERVER_CONFIG", "0", true));
+  ASSERT_EQ(0, setenv(gazebo::kServerConfigPathEnv, "0", true));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
 
-  unsetenv("IGN_GAZEBO_SERVER_CONFIG");
+  unsetenv(gazebo::kServerConfigPathEnv);
 }
 
 //////////////////////////////////////////////////
@@ -147,7 +147,7 @@ TEST(loadPluginInfo, from_valid_env)
   auto valid_path = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/server_valid2.config";
 
-  ASSERT_EQ(0, setenv("IGN_GAZEBO_SERVER_CONFIG", valid_path.c_str(), true));
+  ASSERT_EQ(0, setenv(gazeob::kServerConfigPathEnv, valid_path.c_str(), true));
 
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
@@ -157,7 +157,7 @@ TEST(loadPluginInfo, from_valid_env)
   EXPECT_EQ("TestWorldSystem", plugins.begin()->Filename());
   EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugins.begin()->Name());
 
-  unsetenv("IGN_GAZEBO_SERVER_CONFIG");
+  unsetenv(gazebo::kServerConfigPathEnv);
 }
 
 

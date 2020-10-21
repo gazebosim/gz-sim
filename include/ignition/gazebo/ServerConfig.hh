@@ -393,9 +393,9 @@ namespace ignition
     /// file to load either a default or custom set of plugins.
     ///
     /// The following order is used to resolve:
-    /// 1. Config file located at IGN_GAZEBO_SERVER_CONFIG environment
+    /// 1. Config file located at IGN_GAZEBO_SERVER_CONFIG_PATH environment
     ///    variable.
-    ///   * If IGN_GAZEBO_SERVER_CONFIG is set but empty, no plugins
+    ///   * If IGN_GAZEBO_SERVER_CONFIG_PATH is set but empty, no plugins
     ///     are loaded.
     /// 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/server.config
     /// 3. File at ${IGN_DATA_INSTALL_DIR}/server.config

@@ -727,12 +727,13 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
 
   // 1. Check contents of environment variable
   std::string envConfig;
-  bool configSet = ignition::common::env("IGN_GAZEBO_SERVER_CONFIG",
+  bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
                                          envConfig);
 
   if (configSet)
   {
-    if (ignition::common::exists(envConfig)) {
+    if (ignition::common::exists(envConfig))
+    {
       // Parse configuration stored in environment variable
       ret = ignition::gazebo::parsePluginsFromFile(envConfig);
       if (ret.empty())
@@ -740,7 +741,8 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << "IGN_GAZEBO_SERVER_CONFIG set but no plugins found\n";
+        ignwarn << gazebo:kServerConfigPathEnv
+                << " set but no plugins found\n";
       }
       resolved = true;
     }
@@ -749,7 +751,8 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      ignwarn << "IGN_GAZEBO_SERVER_CONFIG set but no file found,"
+      ignwarn << gazebo::kServerConfigPathEnv
+              << " set but no file found,"
               << " no plugins loaded\n";
       resolved = true;
     }

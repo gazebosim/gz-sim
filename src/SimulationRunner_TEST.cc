@@ -1149,7 +1149,7 @@ TEST_P(SimulationRunnerTest, LoadServer_NoPlugins)
   // ServerConfig will fall back to environment variable
   auto config = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/server_valid2.config";
-  ASSERT_EQ(0, setenv("IGN_GAZEBO_SERVER_CONFIG",
+  ASSERT_EQ(0, setenv(gazebo::kServerConfigPathEnv,
                       config.c_str(), true));
   ServerConfig serverConfig;
 
@@ -1271,14 +1271,14 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
 
   auto config = std::string(PROJECT_SOURCE_PATH) +
     "/inclue/ignition/gazebo/server.config";
-  ASSERT_EQ(0, setenv("IGN_GAZEBO_SERVER_CONFIG",
+  ASSERT_EQ(0, setenv(gazebo::kServerConfigPathEnv,
                       config.c_str(), true));
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
   ASSERT_EQ(3u, runner.SystemCount());
-  unsetenv("IGN_GAZEBO_SERVER_CONFIG");
+  unsetenv(gazebo::kServerConfigPathEnv);
 }
 
 /////////////////////////////////////////////////
