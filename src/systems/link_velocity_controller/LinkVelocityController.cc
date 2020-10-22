@@ -23,16 +23,16 @@
 
 #include "ignition/gazebo/Model.hh"
 
-#include "LinkPositionController.hh"
+#include "LinkVelocityController.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-class ignition::gazebo::systems::LinkPositionControllerPrivate
+class ignition::gazebo::systems::LinkVelocityControllerPrivate
 {
-  /// \brief Callback for position subscription
-  /// \param[in] _msg Position message
+  /// \brief Callback for Velocity subscription
+  /// \param[in] _msg Velocity message
   public: void OnCmdPos(const ignition::msgs::Double &_msg);
 
   /// \brief Ignition communication node.
@@ -44,7 +44,7 @@ class ignition::gazebo::systems::LinkPositionControllerPrivate
   /// \brief Link name
   public: std::string linkName;
 
-  /// \brief Commanded Link position
+  /// \brief Commanded Link Velocity
   public: double linkPosCmd;
 
   /// \brief mutex to protect Link commands
@@ -53,7 +53,7 @@ class ignition::gazebo::systems::LinkPositionControllerPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Position PID controller.
+  /// \brief Velocity PID controller.
   public: ignition::math::PID posPid;
 
   /// \brief Link index to be used.
@@ -61,13 +61,13 @@ class ignition::gazebo::systems::LinkPositionControllerPrivate
 };
 
 //////////////////////////////////////////////////
-LinkPositionController::LinkPositionController()
-  : dataPtr(std::make_unique<LinkPositionControllerPrivate>())
+LinkVelocityController::LinkVelocityController()
+  : dataPtr(std::make_unique<LinkVelocityControllerPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-void LinkPositionController::Configure(const Entity &_entity,
+void LinkVelocityController::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
@@ -76,20 +76,19 @@ void LinkPositionController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "LinkPositionController plugin should be attached to a model "
+    ignerr << "LinkVelocityController plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
 }
 
 //////////////////////////////////////////////////
-void LinkPositionController::PreUpdate(
+void LinkVelocityController::PreUpdate(
     const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointPositionController::PreUpdate");
+  IGN_PROFILE("JointVelocityController::PreUpdate");
 
-  // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     ignwarn << "Detected jump back in time ["
@@ -99,16 +98,16 @@ void LinkPositionController::PreUpdate(
 }
 
 //////////////////////////////////////////////////
-void LinkPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
+void LinkVelocityControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->linkCmdMutex);
   this->linkPosCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(LinkPositionController,
+IGNITION_ADD_PLUGIN(LinkVelocityController,
                     ignition::gazebo::System,
-                    LinkPositionController::ISystemConfigure,
-                    LinkPositionController::ISystemPreUpdate)
+                    LinkVelocityController::ISystemConfigure,
+                    LinkVelocityController::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LinkPositionController,
-                          "ignition::gazebo::systems::LinkPositionController")
+IGNITION_ADD_PLUGIN_ALIAS(LinkVelocityController,
+                          "ignition::gazebo::systems::LinkVelocityController")

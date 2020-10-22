@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_LINKPOSITIONCONTROLLER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LINKPOSITIONCONTROLLER_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_LINKVELOCITYCONTROLLER_HH_
+#define IGNITION_GAZEBO_SYSTEMS_LINKVELOCITYCONTROLLER_HH_
 
 #include <memory>
 #include <ignition/gazebo/System.hh>
@@ -29,27 +29,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class LinkPositionControllerPrivate;
+  class LinkVelocityontrollerPrivate;
 
-  /// \brief Link position controller which can be attached to a model with a
+  /// \brief Link velocity controller which can be attached to a model with a
   /// reference to a single link.
   ///
-  /// A new Ignition Transport topic is created to send target link positions.
+  /// A new Ignition Transport topic is created to send target link velocity.
   /// The topic name is
   /// "/model/<model_name>/link/<link_name>/<link_index>/cmd_pos"
   ///
   /// This topic accepts ignition::msgs::Double values representing the target
   /// position.
-  class IGNITION_GAZEBO_VISIBLE LinkPositionController
+  class IGNITION_GAZEBO_VISIBLE LinkVelocityontroller
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: LinkPositionController();
+    public: LinkVelocityController();
 
     /// \brief Destructor
-    public: ~LinkPositionController() override = default;
+    public: ~LinkVelocityController() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -63,7 +63,7 @@ namespace systems
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<LinkPositionControllerPrivate> dataPtr;
+    private: std::unique_ptr<LinkVelocityControllerPrivate> dataPtr;
   };
   }
 }
