@@ -42,6 +42,7 @@
 #include <sdf/Element.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
@@ -269,6 +270,56 @@ class LogSystemTest : public ::testing::Test
   public: std::string logPlaybackDir =
       common::joinPaths(this->logsDir, "test_logs_playback");
 };
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogPlaybackStatistics)
+{
+  auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "rolling_shapes_log");
+
+  ServerConfig config;
+  config.SetLogPlaybackPath(logPath);
+
+  Server server(config);
+
+  test::Relay testSystem;
+  math::Pose3d spherePose;
+  std::chrono::steady_clock::time_point startTime;
+  std::chrono::steady_clock::time_point endTime;
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::LogPlaybackStatistics>(
+            [&](const Entity &,
+                const components::LogPlaybackStatistics *_logStatComp)->bool
+            {
+              auto startSeconds =
+                _logStatComp->Data().start_time().sec();
+              auto startNanoseconds =
+                _logStatComp->Data().start_time().nsec();
+              auto endSeconds =
+                _logStatComp->Data().end_time().sec();
+              auto endNanoseconds =
+                _logStatComp->Data().end_time().nsec();
+              startTime =
+                math::secNsecToTimePoint(startSeconds, startNanoseconds);
+              endTime =
+                math::secNsecToTimePoint(endSeconds, endNanoseconds);
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
+
+  auto startTimePair = math::timePointToSecNsec(startTime);
+  auto endTimePair = math::timePointToSecNsec(endTime);
+
+  EXPECT_EQ(0, startTimePair.first);
+  EXPECT_EQ(0, startTimePair.second);
+  EXPECT_EQ(9, endTimePair.first);
+  EXPECT_EQ(721000000, endTimePair.second);
+}
 
 /////////////////////////////////////////////////
 // Logging behavior when no paths are specified
@@ -525,7 +576,8 @@ TEST_F(LogSystemTest, LogPaths)
     // tlog-journal file
   }
 
-  EXPECT_TRUE(common::exists(common::joinPaths(stateLogPath, "state.tlog")));
+  auto stateLogFilePath = common::joinPaths(stateLogPath, "state.tlog");
+  EXPECT_TRUE(common::exists(stateLogFilePath)) << stateLogFilePath;
 #ifndef __APPLE__
   EXPECT_EQ(1, entryCount(stateLogPath));
   EXPECT_EQ(0, entryCount(consoleLogPath));
@@ -569,7 +621,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Terminate server to close tlog file, otherwise we get a temporary
     // tlog-journal file
   }
-
   EXPECT_TRUE(common::exists(cppPath));
   EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
 #ifndef __APPLE__
@@ -729,7 +780,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   msgs::SerializedStateMap stateMsg;
   stateMsg.ParseFromString(recordedIter->Data());
-  EXPECT_EQ(28, stateMsg.entities_size());
+  // entity size = 28 in dbl pendulum + 4 in nested model
+  EXPECT_EQ(32, stateMsg.entities_size());
   EXPECT_EQ(batch.end(), ++recordedIter);
 
   // Pass changed SDF to server
@@ -797,9 +849,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       entityRecordedPose[recordedMsg.pose(i).name()] = recordedMsg.pose(i);
     }
 
-    // Has 4 dynamic entities
-    EXPECT_EQ(4, _playedMsg.pose().size());
-    EXPECT_EQ(4u, entityRecordedPose.size());
+    // Has 6 dynamic entities: 4 in dbl pendulum and 2 in nested model
+    EXPECT_EQ(6, _playedMsg.pose().size());
+    EXPECT_EQ(6u, entityRecordedPose.size());
 
     // Loop through all entities and compare played poses to recorded ones
     for (int i = 0; i < _playedMsg.pose_size(); ++i)
