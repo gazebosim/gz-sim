@@ -29,18 +29,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class LinkVelocityontrollerPrivate;
+  class LinkVelocityControllerPrivate;
 
   /// \brief Link velocity controller which can be attached to a model with a
   /// reference to a single link.
   ///
   /// A new Ignition Transport topic is created to send target link velocity.
   /// The topic name is
-  /// "/model/<model_name>/link/<link_name>/<link_index>/cmd_pos"
+  /// "/model/<model_name>/link/<link_name>/<link_index>/cmd_vel"
   ///
   /// This topic accepts ignition::msgs::Double values representing the target
-  /// position.
-  class IGNITION_GAZEBO_VISIBLE LinkVelocityontroller
+  /// velocity.
+  ///
+  /// ## System Parameters
+  /// 
+  /// `<link_name>` The name of the link to control. Required parameter.
+  class IGNITION_GAZEBO_VISIBLE LinkVelocityController
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

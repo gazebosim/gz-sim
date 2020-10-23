@@ -21,6 +21,8 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/AngularVelocity.hh"
+// #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "LinkVelocityController.hh"
@@ -33,7 +35,7 @@ class ignition::gazebo::systems::LinkVelocityControllerPrivate
 {
   /// \brief Callback for Velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdPos(const ignition::msgs::Double &_msg);
+  public: void OnCmdVel(const ignition::msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -44,17 +46,17 @@ class ignition::gazebo::systems::LinkVelocityControllerPrivate
   /// \brief Link name
   public: std::string linkName;
 
-  /// \brief Commanded Link Velocity
-  public: double linkPosCmd;
+  // /// \brief Commanded Link Linear Velocity
+  // public: math::Vector3d linkLinearVelCmd;
+
+  /// \brief Commanded Link Angular Velocity
+  public: double linkAngularVelCmd;
 
   /// \brief mutex to protect Link commands
   public: std::mutex linkCmdMutex;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
-
-  /// \brief Velocity PID controller.
-  public: ignition::math::PID posPid;
 
   /// \brief Link index to be used.
   public: unsigned int linkIndex = 0u;
@@ -80,6 +82,23 @@ void LinkVelocityController::Configure(const Entity &_entity,
            << "entity. Failed to initialize." << std::endl;
     return;
   }
+
+  // Get params from SDF
+  this->dataPtr->linkName = _sdf->Get<std::string>("link_name");
+  if (this->dataPtr->linkName == "")
+  {
+    ignerr << "LinkVelocityController found an empty linkName parameter. "
+           << "Failed to initialize.";
+    return;
+  }
+
+  // Subscribe to commands
+  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
+                    "/link/" + this->dataPtr->linkName + "/" +
+                    std::to_string(this->dataPtr->linkIndex) + "/cmd_vel"};
+  this->dataPtr->node.Subscribe(
+    topic, &linkVelocityControllerPrivate::OnCmdVel, this->dataPtr.get());
+  igndbg << "Topic: ["      << topic     << "]"            << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -87,7 +106,7 @@ void LinkVelocityController::PreUpdate(
     const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointVelocityController::PreUpdate");
+  IGN_PROFILE("LinkVelocityController::PreUpdate");
 
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -95,13 +114,61 @@ void LinkVelocityController::PreUpdate(
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+  // If the link hasn't been identified yet, look for it
+  if (this->dataPtr->linkEntity == kNullEntity)
+  {
+    this->dataPtr->linkEntity =
+      this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
+  }
+
+  if (this->dataPtr->linkEntity == kNullEntity)
+    return;
+  
+  // Nothing left to do if paused
+  if (_info.paused)
+    return;
+  
+  // // Create link velocity componenet if one doesn't exist
+  // auto linearVelocityComp =
+  //   _ecm.Component<components::LinearVelocity>(this->dataPtr->linkEntity);
+  // if (linearVelocityComp == nullptr)
+  // {
+  //   _ecm.CreateComponent(
+  //     this->dataPtr->linkEntity, components::LinearVelocity());
+  // }
+  auto angularVelocityComp =
+    _ecm.Component<components::AngularVelocity>(this->dataPtr->linkEntity);
+  if (angularVelocityComp == nullptr)
+  {
+    _ecm.CreateComponent(
+      this->dataPtr->linkEntity, components::AngularVelocity());
+  }
+  if (angularVelocityComp == nullptr)
+    return;
+
+  // Sanity Check: make sure the link index is valid
+  if (this->dataPtr->linkIndex >= angularVelocityComp->Data().size())
+  {
+    static bool invalidLinkReported = false;
+    if (!invalidLinkReported)
+    {
+      ignerr << "[LinkPositionController]: Detected an invalid <link_index> "
+             << "parameter. The index specified is ["
+             << this->dataPtr->linkIndex << "] but the link only has ["
+             << angularVelocityComp->Data().size() << "] index[es]. "
+             << "This controller will be ignored" << std::endl;
+      invalidLinkReported = true;
+    }
+    return;
+  }
 }
 
 //////////////////////////////////////////////////
 void LinkVelocityControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->linkCmdMutex);
-  this->linkPosCmd = _msg.data();
+  // this->linkLinearVelCmd = _msg.data();
+  this->linkAngularVelCmd = msg.data();
 }
 
 IGNITION_ADD_PLUGIN(LinkVelocityController,
