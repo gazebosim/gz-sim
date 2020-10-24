@@ -210,6 +210,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _true True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
     /// \brief Set video recorder bitrate in bps
     /// \param[in] _bitrate Bit rate to set to
     public: void SetRecordVideoBitrate(unsigned int _bitrate);
@@ -526,6 +530,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set whether to record video using sim time as timestamp
     /// \param[in] _true True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
 
     /// \brief Set video recorder bitrate in bps
     /// \param[in] _bitrate Bit rate to set to

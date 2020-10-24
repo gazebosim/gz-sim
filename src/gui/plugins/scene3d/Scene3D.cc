@@ -209,8 +209,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// By default (false), video encoding is done using real time.
     public: bool recordVideoUseSimTime = false;
 
+    /// \brief Lockstep gui with ECM when recording
+    public: bool recordVideoLockstep = false;
+
     /// \brief Video recorder bitrate (bps)
     public: unsigned int recordVideoBitrate = 2070000;
+
+    /// \brief Previous camera update time during video recording
+    /// only used in lockstep mode and recording in sim time.
+    public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
 
     /// \brief Start tiem of video recording
     public: std::chrono::steady_clock::time_point recordStartTime;
@@ -491,7 +498,24 @@ void IgnRenderer::Render()
     }
   }
 
+  // check if recording is in lockstep mode and if it is using sim time
+  // if so, there is no need to update camera if sim time has not advanced
+  bool update = true;
+  if (this->dataPtr->recordVideoLockstep &&
+      this->dataPtr->recordVideoUseSimTime &&
+      this->dataPtr->videoEncoder.IsEncoding())
+  {
+    std::chrono::steady_clock::time_point t =
+        std::chrono::steady_clock::time_point(
+        this->dataPtr->renderUtil.SimTime());
+    if (t - this->dataPtr->recordVideoUpdateTime == std::chrono::seconds(0))
+      update = false;
+    else
+      this->dataPtr->recordVideoUpdateTime = t;
+  }
+
   // update and render to texture
+  if (update)
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
@@ -1742,6 +1766,13 @@ void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoLockstep = _useSimTime;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2389,9 +2420,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         if (lockstepStr == "true" || lockstepStr == "1")
         {
           this->dataPtr->recordVideoLockstep = true;
+          renderWindow->SetRecordVideoLockstep(true);
         }
         else if (lockstepStr == "false" || lockstepStr == "0")
+        {
           this->dataPtr->recordVideoLockstep = false;
+          renderWindow->SetRecordVideoLockstep(false);
+        }
         else
         {
           ignerr << "Faild to parse <lockstep> value: " << lockstepStr
@@ -2538,6 +2573,7 @@ void Scene3D::Update(const UpdateInfo &_info,
   {
     std::unique_lock<std::mutex> lock2(g_renderMutex);
     g_renderCv.wait(lock2);
+
   }
 }
 
@@ -2900,6 +2936,13 @@ void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
       _useSimTime);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
+      _lockstep);
 }
 
 /////////////////////////////////////////////////
