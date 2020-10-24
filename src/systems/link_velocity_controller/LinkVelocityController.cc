@@ -44,8 +44,11 @@ class ignition::gazebo::systems::LinkVelocityControllerPrivate
   /// \brief Link Entity
   public: Entity linkEntity;
 
-  /// \brief Link name
-  public: std::string linkName;
+  /// \brief Link 1 name
+  public: std::string link1Name;
+
+  /// \brief Link 2 name
+  public: std::string link2Name;
 
   // /// \brief Commanded Link Linear Velocity
   // public: math::Vector3d linkLinearVelCmd;
@@ -82,18 +85,20 @@ void LinkVelocityController::Configure(const Entity &_entity,
   }
 
   // Get params from SDF
-  if (_sdf->HasElement("link"))
-    this->dataPtr->linkName = _sdf->Get<std::string>("link_name");
-  if (this->dataPtr->linkName == "")
+  this->dataPtr->link1Name = _sdf->Get<std::string>("link1_name");
+  // ignerr << _sdf->ToString("") << std::endl;
+  // // if (_sdf->HasElement("link"))
+  // //   this->dataPtr->linkName = _sdf->GetAttribute("link");
+  if (this->dataPtr->link1Name == "")
   {
-    ignerr << "LinkVelocityController found an empty linkName parameter. "
+    ignerr << "LinkVelocityController found an empty link1Name parameter. "
            << "Failed to initialize.";
     return;
   }
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
-                    "/link/" + this->dataPtr->linkName + "/cmd_vel"};
+                    "/link/" + this->dataPtr->link1Name + "/cmd_vel"};
   this->dataPtr->node.Subscribe(
     topic, &LinkVelocityControllerPrivate::OnCmdVel, this->dataPtr.get());
   igndbg << "Topic: ["      << topic     << "]"            << std::endl;
@@ -116,7 +121,7 @@ void LinkVelocityController::PreUpdate(
   if (this->dataPtr->linkEntity == kNullEntity)
   {
     this->dataPtr->linkEntity =
-      this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
+      this->dataPtr->model.LinkByName(_ecm, this->dataPtr->link1Name);
   }
 
   if (this->dataPtr->linkEntity == kNullEntity)

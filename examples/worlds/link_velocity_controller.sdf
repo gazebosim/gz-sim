@@ -314,8 +314,8 @@
             <plugin
                 filename="ignition-gazebo-link-velocity-controller-system"
                 name="ignition::gazebo::systems::LinkVelocityController">
-                <upper_link>upper_pendulum_link</upper_link>
-                <lower_link>lower_pendulum_link</lower_link>
+                <link1_name>upper_link</link1_name>
+                <link2_name>lower_link</link2_name>
             </plugin>
         </model>
     </world>
