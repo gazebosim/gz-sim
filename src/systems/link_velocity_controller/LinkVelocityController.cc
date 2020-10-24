@@ -15,9 +15,10 @@
  *
  */
 
-#include <ignition/msgs/double.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -35,7 +36,7 @@ class ignition::gazebo::systems::LinkVelocityControllerPrivate
 {
   /// \brief Callback for Velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Double &_msg);
+  public: void OnCmdVel(const ignition::msgs::Vector3d &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -50,16 +51,13 @@ class ignition::gazebo::systems::LinkVelocityControllerPrivate
   // public: math::Vector3d linkLinearVelCmd;
 
   /// \brief Commanded Link Angular Velocity
-  public: double linkAngularVelCmd;
+  public: math::Vector3d linkAngularVelCmd;
 
   /// \brief mutex to protect Link commands
   public: std::mutex linkCmdMutex;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
-
-  /// \brief Link index to be used.
-  public: unsigned int linkIndex = 0u;
 };
 
 //////////////////////////////////////////////////
@@ -84,7 +82,8 @@ void LinkVelocityController::Configure(const Entity &_entity,
   }
 
   // Get params from SDF
-  this->dataPtr->linkName = _sdf->Get<std::string>("link_name");
+  if (_sdf->HasElement("link"))
+    this->dataPtr->linkName = _sdf->Get<std::string>("link_name");
   if (this->dataPtr->linkName == "")
   {
     ignerr << "LinkVelocityController found an empty linkName parameter. "
@@ -94,10 +93,9 @@ void LinkVelocityController::Configure(const Entity &_entity,
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
-                    "/link/" + this->dataPtr->linkName + "/" +
-                    std::to_string(this->dataPtr->linkIndex) + "/cmd_vel"};
+                    "/link/" + this->dataPtr->linkName + "/cmd_vel"};
   this->dataPtr->node.Subscribe(
-    topic, &linkVelocityControllerPrivate::OnCmdVel, this->dataPtr.get());
+    topic, &LinkVelocityControllerPrivate::OnCmdVel, this->dataPtr.get());
   igndbg << "Topic: ["      << topic     << "]"            << std::endl;
 }
 
@@ -145,30 +143,15 @@ void LinkVelocityController::PreUpdate(
   }
   if (angularVelocityComp == nullptr)
     return;
-
-  // Sanity Check: make sure the link index is valid
-  if (this->dataPtr->linkIndex >= angularVelocityComp->Data().size())
-  {
-    static bool invalidLinkReported = false;
-    if (!invalidLinkReported)
-    {
-      ignerr << "[LinkPositionController]: Detected an invalid <link_index> "
-             << "parameter. The index specified is ["
-             << this->dataPtr->linkIndex << "] but the link only has ["
-             << angularVelocityComp->Data().size() << "] index[es]. "
-             << "This controller will be ignored" << std::endl;
-      invalidLinkReported = true;
-    }
-    return;
-  }
 }
 
 //////////////////////////////////////////////////
-void LinkVelocityControllerPrivate::OnCmdPos(const msgs::Double &_msg)
+void LinkVelocityControllerPrivate::OnCmdVel(const msgs::Vector3d &_msg)
 {
   std::lock_guard<std::mutex> lock(this->linkCmdMutex);
   // this->linkLinearVelCmd = _msg.data();
-  this->linkAngularVelCmd = msg.data();
+  std::cout << _msg.x() << ", " << _msg.y() << ", " << _msg.z() << std::endl;
+  this->linkAngularVelCmd = math::Vector3d(_msg.x(), _msg.y(), _msg.z());
 }
 
 IGNITION_ADD_PLUGIN(LinkVelocityController,

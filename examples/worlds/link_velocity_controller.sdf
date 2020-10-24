@@ -1,3 +1,12 @@
+<!--
+  Ignition Gazebo link velocity control demo
+
+  Try sending commands:
+    ign topic -t "/model/double_pendulum/link/upper_link/cmd_vel" -m ignition.msgs.Vector3d -p "x: 0, y: 0, z: 0.05"
+
+    ign topic -t "/model/double_pendulum/link/lower_link/cmd_vel" -m ignition.msgs.Vector3d -p "x: 0, y: 0, z: 0.01"
+-->
+
 <?xml version="1.0" ?>
 <sdf version="1.7">
     <world name="double_pendulum">
@@ -303,8 +312,8 @@
             </joint>
 
             <plugin
-                filename="ignition-gazebo-double-pendulum-system"
-                name="ignition::gazebo::systems::DoublePendulum">
+                filename="ignition-gazebo-link-velocity-controller-system"
+                name="ignition::gazebo::systems::LinkVelocityController">
                 <upper_link>upper_pendulum_link</upper_link>
                 <lower_link>lower_pendulum_link</lower_link>
             </plugin>
