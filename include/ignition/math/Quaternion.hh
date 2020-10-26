@@ -244,6 +244,15 @@ namespace ignition
         }
       }
 
+      /// \brief Gets a normalized version of this quaternion
+      /// \return a normalized quaternion
+      public: Quaternion<T> Normalized() const
+      {
+        Quaternion<T> result = *this;
+        result.Normalize();
+        return result;
+      }
+
       /// \brief Set the quaternion from an axis and angle
       /// \param[in] _ax X axis
       /// \param[in] _ay Y axis

@@ -249,6 +249,9 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::equal(q.Y(), 3.0));
   EXPECT_TRUE(math::equal(q.Z(), 4.0));
 
+  math::Quaterniond q2 = q.Normalized();
+  EXPECT_TRUE(q2 == math::Quaterniond(0.182574, 0.365148, 0.547723, 0.730297));
+
   q.Normalize();
   EXPECT_TRUE(q == math::Quaterniond(0.182574, 0.365148, 0.547723, 0.730297));
 
