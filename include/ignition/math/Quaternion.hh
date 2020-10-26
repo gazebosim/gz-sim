@@ -105,7 +105,7 @@ namespace ignition
       /// \brief Destructor
       public: ~Quaternion() {}
 
-      /// \brief Equal operator
+      /// \brief Assignment operator
       /// \param[in] _qt Quaternion<T> to copy
       public: Quaternion<T> &operator=(const Quaternion<T> &_qt)
       {

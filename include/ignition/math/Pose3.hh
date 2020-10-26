@@ -231,7 +231,7 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Equal operator
+      /// \brief Assignment operator
       /// \param[in] _pose Pose3<T> to copy
       public: Pose3<T> &operator=(const Pose3<T> &_pose)
       {

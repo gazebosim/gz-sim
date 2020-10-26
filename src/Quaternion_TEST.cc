@@ -27,6 +27,38 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+TEST(QuaternionTest, Construction)
+{
+  math::Quaterniond q(0, 0, 0, 1);
+
+  // Copy constructor
+  math::Quaterniond q2(q);
+  EXPECT_EQ(q2, q);
+
+  // Copy operator
+  math::Quaterniond q3;
+  q3 = q;
+  EXPECT_EQ(q3, q);
+
+  // Move constructor
+  math::Quaterniond q4(std::move(q));
+  EXPECT_EQ(q4, q2);
+  q = q4;
+  EXPECT_EQ(q, q2);
+
+  // Move operator
+  math::Quaterniond q5;
+  q5 = std::move(q2);
+  EXPECT_EQ(q5, q3);
+  q2 = q5;
+  EXPECT_EQ(q2, q3);
+
+  // Inequality
+  math::Quaterniond q6;
+  EXPECT_NE(q6, q3);
+}
+
+/////////////////////////////////////////////////
 TEST(QuaternionTest, Unit)
 {
   math::Quaterniond q;
@@ -515,7 +547,7 @@ TEST(QuaternionTest, Slerp)
 }
 
 /////////////////////////////////////////////////
-TEST(QuaterniondTest, From2Axes)
+TEST(QuaternionTest, From2Axes)
 {
   math::Vector3d v1(1.0, 0.0, 0.0);
   math::Vector3d v2(0.0, 1.0, 0.0);
