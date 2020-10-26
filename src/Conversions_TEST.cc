@@ -482,6 +482,7 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(sceneMsg.shadows());
   EXPECT_TRUE(sceneMsg.grid());
   EXPECT_TRUE(sceneMsg.origin_visual());
+  EXPECT_FALSE(sceneMsg.has_sky());
 
   auto newScene = convert<sdf::Scene>(sceneMsg);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newScene.Ambient());
@@ -489,6 +490,42 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(newScene.Shadows());
   EXPECT_TRUE(newScene.Grid());
   EXPECT_TRUE(newScene.OriginVisual());
+  EXPECT_EQ(nullptr, newScene.Sky());
+
+  // sky
+  sdf::Sky sky;
+  sky.SetTime(10);
+  sky.SetSunrise(4.0);
+  sky.SetSunset(15.0);
+  sky.SetCloudSpeed(5.0);
+  sky.SetCloudDirection(math::Angle(3.14));
+  sky.SetCloudHumidity(0.11);
+  sky.SetCloudMeanSize(0.88);
+  sky.SetCloudAmbient(math::Color::Red);
+  scene.SetSky(sky);
+
+  auto sceneSkyMsg = convert<msgs::Scene>(scene);
+  EXPECT_TRUE(sceneSkyMsg.has_sky());
+  EXPECT_DOUBLE_EQ(10.0, sceneSkyMsg.sky().time());
+  EXPECT_DOUBLE_EQ(4.0, sceneSkyMsg.sky().sunrise());
+  EXPECT_DOUBLE_EQ(15.0, sceneSkyMsg.sky().sunset());
+  EXPECT_DOUBLE_EQ(5.0, sceneSkyMsg.sky().wind_speed());
+  EXPECT_DOUBLE_EQ(3.14, sceneSkyMsg.sky().wind_direction());
+  EXPECT_DOUBLE_EQ(0.11, sceneSkyMsg.sky().humidity());
+  EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
+  EXPECT_EQ(math::Color::Red,
+      msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+
+  auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
+  ASSERT_NE(nullptr, newSceneSky.Sky());
+  EXPECT_DOUBLE_EQ(10.0, newSceneSky.Sky()->Time());
+  EXPECT_DOUBLE_EQ(4.0, newSceneSky.Sky()->Sunrise());
+  EXPECT_DOUBLE_EQ(15.0, newSceneSky.Sky()->Sunset());
+  EXPECT_DOUBLE_EQ(5.0, newSceneSky.Sky()->CloudSpeed());
+  EXPECT_EQ(math::Angle(3.14), newSceneSky.Sky()->CloudDirection());
+  EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
+  EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
+  EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
 }
 
 /////////////////////////////////////////////////

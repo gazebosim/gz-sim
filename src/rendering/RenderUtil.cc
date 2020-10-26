@@ -105,6 +105,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
+  //// \brief True to enable sky in the scene
+  public: bool skyEnabled = false;
+
   /// \brief Scene background color
   public: math::Color backgroundColor = math::Color::Black;
 
@@ -320,6 +323,11 @@ void RenderUtil::Update()
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
+    if (scene.Sky())
+    {
+      this->dataPtr->scene->SetSkyEnabled(true);
+    }
+
     // only one scene so break
     break;
   }
@@ -1231,6 +1239,7 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+    this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
@@ -1303,6 +1312,12 @@ void RenderUtil::SetSceneName(const std::string &_name)
 std::string RenderUtil::SceneName() const
 {
   return this->dataPtr->sceneName;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetSkyEnabled(bool _enabled)
+{
+  this->dataPtr->skyEnabled = _enabled;
 }
 
 /////////////////////////////////////////////////

@@ -97,7 +97,7 @@ set(IGN_PHYSICS_VER ${ignition-physics3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors4 REQUIRED
+ign_find_package(ignition-sensors5 REQUIRED
   COMPONENTS
     rendering
     air_pressure
@@ -110,12 +110,12 @@ ign_find_package(ignition-sensors4 REQUIRED
     depth_camera
     thermal_camera
 )
-set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
+set(IGN_SENSORS_VER ${ignition-sensors5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED)
-set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
+ign_find_package(ignition-rendering5 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
