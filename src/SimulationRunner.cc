@@ -703,6 +703,14 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
+  if (!this->Paused() &&
+       this->requestedRunToTime > std::chrono::steady_clock::duration::zero() &&
+       this->currentInfo.simTime >= this->requestedRunToTime)
+  {
+    this->SetPaused(true);
+    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+  }
+
   if (!this->Paused() && this->pendingSimIterations > 0)
   {
     // Decrement the pending sim iterations, if there are any.
@@ -953,6 +961,12 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     ignwarn << "Changing seed is not supported." << std::endl;
   }
 
+  if (_req.has_run_to_time())
+  {
+    control.runToTime = std::chrono::seconds(_req.run_to_time().sec()) +
+                   std::chrono::nanoseconds(_req.run_to_time().nsec());
+  }
+
   this->worldControls.push_back(control);
 
   _res.set_data(true);
@@ -1019,6 +1033,11 @@ void SimulationRunner::ProcessWorldControl()
     if (control.seek >= std::chrono::steady_clock::duration::zero())
     {
       this->requestedSeek = control.seek;
+    }
+
+    if (control.runToTime >= std::chrono::steady_clock::duration::zero())
+    {
+      this->requestedRunToTime = control.runToTime;
     }
   }
 

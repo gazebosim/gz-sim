@@ -82,6 +82,8 @@ namespace ignition
       // cppcheck-suppress unusedStructMember
       bool rewind{false};  // NOLINT
 
+      std::chrono::steady_clock::duration runToTime{-1};
+
       /// \brief Sim time to jump to. A negative value means don't seek.
       /// Seeking changes sim time but doesn't affect real time.
       /// It also resets iterations back to zero.
@@ -468,6 +470,8 @@ namespace ignition
       /// \brief If user asks to seek to a specific sim time, this holds the
       /// time.s A negative value means there's no request from the user.
       private: std::chrono::steady_clock::duration requestedSeek{-1};
+
+      private: std::chrono::steady_clock::duration requestedRunToTime{-1};
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
