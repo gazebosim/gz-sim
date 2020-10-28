@@ -1216,9 +1216,9 @@ void RenderUtil::Init()
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
-    ignerr << "Engine [" << this->dataPtr->engineName << "] is not supported"
-           << std::endl;
-    return;
+    ignerr << "Engine [" << this->dataPtr->engineName << "] is not supported. "
+           << "Loading OGRE2 instead." << std::endl;
+    this->dataPtr->engine = rendering::engine("ogre2", params);
   }
 
   // Scene

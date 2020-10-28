@@ -81,6 +81,10 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::ElementPtr> newSensors;
 
+  /// \brief Keep track of new models being added, so we load their plugins
+  /// only after we have their scoped name.
+  public: std::map<Entity, sdf::ElementPtr> newModels;
+
   /// \brief Keep track of new visuals being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::ElementPtr> newVisuals;
@@ -217,6 +221,41 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
+  // todo(anyone) Support multiple canonical links in nested models
+  // This version of CreateEntties keeps track whether or not to create a
+  // canonical link in a model tree using the second arg in this recursive
+  // function. We also override child nested models static property if parent
+  // model is static
+  auto ent = this->CreateEntities(_model, true, false);
+
+  // Load all model plugins afterwards, so we get scoped name for nested models.
+  for (const auto &[entity, element] : this->dataPtr->newModels)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newModels.clear();
+
+  // Load sensor plugins after model, so we get scoped name.
+  for (const auto &[entity, element] : this->dataPtr->newSensors)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newSensors.clear();
+
+  // Load visual plugins after model, so we get scoped name.
+  for (const auto &[entity, element] : this->dataPtr->newVisuals)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newVisuals.clear();
+
+  return ent;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
+    bool _createCanonicalLink, bool _staticParent)
+{
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -226,8 +265,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
+  bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
-      components::Static(_model->Static()));
+      components::Static(isStatic));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::WindMode(_model->EnableWind()));
   this->dataPtr->ecm->CreateComponent(
@@ -239,6 +279,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   // the parent frame until we get frames working.
 
   // Links
+  bool canonicalLinkCreated = false;
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
   {
@@ -246,11 +287,14 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
-    if ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
-        (link == _model->CanonicalLink()))
+
+    if (_createCanonicalLink &&
+        ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
+        (link == _model->CanonicalLink())))
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
+      canonicalLinkCreated = true;
     }
 
     // Set wind mode if the link didn't override it
@@ -271,27 +315,29 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->SetParent(jointEntity, modelEntity);
   }
 
-  // Model plugins
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(modelEntity,
-      _model->Element());
-
-  // Load sensor plugins after model, so we get scoped name.
-  for (const auto &[entity, element] : this->dataPtr->newSensors)
+  // Nested Models
+  for (uint64_t modelIndex = 0; modelIndex < _model->ModelCount();
+      ++modelIndex)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    auto nestedModel = _model->ModelByIndex(modelIndex);
+
+    // Create nested model. Make sure to only create canonical link component
+    // in the nested model if a canonical link has not been created in this
+    // model yet. Also override static propery of the nested model if this model
+    //  is static
+    auto nestedModelEntity = this->CreateEntities(nestedModel,
+        (_createCanonicalLink && !canonicalLinkCreated), isStatic);
+
+    this->SetParent(nestedModelEntity, modelEntity);
   }
-  this->dataPtr->newSensors.clear();
 
   // Store the model's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::ModelSdf(*_model));
 
-  // Load visual plugins after model, so we get scoped name.
-  for (const auto &[entity, element] : this->dataPtr->newVisuals)
-  {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
-  }
-  this->dataPtr->newVisuals.clear();
+  // Keep track of models so we can load their plugins after loading the entire
+  // model and having its full scoped name.
+  this->dataPtr->newModels[modelEntity] = _model->Element();
 
   return modelEntity;
 }
