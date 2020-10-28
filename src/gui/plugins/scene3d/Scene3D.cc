@@ -1413,6 +1413,7 @@ void IgnRenderer::HandleMouseViewControl()
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
+      ignwarn << "target click is x: " << this->dataPtr->target[0] << ", y: " << this->dataPtr->target[1] << ", z: " << this->dataPtr->target[2] <<  std::endl;
       this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
     }
 

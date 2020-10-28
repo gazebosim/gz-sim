@@ -45,14 +45,6 @@ namespace gazebo
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
-    /// \brief Callback to retrieve existing grid. Should only be called
-    /// within the render thread.  If no grid is found, the grid pointer
-    /// is not updated.
-    public: void LoadGrid();
-
-    // Documentation inherited
-    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
-
     public slots: void OnMeasure();
 
     /// \internal

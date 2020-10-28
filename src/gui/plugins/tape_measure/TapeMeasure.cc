@@ -79,25 +79,28 @@ void TapeMeasure::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void TapeMeasure::OnMeasure()
 {
-  this->dataPtr->measure = true;
+  std::string modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                           "<sdf version=\"1.6\">"
+                                             "<model name=\"sphere\">"
+                                               "<pose>0 0 0 0 0 0</pose>"
+                                               "<link name=\"sphere_link\">"
+                                                 "<visual name=\"sphere_visual\">"
+                                                   "<geometry>"
+                                                     "<sphere>"
+                                                       "<radius>0.1</radius>"
+                                                     "</sphere>"
+                                                   "</geometry>"
+                                                 "</visual>"
+                                               "</link>"
+                                             "</model>"
+                                           "</sdf>");
+
+  gui::events::SpawnPreviewModel event(modelSdfString);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &event);
 }
 
-/////////////////////////////////////////////////
-bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
-{
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
-  {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
-    // rendering calls here
-    // TODO do any rendering here
-    if (this->dataPtr->measure)
-    {
-      ignwarn << "Measuring" << std::endl;
-      this->dataPtr->measure = false;
-    }
-  }
-  return QObject::eventFilter(_obj, _event);
-}
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::TapeMeasure,
                     ignition::gui::Plugin)
