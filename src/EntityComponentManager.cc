@@ -922,11 +922,16 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  for (const auto &it : this->dataPtr->entityComponents)
-  {
-    if (_entities.empty() || _entities.find(it.first) != _entities.end())
-      this->AddEntityToMessage(_state, it.first, _types, _full);
+  auto functor = [&](auto itStart, auto itEnd) {
+    while (itStart != itEnd)
+    {
+      if (_entities.empty() || _entities.find(itStart.first) != _entities.end())
+        this->AddEntityToMessage(_state, itStart.first, _types, _full);
+      itStart++;
+    }
   }
+  std::thread t = std::thread(functor, this->dataPtr->entityComponents.begin(),
+    this->dataPtr->entityComponent.end());
 }
 
 //////////////////////////////////////////////////
