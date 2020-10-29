@@ -851,15 +851,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
     // TODO(anyone) Set component being removed once we have a way to queue it
   }
-
-  // Remove the entity from the message if a component for the entity was
-  // not modified or added. This will allow the state message to shrink.
-  if (entIter == _msg.mutable_entities()->end() &&
-      (entIter = _msg.mutable_entities()->find(_entity)) !=
-      _msg.mutable_entities()->end())
-  {
-    _msg.mutable_entities()->erase(entIter);
-  }
 }
 
 //////////////////////////////////////////////////
