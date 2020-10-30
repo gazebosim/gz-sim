@@ -2,7 +2,7 @@
 FROM nvidia/opengl:1.0-glvnd-devel-ubuntu18.04
 
 # install third-party packages for things like developemnt
-RUN apt-get -qq update && apt-get -y install \
+RUN apt-get -qq update && apt-get --no-install-recommends -y install \
     git \
     gnupg \
     g++-8 \
@@ -18,7 +18,7 @@ RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb
 # install dependencies
 COPY packages.apt .
 COPY packages-bionic.apt .
-RUN apt-get -qq update && apt-get -y install \
+RUN apt-get -qq update && apt-get --no-install-recommends -y install \
     $(sort -u $(find . -iname 'packages-bionic.apt' -o -iname 'packages.apt') | tr '\n' ' ') \
   && rm -rf /var/lib/apt/lists/*
 
@@ -26,7 +26,7 @@ RUN apt-get -qq update && apt-get -y install \
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list' \
   && apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 RUN echo 'Etc/UTC' > /etc/timezone && ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime \
-  && apt-get -qq update && apt-get -y install \
+  && apt-get -qq update && apt-get --no-install-recommends -y install \
     python3-colcon-common-extensions \
   && rm -rf /var/lib/apt/lists/*
 
