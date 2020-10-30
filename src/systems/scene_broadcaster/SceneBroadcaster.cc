@@ -301,7 +301,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Poses periodically + change events
     // TODO(louise) Send changed state periodically instead, once it reflects
     // changed components
-    if (shouldPublish)
+    if (shouldPublish && !_info.paused)
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
