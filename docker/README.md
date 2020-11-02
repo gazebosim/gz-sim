@@ -154,7 +154,7 @@ Docker has two available versions: Community Edition (CE) and Enterprise Edition
 
 1. Verify the installation:
 
-        docker run --runtime=nvidia --rm nvidia/cuda nvidia-smi
+        docker run --gpus all --rm nvidia/cuda nvidia-smi
 
     This command should print your GPU information, for example:
 

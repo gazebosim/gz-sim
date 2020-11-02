@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
@@ -108,7 +109,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
       // Update sensor
       auto time = math::durationToSecNsec(_info.simTime);
       dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          common::Time(time.first, time.second), false);
+          math::secNsecToDuration(time.first, time.second), false);
     }
   }
 
@@ -140,6 +141,13 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         std::unique_ptr<sensors::LogicalCameraSensor> sensor =
             this->sensorFactory.CreateSensor<
             sensors::LogicalCameraSensor>(data);
+        if (nullptr == sensor)
+        {
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
+        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
@@ -148,6 +156,9 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         // set sensor world pose
         math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
         sensor->SetPose(sensorWorldPose);
+
+        // Set topic
+        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));

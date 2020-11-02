@@ -190,6 +190,7 @@ LogRecord::~LogRecord()
       this->dataPtr->CompressStateAndResources();
     this->dataPtr->savedModels.clear();
 
+    LogRecordPrivate::started = false;
     ignmsg << "Stopping recording" << std::endl;
   }
 }
@@ -307,10 +308,42 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // Use ign-transport directly
   sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
-  this->recorder.AddTopic("/world/" + this->worldName + "/dynamic_pose/info");
+
+  // Add default topics if no topics were specified.
+  std::string dynPoseTopic = "/world/" + this->worldName +
+    "/dynamic_pose/info";
+
+  igndbg << "Recording default topic[" << dynPoseTopic << "].\n";
+  igndbg << "Recording default topic[" << sdfTopic << "].\n";
+  igndbg << "Recording default topic[" << stateTopic << "].\n";
+  this->recorder.AddTopic(dynPoseTopic);
   this->recorder.AddTopic(sdfTopic);
   this->recorder.AddTopic(stateTopic);
-  // this->recorder.AddTopic(std::regex(".*"));
+
+  // Get the topics to record, if any.
+  if (this->sdf->HasElement("record_topic"))
+  {
+    auto ptr = const_cast<sdf::Element *>(this->sdf.get());
+    sdf::ElementPtr recordTopicElem = ptr->GetElement("record_topic");
+
+    // This is used to determine if a topic is a regular expression.
+    std::regex regexMatch(".*[\\*\\?\\[\\]\\(\\)\\.]+.*");
+    while (recordTopicElem)
+    {
+      std::string topic = recordTopicElem->Get<std::string>();
+      if (std::regex_match(topic, regexMatch))
+      {
+        this->recorder.AddTopic(std::regex(topic));
+        igndbg << "Recording topic[" << topic << "] as regular expression.\n";
+      }
+      else
+      {
+        this->recorder.AddTopic(topic);
+        igndbg << "Recording topic[" << topic << "] as plain topic.\n";
+      }
+      recordTopicElem = recordTopicElem->GetNextElement("record_topic");
+    }
+  }
 
   // Timestamp messages with sim time and republish that time on
   // a ~/log/clock topic (which we don't really need).

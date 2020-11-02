@@ -214,6 +214,18 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const ComponentKey &_key);
 
+      /// \brief Get the data from a component.
+      /// * If the component type doesn't hold any data, this won't compile.
+      /// * If the entity doesn't have that component, it will return nullopt.
+      /// * If the entity has the component, return its data.
+      /// \param[in] _entity The entity.
+      /// \tparam ComponentTypeT Component type
+      /// \return The data of the component of the specified type assigned to
+      /// specified Entity, or nullptr if the component could not be found.
+      public: template<typename ComponentTypeT>
+              std::optional<typename ComponentTypeT::Type> ComponentData(
+              const Entity _entity) const;
+
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.
       /// \return All the component type IDs.
@@ -402,7 +414,7 @@ namespace ignition
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
-      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      /// PostUpdate callback.
       public: template<typename ...ComponentTypeTs>
               void EachRemoved(typename identity<std::function<
                   bool(const Entity &_entity,
@@ -529,10 +541,20 @@ namespace ignition
       public: gazebo::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
 
+      /// \brief All future entities will have an id that starts at _offset.
+      /// This can be used to avoid entity id collisions, such as during log
+      /// playback.
+      /// \param[in] _offset Offset value.
+      public: void SetEntityCreateOffset(uint64_t _offset);
+
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
       protected: void ClearNewlyCreatedEntities();
+
+      /// \brief Clear the list of removed components so that a call to
+      /// RemoveComponent doesn't make the list grow indefinitely.
+      protected: void ClearRemovedComponents();
 
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to

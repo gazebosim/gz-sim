@@ -22,7 +22,6 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
@@ -35,12 +34,14 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
 #include "Sensors.hh"
@@ -111,7 +112,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: ignition::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
-  public: ignition::common::Time updateTime;
+  public: std::chrono::steady_clock::duration updateTime;
 
   /// \brief Sensors to include in the next rendering iteration
   public: std::vector<sensors::RenderingSensor *> activeSensors;
@@ -120,7 +121,11 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorMaskMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId, ignition::common::Time> sensorMask;
+  public: std::map<sensors::SensorId,
+    std::chrono::steady_clock::duration> sensorMask;
+
+  /// \brief Pointer to the event manager
+  public: EventManager *eventManager{nullptr};
 
   /// \brief Wait for initialization to happen
   private: void WaitForInit();
@@ -210,6 +215,7 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
+
   if (!this->activeSensors.empty())
   {
     this->sensorMaskMutex.lock();
@@ -225,13 +231,15 @@ void SensorsPrivate::RunOnce()
     for (const auto & sensor : this->activeSensors)
     {
       // 90% of update delta (1/UpdateRate());
-      ignition::common::Time delta(0.9 / sensor->UpdateRate());
+      auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
+        std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
     }
     this->sensorMaskMutex.unlock();
 
     {
       IGN_PROFILE("PreRender");
+      this->eventManager->Emit<events::PreRender>();
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -243,6 +251,7 @@ void SensorsPrivate::RunOnce()
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+      this->eventManager->Emit<events::PostRender>();
     }
 
     this->activeSensors.clear();
@@ -371,7 +380,17 @@ void Sensors::Configure(const Entity &/*_id*/,
       auto atmosphereSdf = atmosphere->Data();
       this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
     }
+
+    // Set render engine if specified from command line
+    auto renderEngineServerComp =
+      _ecm.Component<components::RenderEngineServerPlugin>(worldEntity);
+    if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
+    {
+      this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
+    }
   }
+
+  this->dataPtr->eventManager = &_eventMgr;
 
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
@@ -412,7 +431,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
-    auto t = common::Time(time.first, time.second);
+    auto t = math::secNsecToDuration(time.first, time.second);
 
     std::vector<sensors::RenderingSensor *> activeSensors;
 
@@ -435,7 +454,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         }
       }
 
-      if (rs && rs->NextUpdateTime() <= t)
+      if (rs && rs->NextDataUpdateTime() <= t)
       {
         activeSensors.push_back(rs);
       }

@@ -33,6 +33,7 @@
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/MsgIter.hh>
+#include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
 #include <ignition/math/Pose3.hh>
 
@@ -41,6 +42,7 @@
 #include <sdf/Element.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
@@ -269,6 +271,56 @@ class LogSystemTest : public ::testing::Test
   public: std::string logPlaybackDir =
       common::joinPaths(this->logsDir, "test_logs_playback");
 };
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogPlaybackStatistics)
+{
+  auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "rolling_shapes_log");
+
+  ServerConfig config;
+  config.SetLogPlaybackPath(logPath);
+
+  Server server(config);
+
+  test::Relay testSystem;
+  math::Pose3d spherePose;
+  std::chrono::steady_clock::time_point startTime;
+  std::chrono::steady_clock::time_point endTime;
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::LogPlaybackStatistics>(
+            [&](const Entity &,
+                const components::LogPlaybackStatistics *_logStatComp)->bool
+            {
+              auto startSeconds =
+                _logStatComp->Data().start_time().sec();
+              auto startNanoseconds =
+                _logStatComp->Data().start_time().nsec();
+              auto endSeconds =
+                _logStatComp->Data().end_time().sec();
+              auto endNanoseconds =
+                _logStatComp->Data().end_time().nsec();
+              startTime =
+                math::secNsecToTimePoint(startSeconds, startNanoseconds);
+              endTime =
+                math::secNsecToTimePoint(endSeconds, endNanoseconds);
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
+
+  auto startTimePair = math::timePointToSecNsec(startTime);
+  auto endTimePair = math::timePointToSecNsec(endTime);
+
+  EXPECT_EQ(0, startTimePair.first);
+  EXPECT_EQ(0, startTimePair.second);
+  EXPECT_EQ(9, endTimePair.first);
+  EXPECT_EQ(721000000, endTimePair.second);
+}
 
 /////////////////////////////////////////////////
 // Logging behavior when no paths are specified
@@ -564,7 +616,6 @@ TEST_F(LogSystemTest, LogPaths)
     // Terminate server to close tlog file, otherwise we get a temporary
     // tlog-journal file
   }
-
   EXPECT_TRUE(common::exists(cppPath));
   EXPECT_TRUE(common::exists(common::joinPaths(cppPath, "state.tlog")));
 #ifndef __APPLE__
@@ -719,7 +770,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   msgs::SerializedStateMap stateMsg;
   stateMsg.ParseFromString(recordedIter->Data());
-  EXPECT_EQ(28, stateMsg.entities_size());
+  // entity size = 28 in dbl pendulum + 4 in nested model
+  EXPECT_EQ(32, stateMsg.entities_size());
   EXPECT_EQ(batch.end(), ++recordedIter);
 
   // Pass changed SDF to server
@@ -787,9 +839,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       entityRecordedPose[recordedMsg.pose(i).name()] = recordedMsg.pose(i);
     }
 
-    // Has 4 dynamic entities
-    EXPECT_EQ(4, _playedMsg.pose().size());
-    EXPECT_EQ(4u, entityRecordedPose.size());
+    // Has 6 dynamic entities: 4 in dbl pendulum and 2 in nested model
+    EXPECT_EQ(6, _playedMsg.pose().size());
+    EXPECT_EQ(6u, entityRecordedPose.size());
 
     // Loop through all entities and compare played poses to recorded ones
     for (int i = 0; i < _playedMsg.pose_size(); ++i)
@@ -829,7 +881,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   playServer.Run(true, playbackSteps, false);
 
   int sleep = 0;
-  int maxSleep = 16;
+  int maxSleep = 30;
   for (; nTotal < expectedPoseCount && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -840,7 +892,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   /// \todo(anyone) there seems to be a race condition that sometimes cause an
   /// additional messages to be published by the scene broadcaster
   // 60Hz
-  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
+  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1)
+      << "nTotal [" << nTotal << "] expectedPoseCount [" << expectedPoseCount
+      << "]";
   #endif
 
   this->RemoveLogsDir();
@@ -1534,7 +1588,7 @@ TEST_F(LogSystemTest, LogResources)
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "OpenRobotics",
       "models", "X2 Config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1569,7 +1623,7 @@ TEST_F(LogSystemTest, LogResources)
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.ignitionrobotics.org", "OpenRobotics",
       "models", "X2 Config 1")));
 
   // Revert environment variable after test is done
@@ -1577,4 +1631,80 @@ TEST_F(LogSystemTest, LogResources)
 
   // Remove artifacts
   this->RemoveLogsDir();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, LogTopics)
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // World with moving entities
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_resources.sdf");
+
+  // Change environment variable so that downloaded fuel files aren't written
+  // to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+
+  const std::string recordPath = this->logDir;
+  std::string statePath = common::joinPaths(recordPath, "state.tlog");
+
+#ifndef __APPLE__
+  // Log only the /clock topic from command line
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+      + "--record-topic /clock "
+      + "--record-path " + recordPath + " "
+      + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  std::string consolePath = common::joinPaths(recordPath, "server_console.log");
+  EXPECT_TRUE(common::exists(consolePath)) << consolePath;
+  EXPECT_TRUE(common::exists(statePath)) << statePath;
+
+  // Recorded models should exist
+  EXPECT_GT(entryCount(recordPath), 1);
+
+  // Load the state log file into a player.
+  transport::log::Playback player(statePath);
+  const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
+
+  // There should be 4 topics, with the clock topic.
+  EXPECT_EQ(4, addTopicResult);
+
+  int clockMsgCount = 0;
+  std::function<void(const msgs::Clock &)> clockCb =
+      [&](const msgs::Clock &) -> void
+  {
+    clockMsgCount++;
+  };
+
+  // Subscribe to the clock topic
+  transport::Node node;
+  node.Subscribe("/clock", clockCb);
+
+  // Begin playback
+  transport::log::PlaybackHandlePtr handle =
+    player.Start(std::chrono::seconds(5), false);
+  handle->WaitUntilFinished();
+
+  // There were five iterations of simulation, so there should be 5 clock
+  // messages.
+  EXPECT_EQ(5, clockMsgCount);
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+#endif
 }

@@ -22,6 +22,7 @@
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
+#include <vector>
 #include <sdf/Element.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -253,6 +254,19 @@ namespace ignition
       /// \param[in] _ignore Whether to ignore the path specified in SDF
       public: void IGN_DEPRECATED(4) SetLogIgnoreSdfPath(bool _ignore);
 
+      /// \brief Add a topic to record.
+      /// \param[in] _topic Topic name, which can include wildcards.
+      public: void AddLogRecordTopic(const std::string &_topic);
+
+      /// \brief Clear topics to record. This will remove all topics set
+      /// using AddLogRecordTopic.
+      public: void ClearLogRecordTopics();
+
+      /// \brief Get the topics to record that were added using
+      /// AddLogRecordTopic.
+      /// \return The topics to record.
+      public: const std::vector<std::string> &LogRecordTopics() const;
+
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
       public: const std::string LogPlaybackPath() const;
@@ -312,6 +326,23 @@ namespace ignition
       /// \brief Set the physics engine plugin library.
       /// \param[in] _physicsEngine File containing physics engine library.
       public: void SetPhysicsEngine(const std::string &_physicsEngine);
+
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineServer() const;
+
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineGui() const;
+
+      /// \brief Set the render engine server plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineServer(
+                  const std::string &_renderEngineServer);
+
+      /// \brief Set the render engine gui plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineGui(const std::string &_renderEngineGui);
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.

@@ -20,6 +20,7 @@
 #include <cstdlib>
 
 #include <string>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
@@ -47,7 +48,9 @@ std::string customExecStr(std::string _cmd)
   while (!feof(pipe))
   {
     if (fgets(buffer, 128, pipe) != nullptr)
+    {
       result += buffer;
+    }
   }
 
   pclose(pipe);
@@ -84,6 +87,21 @@ TEST(CmdLine, Server)
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+}
+
+/////////////////////////////////////////////////
+// Not supported on Mac's command line tool
+TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_MAC(CachedFuelWorld))
+{
+  std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
+  setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str(), true);
+  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
+    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+
+  std::string output = customExecStr(cmd);
+  EXPECT_NE(output.find("Cached world found."), std::string::npos)
+      << output;
 }
 
 /////////////////////////////////////////////////
@@ -127,7 +145,7 @@ TEST(CmdLine, ResourcePath)
 
   // No path
   std::string output = customExecStr(cmd);
-  EXPECT_NE(output.find("Unable to find file plugins.sdf"), std::string::npos)
+  EXPECT_NE(output.find("Unable to find or download file"), std::string::npos)
       << output;
 
   // Correct path

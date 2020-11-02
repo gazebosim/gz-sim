@@ -1,0 +1,644 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo buoyancy plugin demo. This world contains the following
+  three models:
+
+  1. submarine: A simple submarine model that floats in place.
+  2. submarine_sinking: A simple submarine model that is not buoyant and sinks.
+  3. submarine_buoyant: A simple submarine model that is buoyant and floats.
+
+  To run this demo: `ign gazebo -v 4 buoyancy.sdf`
+
+  To alter a submarine's buoyancy do one or both of the following:
+
+  1. Change the submarine's inertia.
+  2. Change the `uniform_fluid_density` in the `buoyancy-system` plugin.
+
+  To drive the submarine model:
+
+  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m ignition.msgs.Double  -p "data: 1.2"
+
+-->
+<sdf version="1.6">
+  <world name="buoyancy">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-buoyancy-system"
+      name="ignition::gazebo::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/buoyancy/control</service>
+        <stats_topic>/world/buoyancy/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/buoyancy/stats</topic>
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name='submarine'>
+      <pose>0 0 0 1.5707963267948966 0 0</pose>
+      <link name='body'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>251.32741228718348</mass>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='spacer_visual'>
+          <pose>0 0 1.05855 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.0933402</radius>
+              <length>0.127211</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <link name='propeller'>
+        <pose>0 0 1.09 3.14159 0 0</pose>
+        <inertial>
+          <mass>21.820000000000004</mass>
+          <inertia>
+            <ixx>0.45999415237916674</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.45999415237916674</iyy>
+            <iyz>0</iyz>
+            <izz>0.9091666666666668</izz>
+          </inertia>
+        </inertial>
+
+
+        <visual name="blade1_visual">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade1_collision">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade2_visual">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade2_collision">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade3_visual">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade3_collision">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade4_visual">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade4_collision">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.2 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+      </link>
+
+      <joint name='propeller_joint' type='revolute'>
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <use_parent_model_frame>1</use_parent_model_frame>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-apply-joint-force-system"
+        name="ignition::gazebo::systems::ApplyJointForce">
+        <joint_name>propeller_joint</joint_name>
+      </plugin>
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0 -0.7071067811865476 -0.7071067811865475</upward>
+        <forward>0 -0.7071067811865475 0.7071067811865476</forward>
+        <link_name>propeller</link_name>
+        <cp>0.35 0 0</cp>
+      </plugin>
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>-0.7071067811865475 0 -0.7071067811865476</upward>
+        <forward>-0.7071067811865476 0 0.7071067811865475</forward>
+        <link_name>propeller</link_name>
+        <cp>0 -0.35 0</cp>
+      </plugin>
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0 0.7071067811865475 -0.7071067811865476</upward>
+        <forward>0 -0.7071067811865476 -0.7071067811865475</forward>
+        <link_name>propeller</link_name>
+        <cp>-0.35 0 0</cp>
+      </plugin>
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+
+        <air_density>1000</air_density>
+        <cla>1.2535816618911175</cla>
+        <cla_stall>-1.4326647564469914</cla_stall>
+        <cda>0</cda>
+        <cda_stall>1.4326647564469914</cda_stall>
+        <alpha_stall>1.396</alpha_stall>
+        <a0>0</a0>
+        <area>0.27637</area>
+        <upward>0.7071067811865476 0 -0.7071067811865475</upward>
+        <forward>0.7071067811865475 0 0.7071067811865476</forward>
+        <link_name>propeller</link_name>
+        <cp>0 0.35 0</cp>
+      </plugin>
+    </model>
+
+    <!-- This model should sink -->
+    <model name='submarine_sinking'>
+      <pose>5 0 0 1.5707963267948966 0 0</pose>
+      <link name='body'>
+        <pose>0 0 -1.07935 0 0 0</pose>
+        <inertial>
+          <mass>1102.6990214100174</mass>
+          <inertia>
+            <ixx>645.9978433760353</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>645.9978433760353</iyy>
+            <iyz>0</iyz>
+            <izz>49.62145596345078</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.6</length>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.6</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='spacer_visual'>
+          <pose>0 0 1.378546 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.0933402</radius>
+              <length>0.127211</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <link name='propeller'>
+        <pose>0 0 0.3455 3.14159 0 0</pose>
+        <inertial>
+          <mass>25.2312297</mass>
+          <inertia>
+            <ixx>0.5319073381913637</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.5319073381913637</iyy>
+            <iyz>0</iyz>
+            <izz>1.0513012375</izz>
+          </inertia>
+        </inertial>
+
+
+        <visual name="blade1_visual">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade1_collision">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade2_visual">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade2_collision">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade3_visual">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade3_collision">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade4_visual">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade4_collision">
+          <pose>-0.0 -0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+      </link>
+
+      <joint name='propeller_joint' type='revolute'>
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <use_parent_model_frame>1</use_parent_model_frame>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+    </model>
+
+    <!-- This model should float up -->
+    <model name='submarine_buoyant'>
+      <pose>-5 0 0 1.5707963267948966 0 0</pose>
+      <link name='body'>
+        <pose>0 0 -1.07935 0 0 0</pose>
+        <inertial>
+          <mass>367.5663404700058</mass>
+          <inertia>
+            <ixx>215.33261445867842</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>215.33261445867842</iyy>
+            <iyz>0</iyz>
+            <izz>16.54048532115026</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='body_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.6</length>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name='body_collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.6</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='spacer_visual'>
+          <pose>0 0 1.378546 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.0933402</radius>
+              <length>0.127211</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <link name='propeller'>
+        <pose>0 0 0.3455 3.14159 0 0</pose>
+        <inertial>
+          <mass>8.410409900000001</mass>
+          <inertia>
+            <ixx>0.17730244606378792</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.17730244606378792</iyy>
+            <iyz>0</iyz>
+            <izz>0.35043374583333337</izz>
+          </inertia>
+        </inertial>
+
+
+        <visual name="blade1_visual">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade1_collision">
+          <pose>0.3433402 0.0 0 -0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade2_visual">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade2_collision">
+          <pose>0.0 0.3433402 0 -0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade3_visual">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade3_collision">
+          <pose>-0.3433402 -0.0 0 0.7853981633974483 0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="blade4_visual">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="blade4_collision">
+          <pose>-0.0 -0.3433402 0 0.7853981633974483 0 1.5707963267948966</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.154178 0.05455</size>
+            </box>
+          </geometry>
+        </collision>
+
+      </link>
+
+      <joint name='propeller_joint' type='revolute'>
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <use_parent_model_frame>1</use_parent_model_frame>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+    </model>
+
+  </world>
+</sdf>
+

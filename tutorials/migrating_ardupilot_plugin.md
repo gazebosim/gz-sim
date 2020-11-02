@@ -24,7 +24,7 @@ documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.h
 As context to understand what we're migrating, here's a system diagram for how
 the ArduPilot Gazebo plugin works is used:
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/add_ardupilot_migration_tutorial2/tutorials/files/ardupilot_diagram.png"/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/ardupilot_diagram.png"/>
 
 *UAV icon credit: By Julian Herzog, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=60965475*
 
@@ -876,7 +876,7 @@ each propeller looks like this:
 <!-- OLD -->
 <plugin
     name="rotor_0_blade_1"
-    filename="libLiftDragPlugin.so">
+    filename="LiftDragPlugin">
   <!-- ...configuration goes here... -->
   <link_name>iris::rotor_0</link_name>
 </plugin>
@@ -888,7 +888,7 @@ In the new model, we do this instead:
 <!-- NEW -->
 <plugin
     name="ignition::gazebo::systems::LiftDrag"
-    filename="libignition-gazebo3-lift-drag-system.so">
+    filename="ignition-gazebo3-lift-drag-system">
   <!-- ...configuration goes here... -->
   <link_name>rotor_0</link_name>
 </plugin>
@@ -901,25 +901,25 @@ plugin once for the entire model and the `ApplyJointForce` plugin once for each 
 ```xml
 <!-- NEW -->
 <plugin
-  filename="libignition-gazebo-joint-state-publisher-system.so"
+  filename="ignition-gazebo-joint-state-publisher-system"
   name="ignition::gazebo::systems::JointStatePublisher"></plugin>
 <plugin
-  filename="libignition-gazebo-apply-joint-force-system.so"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="ignition::gazebo::systems::ApplyJointForce">
   <joint_name>rotor_0_joint</joint_name>
 </plugin>
 <plugin
-  filename="libignition-gazebo-apply-joint-force-system.so"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="ignition::gazebo::systems::ApplyJointForce">
   <joint_name>rotor_1_joint</joint_name>
 </plugin>
 <plugin
-  filename="libignition-gazebo-apply-joint-force-system.so"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="ignition::gazebo::systems::ApplyJointForce">
   <joint_name>rotor_2_joint</joint_name>
 </plugin>
 <plugin
-  filename="libignition-gazebo-apply-joint-force-system.so"
+  filename="ignition-gazebo-apply-joint-force-system"
   name="ignition::gazebo::systems::ApplyJointForce">
   <joint_name>rotor_3_joint</joint_name>
 </plugin>

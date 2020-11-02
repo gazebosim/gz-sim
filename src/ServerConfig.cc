@@ -14,8 +14,11 @@
  * limitations under the License.
  *
 */
+#include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
+#include <ignition/fuel_tools/Result.hh>
 #include <ignition/math/Rand.hh>
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -222,6 +225,8 @@ class ignition::gazebo::ServerConfigPrivate
             logRecordCompressPath(_cfg->logRecordCompressPath),
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
+            renderEngineServer(_cfg->renderEngineServer),
+            renderEngineGui(_cfg->renderEngineGui),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -265,6 +270,14 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief File containing physics engine plugin. If empty, DART will be used.
   public: std::string physicsEngine = "";
 
+  /// \brief File containing render engine server plugin. If empty, OGRE2
+  /// will be used.
+  public: std::string renderEngineServer = "";
+
+  /// \brief File containing render engine gui plugin. If empty, OGRE2
+  /// will be used.
+  public: std::string renderEngineGui = "";
+
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
 
@@ -279,6 +292,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Timestamp that marks when this ServerConfig was created.
   public: std::chrono::time_point<std::chrono::system_clock> timestamp;
+
+  /// \brief Topics to record.
+  public: std::vector<std::string> logRecordTopics;
 };
 
 //////////////////////////////////////////////////
@@ -505,6 +521,30 @@ void ServerConfig::SetPhysicsEngine(const std::string &_physicsEngine)
 }
 
 /////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineServer() const
+{
+  return this->dataPtr->renderEngineServer;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
+{
+  this->dataPtr->renderEngineServer = _renderEngineServer;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineGui() const
+{
+  return this->dataPtr->renderEngineGui;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineGui(const std::string &_renderEngineGui)
+{
+  this->dataPtr->renderEngineGui = _renderEngineGui;
+}
+
+/////////////////////////////////////////////////
 void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 {
   this->dataPtr->plugins.push_back(_info);
@@ -528,4 +568,22 @@ const std::chrono::time_point<std::chrono::system_clock> &
 ServerConfig::Timestamp() const
 {
   return this->dataPtr->timestamp;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::AddLogRecordTopic(const std::string &_topic)
+{
+  this->dataPtr->logRecordTopics.push_back(_topic);
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::ClearLogRecordTopics()
+{
+  this->dataPtr->logRecordTopics.clear();
+}
+
+/////////////////////////////////////////////////
+const std::vector<std::string> &ServerConfig::LogRecordTopics() const
+{
+  return this->dataPtr->logRecordTopics;
 }

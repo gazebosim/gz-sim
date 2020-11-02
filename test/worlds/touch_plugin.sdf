@@ -2,11 +2,11 @@
 <sdf version="1.6">
   <world name="touch">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-contact-system.so"
+      filename="ignition-gazebo-contact-system"
       name="ignition::gazebo::systems::Contact">
     </plugin>
 
@@ -55,7 +55,7 @@
         </sensor>
       </link>
       <plugin
-        filename="libignition-gazebo-touchplugin-system.so"
+        filename="ignition-gazebo-touchplugin-system"
         name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>
@@ -110,7 +110,7 @@
         </sensor>
       </link>
       <plugin
-        filename="libignition-gazebo-touchplugin-system.so"
+        filename="ignition-gazebo-touchplugin-system"
         name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_red_yellow</target>
         <time>2</time>
@@ -143,7 +143,7 @@
         </sensor>
       </link>
       <plugin
-        filename="libignition-gazebo-touchplugin-system.so"
+        filename="ignition-gazebo-touchplugin-system"
         name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_blue</target>
         <time>2</time>

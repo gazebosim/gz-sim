@@ -278,6 +278,77 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 }
 
 /////////////////////////////////////////////////
+/// Test whether the scene is updated when a model is spawned.
+TEST_P(SceneBroadcasterTest, SpawnedModel)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::size_t initEntityCount = 16;
+  EXPECT_EQ(initEntityCount, *server.EntityCount());
+
+  server.Run(true, 1, false);
+
+  transport::Node node;
+
+  // Spawn a model
+  {
+    auto modelStr = R"(
+<?xml version="1.0" ?>
+<sdf version='1.6'>
+  <model name='spawned_model'>
+    <link name='link'>
+      <visual name='visual'>
+        <geometry><sphere><radius>1.0</radius></sphere></geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>)";
+
+    msgs::EntityFactory req;
+    msgs::Boolean res;
+    bool result;
+    unsigned int timeout = 5000;
+    req.set_sdf(modelStr);
+    EXPECT_TRUE(node.Request("/world/default/create",
+          req, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+  }
+
+  // Iterate once so that the model can get spawned.
+  server.Run(true, 1, false);
+
+
+  // Check that the model is in the scene/infor response
+  {
+    ignition::msgs::Empty req;
+    ignition::msgs::Scene rep;
+    bool result;
+    unsigned int timeout = 2000;
+    EXPECT_TRUE(node.Request("/world/default/scene/info", req, timeout,
+          rep, result));
+    EXPECT_TRUE(result);
+
+    bool found = false;
+    for (int i = 0; i < rep.model_size(); ++i)
+    {
+      found = rep.model(i).name() == "spawned_model";
+      if (found)
+        break;
+    }
+    EXPECT_TRUE(found);
+  }
+  EXPECT_EQ(initEntityCount + 3, *server.EntityCount());
+}
+
+/////////////////////////////////////////////////
 TEST_P(SceneBroadcasterTest, State)
 {
   // Start server

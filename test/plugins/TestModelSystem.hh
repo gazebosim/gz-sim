@@ -54,6 +54,7 @@ class TestModelSystem :
 
   private: bool Service(msgs::StringMsg &_msg)
            {
+             igndbg << "TestModelSystem service called" << std::endl;
              _msg.set_data("TestModelSystem");
              return true;
            }
