@@ -141,6 +141,33 @@ TEST_F(ComponentsTest, AnimationName)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, AnimationTime)
+{
+  auto start = std::chrono::steady_clock::now();
+  auto end1 = start + std::chrono::seconds(5);
+  auto end2 = start + std::chrono::seconds(10);
+
+  // Create components
+  auto comp1 = components::AnimationTime(end1 - start);
+  auto comp2 = components::AnimationTime(end2 - start);
+
+  // Equality operators
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("5000000000", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::AnimationTime comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, AirPressureSensor)
 {
   sdf::Sensor data1;
