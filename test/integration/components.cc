@@ -159,7 +159,7 @@ TEST_F(ComponentsTest, AnimationTime)
   // Stream operators
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("5000", ostr.str());
+  EXPECT_EQ("5000000000", ostr.str());
 
   std::istringstream istr(ostr.str());
   components::AnimationTime comp3;
