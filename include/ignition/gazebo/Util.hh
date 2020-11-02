@@ -148,6 +148,10 @@ namespace ignition
 
     /// \breif Environment variable holding server config paths.
     const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
+
+    /// \brief Environment variable holding paths to custom rendering engine
+    /// plugins.
+    const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
     }
   }
 }
