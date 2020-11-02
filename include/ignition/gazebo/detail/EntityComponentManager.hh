@@ -58,7 +58,7 @@ namespace traits
 /// \brief Helper function to compare two objects of the same type using its
 /// equality operator.
 /// If `DataType` doesn't have an equality operator defined, it will return
-/// true.
+/// false.
 /// For doubles, `ignition::math::equal` will be used.
 template<typename DataType>
 auto CompareData = [&](const DataType &_a, const DataType &_b) -> bool
