@@ -209,6 +209,9 @@ void SensorsPrivate::RunOnce()
   if (!this->running)
     return;
 
+  if (!this->scene)
+    return;
+
   IGN_PROFILE("SensorsPrivate::RunOnce");
   {
     IGN_PROFILE("Update");

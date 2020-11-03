@@ -99,6 +99,9 @@ directory specified to record:
 
 ### From plugin in SDF
 
+This feature is deprecated and will be removed in Ignition Dome.
+Use the command line argument instead.
+
 Alternatively, playback can be specified in an SDF file. See example file
 `examples/worlds/log_playback.sdf`:
 
