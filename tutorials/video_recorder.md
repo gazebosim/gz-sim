@@ -2,12 +2,12 @@
 
 ## Using the video recorder plugin
 
-Ignition Gazebo offers an video recorder tool for recording video from the 3D
-Scene in the rendering window. The tool is available as a GUI plugin. To open
-this plugin, first launch Ign Gazebo and select the ellipsis menu on top right
-(3 dots menu), and scroll down to find the `Video Recorder` option. Click on
-the plugin to open the Video Recorder tool. Alternatively, launch the demo
-world in ign-gazebo that already has this plugin included in the GUI.
+Ignition Gazebo offers an video recorder tool for recording videos from the 3D
+Scene. The tool is available as a GUI plugin. To open this plugin, first launch
+Ignition Gazebo and select the ellipsis menu on top right (3 dots menu), and
+scroll down to find the `Video Recorder` option. Click on the plugin to open
+the Video Recorder tool. Alternatively, launch the demo world in Ignition Gazebo
+that already has this plugin included in the GUI.
 
 ```
 ign gazebo -v 4 video_record_dbl_pendulum.sdf
@@ -18,10 +18,10 @@ Clicking on the button gives you the video format options that are available.
 
 ![Video Recorder formats](https://github.com/ignitionrobotics/ign-gazebo/raw/7dccc0a08f9e926b9460c7662d49dbb0ce24ea61/tutorials/files/video_recorder/video_recorder.png)
 
-Once an option is selected, recording starts immediately as now indicated by
-the flashing video recorder icon. At anytime that you wish to stop recording,
-click on flashing icon and select `Stop`. A file dialog window should pop up
-and let you select the path to save the recorded file in. Save the file and
+Once an option is selected, recording starts immediately and indicated by
+a flashing video recorder icon. At anytime that you wish to stop recording,
+click on the flashing icon and select `Stop`. A file dialog window should pop up
+and let you select the path to save the recorded video in. Save the file and
 make sure to also include the file extension in the filename.
 
 Playback the video you just saved and you should notice that the resolution
@@ -29,20 +29,24 @@ of the video is based on the size of your 3D Scene window. So if you wish
 to record the video in a different size, make sure to configure the GUI
 window prior to recording.
 
-![Video Recorder gif](https://github.com/ignitionrobotics/ign-gazebo/raw/7dccc0a08f9e926b9460c7662d49dbb0ce24ea61/tutorials/files/video_recorder/video_recorder.gif)
+![Video Recorder gif](https://github.com/ignitionrobotics/ign-gazebo/raw/d19f507ca7f08d3b060665d5b180a7e9cbe2dde2/tutorials/files/video_recorder/video_recorder.gif)
 
 
 ## Video recorder configurations
 
-A few video recorder configurations can be specified through the gui.config
-file, see the [GUI Configuration](gui_config.html) tutorial for more
-information about where to locate the file and how to load different
-configurations. For this tutorial, we will assume that you will be using the
-default gui.config located in `$HOME/.ignition/gazebo/gui.config`.
+A few video recorder parameters can be specified using GUI configurations, see
+the [GUI Configuration](gui_config.html) tutorial for more information.
+If you launched Ignition Gazebo with the
+`video_record_dbl_pendulum.sdf` demo world, the GUI configurations are embedded
+in the world SDF file so you will need to download a copy of the
+[sdf file](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/ign-gazebo3/examples/worlds/video_record_dbl_pendulum.sdf).
+and modify the GUI configuration in that file. On the other hand, if launched
+Ignition Gazebo with a world file that does not have GUI configurations, you
+will need to specify the settings in `$HOME/.ignition/gazebo/gui.config`
 
-Recall that videos are recorded from the 3D Scene, we will add the video
-configuration options to the 3D scene plugin. Here is example of the
-Scene 3D plugin with custom video recording settings:
+Recall that videos are recorded from the 3D Scene, we will to set the video
+configurations in the 3D scene plugin. Here is an example of the
+Scene 3D plugin with custom video recorder settings:
 
 ```xml
 <plugin filename="GzScene3D" name="3D View">
@@ -71,24 +75,24 @@ Options are:
 
 * **use_sim_time**: Values are `[true|false]`. Record videos based on sim time,
 i.e. each frame encoded into the video will be timestamped using sim time.
-For example, if a complex simulation was running at half of real time, and
+For example, if a complex simulation was running at half of real time speed, and
 `<use_sim_time>` is set to true, video playback should ignore delays due
 to low Real Time Factor (RTF) and plays back simulation as if RTF was 1.0.
-By default, the value is `false`, which means the videos are recorded in real
-time.
+By default, the value is `false`, which means the videos are recorded based
+on real time.
 
 * **lockstep**: Values are `[true|false]`. Lockstep simulation for video
 recording. This forces the GUI to pause and only process a new state update
 from the server until the video recorder finishes encoding the current frame.
 This ensures that the video recorder does not miss any updates / frames in the
-resulting video. This configuration make more sense when used with
+resulting video. This configuration makes more sense when used with
 `<use_sim_time>` set to `true`, in which case it produces smooth videos
 with exact timing, i.e. if you record simulation for 1 minute sim time,
-the resulting video should be also 1 min long (+/- 1 second due to encoder
+the resulting video should be also 1 minute long (+/- 1 second due to encoder
 settings). Defaults to `false`. Note: the server publishes states at 60Hz
 and the video recorder records at 25 FPS so it also makes sense to update the
 Scene Broadcaster system to only publish states at 25Hz. You can do this by
-going to the world sdf file, locate the
+going to the world SDF file, locate the
 `ignition::gazebo::systems::SceneBroadcaster` system, and set the
 `<state_hertz>` parameter:
 
@@ -99,8 +103,5 @@ going to the world sdf file, locate the
         </plugin>
 ```
 
-
 * **bitrate**: Video encoding bitrate in bps. This affects the quality of the
 generated video. The default bitrate is 2Mbps.
-
-
