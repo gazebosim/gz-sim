@@ -78,7 +78,13 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    auto pluginName = *pluginNames.begin();
+    std::string pluginName = *pluginNames.begin();
+    for (auto name : pluginNames)
+    {
+      if (name.find("gazebo") != std::string::npos)
+        pluginName = name;
+    }
+
     if (pluginName.empty())
     {
       ignerr << "Failed to load system plugin [" << _filename <<
