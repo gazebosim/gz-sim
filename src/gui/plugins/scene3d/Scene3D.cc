@@ -576,6 +576,16 @@ void IgnRenderer::Render()
       {
         if (this->dataPtr->recordVideoUseSimTime)
           ignmsg << "Recording video using sim time." << std::endl;
+        if (this->dataPtr->recordVideoLockstep)
+        {
+          ignmsg << "Recording video in lockstep mode" << std::endl;
+          if (!this->dataPtr->recordVideoUseSimTime)
+          {
+            ignwarn << "It is recommended to set <use_sim_time> to true "
+                    << "when recording video in lockstep mode." << std::endl;
+          }
+        }
+
         ignmsg << "Recording video using bitrate: "
                << this->dataPtr->recordVideoBitrate <<  std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
@@ -2573,7 +2583,6 @@ void Scene3D::Update(const UpdateInfo &_info,
   {
     std::unique_lock<std::mutex> lock2(g_renderMutex);
     g_renderCv.wait(lock2);
-
   }
 }
 
@@ -2601,9 +2610,6 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
 
   std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
   this->dataPtr->recording = record;
-  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep)
-    ignmsg << "Recording video in lockstep mode" << std::endl;
-
   return true;
 }
 
