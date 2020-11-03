@@ -922,16 +922,52 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
+  msgs::SerializedStateMap fullMap;
+  std::mutex fullMapMutex;
+  std::vector<std::thread> workers;
+  int numWorkers = 10;
+
   auto functor = [&](auto itStart, auto itEnd) {
+    msgs::SerializedStateMap threadMap;
     while (itStart != itEnd)
     {
-      if (_entities.empty() || _entities.find(itStart.first) != _entities.end())
-        this->AddEntityToMessage(_state, itStart.first, _types, _full);
+      if (_entities.empty() || _entities.find((*itStart).first) != _entities.end())
+      {
+        this->AddEntityToMessage(threadMap, (*itStart).first, _types, _full);
+      }
       itStart++;
     }
+    std::lock_guard<std::mutex> lock(fullMapMutex);
+
+    for (auto &entity : threadMap.entities())
+    {
+      (*fullMap.mutable_entities())[static_cast<uint64_t>(entity.first)] = entity.second;
+    }
+  };
+
+  // TODO better calculation for numEntities
+  int numEntities = _entities.size() / numWorkers;
+  auto startIt = this->dataPtr->entityComponents.begin();
+  int totalSize = this->dataPtr->entityComponents.size();
+  int numEntitiesPerWorker = 1500;
+  int numThreads = std::thread::hardware_concurrency();
+  for (int i = 0; i < numWorkers; i++)
+  {
+    auto endIt = std::next(startIt, std::min(totalSize, numEntitiesPerWorker));
+    totalSize -= numEntitiesPerWorker;
+    workers.push_back(std::thread(functor, startIt, endIt));
+    startIt = endIt;
+    if (totalSize <= 0)
+    {
+      break;
+    }
   }
-  std::thread t = std::thread(functor, this->dataPtr->entityComponents.begin(),
-    this->dataPtr->entityComponent.end());
+  std::for_each(workers.begin(), workers.end(), [](std::thread &t){ t.join(); });
+
+  for (auto &entity : fullMap.entities())
+  {
+    (*_state.mutable_entities())[static_cast<uint64_t>(entity.first)] = entity.second;
+  }
 }
 
 //////////////////////////////////////////////////
