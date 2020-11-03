@@ -6,17 +6,30 @@ Ignition Gazebo offers an video recorder tool for recording video from the 3D
 Scene in the rendering window. The tool is available as a GUI plugin. To open
 this plugin, first launch Ign Gazebo and select the ellipsis menu on top right
 (3 dots menu), and scroll down to find the `Video Recorder` option. Click on
-the plugin to open the Video Recorder tool.
+the plugin to open the Video Recorder tool. Alternatively, launch the demo
+world in ign-gazebo that already has this plugin included in the GUI.
 
-Inside this tool, you should see a single button with a video recorder icon.
+```
+ign gazebo -v 4 video_record_dbl_pendulum.sdf
+```
+
+In this plugin, you should see a single button with a video recorder icon.
 Clicking on the button gives you the video format options that are available.
 
-![Video Recorder](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/983d50937cbcaa75c790515b2ec5797fe82f1188/tutorials/files/video_recorder/video_recorder.png)
+![Video Recorder formats](https://github.com/ignitionrobotics/ign-gazebo/raw/7dccc0a08f9e926b9460c7662d49dbb0ce24ea61/tutorials/files/video_recorder/video_recorder.png)
 
 Once an option is selected, recording starts immediately as now indicated by
 the flashing video recorder icon. At anytime that you wish to stop recording,
 click on flashing icon and select `Stop`. A file dialog window should pop up
-and let you select the path to save the recorded file in.
+and let you select the path to save the recorded file in. Save the file and
+make sure to also include the file extension in the filename.
+
+Playback the video you just saved and you should notice that the resolution
+of the video is based on the size of your 3D Scene window. So if you wish
+to record the video in a different size, make sure to configure the GUI
+window prior to recording.
+
+![Video Recorder gif](https://github.com/ignitionrobotics/ign-gazebo/raw/7dccc0a08f9e926b9460c7662d49dbb0ce24ea61/tutorials/files/video_recorder/video_recorder.gif)
 
 
 ## Video recorder configurations
@@ -48,7 +61,7 @@ Scene 3D plugin with custom video recording settings:
   <record_video>
     <use_sim_time>true</use_sim_time>
     <lockstep>true</lockstep>
-    <bitrate>8000000</bitrate>
+    <bitrate>4000000</bitrate>
   </record_video>
 
 </plugin>
@@ -56,7 +69,7 @@ Scene 3D plugin with custom video recording settings:
 
 Options are:
 
-* `<use_sim_time>`: Values are `[true|false]`. Record videos based on sim time,
+* **use_sim_time**: Values are `[true|false]`. Record videos based on sim time,
 i.e. each frame encoded into the video will be timestamped using sim time.
 For example, if a complex simulation was running at half of real time, and
 `<use_sim_time>` is set to true, video playback should ignore delays due
@@ -64,7 +77,7 @@ to low Real Time Factor (RTF) and plays back simulation as if RTF was 1.0.
 By default, the value is `false`, which means the videos are recorded in real
 time.
 
-* `<lockstep>`: Values are `[true|false]`. Lockstep simulation for video
+* **lockstep**: Values are `[true|false]`. Lockstep simulation for video
 recording. This forces the GUI to pause and only process a new state update
 from the server until the video recorder finishes encoding the current frame.
 This ensures that the video recorder does not miss any updates / frames in the
@@ -79,15 +92,15 @@ going to the world sdf file, locate the
 `ignition::gazebo::systems::SceneBroadcaster` system, and set the
 `<state_hertz>` parameter:
 
-    ```xml
+```xml
         <plugin filename='ignition-gazebo-scene-broadcaster-system'
                 name='ignition::gazebo::systems::SceneBroadcaster'>
           <state_hertz>25</state_hertz>
         </plugin>
-    ```
+```
 
 
-* `<bitrate>`: Video encoding bitrate in bps. This affects the quality of the
+* **bitrate**: Video encoding bitrate in bps. This affects the quality of the
 generated video. The default bitrate is 2Mbps.
 
 
