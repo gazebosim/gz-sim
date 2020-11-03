@@ -2,7 +2,7 @@
 
 ## Using the video recorder plugin
 
-Ignition Gazebo offers an video recorder tool for recording videos from the 3D
+Ignition Gazebo offers a video recorder tool for recording videos from the 3D
 Scene. The tool is available as a GUI plugin. To open this plugin, first launch
 Ignition Gazebo and select the ellipsis menu on top right (3 dots menu), and
 scroll down to find the `Video Recorder` option. Click on the plugin to open
@@ -16,9 +16,9 @@ ign gazebo -v 4 video_record_dbl_pendulum.sdf
 In this plugin, you should see a single button with a video recorder icon.
 Clicking on the button gives you the video format options that are available.
 
-![Video Recorder formats](https://github.com/ignitionrobotics/ign-gazebo/raw/7dccc0a08f9e926b9460c7662d49dbb0ce24ea61/tutorials/files/video_recorder/video_recorder.png)
+@image html files/video_recorder/video_recorder.png
 
-Once an option is selected, recording starts immediately and indicated by
+Once an option is selected, recording starts immediately as indicated by
 a flashing video recorder icon. At anytime that you wish to stop recording,
 click on the flashing icon and select `Stop`. A file dialog window should pop up
 and let you select the path to save the recorded video in. Save the file and
@@ -29,7 +29,7 @@ of the video is based on the size of your 3D Scene window. So if you wish
 to record the video in a different size, make sure to configure the GUI
 window prior to recording.
 
-![Video Recorder gif](https://github.com/ignitionrobotics/ign-gazebo/raw/d19f507ca7f08d3b060665d5b180a7e9cbe2dde2/tutorials/files/video_recorder/video_recorder.gif)
+@image html files/video_recorder/video_recorder.gif
 
 
 ## Video recorder configurations
@@ -77,7 +77,7 @@ Options are:
 i.e. each frame encoded into the video will be timestamped using sim time.
 For example, if a complex simulation was running at half of real time speed, and
 `<use_sim_time>` is set to true, video playback should ignore delays due
-to low Real Time Factor (RTF) and plays back simulation as if RTF was 1.0.
+to low Real Time Factor (RTF) and plays back video as if RTF was 1.0.
 By default, the value is `false`, which means the videos are recorded based
 on real time.
 
