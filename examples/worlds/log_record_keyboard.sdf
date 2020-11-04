@@ -5,6 +5,10 @@
   Running this world will record log files to ~/.ignition/gazebo/log/<timestamp>
   by default.
 
+  Running `ign gazebo` with `-v 3` or `-v 4` will output a message indicating where
+  your logfile is being stored to (e.g., [Msg] Recording to log file 
+  [/home/username/.ignition/gazebo/log/<timestamp>/state.tlog]).
+
   Use the example program on examples/standalone/keyboard to control the vehicles.
 
   You can playback the logs with:
@@ -14,15 +18,15 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="libignition-gazebo-physics-system.so"
+     filename="ignition-gazebo-physics-system"
      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-log-system.so"
+      filename="ignition-gazebo-log-system"
       name="ignition::gazebo::systems::LogRecord">
     </plugin>
 
@@ -243,7 +247,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint_green</left_joint>
         <right_joint>right_wheel_joint_green</right_joint>
@@ -421,7 +425,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint_blue</left_joint>
         <right_joint>right_wheel_joint_blue</right_joint>

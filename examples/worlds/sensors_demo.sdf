@@ -9,20 +9,20 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-sensors-system.so"
+      filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -108,7 +108,7 @@
           <property key="state" type="string">floating</property>
           <property type="double" key="width">350</property>
           <property type="double" key="height">315</property>
-          <property type="double" key="x">650</property>
+          <property type="double" key="x">500</property>
         </ignition-gui>
         <topic>depth_camera</topic>
         <topic_picker>false</topic_picker>
@@ -119,7 +119,7 @@
           <property key="state" type="string">floating</property>
           <property type="double" key="width">350</property>
           <property type="double" key="height">315</property>
-          <property type="double" key="y">400</property>
+          <property type="double" key="y">320</property>
         </ignition-gui>
         <topic>rgbd_camera/image</topic>
         <topic_picker>false</topic_picker>
@@ -130,8 +130,8 @@
           <property key="state" type="string">floating</property>
           <property type="double" key="width">350</property>
           <property type="double" key="height">315</property>
-          <property type="double" key="x">650</property>
-          <property type="double" key="y">400</property>
+          <property type="double" key="x">500</property>
+          <property type="double" key="y">320</property>
         </ignition-gui>
         <topic>rgbd_camera/depth_image</topic>
         <topic_picker>false</topic_picker>
@@ -142,7 +142,8 @@
           <property key="state" type="string">floating</property>
           <property type="double" key="width">350</property>
           <property type="double" key="height">315</property>
-          <property type="double" key="y">800</property>
+          <property type="double" key="x">500</property>
+          <property type="double" key="y">640</property>
         </ignition-gui>
         <topic>thermal_camera</topic>
         <topic_picker>false</topic_picker>

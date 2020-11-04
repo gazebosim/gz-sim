@@ -18,7 +18,7 @@ model:
 ```{.xml}
 <model>
   ...
-  <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+  <plugin filename="ignition-gazebo-linearbatteryplugin-system"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
@@ -43,12 +43,17 @@ model:
 
 Next, you can find a description of the SDF parameters used:
 
-`<battery_name>`: The name of the battery.
-`<voltage>`: Initial voltage of the battery (V).
-`<open_circuit_voltage_constant_coef>`: Voltage at full charge (V).
-`<capacity>`: Total charge that the battery can hold (Ah).
-`<power_load>`: Power load on battery (W).
-`<fix_issue_225>`: As reported [here](https://github.com/ignitionrobotics/ign-gazebo/issues/225),
+* `<battery_name>`: The name of the battery.
+
+* `<voltage>`: Initial voltage of the battery (V).
+
+* `<open_circuit_voltage_constant_coef>`: Voltage at full charge (V).
+
+* `<capacity>`: Total charge that the battery can hold (Ah).
+
+* `<power_load>`: Power load on battery (W).
+
+* `<fix_issue_225>`: As reported [here](https://github.com/ignitionrobotics/ign-gazebo/issues/225),
 there are some issues affecting batteries in Ignition Blueprint and Citadel.
 This parameter fixes the issues. Feel free to omit the parameter if you have
 legacy code and want to preserve the old behavior.
@@ -71,10 +76,13 @@ In this case, the battery runtime should be calculated as follows:
 If you need to model a more realistic battery, you can use the following
 advanced SDF parameters:
 
-`<open_circuit_voltage_linear_coef>`: Amount of voltage decrease when no charge (V).
-`<initial_charge>`: Initial charge of the battery (Ah).
-`<resistance>`: Internal resistance (Ohm)
-`<smooth_current_tau>`: Coefficient for smoothing current.
+* `<open_circuit_voltage_linear_coef>`: Amount of voltage decrease when no charge (V).
+
+* `<initial_charge>`: Initial charge of the battery (Ah).
+
+* `<resistance>`: Internal resistance (Ohm)
+
+* `<smooth_current_tau>`: Coefficient for smoothing current.
 
 Please, refer to the battery specification to set the advanced values.
 
@@ -84,11 +92,13 @@ Please, refer to the battery specification to set the advanced values.
 A battery can be charged if the SDF parameter `<enable_recharge>` is set to true.
 Here are the relevant SDF parameters related with charging:
 
-`<enable_recharge>`: As mentioned, it should be `true` to enable recharging.
-`<charging_time>`: Hours taken to fully charge the battery. Keep in mind that
+* `<enable_recharge>`: As mentioned, it should be `true` to enable recharging.
+
+* `<charging_time>`: Hours taken to fully charge the battery. Keep in mind that
 this value assumes no battery load while charging. If the battery is under load,
 it will take a longer time to recharge.
-`<recharge_by_topic>`: If true, the start/stop signals for recharging the
+
+* `<recharge_by_topic>`: If true, the start/stop signals for recharging the
 battery will also be available via topics. The regular Ignition services will
 still be available.
 
