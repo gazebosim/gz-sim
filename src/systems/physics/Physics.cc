@@ -17,17 +17,17 @@
 
 #include "Physics.hh"
 
+#include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
+#include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/Utility.hh>
+
 #include <algorithm>
 #include <iostream>
 #include <deque>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/Utility.hh>
 
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>

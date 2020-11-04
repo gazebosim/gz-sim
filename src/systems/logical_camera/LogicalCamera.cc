@@ -17,12 +17,12 @@
 
 #include "LogicalCamera.hh"
 
+#include <ignition/msgs/logical_camera_image.pb.h>
+
 #include <map>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include <ignition/msgs/logical_camera_image.pb.h>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>

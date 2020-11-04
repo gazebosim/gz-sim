@@ -17,12 +17,12 @@
 
 #include "LogPlayback.hh"
 
+#include <ignition/msgs/pose_v.pb.h>
+#include <ignition/msgs/log_playback_stats.pb.h>
+
 #include <set>
 #include <string>
 #include <unordered_map>
-
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/log_playback_stats.pb.h>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>

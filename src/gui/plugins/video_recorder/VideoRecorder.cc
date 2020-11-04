@@ -17,11 +17,11 @@
 
 #include "VideoRecorder.hh"
 
-#include <iostream>
-#include <string>
-
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/video_record.pb.h>
+
+#include <iostream>
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>

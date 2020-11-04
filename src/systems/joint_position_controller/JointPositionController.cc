@@ -17,9 +17,10 @@
 
 #include "JointPositionController.hh"
 
+#include <ignition/msgs/double.pb.h>
+
 #include <string>
 
-#include <ignition/msgs/double.pb.h>
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
 #include <ignition/plugin/Register.hh>

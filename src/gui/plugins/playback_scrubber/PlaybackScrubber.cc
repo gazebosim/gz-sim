@@ -17,6 +17,9 @@
 
 #include "PlaybackScrubber.hh"
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <chrono>
 #include <ctime>
 #include <iostream>
@@ -24,8 +27,6 @@
 #include <string>
 #include <utility>
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/common/Console.hh>

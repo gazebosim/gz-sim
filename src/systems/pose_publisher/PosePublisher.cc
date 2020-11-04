@@ -17,14 +17,14 @@
 
 #include "PosePublisher.hh"
 
+#include <ignition/msgs/pose.pb.h>
+
 #include <stack>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include <ignition/msgs/pose.pb.h>
 
 #include <sdf/Joint.hh>
 

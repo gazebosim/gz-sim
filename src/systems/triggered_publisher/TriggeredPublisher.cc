@@ -17,11 +17,11 @@
 
 #include "TriggeredPublisher.hh"
 
-#include <limits>
-#include <utility>
-
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
+
+#include <limits>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>

@@ -17,12 +17,12 @@
 
 #include "Breadcrumbs.hh"
 
+#include <ignition/msgs/empty.pb.h>
+
 #include <algorithm>
 #include <iterator>
 #include <string>
 #include <utility>
-
-#include <ignition/msgs/empty.pb.h>
 
 #include <ignition/common/Profiler.hh>
 

@@ -17,10 +17,10 @@
 
 #include "PathManager.hh"
 
+#include <ignition/msgs/sdf_generator_config.pb.h>
+
 #include <string>
 #include <vector>
-
-#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>

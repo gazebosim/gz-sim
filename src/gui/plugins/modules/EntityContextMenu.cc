@@ -17,12 +17,12 @@
 
 #include "EntityContextMenu.hh"
 
-#include <iostream>
-#include <string>
-
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/msgs/entity.pb.h>
+
+#include <iostream>
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/gui/GuiRunner.hh>

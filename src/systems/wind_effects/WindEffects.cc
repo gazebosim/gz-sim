@@ -17,12 +17,12 @@
 
 #include "WindEffects.hh"
 
-#include <string>
-#include <vector>
-
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+
+#include <string>
+#include <vector>
 
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>

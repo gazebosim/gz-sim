@@ -17,13 +17,13 @@
 
 #include "Contact.hh"
 
+#include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
+
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>

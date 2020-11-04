@@ -17,14 +17,15 @@
 
 #include "ResourceSpawner.hh"
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <set>
 #include <unordered_map>
 
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Filesystem.hh>

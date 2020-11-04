@@ -17,12 +17,12 @@
 
 #include "LogVideoRecorder.hh"
 
+#include <ignition/msgs/scene.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <chrono>
 #include <set>
 #include <string>
-
-#include <ignition/msgs/scene.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/AxisAlignedBox.hh>

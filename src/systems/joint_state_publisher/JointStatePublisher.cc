@@ -17,10 +17,11 @@
 
 #include "JointStatePublisher.hh"
 
+#include <ignition/msgs/model.pb.h>
+
 #include <string>
 #include <vector>
 
-#include <ignition/msgs/model.pb.h>
 #include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/Name.hh"

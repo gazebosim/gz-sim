@@ -17,11 +17,11 @@
 
 #include "TransformControl.hh"
 
-#include <iostream>
-#include <string>
-
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+
+#include <iostream>
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>

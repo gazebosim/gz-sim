@@ -17,11 +17,11 @@
 
 #include "Altimeter.hh"
 
+#include <ignition/msgs/altimeter.pb.h>
+
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include <ignition/msgs/altimeter.pb.h>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>

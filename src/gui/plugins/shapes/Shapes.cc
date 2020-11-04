@@ -17,12 +17,12 @@
 
 #include "Shapes.hh"
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <algorithm>
 #include <iostream>
 #include <string>
-
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
