@@ -213,9 +213,11 @@ namespace ignition
         return this->p != _pose.p || this->q != _pose.q;
       }
 
-      /// \brief Multiplication operator
-      /// \param[in] _pose the other pose
-      /// \return itself
+      /// \brief Multiplication operator.
+      /// Given X_OP (frame P relative to O) and X_PQ (frame Q relative to P)
+      /// then X_OQ = X_OP * X_PQ (frame Q relative to O).
+      /// \param[in] _pose The pose to multiply by.
+      /// \return The resulting pose.
       public: Pose3<T> operator*(const Pose3<T> &_pose) const
       {
         return Pose3<T>(_pose.CoordPositionAdd(*this),  this->q * _pose.q);
