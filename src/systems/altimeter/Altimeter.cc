@@ -15,6 +15,12 @@
  *
  */
 
+#include "Altimeter.hh"
+
+#include <string>
+#include <unordered_map>
+#include <utility>
+
 #include <ignition/msgs/altimeter.pb.h>
 
 #include <ignition/common/Profiler.hh>
@@ -37,8 +43,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "Altimeter.hh"
 
 using namespace ignition;
 using namespace gazebo;

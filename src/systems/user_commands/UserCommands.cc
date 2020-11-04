@@ -15,6 +15,12 @@
  *
  */
 
+#include "UserCommands.hh"
+
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
@@ -38,8 +44,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
-
-#include "UserCommands.hh"
 
 using namespace ignition;
 using namespace gazebo;

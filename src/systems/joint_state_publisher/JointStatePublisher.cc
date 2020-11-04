@@ -15,6 +15,11 @@
  *
  */
 
+#include "JointStatePublisher.hh"
+
+#include <string>
+#include <vector>
+
 #include <ignition/msgs/model.pb.h>
 #include <ignition/plugin/Register.hh>
 
@@ -25,7 +30,6 @@
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "JointStatePublisher.hh"
 
 using namespace ignition;
 using namespace gazebo;

@@ -14,14 +14,20 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/math/Helpers.hh>
+
+#include "PlaybackScrubber.hh"
 
 #include <chrono>
 #include <ctime>
 #include <iostream>
 #include <regex>
+#include <string>
+#include <utility>
+
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/math/Helpers.hh>
+
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/Helpers.hh>
@@ -34,8 +40,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "PlaybackScrubber.hh"
 
 namespace ignition::gazebo
 {

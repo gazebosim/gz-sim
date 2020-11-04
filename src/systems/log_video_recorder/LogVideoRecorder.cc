@@ -15,10 +15,14 @@
  *
 */
 
-#include <ignition/msgs/scene.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include "LogVideoRecorder.hh"
 
 #include <chrono>
+#include <set>
+#include <string>
+
+#include <ignition/msgs/scene.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/AxisAlignedBox.hh>
@@ -33,8 +37,6 @@
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Events.hh"
-
-#include "LogVideoRecorder.hh"
 
 using namespace std::chrono_literals;
 

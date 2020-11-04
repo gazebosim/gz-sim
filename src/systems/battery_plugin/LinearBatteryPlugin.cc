@@ -15,13 +15,17 @@
  *
  */
 
-#include <ignition/msgs/battery_state.pb.h>
-#include <ignition/msgs/boolean.pb.h>
+#include "LinearBatteryPlugin.hh"
 
 #include <algorithm>
 #include <atomic>
+#include <deque>
 #include <functional>
 #include <string>
+#include <vector>
+
+#include <ignition/msgs/battery_state.pb.h>
+#include <ignition/msgs/boolean.pb.h>
 
 #include <ignition/common/Battery.hh>
 #include <ignition/common/Profiler.hh>
@@ -43,8 +47,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "LinearBatteryPlugin.hh"
 
 using namespace ignition;
 using namespace gazebo;

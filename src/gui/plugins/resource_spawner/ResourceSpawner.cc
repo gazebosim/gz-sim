@@ -15,12 +15,16 @@
  *
 */
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include "ResourceSpawner.hh"
+
+#include <set>
+#include <unordered_map>
 
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Filesystem.hh>
@@ -32,12 +36,8 @@
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 
-#include <set>
-
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "ResourceSpawner.hh"
 
 namespace ignition::gazebo
 {

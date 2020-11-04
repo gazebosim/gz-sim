@@ -15,6 +15,11 @@
  *
  */
 
+#include "PathManager.hh"
+
+#include <string>
+#include <vector>
+
 #include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <ignition/common/Console.hh>
@@ -22,7 +27,6 @@
 #include <ignition/gui/Application.hh>
 
 #include "ignition/gazebo/Util.hh"
-#include "PathManager.hh"
 
 using namespace ignition;
 using namespace gazebo;

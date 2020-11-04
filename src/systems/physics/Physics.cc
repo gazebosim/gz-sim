@@ -15,14 +15,19 @@
  *
  */
 
+#include "Physics.hh"
+
+#include <algorithm>
+#include <iostream>
+#include <deque>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include <ignition/msgs/contact.pb.h>
 #include <ignition/msgs/contacts.pb.h>
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/Utility.hh>
-
-#include <iostream>
-#include <deque>
-#include <unordered_map>
 
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
@@ -110,8 +115,6 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/World.hh"
-
-#include "Physics.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo::systems;

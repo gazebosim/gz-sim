@@ -15,6 +15,10 @@
  *
  */
 
+#include "JointController.hh"
+
+#include <string>
+
 #include <ignition/msgs/double.pb.h>
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
@@ -25,8 +29,6 @@
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "JointController.hh"
 
 using namespace ignition;
 using namespace gazebo;

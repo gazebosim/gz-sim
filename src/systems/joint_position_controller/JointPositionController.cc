@@ -15,6 +15,10 @@
  *
  */
 
+#include "JointPositionController.hh"
+
+#include <string>
+
 #include <ignition/msgs/double.pb.h>
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
@@ -24,8 +28,6 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "JointPositionController.hh"
 
 using namespace ignition;
 using namespace gazebo;

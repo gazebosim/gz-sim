@@ -15,6 +15,11 @@
  *
  */
 
+#include "WindEffects.hh"
+
+#include <string>
+#include <vector>
+
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
@@ -43,8 +48,6 @@
 #include "ignition/gazebo/components/WindMode.hh"
 
 #include "ignition/gazebo/Link.hh"
-
-#include "WindEffects.hh"
 
 using namespace ignition;
 using namespace gazebo;

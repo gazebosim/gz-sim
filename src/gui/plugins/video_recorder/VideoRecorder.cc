@@ -14,10 +14,15 @@
  * limitations under the License.
  *
 */
+
+#include "VideoRecorder.hh"
+
+#include <iostream>
+#include <string>
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/video_record.pb.h>
 
-#include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gui/Application.hh>
@@ -28,8 +33,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-
-#include "VideoRecorder.hh"
 
 namespace ignition::gazebo
 {

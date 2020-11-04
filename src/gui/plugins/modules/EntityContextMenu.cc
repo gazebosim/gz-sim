@@ -14,18 +14,21 @@
  * limitations under the License.
  *
 */
+
+#include "EntityContextMenu.hh"
+
+#include <iostream>
+#include <string>
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/msgs/entity.pb.h>
 
-#include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gazebo/gui/GuiRunner.hh>
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/transport/Node.hh>
-
-#include "EntityContextMenu.hh"
 
 namespace ignition::gazebo
 {
