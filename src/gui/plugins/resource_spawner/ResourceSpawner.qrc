@@ -6,5 +6,6 @@
   <file>folder_open.png</file>
   <file>NoThumbnail.png</file>
   <file>ResourceSpawner.qml</file>
+  <file>Search.svg</file>
 </qresource>
 </RCC>

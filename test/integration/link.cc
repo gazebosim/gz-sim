@@ -20,6 +20,8 @@
 #include <ignition/common/Console.hh>
 
 #include <ignition/gazebo/components/AngularVelocity.hh>
+#include <ignition/gazebo/components/CanonicalLink.hh>
+#include <ignition/gazebo/components/Collision.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/LinearAcceleration.hh>
@@ -29,6 +31,7 @@
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/components/Visual.hh>
 
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/SdfEntityCreator.hh>
@@ -133,6 +136,72 @@ TEST_F(LinkIntegrationTest, ParentModel)
   ASSERT_TRUE(parentModel.has_value());
   EXPECT_TRUE(parentModel->Valid(ecm));
   EXPECT_EQ(eModel, parentModel->Entity());
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, VisualByName)
+{
+  EntityComponentManager ecm;
+
+  // Link
+  auto eLink = ecm.CreateEntity();
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+  EXPECT_EQ(0u, link.VisualCount(ecm));
+
+  // Visual
+  auto eVisual = ecm.CreateEntity();
+  ecm.CreateComponent<components::Visual>(eVisual, components::Visual());
+  ecm.CreateComponent<components::ParentEntity>(eVisual,
+      components::ParentEntity(eLink));
+  ecm.CreateComponent<components::Name>(eVisual,
+      components::Name("visual_name"));
+
+  // Check link
+  EXPECT_EQ(eVisual, link.VisualByName(ecm, "visual_name"));
+  EXPECT_EQ(1u, link.VisualCount(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, CollisionByName)
+{
+  EntityComponentManager ecm;
+
+  // Link
+  auto eLink = ecm.CreateEntity();
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+  EXPECT_EQ(0u, link.CollisionCount(ecm));
+
+  // Collision
+  auto eCollision = ecm.CreateEntity();
+  ecm.CreateComponent<components::Collision>(eCollision,
+      components::Collision());
+  ecm.CreateComponent<components::ParentEntity>(eCollision,
+      components::ParentEntity(eLink));
+  ecm.CreateComponent<components::Name>(eCollision,
+      components::Name("collision_name"));
+
+  // Check link
+  EXPECT_EQ(eCollision, link.CollisionByName(ecm, "collision_name"));
+  EXPECT_EQ(1u, link.CollisionCount(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, IsCanonical)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Link>(id, components::Link());
+
+  Link link(id);
+
+  EXPECT_FALSE(link.IsCanonical(ecm));
+
+  ecm.CreateComponent<components::CanonicalLink>(id,
+      components::CanonicalLink());
+  EXPECT_TRUE(link.IsCanonical(ecm));
 }
 
 //////////////////////////////////////////////////

@@ -20,6 +20,11 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/Model.hh"
 
 class ignition::gazebo::ModelPrivate
@@ -82,6 +87,46 @@ std::string Model::Name(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
+bool Model::Static(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::Static>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool Model::SelfCollide(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::SelfCollide>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool Model::WindMode(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::WindMode>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+std::string Model::SourceFilePath(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::SourceFilePath>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return "";
+}
+
+//////////////////////////////////////////////////
 Entity Model::JointByName(const EntityComponentManager &_ecm,
     const std::string &_name)
 {
@@ -99,5 +144,52 @@ Entity Model::LinkByName(const EntityComponentManager &_ecm,
       components::ParentEntity(this->dataPtr->id),
       components::Name(_name),
       components::Link());
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> Model::Joints(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Joint());
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> Model::Links(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Link());
+}
+
+//////////////////////////////////////////////////
+uint64_t Model::JointCount(const EntityComponentManager &_ecm) const
+{
+  return this->Joints(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+uint64_t Model::LinkCount(const EntityComponentManager &_ecm) const
+{
+  return this->Links(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
+    const math::Pose3d &_pose)
+{
+  auto poseCmdComp = _ecm.Component<components::WorldPoseCmd>(
+      this->dataPtr->id);
+  if (!poseCmdComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id, components::WorldPoseCmd(_pose));
+  }
+  else
+  {
+    poseCmdComp->SetData(_pose,
+        [](const math::Pose3d &, const math::Pose3d &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
+  }
 }
 

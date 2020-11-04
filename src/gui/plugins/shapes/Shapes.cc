@@ -196,10 +196,10 @@ void Shapes::OnMode(const QString &_mode)
     return;
   }
 
-  auto event = new gui::events::SpawnPreviewModel(modelSdfString);
+  gui::events::SpawnPreviewModel event(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      event);
+      &event);
 }
 
 // Register this plugin
