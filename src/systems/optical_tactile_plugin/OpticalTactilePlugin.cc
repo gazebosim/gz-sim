@@ -523,10 +523,9 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::Enable(const bool _value)
+void OpticalTactilePluginPrivate::Enable(const bool /*_value*/)
 {
-    // todo(mcres) Implement method
-    _value;
+  // todo(mcres) Implement method
 }
 
 //////////////////////////////////////////////////
