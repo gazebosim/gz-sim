@@ -1069,7 +1069,7 @@ namespace ignition
                             const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that _mass and _size are strictly positive
-        // and that quatenion is valid
+        // and that quaternion is valid
         if (_mass <= 0 || _size.Min() <= 0 || _rot == Quaternion<T>::Zero)
         {
           return false;
@@ -1087,7 +1087,7 @@ namespace ignition
                             const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that _mass and _size are strictly positive
-        // and that quatenion is valid
+        // and that quaternion is valid
         if (this->Mass() <= 0 || _size.Min() <= 0 ||
             _rot == Quaternion<T>::Zero)
         {
@@ -1120,7 +1120,7 @@ namespace ignition
                             const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that density, _radius and _length are strictly positive
-        // and that quatenion is valid
+        // and that quaternion is valid
         if (_mat.Density() <= 0 || _length <= 0 || _radius <= 0 ||
             _rot == Quaternion<T>::Zero)
         {
@@ -1144,7 +1144,7 @@ namespace ignition
                             const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that _mass, _radius and _length are strictly positive
-        // and that quatenion is valid
+        // and that quaternion is valid
         if (_mass <= 0 || _length <= 0 || _radius <= 0 ||
             _rot == Quaternion<T>::Zero)
         {
@@ -1165,7 +1165,7 @@ namespace ignition
                                     const Quaternion<T> &_rot)
       {
         // Check that _mass and _size are strictly positive
-        // and that quatenion is valid
+        // and that quaternion is valid
         if (this->Mass() <= 0 || _length <= 0 || _radius <= 0 ||
             _rot == Quaternion<T>::Zero)
         {
