@@ -130,10 +130,22 @@ TEST(parsePluginsFromFile, defaultConfig)
 }
 
 //////////////////////////////////////////////////
+TEST(parsePluginsFromFile, playbackConfig)
+{
+  // Note: This test validates that that the default
+  // configuration always parses.
+  // If more systems are added, then the number needs
+  // to be adjusted below.
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/include/ignition/gazebo/playback_server.config");
+
+  auto plugins = parsePluginsFromFile(config);
+  ASSERT_EQ(3u, plugins.size());
+}
+
+//////////////////////////////////////////////////
 TEST(loadPluginInfo, fromEmptyEnv)
 {
-  // ignition::common::env doesn't respect zero-length
-  // See ignitionrobotics/ign-common#97
   ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, ""));
   auto plugins = loadPluginInfo();
 
