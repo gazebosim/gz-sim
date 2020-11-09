@@ -2,6 +2,33 @@
 
 ### Ignition Gazebo 3.X.X (20XX-XX-XX)
 
+### Ignition Gazebo 3.5.0 (2020-11-03)
+
+1. Updated source build instructions
+    * [Pull Request 403](https://github.com/ignitionrobotics/ign-gazebo/pull/403)
+
+1. More world APIs, helper function ComponentData
+    * [Pull Request 378](https://github.com/ignitionrobotics/ign-gazebo/pull/378)
+
+1. Improve fork experience
+    * [Pull Request 411](https://github.com/ignitionrobotics/ign-gazebo/pull/411)
+
+1. Fix a crash in the grid config plugin, set grid material
+    * [Pull Request 412](https://github.com/ignitionrobotics/ign-gazebo/pull/412)
+
+1. Document deprecation of log playback `<path>` SDF param
+    * [Pull Request 424](https://github.com/ignitionrobotics/ign-gazebo/pull/424)
+    * [Pull Request 425](https://github.com/ignitionrobotics/ign-gazebo/pull/425)
+
+1. Enable mouse highlighting selection on resource spawner
+    * [Pull Request 402](https://github.com/ignitionrobotics/ign-gazebo/pull/402)
+
+1. Add support for custom render engines
+    * [Pull Request 373](https://github.com/ignitionrobotics/ign-gazebo/pull/373)
+
+1. Component Vector -> Map ECM Optimization
+    * [Pull Request 416](https://github.com/ignitionrobotics/ign-gazebo/pull/416)
+
 ### Ignition Gazebo 3.4.0 (2020-10-14)
 
 1. Fix gui sendEvent memory leaks
