@@ -789,11 +789,14 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
+  igndbg << "LOADSERVERPLUGINS" << std::endl;
   for (const ServerConfig::PluginInfo &plugin : _config.Plugins())
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
     // logic should be moved somewhere else.
+    igndbg << "plugin: " << plugin.EntityName() << " " << plugin.EntityType() << std::endl;
+
     Entity entity{kNullEntity};
 
     if ("model" == plugin.EntityType())
@@ -822,6 +825,7 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
 
       for (auto sensor : sensors)
       {
+        igndbg << "scopedName: " << scopedName(sensor, this->entityCompMgr, "::", false) << std::endl;
         if (scopedName(sensor, this->entityCompMgr, "::", false) ==
             plugin.EntityName())
         {

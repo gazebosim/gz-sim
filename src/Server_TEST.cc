@@ -89,7 +89,9 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_EQ(3u, *server.EntityCount());
   EXPECT_TRUE(server.HasEntity("default"));
 
-  EXPECT_EQ(3u, *server.SystemCount());
+  // Default server configuration has zero plugins,
+  //
+  EXPECT_EQ(0u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////
@@ -229,7 +231,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "ignition::gazebo::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
-  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor",
+  serverConfig.AddPlugin({"air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
       "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
       sdf});
 
@@ -238,6 +240,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(2u, *server.SystemCount());
 
   // Run the server
   igndbg << "Run server" << std::endl;
