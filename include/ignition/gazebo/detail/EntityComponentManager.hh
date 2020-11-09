@@ -48,8 +48,8 @@ namespace traits
   {
     enum
     {
-      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)),
-          TestEqualityOperator>::value
+      // False positive codecheck "Using C-style cast"
+      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
     };
   };
 }
