@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <regex>
+
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
 
@@ -549,6 +551,25 @@ TEST_F(BreadcrumbsTest, AllowRenaming)
 }
 
 /////////////////////////////////////////////////
+/// Return a list of model entities whose names match the given regex
+std::vector<Entity> ModelsByNameRegex(
+    const gazebo::EntityComponentManager &_ecm, const std::regex &_re)
+{
+  std::vector<Entity> entities;
+  _ecm.Each<components::Model, components::Name>(
+      [&](const Entity _entity, const components::Model *,
+          const components::Name *_name)
+      {
+        if (std::regex_match(_name->Data(), _re))
+        {
+          entities.push_back(_entity);
+        }
+        return true;
+      });
+
+  return entities;
+}
+
 // The test checks that models containing Breadcrumbs can be unloaded and loaded
 // safely
 TEST_F(BreadcrumbsTest, LevelLoadUnload)
@@ -564,28 +585,27 @@ TEST_F(BreadcrumbsTest, LevelLoadUnload)
   const std::size_t iterTestStart = 1000;
   const std::size_t nIters = iterTestStart + 10000;
 
-  std::optional<math::Pose3d> initialPose;
+  std::regex reTile1{"tile_1"};
+  std::regex reBreadcrumb{"B1_.*"};
   testSystem.OnPostUpdate(
       [&](const gazebo::UpdateInfo &_info,
           const gazebo::EntityComponentManager &_ecm)
       {
-        // Ensure that tile_1 is loaded at the start, deploy a breadcrumb and
-        // check if the breadcrumb is deployed
+        // Ensure that tile_1 is loaded at the start, deploy a breadcrumb
         if (_info.iterations == iterTestStart)
         {
-          auto modelEntity = _ecm.EntityByComponents(
-              components::Model(), components::Name("tile_1"));
-          EXPECT_NE(kNullEntity, modelEntity);
+          auto tiles = ModelsByNameRegex(_ecm, reTile1);
+          EXPECT_EQ(1u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
         }
+        //check if the breadcrumb has been deployed
         else if (_info.iterations == iterTestStart + 1000)
         {
-          auto deployedB1 = _ecm.EntityByComponents(components::Model(),
-                                                    components::Name("B1_0"));
-          EXPECT_NE(kNullEntity, deployedB1);
+          auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
+          EXPECT_EQ(1u, breadcrumbs.size());
         }
-        // Move the performer (sphere) outside the level and ensure that tile_1
-        // is unloaded
+        // Move the performer (sphere) outside the level. This should cause
+        // tile_1 to be unloaded
         else if (_info.iterations == iterTestStart + 1001)
         {
           msgs::Pose req;
@@ -602,19 +622,18 @@ TEST_F(BreadcrumbsTest, LevelLoadUnload)
         // is unloaded.
         else if (_info.iterations == iterTestStart + 2000)
         {
-          auto modelEntity = _ecm.EntityByComponents(
-              components::Model(), components::Name("tile_1"));
-          EXPECT_EQ(kNullEntity, modelEntity);
+          auto tiles = ModelsByNameRegex(_ecm, reTile1);
+          EXPECT_EQ(0u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
         }
+        // Check that no new breadcrumbs have been deployed
         else if (_info.iterations == iterTestStart + 3000)
         {
-          auto deployedB1 = _ecm.EntityByComponents(components::Model(),
-                                                    components::Name("B1_1"));
-          EXPECT_EQ(kNullEntity, deployedB1);
+          auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
+          EXPECT_EQ(1u, breadcrumbs.size());
         }
-        // Move the performer (sphere) back into the level and ensure that
-        // tile_1 is loaded
+        // Move the performer (sphere) back into the level. This should load
+        // tile_1 and a new Breadcrumbs system.
         else if (_info.iterations == iterTestStart + 3001)
         {
           msgs::Pose req;
@@ -629,16 +648,18 @@ TEST_F(BreadcrumbsTest, LevelLoadUnload)
         // Check that tile_1 is loaded, then try deploying breadcrumb.
         else if (_info.iterations == iterTestStart + 4000)
         {
-          auto modelEntity = _ecm.EntityByComponents(
-              components::Model(), components::Name("tile_1"));
-          EXPECT_NE(kNullEntity, modelEntity);
+          auto tiles = ModelsByNameRegex(_ecm, reTile1);
+          EXPECT_EQ(1u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
         }
+        // Check that only one additional breadcrumb has been deployed even
+        // though there are two Breadcrumbs systems associated with the model.
+        // The original Breadcrumbs system should now be invalid because the
+        // model gets a new Entity ID.
         else if (_info.iterations == iterTestStart + 5000)
         {
-          auto deployedB1 = _ecm.EntityByComponents(components::Model(),
-                                                    components::Name("B1_0_1"));
-          EXPECT_NE(kNullEntity, deployedB1);
+          auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
+          EXPECT_EQ(2u, breadcrumbs.size());
         }
       });
 
