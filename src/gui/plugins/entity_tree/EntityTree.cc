@@ -15,7 +15,11 @@
  *
 */
 
+#include "EntityTree.hh"
+
 #include <iostream>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -36,8 +40,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "EntityTree.hh"
 
 namespace ignition::gazebo
 {
