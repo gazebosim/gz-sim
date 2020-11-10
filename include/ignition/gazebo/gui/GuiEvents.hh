@@ -210,6 +210,56 @@ namespace events
     /// \brief The path of SDF file to be previewed.
     std::string filePath;
   };
+
+  /// \brief Event called which broadcasts the 3D coordinates of a user's
+  /// mouse hover within the scene.
+  class HoverToScene : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _filePath The path to an SDF file.
+    public: explicit HoverToScene(const math::Vector3d &_point)
+        : QEvent(kType), point(_point)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
+
+    /// \brief Get the point within the scene that the user clicked.
+    /// \return The 3D point.
+    public: math::Vector3d Point() const
+    {
+      return this->point;
+    }
+
+    /// \brief The 3D point that the user clicked.
+    private: math::Vector3d point;
+  };
+
+  /// \brief Event called which broadcasts the 3D coordinates of a user's
+  /// left click within the scene.
+  class LeftClickToScene : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _filePath The path to an SDF file.
+    public: explicit LeftClickToScene(const math::Vector3d &_point)
+        : QEvent(kType), point(_point)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 7);
+
+    /// \brief Get the point within the scene that the user clicked.
+    /// \return The 3D point.
+    public: math::Vector3d Point() const
+    {
+      return this->point;
+    }
+
+    /// \brief The 3D point that the user clicked.
+    private: math::Vector3d point;
+  };
 }  // namespace events
 }
 }  // namespace gui

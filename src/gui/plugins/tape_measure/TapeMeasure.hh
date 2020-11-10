@@ -47,6 +47,9 @@ namespace gazebo
 
     public slots: void OnMeasure();
 
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<TapeMeasurePrivate> dataPtr;

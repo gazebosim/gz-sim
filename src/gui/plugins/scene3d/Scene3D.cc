@@ -760,10 +760,40 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->BroadcastHoverPos();
+  this->BroadcastLeftClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+void IgnRenderer::BroadcastHoverPos()
+{
+  if (this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
+
+    gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &hoverToSceneEvent);
+  }
+}
+
+void IgnRenderer::BroadcastLeftClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &leftClickToSceneEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1413,7 +1443,6 @@ void IgnRenderer::HandleMouseViewControl()
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
-      ignwarn << "target click is x: " << this->dataPtr->target[0] << ", y: " << this->dataPtr->target[1] << ", z: " << this->dataPtr->target[2] <<  std::endl;
       this->dataPtr->viewControl.SetTarget(this->dataPtr->target);
     }
 
@@ -1821,12 +1850,18 @@ math::Vector3d IgnRenderer::ScreenToScene(
       this->dataPtr->camera, math::Vector2d(nx, ny));
 
   auto result = this->dataPtr->rayQuery->ClosestPoint();
+  math::Vector3d point;
+
   if (result)
-    return result.point;
+    point = result.point;
+  else
+  {
+    point =  this->dataPtr->rayQuery->Origin() +
+      this->dataPtr->rayQuery->Direction() * 10;
+  }
 
   // Set point to be 10m away if no intersection found
-  return this->dataPtr->rayQuery->Origin() +
-      this->dataPtr->rayQuery->Direction() * 10;
+  return point;
 }
 
 ////////////////////////////////////////////////

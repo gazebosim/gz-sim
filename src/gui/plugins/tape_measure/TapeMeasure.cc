@@ -16,6 +16,7 @@
 */
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/marker.pb.h>
 
 #include <iostream>
 #include <ignition/common/Console.hh>
@@ -79,26 +80,89 @@ void TapeMeasure::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void TapeMeasure::OnMeasure()
 {
-  std::string modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                           "<sdf version=\"1.6\">"
-                                             "<model name=\"sphere\">"
-                                               "<pose>0 0 0 0 0 0</pose>"
-                                               "<link name=\"sphere_link\">"
-                                                 "<visual name=\"sphere_visual\">"
-                                                   "<geometry>"
-                                                     "<sphere>"
-                                                       "<radius>0.1</radius>"
-                                                     "</sphere>"
-                                                   "</geometry>"
-                                                 "</visual>"
-                                               "</link>"
-                                             "</model>"
-                                           "</sdf>");
+  this->dataPtr->measure = true;
+}
 
-  gui::events::SpawnPreviewModel event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &event);
+bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
+{
+  if (_event->type() == ignition::gazebo::gui::events::HoverToScene::kType)
+  {
+    auto hoverToSceneEvent =
+        reinterpret_cast<gui::events::HoverToScene *>(_event);
+
+    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // rendering calls here
+    if (this->dataPtr->measure && hoverToSceneEvent)
+    {
+      // Delete the previously created marker
+      ignition::msgs::Marker markerMsg;
+      markerMsg.set_ns("default");
+      markerMsg.set_id(1);
+      markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+      this->dataPtr->node.Request("/marker", markerMsg);
+
+      math::Vector3d point = hoverToSceneEvent->Point();
+      markerMsg.set_ns("default");
+      markerMsg.set_id(1);
+      markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+      markerMsg.set_type(ignition::msgs::Marker::SPHERE);
+      ignition::msgs::Set(markerMsg.mutable_scale(),
+                        ignition::math::Vector3d(0.1, 0.1, 0.1));
+      markerMsg.mutable_material()->mutable_ambient()->set_r(0.2);
+      markerMsg.mutable_material()->mutable_ambient()->set_g(0.2);
+      markerMsg.mutable_material()->mutable_ambient()->set_b(1);
+      markerMsg.mutable_material()->mutable_ambient()->set_a(1);
+      markerMsg.mutable_material()->mutable_diffuse()->set_r(0.2);
+      markerMsg.mutable_material()->mutable_diffuse()->set_g(0.2);
+      markerMsg.mutable_material()->mutable_diffuse()->set_b(1);
+      markerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+      ignition::msgs::Set(markerMsg.mutable_pose(),
+                        ignition::math::Pose3d(point.X(), point.Y(), point.Z(), 0, 0, 0));
+      this->dataPtr->node.Request("/marker", markerMsg);
+    }
+  }
+  // Note: the following isn't an else if statement due to the hover scene
+  // event sometimes smothering this click event if the logic uses an else if
+  // statement
+  if (_event->type() == ignition::gazebo::gui::events::LeftClickToScene::kType)
+  {
+    auto leftClickToSceneEvent =
+        reinterpret_cast<gui::events::LeftClickToScene *>(_event);
+
+    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // rendering calls here
+    if (this->dataPtr->measure && leftClickToSceneEvent)
+    {
+      math::Vector3d point = leftClickToSceneEvent->Point();
+      // Delete the previously created marker
+      ignition::msgs::Marker markerMsg;
+      markerMsg.set_ns("default");
+      markerMsg.set_id(1);
+      markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+      this->dataPtr->node.Request("/marker", markerMsg);
+
+      markerMsg.set_ns("default");
+      markerMsg.set_id(1);
+      markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+      markerMsg.set_type(ignition::msgs::Marker::SPHERE);
+      ignition::msgs::Set(markerMsg.mutable_scale(),
+                        ignition::math::Vector3d(0.1, 0.1, 0.1));
+      markerMsg.mutable_material()->mutable_ambient()->set_r(0);
+      markerMsg.mutable_material()->mutable_ambient()->set_g(0);
+      markerMsg.mutable_material()->mutable_ambient()->set_b(1);
+      markerMsg.mutable_material()->mutable_ambient()->set_a(1);
+      markerMsg.mutable_material()->mutable_diffuse()->set_r(0);
+      markerMsg.mutable_material()->mutable_diffuse()->set_g(0);
+      markerMsg.mutable_material()->mutable_diffuse()->set_b(1);
+      markerMsg.mutable_material()->mutable_diffuse()->set_a(1);
+      ignition::msgs::Set(markerMsg.mutable_pose(),
+                        ignition::math::Pose3d(point.X(), point.Y(), point.Z(), 0, 0, 0));
+      this->dataPtr->node.Request("/marker", markerMsg);
+      this->dataPtr->measure = false;
+    }
+  }
+
+  return QObject::eventFilter(_obj, _event);
 }
 
 // Register this plugin
