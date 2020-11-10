@@ -36,6 +36,19 @@ ToolBar {
     Material.color(Material.Grey, Material.Shade800) :
     Material.color(Material.Grey, Material.Shade100)
 
+  property var distance: 0.0
+
+  function updateDistance() {
+    distance = TapeMeasure.Distance();
+  }
+
+  Connections {
+    target: TapeMeasure
+    onNewDistance: {
+      updateDistance();
+    }
+  }
+
   background: Rectangle {
     color: "transparent"
   }
@@ -65,6 +78,29 @@ ToolBar {
       onClicked: {
         TapeMeasure.OnMeasure();
       }
+    }
+    ToolButton {
+      id: reset
+      checkable: true
+      checked: true
+      ButtonGroup.group: group
+      ToolTip.text: "Reset measurement"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "trashcan.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      onClicked: {
+        TapeMeasure.OnReset();
+      }
+    }
+    Text {
+      text: qsTr(" Distance (m): " + distance.toFixed(3))
     }
   }
 }

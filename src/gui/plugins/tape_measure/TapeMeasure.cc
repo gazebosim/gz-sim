@@ -51,6 +51,26 @@ namespace ignition::gazebo
     public: std::mutex mutex;
 
     public: bool measure = false;
+
+    public: int startPointId = 1;
+
+    public: int endPointId = 2;
+
+    public: ignition::math::Vector3d startPoint = ignition::math::Vector3d::Zero;
+    public: ignition::math::Vector3d endPoint = ignition::math::Vector3d::Zero;
+
+    public: ignition::math::Vector4d hoverColor = ignition::math::Vector4d(0.2, 0.2, 0.2, 0.5);
+    public: ignition::math::Vector4d drawColor = ignition::math::Vector4d(0.2, 0.2, 0.2, 1.0);
+
+    public: std::unordered_set<int> placedMarkers;
+
+    public: int lineId = 3;
+
+    public: int currentId = startPointId;
+
+    public: double distance = 0.0;
+
+    public: bool placed = false;
   };
 }
 
@@ -80,7 +100,107 @@ void TapeMeasure::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void TapeMeasure::OnMeasure()
 {
+  this->Reset();
   this->dataPtr->measure = true;
+}
+
+/////////////////////////////////////////////////
+void TapeMeasure::OnReset()
+{
+  this->Reset();
+}
+
+void TapeMeasure::Reset()
+{
+  this->dataPtr->currentId = this->dataPtr->startPointId;
+  this->dataPtr->startPoint = ignition::math::Vector3d::Zero;
+  this->dataPtr->endPoint = ignition::math::Vector3d::Zero;
+  this->dataPtr->placedMarkers.clear();
+  this->dataPtr->distance = 0.0;
+  this->newDistance();
+
+  if (this->dataPtr->placed)
+  {
+    // Delete the previously created marker
+    ignition::msgs::Marker markerMsg;
+    markerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+    this->dataPtr->node.Request("/marker", markerMsg);
+    this->dataPtr->placed = false;
+  }
+}
+
+double TapeMeasure::Distance()
+{
+  return this->dataPtr->distance;
+}
+
+void TapeMeasure::DrawPoint(int id, math::Vector3d &_point, math::Vector4d &_color)
+{
+  ignition::msgs::Marker markerMsg;
+  if (this->dataPtr->placedMarkers.find(id) != this->dataPtr->placedMarkers.end())
+  {
+    // Delete the previously created marker
+    markerMsg.set_ns("default");
+    markerMsg.set_id(id);
+    markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+    this->dataPtr->node.Request("/marker", markerMsg);
+  }
+  else
+  {
+    this->dataPtr->placedMarkers.insert(id);
+  }
+
+  markerMsg.set_ns("default");
+  markerMsg.set_id(id);
+  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  markerMsg.set_type(ignition::msgs::Marker::SPHERE);
+  ignition::msgs::Set(markerMsg.mutable_scale(),
+                    ignition::math::Vector3d(0.1, 0.1, 0.1));
+  markerMsg.mutable_material()->mutable_ambient()->set_r(_color[0]);
+  markerMsg.mutable_material()->mutable_ambient()->set_g(_color[1]);
+  markerMsg.mutable_material()->mutable_ambient()->set_b(_color[2]);
+  markerMsg.mutable_material()->mutable_ambient()->set_a(_color[3]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_r(_color[0]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_g(_color[1]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_b(_color[2]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_a(_color[3]);
+  ignition::msgs::Set(markerMsg.mutable_pose(),
+                    ignition::math::Pose3d(_point.X(), _point.Y(), _point.Z(), 0, 0, 0));
+  this->dataPtr->node.Request("/marker", markerMsg);
+}
+
+void TapeMeasure::DrawLine(int id, math::Vector3d &_startPoint, math::Vector3d &_endPoint, math::Vector4d &_color)
+{
+  ignition::msgs::Marker markerMsg;
+  if (this->dataPtr->placedMarkers.find(id) != this->dataPtr->placedMarkers.end())
+  {
+    // Delete the previously created marker
+    markerMsg.set_ns("default");
+    markerMsg.set_id(id);
+    markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+    this->dataPtr->node.Request("/marker", markerMsg);
+  }
+  else
+  {
+    this->dataPtr->placedMarkers.insert(id);
+  }
+
+  markerMsg.set_ns("default");
+  markerMsg.set_id(id);
+  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  markerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
+  markerMsg.mutable_material()->mutable_ambient()->set_r(_color[0]);
+  markerMsg.mutable_material()->mutable_ambient()->set_g(_color[1]);
+  markerMsg.mutable_material()->mutable_ambient()->set_b(_color[2]);
+  markerMsg.mutable_material()->mutable_ambient()->set_a(_color[3]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_r(_color[0]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_g(_color[1]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_b(_color[2]);
+  markerMsg.mutable_material()->mutable_diffuse()->set_a(_color[3]);
+  ignition::msgs::Set(markerMsg.add_point(), _startPoint);
+  ignition::msgs::Set(markerMsg.add_point(), _endPoint);
+
+  this->dataPtr->node.Request("/marker", markerMsg);
 }
 
 bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
@@ -94,32 +214,16 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     // rendering calls here
     if (this->dataPtr->measure && hoverToSceneEvent)
     {
-      // Delete the previously created marker
-      ignition::msgs::Marker markerMsg;
-      markerMsg.set_ns("default");
-      markerMsg.set_id(1);
-      markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
-      this->dataPtr->node.Request("/marker", markerMsg);
-
       math::Vector3d point = hoverToSceneEvent->Point();
-      markerMsg.set_ns("default");
-      markerMsg.set_id(1);
-      markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-      markerMsg.set_type(ignition::msgs::Marker::SPHERE);
-      ignition::msgs::Set(markerMsg.mutable_scale(),
-                        ignition::math::Vector3d(0.1, 0.1, 0.1));
-      markerMsg.mutable_material()->mutable_ambient()->set_r(0.2);
-      markerMsg.mutable_material()->mutable_ambient()->set_g(0.2);
-      markerMsg.mutable_material()->mutable_ambient()->set_b(1);
-      markerMsg.mutable_material()->mutable_ambient()->set_a(1);
-      markerMsg.mutable_material()->mutable_diffuse()->set_r(0.2);
-      markerMsg.mutable_material()->mutable_diffuse()->set_g(0.2);
-      markerMsg.mutable_material()->mutable_diffuse()->set_b(1);
-      markerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-      ignition::msgs::Set(markerMsg.mutable_pose(),
-                        ignition::math::Pose3d(point.X(), point.Y(), point.Z(), 0, 0, 0));
-      this->dataPtr->node.Request("/marker", markerMsg);
+      this->DrawPoint(this->dataPtr->currentId, point, this->dataPtr->hoverColor);
+      if (this->dataPtr->currentId == this->dataPtr->endPointId)
+      {
+        this->DrawLine(this->dataPtr->lineId, this->dataPtr->startPoint, point, this->dataPtr->hoverColor);
+        this->dataPtr->distance = this->dataPtr->startPoint.Distance(point);
+        this->newDistance();
+      }
     }
+    this->dataPtr->placed = true;
   }
   // Note: the following isn't an else if statement due to the hover scene
   // event sometimes smothering this click event if the logic uses an else if
@@ -134,32 +238,24 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->measure && leftClickToSceneEvent)
     {
       math::Vector3d point = leftClickToSceneEvent->Point();
-      // Delete the previously created marker
-      ignition::msgs::Marker markerMsg;
-      markerMsg.set_ns("default");
-      markerMsg.set_id(1);
-      markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
-      this->dataPtr->node.Request("/marker", markerMsg);
-
-      markerMsg.set_ns("default");
-      markerMsg.set_id(1);
-      markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-      markerMsg.set_type(ignition::msgs::Marker::SPHERE);
-      ignition::msgs::Set(markerMsg.mutable_scale(),
-                        ignition::math::Vector3d(0.1, 0.1, 0.1));
-      markerMsg.mutable_material()->mutable_ambient()->set_r(0);
-      markerMsg.mutable_material()->mutable_ambient()->set_g(0);
-      markerMsg.mutable_material()->mutable_ambient()->set_b(1);
-      markerMsg.mutable_material()->mutable_ambient()->set_a(1);
-      markerMsg.mutable_material()->mutable_diffuse()->set_r(0);
-      markerMsg.mutable_material()->mutable_diffuse()->set_g(0);
-      markerMsg.mutable_material()->mutable_diffuse()->set_b(1);
-      markerMsg.mutable_material()->mutable_diffuse()->set_a(1);
-      ignition::msgs::Set(markerMsg.mutable_pose(),
-                        ignition::math::Pose3d(point.X(), point.Y(), point.Z(), 0, 0, 0));
-      this->dataPtr->node.Request("/marker", markerMsg);
-      this->dataPtr->measure = false;
+      this->DrawPoint(this->dataPtr->currentId, point, this->dataPtr->drawColor);
+      // If we just placed the end point, end execution
+      if (this->dataPtr->currentId == this->dataPtr->startPointId)
+      {
+        this->dataPtr->startPoint = point;
+      }
+      else
+      {
+        this->dataPtr->endPoint = point;
+        this->dataPtr->measure = false;
+        this->DrawLine(this->dataPtr->lineId, this->dataPtr->startPoint, this->dataPtr->endPoint, this->dataPtr->drawColor);
+        ignwarn << "Distance is " << this->dataPtr->startPoint.Distance(this->dataPtr->endPoint) << "\n";
+        this->dataPtr->distance = this->dataPtr->startPoint.Distance(this->dataPtr->endPoint);
+        this->newDistance();
+      }
+      this->dataPtr->currentId = this->dataPtr->endPointId;
     }
+    this->dataPtr->placed = true;
   }
 
   return QObject::eventFilter(_obj, _event);

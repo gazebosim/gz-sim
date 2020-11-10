@@ -21,6 +21,8 @@
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
+#include <ignition/math/Vector3.hh>
+#include <ignition/math/Vector4.hh>
 
 namespace ignition
 {
@@ -46,9 +48,17 @@ namespace gazebo
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     public slots: void OnMeasure();
+    public slots: void OnReset();
+    public slots: double Distance();
+    public: void Reset();
+
+    public: void DrawPoint(int id, ignition::math::Vector3d &_point, ignition::math::Vector4d &_color);
+    public: void DrawLine(int id, ignition::math::Vector3d &_startPoint, ignition::math::Vector3d &_endPoint, ignition::math::Vector4d &_color);
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+    signals: void newDistance();
 
     /// \internal
     /// \brief Pointer to private data.
