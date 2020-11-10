@@ -14,10 +14,15 @@
  * limitations under the License.
  *
 */
+
+#include "TransformControl.hh"
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
 #include <iostream>
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -29,8 +34,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "TransformControl.hh"
 
 namespace ignition::gazebo
 {

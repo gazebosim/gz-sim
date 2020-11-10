@@ -15,8 +15,11 @@
  *
  */
 
+#include "TouchPlugin.hh"
+
 #include <algorithm>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -34,8 +37,6 @@
 
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "TouchPlugin.hh"
 
 using namespace ignition;
 using namespace gazebo;

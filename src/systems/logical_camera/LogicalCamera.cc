@@ -15,7 +15,14 @@
  *
  */
 
+#include "LogicalCamera.hh"
+
 #include <ignition/msgs/logical_camera_image.pb.h>
+
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -37,8 +44,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "LogicalCamera.hh"
 
 using namespace ignition;
 using namespace gazebo;
