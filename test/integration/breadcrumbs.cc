@@ -26,6 +26,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -545,6 +546,104 @@ TEST_F(BreadcrumbsTest, AllowRenaming)
   renameDeploy.Publish(msgs::Empty());
   this->server->Run(true, 100, false);
   EXPECT_TRUE(this->server->HasEntity("B1_0_1"));
+}
+
+/////////////////////////////////////////////////
+// The test checks that models containing Breadcrumbs can be unloaded and loaded
+// safely
+TEST_F(BreadcrumbsTest, LevelLoadUnload)
+{
+  // Start server
+  this->LoadWorld("test/worlds/breadcrumbs_levels.sdf", true);
+
+  test::Relay testSystem;
+  transport::Node node;
+  auto deploy =
+      node.Advertise<msgs::Empty>("/model/tile_1/breadcrumbs/B1/deploy");
+
+  const std::size_t iterTestStart = 1000;
+  const std::size_t nIters = iterTestStart + 10000;
+
+  std::optional<math::Pose3d> initialPose;
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        // Ensure that tile_1 is loaded at the start, deploy a breadcrumb and
+        // check if the breadcrumb is deployed
+        if (_info.iterations == iterTestStart)
+        {
+          auto modelEntity = _ecm.EntityByComponents(
+              components::Model(), components::Name("tile_1"));
+          EXPECT_NE(kNullEntity, modelEntity);
+          EXPECT_TRUE(deploy.Publish(msgs::Empty()));
+        }
+        else if (_info.iterations == iterTestStart + 1000)
+        {
+          auto deployedB1 = _ecm.EntityByComponents(components::Model(),
+                                                    components::Name("B1_0"));
+          EXPECT_NE(kNullEntity, deployedB1);
+        }
+        // Move the performer (sphere) outside the level and ensure that tile_1
+        // is unloaded
+        else if (_info.iterations == iterTestStart + 1001)
+        {
+          msgs::Pose req;
+          req.set_name("sphere");
+          req.mutable_position()->set_x(30);
+          msgs::Boolean rep;
+          bool result;
+          node.Request("/world/breadcrumbs_levels/set_pose", req, 1000, rep,
+                       result);
+          EXPECT_TRUE(result);
+        }
+        // Check that tile_1 is unloaded, then try deploying breadcrumb. This
+        // should fail because the model associated with the breadcrumb system
+        // is unloaded.
+        else if (_info.iterations == iterTestStart + 2000)
+        {
+          auto modelEntity = _ecm.EntityByComponents(
+              components::Model(), components::Name("tile_1"));
+          EXPECT_EQ(kNullEntity, modelEntity);
+          EXPECT_TRUE(deploy.Publish(msgs::Empty()));
+        }
+        else if (_info.iterations == iterTestStart + 3000)
+        {
+          auto deployedB1 = _ecm.EntityByComponents(components::Model(),
+                                                    components::Name("B1_1"));
+          EXPECT_EQ(kNullEntity, deployedB1);
+        }
+        // Move the performer (sphere) back into the level and ensure that
+        // tile_1 is loaded
+        else if (_info.iterations == iterTestStart + 3001)
+        {
+          msgs::Pose req;
+          req.set_name("sphere");
+          req.mutable_position()->set_x(0);
+          msgs::Boolean rep;
+          bool result;
+          node.Request("/world/breadcrumbs_levels/set_pose", req, 1000, rep,
+                       result);
+          EXPECT_TRUE(result);
+        }
+        // Check that tile_1 is loaded, then try deploying breadcrumb.
+        else if (_info.iterations == iterTestStart + 4000)
+        {
+          auto modelEntity = _ecm.EntityByComponents(
+              components::Model(), components::Name("tile_1"));
+          EXPECT_NE(kNullEntity, modelEntity);
+          EXPECT_TRUE(deploy.Publish(msgs::Empty()));
+        }
+        else if (_info.iterations == iterTestStart + 5000)
+        {
+          auto deployedB1 = _ecm.EntityByComponents(components::Model(),
+                                                    components::Name("B1_0_1"));
+          EXPECT_NE(kNullEntity, deployedB1);
+        }
+      });
+
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
