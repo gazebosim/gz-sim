@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include <regex>
-
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
+
+#include <regex>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -598,7 +598,7 @@ TEST_F(BreadcrumbsTest, LevelLoadUnload)
           EXPECT_EQ(1u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
         }
-        //check if the breadcrumb has been deployed
+        // Check if the breadcrumb has been deployed
         else if (_info.iterations == iterTestStart + 1000)
         {
           auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
