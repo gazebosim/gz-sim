@@ -157,6 +157,15 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 std::back_inserter(cmds));
       this->pendingCmds.clear();
     }
+    // Check that the model is valid before continuing. This check is needed
+    // because the model associated with the Breadcrumbs might have been
+    // unloaded by the level manager. Ideally, this system would have been
+    // unloaded along with the model, but that is not currently the case. See
+    // issue #113
+    if (!model.Valid(_ecm))
+    {
+      return;
+    }
 
     auto poseComp = _ecm.Component<components::Pose>(this->model.Entity());
 
