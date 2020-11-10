@@ -15,10 +15,15 @@
  *
 */
 
+#include "Scene3D.hh"
+
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -58,8 +63,6 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
-
-#include "Scene3D.hh"
 
 Q_DECLARE_METATYPE(std::string)
 

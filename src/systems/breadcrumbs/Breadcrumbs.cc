@@ -15,9 +15,14 @@
  *
  */
 
+#include "Breadcrumbs.hh"
+
 #include <ignition/msgs/empty.pb.h>
 
+#include <algorithm>
 #include <iterator>
+#include <string>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 
@@ -37,8 +42,6 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
-
-#include "Breadcrumbs.hh"
 
 using namespace ignition;
 using namespace gazebo;

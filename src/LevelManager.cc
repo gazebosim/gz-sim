@@ -15,6 +15,10 @@
  *
  */
 
+#include "LevelManager.hh"
+
+#include <algorithm>
+
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
@@ -44,7 +48,6 @@
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "LevelManager.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
