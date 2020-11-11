@@ -35,9 +35,6 @@ namespace ignition::gazebo
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief Mutex to protect mode.
-    public: std::mutex mutex;
-
     /// \brief True if currently measure, else false.
     public: bool measure = false;
 
@@ -115,6 +112,7 @@ void TapeMeasure::OnMeasure()
 {
   this->Reset();
   this->dataPtr->measure = true;
+  QGuiApplication::setOverrideCursor(Qt::CrossCursor);
 }
 
 /////////////////////////////////////////////////
@@ -135,7 +133,9 @@ void TapeMeasure::Reset()
   this->dataPtr->endPoint = ignition::math::Vector3d::Zero;
   this->dataPtr->placedMarkers.clear();
   this->dataPtr->distance = 0.0;
+  this->dataPtr->measure = false;
   this->newDistance();
+  QGuiApplication::restoreOverrideCursor();
 }
 
 /////////////////////////////////////////////////
@@ -147,20 +147,16 @@ double TapeMeasure::Distance()
 /////////////////////////////////////////////////
 void TapeMeasure::DeleteMarker(int _id)
 {
-  ignition::msgs::Marker markerMsg;
-  if (this->dataPtr->placedMarkers.find(_id) !=
+  if (this->dataPtr->placedMarkers.find(_id) ==
       this->dataPtr->placedMarkers.end())
-  {
-    // Delete the previously created marker
-    markerMsg.set_ns(this->dataPtr->ns);
-    markerMsg.set_id(_id);
-    markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
-    this->dataPtr->node.Request("/marker", markerMsg);
-  }
-  else
-  {
-    this->dataPtr->placedMarkers.insert(_id);
-  }
+    return;
+
+  // Delete the previously created marker
+  ignition::msgs::Marker markerMsg;
+  markerMsg.set_ns(this->dataPtr->ns);
+  markerMsg.set_id(_id);
+  markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+  this->dataPtr->node.Request("/marker", markerMsg);
 }
 
 /////////////////////////////////////////////////
@@ -168,6 +164,7 @@ void TapeMeasure::DrawPoint(int _id,
     ignition::math::Vector3d &_point, ignition::math::Vector4d &_color)
 {
   this->DeleteMarker(_id);
+  this->dataPtr->placedMarkers.insert(_id);
 
   ignition::msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
@@ -186,6 +183,7 @@ void TapeMeasure::DrawPoint(int _id,
   markerMsg.mutable_material()->mutable_diffuse()->set_a(_color[3]);
   ignition::msgs::Set(markerMsg.mutable_pose(),
     ignition::math::Pose3d(_point.X(), _point.Y(), _point.Z(), 0, 0, 0));
+
   this->dataPtr->node.Request("/marker", markerMsg);
 }
 
@@ -194,6 +192,7 @@ void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
     ignition::math::Vector3d &_endPoint, ignition::math::Vector4d &_color)
 {
   this->DeleteMarker(_id);
+  this->dataPtr->placedMarkers.insert(_id);
 
   ignition::msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
@@ -241,10 +240,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
   }
-  // Note: the following isn't an else if statement due to the hover scene
-  // event sometimes smothering this click event if the logic uses an else if
-  // statement
-  if (_event->type() == ignition::gazebo::gui::events::LeftClickToScene::kType)
+  else if (_event->type() == ignition::gazebo::gui::events::LeftClickToScene::kType)
   {
     auto leftClickToSceneEvent =
         reinterpret_cast<gui::events::LeftClickToScene *>(_event);
@@ -272,6 +268,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->distance =
           this->dataPtr->startPoint.Distance(this->dataPtr->endPoint);
         this->newDistance();
+        QGuiApplication::restoreOverrideCursor();
       }
       this->dataPtr->currentId = this->dataPtr->endPointId;
     }
