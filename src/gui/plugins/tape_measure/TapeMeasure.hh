@@ -30,10 +30,7 @@ namespace gazebo
 {
   class TapeMeasurePrivate;
 
-  /// \brief Provides buttons for translation, rotation, and scale
-  ///
-  /// ## Configuration
-  /// \<service\> : Set the service to receive transform mode requests.
+  /// \brief Provides buttons for the tape measure tool.
   class TapeMeasure : public ignition::gui::Plugin
   {
     Q_OBJECT

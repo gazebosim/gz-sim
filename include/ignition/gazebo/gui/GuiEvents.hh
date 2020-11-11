@@ -211,12 +211,13 @@ namespace events
     std::string filePath;
   };
 
-  /// \brief Event called which broadcasts the 3D coordinates of a user's
+  /// \brief Event which is called to broadcast the 3D coordinates of a user's
   /// mouse hover within the scene.
   class HoverToScene : public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _filePath The path to an SDF file.
+    /// \param[in] _point The point at which the mouse is hovering within the
+    /// scene
     public: explicit HoverToScene(const math::Vector3d &_point)
         : QEvent(kType), point(_point)
     {
@@ -225,23 +226,24 @@ namespace events
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 6);
 
-    /// \brief Get the point within the scene that the user clicked.
-    /// \return The 3D point.
+    /// \brief Get the point within the scene over which the user is hovering.
+    /// \return The 3D point
     public: math::Vector3d Point() const
     {
       return this->point;
     }
 
-    /// \brief The 3D point that the user clicked.
+    /// \brief The 3D point over which the user is hovering.
     private: math::Vector3d point;
   };
 
-  /// \brief Event called which broadcasts the 3D coordinates of a user's
+  /// \brief Event which is called to broadcast the 3D coordinates of a user's
   /// left click within the scene.
   class LeftClickToScene : public QEvent
   {
     /// \brief Constructor
-    /// \param[in] _filePath The path to an SDF file.
+    /// \param[in] _point The point which the user has left clicked within the
+    /// scene
     public: explicit LeftClickToScene(const math::Vector3d &_point)
         : QEvent(kType), point(_point)
     {
@@ -257,7 +259,7 @@ namespace events
       return this->point;
     }
 
-    /// \brief The 3D point that the user clicked.
+    /// \brief The 3D point that the user clicked within the scene.
     private: math::Vector3d point;
   };
 }  // namespace events
