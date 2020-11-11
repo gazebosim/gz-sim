@@ -262,6 +262,51 @@ namespace events
     /// \brief The 3D point that the user clicked within the scene.
     private: math::Vector3d point;
   };
+
+  /// \brief Event which is called to broadcast the 3D coordinates of a user's
+  /// right click within the scene.
+  class RightClickToScene : public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _point The point which the user has right clicked within the
+    /// scene
+    public: explicit RightClickToScene(const math::Vector3d &_point)
+        : QEvent(kType), point(_point)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
+
+    /// \brief Get the point within the scene that the user clicked.
+    /// \return The 3D point.
+    public: math::Vector3d Point() const
+    {
+      return this->point;
+    }
+
+    /// \brief The 3D point that the user clicked within the scene.
+    private: math::Vector3d point;
+  };
+
+  class RightClickDropdownMenu : public QEvent
+  {
+    /// \brief Constructor
+    public: explicit RightClickDropdownMenu(bool _menuEnabled)
+        : QEvent(kType), menuEnabled(_menuEnabled)
+    {
+    }
+
+    /// \brief Unique type for this event.
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 9);
+
+    public: bool MenuEnabled() const
+    {
+      return this->menuEnabled;
+    }
+
+    private: bool menuEnabled;
+  };
 }  // namespace events
 }
 }  // namespace gui

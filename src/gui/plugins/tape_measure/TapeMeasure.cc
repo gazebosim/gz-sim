@@ -113,6 +113,13 @@ void TapeMeasure::OnMeasure()
   this->Reset();
   this->dataPtr->measure = true;
   QGuiApplication::setOverrideCursor(Qt::CrossCursor);
+
+  // Notify Scene3D to disable the right click menu while we use it to
+  // cancel our current measuring action
+  gui::events::RightClickDropdownMenu rightClickDropdownMenuEvent(false);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &rightClickDropdownMenuEvent);
 }
 
 /////////////////////////////////////////////////
@@ -136,6 +143,13 @@ void TapeMeasure::Reset()
   this->dataPtr->measure = false;
   this->newDistance();
   QGuiApplication::restoreOverrideCursor();
+
+  // Notify Scene3D that we are done using the right click, so it can
+  // re-enable the settings menu
+  gui::events::RightClickDropdownMenu rightClickDropdownMenuEvent(true);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &rightClickDropdownMenuEvent);
 }
 
 /////////////////////////////////////////////////
@@ -269,8 +283,23 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
           this->dataPtr->startPoint.Distance(this->dataPtr->endPoint);
         this->newDistance();
         QGuiApplication::restoreOverrideCursor();
+
+        // Notify Scene3D that we are done using the right click, so it can
+        // re-enable the settings menu
+        gui::events::RightClickDropdownMenu rightClickDropdownMenuEvent(true);
+        ignition::gui::App()->sendEvent(
+            ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+            &rightClickDropdownMenuEvent);
       }
       this->dataPtr->currentId = this->dataPtr->endPointId;
+    }
+  }
+  // Cancel the current action if a right click is detected
+  else if (_event->type() == ignition::gazebo::gui::events::RightClickToScene::kType)
+  {
+    if (this->dataPtr->measure)
+    {
+      this->Reset();
     }
   }
 

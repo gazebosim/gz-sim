@@ -236,6 +236,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// resource with the shapes plugin or not
     public: bool isPlacing = false;
 
+    public: std::atomic_bool rightClickMenuEnabled = true;
+
     /// \brief The SDF string of the resource to be used with plugins that spawn
     /// entities.
     public: std::string spawnSdfString;
@@ -769,6 +771,7 @@ void IgnRenderer::HandleMouseEvent()
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->BroadcastHoverPos();
   this->BroadcastLeftClick();
+  this->BroadcastRightClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
@@ -802,6 +805,26 @@ void IgnRenderer::BroadcastLeftClick()
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &leftClickToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastRightClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    // If the right click menu is disabled, quash the mouse event
+    if (!this->dataPtr->rightClickMenuEnabled)
+      this->dataPtr->mouseDirty = false;
+
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &rightClickToSceneEvent);
   }
 }
 
@@ -1685,6 +1708,12 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->isSpawning = true;
   this->dataPtr->spawnSdfPath = _filePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRightClickMenu(bool _enableRightClickMenu)
+{
+  this->dataPtr->rightClickMenuEnabled = _enableRightClickMenu;
 }
 
 /////////////////////////////////////////////////
@@ -2658,6 +2687,17 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
     }
   }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::RightClickDropdownMenu::kType)
+  {
+    auto rightClickDropdownMenuEvent =
+      reinterpret_cast<gui::events::RightClickDropdownMenu *>(_event);
+    if (rightClickDropdownMenuEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetRightClickMenu(rightClickDropdownMenuEvent->MenuEnabled());
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
@@ -2687,6 +2727,12 @@ void RenderWindowItem::SetModel(const std::string &_model)
 void RenderWindowItem::SetModelPath(const std::string &_filePath)
 {
   this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRightClickMenu(bool _enableRightClickMenu)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRightClickMenu(_enableRightClickMenu);
 }
 
 /////////////////////////////////////////////////
