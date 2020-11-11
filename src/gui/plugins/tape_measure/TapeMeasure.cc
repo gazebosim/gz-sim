@@ -14,8 +14,6 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/msgs/marker.pb.h>
 
 #include <iostream>
@@ -25,17 +23,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Grid.hh>
-#include <ignition/rendering/RenderTypes.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/Scene.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "TapeMeasure.hh"
@@ -177,7 +165,7 @@ void TapeMeasure::DeleteMarker(int _id)
 
 /////////////////////////////////////////////////
 void TapeMeasure::DrawPoint(int _id,
-    math::Vector3d &_point, math::Vector4d &_color)
+    ignition::math::Vector3d &_point, ignition::math::Vector4d &_color)
 {
   this->DeleteMarker(_id);
 
@@ -202,8 +190,8 @@ void TapeMeasure::DrawPoint(int _id,
 }
 
 /////////////////////////////////////////////////
-void TapeMeasure::DrawLine(int _id, math::Vector3d &_startPoint,
-    math::Vector3d &_endPoint, math::Vector4d &_color)
+void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
+    ignition::math::Vector3d &_endPoint, ignition::math::Vector4d &_color)
 {
   this->DeleteMarker(_id);
 
@@ -238,7 +226,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     // rendering calls here
     if (this->dataPtr->measure && hoverToSceneEvent)
     {
-      math::Vector3d point = hoverToSceneEvent->Point();
+      ignition::math::Vector3d point = hoverToSceneEvent->Point();
       this->DrawPoint(this->dataPtr->currentId, point,
         this->dataPtr->hoverColor);
 
@@ -265,7 +253,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     // rendering calls here
     if (this->dataPtr->measure && leftClickToSceneEvent)
     {
-      math::Vector3d point = leftClickToSceneEvent->Point();
+      ignition::math::Vector3d point = leftClickToSceneEvent->Point();
       this->DrawPoint(this->dataPtr->currentId, point,
         this->dataPtr->drawColor);
       // If the user is placing the start point, update its position

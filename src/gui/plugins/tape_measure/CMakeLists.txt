@@ -4,5 +4,3 @@ gz_add_gui_plugin(TapeMeasure
   PRIVATE_LINK_LIBS
     ${IGNITION-RENDERING_LIBRARIES}
 )
-
-

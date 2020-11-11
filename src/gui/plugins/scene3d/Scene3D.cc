@@ -772,6 +772,7 @@ void IgnRenderer::HandleMouseEvent()
   this->HandleMouseViewControl();
 }
 
+/////////////////////////////////////////////////
 void IgnRenderer::BroadcastHoverPos()
 {
   if (this->dataPtr->hoverDirty)
@@ -785,6 +786,7 @@ void IgnRenderer::BroadcastHoverPos()
   }
 }
 
+/////////////////////////////////////////////////
 void IgnRenderer::BroadcastLeftClick()
 {
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
@@ -1861,14 +1863,16 @@ math::Vector3d IgnRenderer::ScreenToScene(
   math::Vector3d point;
 
   if (result)
+  {
     point = result.point;
+  }
+  // Set point to be 10m away if no intersection found
   else
   {
-    point =  this->dataPtr->rayQuery->Origin() +
+    point = this->dataPtr->rayQuery->Origin() +
       this->dataPtr->rayQuery->Direction() * 10;
   }
 
-  // Set point to be 10m away if no intersection found
   return point;
 }
 
