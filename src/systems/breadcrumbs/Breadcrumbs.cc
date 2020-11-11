@@ -71,6 +71,12 @@ void Breadcrumbs::Configure(const Entity &_entity,
       _sdf->Get<bool>("allow_renaming", this->allowRenaming).first;
 
   this->model = Model(_entity);
+  if (!this->model.Valid(_ecm))
+  {
+    ignerr << "The Breadcrumbs system should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
 
   if (!_sdf->HasElement("breadcrumb"))
   {
@@ -162,7 +168,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     // unloaded by the level manager. Ideally, this system would have been
     // unloaded along with the model, but that is not currently the case. See
     // issue #113
-    if (!model.Valid(_ecm))
+    if (!this->model.Valid(_ecm))
     {
       return;
     }
