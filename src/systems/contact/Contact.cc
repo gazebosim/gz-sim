@@ -15,11 +15,15 @@
  *
  */
 
+#include "Contact.hh"
 
 #include <ignition/msgs/contact.pb.h>
 #include <ignition/msgs/contacts.pb.h>
 
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -37,8 +41,6 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-
-#include "Contact.hh"
 
 using namespace ignition;
 using namespace gazebo;

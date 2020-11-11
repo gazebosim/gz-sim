@@ -14,9 +14,15 @@
  * limitations under the License.
  *
  */
+
+#include "DiffDrive.hh"
+
 #include <ignition/msgs/odometry.pb.h>
 
+#include <limits>
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/DiffDriveOdometry.hh>
@@ -30,7 +36,6 @@
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
-#include "DiffDrive.hh"
 #include "SpeedLimiter.hh"
 
 using namespace ignition;
