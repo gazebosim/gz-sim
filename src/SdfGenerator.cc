@@ -342,7 +342,7 @@ namespace sdf_generator
               // https://example.org/1.0/test/models/Backpack
               // the path to the directory containing the sdf file (modelDir)
               // will be:
-              // $HOME/.ignition/fuel/example.org/test/models/Backpack/1/
+              // $HOME/.ignition/fuel/example.org/test/models/Backpack/2/
               // and the basename of the directory is "1", which is the model
               // version.
               //
