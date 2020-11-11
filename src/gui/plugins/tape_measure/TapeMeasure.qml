@@ -42,6 +42,11 @@ ToolBar {
     distance = TapeMeasure.Distance();
   }
 
+  function startMeasurement() {
+    TapeMeasure.OnReset();
+    TapeMeasure.OnMeasure();
+  }
+
   Connections {
     target: TapeMeasure
     onNewDistance: {
@@ -55,6 +60,11 @@ ToolBar {
 
   ButtonGroup {
     id: group
+  }
+
+  Shortcut {
+    sequence: "M"
+    onActivated: startMeasurement()
   }
 
   RowLayout {
@@ -71,9 +81,9 @@ ToolBar {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "tape_measure.svg"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        source: "tape_measure.png"
+        sourceSize.width: 36;
+        sourceSize.height: 36;
       }
       onClicked: {
         TapeMeasure.OnMeasure();

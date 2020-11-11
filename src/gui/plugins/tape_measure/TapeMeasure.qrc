@@ -1,7 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="TapeMeasure/">
   <file>TapeMeasure.qml</file>
-  <file>tape_measure.svg</file>
+  <file>tape_measure.png</file>
   <file>trashcan.png</file>
 </qresource>
 </RCC>
