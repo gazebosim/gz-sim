@@ -14,7 +14,13 @@
  * limitations under the License.
  *
 */
+
+#include "ign.hh"
+
 #include <cstring>
+#include <string>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/fuel_tools/FuelClient.hh>
@@ -27,7 +33,6 @@
 #include "ignition/gazebo/ServerConfig.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
-#include "ign.hh"
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()

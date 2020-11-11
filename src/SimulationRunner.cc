@@ -17,6 +17,8 @@
 
 #include "SimulationRunner.hh"
 
+#include <algorithm>
+
 #include "ignition/common/Profiler.hh"
 
 #include "ignition/gazebo/components/Model.hh"

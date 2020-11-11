@@ -14,7 +14,11 @@
  * limitations under the License.
  *
  */
+
+#include "SdfGenerator.hh"
+
 #include <memory>
+#include <vector>
 
 #include <sdf/sdf.hh>
 
@@ -28,7 +32,6 @@
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "SdfGenerator.hh"
 
 namespace ignition
 {
