@@ -543,13 +543,13 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/1";
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
       // Thes following two URIs are valid, but have a trailing '/'
       "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/1/",
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/",
       // Thes following two URIs are invalid, and will not be saved
       "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
       "notInt",
