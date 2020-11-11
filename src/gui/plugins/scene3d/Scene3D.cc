@@ -1860,20 +1860,12 @@ math::Vector3d IgnRenderer::ScreenToScene(
       this->dataPtr->camera, math::Vector2d(nx, ny));
 
   auto result = this->dataPtr->rayQuery->ClosestPoint();
-  math::Vector3d point;
-
   if (result)
-  {
-    point = result.point;
-  }
-  // Set point to be 10m away if no intersection found
-  else
-  {
-    point = this->dataPtr->rayQuery->Origin() +
-      this->dataPtr->rayQuery->Direction() * 10;
-  }
+    return result.point;
 
-  return point;
+  // Set point to be 10m away if no intersection found
+  return this->dataPtr->rayQuery->Origin() +
+      this->dataPtr->rayQuery->Direction() * 10;
 }
 
 ////////////////////////////////////////////////
