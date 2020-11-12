@@ -3,11 +3,11 @@
 ## Using the video recorder plugin
 
 Ignition Gazebo offers a video recorder tool for recording videos from the 3D
-Scene. The tool is available as a GUI plugin. To open this plugin, first launch
-Ignition Gazebo and select the ellipsis menu on top right (3 dots menu), and
-scroll down to find the `Video Recorder` option. Click on the plugin to open
-the Video Recorder tool. Alternatively, launch the demo world in Ignition Gazebo
-that already has this plugin included in the GUI.
+scene. The recorder tool is available as a GUI plugin. To open this plugin,
+first launch Ignition Gazebo and select the ellipsis menu on top right
+(3 dots menu), and scroll down to find the `Video Recorder` option. Click on the
+plugin to open the Video Recorder tool. Alternatively, launch the demo world in
+Ignition Gazebo that already has this plugin included in the GUI.
 
 ```
 ign gazebo -v 4 video_record_dbl_pendulum.sdf
@@ -21,11 +21,10 @@ Clicking on the button gives you the video format options that are available.
 Once an option is selected, recording starts immediately as indicated by
 a flashing video recorder icon. At anytime that you wish to stop recording,
 click on the flashing icon and select `Stop`. A file dialog window should pop up
-and let you select the path to save the recorded video in. Save the file and
-make sure to also include the file extension in the filename.
+and let you select the path to save the recorded video in.
 
 Playback the video you just saved and you should notice that the resolution
-of the video is based on the size of your 3D Scene window. So if you wish
+of the video is based on the size of your 3D scene window. So if you wish
 to record the video in a different size, make sure to configure the GUI
 window prior to recording.
 
@@ -40,11 +39,12 @@ If you launched Ignition Gazebo with the
 `video_record_dbl_pendulum.sdf` demo world, the GUI configurations are embedded
 in the world SDF file so you will need to download a copy of the
 [sdf file](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/ign-gazebo3/examples/worlds/video_record_dbl_pendulum.sdf).
-and modify the GUI configuration in that file. On the other hand, if launched
-Ignition Gazebo with a world file that does not have GUI configurations, you
-will need to specify the settings in `$HOME/.ignition/gazebo/gui.config`
+and modify the GUI configuration in that file. On the other hand, if you
+launched Ignition Gazebo with a world file that does not have GUI
+configurations, you will need to specify the settings in
+`$HOME/.ignition/gazebo/gui.config`.
 
-Recall that videos are recorded from the 3D Scene, we will to set the video
+Recall that videos are recorded from the 3D scene, we will to set the video
 configurations in the 3D scene plugin. Here is an example of the
 Scene 3D plugin with custom video recorder settings:
 
