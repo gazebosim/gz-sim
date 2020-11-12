@@ -131,7 +131,6 @@ void TapeMeasure::Reset()
   this->dataPtr->currentId = this->dataPtr->startPointId;
   this->dataPtr->startPoint = ignition::math::Vector3d::Zero;
   this->dataPtr->endPoint = ignition::math::Vector3d::Zero;
-  this->dataPtr->placedMarkers.clear();
   this->dataPtr->distance = 0.0;
   this->dataPtr->measure = false;
   this->newDistance();
@@ -157,6 +156,7 @@ void TapeMeasure::DeleteMarker(int _id)
   markerMsg.set_id(_id);
   markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
   this->dataPtr->node.Request("/marker", markerMsg);
+  this->dataPtr->placedMarkers.erase(_id);
 }
 
 /////////////////////////////////////////////////
@@ -164,7 +164,6 @@ void TapeMeasure::DrawPoint(int _id,
     ignition::math::Vector3d &_point, ignition::math::Vector4d &_color)
 {
   this->DeleteMarker(_id);
-  this->dataPtr->placedMarkers.insert(_id);
 
   ignition::msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
@@ -185,6 +184,7 @@ void TapeMeasure::DrawPoint(int _id,
     ignition::math::Pose3d(_point.X(), _point.Y(), _point.Z(), 0, 0, 0));
 
   this->dataPtr->node.Request("/marker", markerMsg);
+  this->dataPtr->placedMarkers.insert(_id);
 }
 
 /////////////////////////////////////////////////
@@ -192,7 +192,6 @@ void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
     ignition::math::Vector3d &_endPoint, ignition::math::Vector4d &_color)
 {
   this->DeleteMarker(_id);
-  this->dataPtr->placedMarkers.insert(_id);
 
   ignition::msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
@@ -211,6 +210,7 @@ void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
   ignition::msgs::Set(markerMsg.add_point(), _endPoint);
 
   this->dataPtr->node.Request("/marker", markerMsg);
+  this->dataPtr->placedMarkers.insert(_id);
 }
 
 /////////////////////////////////////////////////
