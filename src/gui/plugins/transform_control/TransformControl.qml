@@ -55,7 +55,6 @@ ToolBar {
   function activateSelect() {
     select.checked = true;
     TransformControl.OnMode("select");
-    print("pressed escape transform");
   }
 
   function updateSnapValues() {
@@ -108,10 +107,10 @@ ToolBar {
     onActivated: activateRotate()
   }
 
-  //Shortcut {
-  //  sequence: "Esc"
-  //  onActivated: activateSelect()
-  //}
+  Shortcut {
+    sequence: "Esc"
+    onActivated: activateSelect()
+  }
 
   RowLayout {
     spacing: 2

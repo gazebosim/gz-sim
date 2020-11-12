@@ -199,6 +199,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath Sdf path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the right click menu is enabled or disabled.
+    /// \param[in] _enableRightClickMenu The boolean to enable or disable
+    /// the menu
     public: void SetRightClickMenu(bool _enableRightClickMenu);
 
     /// \brief Set whether to record video
@@ -519,6 +522,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath File path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the right click menu is enabled or disabled.
+    /// \param[in] _enableRightClickMenu The boolean to enable or disable
+    /// the menu
     public: void SetRightClickMenu(bool _enableRightClickMenu);
 
     /// \brief Set whether to record video

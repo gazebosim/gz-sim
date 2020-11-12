@@ -289,22 +289,31 @@ namespace events
     private: math::Vector3d point;
   };
 
+  /// \brief Event which is called to enable or disable the right click dropdown
+  /// menu. This is primarily used by plugins which also use the right click to
+  /// cancel any actions currently in progress.
   class RightClickDropdownMenu : public QEvent
   {
     /// \brief Constructor
+    /// \param[in] _menuEnabled The boolean indicating whether the dropdown
+    /// menu should be enabled or disabled.
     public: explicit RightClickDropdownMenu(bool _menuEnabled)
         : QEvent(kType), menuEnabled(_menuEnabled)
     {
     }
-
+    
     /// \brief Unique type for this event.
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 9);
 
+    /// \brief Gets whether the menu is enabled or not for this event.
+    /// \return True if enabling the menu, false if disabling the menu
     public: bool MenuEnabled() const
-    {
+    { 
       return this->menuEnabled;
     }
-
+    
+    /// \brief The boolean indicating whether the menu is disabled or not
+    /// for this event.
     private: bool menuEnabled;
   };
 }  // namespace events

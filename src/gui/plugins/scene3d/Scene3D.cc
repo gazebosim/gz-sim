@@ -236,6 +236,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// resource with the shapes plugin or not
     public: bool isPlacing = false;
 
+    /// \brief Atomic bool indicating whether the right click menu
+    /// is currently enabled or disabled.
     public: std::atomic_bool rightClickMenuEnabled = true;
 
     /// \brief The SDF string of the resource to be used with plugins that spawn
