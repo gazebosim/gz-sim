@@ -15,8 +15,12 @@
  *
 */
 
+#include "NetworkManagerPrimary.hh"
+
 #include <algorithm>
+#include <set>
 #include <string>
+#include <utility>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -32,7 +36,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Events.hh"
 
-#include "NetworkManagerPrimary.hh"
 #include "NetworkManagerPrivate.hh"
 #include "PeerTracker.hh"
 
