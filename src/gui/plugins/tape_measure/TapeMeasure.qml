@@ -68,7 +68,7 @@ ToolBar {
   }
 
   RowLayout {
-    spacing: 2
+    spacing: 1
     ToolButton {
       id: select
       checkable: true
@@ -102,8 +102,8 @@ ToolBar {
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "trashcan.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 36;
+        sourceSize.height: 36;
       }
       onClicked: {
         TapeMeasure.OnReset();
