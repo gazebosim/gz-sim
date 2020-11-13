@@ -23,6 +23,38 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+TEST(PoseTest, Construction)
+{
+  math::Pose3d pose(1, 0, 0, 0, 0, 0);
+
+  // Copy constructor
+  math::Pose3d pose2(pose);
+  EXPECT_EQ(pose2, pose);
+
+  // Copy operator
+  math::Pose3d pose3;
+  pose3 = pose;
+  EXPECT_EQ(pose3, pose);
+
+  // Move constructor
+  math::Pose3d pose4(std::move(pose));
+  EXPECT_EQ(pose4, pose2);
+  pose = pose4;
+  EXPECT_EQ(pose, pose2);
+
+  // Move operator
+  math::Pose3d pose5;
+  pose5 = std::move(pose2);
+  EXPECT_EQ(pose5, pose3);
+  pose2 = pose5;
+  EXPECT_EQ(pose2, pose3);
+
+  // Inequality
+  math::Pose3d pose6;
+  EXPECT_NE(pose6, pose3);
+}
+
+/////////////////////////////////////////////////
 TEST(PoseTest, Pose)
 {
   {

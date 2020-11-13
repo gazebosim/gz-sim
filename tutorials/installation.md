@@ -88,13 +88,21 @@ The optional Ruby tests of Ignition Math require:
     Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
     which version you need.
 
-2. Configure and build
+2. Install dependencies
+
+    ```
+    export SYSTEM_VERSION=bionic
+    sudo apt -y install \
+      $(sort -u $(find . -iname 'packages-'$SYSTEM_VERSION'.apt' -o -iname 'packages.apt') | tr '\n' ' ')
+    ```
+
+3. Configure and build
 
     ```
     cd ign-math; mkdir build; cd build; cmake ..; make
     ```
 
-3. Optionally, install Ignition Math
+4. Optionally, install Ignition Math
 
     ```
     sudo make install

@@ -119,6 +119,24 @@ namespace ignition
         return result;
       }
 
+      /// \brief Round to near whole number, return the result.
+      /// \return the result
+      public: Vector2 Round()
+      {
+        this->data[0] = nearbyint(this->data[0]);
+        this->data[1] = nearbyint(this->data[1]);
+        return *this;
+      }
+
+      /// \brief Get a rounded version of this vector
+      /// \return a rounded vector
+      public: Vector2 Rounded() const
+      {
+        Vector2<T> result = *this;
+        result.Round();
+        return result;
+      }
+
       /// \brief Set the contents of the vector
       /// \param[in] _x value along x
       /// \param[in] _y value along y

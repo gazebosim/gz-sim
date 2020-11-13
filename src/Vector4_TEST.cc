@@ -24,6 +24,38 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+TEST(Vector4dTest, Construction)
+{
+  math::Vector4d vec(1, 0, 0, 0);
+
+  // Copy constructor
+  math::Vector4d vec2(vec);
+  EXPECT_EQ(vec2, vec);
+
+  // Copy operator
+  math::Vector4d vec3;
+  vec3 = vec;
+  EXPECT_EQ(vec3, vec);
+
+  // Move constructor
+  math::Vector4d vec4(std::move(vec));
+  EXPECT_EQ(vec4, vec2);
+  vec = vec4;
+  EXPECT_EQ(vec, vec2);
+
+  // Move operator
+  math::Vector4d vec5;
+  vec5 = std::move(vec2);
+  EXPECT_EQ(vec5, vec3);
+  vec2 = vec5;
+  EXPECT_EQ(vec2, vec3);
+
+  // Inequality
+  math::Vector4d vec6;
+  EXPECT_NE(vec6, vec3);
+}
+
+/////////////////////////////////////////////////
 TEST(Vector4dTest, Vector4d)
 {
   {
@@ -226,7 +258,7 @@ TEST(Vector4dTest, Min)
 
 /////////////////////////////////////////////////
 // Test Equal function with specified tolerance
-TEST(Vector2Test, EqualTolerance)
+TEST(Vector4dTest, EqualTolerance)
 {
   EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-6));
   EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-3));
@@ -337,7 +369,7 @@ TEST(Vector4dTest, OperatorStreamOut)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector4Test, Multiply)
+TEST(Vector4dTest, Multiply)
 {
   math::Vector4d v(0.1, -4.2, 11.1, 8.4);
 

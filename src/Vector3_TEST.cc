@@ -17,13 +17,48 @@
 
 #include <gtest/gtest.h>
 
+#include <numeric>
+#include <sstream>
+
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Helpers.hh"
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Vector3d)
+TEST(Vector3dTest, Construction)
+{
+  math::Vector3d vec(1, 0, 0);
+
+  // Copy constructor
+  math::Vector3d vec2(vec);
+  EXPECT_EQ(vec2, vec);
+
+  // Copy operator
+  math::Vector3d vec3;
+  vec3 = vec;
+  EXPECT_EQ(vec3, vec);
+
+  // Move constructor
+  math::Vector3d vec4(std::move(vec));
+  EXPECT_EQ(vec4, vec2);
+  vec = vec4;
+  EXPECT_EQ(vec, vec2);
+
+  // Move operator
+  math::Vector3d vec5;
+  vec5 = std::move(vec2);
+  EXPECT_EQ(vec5, vec3);
+  vec2 = vec5;
+  EXPECT_EQ(vec2, vec3);
+
+  // Inequality
+  math::Vector3d vec6;
+  EXPECT_NE(vec6, vec3);
+}
+
+/////////////////////////////////////////////////
+TEST(Vector3dTest, Vector3d)
 {
   math::Vector3d v;
 
@@ -409,7 +444,7 @@ TEST(Vector3dTest, NotEqual)
 
 /////////////////////////////////////////////////
 // Test Equal function with specified tolerance
-TEST(Vector2Test, EqualTolerance)
+TEST(Vector3dTest, EqualTolerance)
 {
   EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-6));
   EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-3));
@@ -436,5 +471,9 @@ TEST(Vector3dTest, NoException)
 
   EXPECT_NO_THROW(math::equal(v[3], 4.0));
   EXPECT_DOUBLE_EQ(v[3], 3.0);
+
+  std::ostringstream ss;
+  math::Vector3d vInf(0, 0, std::numeric_limits<double>::infinity());
+  EXPECT_NO_THROW(ss << vInf);
 }
 
