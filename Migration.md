@@ -48,6 +48,9 @@ Gazebo 2+ for playback. [BitBucket pull request
 #257](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/257)
 added an SDF message to the start of log files.
 
+* Log playback using `<path>` SDF parameter is deprecated. Use `--playback`
+  command line argument instead.
+
 ## Ignition Gazebo 1.0.2 to 1.1.0
 
 * All headers in `gazebo/network` are no longer installed.
