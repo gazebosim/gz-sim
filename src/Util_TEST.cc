@@ -16,8 +16,10 @@
 */
 
 #include <gtest/gtest.h>
+#include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -47,14 +49,16 @@ TEST(UtilTest, ScopedName)
   //      - sensorB
   //  - modelC
   //    - linkC
-  //      - collision
+  //      - collisionC
   //      - visualC
   //    - jointC
   //    - modelCC
   //      - linkCC
+  //  - actorD
 
   // World
   auto worldEntity = ecm.CreateEntity();
+  EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world_name"));
 
@@ -130,6 +134,12 @@ TEST(UtilTest, ScopedName)
   ecm.CreateComponent(linkCCEntity, components::Name("linkCC_name"));
   ecm.CreateComponent(linkCCEntity, components::ParentEntity(modelCCEntity));
 
+  // Actor D
+  auto actorDEntity = ecm.CreateEntity();
+  ecm.CreateComponent(actorDEntity, components::Actor(sdf::Actor()));
+  ecm.CreateComponent(actorDEntity, components::Name("actorD_name"));
+  ecm.CreateComponent(actorDEntity, components::ParentEntity(worldEntity));
+
   // Check names
   EXPECT_EQ(scopedName(worldEntity, ecm), "world/world_name");
   EXPECT_EQ(scopedName(lightAEntity, ecm, "::"),
@@ -158,6 +168,8 @@ TEST(UtilTest, ScopedName)
     "world/world_name/model/modelC_name/model/modelCC_name");
   EXPECT_EQ(scopedName(linkCCEntity, ecm),
     "world/world_name/model/modelC_name/model/modelCC_name/link/linkCC_name");
+  EXPECT_EQ(scopedName(actorDEntity, ecm, "::"),
+    "world::world_name::actor::actorD_name");
 
   // check name without prefix
   EXPECT_EQ(scopedName(worldEntity, ecm, "/", false), "world_name");
@@ -185,6 +197,115 @@ TEST(UtilTest, ScopedName)
     "world_name/modelC_name/modelCC_name");
   EXPECT_EQ(scopedName(linkCCEntity, ecm, "/", false),
     "world_name/modelC_name/modelCC_name/linkCC_name");
+  EXPECT_EQ(scopedName(actorDEntity, ecm, "::", false),
+    "world_name::actorD_name");
+
+  // World entity
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(worldEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(lightAEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(modelBEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(linkBEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(lightBEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(sensorBEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(modelCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(collisionCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(visualCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(jointCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(modelCCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCCEntity, ecm));
+  EXPECT_EQ(worldEntity, gazebo::worldEntity(actorDEntity, ecm));
+  EXPECT_EQ(kNullEntity, gazebo::worldEntity(kNullEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST(UtilTest, EntityTypeId)
+{
+  EntityComponentManager ecm;
+
+  auto entity = ecm.CreateEntity();
+  EXPECT_EQ(kComponentTypeIdInvalid, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::World());
+  EXPECT_EQ(components::World::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Model());
+  EXPECT_EQ(components::Model::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Light());
+  EXPECT_EQ(components::Light::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Link());
+  EXPECT_EQ(components::Link::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Visual());
+  EXPECT_EQ(components::Visual::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Collision());
+  EXPECT_EQ(components::Collision::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Joint());
+  EXPECT_EQ(components::Joint::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Sensor());
+  EXPECT_EQ(components::Sensor::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Actor());
+  EXPECT_EQ(components::Actor::typeId, entityTypeId(entity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST(UtilTest, EntityTypeStr)
+{
+  EntityComponentManager ecm;
+
+  auto entity = ecm.CreateEntity();
+  EXPECT_TRUE(entityTypeStr(entity, ecm).empty());
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::World());
+  EXPECT_EQ("world", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Model());
+  EXPECT_EQ("model", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Light());
+  EXPECT_EQ("light", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Link());
+  EXPECT_EQ("link", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Visual());
+  EXPECT_EQ("visual", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Collision());
+  EXPECT_EQ("collision", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Joint());
+  EXPECT_EQ("joint", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Sensor());
+  EXPECT_EQ("sensor", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Actor());
+  EXPECT_EQ("actor", entityTypeStr(entity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -284,4 +405,61 @@ TEST(UtilTest, AsFullPath)
     EXPECT_EQ(schemeUri, asFullPath(schemeUri, filePath));
   }
 #endif
+}
+
+/////////////////////////////////////////////////
+TEST(UtilTest, TopLevelModel)
+{
+  EntityComponentManager ecm;
+
+  // world
+  //  - modelA
+  //    - linkA
+  //    - modelB
+  //      - linkB
+  //  - modelC
+
+  // World
+  auto worldEntity = ecm.CreateEntity();
+  ecm.CreateComponent(worldEntity, components::World());
+  ecm.CreateComponent(worldEntity, components::Name("world_name"));
+
+  // Model A
+  auto modelAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAEntity, components::Model());
+  ecm.CreateComponent(modelAEntity, components::Name("modelA_name"));
+  ecm.CreateComponent(modelAEntity, components::ParentEntity(worldEntity));
+
+  // Link A - Child of Model A
+  auto linkAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkAEntity, components::Link());
+  ecm.CreateComponent(linkAEntity, components::Name("linkA_name"));
+  ecm.CreateComponent(linkAEntity, components::ParentEntity(modelAEntity));
+
+  // Model B - nested inside Model A
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Model());
+  ecm.CreateComponent(modelBEntity, components::Name("modelB_name"));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(modelAEntity));
+
+  // Link B - child of Model B
+  auto linkBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkBEntity, components::Link());
+  ecm.CreateComponent(linkBEntity, components::Name("linkB_name"));
+  ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
+
+  // Model C
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Model());
+  ecm.CreateComponent(modelCEntity, components::Name("modelC_name"));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
+
+  // model A, link A, model B and link B should have model A as top level entity
+  EXPECT_EQ(modelAEntity, topLevelModel(modelAEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(linkAEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(modelBEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(linkBEntity, ecm));
+
+  // model C should have itself as the top level entity
+  EXPECT_EQ(modelCEntity, topLevelModel(modelCEntity, ecm));
 }
