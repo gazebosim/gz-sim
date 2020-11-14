@@ -14,7 +14,11 @@
  * limitations under the License.
  *
  */
+
+#include "SdfGenerator.hh"
+
 #include <memory>
+#include <vector>
 
 #include <sdf/sdf.hh>
 
@@ -29,7 +33,6 @@
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "SdfGenerator.hh"
 
 namespace ignition
 {
@@ -346,7 +349,7 @@ namespace sdf_generator
               // https://example.org/1.0/test/models/Backpack
               // the path to the directory containing the sdf file (modelDir)
               // will be:
-              // $HOME/.ignition/fuel/example.org/test/models/Backpack/1/
+              // $HOME/.ignition/fuel/example.org/test/models/Backpack/2/
               // and the basename of the directory is "1", which is the model
               // version.
               //

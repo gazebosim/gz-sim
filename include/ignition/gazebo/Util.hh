@@ -145,6 +145,10 @@ namespace ignition
     /// \brief Environment variable used by SDFormat to find URIs inside
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
+
+    /// \brief Environment variable holding paths to custom rendering engine
+    /// plugins.
+    const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
     }
   }
 }

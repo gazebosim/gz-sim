@@ -113,6 +113,7 @@ math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
                    _in.orientation().x(),
                    _in.orientation().y(),
                    _in.orientation().z());
+  out.Correct();
 
   return out;
 }

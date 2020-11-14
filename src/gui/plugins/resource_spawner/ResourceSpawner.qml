@@ -344,6 +344,7 @@ Rectangle {
               anchors.fill: parent
               topPadding: 8
               leftPadding: 5
+              selectByMouse: true
               color: Material.theme == Material.Light ? "black" : "white"
               onTextEdited: {
                 ResourceSpawner.OnSearchEntered(searchField.text);
