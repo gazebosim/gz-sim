@@ -11,8 +11,6 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins
 * \subpage levels "Levels": Load entities on demand in large environments
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes
-* \subpage migrationplugins "Migration from Gazebo-classic: plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
-* \subpage ardupilot "Migration Case Study": Migrating the ArduPilot ModelPlugin from Classic Gazebo to Ignition Gazebo.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
@@ -23,6 +21,13 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Ignition Fuel app.
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation
+
+**Migration from Gazebo-classic**
+
+* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
+* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
+* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
+* \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Classic Gazebo to Ignition Gazebo.
 
 ## License
 

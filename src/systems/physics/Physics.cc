@@ -15,14 +15,19 @@
  *
  */
 
+#include "Physics.hh"
+
 #include <ignition/msgs/contact.pb.h>
 #include <ignition/msgs/contacts.pb.h>
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/Utility.hh>
 
+#include <algorithm>
 #include <iostream>
 #include <deque>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
@@ -33,33 +38,11 @@
 #include <ignition/physics/config.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
-#include <ignition/physics/FindFeatures.hh>
 #include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
 #include <ignition/plugin/Loader.hh>
 #include <ignition/plugin/PluginPtr.hh>
 #include <ignition/plugin/Register.hh>
-
-// Features
-#include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/CylinderShape.hh>
-#include <ignition/physics/ForwardStep.hh>
-#include <ignition/physics/FrameSemantics.hh>
-#include <ignition/physics/FreeGroup.hh>
-#include <ignition/physics/FixedJoint.hh>
-#include <ignition/physics/GetContacts.hh>
-#include <ignition/physics/GetBoundingBox.hh>
-#include <ignition/physics/Joint.hh>
-#include <ignition/physics/Link.hh>
-#include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/Shape.hh>
-#include <ignition/physics/SphereShape.hh>
-#include <ignition/physics/mesh/MeshShape.hh>
-#include <ignition/physics/sdf/ConstructCollision.hh>
-#include <ignition/physics/sdf/ConstructJoint.hh>
-#include <ignition/physics/sdf/ConstructLink.hh>
-#include <ignition/physics/sdf/ConstructModel.hh>
-#include <ignition/physics/sdf/ConstructWorld.hh>
 
 // SDF
 #include <sdf/Collision.hh>
@@ -109,11 +92,10 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
+#include "ignition/gazebo/components/SlipComplianceCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/World.hh"
-
-#include "Physics.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo::systems;
@@ -190,6 +172,14 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: physics::FrameData3d LinkFrameDataAtOffset(
       const LinkPtrType &_link, const math::Pose3d &_pose) const;
 
+  /// \brief Get transform from one ancestor entity to a descendant entity
+  /// that are in the same model.
+  /// \param[in] _from An ancestor of the _to entity.
+  /// \param[in] _to A descendant of the _from entity.
+  /// \return Pose transform between the two entities
+  public: ignition::math::Pose3d RelativePose(const Entity &_from,
+      const Entity &_to, const EntityComponentManager &_ecm) const;
+
   /// \brief A map between world entity ids in the ECM to World Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, WorldPtrType> entityWorldMap;
@@ -245,6 +235,27 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Environment variable which holds paths to look for engine plugins
   public: std::string pluginPathEnv = "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
+
+  //////////////////////////////////////////////////
+  // Slip Compliance
+
+  /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
+  public: using FrictionPyramidSlipComplianceFeatureList = physics::FeatureList<
+            MinimumFeatureList,
+            ignition::physics::GetShapeFrictionPyramidSlipCompliance,
+            ignition::physics::SetShapeFrictionPyramidSlipCompliance>;
+
+  /// \brief Shape type with slip compliance features.
+  public: using ShapeSlipParamPtrType = physics::ShapePtr<
+            physics::FeaturePolicy3d, FrictionPyramidSlipComplianceFeatureList>;
+
+  /// \brief A map between shape entity ids in the ECM to Shape Entities in
+  /// ign-physics
+  /// All shapes on this map are also in `entityCollisionMap`. The difference
+  /// is that here they've been casted for
+  /// `FrictionPyramidSlipComplianceFeatureList`.
+  public: std::unordered_map<Entity, ShapeSlipParamPtrType>
+      entityShapeSlipParamMap;
 
   //////////////////////////////////////////////////
   // Joints
@@ -463,6 +474,36 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// that here they've been casted for `MeshFeatureList`.
   public: std::unordered_map<Entity, LinkMeshPtrType>
       entityLinkMeshMap;
+
+  //////////////////////////////////////////////////
+  // Nested Models
+
+  /// \brief Feature list to construct nested models
+  public: using NestedModelFeatureList = ignition::physics::FeatureList<
+            MinimumFeatureList,
+            ignition::physics::sdf::ConstructSdfNestedModel>;
+
+  /// \brief Model type with nested model feature.
+  public: using ModelNestedModelPtrType = physics::ModelPtr<
+            physics::FeaturePolicy3d, NestedModelFeatureList>;
+
+  /// \brief World type with nested model feature.
+  public: using WorldNestedModelPtrType = physics::WorldPtr<
+            physics::FeaturePolicy3d, NestedModelFeatureList>;
+
+  /// \brief A map between model entity ids in the ECM to Model Entities in
+  /// ign-physics, with Nested Model feature.
+  /// All models on this map are also in `entityModelMap`. The difference is
+  /// that here they've been casted for `ConstructedSdfNestedModel`.
+  public: std::unordered_map<Entity, ModelNestedModelPtrType>
+      entityModelNestedModelMap;
+
+  /// \brief A map between model entity ids in the ECM to World Entities in
+  /// ign-physics, with Nested Model feature.
+  /// All models on this map are also in `entityWorldMap`. The difference is
+  /// that here they've been casted for `ConstructedSdfNestedModel`.
+  public: std::unordered_map<Entity, WorldNestedModelPtrType>
+      entityWorldNestedModelMap;
 };
 
 //////////////////////////////////////////////////
@@ -664,36 +705,107 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         // TODO(anyone) Don't load models unless they have collisions
 
-        // Check if parent world exists
-        // TODO(louise): Support nested models, see
-        // https://github.com/ignitionrobotics/ign-physics/issues/10
-        if (this->entityWorldMap.find(_parent->Data())
-            == this->entityWorldMap.end())
-        {
-          ignwarn << "Model's parent entity [" << _parent->Data()
-                  << "] not found on world map." << std::endl;
-          return true;
-        }
-        auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
-
+        // Check if parent world / model exists
         sdf::Model model;
         model.SetName(_name->Data());
         model.SetRawPose(_pose->Data());
-
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
           model.SetStatic(staticComp->Data());
         }
-
         auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
         if (selfCollideComp && selfCollideComp ->Data())
         {
           model.SetSelfCollide(selfCollideComp->Data());
         }
 
-        auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-        this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+        // check if parent is a world
+        auto worldIt = this->entityWorldMap.find(_parent->Data());
+        if (worldIt != this->entityWorldMap.end())
+        {
+          auto worldPtrPhys = worldIt->second;
+
+          // Use the ConstructNestedModel feature for nested models
+          if (model.ModelCount() > 0)
+          {
+            auto nestedModelFeature = entityCast(_parent->Data(), worldPtrPhys,
+                this->entityWorldNestedModelMap);
+            if (!nestedModelFeature)
+            {
+              static bool informed{false};
+              if (!informed)
+              {
+                igndbg << "Attempting to construct nested models, but the "
+                       << "phyiscs engine doesn't support feature "
+                       << "[ConstructSdfNestedModelFeature]. "
+                       << "Nested model will be ignored."
+                       << std::endl;
+                informed = true;
+              }
+              return true;
+            }
+            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
+            this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+          }
+          else
+          {
+            auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+            this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+          }
+        }
+        // check if parent is a model (nested model)
+        else
+        {
+          auto parentIt = this->entityModelMap.find(_parent->Data());
+          if (parentIt != this->entityModelMap.end())
+          {
+            auto parentPtrPhys = parentIt->second;
+
+            auto nestedModelFeature = entityCast(_parent->Data(), parentPtrPhys,
+                this->entityModelNestedModelMap);
+            if (!nestedModelFeature)
+            {
+              static bool informed{false};
+              if (!informed)
+              {
+                igndbg << "Attempting to construct nested models, but the "
+                       << "physics engine doesn't support feature "
+                       << "[ConstructSdfNestedModelFeature]. "
+                       << "Nested model will be ignored."
+                       << std::endl;
+                informed = true;
+              }
+              return true;
+            }
+
+            // override static property only if parent is static.
+            auto parentStaticComp =
+              _ecm.Component<components::Static>(_parent->Data());
+            if (parentStaticComp && parentStaticComp->Data())
+              model.SetStatic(true);
+
+
+            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
+            if (modelPtrPhys)
+            {
+              this->entityModelMap.insert(
+                  std::make_pair(_entity, modelPtrPhys));
+            }
+            else
+            {
+              ignerr << "Model: '" << _name->Data() << "' not loaded. "
+                     << "Failed to create nested model."
+                     << std::endl;
+            }
+          }
+          else
+          {
+            ignwarn << "Model's parent entity [" << _parent->Data()
+                    << "] not found on world / model map." << std::endl;
+            return true;
+          }
+        }
 
         return true;
       });
@@ -1347,6 +1459,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // world pose cmd currently not supported for nested models
+        if (_entity != topLevelModel(_entity, _ecm))
+        {
+          ignerr << "Unable to set world pose for nested models."
+                 << std::endl;
+          return true;
+        }
+
         // The canonical link as specified by sdformat is different from the
         // canonical link of the FreeGroup object
 
@@ -1362,11 +1482,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (linkEntityIt == this->linkEntityMap.end())
           return true;
 
-        auto canonicalPoseComp =
-            _ecm.Component<components::Pose>(linkEntityIt->second);
+        // set world pose of canonical link in freegroup
+        // canonical link might be in a nested model so use RelativePose to get
+        // its pose relative to this model
+        math::Pose3d linkPose =
+            this->RelativePose(_entity, linkEntityIt->second, _ecm);
 
         freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
-                                canonicalPoseComp->Data()));
+                                linkPose));
 
         // Process pose commands for static models here, as one-time changes
         const components::Static *staticComp =
@@ -1387,6 +1510,42 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Slip compliance on Collisions
+  _ecm.Each<components::SlipComplianceCmd>(
+      [&](const Entity &_entity,
+          const components::SlipComplianceCmd *_slipCmdComp)
+      {
+        auto shapeIt = this->entityCollisionMap.find(_entity);
+        if (shapeIt == this->entityCollisionMap.end())
+        {
+          ignwarn << "Failed to find shape [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        auto slipComplianceShape = entityCast(_entity, shapeIt->second,
+            this->entityShapeSlipParamMap);
+
+        if (!slipComplianceShape)
+        {
+          ignwarn << "Can't process Wheel Slip component, physics engine "
+                  << "missing SetShapeFrictionPyramidSlipCompliance"
+                  << std::endl;
+
+          // Break Each call since no SlipCompliances can be processed
+          return false;
+        }
+
+        if (_slipCmdComp->Data().size() == 2)
+        {
+          slipComplianceShape->SetPrimarySlipCompliance(
+              _slipCmdComp->Data()[0]);
+          slipComplianceShape->SetSecondarySlipCompliance(
+              _slipCmdComp->Data()[1]);
+        }
+
+        return true;
+      });
+
   // Update model angular velocity
   _ecm.Each<components::Model, components::AngularVelocityCmd>(
       [&](const Entity &_entity, const components::Model *,
@@ -1395,6 +1554,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt == this->entityModelMap.end())
           return true;
+
+        // angular vel cmd currently not supported for nested models
+        if (_entity != topLevelModel(_entity, _ecm))
+        {
+          ignerr << "Unable to set angular velocity for nested models."
+                 << std::endl;
+          return true;
+        }
 
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (!freeGroup)
@@ -1409,6 +1576,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             this->entityWorldVelocityCommandMap);
         if (!worldAngularVelFeature)
         {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set model angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
           return true;
         }
 
@@ -1427,6 +1603,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // linear vel cmd currently not supported for nested models
+        if (_entity != topLevelModel(_entity, _ecm))
+        {
+          ignerr << "Unable to set linear velocity for nested models."
+                 << std::endl;
+          return true;
+        }
+
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (!freeGroup)
           return true;
@@ -1440,6 +1624,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               this->entityWorldVelocityCommandMap);
         if (!worldLinearVelFeature)
         {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set model linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
           return true;
         }
 
@@ -1526,6 +1719,42 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 }
 
 //////////////////////////////////////////////////
+ignition::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
+  const Entity &_to, const EntityComponentManager &_ecm) const
+{
+  math::Pose3d transform;
+
+  if (_from == _to)
+    return transform;
+
+  auto currentEntity = _to;
+  auto parentComp = _ecm.Component<components::ParentEntity>(_to);
+  while (parentComp)
+  {
+    auto parentEntity = parentComp->Data();
+
+    // get the entity pose
+    auto entityPoseComp =
+      _ecm.Component<components::Pose>(currentEntity);
+
+    // update transform
+    transform = entityPoseComp->Data() * transform;
+
+    if (parentEntity == _from)
+      break;
+
+    // set current entity to parent
+    currentEntity = parentEntity;
+
+    // get entity's parent
+    parentComp = _ecm.Component<components::ParentEntity>(
+      parentEntity);
+  }
+
+  return transform;
+}
+
+//////////////////////////////////////////////////
 void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
@@ -1546,46 +1775,58 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
+          // get top level model of this link
+          auto topLevelModelEnt = topLevelModel(_parent->Data(), _ecm);
+
           auto canonicalLink =
               _ecm.Component<components::CanonicalLink>(_entity);
-
-          // get the pose component of the parent model
-          const components::Pose *parentPose =
-              _ecm.Component<components::Pose>(_parent->Data());
 
           auto frameData = linkIt->second->FrameDataRelativeToWorld();
           const auto &worldPose = frameData.pose;
 
-          // if the parentPose is a nullptr, something is wrong with ECS
-          // creation
-          if (!parentPose)
-          {
-            ignerr << "The pose component of " << _parent->Data()
-                   << " could not be found. This should never happen!\n";
-            return true;
-          }
           if (canonicalLink)
           {
-            // This is the canonical link, update the model
-            // The Pose component, _pose, of this link is the initial
-            // transform of the link w.r.t its model. This component never
-            // changes because it's "fixed" to the model. Instead, we change
-            // the model's pose here. The physics engine gives us the pose of
-            // this link relative to world so to set the model's pose, we have
-            // to post-multiply it by the inverse of the initial transform of
-            // the link w.r.t to its model.
-            auto mutableParentPose =
-              _ecm.Component<components::Pose>(_parent->Data());
-            *(mutableParentPose) = components::Pose(_pose->Data().Inverse() +
-                                           math::eigen3::convert(worldPose));
-            _ecm.SetChanged(_parent->Data(), components::Pose::typeId,
+            // This is the canonical link, update the top level model.
+            // The pose of this link w.r.t its top level model never changes
+            // because it's "fixed" to the model. Instead, we change
+            // the top level model's pose here. The physics engine gives us the
+            // pose of this link relative to world so to set the top level
+            // model's pose, we have to post-multiply it by the inverse of the
+            // transform of the link w.r.t to its top level model.
+            math::Pose3d linkPoseFromTopLevelModel;
+            linkPoseFromTopLevelModel =
+                this->RelativePose(topLevelModelEnt, _entity, _ecm);
+
+            // update top level model's pose
+            auto mutableModelPose =
+               _ecm.Component<components::Pose>(topLevelModelEnt);
+            *(mutableModelPose) = components::Pose(
+                math::eigen3::convert(worldPose) *
+                linkPoseFromTopLevelModel.Inverse());
+
+            _ecm.SetChanged(topLevelModelEnt, components::Pose::typeId,
                 ComponentState::PeriodicChange);
           }
           else
           {
-            // Compute the relative pose of this link from the model
+            // Compute the relative pose of this link from the top level model
+            // first get the world pose of the top level model
+            auto worldComp =
+                _ecm.Component<components::ParentEntity>(topLevelModelEnt);
+            // if the worldComp is a nullptr, something is wrong with ECS
+            if (!worldComp)
+            {
+              ignerr << "The parent component of " << topLevelModelEnt
+                     << " could not be found. This should never happen!\n";
+              return true;
+            }
+            math::Pose3d parentWorldPose =
+                this->RelativePose(worldComp->Data(), _parent->Data(), _ecm);
+
+            // Unlike canonical links, pose of regular links can move relative.
+            // to the parent. Same for links inside nested models.
             *_pose = components::Pose(math::eigen3::convert(worldPose) +
-                                      parentPose->Data().Inverse());
+                                      parentWorldPose.Inverse());
             _ecm.SetChanged(_entity, components::Pose::typeId,
                 ComponentState::PeriodicChange);
           }
@@ -1721,10 +1962,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
             _ecm.SetChanged(_entity, components::AngularAcceleration::typeId,
                 state);
           }
-        }
-        else
-        {
-          ignwarn << "Unknown link with id " << _entity << " found\n";
         }
         return true;
       });
@@ -1881,6 +2118,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
       [&](const Entity &, components::JointVelocityCmd *_vel) -> bool
       {
         std::fill(_vel->Data().begin(), _vel->Data().end(), 0.0);
+        return true;
+      });
+
+  _ecm.Each<components::SlipComplianceCmd>(
+      [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
+      {
+        std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
         return true;
       });
 

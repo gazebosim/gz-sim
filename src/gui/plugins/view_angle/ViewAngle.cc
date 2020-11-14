@@ -14,15 +14,18 @@
  * limitations under the License.
  *
 */
+
+#include "ViewAngle.hh"
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
-
-#include "ViewAngle.hh"
 
 namespace ignition::gazebo
 {

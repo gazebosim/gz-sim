@@ -80,6 +80,18 @@ ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
+std::optional<typename ComponentTypeT::Type>
+    EntityComponentManager::ComponentData(const Entity _entity) const
+{
+  auto comp = this->Component<ComponentTypeT>(_entity);
+  if (!comp)
+    return std::nullopt;
+
+  return std::make_optional(comp->Data());
+}
+
+//////////////////////////////////////////////////
+template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
   return static_cast<const ComponentTypeT *>(
