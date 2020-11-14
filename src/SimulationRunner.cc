@@ -17,6 +17,8 @@
 
 #include "SimulationRunner.hh"
 
+#include <algorithm>
+
 #include <sdf/Root.hh>
 
 #include "ignition/common/Profiler.hh"
