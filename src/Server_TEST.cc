@@ -34,6 +34,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
@@ -58,6 +59,12 @@ class ServerFixture : public ::testing::TestWithParam<int>
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
 {
+  // Always override to the default config, in case
+  // a user has customized their installed config
+  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/include/ignition/gazebo/server.config");
+  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, validPath));
+
   ignition::gazebo::ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
@@ -89,9 +96,7 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_EQ(3u, *server.EntityCount());
   EXPECT_TRUE(server.HasEntity("default"));
 
-  // Default server configuration has zero plugins,
-  //
-  EXPECT_EQ(0u, *server.SystemCount());
+  EXPECT_EQ(3u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////

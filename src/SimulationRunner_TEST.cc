@@ -1150,7 +1150,7 @@ TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
   // ServerConfig will fall back to environment variable
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
     "/test/worlds/server_valid2.config");
-  ASSERT_EQ(0, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
   ServerConfig serverConfig;
 
   // Create simulation runner

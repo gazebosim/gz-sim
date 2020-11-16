@@ -146,7 +146,8 @@ TEST(parsePluginsFromFile, playbackConfig)
 //////////////////////////////////////////////////
 TEST(loadPluginInfo, fromEmptyEnv)
 {
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, ""));
+  // Set environment to something that doesn't exist
+  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, "foo"));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
