@@ -24,6 +24,38 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+TEST(Vector2Test, Construction)
+{
+  math::Vector2d vec(1, 0);
+
+  // Copy constructor
+  math::Vector2d vec2(vec);
+  EXPECT_EQ(vec2, vec);
+
+  // Copy operator
+  math::Vector2d vec3;
+  vec3 = vec;
+  EXPECT_EQ(vec3, vec);
+
+  // Move constructor
+  math::Vector2d vec4(std::move(vec));
+  EXPECT_EQ(vec4, vec2);
+  vec = vec4;
+  EXPECT_EQ(vec, vec2);
+
+  // Move operator
+  math::Vector2d vec5;
+  vec5 = std::move(vec2);
+  EXPECT_EQ(vec5, vec3);
+  vec2 = vec5;
+  EXPECT_EQ(vec2, vec3);
+
+  // Inequality
+  math::Vector2d vec6;
+  EXPECT_NE(vec6, vec3);
+}
+
+/////////////////////////////////////////////////
 TEST(Vector2Test, Vector2)
 {
   {
@@ -43,6 +75,14 @@ TEST(Vector2Test, Vector2)
   // ::Normalize
   v.Normalize();
   EXPECT_TRUE(v == math::Vector2d(0.447214, 0.894427));
+
+  // ::Rounded
+  v.Set(3.55, 8.49);
+  EXPECT_TRUE(v.Rounded() == math::Vector2d(4, 8));
+
+  // ::Round
+  v.Round();
+  EXPECT_TRUE(v == math::Vector2d(4, 8));
 
   // ::Set
   v.Set(4, 5);
@@ -116,7 +156,6 @@ TEST(Vector2Test, Vector2)
   v.Set(10, 6);
   v *= math::Vector2d(2, 4);
   EXPECT_TRUE(v == math::Vector2d(20, 24));
-
 
   // ::IsFinite
   EXPECT_TRUE(v.IsFinite());
@@ -264,7 +303,7 @@ TEST(Vector2Test, OperatorStreamOut)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector2dTest, Add)
+TEST(Vector2Test, Add)
 {
   math::Vector2d vec1(0.1, 0.2);
   math::Vector2d vec2(1.1, 2.2);
@@ -305,7 +344,7 @@ TEST(Vector2dTest, Add)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector2dTest, Sub)
+TEST(Vector2Test, Sub)
 {
   math::Vector2d vec1(0.1, 0.2);
   math::Vector2d vec2(1.1, 2.2);
@@ -383,7 +422,7 @@ TEST(Vector2Test, Multiply)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector2dTest, Length)
+TEST(Vector2Test, Length)
 {
   // Zero vector
   EXPECT_DOUBLE_EQ(math::Vector2d::Zero.Length(), 0.0);

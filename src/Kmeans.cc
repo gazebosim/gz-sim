@@ -15,8 +15,10 @@
  *
 */
 
-#include <iostream>
 #include <ignition/math/Kmeans.hh>
+
+#include <iostream>
+
 #include <ignition/math/Rand.hh>
 #include "KmeansPrivate.hh"
 
@@ -147,7 +149,7 @@ bool Kmeans::Cluster(int _k,
         this->dataPtr->sums[i] / this->dataPtr->counters[i];
     }
   }
-  while (changed > (this->dataPtr->obs.size() >> 10));
+  while (changed > (this->dataPtr->obs.size() >> 10)); // NOLINT
 
   _centroids = this->dataPtr->centroids;
   _labels = this->dataPtr->labels;

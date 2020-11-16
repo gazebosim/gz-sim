@@ -32,7 +32,7 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Cylinder Cylinder.hh ignition/math/Cylinder.hh
-    /// \brief A represntation of a cylinder.
+    /// \brief A representation of a cylinder.
     ///
     /// The cylinder class supports defining a cylinder with a radius,
     /// length, rotational offset, and material properties. Radius and
