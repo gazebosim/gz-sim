@@ -799,14 +799,18 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
     }
-
-    ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
-    if (ret.empty())
-    {
-      // This may be desired behavior, but warn just in case.
-      ignwarn << "Loaded IGN_HOME config, but no plugins found\n";
-    }
   }
+
+  ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
+
+  if (ret.empty())
+  {
+    // This may be desired behavior, but warn just in case.
+    ignwarn << "Loaded IGN_HOME config, but no plugins found\n";
+  }
+
+  igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
+    "[" << defaultConfig << "]\n";
 
   return ret;
 }
