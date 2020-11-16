@@ -16,6 +16,9 @@
 */
 #include "PeerTracker.hh"
 
+#include <algorithm>
+#include <utility>
+
 using namespace ignition;
 using namespace gazebo;
 
