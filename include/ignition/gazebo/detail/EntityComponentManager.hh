@@ -61,7 +61,7 @@ namespace traits
 /// false.
 /// For doubles, `ignition::math::equal` will be used.
 template<typename DataType>
-auto CompareData = [&](const DataType &_a, const DataType &_b) -> bool
+auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 {
   if constexpr (std::is_same<DataType, double>::value)
   {
