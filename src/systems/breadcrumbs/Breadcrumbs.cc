@@ -15,9 +15,14 @@
  *
  */
 
+#include "Breadcrumbs.hh"
+
 #include <ignition/msgs/empty.pb.h>
 
+#include <algorithm>
 #include <iterator>
+#include <string>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 
@@ -37,8 +42,6 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
-
-#include "Breadcrumbs.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -71,6 +74,12 @@ void Breadcrumbs::Configure(const Entity &_entity,
       _sdf->Get<bool>("allow_renaming", this->allowRenaming).first;
 
   this->model = Model(_entity);
+  if (!this->model.Valid(_ecm))
+  {
+    ignerr << "The Breadcrumbs system should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
 
   if (!_sdf->HasElement("breadcrumb"))
   {
@@ -156,6 +165,15 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       std::copy(this->pendingCmds.begin(), this->pendingCmds.end(),
                 std::back_inserter(cmds));
       this->pendingCmds.clear();
+    }
+    // Check that the model is valid before continuing. This check is needed
+    // because the model associated with the Breadcrumbs might have been
+    // unloaded by the level manager. Ideally, this system would have been
+    // unloaded along with the model, but that is not currently the case. See
+    // issue #113
+    if (!this->model.Valid(_ecm))
+    {
+      return;
     }
 
     auto poseComp = _ecm.Component<components::Pose>(this->model.Entity());

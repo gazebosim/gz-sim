@@ -15,6 +15,12 @@
  *
  */
 
+#include "WheelSlip.hh"
+
+#include <map>
+#include <string>
+#include <vector>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -27,8 +33,6 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/SlipComplianceCmd.hh"
-
-#include "WheelSlip.hh"
 
 using namespace ignition;
 using namespace gazebo;
