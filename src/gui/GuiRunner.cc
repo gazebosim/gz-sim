@@ -90,6 +90,13 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 {
   this->OnState(_res);
 
+  // todo(anyone) store reqSrv string in a member variable and use it here
+  // and in RequestState()
+  std::string id = std::to_string(gui::App()->applicationPid());
+  std::string reqSrv =
+      this->node.Options().NameSpace() + "/" + id + "/state_async";
+  this->node.UnadvertiseSrv(reqSrv);
+
   // Only subscribe to periodic updates after receiving initial state
   if (this->node.SubscribedTopics().empty())
     this->node.Subscribe(this->stateTopic, &GuiRunner::OnState, this);

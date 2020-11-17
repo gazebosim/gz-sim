@@ -78,12 +78,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  /// \return True if successful.
-  // public: bool StateAsyncService(ignition::msgs::Empty &_req);
-  public: void StateAsyncService(
-      // ignition::msgs::Empty &_req, ignition::msgs::Boolean &_res);
-      // ignition::msgs::Empty &_req);
-      const ignition::msgs::StringMsg &_req);
+  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
