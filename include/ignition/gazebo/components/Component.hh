@@ -359,7 +359,7 @@ namespace components
     /// \param[in] _eql Equality comparison function. This function should
     /// return true if two instances of DataType are equal.
     /// \param[in} _ecm Pointer to the entity component manager.
-    /// \return True if the _eql function returns true.
+    /// \return True if the _eql function returns false.
     public: bool SetData(const DataType &_data,
                 const std::function<
                   bool(const DataType &, const DataType &)> &_eql);
