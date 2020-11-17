@@ -21,6 +21,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Ignition Fuel app.
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation
+* \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 
 **Migration from Gazebo-classic**
 
