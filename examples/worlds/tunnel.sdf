@@ -173,10 +173,9 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
-    <!-- The base station / staging area -->
     <include>
       <static>true</static>
-      <name>BaseStation</name>
+      <name>staging_area</name>
       <pose>0 0 -0.005 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/subt_tunnel_staging_area</uri>
     </include>
