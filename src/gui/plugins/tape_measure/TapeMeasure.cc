@@ -19,6 +19,7 @@
 #include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -216,7 +217,7 @@ void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
 /////////////////////////////////////////////////
 bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::HoverToScene::kType)
+  if (_event->type() == ignition::gui::events::HoverToScene::kType)
   {
     auto hoverToSceneEvent =
         reinterpret_cast<gui::events::HoverToScene *>(_event);
@@ -240,7 +241,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::LeftClickToScene::kType)
+  else if (_event->type() == ignition::gui::events::LeftClickToScene::kType)
   {
     auto leftClickToSceneEvent =
         reinterpret_cast<gui::events::LeftClickToScene *>(_event);
