@@ -103,6 +103,8 @@ ToolBar {
     }
     Text {
       text: qsTr(" Distance (m): " + distance.toFixed(3))
+      font.pointSize: 14
+      color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
     }
   }
 }

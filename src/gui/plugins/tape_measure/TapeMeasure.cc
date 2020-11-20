@@ -45,18 +45,18 @@ namespace ignition::gazebo
     public: bool measure = false;
 
     /// \brief The id of the start point marker.
-    public: int startPointId = 1;
+    public: const int kStartPointId = 1;
 
     /// \brief The id of the end point marker.
-    public: int endPointId = 2;
+    public: const int kEndPointId = 2;
 
     /// \brief The id of the line marker.
-    public: int lineId = 3;
+    public: const int kLineId = 3;
 
     /// \brief The id of the start or end point marker that is currently
     /// being placed. This is primarily used to track the state machine of
     /// the plugin.
-    public: int currentId = startPointId;
+    public: int currentId = kStartPointId;
 
     /// \brief The location of the placed starting point of the tape measure
     /// tool, only set when the user clicks to set the point.
@@ -69,11 +69,13 @@ namespace ignition::gazebo
 
     /// \brief The color to set the marker when hovering the mouse over the
     /// scene.
-    public: ignition::math::Color hoverColor{ignition::math::Color(0.2, 0.2, 0.2, 0.5)};
+    public: ignition::math::Color
+            hoverColor{ignition::math::Color(0.2, 0.2, 0.2, 0.5)};
 
     /// \brief The color to draw the marker when the user clicks to confirm
     /// its location.
-    public: ignition::math::Color drawColor{ignition::math::Color(0.2, 0.2, 0.2, 1.0)};
+    public: ignition::math::Color
+            drawColor{ignition::math::Color(0.2, 0.2, 0.2, 1.0)};
 
     /// \brief A set of the currently placed markers.  Used to make sure a
     /// non-existent marker is not deleted.
@@ -128,11 +130,11 @@ void TapeMeasure::OnReset()
 /////////////////////////////////////////////////
 void TapeMeasure::Reset()
 {
-  this->DeleteMarker(this->dataPtr->startPointId);
-  this->DeleteMarker(this->dataPtr->endPointId);
-  this->DeleteMarker(this->dataPtr->lineId);
+  this->DeleteMarker(this->dataPtr->kStartPointId);
+  this->DeleteMarker(this->dataPtr->kEndPointId);
+  this->DeleteMarker(this->dataPtr->kLineId);
 
-  this->dataPtr->currentId = this->dataPtr->startPointId;
+  this->dataPtr->currentId = this->dataPtr->kStartPointId;
   this->dataPtr->startPoint = ignition::math::Vector3d::Zero;
   this->dataPtr->endPoint = ignition::math::Vector3d::Zero;
   this->dataPtr->distance = 0.0;
@@ -223,9 +225,9 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 
       // If the user is currently choosing the end point, draw the connecting
       // line and update the new distance.
-      if (this->dataPtr->currentId == this->dataPtr->endPointId)
+      if (this->dataPtr->currentId == this->dataPtr->kEndPointId)
       {
-        this->DrawLine(this->dataPtr->lineId, this->dataPtr->startPoint,
+        this->DrawLine(this->dataPtr->kLineId, this->dataPtr->startPoint,
           point, this->dataPtr->hoverColor);
         this->dataPtr->distance = this->dataPtr->startPoint.Distance(point);
         this->newDistance();
@@ -245,7 +247,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       this->DrawPoint(this->dataPtr->currentId, point,
         this->dataPtr->drawColor);
       // If the user is placing the start point, update its position
-      if (this->dataPtr->currentId == this->dataPtr->startPointId)
+      if (this->dataPtr->currentId == this->dataPtr->kStartPointId)
       {
         this->dataPtr->startPoint = point;
       }
@@ -255,14 +257,14 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       {
         this->dataPtr->endPoint = point;
         this->dataPtr->measure = false;
-        this->DrawLine(this->dataPtr->lineId, this->dataPtr->startPoint,
+        this->DrawLine(this->dataPtr->kLineId, this->dataPtr->startPoint,
           this->dataPtr->endPoint, this->dataPtr->drawColor);
         this->dataPtr->distance =
           this->dataPtr->startPoint.Distance(this->dataPtr->endPoint);
         this->newDistance();
         QGuiApplication::restoreOverrideCursor();
       }
-      this->dataPtr->currentId = this->dataPtr->endPointId;
+      this->dataPtr->currentId = this->dataPtr->kEndPointId;
     }
   }
 

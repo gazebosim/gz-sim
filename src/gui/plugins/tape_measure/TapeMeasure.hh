@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_GUI_TAPEMEASURE_HH_
 #define IGNITION_GAZEBO_GUI_TAPEMEASURE_HH_
 
+#include <memory>
+
 #include <ignition/gui/Plugin.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Color.hh>
