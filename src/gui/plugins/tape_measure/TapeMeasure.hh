@@ -19,7 +19,7 @@
 
 #include <ignition/gui/Plugin.hh>
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/Vector4.hh>
+#include <ignition/math/Color.hh>
 
 namespace ignition
 {
@@ -58,7 +58,7 @@ namespace gazebo
     /// \param[in] _color The rgba color to set the marker
     public: void DrawPoint(int _id,
                 ignition::math::Vector3d &_point,
-                ignition::math::Vector4d &_color);
+                ignition::math::Color &_color);
 
     /// \brief Draws a line marker.  Called to display the line between the
     /// start and end point of the tape measure.
@@ -69,7 +69,7 @@ namespace gazebo
     public: void DrawLine(int _id,
                 ignition::math::Vector3d &_startPoint,
                 ignition::math::Vector3d &_endPoint,
-                ignition::math::Vector4d &_color);
+                ignition::math::Color &_color);
 
     /// \brief Callback in Qt thread when the new measurement button is
     /// clicked.

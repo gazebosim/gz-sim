@@ -14,20 +14,25 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/marker.pb.h>
-
-#include <iostream>
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "TapeMeasure.hh"
+
+#include <iostream>
+#include <unordered_set>
+#include <string>
+#include <memory>
+
+#include <ignition/common/Console.hh>
+#include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
+#include <ignition/gui/MainWindow.hh>
+#include <ignition/msgs/marker.pb.h>
+#include <ignition/msgs/Utility.hh>
+#include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/Publisher.hh>
 
 namespace ignition::gazebo
 {
@@ -64,13 +69,11 @@ namespace ignition::gazebo
 
     /// \brief The color to set the marker when hovering the mouse over the
     /// scene.
-    public: ignition::math::Vector4d hoverColor =
-            ignition::math::Vector4d(0.2, 0.2, 0.2, 0.5);
+    public: ignition::math::Color hoverColor{ignition::math::Color(0.2, 0.2, 0.2, 0.5)};
 
     /// \brief The color to draw the marker when the user clicks to confirm
     /// its location.
-    public: ignition::math::Vector4d drawColor =
-            ignition::math::Vector4d(0.2, 0.2, 0.2, 1.0);
+    public: ignition::math::Color drawColor{ignition::math::Color(0.2, 0.2, 0.2, 1.0)};
 
     /// \brief A set of the currently placed markers.  Used to make sure a
     /// non-existent marker is not deleted.
@@ -162,7 +165,7 @@ void TapeMeasure::DeleteMarker(int _id)
 
 /////////////////////////////////////////////////
 void TapeMeasure::DrawPoint(int _id,
-    ignition::math::Vector3d &_point, ignition::math::Vector4d &_color)
+    ignition::math::Vector3d &_point, ignition::math::Color &_color)
 {
   this->DeleteMarker(_id);
 
@@ -171,16 +174,10 @@ void TapeMeasure::DrawPoint(int _id,
   markerMsg.set_id(_id);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::SPHERE);
+  ignition::msgs::Set(markerMsg.mutable_material()->mutable_ambient(), _color);
+  ignition::msgs::Set(markerMsg.mutable_material()->mutable_diffuse(), _color);
   ignition::msgs::Set(markerMsg.mutable_scale(),
     ignition::math::Vector3d(0.1, 0.1, 0.1));
-  markerMsg.mutable_material()->mutable_ambient()->set_r(_color[0]);
-  markerMsg.mutable_material()->mutable_ambient()->set_g(_color[1]);
-  markerMsg.mutable_material()->mutable_ambient()->set_b(_color[2]);
-  markerMsg.mutable_material()->mutable_ambient()->set_a(_color[3]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_r(_color[0]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_g(_color[1]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_b(_color[2]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_a(_color[3]);
   ignition::msgs::Set(markerMsg.mutable_pose(),
     ignition::math::Pose3d(_point.X(), _point.Y(), _point.Z(), 0, 0, 0));
 
@@ -190,7 +187,7 @@ void TapeMeasure::DrawPoint(int _id,
 
 /////////////////////////////////////////////////
 void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
-    ignition::math::Vector3d &_endPoint, ignition::math::Vector4d &_color)
+    ignition::math::Vector3d &_endPoint, ignition::math::Color &_color)
 {
   this->DeleteMarker(_id);
 
@@ -199,14 +196,8 @@ void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
   markerMsg.set_id(_id);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
-  markerMsg.mutable_material()->mutable_ambient()->set_r(_color[0]);
-  markerMsg.mutable_material()->mutable_ambient()->set_g(_color[1]);
-  markerMsg.mutable_material()->mutable_ambient()->set_b(_color[2]);
-  markerMsg.mutable_material()->mutable_ambient()->set_a(_color[3]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_r(_color[0]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_g(_color[1]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_b(_color[2]);
-  markerMsg.mutable_material()->mutable_diffuse()->set_a(_color[3]);
+  ignition::msgs::Set(markerMsg.mutable_material()->mutable_ambient(), _color);
+  ignition::msgs::Set(markerMsg.mutable_material()->mutable_diffuse(), _color);
   ignition::msgs::Set(markerMsg.add_point(), _startPoint);
   ignition::msgs::Set(markerMsg.add_point(), _endPoint);
 
@@ -220,7 +211,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == ignition::gui::events::HoverToScene::kType)
   {
     auto hoverToSceneEvent =
-        reinterpret_cast<gui::events::HoverToScene *>(_event);
+        reinterpret_cast<ignition::gui::events::HoverToScene *>(_event);
 
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -244,7 +235,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
   else if (_event->type() == ignition::gui::events::LeftClickToScene::kType)
   {
     auto leftClickToSceneEvent =
-        reinterpret_cast<gui::events::LeftClickToScene *>(_event);
+        reinterpret_cast<ignition::gui::events::LeftClickToScene *>(_event);
 
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here

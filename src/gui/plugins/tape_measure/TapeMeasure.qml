@@ -25,16 +25,8 @@ import "qrc:/qml"
 
 ToolBar {
   id: tapeMeasure
-  Layout.minimumWidth: 200
+  Layout.minimumWidth: 250
   Layout.minimumHeight: 100
-
-  property color snapTitle: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade900) :
-    Material.color(Material.Grey, Material.Shade200)
-
-  property color snapItem: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade800) :
-    Material.color(Material.Grey, Material.Shade100)
 
   property var distance: 0.0
 
