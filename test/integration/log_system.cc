@@ -707,6 +707,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Create temp directory to store log
   this->CreateLogsDir();
 
+  // Used to count the expected number of poses recorded. Counting is necessary
+  // as the number varied depending on the CPU load.
+  int expectedPoseCount = 0;
   // Record
   {
     // World with moving entities
@@ -725,6 +728,23 @@ TEST_F(LogSystemTest, RecordAndPlayback)
     recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
     Server recordServer(recordServerConfig);
 
+    std::chrono::steady_clock::time_point lastPoseTime;
+    const int poseHz = 60;
+    const std::chrono::duration<double> msgPeriod{1.0 / poseHz};
+    // This system counts the expected number of poses recorded by reproducing
+    // the throttle mechanism used by ign-transport.
+    test::Relay recordedPoseCounter;
+    recordedPoseCounter.OnPostUpdate(
+        [&](const UpdateInfo &, const EntityComponentManager &)
+        {
+          auto tNow = std::chrono::steady_clock::now();
+          if ((tNow - lastPoseTime) > msgPeriod)
+          {
+            lastPoseTime = tNow;
+            ++expectedPoseCount;
+          }
+        });
+    recordServer.AddSystem(recordedPoseCounter.systemPtr);
     // Run for a few seconds to record different poses
     recordServer.Run(true, 1000, false);
   }
@@ -814,98 +834,84 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Callback function for entities played back
   // Compare current pose being played back with the pose with the closest
   //   timestamp in the recorded file.
-  std::function<void(const msgs::Pose_V &)> msgCb =
-      [&](const msgs::Pose_V &_playedMsg) -> void
-  {
-    // Playback continues even after the log file is over
-    if (batch.end() == recordedIter)
-      return;
+  test::Relay playbackPoseTester;
+  playbackPoseTester.OnPostUpdate(
+      [&](const UpdateInfo &_info, const EntityComponentManager &_ecm)
+      {
+        // Playback continues even after the log file is over
+        if (batch.end() == recordedIter)
+          return;
 
-    ASSERT_TRUE(_playedMsg.has_header());
-    ASSERT_TRUE(_playedMsg.header().has_stamp());
-    EXPECT_EQ(0, _playedMsg.header().stamp().sec());
+        // Get next recorded message
+        EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
+        recordedMsg.ParseFromString(recordedIter->Data());
 
-    // Get next recorded message
-    EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
-    recordedMsg.ParseFromString(recordedIter->Data());
+        ASSERT_TRUE(recordedMsg.has_header());
+        ASSERT_TRUE(recordedMsg.header().has_stamp());
+        EXPECT_EQ(0, recordedMsg.header().stamp().sec());
 
-    ASSERT_TRUE(recordedMsg.has_header());
-    ASSERT_TRUE(recordedMsg.header().has_stamp());
-    EXPECT_EQ(0, recordedMsg.header().stamp().sec());
+        // Log clock timestamp matches message timestamp
+        EXPECT_EQ(recordedMsg.header().stamp().nsec(),
+            recordedIter->TimeReceived().count());
 
-    // Log clock timestamp matches message timestamp
-    EXPECT_EQ(recordedMsg.header().stamp().nsec(),
-        recordedIter->TimeReceived().count());
+        // A recorded messages is matched when its timestamp is within 100us
+        // of the current iteration's sim time.
+        if (std::abs((_info.simTime - recordedIter->TimeReceived()).count()) >
+            100000)
+        {
+          return;
+        }
 
-    // Dynamic poses are throttled according to real time during playback,
-    // so we can't guarantee the exact timestamp as recorded.
-    EXPECT_NEAR(_playedMsg.header().stamp().nsec(),
-        recordedMsg.header().stamp().nsec(), 100000000);
+        // Has 6 dynamic entities: 4 in dbl pendulum and 2 in nested model
+        EXPECT_EQ(6, recordedMsg.pose_size());
 
-    // Loop through all recorded poses, update map
-    std::map<std::string, msgs::Pose> entityRecordedPose;
-    for (int i = 0; i < recordedMsg.pose_size(); ++i)
-    {
-      entityRecordedPose[recordedMsg.pose(i).name()] = recordedMsg.pose(i);
-    }
+        // Loop through all recorded poses, and check them against the
+        // playedback poses.
+        for (int i = 0; i < recordedMsg.pose_size(); ++i)
+        {
+          const math::Pose3d &poseRecorded = msgs::Convert(recordedMsg.pose(i));
+          const std::string &name = recordedMsg.pose(i).name();
 
-    // Has 6 dynamic entities: 4 in dbl pendulum and 2 in nested model
-    EXPECT_EQ(6, _playedMsg.pose().size());
-    EXPECT_EQ(6u, entityRecordedPose.size());
+          auto entity = _ecm.EntityByComponents(
+              components::Name(recordedMsg.pose(i).name()));
+          ASSERT_NE(kNullEntity, entity);
+          auto poseComp = _ecm.Component<components::Pose>(entity);
+          ASSERT_NE(nullptr, poseComp);
+          const auto &posePlayed = poseComp->Data();
 
-    // Loop through all entities and compare played poses to recorded ones
-    for (int i = 0; i < _playedMsg.pose_size(); ++i)
-    {
-      auto posePlayed = msgs::Convert(_playedMsg.pose(i));
-      auto poseRecorded = msgs::Convert(
-          entityRecordedPose[_playedMsg.pose(i).name()]);
+          EXPECT_NEAR(posePlayed.Pos().X(), poseRecorded.Pos().X(), 0.1)
+            << name;
+          EXPECT_NEAR(posePlayed.Pos().Y(), poseRecorded.Pos().Y(), 0.1)
+            << name;
+          EXPECT_NEAR(posePlayed.Pos().Z(), poseRecorded.Pos().Z(), 0.1)
+            << name;
 
-      EXPECT_NEAR(posePlayed.Pos().X(), poseRecorded.Pos().X(), 0.1)
-          << _playedMsg.pose(i).name();
-      EXPECT_NEAR(posePlayed.Pos().Y(), poseRecorded.Pos().Y(), 0.1)
-          << _playedMsg.pose(i).name();
-      EXPECT_NEAR(posePlayed.Pos().Z(), poseRecorded.Pos().Z(), 0.1)
-          << _playedMsg.pose(i).name();
+          EXPECT_NEAR(posePlayed.Rot().Roll(), poseRecorded.Rot().Roll(), 0.1)
+            << name;
+          EXPECT_NEAR(posePlayed.Rot().Pitch(), poseRecorded.Rot().Pitch(), 0.1)
+            << name;
+          EXPECT_NEAR(posePlayed.Rot().Yaw(), poseRecorded.Rot().Yaw(), 0.1)
+            << name;
+        }
 
-      EXPECT_NEAR(posePlayed.Rot().Roll(), poseRecorded.Rot().Roll(), 0.1)
-          << _playedMsg.pose(i).name();
-      EXPECT_NEAR(posePlayed.Rot().Pitch(), poseRecorded.Rot().Pitch(), 0.1)
-          << _playedMsg.pose(i).name();
-      EXPECT_NEAR(posePlayed.Rot().Yaw(), poseRecorded.Rot().Yaw(), 0.1)
-          << _playedMsg.pose(i).name();
-    }
+        ++recordedIter;
+      });
 
-    ++recordedIter;
-    nTotal++;
-  };
+  playServer.AddSystem(playbackPoseTester.systemPtr);
 
-  // Subscribe to ignition topic and compare to logged poses
-  transport::Node node;
-  // TODO(louise) The world name should match the recorded world
-  node.Subscribe("/world/default/dynamic_pose/info", msgCb);
+  // Playback a subset of the log file and check for poses. Note: the poses are
+  // checked in the playbackPoseTester
+  playServer.Run(true, 500, false);
 
-  int playbackSteps = 500;
-  int poseHz = 60;
-  int expectedPoseCount = playbackSteps * 1e-3 / (1.0/poseHz);
-  // Run for a few seconds to play back different poses
-  playServer.Run(true, playbackSteps, false);
+  // Count the total number of pose messages in the log file
+  for (auto it = batch.begin(); it != batch.end(); ++it, ++nTotal) { }
 
-  int sleep = 0;
-  int maxSleep = 30;
-  for (; nTotal < expectedPoseCount && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_NE(maxSleep, sleep);
-
-  #if !defined (__APPLE__)
-  /// \todo(anyone) there seems to be a race condition that sometimes cause an
-  /// additional messages to be published by the scene broadcaster
-  // 60Hz
-  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1)
+  // The expectedPoseCount might be off by ±2 because the ign transport's
+  // throttle mechanism (which is used by the SceneBroadcaster when publishing
+  // poses) uses real-time
+  EXPECT_LE(std::abs(nTotal - expectedPoseCount), 2)
       << "nTotal [" << nTotal << "] expectedPoseCount [" << expectedPoseCount
       << "]";
-  #endif
 
   this->RemoveLogsDir();
 }
