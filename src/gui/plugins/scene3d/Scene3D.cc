@@ -2567,7 +2567,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->HandleKeyRelease(keyEvent);
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
