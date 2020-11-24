@@ -34,11 +34,6 @@ ToolBar {
     distance = TapeMeasure.Distance();
   }
 
-  function startMeasurement() {
-    TapeMeasure.OnReset();
-    TapeMeasure.OnMeasure();
-  }
-
   Connections {
     target: TapeMeasure
     onNewDistance: {
@@ -52,11 +47,6 @@ ToolBar {
 
   ButtonGroup {
     id: group
-  }
-
-  Shortcut {
-    sequence: "M"
-    onActivated: startMeasurement()
   }
 
   RowLayout {

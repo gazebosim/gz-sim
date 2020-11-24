@@ -41,7 +41,7 @@ namespace ignition::gazebo
     /// \brief Ignition communication node.
     public: transport::Node node;
 
-    /// \brief True if currently measure, else false.
+    /// \brief True if currently measuring, else false.
     public: bool measure = false;
 
     /// \brief The id of the start point marker.
@@ -111,10 +111,18 @@ void TapeMeasure::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild<ignition::gui::MainWindow *>
       ()->installEventFilter(this);
+  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+      ()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 void TapeMeasure::OnMeasure()
+{
+  this->Measure();
+}
+
+/////////////////////////////////////////////////
+void TapeMeasure::Measure()
 {
   this->Reset();
   this->dataPtr->measure = true;
@@ -267,7 +275,24 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->currentId = this->dataPtr->kEndPointId;
     }
   }
-
+  else if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent && keyEvent->key() == Qt::Key_M)
+    {
+      this->Reset();
+      this->Measure();
+    }
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent && keyEvent->key() == Qt::Key_Escape &&
+        this->dataPtr->measure)
+    {
+      this->Reset();
+    }
+  }
   return QObject::eventFilter(_obj, _event);
 }
 

@@ -53,6 +53,10 @@ namespace gazebo
     /// measurement.
     public: void Reset();
 
+    /// \brief Starts a new measurement.  Erases any previous measurement in
+    /// progress or already made.
+    public: void Measure();
+
     /// \brief Draws a point marker.  Called to display the start and end
     /// point of the tape measure.
     /// \param[in] _id The id of the marker
