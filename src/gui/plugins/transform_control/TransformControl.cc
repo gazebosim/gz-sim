@@ -245,7 +245,11 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->activateRotate();
     }
-    else if (keyEvent->key() == Qt::Key_Escape)
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent->key() == Qt::Key_Escape)
     {
       this->activateSelect();
     }
