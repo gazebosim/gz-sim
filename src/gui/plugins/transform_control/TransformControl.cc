@@ -96,6 +96,8 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild<ignition::gui::MainWindow *>
       ()->installEventFilter(this);
+  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+      ()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -232,6 +234,23 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->snapToGrid = false;
     }
   }
+  else if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent->key() == Qt::Key_T)
+    {
+      this->activateTranslate();
+    }
+    else if (keyEvent->key() == Qt::Key_R)
+    {
+      this->activateRotate();
+    }
+    else if (keyEvent->key() == Qt::Key_Escape)
+    {
+      this->activateSelect();
+    }
+  }
+
   return QObject::eventFilter(_obj, _event);
 }
 
