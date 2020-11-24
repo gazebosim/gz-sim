@@ -2,6 +2,34 @@
 
 ## Ignition Math 6.x.x
 
+## Ignition Math 6.7.0 (2020-1X-XX)
+
+1. Capsule: new shape class with inertia calculation method
+    * [Pull request 163](https://github.com/ignitionrobotics/ign-math/pull/163)
+
+1. Add missing header to Color.hh
+    * [Pull request 162](https://github.com/ignitionrobotics/ign-math/pull/162)
+
+1. Improve tests of `Vector2`, `Vector3`, `Vector4`, `Quaternion`, and `Pose3`
+    * [Pull request 172](https://github.com/ignitionrobotics/ign-math/pull/172)
+    * [Pull request 173](https://github.com/ignitionrobotics/ign-math/pull/173)
+    * [Pull request 174](https://github.com/ignitionrobotics/ign-math/pull/174)
+    * [Issue 76](https://github.com/ignitionrobotics/ign-math/issues/76)
+
+1. Pose3: document `operator*`
+    * [Pull request 170](https://github.com/ignitionrobotics/ign-math/pull/170)
+
+1. Quaternion: add Normalized() method
+    * [Pull request 169](https://github.com/ignitionrobotics/ign-math/pull/169)
+
+1. Vector2: add Round(), Rounded() methods
+    * [Pull request 166](https://github.com/ignitionrobotics/ign-math/pull/166)
+    * [Issue 71](https://github.com/ignitionrobotics/ign-math/issues/71)
+
+1. Add test for printing `inf` `Vector3`
+    * [Pull request 168](https://github.com/ignitionrobotics/ign-math/pull/168)
+    * [Issue 64](https://github.com/ignitionrobotics/ign-math/issues/64)
+
 ## Ignition Math 6.6.0 (2020-09-16)
 
 1. Add chrono duration helper functions
