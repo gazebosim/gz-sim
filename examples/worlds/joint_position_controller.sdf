@@ -26,12 +26,7 @@
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="z">0</property>
-          <anchor line="right" target="window" target_line="right"/>
-          <anchor line="left" target="window" target_line="left"/>
-          <anchor line="top" target="window" target_line="top"/>
-          <anchor line="bottom" target="window" target_line="bottom"/>
+          <property type="string" key="state">docked</property>
         </ignition-gui>
 
         <engine>ogre</engine>
@@ -50,8 +45,12 @@
           <property type="double" key="height">72</property>
           <property type="double" key="width">121</property>
           <property type="double" key="z">1</property>
-          <anchor line="left" target="window" target_line="left"/>
-          <anchor line="bottom" target="window" target_line="bottom"/>
+          
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
         </ignition-gui>
 
         <play_pause>true</play_pause>
