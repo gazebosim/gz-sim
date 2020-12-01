@@ -20,6 +20,7 @@
 
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
@@ -27,6 +28,8 @@
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
@@ -405,6 +408,49 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
+  }
+  else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath());
+    if (fullPath.empty())
+    {
+      ignerr << "Heightmap geometry missing URI" << std::endl;
+      return geom;
+    }
+
+    auto data = std::make_shared<common::ImageHeightmap>();
+    if (data->Load(fullPath) < 0)
+    {
+      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
+             << std::endl;
+      return geom;
+    }
+
+    rendering::HeightmapDescriptor descriptor;
+    descriptor.data = data;
+    descriptor.size = _geom.HeightmapShape()->Size();
+    descriptor.sampling = _geom.HeightmapShape()->Sampling();
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
+    {
+      auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
+      rendering::HeightmapDescriptor::Texture textureDesc;
+      textureDesc.size = textureSdf->Size();
+      textureDesc.diffuse = asFullPath(textureSdf->Diffuse(), _geom.FilePath());
+      textureDesc.normal = asFullPath(textureSdf->Normal(), _geom.FilePath());
+      descriptor.textures.push_back(textureDesc);
+    }
+
+    // Heightmaps aren't geometries on ign-rendering. Instead of being attached
+    // to visuals, they're attached directly to the scene. So `geom` will
+    // be null and this is enough to attach it.
+    auto heightmap = this->dataPtr->scene->CreateHeightmap(descriptor);
+    if (nullptr == heightmap)
+    {
+      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+    }
+    scale = _geom.HeightmapShape()->Size();
   }
   else
   {

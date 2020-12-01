@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
@@ -390,6 +391,72 @@ TEST(Conversions, GeometryPlane)
   ASSERT_NE(nullptr, newGeometry.PlaneShape());
   EXPECT_EQ(math::Vector2d(1, 2), newGeometry.PlaneShape()->Size());
   EXPECT_EQ(math::Vector3d::UnitY, newGeometry.PlaneShape()->Normal());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryHeightmap)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::HEIGHTMAP);
+
+  sdf::Heightmap heightmap;
+  heightmap.SetUri("file://heights.png");
+  heightmap.SetSize(ignition::math::Vector3d(1, 2, 3));
+  heightmap.SetPosition(ignition::math::Vector3d(4, 5, 6));
+  heightmap.SetUseTerrainPaging(true);
+  heightmap.SetSampling(16u);
+
+  sdf::HeightmapTexture texture;
+  texture.SetDiffuse("file://diffuse.png");
+  texture.SetNormal("file://normal.png");
+  texture.SetSize(1.23);
+  heightmap.AddTexture(texture);
+
+  sdf::HeightmapBlend blend;
+  blend.SetMinHeight(123.456);
+  blend.SetFadeDistance(456.789);
+  heightmap.AddBlend(blend);
+
+  geometry.SetHeightmapShape(heightmap);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+
+  EXPECT_EQ(msgs::Geometry::HEIGHTMAP, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_heightmap());
+  EXPECT_EQ(math::Vector3d(1, 2, 3),
+      msgs::Convert(geometryMsg.heightmap().size()));
+  EXPECT_EQ("file://heights.png", geometryMsg.heightmap().filename());
+  EXPECT_TRUE(geometryMsg.heightmap().use_terrain_paging());
+  EXPECT_EQ(16u, geometryMsg.heightmap().sampling());
+
+  ASSERT_EQ(1, geometryMsg.heightmap().texture().size());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.heightmap().texture(0).size());
+  EXPECT_EQ("file://diffuse.png", geometryMsg.heightmap().texture(0).diffuse());
+  EXPECT_EQ("file://normal.png", geometryMsg.heightmap().texture(0).normal());
+
+  ASSERT_EQ(1, geometryMsg.heightmap().blend().size());
+  EXPECT_DOUBLE_EQ(123.456, geometryMsg.heightmap().blend(0).min_height());
+  EXPECT_DOUBLE_EQ(456.789, geometryMsg.heightmap().blend(0).fade_dist());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+
+  EXPECT_EQ(sdf::GeometryType::HEIGHTMAP, newGeometry.Type());
+
+  auto newHeightmap = newGeometry.HeightmapShape();
+  ASSERT_NE(nullptr, newHeightmap);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), newHeightmap->Size());
+  EXPECT_EQ("file://heights.png", newHeightmap->Uri());
+  EXPECT_TRUE(newHeightmap->UseTerrainPaging());
+  EXPECT_EQ(16u, newHeightmap->Sampling());
+
+  ASSERT_EQ(1u, newHeightmap->TextureCount());
+  EXPECT_DOUBLE_EQ(1.23, newHeightmap->TextureByIndex(0)->Size());
+  EXPECT_EQ("file://diffuse.png", newHeightmap->TextureByIndex(0)->Diffuse());
+  EXPECT_EQ("file://normal.png", newHeightmap->TextureByIndex(0)->Normal());
+
+  ASSERT_EQ(1u, newHeightmap->BlendCount());
+  EXPECT_DOUBLE_EQ(123.456, newHeightmap->BlendByIndex(0)->MinHeight());
+  EXPECT_DOUBLE_EQ(456.789, newHeightmap->BlendByIndex(0)->FadeDistance());
 }
 
 /////////////////////////////////////////////////

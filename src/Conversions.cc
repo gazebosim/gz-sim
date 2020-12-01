@@ -22,6 +22,7 @@
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/heightmapgeom.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/actor.pb.h>
@@ -48,6 +49,7 @@
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
@@ -181,6 +183,39 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
+  else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
+  {
+    auto heightmapSdf = _in.HeightmapShape();
+
+    out.set_type(msgs::Geometry::HEIGHTMAP);
+    auto heightmapMsg = out.mutable_heightmap();
+
+    heightmapMsg->set_filename(asFullPath(heightmapSdf->Uri(),
+        heightmapSdf->FilePath()));
+    msgs::Set(heightmapMsg->mutable_size(), heightmapSdf->Size());
+    msgs::Set(heightmapMsg->mutable_origin(), heightmapSdf->Position());
+    heightmapMsg->set_use_terrain_paging(heightmapSdf->UseTerrainPaging());
+    heightmapMsg->set_sampling(heightmapSdf->Sampling());
+
+    for (auto i = 0u; i < heightmapSdf->TextureCount(); ++i)
+    {
+      auto textureSdf = heightmapSdf->TextureByIndex(i);
+      auto textureMsg = heightmapMsg->add_texture();
+      textureMsg->set_size(textureSdf->Size());
+      textureMsg->set_diffuse(asFullPath(textureSdf->Diffuse(),
+          heightmapSdf->FilePath()));
+      textureMsg->set_normal(asFullPath(textureSdf->Normal(),
+          heightmapSdf->FilePath()));
+    }
+
+    for (auto i = 0u; i < heightmapSdf->BlendCount(); ++i)
+    {
+      auto blendSdf = heightmapSdf->BlendByIndex(i);
+      auto blendMsg = heightmapMsg->add_blend();
+      blendMsg->set_min_height(blendSdf->MinHeight());
+      blendMsg->set_fade_dist(blendSdf->FadeDistance());
+    }
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -243,6 +278,38 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
     meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
 
     out.SetMeshShape(meshShape);
+  }
+  else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
+  {
+    out.SetType(sdf::GeometryType::HEIGHTMAP);
+    sdf::Heightmap heightmapShape;
+
+    heightmapShape.SetUri(_in.heightmap().filename());
+    heightmapShape.SetSize(msgs::Convert(_in.heightmap().size()));
+    heightmapShape.SetPosition(msgs::Convert(_in.heightmap().origin()));
+    heightmapShape.SetUseTerrainPaging(_in.heightmap().use_terrain_paging());
+    heightmapShape.SetSampling(_in.heightmap().sampling());
+
+    for (int i = 0; i < _in.heightmap().texture_size(); ++i)
+    {
+      auto textureMsg = _in.heightmap().texture(i);
+      sdf::HeightmapTexture textureSdf;
+      textureSdf.SetSize(textureMsg.size());
+      textureSdf.SetDiffuse(textureMsg.diffuse());
+      textureSdf.SetNormal(textureMsg.normal());
+      heightmapShape.AddTexture(textureSdf);
+    }
+
+    for (int i = 0; i < _in.heightmap().blend_size(); ++i)
+    {
+      auto blendMsg = _in.heightmap().blend(i);
+      sdf::HeightmapBlend blendSdf;
+      blendSdf.SetMinHeight(blendMsg.min_height());
+      blendSdf.SetFadeDistance(blendMsg.fade_dist());
+      heightmapShape.AddBlend(blendSdf);
+    }
+
+    out.SetHeightmapShape(heightmapShape);
   }
   else
   {
