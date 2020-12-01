@@ -2,7 +2,7 @@
 <!--
 
 Showcase a world with sky enabled.
-Currently only suppored using ogre2 rendering engine plugin.
+Currently only supported using ogre2 rendering engine plugin.
 
 -->
 
@@ -119,7 +119,7 @@ Currently only suppored using ogre2 rendering engine plugin.
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
       <specular>0.8 0.8 0.8 1</specular>
-      <direction>-0.5 0.1 -0.9</direction>
+      <direction>0.0 0.6 -0.9</direction>
     </light>
 
     <model name="ground_plane">
