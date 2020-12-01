@@ -711,3 +711,36 @@ TEST_F(PosePublisherTest, StaticPoseUpdateFrequency)
     EXPECT_NEAR(100.0, freq, 10.0);
   }
 }
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest, NestedModelLoadPlugin)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/nested_model.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  poseMsgs.clear();
+
+  // test that the pose publisher plugin can be loaded by a nested model
+  // by subscribe to the its topic
+  transport::Node node;
+  node.Subscribe(std::string("/model/model_00/model/model_01/pose"), &poseCb);
+
+  // Run server
+  unsigned int iters = 1000u;
+  server.Run(true, iters, false);
+
+  // Wait for messages to be received
+  int sleep = 0;
+  while (poseMsgs.empty() && sleep++ < 300)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  EXPECT_TRUE(!poseMsgs.empty());
+}
