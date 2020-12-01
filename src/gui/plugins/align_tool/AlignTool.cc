@@ -93,10 +93,10 @@ AlignTool::AlignTool()
   : GuiSystem(), dataPtr(std::make_unique<AlignToolPrivate>())
 {
   // Deselect all entities upon loading plugin
-  auto deselectEvent = new gui::events::DeselectAllEntities(true);
+  gui::events::DeselectAllEntities deselectEvent(true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      deselectEvent);
+      &deselectEvent);
 }
 
 /////////////////////////////////////////////////
