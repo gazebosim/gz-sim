@@ -437,9 +437,20 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
       rendering::HeightmapDescriptor::Texture textureDesc;
       textureDesc.size = textureSdf->Size();
-      textureDesc.diffuse = asFullPath(textureSdf->Diffuse(), _geom.FilePath());
-      textureDesc.normal = asFullPath(textureSdf->Normal(), _geom.FilePath());
+      textureDesc.diffuse = asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath());
+      textureDesc.normal = asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath());
       descriptor.textures.push_back(textureDesc);
+    }
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->BlendCount(); ++i)
+    {
+      auto blendSdf = _geom.HeightmapShape()->BlendByIndex(i);
+      rendering::HeightmapDescriptor::Blend blendDesc;
+      blendDesc.minHeight = blendSdf->MinHeight();
+      blendDesc.fadeDistance = blendSdf->FadeDistance();
+      descriptor.blends.push_back(blendDesc);
     }
 
     // Heightmaps aren't geometries on ign-rendering. Instead of being attached
