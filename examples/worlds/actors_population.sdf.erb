@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <!--
-  To generate sdf file using this erb template, run `erb -T 1 actors_population.sdf.erb > actors_population.sdf`
+  To generate sdf file using this erb template,
+  run `erb actors_population.sdf.erb > actors_population.sdf`
+  To specify number of actors,
+  run `erb r=10 c=10 actors_population.sdf.erb > actors_population.sdf`
+  where `r` means row, `c` means column, and population = r * c.
 -->
 <sdf version="1.6">
   <world name="actors">
@@ -133,18 +137,27 @@
       </link>
     </model>
 
-    <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-    </include>
-
     <%
-      # number of population
-      total = 10
-      for i in (0..total-1)
-        for j in (1..total)
+      vars = ARGV.take_while {|arg| arg[/^\w+=/]}
+      ARGV.slice!(0, vars.size)
+      vars.each do |var|
+      k, v = var.split('=', 2)
+      TOPLEVEL_BINDING.eval %Q(#{k} = "#{v}")
+      end
+      # population = column * row, default to 100 actors
+      column = 10
+      row = 10
+      if (defined? c)
+        column = c.to_i
+      end
+      for j in (0..column-1)
+        if (defined? r)
+          row = r.to_i
+        end
+        for i in (0..row-1)
     %>
 
-    <actor name="actor_<%= 10*i+j %>">
+    <actor name="actor_<%= j*column + i %>">
       <skin>
         <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
@@ -157,14 +170,14 @@
       <script>
         <loop>true</loop>
         <auto_start>true</auto_start>
-        <trajectory id="<%= 10*i+j %>" type="talk_b">
+        <trajectory id="<%= j*column + i %>" type="talk_b">
           <waypoint>
             <time>0</time>
-            <pose><%= -5 + 2*j %> <%= 5 + -2*i %> 1.0 0 0 0</pose>
+            <pose><%= -(row/2) + i %> <%= j %> 1.0 0 0 0</pose>
           </waypoint>
           <waypoint>
             <time>30</time>
-            <pose><%= -5 + 2*j %> <%= 5 + -2*i %> 1.0 0 0 0</pose>
+            <pose><%= -(row/2) + i %> <%= j %> 1.0 0 0 0</pose>
           </waypoint>
         </trajectory>
       </script>

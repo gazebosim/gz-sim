@@ -87,7 +87,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3
+ign_find_package(ignition-physics3 VERSION 3.1
   COMPONENTS
     mesh
     sdf
@@ -171,3 +171,7 @@ ign_create_docs(
    "${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}"
    "${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}"
 )
+
+if(TARGET doc)
+  file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
+endif()

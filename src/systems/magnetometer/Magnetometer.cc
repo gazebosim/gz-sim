@@ -15,6 +15,12 @@
  *
  */
 
+#include "Magnetometer.hh"
+
+#include <string>
+#include <unordered_map>
+#include <utility>
+
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -35,8 +41,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "Magnetometer.hh"
 
 using namespace ignition;
 using namespace gazebo;
