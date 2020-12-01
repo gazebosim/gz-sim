@@ -32,15 +32,17 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains linear velocity of an entity
-  /// represented by ignition::math::Vector3d.
+  // \brief A component type that contains the commanded linear velocity of an
+  /// entity represented by ignition::math::Vector3d, expressed in the entity's
+  /// frame.
   using LinearVelocityCmd = Component<
     math::Vector3d, class LinearVelocityCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.LinearVelocityCmd", LinearVelocityCmd)
 
-  /// \brief A component type that contains linear velocity of an entity in the
-  /// world frame represented by ignition::math::Vector3d.
+  /// \brief A component type that contains the commanded linear velocity of an
+  /// entity represented by ignition::math::Vector3d, expressed in the world
+  /// frame.
   using WorldLinearVelocityCmd =
       Component<math::Vector3d, class WorldLinearVelocityCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
