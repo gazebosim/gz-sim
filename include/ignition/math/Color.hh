@@ -265,8 +265,7 @@ namespace ignition
         {
           _in >> _pt.a;
         }
-        else
-        if (!_in.fail())
+        else if (!_in.fail())
         {
           _pt.a = 1.0;
         }
