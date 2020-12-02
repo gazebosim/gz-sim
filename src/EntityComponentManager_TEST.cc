@@ -63,6 +63,15 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Even", Even)
 
 using Odd = components::Component<components::NoData, class OddTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
+
+struct Custom
+{
+  int dummy{123};
+};
+
+using CustomComponent = components::Component<Custom, class CustomTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CustomComponent",
+    CustomComponent)
 }
 }
 }
@@ -451,15 +460,21 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
   Entity eInt = manager.CreateEntity();
   Entity eDouble = manager.CreateEntity();
   Entity eIntDouble = manager.CreateEntity();
-  EXPECT_EQ(3u, manager.EntityCount());
+  Entity ePose = manager.CreateEntity();
+  Entity eCustom = manager.CreateEntity();
+  EXPECT_EQ(5u, manager.EntityCount());
 
   // Add components of different types to each entity
   manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
   manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
   manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
   manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  manager.CreateComponent<components::Pose>(ePose,
+      components::Pose({1, 2, 3, 0, 0, 0}));
+  manager.CreateComponent<CustomComponent>(eCustom,
+      CustomComponent(Custom()));
 
-  // Get component values
+  // Get and set component values
   {
     const auto *value = manager.Component<IntComponent>(eInt);
     ASSERT_NE(nullptr, value);
@@ -467,6 +482,12 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
 
     auto data = manager.ComponentData<IntComponent>(eInt);
     EXPECT_EQ(123, data);
+
+    EXPECT_TRUE(manager.SetComponentData<IntComponent>(eInt, 456));
+    data = manager.ComponentData<IntComponent>(eInt);
+    EXPECT_EQ(456, data);
+
+    EXPECT_FALSE(manager.SetComponentData<IntComponent>(eInt, 456));
   }
 
   {
@@ -476,6 +497,12 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
 
     auto data = manager.ComponentData<DoubleComponent>(eDouble);
     EXPECT_EQ(0.123, data);
+
+    EXPECT_TRUE(manager.SetComponentData<DoubleComponent>(eDouble, 0.456));
+    data = manager.ComponentData<DoubleComponent>(eDouble);
+    EXPECT_EQ(0.456, data);
+
+    EXPECT_FALSE(manager.SetComponentData<DoubleComponent>(eDouble, 0.456));
   }
 
   {
@@ -485,6 +512,12 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
 
     auto data = manager.ComponentData<IntComponent>(eIntDouble);
     EXPECT_EQ(456, data);
+
+    EXPECT_TRUE(manager.SetComponentData<IntComponent>(eIntDouble, 789));
+    data = manager.ComponentData<IntComponent>(eIntDouble);
+    EXPECT_EQ(789, data);
+
+    EXPECT_FALSE(manager.SetComponentData<IntComponent>(eIntDouble, 789));
   }
 
   {
@@ -494,6 +527,45 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
 
     auto data = manager.ComponentData<DoubleComponent>(eIntDouble);
     EXPECT_EQ(0.456, data);
+
+    EXPECT_TRUE(manager.SetComponentData<DoubleComponent>(eIntDouble, 0.789));
+    data = manager.ComponentData<DoubleComponent>(eIntDouble);
+    EXPECT_EQ(0.789, data);
+
+    EXPECT_FALSE(manager.SetComponentData<DoubleComponent>(eIntDouble, 0.789));
+  }
+
+  {
+    const auto *value = manager.Component<components::Pose>(ePose);
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), value->Data());
+
+    auto data = manager.ComponentData<components::Pose>(ePose);
+    EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), data);
+
+    EXPECT_TRUE(manager.SetComponentData<components::Pose>(ePose,
+        {4, 5, 6, 0, 0, 0}));
+    data = manager.ComponentData<components::Pose>(ePose);
+    EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), data);
+
+    EXPECT_FALSE(manager.SetComponentData<components::Pose>(ePose,
+        {4, 5, 6, 0, 0, 0}));
+  }
+
+  {
+    const auto *value = manager.Component<CustomComponent>(eCustom);
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(123, value->Data().dummy);
+
+    auto data = manager.ComponentData<CustomComponent>(eCustom);
+    EXPECT_EQ(123, data->dummy);
+
+    EXPECT_TRUE(manager.SetComponentData<CustomComponent>(eCustom, {456}));
+    data = manager.ComponentData<CustomComponent>(eCustom);
+    EXPECT_EQ(456, data->dummy);
+
+    // No equality operator, always returns true
+    EXPECT_TRUE(manager.SetComponentData<CustomComponent>(eCustom, {456}));
   }
 
   // Failure cases
@@ -527,6 +599,23 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
 
     auto data = manager.ComponentData<DoubleComponent>(999);
     EXPECT_EQ(std::nullopt, data);
+  }
+
+  // Set new component type
+  {
+    const auto *value = manager.Component<IntComponent>(eDouble);
+    EXPECT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<IntComponent>(eDouble);
+    EXPECT_EQ(std::nullopt, data);
+
+    EXPECT_TRUE(manager.SetComponentData<IntComponent>(eDouble, 123));
+
+    value = manager.Component<IntComponent>(eDouble);
+    ASSERT_NE(nullptr, value);
+
+    data = manager.ComponentData<IntComponent>(eDouble);
+    EXPECT_EQ(123, data);
   }
 }
 
