@@ -358,7 +358,7 @@ namespace ignition
                 double kelvin;
                 _in >> kelvin;
 
-                _temp.SetKelvin(kelvin);
+                if (!_in.fail()) _temp.SetKelvin(kelvin);
                 return _in;
               }
 

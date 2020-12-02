@@ -739,7 +739,7 @@ namespace ignition
         _in.setf(std::ios_base::skipws);
         T x, y, z;
         _in >> x >> y >> z;
-        _pt.Set(x, y, z);
+        if (!_in.fail()) _pt.Set(x, y, z);
         return _in;
       }
 

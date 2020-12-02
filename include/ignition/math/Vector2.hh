@@ -561,7 +561,7 @@ namespace ignition
         // Skip white spaces
         _in.setf(std::ios_base::skipws);
         _in >> x >> y;
-        _pt.Set(x, y);
+        if (!_in.fail()) _pt.Set(x, y);
         return _in;
       }
 

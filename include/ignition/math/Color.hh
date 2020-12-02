@@ -257,15 +257,16 @@ namespace ignition
         _in.setf(std::ios_base::skipws);
         _in >> _pt.r >> _pt.g >> _pt.b;
         // Since alpha is optional, check if it's there before parsing
-        while (!_in.eof() && std::isspace(_in.peek()))
+        while (_in.good() && std::isspace(_in.peek()))
         {
           _in.get();
         }
-        if (!_in.eof())
+        if (_in.good())
         {
           _in >> _pt.a;
         }
         else
+        if (!_in.fail())
         {
           _pt.a = 1.0;
         }

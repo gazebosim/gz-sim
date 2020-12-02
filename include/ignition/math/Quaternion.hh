@@ -1064,7 +1064,7 @@ namespace ignition
         _in.setf(std::ios_base::skipws);
         _in >> roll >> pitch >> yaw;
 
-        _q.Euler(Vector3<T>(*roll, *pitch, *yaw));
+        if (!_in.fail()) _q.Euler(Vector3<T>(*roll, *pitch, *yaw));
 
         return _in;
       }
