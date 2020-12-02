@@ -477,7 +477,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       {
         material->SetTexture(fullPath);
         // Use alpha channel for transparency
-        // material->SetAlphaFromTexture(true);
+        material->SetAlphaFromTexture(true);
       }
       else
         ignerr << "Unable to find file [" << albedoMap << "]\n";
@@ -515,22 +515,6 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
         material->SetEmissiveMap(fullPath);
       else
         ignerr << "Unable to find file [" << emissiveMap << "]\n";
-    }
-
-    // light map
-    std::string lightMap = workflow->LightMap();
-    if (!lightMap.empty())
-    {
-      std::string fullPath = common::findFile(lightMap);
-      if (!fullPath.empty())
-      {
-        unsigned int uvSet = workflow->LightMapTexCoordSet();
-        material->SetLightMap(fullPath, uvSet);
-      }
-      else
-      {
-        ignerr << "Unable to find file [" << lightMap << "]\n";
-      }
     }
   }
   return material;
