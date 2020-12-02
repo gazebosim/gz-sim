@@ -733,9 +733,9 @@ TEST_F(LogSystemTest, RecordAndPlayback)
             ++expectedPoseCount;
           }
         });
-    recordServer.AddSystem(recordedPoseCounter.systemPtr);
     // Run for a few seconds to record different poses
     Server recordServer(recordServerConfig);
+    recordServer.AddSystem(recordedPoseCounter.systemPtr);
     recordServer.Run(true, 1000, false);
   }
 
