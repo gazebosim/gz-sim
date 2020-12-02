@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
 #include <sdf/Root.hh>
 
 #include <ignition/transport/Node.hh>

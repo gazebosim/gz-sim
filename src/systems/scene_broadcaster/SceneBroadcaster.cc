@@ -15,10 +15,13 @@
  *
 */
 
+#include "SceneBroadcaster.hh"
+
 #include <ignition/msgs/scene.pb.h>
 
 #include <chrono>
 #include <condition_variable>
+#include <string>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
@@ -39,8 +42,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-
-#include "SceneBroadcaster.hh"
 
 using namespace std::chrono_literals;
 

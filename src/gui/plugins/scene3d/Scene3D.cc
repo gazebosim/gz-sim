@@ -15,12 +15,17 @@
  *
 */
 
-#include <condition_variable>
+#include "Scene3D.hh"
+
+#include <algorithm>
 #include <cmath>
+#include <condition_variable>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -61,8 +66,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
-
-#include "Scene3D.hh"
 
 /// \brief condition variable for lockstepping video recording
 /// todo(anyone) avoid using a global condition variable when we support
@@ -455,6 +458,14 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+  {
+    ignwarn << "Scene is null. The render step will not occur in Scene3D."
+      << std::endl;
+    return;
+  }
+
   this->dataPtr->renderThreadId = std::this_thread::get_id();
 
   IGN_PROFILE_THREAD_NAME("RenderThread");
@@ -490,7 +501,6 @@ void IgnRenderer::Render()
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
   {
-    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
     if (!target && !this->dataPtr->followTargetWait)
     {
@@ -611,7 +621,6 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
         rendering::NodePtr target = scene->NodeByName(
             this->dataPtr->moveToTarget);
         if (target)
@@ -667,7 +676,6 @@ void IgnRenderer::Render()
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::NodePtr target = scene->NodeByName(
           this->dataPtr->followTarget);
       if (target)
@@ -758,7 +766,6 @@ void IgnRenderer::Render()
     if (this->dataPtr->isSpawning)
     {
       // Generate spawn preview
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
       sdf::Root root;
       if (!this->dataPtr->spawnSdfString.empty())
@@ -1583,6 +1590,9 @@ void IgnRenderer::Initialize()
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+    return;
+
   auto root = scene->RootVisual();
 
   // Camera
@@ -1613,6 +1623,7 @@ void IgnRenderer::Destroy()
   auto scene = engine->SceneByName(this->dataPtr->renderUtil.SceneName());
   if (!scene)
     return;
+
   scene->DestroySensor(this->dataPtr->camera);
 
   // If that was the last sensor, destroy scene

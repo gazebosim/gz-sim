@@ -280,7 +280,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 
-1. Follow the [source install instruction](#source-install).
+1. Follow the [source install instructions](#source-install).
 
 2. Run tests.
 
@@ -289,6 +289,10 @@ Follow these steps to run tests and static code analysis in your clone of this r
     ```
 
 3. Static code checker.
+
+    ```
+    sudo apt-get update && sudo apt-get -y install cppcheck
+    ```
 
     ```
     make codecheck
