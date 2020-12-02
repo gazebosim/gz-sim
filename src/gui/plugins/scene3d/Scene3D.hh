@@ -620,6 +620,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the render window.
     public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
 
+    /// \brief Get whether the renderer is initialized. The renderer is
+    /// initialized when the context is created and the render thread is
+    /// started.
+    /// \return True if the renderer is initialized.
+    public: bool RendererInitialized() const;
+
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
 

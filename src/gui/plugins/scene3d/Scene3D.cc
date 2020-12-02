@@ -64,14 +64,10 @@
 
 #include "Scene3D.hh"
 
-/// \brife True if rendering has been initialized
-bool g_renderInit = false;
-
 /// \brief condition variable for lockstepping video recording
+/// todo(anyone) avoid using a global condition variable when we support
+/// multiple viewports in the future.
 std::condition_variable g_renderCv;
-
-/// \brief mutex for lockstepping video recording
-std::mutex g_renderMutex;
 
 Q_DECLARE_METATYPE(std::string)
 
@@ -364,6 +360,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
 
+    //// \brief Set to true after the renderer is initialized
+    public: bool rendererInit = false;
+
     //// \brief List of threads
     public: static QList<QThread *> threads;
   };
@@ -415,6 +414,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief mutex to protect the recording variable
     public: std::mutex recordMutex;
+
+    /// \brief mutex to protect the render condition variable
+    /// Used when recording in lockstep mode.
+    public: std::mutex renderMutex;
   };
 }
 }
@@ -2164,7 +2167,13 @@ void RenderWindowItem::Ready()
   this->dataPtr->renderThread->start();
   this->update();
 
-  g_renderInit = true;
+  this->dataPtr->rendererInit = true;
+}
+
+/////////////////////////////////////////////////
+bool RenderWindowItem::RendererInitialized() const
+{
+  return this->dataPtr->rendererInit;
 }
 
 /////////////////////////////////////////////////
@@ -2579,9 +2588,9 @@ void Scene3D::Update(const UpdateInfo &_info,
   // ECM updates with GUI rendering during video recording
   std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
   if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep &&
-      g_renderInit)
+      renderWindow->RendererInitialized())
   {
-    std::unique_lock<std::mutex> lock2(g_renderMutex);
+    std::unique_lock<std::mutex> lock2(this->dataPtr->renderMutex);
     g_renderCv.wait(lock2);
   }
 }
