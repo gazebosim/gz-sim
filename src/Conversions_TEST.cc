@@ -218,6 +218,7 @@ TEST(Conversions, Material)
   workflow.SetEmissiveMap("emissive_map.png");
   workflow.SetGlossinessMap("dummy_glossiness_map.png");
   workflow.SetSpecularMap("dummy_specular_map.png");
+  workflow.SetLightMap("light_map.png", 1u);
   workflow.SetMetalness(0.3);
   workflow.SetRoughness(0.9);
   workflow.SetGlossiness(0.1);
@@ -247,6 +248,11 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", pbrMsg.ambient_occlusion_map());
   EXPECT_EQ("dummy_glossiness_map.png", pbrMsg.glossiness_map());
   EXPECT_EQ("dummy_specular_map.png", pbrMsg.specular_map());
+
+  // todo(anyone) add light_map to material.proto
+  EXPECT_EQ("light_map.png", materialMsg.header().data(0).value(0));
+  EXPECT_EQ(1, std::stoi(materialMsg.header().data(0).value(1)));
+
   EXPECT_DOUBLE_EQ(0.3, pbrMsg.metalness());
   EXPECT_DOUBLE_EQ(0.9, pbrMsg.roughness());
   EXPECT_DOUBLE_EQ(0.1, pbrMsg.glossiness());
@@ -272,6 +278,8 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", newWorkflow->AmbientOcclusionMap());
   EXPECT_EQ("dummy_glossiness_map.png", newWorkflow->GlossinessMap());
   EXPECT_EQ("dummy_specular_map.png", newWorkflow->SpecularMap());
+  EXPECT_EQ("light_map.png", newWorkflow->LightMap());
+  EXPECT_EQ(1u, newWorkflow->LightMapTexCoordSet());
   EXPECT_DOUBLE_EQ(0.3, newWorkflow->Metalness());
   EXPECT_DOUBLE_EQ(0.9, newWorkflow->Roughness());
   EXPECT_DOUBLE_EQ(0.1, newWorkflow->Glossiness());
