@@ -324,41 +324,9 @@ TEST_P(DiffDriveTest, OdomFrameId)
 
   server.SetUpdatePeriod(0ns);
 
-  // Create a system that records the vehicle poses
-  test::Relay testSystem;
-
-  std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
-    {
-      auto id = _ecm.EntityByComponents(
-        components::Model(),
-        components::Name("vehicle"));
-      EXPECT_NE(kNullEntity, id);
-
-      auto poseComp = _ecm.Component<components::Pose>(id);
-      ASSERT_NE(nullptr, poseComp);
-
-      poses.push_back(poseComp->Data());
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check that vehicle didn't move
-  server.Run(true, 1000, false);
-
-  EXPECT_EQ(1000u, poses.size());
-
-  for (const auto &pose : poses)
-  {
-    EXPECT_EQ(poses[0], pose);
-  }
-
-  // Publish command and check that vehicle moved
-  double period{1.0};
-  double lastMsgTime{1.0};
-  std::vector<math::Pose3d> odomPoses;
+  unsigned int odomPosesCount=0;
   std::function<void(const msgs::Odometry &)> odomCb =
-    [&](const msgs::Odometry &_msg)
+    [&odomPosesCount](const msgs::Odometry &_msg)
     {
       ASSERT_TRUE(_msg.has_header());
       ASSERT_TRUE(_msg.header().has_stamp());
@@ -371,7 +339,7 @@ TEST_P(DiffDriveTest, OdomFrameId)
       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
       EXPECT_STREQ(_msg.header().data(1).value().Get(0).c_str(), "vehicle/chassis");
 
-      odomPoses.push_back(msgs::Convert(_msg.pose()));
+      odomPosesCount++;
     };
 
   transport::Node node;
@@ -384,14 +352,14 @@ TEST_P(DiffDriveTest, OdomFrameId)
 
   pub.Publish(msg);
 
-  server.Run(true, 3000, false);
+  server.Run(true, 10, false);
 
-  // Poses for 4s
-  EXPECT_EQ(4000u, poses.size());
+  // Poses for 10 iterations
+  EXPECT_EQ(10u, odomPosesCount);
 
   int sleep = 0;
   int maxSleep = 30;
-  for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
+  for (; odomPosesCount < 3 && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -412,41 +380,10 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
 
   server.SetUpdatePeriod(0ns);
 
-  // Create a system that records the vehicle poses
-  test::Relay testSystem;
 
-  std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
-    {
-      auto id = _ecm.EntityByComponents(
-        components::Model(),
-        components::Name("vehicle"));
-      EXPECT_NE(kNullEntity, id);
-
-      auto poseComp = _ecm.Component<components::Pose>(id);
-      ASSERT_NE(nullptr, poseComp);
-
-      poses.push_back(poseComp->Data());
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check that vehicle didn't move
-  server.Run(true, 1000, false);
-
-  EXPECT_EQ(1000u, poses.size());
-
-  for (const auto &pose : poses)
-  {
-    EXPECT_EQ(poses[0], pose);
-  }
-
-  // Publish command and check that vehicle moved
-  double period{1.0};
-  double lastMsgTime{1.0};
-  std::vector<math::Pose3d> odomPoses;
+  unsigned int odomPosesCount=0;
   std::function<void(const msgs::Odometry &)> odomCb =
-    [&](const msgs::Odometry &_msg)
+    [&odomPosesCount](const msgs::Odometry &_msg)
     {
       ASSERT_TRUE(_msg.has_header());
       ASSERT_TRUE(_msg.header().has_stamp());
@@ -459,27 +396,21 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
       EXPECT_STREQ(_msg.header().data(1).value().Get(0).c_str(), "base_footprint");
 
-      odomPoses.push_back(msgs::Convert(_msg.pose()));
+      odomPosesCount++;
     };
 
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
   node.Subscribe("/model/vehicle/odometry", odomCb);
 
-  msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+  server.Run(true, 10, false);
 
-  pub.Publish(msg);
-
-  server.Run(true, 3000, false);
-
-  // Poses for 4s
-  EXPECT_EQ(4000u, poses.size());
+  // Poses for 10 iterations
+  EXPECT_EQ(10u, odomPosesCount);
 
   int sleep = 0;
   int maxSleep = 30;
-  for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
+  for (; odomPosesCount < 3 && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
