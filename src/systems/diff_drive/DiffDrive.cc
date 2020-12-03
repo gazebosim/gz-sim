@@ -272,10 +272,10 @@ void DiffDrive::Configure(const Entity &_entity,
       odomTopic);
 
   if (_sdf->HasElement("frame_id"))
-    this->dataPtr->sdfFrameId=_sdf->Get<std::string>("frame_id");
+    this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
 
   if (_sdf->HasElement("child_frame_id"))
-    this->dataPtr->sdfChildFrameId=_sdf->Get<std::string>("child_frame_id");
+    this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
   ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
@@ -439,9 +439,10 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   // Set the frame id.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  if (this->sdfFrameId.empty()){
+  if (this->sdfFrameId.empty()) {
     frame->add_value(this->model.Name(_ecm) + "/odom");
-  }else{
+  }
+  else {
     frame->add_value(this->sdfFrameId);
   }
 
@@ -454,7 +455,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
       childFrame->set_key("child_frame_id");
       childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
     }
-  }else {
+  }
+  else {
     auto childFrame = msg.mutable_header()->add_data();
     childFrame->set_key("child_frame_id");
     childFrame->add_value(this->sdfChildFrameId);
