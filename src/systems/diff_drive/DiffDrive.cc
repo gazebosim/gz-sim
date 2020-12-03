@@ -442,7 +442,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   if (this->sdfFrameId.empty()) {
     frame->add_value(this->model.Name(_ecm) + "/odom");
   }
-  else {
+  else
+  {
     frame->add_value(this->sdfFrameId);
   }
 
@@ -456,7 +457,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
       childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
     }
   }
-  else {
+  else
+  {
     auto childFrame = msg.mutable_header()->add_data();
     childFrame->set_key("child_frame_id");
     childFrame->add_value(this->sdfChildFrameId);
