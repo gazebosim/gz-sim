@@ -352,18 +352,9 @@ TEST_P(DiffDriveTest, OdomFrameId)
 
   pub.Publish(msg);
 
-  server.Run(true, 10, false);
+  server.Run(true, 100, false);
 
-  // Poses for 10 iterations
-  EXPECT_EQ(10u, odomPosesCount);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  for (; odomPosesCount < 3 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_NE(maxSleep, sleep);
+  EXPECT_EQ(5u, odomPosesCount);
 }
 
 /////////////////////////////////////////////////
@@ -403,18 +394,9 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
   node.Subscribe("/model/vehicle/odometry", odomCb);
 
-  server.Run(true, 10, false);
+  server.Run(true, 100, false);
 
-  // Poses for 10 iterations
-  EXPECT_EQ(10u, odomPosesCount);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  for (; odomPosesCount < 3 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_NE(maxSleep, sleep);
+  EXPECT_EQ(5u, odomPosesCount);
 }
 
 // Run multiple times
