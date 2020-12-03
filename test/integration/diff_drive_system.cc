@@ -324,20 +324,22 @@ TEST_P(DiffDriveTest, OdomFrameId)
 
   server.SetUpdatePeriod(0ns);
 
-  unsigned int odomPosesCount=0;
+  unsigned int odomPosesCount = 0;
   std::function<void(const msgs::Odometry &)> odomCb =
     [&odomPosesCount](const msgs::Odometry &_msg)
     {
       ASSERT_TRUE(_msg.has_header());
       ASSERT_TRUE(_msg.header().has_stamp());
 
-      ASSERT_TRUE(_msg.header().data_size() > 1);
+      ASSERT_GT(_msg.header().data_size(), 1);
 
       EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(_msg.header().data(0).value().Get(0).c_str(), "vehicle/odom");
+      EXPECT_STREQ(
+            _msg.header().data(0).value().Get(0).c_str(), "vehicle/odom");
 
       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(_msg.header().data(1).value().Get(0).c_str(), "vehicle/chassis");
+      EXPECT_STREQ(
+            _msg.header().data(1).value().Get(0).c_str(), "vehicle/chassis");
 
       odomPosesCount++;
     };
@@ -371,21 +373,21 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
 
   server.SetUpdatePeriod(0ns);
 
-
-  unsigned int odomPosesCount=0;
+  unsigned int odomPosesCount = 0;
   std::function<void(const msgs::Odometry &)> odomCb =
     [&odomPosesCount](const msgs::Odometry &_msg)
     {
       ASSERT_TRUE(_msg.has_header());
       ASSERT_TRUE(_msg.header().has_stamp());
 
-      ASSERT_TRUE(_msg.header().data_size() > 1);
+      ASSERT_GT(_msg.header().data_size(), 1);
 
       EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
       EXPECT_STREQ(_msg.header().data(0).value().Get(0).c_str(), "odom");
 
       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(_msg.header().data(1).value().Get(0).c_str(), "base_footprint");
+      EXPECT_STREQ(
+            _msg.header().data(1).value().Get(0).c_str(), "base_footprint");
 
       odomPosesCount++;
     };
