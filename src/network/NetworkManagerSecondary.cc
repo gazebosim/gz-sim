@@ -121,7 +121,12 @@ void NetworkManagerSecondary::AsyncStepTask()
   {
     IGN_PROFILE("NetworkManagerSecondary::AsyncStepTaskLoop");
 
-    if (next_steps.size()) {
+    if (!next_steps.size()) {
+      std::lock_guard<std::mutex> guard{this->stepsMutex};
+      next_steps = std::move(this->steps);
+    }
+    while (next_steps.size() && (this->history.size() > 1 || first_run)) {
+      ignerr << "LOOP LOOP LOOP" << std::endl;
       auto next_step = next_steps.front();
       auto info = convert<UpdateInfo>(next_step.stats());
       auto it = this->history.find(info.iterations);
@@ -133,8 +138,10 @@ void NetworkManagerSecondary::AsyncStepTask()
           // Remove previous iterations, taking advantage of ordered map.
           this->history.erase(this->history.begin(), it);
         } else {
+          ignerr << "CLEARING HISTORY" << info.iterations << std::endl;
           this->history.clear(); // step size or sim time changed, flush history
           this->lastUpdateInfo = info;
+          // TODOI(ivanpauno): Reset the world state before clearing the history.
         }
       } else if (first_run) {
         this->lastUpdateInfo = info;
@@ -187,13 +194,13 @@ void NetworkManagerSecondary::AsyncStepTask()
           }
         }
       }
-    } else {
-      {
+      if (!next_steps.size()) {
         std::lock_guard<std::mutex> guard{this->stepsMutex};
         next_steps = std::move(this->steps);
       }
     }
     if (this->lastUpdateInfo.iterations < this->maxIteration) {
+      ignerr << "MAKING STEPS BOY" << std::endl;
       this->dataPtr->stepFunction(this->lastUpdateInfo);
 
       // Update state with all the performer's entities
@@ -228,8 +235,11 @@ void NetworkManagerSecondary::AsyncStepTask()
       this->lastUpdateInfo.simTime += this->lastUpdateInfo.dt;
       // TODO: realTime?
     } else if (next_steps.empty()) {
+      ignerr << "BORING ... I'M GOING TO SLEEP" << std::endl;
       std::unique_lock<std::mutex> guard{this->stepsMutex};
       this->moreStepsCv.wait(guard, [this]{return !this->steps.empty() || this->stopAsyncStepThread;});
+    } else {
+      ignerr << "NOT DOING STEPS, NOT SLEEPING, WTF (?)" << std::endl;
     }
   }
 }
