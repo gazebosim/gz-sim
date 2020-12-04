@@ -18,12 +18,18 @@
 #define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
 
 #include <atomic>
+#include <deque>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <tuple>
 #include <unordered_set>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/msgs/serialized_map.pb.h>
 #include <ignition/transport/Node.hh>
 
 #include "msgs/simulation_step.pb.h"
@@ -50,6 +56,8 @@ namespace ignition
           const NetworkConfig &_config,
           const NodeOptions &_options);
 
+      public: ~NetworkManagerSecondary();
+
       // Documentation inherited
       public: bool Ready() const override;
 
@@ -70,6 +78,9 @@ namespace ignition
       /// \param[in] _msg Step message.
       private: void OnStep(const private_msgs::SimulationStep &_msg);
 
+      /// \brief Task that will be executed asynchronously in a separated thread.
+      private: void AsyncStepTask();
+
       /// \brief Flag to control enabling/disabling simulation secondary.
       private: std::atomic<bool> enableSim {false};
 
@@ -81,6 +92,32 @@ namespace ignition
 
       /// \brief Collection of performers associated with this secondary.
       private: std::unordered_set<Entity> performers;
+
+      /// \brief Thread doing steps asynchronously.
+      private: std::thread steppingThread;
+
+      /// \brief Max iteration that the secondary can move ahead.
+      private: uint64_t maxIteration{0};
+
+      /// \brief Last (local) update info.
+      private: UpdateInfo lastUpdateInfo;
+
+      /// \brief Vector of received step messages.
+      private: std::deque<private_msgs::SimulationStep> steps;
+
+      /// \brief Mutex protecting `this->steps`.
+      private: std::mutex stepsMutex;
+
+      /// \brief Condition variable used to awake the thread doing steps.
+      private: std::condition_variable moreStepsCv;
+
+      /// \brief Boolean used to indicate that the thread doing asynchronous steps has to stop.
+      private: bool stopAsyncStepThread {false};
+
+      private: using Duration = std::chrono::steady_clock::duration;
+
+      /// \brief History of previous map states, needed to be able to rewind.
+      private: std::map<uint64_t, std::tuple<msgs::SerializedStateMap, Duration, Duration>> history;
     };
     }
   }  // namespace gazebo
