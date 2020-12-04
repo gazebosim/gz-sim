@@ -6,4 +6,3 @@ gz_add_system(wind-effects
     # Include ign-sensors for noise models
     ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
 )
-
