@@ -43,7 +43,7 @@ public:
   /// \return True if setup was successful, False if any of the components could not be created
   bool SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const;
 
-  /// \brief Set target of the joint that the controller will attemp to reach
+  /// \brief Set target of the joint that the controller will attempt to reach
   /// \param[in] _targetPoint Targets of all controlled joint
   /// \param[in] _jointIndex Index of the joint, used to determine what index of `_targetPoint`
   /// to use
@@ -176,7 +176,7 @@ public:
   /// where simulation time at the beginning of execution is used otherwise
   bool useHeaderStartTime;
 
-  /// \brief Flag that determines if all compenents required for control are already setup
+  /// \brief Flag that determines if all components required for control are already setup
   bool componentSetupFinished;
 };
 
@@ -235,13 +235,13 @@ void JointTrajectoryController::Configure(const Entity &_entity,
                                           EntityComponentManager &_ecm,
                                           EventManager & /*_eventManager*/)
 {
-  // Make sure the controller is attached to a valid plugin
+  // Make sure the controller is attached to a valid model
   const auto model = Model(_entity);
   if (!model.Valid(_ecm))
   {
     ignerr << "[JointTrajectoryController] Failed to initialize because [" << model.Name(_ecm)
            << "(Entity=" << _entity << ")] is not a model. Please make sure that"
-                                       "JointTrajectoryController is attached to a valid model.\n";
+                                       " JointTrajectoryController is attached to a valid model.\n";
     return;
   }
   ignmsg << "[JointTrajectoryController] Setting up controller for [" << model.Name(_ecm)
@@ -282,7 +282,7 @@ void JointTrajectoryController::Configure(const Entity &_entity,
   {
     trajectoryTopic = "/model/" + model.Name(_ecm) + "/joint_trajectory";
     ignmsg << "[JointTrajectoryController] No topic specified for joint trajectories,"
-              "defaulting to ["
+              " defaulting to ["
            << trajectoryTopic << "].\n";
   }
   else
@@ -463,8 +463,8 @@ void JointTrajectoryControllerPrivate::ConfigureJoint(
   case sdf::JointType::UNIVERSAL:
   {
     ignwarn << "[JointTrajectoryController] Joint [" << jointName << "(Entity=" << _entity
-            << ")] is of unsupported type. "
-            << "Only joints with a single axis are supported.\n";
+            << ")] is of unsupported type."
+            << " Only joints with a single axis are supported.\n";
     return;
   }
   default:
@@ -512,7 +512,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
   if (this->trajectory.status != Trajectory::Reached)
   {
     ignwarn << "[JointTrajectoryController] A new JointTrajectory message was received while"
-               " executing a previous trajectory.\n ";
+               " executing a previous trajectory.\n";
   }
 
   // Get start time of the trajectory from message header if desired
