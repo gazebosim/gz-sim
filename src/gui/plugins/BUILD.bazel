@@ -3,7 +3,6 @@ load(
     "qt_cc_binary",
     "qt_cc_library",
 )
-
 load(":gui_plugin.bzl", "ign_gazebo_gui_plugin")
 
 package(default_visibility = ["//visibility:public"])
@@ -16,40 +15,42 @@ genrule(
         "modules/TypeIcon.qml",
     ],
     outs = [
-        "qrc_EntityContextMenu.cpp"
+        "qrc_EntityContextMenu.cpp",
     ],
     cmd = "cd ign_gazebo/src/gui/plugins/modules && qtchooser -qt=5 -run-tool=rcc --name EntityContextMenu EntityContextMenu.qrc -o qrc_EntityContextMenu.cpp && cp qrc_EntityContextMenu.cpp ../../../../../$(OUTS)",
 )
 
 qt_cc_binary(
     name = "IgnGazebo/libEntityContextMenu.so",
-    srcs = ["modules/EntityContextMenu.cc",
-            "qrc_EntityContextMenu.cpp"],
+    srcs = [
+        "modules/EntityContextMenu.cc",
+        "qrc_EntityContextMenu.cpp",
+    ],
     hdrs = ["modules/EntityContextMenu.hh"],
+    includes = ["."],
     linkopts = [],
     linkshared = True,
-    includes = ["."],
     deps = [
-        "//sdformat",
-        "//ign_msgs",
         "//ign_common",
         "//ign_common/av",
         "//ign_common/events",
         "//ign_common/graphics",
         "//ign_common/profiler",
+        "//ign_gazebo",
+        "//ign_gui",
+        "//ign_msgs",
         "//ign_rendering",
         "//ign_rendering/ogre2",
         "//ign_transport",
-        "//ign_gui",
-        "//ign_gazebo:ign_gazebo",
+        "//sdformat",
         "@qt//:qt_core",
-        "@qt//:qt_network",
-        "@qt//:qt_widgets",
-        "@qt//:qt_quick_control",
-        "@qt//:qt_quick",
-        "@qt//:qt_qml",
         "@qt//:qt_gui",
+        "@qt//:qt_network",
         "@qt//:qt_opengl",
+        "@qt//:qt_qml",
+        "@qt//:qt_quick",
+        "@qt//:qt_quick_control",
+        "@qt//:qt_widgets",
     ],
 )
 
@@ -57,8 +58,8 @@ genrule(
     name = "module_copy",
     srcs = ["modules/qmldir"],
     outs = ["IgnGazebo/qmldir"],
-    output_to_bindir = True,
     cmd = "cp $< $@",
+    output_to_bindir = True,
 )
 
 genrule(
@@ -74,75 +75,78 @@ genrule(
 )
 
 ign_gazebo_gui_plugin(
-    name = "ComponentInspector", 
-    dirname = "component_inspector",
+    name = "ComponentInspector",
     srcs = ["component_inspector/ComponentInspector.cc"],
     hdrs = ["component_inspector/ComponentInspector.hh"],
+    dirname = "component_inspector",
     resources = [
         "component_inspector/ComponentInspector.qrc",
-        "component_inspector/plottable_icon.svg"] + 
-      glob(["component_inspector/*.qml"]),
-    deps = []
+        "component_inspector/plottable_icon.svg",
+    ] + glob([
+        "component_inspector/*.qml",
+    ]),
+    deps = [],
 )
 
 ign_gazebo_gui_plugin(
-    name = "EntityTree", 
-    dirname = "entity_tree",
+    name = "EntityTree",
     srcs = ["entity_tree/EntityTree.cc"],
     hdrs = ["entity_tree/EntityTree.hh"],
+    dirname = "entity_tree",
     resources = [
-        "entity_tree/EntityTree.qrc"] + 
-      glob(["entity_tree/EntityTree.qml"]),
-    deps = []
+        "entity_tree/EntityTree.qrc",
+    ] + glob([
+        "entity_tree/EntityTree.qml",
+    ]),
+    deps = [],
 )
 
 ign_gazebo_gui_plugin(
-    name = "TransformControl", 
-    dirname = "transform_control",
+    name = "TransformControl",
     srcs = ["transform_control/TransformControl.cc"],
     hdrs = ["transform_control/TransformControl.hh"],
+    dirname = "transform_control",
     resources = [
         "transform_control/TransformControl.qrc",
-        "transform_control/TransformControl.qml"
+        "transform_control/TransformControl.qml",
     ] + glob(["transform_control/*.png"]),
-    deps = []
+    deps = [],
 )
 
 qt_cc_binary(
     name = "libGzScene3D.so",
     srcs = [
-        "scene3d/Scene3D.cc",
         "qrc_GzScene3D.cpp",
+        "scene3d/Scene3D.cc",
     ],
     hdrs = [
         "scene3d/Scene3D.hh",
     ],
+    data = ["IgnGazebo/qmldir"],
+    includes = ["."],
     linkopts = ["-ltinyxml2"],
     linkshared = True,
-    includes = ["."],
-    data = ["IgnGazebo/qmldir"],
     deps = [
-        "//sdformat",
-        "//ign_msgs",
         "//ign_common",
         "//ign_common/av",
         "//ign_common/events",
         "//ign_common/graphics",
         "//ign_common/profiler",
+        "//ign_gazebo",
+        "//ign_gazebo:ign_gazebo_gui",
+        "//ign_gui",
+        "//ign_msgs",
         "//ign_rendering",
         "//ign_rendering/ogre2",
         "//ign_transport",
-        "//ign_gui",
-        "//ign_gazebo:ign_gazebo",
-        "//ign_gazebo:ign_gazebo_gui",
+        "//sdformat",
         "@qt//:qt_core",
-        "@qt//:qt_network",
-        "@qt//:qt_widgets",
-        "@qt//:qt_quick_control",
-        "@qt//:qt_quick",
-        "@qt//:qt_qml",
         "@qt//:qt_gui",
+        "@qt//:qt_network",
         "@qt//:qt_opengl",
+        "@qt//:qt_qml",
+        "@qt//:qt_quick",
+        "@qt//:qt_quick_control",
+        "@qt//:qt_widgets",
     ],
 )
-
