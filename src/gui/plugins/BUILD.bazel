@@ -1,0 +1,148 @@
+load(
+    "//ign_bazel:qt.bzl",
+    "qt_cc_binary",
+    "qt_cc_library",
+)
+
+load(":gui_plugin.bzl", "ign_gazebo_gui_plugin")
+
+package(default_visibility = ["//visibility:public"])
+
+genrule(
+    name = "modules_gen",
+    srcs = [
+        "modules/EntityContextMenu.qml",
+        "modules/EntityContextMenu.qrc",
+        "modules/TypeIcon.qml",
+    ],
+    outs = [
+        "qrc_EntityContextMenu.cpp"
+    ],
+    cmd = "cd ign_gazebo/src/gui/plugins/modules && qtchooser -qt=5 -run-tool=rcc --name EntityContextMenu EntityContextMenu.qrc -o qrc_EntityContextMenu.cpp && cp qrc_EntityContextMenu.cpp ../../../../../$(OUTS)",
+)
+
+qt_cc_binary(
+    name = "IgnGazebo/libEntityContextMenu.so",
+    srcs = ["modules/EntityContextMenu.cc",
+            "qrc_EntityContextMenu.cpp"],
+    hdrs = ["modules/EntityContextMenu.hh"],
+    linkopts = [],
+    linkshared = True,
+    includes = ["."],
+    deps = [
+        "//sdformat",
+        "//ign_msgs",
+        "//ign_common",
+        "//ign_common/av",
+        "//ign_common/events",
+        "//ign_common/graphics",
+        "//ign_common/profiler",
+        "//ign_rendering",
+        "//ign_rendering/ogre2",
+        "//ign_transport",
+        "//ign_gui",
+        "//ign_gazebo:ign_gazebo",
+        "@qt//:qt_core",
+        "@qt//:qt_network",
+        "@qt//:qt_widgets",
+        "@qt//:qt_quick_control",
+        "@qt//:qt_quick",
+        "@qt//:qt_qml",
+        "@qt//:qt_gui",
+        "@qt//:qt_opengl",
+    ],
+)
+
+genrule(
+    name = "module_copy",
+    srcs = ["modules/qmldir"],
+    outs = ["IgnGazebo/qmldir"],
+    output_to_bindir = True,
+    cmd = "cp $< $@",
+)
+
+genrule(
+    name = "scene3d_gen",
+    srcs = [
+        "scene3d/GzScene3D.qml",
+        "scene3d/GzScene3D.qrc",
+    ],
+    outs = [
+        "qrc_GzScene3D.cpp",
+    ],
+    cmd = "cd ign_gazebo/src/gui/plugins/scene3d && qtchooser -qt=5 -run-tool=rcc --name GzScene3D GzScene3D.qrc -o qrc_GzScene3D.cpp && cp qrc_GzScene3D.cpp ../../../../../$(OUTS)",
+)
+
+ign_gazebo_gui_plugin(
+    name = "ComponentInspector", 
+    dirname = "component_inspector",
+    srcs = ["component_inspector/ComponentInspector.cc"],
+    hdrs = ["component_inspector/ComponentInspector.hh"],
+    resources = [
+        "component_inspector/ComponentInspector.qrc",
+        "component_inspector/plottable_icon.svg"] + 
+      glob(["component_inspector/*.qml"]),
+    deps = []
+)
+
+ign_gazebo_gui_plugin(
+    name = "EntityTree", 
+    dirname = "entity_tree",
+    srcs = ["entity_tree/EntityTree.cc"],
+    hdrs = ["entity_tree/EntityTree.hh"],
+    resources = [
+        "entity_tree/EntityTree.qrc"] + 
+      glob(["entity_tree/EntityTree.qml"]),
+    deps = []
+)
+
+ign_gazebo_gui_plugin(
+    name = "TransformControl", 
+    dirname = "transform_control",
+    srcs = ["transform_control/TransformControl.cc"],
+    hdrs = ["transform_control/TransformControl.hh"],
+    resources = [
+        "transform_control/TransformControl.qrc",
+        "transform_control/TransformControl.qml"
+    ] + glob(["transform_control/*.png"]),
+    deps = []
+)
+
+qt_cc_binary(
+    name = "libGzScene3D.so",
+    srcs = [
+        "scene3d/Scene3D.cc",
+        "qrc_GzScene3D.cpp",
+    ],
+    hdrs = [
+        "scene3d/Scene3D.hh",
+    ],
+    linkopts = ["-ltinyxml2"],
+    linkshared = True,
+    includes = ["."],
+    data = ["IgnGazebo/qmldir"],
+    deps = [
+        "//sdformat",
+        "//ign_msgs",
+        "//ign_common",
+        "//ign_common/av",
+        "//ign_common/events",
+        "//ign_common/graphics",
+        "//ign_common/profiler",
+        "//ign_rendering",
+        "//ign_rendering/ogre2",
+        "//ign_transport",
+        "//ign_gui",
+        "//ign_gazebo:ign_gazebo",
+        "//ign_gazebo:ign_gazebo_gui",
+        "@qt//:qt_core",
+        "@qt//:qt_network",
+        "@qt//:qt_widgets",
+        "@qt//:qt_quick_control",
+        "@qt//:qt_quick",
+        "@qt//:qt_qml",
+        "@qt//:qt_gui",
+        "@qt//:qt_opengl",
+    ],
+)
+
