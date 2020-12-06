@@ -1,13 +1,10 @@
 load(
-    "//ign_bazel:cmake_configure_file.bzl",
+    "//ign_bazel:build_defs.bzl",
+    "IGNITION_ROOT",
+    "IGNITION_VISIBILITY",
     "cmake_configure_file",
-)
-load(
-    "//ign_bazel:generate_include_header.bzl",
     "generate_include_header",
-)
-load(
-    "//ign_bazel:ign_export_header.bzl",
+    "ign_config_header",
     "ign_export_header",
 )
 load(
@@ -21,7 +18,17 @@ load(
     "ign_msg_gen",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_visibility = IGNITION_VISIBILITY,
+    features = [
+        "-parse_headers",
+        "-layering_check",
+    ],
+)
+
+licenses(["notice"])
+
+exports_files(["LICENSE"])
 
 PROJECT_NAME = "ignition-gazebo"
 
@@ -31,42 +38,19 @@ PROJECT_MINOR = 0
 
 PROJECT_PATCH = 0
 
-IGN_DESIGNATION = "DOME"
-
-CMAKE_INSTALL_PREFIX = "./ign_gazebo/"
-
-IGN_DATA_INSTALL_DIR = "./ign_gazebo/"
-
-IGN_LIB_INSTALL_DIR = "./ign_gazebo/"
-
-library_location = "libignition-gazebo4-ign.so"
-
-IGN_LIBRARY_PATH = "./ign_gazebo/"
-
 # Generates config.hh based on the version numbers in CMake code.
-cmake_configure_file(
+ign_config_header(
     name = "config",
     src = "include/ignition/gazebo/config.hh.in",
     out = "include/ignition/gazebo/config.hh",
     cmakelists = ["CMakeLists.txt"],
-    defines = [
-        "PROJECT_VERSION_MAJOR=%d" % PROJECT_MAJOR,
-        "PROJECT_MAJOR_VERSION=%d" % PROJECT_MAJOR,
-        "PROJECT_MINOR_VERSION=%d" % PROJECT_MINOR,
-        "PROJECT_PATCH_VERSION=%d" % PROJECT_PATCH,
-        "PROJECT_VERSION_PATCH=%d" % PROJECT_PATCH,
-        "PROJECT_VERSION_MAJOR=%d" % PROJECT_MAJOR,
-        "PROJECT_VERSION_MINOR=%d" % PROJECT_MINOR,
-        "PROJECT_VERSION=%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR),
-        "PROJECT_VERSION_FULL=%d.%d.%d" % (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),  # noqa
-        "PROJECT_NAME_NO_VERSION=%s" % PROJECT_NAME,
-        "PROJECT_NAME=%s" % PROJECT_NAME,
-        "IGN_DESIGNATION=%s" % IGN_DESIGNATION,
-        "CMAKE_INSTALL_PREFIX=%s" % CMAKE_INSTALL_PREFIX,
-        "IGN_DATA_INSTALL_DIR=%s" % IGN_DATA_INSTALL_DIR,
-        "IGN_LIB_INSTALL_DIR=%s" % IGN_LIB_INSTALL_DIR,
+    extra_defines = [
+        "CMAKE_INSTALL_PREFIX=./ign_gazebo/",
+        "IGN_DATA_INSTALL_DIR=./ign_gazebo/",
+        "IGN_LIB_INSTALL_DIR=./ign_gazebo/",
     ],
-    visibility = ["//visibility:private"],
+    project_name = PROJECT_NAME,
+    project_version = (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
 )
 
 ign_export_header(
