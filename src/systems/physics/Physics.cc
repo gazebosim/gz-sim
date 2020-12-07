@@ -2287,19 +2287,13 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
         if (entityContactMap.find(_collEntity1) == entityContactMap.end())
         {
           // Clear the last contact data
-          *_contacts = components::ContactSensorData();
-
-          // If there's an empty ContactSensorData, it won't be updated in the
-          // GUI ECM and there could be remaining contacts which shouldn't
-          // exist anymore. We insert dummy data in the empty ContactSensorData
-          // in order to avoid this problem.
-          msgs::Contact *contactMsg = contactsComp.add_contact();
-          contactMsg->mutable_collision1()->set_id(_collEntity1);
-          contactMsg->mutable_collision2()->set_id(_collEntity1);
-          auto *position = contactMsg->add_position();
-          position->set_x(ignition::math::NAN_I);
-          position->set_y(ignition::math::NAN_I);
-          position->set_z(ignition::math::NAN_I);
+          auto state = _contacts->SetData(contactsComp,
+            this->contactsEql) ?
+            ComponentState::OneTimeChange :
+            ComponentState::NoChange;
+          _ecm.SetChanged(
+            _collEntity1, components::ContactSensorData::typeId, state);
+          return true;
         }
         else
         {

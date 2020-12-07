@@ -1164,13 +1164,6 @@ void EntityComponentManager::SetState(
     {
       const auto &compMsg = compIter.second;
 
-      // Skip if component not set. Note that this will also skip components
-      // setting an empty value.
-      if (compMsg.component().empty())
-      {
-        continue;
-      }
-
       uint64_t type = compMsg.type();
 
       // Components which haven't been registered in this process, such as 3rd
