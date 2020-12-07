@@ -75,6 +75,18 @@ genrule(
 )
 
 ign_gazebo_gui_plugin(
+    name = "AlignTool",
+    srcs = ["align_tool/AlignTool.cc"],
+    hdrs = ["align_tool/AlignTool.hh"],
+    dirname = "align_tool",
+    resources = [
+        "align_tool/AlignTool.qrc",
+        "align_tool/AlignTool.qml",
+    ] + glob(["align_tool/*.png"]),
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
     name = "ComponentInspector",
     srcs = ["component_inspector/ComponentInspector.cc"],
     hdrs = ["component_inspector/ComponentInspector.hh"],
@@ -94,9 +106,73 @@ ign_gazebo_gui_plugin(
     hdrs = ["entity_tree/EntityTree.hh"],
     dirname = "entity_tree",
     resources = [
-        "entity_tree/EntityTree.qrc",
-    ] + glob([
         "entity_tree/EntityTree.qml",
+        "entity_tree/EntityTree.qrc",
+    ],
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "GridConfig",
+    srcs = ["grid_config/GridConfig.cc"],
+    hdrs = ["grid_config/GridConfig.hh"],
+    dirname = "grid_config",
+    resources = [
+        "grid_config/GridConfig.qml",
+        "grid_config/GridConfig.qrc",
+    ],
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "PlaybackScrubber",
+    srcs = ["playback_scrubber/PlaybackScrubber.cc"],
+    hdrs = ["playback_scrubber/PlaybackScrubber.hh"],
+    dirname = "playback_scrubber",
+    resources = [
+        "playback_scrubber/PlaybackScrubber.qml",
+        "playback_scrubber/PlaybackScrubber.qrc",
+    ],
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "Plotting",
+    srcs = ["plotting/Plotting.cc"],
+    hdrs = ["plotting/Plotting.hh"],
+    dirname = "plotting",
+    resources = [
+        "plotting/Plotting.qml",
+        "plotting/Plotting.qrc",
+    ],
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "ResourceSpawner",
+    srcs = ["resource_spawner/ResourceSpawner.cc"],
+    hdrs = ["resource_spawner/ResourceSpawner.hh"],
+    dirname = "resource_spawner",
+    resources = [
+        "resource_spawner/ResourceSpawner.qrc",
+        "resource_spawner/ResourceSpawner.qml",
+    ] + glob([
+        "resource_spawner/*.png",
+        "resource_spawner/*.svg",
+    ]),
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "Shapes",
+    srcs = ["shapes/Shapes.cc"],
+    hdrs = ["shapes/Shapes.hh"],
+    dirname = "shapes",
+    resources = [
+        "shapes/Shapes.qrc",
+        "shapes/Shapes.qml",
+    ] + glob([
+        "shapes/*.png",
     ]),
     deps = [],
 )
@@ -110,6 +186,42 @@ ign_gazebo_gui_plugin(
         "transform_control/TransformControl.qrc",
         "transform_control/TransformControl.qml",
     ] + glob(["transform_control/*.png"]),
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "VideoRecorder",
+    srcs = ["video_recorder/VideoRecorder.cc"],
+    hdrs = ["video_recorder/VideoRecorder.hh"],
+    dirname = "video_recorder",
+    resources = [
+        "video_recorder/VideoRecorder.qrc",
+        "video_recorder/VideoRecorder.qml",
+    ] + glob(["video_recorder/*.svg"]),
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "ViewAngle",
+    srcs = ["view_angle/ViewAngle.cc"],
+    hdrs = ["view_angle/ViewAngle.hh"],
+    dirname = "view_angle",
+    resources = [
+        "view_angle/ViewAngle.qrc",
+        "view_angle/ViewAngle.qml",
+    ] + glob(["view_angle/*.png"]),
+    deps = [],
+)
+
+ign_gazebo_gui_plugin(
+    name = "VisualizeLidar",
+    srcs = ["visualize_lidar/VisualizeLidar.cc"],
+    hdrs = ["visualize_lidar/VisualizeLidar.hh"],
+    dirname = "visualize_lidar",
+    resources = [
+        "visualize_lidar/VisualizeLidar.qml",
+        "visualize_lidar/VisualizeLidar.qrc",
+    ],
     deps = [],
 )
 

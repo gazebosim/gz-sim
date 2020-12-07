@@ -308,44 +308,28 @@ qt_cc_library(
     ],
 )
 
-cc_binary(
-    name = "libignition-gazebo4.so",
-    srcs = sources + private_headers + public_headers,
-    data = [
-        ":example-worlds",
-    ],
+cc_library(
+    name = "ign_gazebo",
+    srcs = sources,
+    hdrs = public_headers,
     includes = ["include"],
-    linkopts = [
-        "-Wl,-soname,libignition-gazebo4.so",
-        "-ltinyxml2",
-    ],
-    linkshared = True,
-    visibility = [],
     deps = [
         ":ign_gazebo_gui",
         ":igngazebo_proto_cc",
-        "//ign_bazel:utilities",
-        "//ign_common",
-        "//ign_common/events",
-        "//ign_common/graphics",
-        "//ign_common/profiler",
-        "//ign_fuel_tools",
-        "//ign_gui",
-        "//ign_msgs",
-        "//ign_plugin",
-        "//ign_plugin/loader",
-        "//ign_rendering",
-        "//ign_transport",
-        "//sdformat",
+        IGNITION_ROOT + "ign_bazel:utilities",
+        IGNITION_ROOT + "ign_common",
+        IGNITION_ROOT + "ign_common/events",
+        IGNITION_ROOT + "ign_common/graphics",
+        IGNITION_ROOT + "ign_common/profiler",
+        IGNITION_ROOT + "ign_fuel_tools",
+        IGNITION_ROOT + "ign_gui",
+        IGNITION_ROOT + "ign_msgs",
+        IGNITION_ROOT + "ign_plugin",
+        IGNITION_ROOT + "ign_plugin/loader",
+        IGNITION_ROOT + "ign_rendering",
+        IGNITION_ROOT + "ign_transport",
+        IGNITION_ROOT + "sdformat",
     ],
-)
-
-cc_library(
-    name = "ign_gazebo",
-    srcs = [":libignition-gazebo4.so"],
-    hdrs = public_headers,
-    includes = ["include"],
-    visibility = ["//visibility:public"],
 )
 
 [
