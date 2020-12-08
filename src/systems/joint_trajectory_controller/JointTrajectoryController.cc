@@ -26,44 +26,46 @@ using namespace systems;
 /// \brief A single 1-axis joint that is controlled by JointTrajectoryController plugin
 class ActuatedJoint
 {
-public:
   /// \brief Default contructor
-  ActuatedJoint() = default;
+  public: ActuatedJoint() = default;
 
   /// \brief Constructor that is aware of SDF configuration
   /// \param[in] _entity Entity of the joint
   /// \param[in] _sdf SDF reference used to obtain configuration for this joint
   /// \param[in] _jointIndex Index of the joint, used to determine what SDF parameters belong to it
-  ActuatedJoint(const Entity &_entity,
-                const std::shared_ptr<const sdf::Element> &_sdf,
-                const size_t &_jointIndex);
+  public: ActuatedJoint(const Entity &_entity,
+                        const std::shared_ptr<const sdf::Element> &_sdf,
+                        const size_t &_jointIndex);
 
   /// \brief Setup components required for control of this joint
   /// \param[in,out] _ecm Ignition Entity Component Manager
   /// \return True if setup was successful, False if any of the components could not be created
-  bool SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const;
+  public: bool SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const;
 
   /// \brief Set target of the joint that the controller will attempt to reach
   /// \param[in] _targetPoint Targets of all controlled joint
   /// \param[in] _jointIndex Index of the joint, used to determine what index of `_targetPoint`
   /// to use
-  void SetTarget(const ignition::msgs::JointTrajectoryPoint &_targetPoint,
-                 const size_t &_jointIndex);
+  public: void SetTarget(const ignition::msgs::JointTrajectoryPoint &_targetPoint,
+                         const size_t &_jointIndex);
 
   /// \brief Update command force that is applied on the joint
   /// \param[in,out] _ecm Ignition Entity Component Manager
   /// \param[in] _dt Time difference to update for
-  void Update(ignition::gazebo::EntityComponentManager &_ecm,
-              const std::chrono::steady_clock::duration &_dt);
+  public: void Update(ignition::gazebo::EntityComponentManager &_ecm,
+                      const std::chrono::steady_clock::duration &_dt);
+
+  /// \brief Reset the target of the joint
+  public: void ResetTarget();
 
   /// \brief Reset the position and velocity PID error on the joint
-  void ResetPIDs();
+  public: void ResetPIDs();
 
   /// \brief Entity of the joint
-  Entity entity;
+  public: Entity entity;
 
   /// \brief Target state that the joint controller should reach
-  struct TargetState
+  public: struct TargetState
   {
     /// \brief Target position of the joint
     double position;
@@ -77,10 +79,10 @@ public:
   } target;
 
   /// \brief Initial position of the joint
-  double initialPosition;
+  public: double initialPosition;
 
   /// \brief List of PID controllers used for the control of this actuated joint
-  struct PIDs
+  public: struct PIDs
   {
     /// \brief Position PID controller
     ignition::math::PID position;
@@ -92,27 +94,26 @@ public:
 /// \brief Information about trajectory that is followed by JointTrajectoryController plugin
 class Trajectory
 {
-public:
   /// \brief Update index of trajectory points, such that it directs to a point that needs to be
   /// currently followed
   /// \param[in] _simTime Current simulation time
   /// \return True if index of the trajectory point was updated, False otherwise
-  bool UpdateCurrentPoint(const std::chrono::steady_clock::duration &_simTime);
+  public: bool UpdateCurrentPoint(const std::chrono::steady_clock::duration &_simTime);
 
   /// \brief Determine if the trajectory goal was reached
   /// \return True if trajectory goal was reached, False otherwise
-  bool IsGoalReached() const;
+  public: bool IsGoalReached() const;
 
   /// \brief Compute progress of the current trajectory
   /// \return Fraction of the completed points in range [0.0, 1.0]
-  float ComputeProgress() const;
+  public: float ComputeProgress() const;
 
   /// \brief Reset trajectory internals, i.e. clean list of joint names, points and reset index
   /// of the current point
-  void Reset();
+  public: void Reset();
 
   /// \brief Status of the trajectory
-  enum TrajectoryStatus
+  public: enum TrajectoryStatus
   {
     /// \brief Trajectory is new and needs to be configure on the next update loop
     New,
@@ -123,61 +124,60 @@ public:
   } status;
 
   /// \brief Start time of trajectory
-  std::chrono::steady_clock::duration startTime;
+  public: std::chrono::steady_clock::duration startTime;
 
   /// \brief Index of the current trajectory point
-  unsigned int pointIndex;
+  public: unsigned int pointIndex;
 
   /// \brief Ordered joints that need to be actuated to follow the current trajectory
-  std::vector<std::string> jointNames;
+  public: std::vector<std::string> jointNames;
 
   /// \brief Trajectory defined in terms of temporal points, whose members are ordered according
   /// to `jointNames`
-  std::vector<ignition::msgs::JointTrajectoryPoint> points;
+  public: std::vector<ignition::msgs::JointTrajectoryPoint> points;
 };
 
 /// \brief Private data of the JointTrajectoryController plugin
 class ignition::gazebo::systems::JointTrajectoryControllerPrivate
 {
-public:
   /// \brief Callback for joint trajectory subscription
   /// \param[in] _msg A new message describing a joint trajectory that needs to be followed
-  void JointTrajectoryCallback(const ignition::msgs::JointTrajectory &_msg);
+  public: void JointTrajectoryCallback(const ignition::msgs::JointTrajectory &_msg);
 
   /// \brief Configure a single joint so that it can be actuated to follow a trajectory
   /// \param[in] _entity Entity of the joint
   /// \param[in] _sdf SDF reference used to obtain configuration for this joint
   /// \param[in] _ecm Ignition Entity Component Manager
   /// \param[in] _enabledJoints List of all joints that should be enabled based on SDF configuration
-  void ConfigureJoint(const Entity &_entity,
-                      const std::shared_ptr<const sdf::Element> &_sdf,
-                      const ignition::gazebo::EntityComponentManager &_ecm,
-                      const std::vector<std::string> &_enabledJoints);
+  public: void ConfigureJoint(const Entity &_entity,
+                              const std::shared_ptr<const sdf::Element> &_sdf,
+                              const ignition::gazebo::EntityComponentManager &_ecm,
+                              const std::vector<std::string> &_enabledJoints);
 
   /// \brief Reset internals of the plugin, without affecting already created components
-  void Reset();
+  public: void Reset();
 
   /// \brief Ignition communication node
-  transport::Node node;
+  public: transport::Node node;
 
   /// \brief Publisher of the progress for currently followed trajectory
-  transport::Node::Publisher progressPub;
+  public: transport::Node::Publisher progressPub;
 
   /// \brief Map of actuated joints, where first is the name of the joint
-  std::map<std::string, ActuatedJoint> actuatedJoints;
+  public: std::map<std::string, ActuatedJoint> actuatedJoints;
 
   /// \brief Mutex projecting trajectory
-  std::mutex trajectoryMutex;
+  public: std::mutex trajectoryMutex;
 
   /// \brief Information about trajectory that should be followed
-  Trajectory trajectory;
+  public: Trajectory trajectory;
 
   /// \brief Flag that determines whether to use message header timestamp as the trajectory start,
   /// where simulation time at the beginning of execution is used otherwise
-  bool useHeaderStartTime;
+  public: bool useHeaderStartTime;
 
   /// \brief Flag that determines if all components required for control are already setup
-  bool componentSetupFinished;
+  public: bool componentSetupFinished;
 };
 
 ////////////////////////
@@ -549,12 +549,8 @@ void JointTrajectoryControllerPrivate::Reset()
   for (auto &actuatedJoint : this->actuatedJoints)
   {
     auto *joint = &actuatedJoint.second;
-    // Reset joint targets
-    joint->target.position = joint->initialPosition;
-    joint->target.velocity = 0.0;
-    joint->target.acceleration = 0.0;
-    joint->target.effort = 0.0;
-
+    // Reset joint target
+    joint->ResetTarget();
     // Reset PIDs
     joint->ResetPIDs();
   }
@@ -711,6 +707,14 @@ void ActuatedJoint::Update(ignition::gazebo::EntityComponentManager &_ecm,
   // Get JointForceCmd component and apply command force
   auto jointForceCmdComponent = _ecm.Component<components::JointForceCmd>(this->entity);
   jointForceCmdComponent->Data()[0] = force;
+}
+
+void ActuatedJoint::ResetTarget()
+{
+  this->target.position = this->initialPosition;
+  this->target.velocity = 0.0;
+  this->target.acceleration = 0.0;
+  this->target.effort = 0.0;
 }
 
 void ActuatedJoint::ResetPIDs()
