@@ -756,14 +756,7 @@ bool Trajectory::UpdateCurrentPoint(const std::chrono::steady_clock::duration &_
 
 bool Trajectory::IsGoalReached() const
 {
-  if (this->pointIndex + 1 >= this->points.size())
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return this->pointIndex + 1 >= this->points.size();
 }
 
 float Trajectory::ComputeProgress() const
