@@ -439,7 +439,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   // Set the frame id.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  if (this->sdfFrameId.empty()) {
+  if (this->sdfFrameId.empty())
+  {
     frame->add_value(this->model.Name(_ecm) + "/odom");
   }
   else
