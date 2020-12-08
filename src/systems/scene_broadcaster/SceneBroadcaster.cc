@@ -21,8 +21,8 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <set>
 #include <string>
+#include <unordered_set>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
@@ -197,7 +197,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: bool stateServiceRequest{false};
 
   /// \brief A list of async state requests
-  public: std::set<std::string> stateRequests;
+  public: std::unordered_set<std::string> stateRequests;
 };
 
 //////////////////////////////////////////////////
@@ -306,11 +306,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // process async state requests
     if (!this->dataPtr->stateRequests.empty())
     {
-      ignition::msgs::SerializedStepMap res;
-      res.CopyFrom(this->dataPtr->stepMsg);
       for (const auto &reqSrv : this->dataPtr->stateRequests)
       {
-        this->dataPtr->node->Request(reqSrv, res);
+        this->dataPtr->node->Request(reqSrv, this->dataPtr->stepMsg);
       }
       this->dataPtr->stateRequests.clear();
     }
