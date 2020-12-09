@@ -1046,6 +1046,16 @@ TEST_P(SimulationRunnerTest, Time)
     EXPECT_EQ(clockMsgs[i].mutable_sim()->nsec(),
         rootClockMsgs[i].mutable_sim()->nsec());
   }
+
+  // Test the run to simulation time feature.
+  runner.SetPaused(true);
+  auto currentSimTime = runner.CurrentInfo().simTime;
+  runner.SetRunToSimTime(currentSimTime + std::chrono::seconds(4));
+  runner.SetPaused(false);
+  runner.Run((std::chrono::seconds(4) / runner.CurrentInfo().dt));
+  EXPECT_TRUE(runner.Paused());
+  EXPECT_EQ((currentSimTime + std::chrono::seconds(4)).count(),
+      runner.CurrentInfo().simTime.count());
 }
 
 /////////////////////////////////////////////////
