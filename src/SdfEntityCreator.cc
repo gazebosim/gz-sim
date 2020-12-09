@@ -465,14 +465,28 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 
   if (_joint->Axis(0))
   {
+    sdf::JointAxis axis = *_joint->Axis(0);
+
+    math::Vector3d axisXyz;
+    // TODO (addisu) Handle sdf errors
+    sdf::Errors errors = _joint->Axis(0)->ResolveXyz(axisXyz);
+    errors = axis.SetXyz(axisXyz);
+    axis.SetXyzExpressedIn("");
     this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::JointAxis(*_joint->Axis(0)));
+        components::JointAxis(std::move(axis)));
   }
 
   if (_joint->Axis(1))
   {
+    sdf::JointAxis axis = *_joint->Axis(1);
+
+    math::Vector3d axisXyz;
+    // TODO (addisu) Handle sdf errors
+    sdf::Errors errors = _joint->Axis(1)->ResolveXyz(axisXyz);
+    errors = axis.SetXyz(axisXyz);
+    axis.SetXyzExpressedIn("");
     this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::JointAxis2(*_joint->Axis(1)));
+        components::JointAxis2(std::move(axis)));
   }
 
   this->dataPtr->ecm->CreateComponent(jointEntity,
@@ -481,10 +495,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
       components::Name(_joint->Name()));
   this->dataPtr->ecm->CreateComponent(jointEntity ,
       components::ThreadPitch(_joint->ThreadPitch()));
-  this->dataPtr->ecm->CreateComponent(jointEntity,
-      components::ParentLinkName(_joint->ParentLinkName()));
-  this->dataPtr->ecm->CreateComponent(jointEntity,
-      components::ChildLinkName(_joint->ChildLinkName()));
+
+  std::string resolvedParentLinkName;
+  // TODO (addisu) Handle errors
+  _joint->ResolveParentLink(resolvedParentLinkName);
+  this->dataPtr->ecm->CreateComponent(
+      jointEntity, components::ParentLinkName(resolvedParentLinkName));
+
+  std::string resolvedChildLinkName;
+  _joint->ResolveParentLink(resolvedChildLinkName);
+  this->dataPtr->ecm->CreateComponent(
+      jointEntity, components::ChildLinkName(resolvedChildLinkName));
 
   return jointEntity;
 }
