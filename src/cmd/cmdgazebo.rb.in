@@ -446,6 +446,11 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
 
+        if plugin.end_with? ".dylib"
+          puts "`ign gazebo` currently only works with the -s argument on macOS."
+          exit(-1)
+        end
+
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
@@ -495,6 +500,11 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
             options['file'], options['record-topics'].join(':'))
       # Otherwise run the gui
       else options['gui']
+        if plugin.end_with? ".dylib"
+          puts "`ign gazebo` currently only works with the -s argument on macOS."
+          exit(-1)
+        end
+
         ENV['RMT_PORT'] = '1501'
         Importer.runGui(options['gui_config'])
       end
