@@ -7,11 +7,11 @@ project(CustomComponentPlugin)
 find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
-find_package(ignition-gazebo3 REQUIRED)
+find_package(ignition-gazebo5 REQUIRED)
 add_library(CustomComponentPlugin SHARED
   CustomComponentPlugin.cc
 )
 set_property(TARGET CustomComponentPlugin PROPERTY CXX_STANDARD 17)
 target_link_libraries(CustomComponentPlugin
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  PRIVATE ignition-gazebo3::ignition-gazebo3)
+  PRIVATE ignition-gazebo5::ignition-gazebo5)

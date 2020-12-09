@@ -433,6 +433,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Name of the world
     public: std::string worldName;
 
+    /// \brief Camera visibility mask
+    public: uint32_t visibilityMask = 0xFFFFFFFFu;
+
     /// \brief True if engine has been initialized;
     public: bool initialized = false;
 
@@ -507,6 +510,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the initial user camera pose
     /// \param[in] _pose Pose to set the camera to
     public: void SetInitCameraPose(const math::Pose3d &_pose);
+
+    /// \brief Set the user camera visibility mask
+    /// \param[in] _mask Visibility mask to set to
+    public: void SetVisibilityMask(uint32_t _mask);
 
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to

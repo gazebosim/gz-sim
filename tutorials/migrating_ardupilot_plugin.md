@@ -11,7 +11,7 @@ study the migration of one particular `ModelPlugin`,
 this example provides useful tips to others who are migrating their existing
 plugins from Gazebo to Ignition.
 
-The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial 
+The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial
 can be found in [this fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition).
 
 ## Background
@@ -24,7 +24,7 @@ documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.h
 As context to understand what we're migrating, here's a system diagram for how
 the ArduPilot Gazebo plugin works is used:
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/add_ardupilot_migration_tutorial2/tutorials/files/ardupilot_diagram.png"/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/ardupilot_diagram.png"/>
 
 *UAV icon credit: By Julian Herzog, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=60965475*
 
@@ -805,12 +805,12 @@ In the new code we explicitly reference each Ignition package that we use:
 # NEW
 find_package(sdformat9 REQUIRED)
 find_package(ignition-common3-all REQUIRED)
-find_package(ignition-gazebo3-all REQUIRED)
+find_package(ignition-gazebo5-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
-find_package(ignition-msgs5-all REQUIRED)
-find_package(ignition-physics2-all REQUIRED)
-find_package(ignition-sensors3-all REQUIRED)
-find_package(ignition-transport8-all REQUIRED)
+find_package(ignition-msgs6-all REQUIRED)
+find_package(ignition-physics3-all REQUIRED)
+find_package(ignition-sensors5-all REQUIRED)
+find_package(ignition-transport9-all REQUIRED)
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:

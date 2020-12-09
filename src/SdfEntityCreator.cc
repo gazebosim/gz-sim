@@ -64,6 +64,7 @@
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Transparency.hh"
+#include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -356,6 +357,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
+  // Actor plugins
+  this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
+      _actor->Element());
+
   return actorEntity;
 }
 
@@ -502,6 +507,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::CastShadows(_visual->CastShadows()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Transparency(_visual->Transparency()));
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::VisibilityFlags(_visual->VisibilityFlags()));
 
   if (_visual->Geom())
   {

@@ -15,12 +15,15 @@
  *
 */
 
-#include <condition_variable>
+#include "Scene3D.hh"
+
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <map>
-#include <mutex>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -61,17 +64,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
-
-#include "Scene3D.hh"
-
-/// \brife True if rendering has been initialized
-bool g_renderInit = false;
-
-/// \brief condition variable for lockstepping video recording
-std::condition_variable g_renderCv;
-
-/// \brief mutex for lockstepping video recording
-std::mutex g_renderMutex;
 
 Q_DECLARE_METATYPE(std::string)
 
@@ -204,26 +196,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Path to save the recorded video
     public: std::string recordVideoSavePath;
-
-    /// \brief Use sim time as timestamp during video recording
-    /// By default (false), video encoding is done using real time.
-    public: bool recordVideoUseSimTime = false;
-
-    /// \brief Lockstep gui with ECM when recording
-    public: bool recordVideoLockstep = false;
-
-    /// \brief Video recorder bitrate (bps)
-    public: unsigned int recordVideoBitrate = 2070000;
-
-    /// \brief Previous camera update time during video recording
-    /// only used in lockstep mode and recording in sim time.
-    public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
-
-    /// \brief Start tiem of video recording
-    public: std::chrono::steady_clock::time_point recordStartTime;
-
-    /// \brief Camera pose publisher
-    public: transport::Node::Publisher recorderStatsPub;
 
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
@@ -406,15 +378,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Camera pose publisher
     public: transport::Node::Publisher cameraPosePub;
-
-    /// \brief lockstep ECM updates with rendering
-    public: bool recordVideoLockstep = false;
-
-    /// \brief True to indicate video recording in progress
-    public: bool recording = false;
-
-    /// \brief mutex to protect the recording variable
-    public: std::mutex recordMutex;
   };
 }
 }
@@ -430,13 +393,6 @@ IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
   this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
-
-  // recorder stats topic
-  std::string recorderStatsTopic = "/gui/record_video/stats";
-  this->dataPtr->recorderStatsPub =
-    this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
-  ignmsg << "Video recorder stats topic advertised on ["
-         << recorderStatsTopic << "]" << std::endl;
 }
 
 
@@ -505,24 +461,7 @@ void IgnRenderer::Render()
     }
   }
 
-  // check if recording is in lockstep mode and if it is using sim time
-  // if so, there is no need to update camera if sim time has not advanced
-  bool update = true;
-  if (this->dataPtr->recordVideoLockstep &&
-      this->dataPtr->recordVideoUseSimTime &&
-      this->dataPtr->videoEncoder.IsEncoding())
-  {
-    std::chrono::steady_clock::time_point t =
-        std::chrono::steady_clock::time_point(
-        this->dataPtr->renderUtil.SimTime());
-    if (t - this->dataPtr->recordVideoUpdateTime == std::chrono::seconds(0))
-      update = false;
-    else
-      this->dataPtr->recordVideoUpdateTime = t;
-  }
-
   // update and render to texture
-  if (update)
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
@@ -546,50 +485,14 @@ void IgnRenderer::Render()
       if (this->dataPtr->videoEncoder.IsEncoding())
       {
         this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
-
-        std::chrono::steady_clock::time_point t =
-            std::chrono::steady_clock::now();
-        if (this->dataPtr->recordVideoUseSimTime)
-        {
-          t = std::chrono::steady_clock::time_point(
-              this->dataPtr->renderUtil.SimTime());
-        }
-        bool frameAdded = this->dataPtr->videoEncoder.AddFrame(
-            this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
-
-        if (frameAdded)
-        {
-          // publish recorder stats
-          if (this->dataPtr->recordStartTime ==
-              std::chrono::steady_clock::time_point(
-              std::chrono::duration(std::chrono::seconds(0))))
-          {
-            // start time, i.e. time when first frame is added
-            this->dataPtr->recordStartTime = t;
-          }
-
-          std::chrono::steady_clock::duration dt;
-          dt = t - this->dataPtr->recordStartTime;
-          int64_t sec, nsec;
-          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
-          msgs::Time msg;
-          msg.set_sec(sec);
-          msg.set_nsec(nsec);
-          this-dataPtr->recorderStatsPub.Publish(msg);
-        }
+        this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
       }
       // Video recorder is idle. Start recording.
       else
       {
-        if (this->dataPtr->recordVideoUseSimTime)
-          ignmsg << "Recording video using sim time." << std::endl;
-        ignmsg << "Recording video using bitrate: "
-               << this->dataPtr->recordVideoBitrate <<  std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
-            this->dataPtr->recordVideoSavePath, width, height, 25,
-            this->dataPtr->recordVideoBitrate);
-        this->dataPtr->recordStartTime = std::chrono::steady_clock::time_point(
-            std::chrono::duration(std::chrono::seconds(0)));
+            this->dataPtr->recordVideoSavePath, width, height);
       }
     }
     else if (this->dataPtr->videoEncoder.IsEncoding())
@@ -776,10 +679,6 @@ void IgnRenderer::Render()
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
   }
-
-  // only has an effect in video recording lockstep mode
-  // this notifes ECM to continue updating the scene
-  g_renderCv.notify_one();
 }
 
 /////////////////////////////////////////////////
@@ -1587,6 +1486,7 @@ void IgnRenderer::Initialize()
   this->dataPtr->camera->SetImageHeight(this->textureSize.height());
   this->dataPtr->camera->SetAntiAliasing(8);
   this->dataPtr->camera->SetHFOV(M_PI * 0.5);
+  this->dataPtr->camera->SetVisibilityMask(this->visibilityMask);
   // setting the size and calling PreRender should cause the render texture to
   //  be rebuilt
   this->dataPtr->camera->PreRender();
@@ -1764,27 +1664,6 @@ void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
   this->dataPtr->recordVideo = _record;
   this->dataPtr->recordVideoFormat = _format;
   this->dataPtr->recordVideoSavePath = _savePath;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->recordVideoUseSimTime = _useSimTime;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->recordVideoLockstep = _useSimTime;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->recordVideoBitrate = _bitrate;
 }
 
 /////////////////////////////////////////////////
@@ -2161,8 +2040,6 @@ void RenderWindowItem::Ready()
 
   this->dataPtr->renderThread->start();
   this->update();
-
-  g_renderInit = true;
 }
 
 /////////////////////////////////////////////////
@@ -2405,60 +2282,6 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       }
     }
 
-    if (auto elem = _pluginElem->FirstChildElement("record_video"))
-    {
-      if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
-      {
-        std::string useSimTimeStr =
-            common::lowercase(useSimTimeElem->GetText());
-        if (useSimTimeStr == "true" || useSimTimeStr == "1")
-          renderWindow->SetRecordVideoUseSimTime(true);
-        else if (useSimTimeStr == "false" || useSimTimeStr == "0")
-          renderWindow->SetRecordVideoUseSimTime(false);
-        else
-        {
-          ignerr << "Faild to parse <use_sim_time> value: " << useSimTimeStr
-                 << std::endl;
-        }
-      }
-      if (auto lockstepElem = elem->FirstChildElement("lockstep"))
-      {
-        std::string lockstepStr =
-            common::lowercase(lockstepElem->GetText());
-        if (lockstepStr == "true" || lockstepStr == "1")
-        {
-          this->dataPtr->recordVideoLockstep = true;
-          renderWindow->SetRecordVideoLockstep(true);
-        }
-        else if (lockstepStr == "false" || lockstepStr == "0")
-        {
-          this->dataPtr->recordVideoLockstep = false;
-          renderWindow->SetRecordVideoLockstep(false);
-        }
-        else
-        {
-          ignerr << "Faild to parse <lockstep> value: " << lockstepStr
-                 << std::endl;
-        }
-      }
-      if (auto bitrateElem = elem->FirstChildElement("bitrate"))
-      {
-        unsigned int bitrate = 0u;
-        std::stringstream bitrateStr;
-        bitrateStr << std::string(bitrateElem->GetText());
-        bitrateStr >> bitrate;
-        if (bitrate > 0u)
-        {
-          renderWindow->SetRecordVideoBitrate(bitrate);
-        }
-        else
-        {
-          ignerr << "Video recorder bitrate must be larger than 0"
-                 << std::endl;
-        }
-      }
-    }
-
     if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
     {
       auto fullscreen = false;
@@ -2468,6 +2291,20 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         ignition::gui::App()->findChild
           <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
       }
+    }
+
+    if (auto elem = _pluginElem->FirstChildElement("visibility_mask"))
+    {
+      uint32_t visibilityMask = 0xFFFFFFFFu;
+      std::stringstream visibilityMaskStr;
+      visibilityMaskStr << std::string(elem->GetText());
+      bool isHex = common::lowercase(
+          visibilityMaskStr.str()).compare(0, 2, "0x") == 0;
+      if (isHex)
+        visibilityMaskStr >> std::hex >> visibilityMask;
+      else
+        visibilityMaskStr >> visibilityMask;
+      renderWindow->SetVisibilityMask(visibilityMask);
     }
   }
 
@@ -2572,17 +2409,6 @@ void Scene3D::Update(const UpdateInfo &_info,
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
-
-  // check if video recording is enabled and if we need to lock step
-  // ECM updates with GUI rendering during video recording
-  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
-  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep &&
-      g_renderInit)
-  {
-    std::unique_lock<std::mutex> lock2(g_renderMutex);
-    g_renderCv.wait(lock2);
-
-  }
 }
 
 /////////////////////////////////////////////////
@@ -2606,12 +2432,6 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
   renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
 
   _res.set_data(true);
-
-  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
-  this->dataPtr->recording = record;
-  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep)
-    ignmsg << "Recording video in lockstep mode" << std::endl;
-
   return true;
 }
 
@@ -2940,24 +2760,9 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
+void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
-      _useSimTime);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
-{
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
-      _lockstep);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
-{
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
-      _bitrate);
+  this->dataPtr->renderThread->ignRenderer.visibilityMask = _mask;
 }
 
 /////////////////////////////////////////////////

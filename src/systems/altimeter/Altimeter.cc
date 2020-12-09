@@ -15,7 +15,13 @@
  *
  */
 
+#include "Altimeter.hh"
+
 #include <ignition/msgs/altimeter.pb.h>
+
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -37,8 +43,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "Altimeter.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -108,7 +112,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
       dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          common::Time(time.first, time.second), false);
+          math::secNsecToDuration(time.first, time.second), false);
     }
   }
 

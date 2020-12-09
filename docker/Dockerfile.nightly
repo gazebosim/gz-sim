@@ -13,17 +13,17 @@ RUN apt-get update \
  && apt-get install -y \
     libignition-cmake2-dev \
     libignition-common3-dev \
-    libignition-fuel-tools4-dev \
+    libignition-fuel-tools5-dev \
     libignition-math6-eigen3-dev \
     libignition-plugin-dev \
-    libignition-physics2-dev \
-    libignition-rendering3-dev \
+    libignition-physics3-dev \
+    libignition-rendering5-dev \
     libignition-tools-dev \
-    libignition-transport8-dev \
-    libignition-gui3-dev \
-    libignition-msgs5-dev \
-    libignition-sensors3-dev \
-    libsdformat9-dev
+    libignition-transport9-dev \
+    libignition-gui5-dev \
+    libignition-msgs6-dev \
+    libignition-sensors5-dev \
+    libsdformat10-dev
 
 COPY . ign-gazebo
 RUN cd ign-gazebo \

@@ -37,14 +37,73 @@ ToolBar {
         title: "Save the recorded video"
         folder: shortcuts.home
         selectExisting: false
+        property var fileFormat: ""
+        property var selectedFormat: ""
+
+        function getFormat(url) {
+          return (url.slice(url.lastIndexOf(".") + 1))
+        }
+        
         onAccepted: {
-          VideoRecorder.OnSave(fileDialog.fileUrl)
-          close()
+          fileFormat = getFormat(fileUrl.toString())
+          if (fileFormat == fileUrl.toString()) {
+            // no format specified
+            VideoRecorder.OnSave(fileFormat + "." + selectedFormat)
+            close()
+          }
+          else if (fileFormat != selectedFormat){
+            // wrong format specified
+            mismatchDialog.open()
+          } else {
+            // correct format specified
+            VideoRecorder.OnSave(fileUrl)
+            close()
+          }
         }
         onRejected: {
           VideoRecorder.OnCancel()
           close()
         }
+    }
+
+    Dialog {
+      id: mismatchDialog 
+      title: "Enconding and filename mismatch"
+      modal: true
+      focus: false
+      width: 700
+      height: 200
+      parent: ApplicationWindow.overlay
+      x: (parent.width - width) / 2
+      y: (parent.height - height) / 2
+      standardButtons: Dialog.Save | Dialog.Abort
+
+      GridLayout {
+        id: grid
+        rows: 2
+        flow: GridLayout.TopToBottom
+        anchors.fill: parent
+
+        Label {
+          text: "File extension doesn't correspond with video encoding."
+          font.pixelSize: 20
+        }
+
+        Label {
+          text: "Click 'Abort' to change the name or 'Save' to continue."
+          font.pixelSize: 20
+        }
+      }
+
+      onAccepted: {
+        VideoRecorder.OnSave(fileDialog.fileUrl)
+        VideoRecorder.close()
+        close()
+      }
+      onRejected: {
+        fileDialog.open()
+        close()
+      }
     }
 
     SequentialAnimation {
@@ -73,6 +132,8 @@ ToolBar {
       MenuItem {
         text: "mp4"
         onTriggered: {
+          fileDialog.nameFilters = ["*.mp4"]
+          fileDialog.selectedFormat = "mp4"
           VideoRecorder.OnStart("mp4")
           animation.start()
         }
@@ -80,6 +141,8 @@ ToolBar {
       MenuItem {
         text: "ogv"
         onTriggered: {
+          fileDialog.nameFilters = ["*.ogv"]
+          fileDialog.selectedFormat = "ogv"
           VideoRecorder.OnStart("ogv")
           animation.start()
         }

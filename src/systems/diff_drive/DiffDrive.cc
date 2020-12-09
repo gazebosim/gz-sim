@@ -14,9 +14,15 @@
  * limitations under the License.
  *
  */
+
+#include "DiffDrive.hh"
+
 #include <ignition/msgs/odometry.pb.h>
 
+#include <limits>
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/DiffDriveOdometry.hh>
@@ -30,7 +36,6 @@
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
-#include "DiffDrive.hh"
 #include "SpeedLimiter.hh"
 
 using namespace ignition;
@@ -279,14 +284,23 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   }
 
   // If the joints haven't been identified yet, look for them
+  static std::set<std::string> warnedModels;
+  auto modelName = this->dataPtr->model.Name(_ecm);
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
   {
+    bool warned{false};
     for (const std::string &name : this->dataPtr->leftJointNames)
     {
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
         this->dataPtr->leftJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find left joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
     }
 
     for (const std::string &name : this->dataPtr->rightJointNames)
@@ -294,11 +308,28 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
         this->dataPtr->rightJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find right joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
+    }
+    if (warned)
+    {
+      warnedModels.insert(modelName);
     }
   }
 
   if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty())
     return;
+
+  if (warnedModels.find(modelName) != warnedModels.end())
+  {
+    ignmsg << "Found joints for model [" << modelName
+           << "], plugin will start working." << std::endl;
+    warnedModels.erase(modelName);
+  }
 
   // Nothing left to do if paused.
   if (_info.paused)
@@ -379,6 +410,9 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
     this->odom.Init(std::chrono::steady_clock::time_point(_info.simTime));
     return;
   }
+
+  if (this->leftJoints.empty() || this->rightJoints.empty())
+    return;
 
   // Get the first joint positions for the left and right side.
   auto leftPos = _ecm.Component<components::JointPosition>(this->leftJoints[0]);

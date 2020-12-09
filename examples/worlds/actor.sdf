@@ -11,7 +11,7 @@
     <plugin
       filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre</render_engine>
+      <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -31,7 +31,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -146,6 +146,9 @@
     </model>
 
     <include>
+      <name>demo_actor</name>
+      <!-- override actor's pose, which has 1m in Z -->
+      <pose>0 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
     </include>
 

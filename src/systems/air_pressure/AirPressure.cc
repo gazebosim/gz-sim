@@ -14,7 +14,14 @@
  * limitations under the License.
  *
  */
+
+#include "AirPressure.hh"
+
 #include <ignition/msgs/air_pressure_sensor.pb.h>
+
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <ignition/plugin/Register.hh>
 
@@ -34,8 +41,6 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "AirPressure.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -106,7 +111,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
       dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          common::Time(time.first, time.second), false);
+          math::secNsecToDuration(time.first, time.second), false);
     }
   }
 

@@ -20,12 +20,12 @@
 #include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/log_playback_stats.pb.h>
 
+#include <set>
 #include <string>
 #include <unordered_map>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Time.hh>
 #include <ignition/fuel_tools/Zip.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/msgs/Utility.hh>

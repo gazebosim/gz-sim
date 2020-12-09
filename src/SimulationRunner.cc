@@ -17,6 +17,8 @@
 
 #include "SimulationRunner.hh"
 
+#include <algorithm>
+
 #include "ignition/common/Profiler.hh"
 
 #include "ignition/gazebo/components/Model.hh"
@@ -731,6 +733,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
+
+  // Process components removals
+  this->entityCompMgr.ClearRemovedComponents();
 
   // Each network manager takes care of marking its components as unchanged
   if (!this->networkMgr)
