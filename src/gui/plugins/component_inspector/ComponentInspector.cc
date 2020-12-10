@@ -521,7 +521,6 @@ void ComponentInspector::Update(const UpdateInfo &,
         this->dataPtr->worldName = comp->Data();
       else
         this->dataPtr->entityName = comp->Data();
-
     }
     else if (typeId == components::ParentEntity::typeId)
     {

@@ -713,8 +713,10 @@ bool LightCommand::Execute()
   lightComp->Data().SetSpecular(msgs::Convert(LightMsg->specular()));
   lightComp->Data().SetAttenuationRange(LightMsg->range());
   lightComp->Data().SetLinearAttenuationFactor(LightMsg->attenuation_linear());
-  lightComp->Data().SetConstantAttenuationFactor(LightMsg->attenuation_constant());
-  lightComp->Data().SetQuadraticAttenuationFactor(LightMsg->attenuation_quadratic());
+  lightComp->Data().SetConstantAttenuationFactor(
+      LightMsg->attenuation_constant());
+  lightComp->Data().SetQuadraticAttenuationFactor(
+      LightMsg->attenuation_quadratic());
   lightComp->Data().SetCastShadows(LightMsg->cast_shadows());
 
   auto lightPose = this->iface->ecm->Component<components::Pose>(entity);

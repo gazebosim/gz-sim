@@ -456,7 +456,8 @@ void RenderUtil::Update()
             l->AttenuationConstant(), light.second.ConstantAttenuationFactor()))
           l->SetAttenuationConstant(light.second.ConstantAttenuationFactor());
         if (ignition::math::equal(
-            l->AttenuationQuadratic(), light.second.QuadraticAttenuationFactor()))
+            l->AttenuationQuadratic(),
+            light.second.QuadraticAttenuationFactor()))
           l->SetAttenuationQuadratic(light.second.QuadraticAttenuationFactor());
         if (l->CastShadows() != light.second.CastShadows())
           l->SetCastShadows(light.second.CastShadows());

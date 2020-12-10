@@ -230,9 +230,10 @@ namespace gazebo
     /// \param[in] _attQuadratic Quadratic attenuation
     /// \param[in] _castShadows Cast Shadows attenuation
     public: Q_INVOKABLE void OnLight(
-      double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
-      double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
-      double _attRange, double _attLinear, double _attConstant, double _attQuadratic,
+      double _rSpecular, double _gSpecular, double _bSpecular,
+      double _aSpecular, double _rDiffuse, double _gDiffuse,
+      double _bDiffuse, double _aDiffuse, double _attRange,
+      double _attLinear, double _attConstant, double _attQuadratic,
       bool _castShadows);
 
     /// \brief Get whether the entity is a nested model or not
