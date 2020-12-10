@@ -52,91 +52,36 @@ using namespace systems;
 
 class ignition::gazebo::systems::WorldExporterPrivate
 {
-  private:
-    bool rendered{false};
-    common::Mesh worldMesh;
-    Entity world;
-    std::map<Entity, std::pair<math::Pose3d, Entity>> poses;
-    std::vector<math::Matrix4d> subMeshMatrix;
-    common::ColladaExporter exporter;
+  /// \brief Has the world already been exported?.
+  private: bool exported{false};
 
-  private: math::Pose3d GetPose(Entity parent_, math::Pose3d currentPose)
-  {
-    std::stack<math::Pose3d> posesStack;
-    std::pair<math::Pose3d, Entity> curr;
-    math::Pose3d localPose;
-
-    posesStack.push(currentPose);
-    while (world != parent_)
-    {
-      curr = this->poses.at(parent_);
-      posesStack.push(curr.first);
-      parent_ = curr.second;
-    }
-    while (!posesStack.empty())
-    {
-      localPose = localPose * posesStack.top();
-      posesStack.pop();
-    }
-    igndbg << ">>>>  - POSE : " << localPose <<std::endl;
-
-    return localPose;
-  }
-
+  /// \brief Exports the world to a mesh.
+  /// \param[_ecm] _ecm Mutable reference to the EntityComponentManager.
   public: void Export(const EntityComponentManager &_ecm)
   {
-    if (this->rendered) return;
+    if (this->exported) return;
+
+    common::Mesh worldMesh;
+    std::vector<math::Matrix4d> subMeshMatrix;
 
     _ecm.Each<components::World, components::Name>(
-      [&](const Entity & _entity,
+      [&](const Entity /*& _entity*/,
         const components::World *,
         const components::Name * _name)->bool
     {
-      world = _entity;
-      this->worldMesh.SetName(_name->Data());
+      worldMesh.SetName(_name->Data());
       return true;
     });
-
-    _ecm.Each<components::Model, components::Pose,
-            components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Model *,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
-    {
-      poses.insert(std::pair<Entity, std::pair<math::Pose3d, Entity>>(
-        _entity, std::pair<math::Pose3d, Entity>(
-           _pose->Data(), _parent->Data()) ));
-      return true;
-    });
-
-    _ecm.Each<components::Link, components::Pose,
-            components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Link *,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
-    {
-      poses.insert(std::pair<Entity, std::pair<math::Pose3d, Entity>>(
-        _entity, std::pair<math::Pose3d, Entity>(
-           _pose->Data(), _parent->Data()) ));
-      return true;
-    });
-
 
     _ecm.Each<components::Visual,
             components::Name,
-            components::Pose,
             components::Geometry,
-            components::Transparency,
-            components::ParentEntity>(
+            components::Transparency>(
     [&](const ignition::gazebo::Entity &_entity,
         const components::Visual *,
         const components::Name *_name,
-        const components::Pose *_pose,
         const components::Geometry *_geom,
-        const components::Transparency *_transparency,
-        const components::ParentEntity *_parent)->bool
+        const components::Transparency *_transparency)->bool
     {
       std::string name = _name->Data().empty() ? std::to_string(_entity) :
           _name->Data();
@@ -144,9 +89,9 @@ class ignition::gazebo::systems::WorldExporterPrivate
       igndbg << "====================== Starting: " << name << " - "
         << _entity << "  ====================== " << std::endl;
 
-      math::Pose3d localPose = this->GetPose(_parent->Data(), _pose->Data());
+      math::Pose3d localPose = gazebo::worldPose(_entity, _ecm);
 
-      common::MaterialPtr mat(new common::Material());
+      common::MaterialPtr mat = std::make_shared<common::Material>();
       auto material = _ecm.Component<components::Material>(_entity);
       if (material != nullptr)
       {
@@ -154,8 +99,8 @@ class ignition::gazebo::systems::WorldExporterPrivate
         mat->SetAmbient(material->Data().Ambient());
         mat->SetEmissive(material->Data().Emissive());
         mat->SetSpecular(material->Data().Specular());
-        mat->SetTransparency(_transparency->Data());
       }
+      mat->SetTransparency(_transparency->Data());
 
       const ignition::common::Mesh * mesh;
       std::weak_ptr<ignition::common::SubMesh> subm;
@@ -172,9 +117,9 @@ class ignition::gazebo::systems::WorldExporterPrivate
           igndbg << "Box Found..."  << std::endl;
           mesh = meshManager->MeshByName("unit_box");
           scale = _geom->Data().BoxShape()->Size();
-          int i = this->worldMesh.AddMaterial(mat);
+          int i = worldMesh.AddMaterial(mat);
 
-          subm = this->worldMesh.AddSubMesh(
+          subm = worldMesh.AddSubMesh(
             *mesh->SubMeshByIndex(0).lock().get());
           subm.lock()->SetMaterialIndex(i);
           subm.lock()->Scale(scale);
@@ -197,9 +142,9 @@ class ignition::gazebo::systems::WorldExporterPrivate
 
           igndbg << "Pose : x: " << localPose << std::endl;
 
-          int i = this->worldMesh.AddMaterial(mat);
+          int i = worldMesh.AddMaterial(mat);
 
-          subm = this->worldMesh.AddSubMesh(
+          subm = worldMesh.AddSubMesh(
             *mesh->SubMeshByIndex(0).lock().get());
           subm.lock()->SetMaterialIndex(i);
           subm.lock()->Scale(scale);
@@ -231,9 +176,9 @@ class ignition::gazebo::systems::WorldExporterPrivate
 
           matrix = math::Matrix4d(localPose);
 
-          int i = this->worldMesh.AddMaterial(mat);
+          int i = worldMesh.AddMaterial(mat);
 
-          subm = this->worldMesh.AddSubMesh(
+          subm = worldMesh.AddSubMesh(
             *mesh->SubMeshByIndex(0).lock().get());
           subm.lock()->SetMaterialIndex(i);
           subm.lock()->Scale(scale);
@@ -256,9 +201,9 @@ class ignition::gazebo::systems::WorldExporterPrivate
           scale.Y() = scale.X();
           scale.Z() = scale.X();
 
-          int i = this->worldMesh.AddMaterial(mat);
+          int i = worldMesh.AddMaterial(mat);
 
-          subm = this->worldMesh.AddSubMesh(
+          subm = worldMesh.AddSubMesh(
             *mesh->SubMeshByIndex(0).lock().get());
           subm.lock()->SetMaterialIndex(i);
           subm.lock()->Scale(scale);
@@ -309,33 +254,33 @@ class ignition::gazebo::systems::WorldExporterPrivate
               << std::endl;
 
             igndbg << "Material index on worldmesh: " <<
-              this->worldMesh.IndexOfMaterial(mesh->MaterialByIndex(
+              worldMesh.IndexOfMaterial(mesh->MaterialByIndex(
                 mesh->SubMeshByIndex(k).lock()->MaterialIndex()).get())
                 << std::endl;
 
             int i = 0;
             if ( j != -1 )
             {
-              i = this->worldMesh.IndexOfMaterial(mesh->MaterialByIndex(
+              i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(
                 mesh->SubMeshByIndex(k).lock()->MaterialIndex()).get());
               if (i < 0)
               {
-                i = this->worldMesh.AddMaterial(mesh->MaterialByIndex(
+                i = worldMesh.AddMaterial(mesh->MaterialByIndex(
                   mesh->SubMeshByIndex(k).lock()->MaterialIndex() ));
               }
             }
             else
             {
-              i = this->worldMesh.AddMaterial(mat);
+              i = worldMesh.AddMaterial(mat);
             }
 
             igndbg << "Inserted Material index : " << i << std::endl;
 
             igndbg << "Texture Image : "
-              << this->worldMesh.MaterialByIndex(i)->TextureImage()
+              << worldMesh.MaterialByIndex(i)->TextureImage()
               << std::endl;
 
-            subm = this->worldMesh.AddSubMesh(
+            subm = worldMesh.AddSubMesh(
               *mesh->SubMeshByIndex(k).lock().get());
             subm.lock()->SetMaterialIndex(i);
             igndbg << "Scale : " << _geom->Data().MeshShape()->Scale()
@@ -349,25 +294,29 @@ class ignition::gazebo::systems::WorldExporterPrivate
       }
       else
       {
-        ignerr << "It is NOT a mesh!"  << std::endl;
+        ignwarn << "Unsupported geometry type" << std::endl;
       }
 
       return true;
     });
 
-    exporter.Export(&this->worldMesh, "./" + this->worldMesh.Name(), true,
+    common::ColladaExporter exporter;
+    exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
                     subMeshMatrix);
-    this->rendered = true;
+    this->exported = true;
   }
 };
 
+/////////////////////////////////////////////////
 WorldExporter::WorldExporter() : System(),
     dataPtr(std::make_unique<WorldExporterPrivate>())
 {
 }
 
+/////////////////////////////////////////////////
 WorldExporter::~WorldExporter() = default;
 
+/////////////////////////////////////////////////
 void WorldExporter::PostUpdate(const UpdateInfo & /*_info*/,
     const EntityComponentManager &_ecm)
 {

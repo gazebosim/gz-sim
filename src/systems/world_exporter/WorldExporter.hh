@@ -33,7 +33,7 @@ namespace systems
   // Forward declarations.
   class WorldExporterPrivate;
 
-  /// \brief A plugin that exports a model to mesh.
+  /// \brief A plugin that exports a model to a mesh.
   /// When loaded the plugin will dump a mesh containing all the world
   /// to the current directory
   class IGNITION_GAZEBO_VISIBLE WorldExporter:
