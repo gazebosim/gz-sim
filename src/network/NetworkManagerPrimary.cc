@@ -133,7 +133,8 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // TODO(ivanpauno): If secondaries received a step message allowing them to move ahead N iterations (hardcoded to 1000 now),
   // until the secondaries completed those N steps the simulation cannot be paused, the step size cannot be changed, etc.
   // This should be handle in a better fashion.
-  if ((0uLL == _info.iterations % 1000uLL || this->paused) && !_info.paused) {
+  // Note: send an ack each N/2 iterations, to allow secondaries to move ahead faster.
+  if ((0uLL == _info.iterations % 500uLL || this->paused) && !_info.paused) {
     // Allow secondaries to continue moving forward each N steps (1000).
     // Also send a message if the simulation was paused before and now is running.
     private_msgs::SimulationStep step;
@@ -157,9 +158,6 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     {
       std::unique_lock<std::mutex> guard{this->secondaryStatesMutex};
       ++this->nextIteration;
-      {
-        auto it = this->secondaryStates.find(_info.iterations);
-      }
       this->secondaryStatesCv.wait(
         guard,
         [this, nSecondaries, iterations=_info.iterations]() {
