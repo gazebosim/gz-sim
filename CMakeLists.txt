@@ -70,7 +70,7 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.1)
+ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.3)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
