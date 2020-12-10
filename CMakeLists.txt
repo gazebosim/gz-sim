@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo3 VERSION 3.4.0)
+project(ignition-gazebo3 VERSION 3.5.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -70,7 +70,7 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.1)
+ign_find_package(ignition-fuel_tools4 REQUIRED VERSION 4.3)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
@@ -114,7 +114,7 @@ set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering3 REQUIRED VERSION 3.1)
+ign_find_package(ignition-rendering3 REQUIRED VERSION 3.2)
 set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------

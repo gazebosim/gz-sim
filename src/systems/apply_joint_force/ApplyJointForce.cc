@@ -14,14 +14,17 @@
  * limitations under the License.
  *
  */
+
+#include "ApplyJointForce.hh"
+
+#include <string>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "ApplyJointForce.hh"
 
 using namespace ignition;
 using namespace gazebo;
