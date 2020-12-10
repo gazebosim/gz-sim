@@ -68,8 +68,6 @@ There are no dynamic lights or shadows in the scene.
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/lightmap/control</service>
-        <stats_topic>/world/lightmap/stats</stats_topic>
 
       </plugin>
 
@@ -94,7 +92,6 @@ There are no dynamic lights or shadows in the scene.
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/lightmap/stats</topic>
 
       </plugin>
     </gui>
@@ -105,7 +102,6 @@ There are no dynamic lights or shadows in the scene.
       <pose>0 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Indoor Lightmap</uri>
     </include>
-
 
   </world>
 </sdf>
