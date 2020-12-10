@@ -55,6 +55,7 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
@@ -787,7 +788,7 @@ void IgnRenderer::BroadcastHoverPos()
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
 
-    gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &hoverToSceneEvent);
@@ -803,7 +804,7 @@ void IgnRenderer::BroadcastLeftClick()
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
 
-    gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &leftClickToSceneEvent);

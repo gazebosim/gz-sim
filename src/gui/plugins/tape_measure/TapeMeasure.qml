@@ -25,26 +25,13 @@ import "qrc:/qml"
 
 ToolBar {
   id: tapeMeasure
-  Layout.minimumWidth: 200
+  Layout.minimumWidth: 250
   Layout.minimumHeight: 100
-
-  property color snapTitle: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade900) :
-    Material.color(Material.Grey, Material.Shade200)
-
-  property color snapItem: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade800) :
-    Material.color(Material.Grey, Material.Shade100)
 
   property var distance: 0.0
 
   function updateDistance() {
     distance = TapeMeasure.Distance();
-  }
-
-  function startMeasurement() {
-    TapeMeasure.OnReset();
-    TapeMeasure.OnMeasure();
   }
 
   Connections {
@@ -62,13 +49,8 @@ ToolBar {
     id: group
   }
 
-  Shortcut {
-    sequence: "M"
-    onActivated: startMeasurement()
-  }
-
   RowLayout {
-    spacing: 2
+    spacing: 1
     ToolButton {
       id: select
       checkable: true
@@ -102,8 +84,8 @@ ToolBar {
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
         source: "trashcan.png"
-        sourceSize.width: 24;
-        sourceSize.height: 24;
+        sourceSize.width: 36;
+        sourceSize.height: 36;
       }
       onClicked: {
         TapeMeasure.OnReset();
@@ -111,6 +93,8 @@ ToolBar {
     }
     Text {
       text: qsTr(" Distance (m): " + distance.toFixed(3))
+      font.pointSize: 14
+      color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
     }
   }
 }
