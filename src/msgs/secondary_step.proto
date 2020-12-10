@@ -20,22 +20,19 @@ syntax = "proto3";
 package ignition.gazebo.private_msgs;
 
 import "ignition/msgs/world_stats.proto";
-import "performer_affinity.proto";
+import "ignition/msgs/serialized_map.proto";
 
-/// \brief Message to contain simulation step information for distributed
-/// simulation.
-/// This message is currently sent from NetworkPrimary to NetworkSecondaries
-/// at the beginning of each simulation iteration.
-message SimulationStep
+/// \brief Message that is sent from NetworkSecondaries to the NetworkPrimary
+/// in distributed simulation.
+message SecondaryStep
 {
   /// \brief Iteration information, such as sim time and paused state.
   ignition.msgs.WorldStatistics stats = 1;
 
+  /// \brief Prefix used to communicate with the secondary.
+  string secondary_prefix = 2;
+
   /// \brief Updated performer affinities. It will be empty if there are no
   /// affinity changes.
-  repeated PerformerAffinity affinity = 2;
-
-  /// \brief How far the secondaries can move ahead.
-  uint64 max_iterations = 3;
+  ignition.msgs.SerializedStateMap serialized_map = 3;
 }
-
