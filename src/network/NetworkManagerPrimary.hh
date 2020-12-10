@@ -22,13 +22,13 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
 
+#include "msgs/secondary_step.pb.h"
 #include "msgs/simulation_step.pb.h"
 
 #include "NetworkManager.hh"
@@ -90,7 +90,7 @@ namespace ignition
 
       /// \brief Callback for step ack messages.
       /// \param[in] _msg Message containing secondary's updated state.
-      private: void OnStepAck(const msgs::SerializedStateMap &_msg);
+      private: void OnStepAck(const private_msgs::SecondaryStep &_msg);
 
       /// \brief Check if the step publisher has connections.
       private: bool SecondariesCanStep() const;
@@ -117,10 +117,20 @@ namespace ignition
       private: ignition::transport::Node::Publisher simStepPub;
 
       /// \brief Keep track of states received from secondaries.
-      private: std::vector<msgs::SerializedStateMap> secondaryStates;
+      private: uint64_t nextIteration{0u};
 
-      /// \brief Promise used to notify when all secondaryStates where received.
-      private: std::promise<void> secondaryStatesPromise;
+      /// \brief Keep track of states received from secondaries.
+      // TODO(ivanpauno): I could probably use a `deque` here instead of a `map`.
+      private: std::map<uint64_t, std::vector<private_msgs::SecondaryStep>> secondaryStates;
+
+      /// \brief Mutex used to protect secondaryStates map.
+      private: std::mutex secondaryStatesMutex;
+
+      /// \brief Condition variable used to notify when secondaryStates map has more info.
+      private: std::condition_variable secondaryStatesCv;
+
+      /// \brief Indicates if the last step was in paused state;
+      private: bool paused{true};
     };
     }
   }  // namespace gazebo

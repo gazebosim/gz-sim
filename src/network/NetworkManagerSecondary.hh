@@ -19,7 +19,6 @@
 
 #include <atomic>
 #include <deque>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -32,6 +31,7 @@
 #include <ignition/msgs/serialized_map.pb.h>
 #include <ignition/transport/Node.hh>
 
+#include "msgs/secondary_step.pb.h"
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"
 
@@ -96,12 +96,6 @@ namespace ignition
       /// \brief Thread doing steps asynchronously.
       private: std::thread steppingThread;
 
-      /// \brief Max iteration that the secondary can move ahead.
-      private: uint64_t maxIteration{0};
-
-      /// \brief Last (local) update info.
-      private: UpdateInfo lastUpdateInfo;
-
       /// \brief Vector of received step messages.
       private: std::deque<private_msgs::SimulationStep> steps;
 
@@ -115,9 +109,6 @@ namespace ignition
       private: bool stopAsyncStepThread {false};
 
       private: using Duration = std::chrono::steady_clock::duration;
-
-      /// \brief History of previous map states, needed to be able to rewind.
-      private: std::map<uint64_t, std::tuple<msgs::SerializedStateMap, Duration, Duration>> history;
     };
     }
   }  // namespace gazebo
