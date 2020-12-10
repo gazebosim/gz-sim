@@ -19,6 +19,7 @@
 
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/pose.pb.h>
 
@@ -30,6 +31,7 @@
 
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
+#include <sdf/Light.hh>
 
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -123,6 +125,19 @@ class RemoveCommand : public UserCommandBase
   public: bool Execute() final;
 };
 
+/// \brief Command to modify a light entity from simulation.
+class LightCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the entity to be removed.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: LightCommand(msgs::Light *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
 /// \brief Command to update an entity's pose transform.
 class PoseCommand : public UserCommandBase
 {
@@ -177,6 +192,13 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool RemoveService(const msgs::Entity &_req,
       msgs::Boolean &_res);
+
+  /// \brief Callback for light service
+  /// \param[in] _req Request containing light update of an entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully moved.
+  /// \return True if successful.
+  public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
 
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
@@ -248,6 +270,13 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
+
+  // Pose service
+  std::string lightService{"/world/" + worldName + "/config"};
+  this->dataPtr->node.Advertise(lightService,
+      &UserCommandsPrivate::LightService, this->dataPtr.get());
+
+  ignmsg << "Pose service on [" << lightService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -329,6 +358,25 @@ bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<RemoveCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::LightService(const msgs::Light &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -627,6 +675,64 @@ bool RemoveCommand::Execute()
 
   igndbg << "Requesting removal of entity [" << entity << "]" << std::endl;
   this->iface->creator->RequestRemoveEntity(entity);
+  return true;
+}
+
+
+//////////////////////////////////////////////////
+LightCommand::LightCommand(msgs::Light *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool LightCommand::Execute()
+{
+  auto LightMsg = dynamic_cast<const msgs::Light *>(this->msg);
+  if (nullptr == LightMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  auto entity = this->iface->ecm->EntityByComponents(
+      components::Name(LightMsg->name()),
+      components::ParentEntity(this->iface->worldEntity));
+
+  auto lightComp = this->iface->ecm->Component<components::Light>(entity);
+  if (nullptr == lightComp)
+    entity = kNullEntity;
+
+  if (!entity) {
+    ignmsg << "Light component not available" << std::endl;
+    return false;
+  }
+
+  lightComp->Data().SetDiffuse(msgs::Convert(LightMsg->diffuse()));
+  lightComp->Data().SetSpecular(msgs::Convert(LightMsg->specular()));
+  lightComp->Data().SetAttenuationRange(LightMsg->range());
+  lightComp->Data().SetLinearAttenuationFactor(LightMsg->attenuation_linear());
+  lightComp->Data().SetConstantAttenuationFactor(LightMsg->attenuation_constant());
+  lightComp->Data().SetQuadraticAttenuationFactor(LightMsg->attenuation_quadratic());
+  lightComp->Data().SetCastShadows(LightMsg->cast_shadows());
+
+  auto lightPose = this->iface->ecm->Component<components::Pose>(entity);
+  if (nullptr == lightPose)
+    entity = kNullEntity;
+
+  if (!entity) {
+    ignmsg << "Pose component not available" << std::endl;
+    return false;
+  }
+
+  if (LightMsg->has_pose()) {
+    lightPose->Data().Pos() = msgs::Convert(LightMsg->pose()).Pos();
+  }
+
+  this->iface->ecm->SetChanged(entity,
+    components::Pose::typeId, ComponentState::OneTimeChange);
+
   return true;
 }
 

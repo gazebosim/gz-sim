@@ -76,6 +76,9 @@ namespace ignition::gazebo
     /// \brief Name of the world
     public: std::string worldName;
 
+    /// \brief Entity name
+    public: std::string entityName;
+
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
 
@@ -109,6 +112,29 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
     QVariant(_data.Rot().Roll()),
     QVariant(_data.Rot().Pitch()),
     QVariant(_data.Rot().Yaw())
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
+{
+  _item->setData(QString("Light"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.Specular().R()),
+    QVariant(_data.Specular().G()),
+    QVariant(_data.Specular().B()),
+    QVariant(_data.Specular().A()),
+    QVariant(_data.Diffuse().R()),
+    QVariant(_data.Diffuse().G()),
+    QVariant(_data.Diffuse().B()),
+    QVariant(_data.Diffuse().A()),
+    QVariant(_data.AttenuationRange()),
+    QVariant(_data.LinearAttenuationFactor()),
+    QVariant(_data.ConstantAttenuationFactor()),
+    QVariant(_data.QuadraticAttenuationFactor()),
+    QVariant(_data.CastShadows())
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -370,12 +396,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       continue;
     }
 
-    if (typeId == components::Light::typeId)
-    {
-      this->SetType("light");
-      continue;
-    }
-
     if (typeId == components::Actor::typeId)
     {
       this->SetType("actor");
@@ -499,6 +519,9 @@ void ComponentInspector::Update(const UpdateInfo &,
 
       if (this->dataPtr->entity == this->dataPtr->worldEntity)
         this->dataPtr->worldName = comp->Data();
+      else
+        this->dataPtr->entityName = comp->Data();
+
     }
     else if (typeId == components::ParentEntity::typeId)
     {
@@ -518,6 +541,12 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       auto comp = _ecm.Component<components::PerformerAffinity>(
           this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Light::typeId)
+    {
+      auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -726,6 +755,35 @@ void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
   auto poseCmdService = "/world/" + this->dataPtr->worldName
       + "/set_pose";
   this->dataPtr->node.Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnLight(
+  double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
+  double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
+  double _attRange, double _attLinear, double _attConstant,
+  double _attQuadratic, bool _castShadows)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting light configuration" << std::endl;
+  };
+
+  ignition::msgs::Light req;
+  req.set_name(this->dataPtr->entityName);
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
+  req.set_range(_attRange);
+  req.set_attenuation_linear(_attLinear);
+  req.set_attenuation_constant(_attConstant);
+  req.set_attenuation_quadratic(_attQuadratic);
+  req.set_cast_shadows(_castShadows);
+  auto lightConfigService = "/world/lights/config";
+  this->dataPtr->node.Request(lightConfigService, req, cb);
 }
 
 /////////////////////////////////////////////////

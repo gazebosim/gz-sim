@@ -28,6 +28,8 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
+#include <sdf/Light.hh>
+
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
@@ -68,6 +70,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const math::Pose3d &_data);
+
+  /// \brief Specialized to set ligth data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::Light &_data);
 
   /// \brief Specialized to set vector data.
   /// \param[in] _item Item whose data will be set.
@@ -206,6 +214,26 @@ namespace gazebo
     /// \param[in] _yaw Yaw
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
+
+    /// \brief Callback in Qt thread when specular changes.
+    /// \param[in] _rSpecular specular red
+    /// \param[in] _gSpecular specular green
+    /// \param[in] _bSpecular specular blue
+    /// \param[in] _aSpecular specular alpha
+    /// \param[in] _rDiffuse Diffuse red
+    /// \param[in] _gDiffuse Diffuse green
+    /// \param[in] _bDiffuse Diffuse blue
+    /// \param[in] _aDiffuse Diffuse alpha
+    /// \param[in] _attRange Range attenuation
+    /// \param[in] _attLinear Linear attenuation
+    /// \param[in] _attConstant Constant attenuation
+    /// \param[in] _attQuadratic Quadratic attenuation
+    /// \param[in] _castShadows Cast Shadows attenuation
+    public: Q_INVOKABLE void OnLight(
+      double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
+      double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
+      double _attRange, double _attLinear, double _attConstant, double _attQuadratic,
+      bool _castShadows);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise

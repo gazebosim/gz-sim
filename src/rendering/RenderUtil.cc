@@ -163,6 +163,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and pose updates.
   public: std::unordered_map<Entity, math::Pose3d> entityPoses;
 
+  /// \brief A map of entity ids and light updates.
+  public: std::unordered_map<Entity, sdf::Light> entityLights;
+
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
@@ -284,6 +287,7 @@ void RenderUtil::Update()
   auto newLights = std::move(this->dataPtr->newLights);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto entityLights = std::move(this->dataPtr->entityLights);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
@@ -297,6 +301,7 @@ void RenderUtil::Update()
   this->dataPtr->newLights.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->entityLights.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
@@ -427,6 +432,37 @@ void RenderUtil::Update()
     }
   }
 
+  // update entities' pose
+  {
+    IGN_PROFILE("RenderUtil::Update Lights");
+    for (const auto &light : entityLights) {
+      auto node = this->dataPtr->sceneManager.NodeById(light.first);
+      if (!node)
+        continue;
+      auto l = std::dynamic_pointer_cast<rendering::Light>(node);
+      if (l)
+      {
+        if (l->DiffuseColor() != light.second.Diffuse())
+          l->SetDiffuseColor(light.second.Diffuse());
+        if (l->SpecularColor() != light.second.Specular())
+          l->SetSpecularColor(light.second.Specular());
+        if (ignition::math::equal(
+            l->AttenuationRange(), light.second.AttenuationRange()))
+          l->SetAttenuationRange(light.second.AttenuationRange());
+        if (ignition::math::equal(
+            l->AttenuationLinear(), light.second.LinearAttenuationFactor()))
+          l->SetAttenuationLinear(light.second.LinearAttenuationFactor());
+        if (ignition::math::equal(
+            l->AttenuationConstant(), light.second.ConstantAttenuationFactor()))
+          l->SetAttenuationConstant(light.second.ConstantAttenuationFactor());
+        if (ignition::math::equal(
+            l->AttenuationQuadratic(), light.second.QuadraticAttenuationFactor()))
+          l->SetAttenuationQuadratic(light.second.QuadraticAttenuationFactor());
+        if (l->CastShadows() != light.second.CastShadows())
+          l->SetCastShadows(light.second.CastShadows());
+      }
+    }
+  }
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
@@ -1070,13 +1106,14 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
-  // lights
+  // update lights
   _ecm.Each<components::Light, components::Pose>(
       [&](const Entity &_entity,
-        const components::Light *,
+        const components::Light *_light,
         const components::Pose *_pose)->bool
       {
         this->entityPoses[_entity] = _pose->Data();
+        this->entityLights[_entity] = _light->Data();
         return true;
       });
 

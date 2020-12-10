@@ -85,6 +85,19 @@ Rectangle {
     ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
   }
 
+  /**
+   * Forward light changes to C++
+   */
+  function onLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                   _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                   _attRange, _attLinear, _attConstant, _attQuadratic,
+                   _castShadows) {
+    ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                               _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                               _attRange, _attLinear, _attConstant, _attQuadratic,
+                               _castShadows)
+  }
+
   Rectangle {
     id: header
     height: lockButton.height
