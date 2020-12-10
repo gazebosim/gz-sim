@@ -200,7 +200,8 @@ std::map<std::string, SecondaryControl::Ptr>
 void NetworkManagerPrimary::OnStepAck(const msgs::SerializedStateMap &_msg)
 {
   this->secondaryStates.push_back(_msg);
-  if (this->secondaryStates.size() == this->secondaries.size()) {
+  if (this->secondaryStates.size() == this->secondaries.size())
+  {
     this->secondaryStatesPromise.set_value();
   }
 }
@@ -317,4 +318,3 @@ void NetworkManagerPrimary::SetAffinity(Entity _performer,
   auto newAffinity = components::PerformerAffinity(_secondary);
   this->dataPtr->ecm->CreateComponent(_performer, newAffinity);
 }
-
