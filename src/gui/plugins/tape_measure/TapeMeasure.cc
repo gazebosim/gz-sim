@@ -130,10 +130,10 @@ void TapeMeasure::Measure()
 
   // Notify Scene3D to disable the right click menu while we use it to
   // cancel our current measuring action
-  gui::events::RightClickDropdownMenu rightClickDropdownMenuEvent(false);
+  ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(false);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &rightClickDropdownMenuEvent);
+      &dropdownMenuEnabledEvent);
 }
 
 /////////////////////////////////////////////////
@@ -159,10 +159,10 @@ void TapeMeasure::Reset()
 
   // Notify Scene3D that we are done using the right click, so it can
   // re-enable the settings menu
-  gui::events::RightClickDropdownMenu rightClickDropdownMenuEvent(true);
+  ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &rightClickDropdownMenuEvent);
+      &dropdownMenuEnabledEvent);
 }
 
 /////////////////////////////////////////////////
@@ -288,10 +288,10 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 
         // Notify Scene3D that we are done using the right click, so it can
         // re-enable the settings menu
-        gui::events::RightClickDropdownMenu rightClickDropdownMenuEvent(true);
+        ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(true);
         ignition::gui::App()->sendEvent(
             ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-            &rightClickDropdownMenuEvent);
+            &dropdownMenuEnabledEvent);
       }
       this->dataPtr->currentId = this->dataPtr->kEndPointId;
     }

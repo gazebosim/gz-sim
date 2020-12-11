@@ -824,7 +824,7 @@ void IgnRenderer::BroadcastRightClick()
 
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
 
-    gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    ignition::gui::events::RightClickToScene rightClickToSceneEvent(pos);
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &rightClickToSceneEvent);
@@ -2691,14 +2691,14 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::RightClickDropdownMenu::kType)
+      ignition::gui::events::DropdownMenuEnabled::kType)
   {
-    auto rightClickDropdownMenuEvent =
-      reinterpret_cast<gui::events::RightClickDropdownMenu *>(_event);
-    if (rightClickDropdownMenuEvent)
+    auto dropdownMenuEnabledEvent =
+      reinterpret_cast<ignition::gui::events::DropdownMenuEnabled *>(_event);
+    if (dropdownMenuEnabledEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetRightClickMenu(rightClickDropdownMenuEvent->MenuEnabled());
+      renderWindow->SetRightClickMenu(dropdownMenuEnabledEvent->MenuEnabled());
     }
   }
 
