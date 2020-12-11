@@ -66,7 +66,7 @@ function(gz_add_system system_name)
     # create_symlink requires cmake 3.13 on windows
     cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
   endif()
-  EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
+  install(FILES ${versioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR} RENAME ${unversioned})
   INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endfunction()
 
