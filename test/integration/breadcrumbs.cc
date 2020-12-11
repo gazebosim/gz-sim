@@ -20,6 +20,7 @@
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
 
+#include <optional>
 #include <regex>
 
 #include <sdf/Root.hh>

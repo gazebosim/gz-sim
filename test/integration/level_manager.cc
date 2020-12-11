@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 
+#include <optional>
 #include <vector>
 
 #include <ignition/common/Console.hh>

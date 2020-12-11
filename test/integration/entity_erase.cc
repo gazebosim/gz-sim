@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
