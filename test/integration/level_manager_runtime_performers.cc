@@ -20,6 +20,7 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
+#include <optional>
 #include <vector>
 
 #include <ignition/common/Console.hh>

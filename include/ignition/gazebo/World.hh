@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_WORLD_HH_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 

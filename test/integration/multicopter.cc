@@ -18,6 +18,8 @@
 
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include <ignition/msgs.hh>
 
 #include <ignition/common/Console.hh>
