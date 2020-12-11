@@ -38,6 +38,6 @@ TEST(SdfInclude, DownloadFromFuel)
   gazebo::Server server(serverConfig);
 
   EXPECT_TRUE(common::exists(path +
-        "/fuel.ignitionrobotics.org/OpenRobotics/models/ground plane" +
+        "/fuel.ignitionrobotics.org/openrobotics/models/ground plane" +
         "/1/model.sdf"));
 }
