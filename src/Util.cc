@@ -16,12 +16,20 @@
 */
 
 #ifndef __APPLE__
-  #if __GNUC__ < 8
+  #if (defined(_MSVC_LANG))
+    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
+      #include <filesystem> //C++17
+    #else
+      #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+      #include <experimental/filesystem>
+    #endif
+  #elif __GNUC__ < 8
     #include <experimental/filesystem>
   #else
     #include <filesystem>
   #endif
 #endif
+
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
 
