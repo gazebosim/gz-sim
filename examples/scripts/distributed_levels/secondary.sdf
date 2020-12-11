@@ -40,9 +40,19 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    
+    <include>
+      <name>explorer_1</name>
+      <pose>0 -1.5 2.5 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_X1_SENSOR_CONFIG_2</uri>
+    </include>
 
-    <model name="green_sphere">
+    <include>
+      <name>explorer_2</name>
+      <pose>0 1.5 2.5 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_X1_SENSOR_CONFIG_2</uri>
+    </include>
+
+    <!-- <model name="green_sphere">
       <pose>0 -1.5 2.5 0 0 0</pose>
       <link name="shape_link">
         <inertial>
@@ -108,7 +118,7 @@
         </visual>
       </link>
     </model>
-    
+     -->
 
     
     <model name="block_0_A">
@@ -852,17 +862,17 @@
     <plugin name="ignition::gazebo" filename="dummy">
 
     
-      <performer name="perf_green_sphere">
-        <ref>green_sphere</ref>
+      <performer name="perf_explorer_1">
+        <ref>explorer_1</ref>
         <geometry>
           <box>
             <size>1 1 1</size>
           </box>
         </geometry>
       </performer>
-    
-      <performer name="perf_yellow_box">
-        <ref>yellow_box</ref>
+
+      <performer name="perf_explorer_2">
+        <ref>explorer_2</ref>
         <geometry>
           <box>
             <size>1 1 1</size>
