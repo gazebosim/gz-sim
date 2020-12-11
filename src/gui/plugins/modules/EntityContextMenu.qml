@@ -37,6 +37,15 @@ Item {
       text: "Remove"
       onTriggered: context.OnRemove(context.entity, context.type)
     }
+    Menu {
+      id: viewSubmenu
+      title: "View"
+      MenuItem {
+        id: viewCollisionsMenu
+        text: "Collisions"
+        onTriggered: context.OnRequest("viewCollisions", context.entity)
+      }
+    }
   }
 
   function open(_entity, _type, _x, _y) {
@@ -47,6 +56,7 @@ Item {
     moveToMenu.enabled = false
     followMenu.enabled = false
     removeMenu.enabled = false
+    viewCollisionsMenu.enabled = false;
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -62,6 +72,12 @@ Item {
       removeMenu.enabled = true
     }
 
+    if (context.type == "model" || context.type == "link" ||
+        context.type == "collision" )
+    {
+      viewCollisionsMenu.enabled = true;
+    }
+
     menu.open()
   }
 
@@ -71,5 +87,3 @@ Item {
     property string type
   }
 }
-
-

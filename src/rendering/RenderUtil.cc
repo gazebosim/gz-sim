@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -152,6 +153,24 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
+  // TODO(jenn) doc
+  // key entity (collision), value tuple SDF DOM and parent entity id
+  public: std::map<Entity, sdf::Collision> entityCollisions;
+
+  // TODO(jenn) doc
+  // key parent (link) entity, value collision entity
+  public: std::map<Entity, Entity> linkToCollisionEntity;
+
+  // TODO(jenn) doc
+  public: bool viewCollisions = false;
+
+  // TODO(jenn) doc
+  // key entity, value boolean if currently viewing in scene
+  public: std::map<Entity, bool> viewingCollisions;
+
+  // TODO(jenn) doc
+  public: void Collisions(const EntityComponentManager &_ecm);
+
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
   public: std::map<Entity, uint64_t> removeEntities;
@@ -225,6 +244,49 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
+
+  if (this->dataPtr->viewCollisions)
+  {
+    this->dataPtr->Collisions(_ecm);
+  }
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::Collisions(const EntityComponentManager &_ecm)
+{
+  for (auto const& [entity, viewing] : this->viewingCollisions)
+  {
+    // don't do anything if collision is already in scene
+    if (viewing) continue;
+
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      auto links = _ecm.ChildrenByComponents(entity, components::Model());
+      std::cout << "links.size: " << links.size() << std::endl;
+    }
+    else if (_ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      Entity colEntity = this->linkToCollisionEntity[entity];
+
+      if (!this->sceneManager.HasEntity(colEntity))
+      {
+        sdf::Collision collision = this->entityCollisions[colEntity];
+
+        sdf::Material material;
+        material.SetAmbient(math::Color(1, 0.5088, 0.0468, 1));
+        material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 1));
+        material.SetSpecular(math::Color(0.5, 0.5, 0.5, 1));
+
+        sdf::Visual visual;
+        visual.SetMaterial(material);
+        visual.SetGeom(*collision.Geom());
+
+        this->sceneManager.CreateVisual(colEntity, visual, entity);
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -604,6 +666,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
+    // collisions
+    _ecm.Each<components::Collision, components::Name, components::Pose,
+              components::Geometry, components::CollisionElement,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Collision *,
+            const components::Name *,
+            const components::Pose *,
+            const components::Geometry *,
+            const components::CollisionElement *_collElement,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->entityCollisions[_entity] = _collElement->Data();
+          this->linkToCollisionEntity[_parent->Data()] = _entity;
+          return true;
+        });
+
     if (this->enableSensors)
     {
       // Create cameras
@@ -765,6 +844,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // collisions
+    _ecm.EachNew<components::Collision, components::Name, components::Pose,
+              components::Geometry, components::CollisionElement,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Collision *,
+            const components::Name *,
+            const components::Pose *,
+            const components::Geometry *,
+            const components::CollisionElement *_collElement,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->entityCollisions[_entity] = _collElement->Data();
+          this->linkToCollisionEntity[_parent->Data()] = _entity;
           return true;
         });
 
@@ -1005,6 +1101,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // thermal cameras
   _ecm.EachRemoved<components::ThermalCamera>(
     [&](const Entity &_entity, const components::ThermalCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // collisions
+  _ecm.EachRemoved<components::Collision>(
+    [&](const Entity &_entity, const components::Collision *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;
@@ -1304,4 +1408,26 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
              << geom->Name() << "]" << std::endl;
     }
   }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetViewCollisions(const bool &_viewCollision, const Entity &_entity)
+{
+  if (_viewCollision)
+  {
+    if (this->dataPtr->viewingCollisions.find(_entity) !=
+        this->dataPtr->viewingCollisions.end())
+    {
+      // TODO(jenn) fix to a proper warning/error
+      std::cout << "Already viewing collision for enitity[" << _entity << "]" << std::endl;
+      return;
+    }
+
+    this->dataPtr->viewingCollisions[_entity] = false;
+  }
+  else
+  {
+    // TODO(jenn) remove from viewingCollisions
+  }
+  this->dataPtr->viewCollisions = _viewCollision;
 }

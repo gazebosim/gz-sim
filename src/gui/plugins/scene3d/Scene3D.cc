@@ -200,6 +200,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Target to view collisions
+    public: std::string viewCollisionsTarget;
+
     /// \brief Helper object to select entities. Only the latest selection
     /// request is kept.
     public: SelectionHelper selectionHelper;
@@ -375,6 +378,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Camera pose publisher
     public: transport::Node::Publisher cameraPosePub;
+
+    /// \brief View collisions service
+    public: std::string viewCollisionsService;
   };
 }
 }
@@ -666,6 +672,29 @@ void IgnRenderer::Render()
       }
       this->dataPtr->isPlacing = this->GeneratePreview(root);
       this->dataPtr->isSpawning = false;
+    }
+  }
+
+  // View collisions
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewCollisions");
+    if (!this->dataPtr->viewCollisionsTarget.empty())
+    {
+      rendering::NodePtr targetNode = scene->NodeByName(
+          this->dataPtr->viewCollisionsTarget);
+
+      if (!targetNode)
+      {
+        // TODO(jenn) fix error
+        std::cout << "No target" << std::endl;
+      }
+      else
+      {
+        Entity targetEntity = this->dataPtr->renderUtil.SceneManager().EntityFromNode(targetNode);
+        this->dataPtr->renderUtil.SetViewCollisions(true, targetEntity);
+      }
+
+      this->dataPtr->viewCollisionsTarget.clear();
     }
   }
 
@@ -1694,6 +1723,13 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewCollisionsTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowPGain(double _gain)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2343,6 +2379,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view collisions service
+  this->dataPtr->viewCollisionsService = "/gui/view/collisions";
+  this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
+      &Scene3D::OnViewCollisions, this);
+  ignmsg << "View collisions service on ["
+         << this->dataPtr->viewCollisionsService << "]" << std::endl;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -2475,6 +2518,18 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
     pose.Pos().X() = math::INF_D;
 
   renderWindow->SetMoveToPose(pose);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewCollisionsTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -2695,6 +2750,12 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
 }
 
 /////////////////////////////////////////////////

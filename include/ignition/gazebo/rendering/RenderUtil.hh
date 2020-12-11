@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include <sdf/Collision.hh>
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
@@ -110,6 +111,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetEnableSensors(bool _enable, std::function<
         std::string(const sdf::Sensor &, const std::string &)>
         _createSensorCb = {});
+
+    // TODO(jenn) doc
+    public: void SetViewCollisions(const bool &_viewCollision, const Entity &_entity);
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
