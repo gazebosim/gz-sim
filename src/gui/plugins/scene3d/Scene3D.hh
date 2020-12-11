@@ -548,7 +548,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
     /// TODO(jenn) doc
-    public: void Target(const std::string &_target);
+    public: void SetViewCollisionsTarget(const std::string &_target);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
