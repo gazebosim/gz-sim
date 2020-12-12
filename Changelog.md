@@ -2,6 +2,64 @@
 
 ### Ignition Gazebo 4.X.X (20XX-XX-XX)
 
+### Ignition Gazebo 4.1.0 (2020-12-11)
+
+1. Update Dockerfiles to use focal images
+    * [pull request 388](https://github.com/ignitionrobotics/ign-gazebo/pull/388)
+
+1. Updated source build instructions for ign-gazebo4
+    * [pull request 404](https://github.com/ignitionrobotics/ign-gazebo/pull/404)
+
+1. Add tests for the AnimationTime component
+    * [pull request 433](https://github.com/ignitionrobotics/ign-gazebo/pull/433)
+
+1. Fix pose msg conversion when msg is missing orientation
+    * [pull request 450](https://github.com/ignitionrobotics/ign-gazebo/pull/450)
+    * [pull request 459](https://github.com/ignitionrobotics/ign-gazebo/pull/459)
+
+1. Resolved updated codecheck issues
+    * [pull request 443](https://github.com/ignitionrobotics/ign-gazebo/pull/443)
+    * [pull request 457](https://github.com/ignitionrobotics/ign-gazebo/pull/457)
+    * [pull request 459](https://github.com/ignitionrobotics/ign-gazebo/pull/459)
+
+1. Use new backpack version in tests
+    * [pull request 455](https://github.com/ignitionrobotics/ign-gazebo/pull/455)
+    * [pull request 457](https://github.com/ignitionrobotics/ign-gazebo/pull/457)
+    * [pull request 459](https://github.com/ignitionrobotics/ign-gazebo/pull/459)
+
+1. Fix segfault in the Breadcrumb system when associated model is unloaded
+    * [pull request 454](https://github.com/ignitionrobotics/ign-gazebo/pull/454)
+    * [pull request 457](https://github.com/ignitionrobotics/ign-gazebo/pull/457)
+    * [pull request 459](https://github.com/ignitionrobotics/ign-gazebo/pull/459)
+
+1. Added user commands to example thermal camera world
+    * [pull request 442](https://github.com/ignitionrobotics/ign-gazebo/pull/442)
+    * [pull request 459](https://github.com/ignitionrobotics/ign-gazebo/pull/459)
+
+1. Helper function to set component data
+    * [pull request 436](https://github.com/ignitionrobotics/ign-gazebo/pull/436)
+    * [pull request 469](https://github.com/ignitionrobotics/ign-gazebo/pull/469)
+
+1. Remove unneeded if statement
+    * [pull request 432](https://github.com/ignitionrobotics/ign-gazebo/pull/432)
+    * [pull request 469](https://github.com/ignitionrobotics/ign-gazebo/pull/469)
+
+1. Fix flaky RecordAndPlayback test in INTEGRATION_log_system
+    * [pull request 463](https://github.com/ignitionrobotics/ign-gazebo/pull/463)
+    * [pull request 469](https://github.com/ignitionrobotics/ign-gazebo/pull/469)
+
+1. Make PeerTracker test more robust
+    * [pull request 452](https://github.com/ignitionrobotics/ign-gazebo/pull/452)
+    * [pull request 469](https://github.com/ignitionrobotics/ign-gazebo/pull/469)
+
+1. Use a [std::promise](https://en.cppreference.com/w/cpp/thread/promise)/[std::future](https://en.cppreference.com/w/cpp/thread/future) mechanism to avoid waiting in a looop until all `stepAck` messages are received
+    * [pull request 470](https://github.com/ignitionrobotics/ign-gazebo/pull/470)
+
+1. Optical Tactile Sensor Plugin
+    * [pull request 229](https://github.com/ignitionrobotics/ign-gazebo/pull/229)
+
+1. All changes up to and including those in version 3.5.0 and version 2.25.0
+
 ### Ignition Gazebo 4.0.0 (2020-09-30)
 
 1. Names with spaces: add string serializer
