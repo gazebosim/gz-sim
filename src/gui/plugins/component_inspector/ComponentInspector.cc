@@ -120,9 +120,12 @@ template<>
 void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
 {
   int lightType = 0;
-  if (_data.Type() == sdf::LightType::SPOT) {
+  if (_data.Type() == sdf::LightType::SPOT)
+  {
     lightType = 1;
-  } else if (_data.Type() == sdf::LightType::DIRECTIONAL) {
+  }
+  else if (_data.Type() == sdf::LightType::DIRECTIONAL)
+  {
     lightType = 2;
   }
 
@@ -809,7 +812,9 @@ void ComponentInspector::OnLight(
     req.set_spot_outer_angle(_outerAngle);
     req.set_spot_falloff(_falloff);
   }
-  if (_type == 1 || _type == 2) {  // sdf::LightType::SPOT || sdf::LightType::DIRECTIONAL
+
+  // if sdf::LightType::SPOT || sdf::LightType::DIRECTIONAL
+  if (_type == 1 || _type == 2) {
     ignition::msgs::Set(req.mutable_direction(),
       ignition::math::Vector3d(_directionX, _directionY, _directionZ));
   }

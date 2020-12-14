@@ -724,8 +724,10 @@ bool LightCommand::Execute()
   }
 
   if (LightMsg->type() == ignition::msgs::Light::SPOT) {
-    lightComp->Data().SetSpotInnerAngle(ignition::math::Angle(LightMsg->spot_inner_angle()));
-    lightComp->Data().SetSpotOuterAngle(ignition::math::Angle(LightMsg->spot_outer_angle()));
+    lightComp->Data().SetSpotInnerAngle(
+      ignition::math::Angle(LightMsg->spot_inner_angle()));
+    lightComp->Data().SetSpotOuterAngle(
+      ignition::math::Angle(LightMsg->spot_outer_angle()));
     lightComp->Data().SetSpotFalloff(LightMsg->spot_falloff());
   }
 
