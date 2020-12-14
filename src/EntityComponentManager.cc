@@ -1093,12 +1093,9 @@ void EntityComponentManager::SetState(
       // Get type id
       auto typeId = newComp->TypeId();
 
-      // TODO(louise) Move into if, see TODO below
-      this->RemoveComponent(entity, typeId);
-
-      // Remove component
       if (compMsg.remove())
       {
+        this->RemoveComponent(entity, typeId);
         continue;
       }
 
@@ -1119,7 +1116,8 @@ void EntityComponentManager::SetState(
         // doesn't update the component. The following line prints the correct
         // values.
         // igndbg << *comp << "  " << *newComp.get() << std::endl;
-        // *comp = *newComp.get();
+        comp->Deserialize(istr);
+        this->SetChanged(entity, typeId, ComponentState::PeriodicChange);
       }
     }
   }
@@ -1215,7 +1213,7 @@ void EntityComponentManager::SetState(
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
-            ComponentState::OneTimeChange);
+            ComponentState::PeriodicChange);
       }
     }
   }
