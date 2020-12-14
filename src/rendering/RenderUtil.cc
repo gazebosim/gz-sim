@@ -478,7 +478,9 @@ void RenderUtil::Update()
             lSpotLight->SetInnerAngle(light.second.SpotInnerAngle());
           if (lSpotLight->OuterAngle() != light.second.SpotOuterAngle())
             lSpotLight->SetOuterAngle(light.second.SpotOuterAngle());
-          if (lSpotLight->Falloff() != light.second.SpotFalloff())
+          if (ignition::math::equal(
+              lSpotLight->Falloff(),
+              light.second.SpotFalloff()))
             lSpotLight->SetFalloff(light.second.SpotFalloff());
         }
       }
