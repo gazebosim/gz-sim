@@ -234,7 +234,9 @@ namespace gazebo
       double _aSpecular, double _rDiffuse, double _gDiffuse,
       double _bDiffuse, double _aDiffuse, double _attRange,
       double _attLinear, double _attConstant, double _attQuadratic,
-      bool _castShadows);
+      bool _castShadows, double _directionX, double _directionY,
+      double _directionZ, double _innerAngle, double _outerAngle,
+      double _falloff, int _type);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise

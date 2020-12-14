@@ -119,6 +119,13 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
 {
+  int lightType = 0;
+  if (_data.Type() == sdf::LightType::SPOT) {
+    lightType = 1;
+  } else if (_data.Type() == sdf::LightType::DIRECTIONAL) {
+    lightType = 2;
+  }
+
   _item->setData(QString("Light"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
@@ -134,7 +141,14 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
     QVariant(_data.LinearAttenuationFactor()),
     QVariant(_data.ConstantAttenuationFactor()),
     QVariant(_data.QuadraticAttenuationFactor()),
-    QVariant(_data.CastShadows())
+    QVariant(_data.CastShadows()),
+    QVariant(lightType),
+    QVariant(_data.Direction().X()),
+    QVariant(_data.Direction().Y()),
+    QVariant(_data.Direction().Z()),
+    QVariant(_data.SpotInnerAngle().Radian()),
+    QVariant(_data.SpotOuterAngle().Radian()),
+    QVariant(_data.SpotFalloff())
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -761,7 +775,9 @@ void ComponentInspector::OnLight(
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _attRange, double _attLinear, double _attConstant,
-  double _attQuadratic, bool _castShadows)
+  double _attQuadratic, bool _castShadows, double _directionX,
+  double _directionY, double _directionZ, double _innerAngle,
+  double _outerAngle, double _falloff, int _type)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -781,6 +797,23 @@ void ComponentInspector::OnLight(
   req.set_attenuation_constant(_attConstant);
   req.set_attenuation_quadratic(_attQuadratic);
   req.set_cast_shadows(_castShadows);
+  if (_type == 0)
+    req.set_type(ignition::msgs::Light::POINT);
+  else if (_type == 1)
+    req.set_type(ignition::msgs::Light::SPOT);
+  else
+    req.set_type(ignition::msgs::Light::DIRECTIONAL);
+
+  if (_type == 1) {  // sdf::LightType::SPOT
+    req.set_spot_inner_angle(_innerAngle);
+    req.set_spot_outer_angle(_outerAngle);
+    req.set_spot_falloff(_falloff);
+  }
+  if (_type == 1 || _type == 2) {  // sdf::LightType::SPOT || sdf::LightType::DIRECTIONAL
+    ignition::msgs::Set(req.mutable_direction(),
+      ignition::math::Vector3d(_directionX, _directionY, _directionZ));
+  }
+
   auto lightConfigService = "/world/lights/config";
   this->dataPtr->node.Request(lightConfigService, req, cb);
 }

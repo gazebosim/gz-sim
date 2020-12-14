@@ -46,43 +46,62 @@ Rectangle {
   property int iconWidth: 20
   property int iconHeight: 20
 
-  // Loaded item for R
+  // Loaded item for specular red
   property var rSpecularItem: {}
 
-  // Loaded item for G
+  // Loaded item for specular green
   property var gSpecularItem: {}
 
-  // Loaded item for B
+  // Loaded item for specular blue
   property var bSpecularItem: {}
 
-  // Loaded item for A
+  // Loaded item for specular alpha
   property var aSpecularItem: {}
 
-  // Loaded item for R
+  // Loaded item for diffuse red
   property var rDiffuseItem: {}
 
-  // Loaded item for G
+  // Loaded item for diffuse green
   property var gDiffuseItem: {}
 
-  // Loaded item for B
+  // Loaded item for diffuse blue
   property var bDiffuseItem: {}
 
-  // Loaded item for A
+  // Loaded item for diffuse alpha
   property var aDiffuseItem: {}
 
-  // Loaded item for R
+  // Loaded item for attenuation range
   property var attRangeItem: {}
 
-  // Loaded item for G
+  // Loaded item for attenuation linear
   property var attLinearItem: {}
 
-  // Loaded item for B
+  // Loaded item for attenuation constant
   property var attConstantItem: {}
 
-  // Loaded item for A
+  // Loaded item for attenuation quadratic
   property var attQuadraticItem: {}
 
+  // Loaded item for cast shadows
   property var castShadowsItem: {}
+
+  // Loaded item for direction X (spotlight or directional)
+  property var directionXItem: {}
+
+  // Loaded item for direction Y (spotlight or directional)
+  property var directionYItem: {}
+
+  // Loaded item for direction Z (spotlight or directional)
+  property var directionZItem: {}
+
+  // Loaded item for inner angle (spotlight)
+  property var innerAngleItem: {}
+
+  // Loaded item for inner angle (spotlight)
+  property var outerAngleItem: {}
+
+  // Loaded item for falloff (spotlight)
+  property var falloffItem: {}
 
   // Send new pose to C++
   function sendLight() {
@@ -100,7 +119,14 @@ Rectangle {
       attLinearItem.value,
       attConstantItem.value,
       attQuadraticItem.value,
-      castShadowsItem
+      castShadowsItem,
+      directionXItem.value,
+      directionYItem.value,
+      directionZItem.value,
+      innerAngleItem.value,
+      outerAngleItem.value,
+      falloffItem.value,
+      model.data[13]
     );
   }
 
@@ -132,6 +158,32 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0
       maximumValue: 1000000
+      decimals: 6
+      onEditingFinished: {
+        sendLight()
+      }
+    }
+  }
+  Component {
+    id: spinAngle
+    IgnSpinBox {
+      id: writableSpin
+      value: writableSpin.activeFocus ? writableSpin.value : numberValue
+      minimumValue: -3.1416
+      maximumValue: 3.1416
+      decimals: 6
+      onEditingFinished: {
+        sendLight()
+      }
+    }
+  }
+  Component {
+    id: spinNoLimit
+    IgnSpinBox {
+      id: writableSpin
+      value: writableSpin.activeFocus ? writableSpin.value : numberValue
+      minimumValue: -100000
+      maximumValue: 100000
       decimals: 6
       onEditingFinished: {
         sendLight()
@@ -743,8 +795,6 @@ Rectangle {
           }
         }
 
-//////////////
-
         Rectangle {
           color: "transparent"
           height: 40
@@ -779,6 +829,275 @@ Rectangle {
             onToggled: {
               castShadowsItem = checked
               sendLight()
+            }
+          }
+        }
+
+        Text {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          Layout.columnSpan: 6
+          text: "Direction"
+          color: "dimgrey"
+          width: margin + indentation
+        }
+
+        // Left spacer
+        Item {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          Layout.rowSpan: 3
+          width: margin + indentation
+        }
+
+        Rectangle {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: xDirectionText.width + indentation*3
+          Loader {
+            id: loaderDirectionX
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderDirectionX.item.componentInfo = "X direction"
+
+          Text {
+            visible: model.data[13] === 1 || model.data[13] === 2
+            id : xDirectionText
+            text: ' X:'
+            leftPadding: 5
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        Item {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          Layout.fillWidth: true
+          height: 40
+          Layout.columnSpan: 4
+          Loader {
+            id: xDirectionLoader
+            anchors.fill: parent
+            property double numberValue: model.data[14]
+            sourceComponent: spinNoLimit
+            onLoaded: {
+              directionXItem = xDirectionLoader.item
+            }
+          }
+        }
+
+        Rectangle {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: yDirectionText.width + indentation*3
+          Loader {
+            id: loaderDirectionY
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderDirectionY.item.componentInfo = "Y direction"
+
+          Text {
+            visible: model.data[13] === 1 || model.data[13] === 2
+            id : yDirectionText
+            text: ' Y:'
+            leftPadding: 5
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        Item {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          Layout.fillWidth: true
+          height: 40
+          Layout.columnSpan: 4
+          Loader {
+            id: yDirectionLoader
+            anchors.fill: parent
+            property double numberValue: model.data[15]
+            sourceComponent: spinNoLimit
+            onLoaded: {
+              directionYItem = yDirectionLoader.item
+            }
+          }
+        }
+
+        Rectangle {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: zDirectionText.width + indentation*3
+          Loader {
+            id: loaderDirectionZ
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderDirectionZ.item.componentInfo = "Z direction"
+
+          Text {
+            visible: model.data[13] === 1 || model.data[13] === 2
+            id : zDirectionText
+            text: ' Z:'
+            leftPadding: 5
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        Item {
+          visible: model.data[13] === 1 || model.data[13] === 2
+          Layout.fillWidth: true
+          height: 40
+          Layout.columnSpan: 4
+          Loader {
+            id: zDirectionLoader
+            anchors.fill: parent
+            property double numberValue: model.data[16]
+            sourceComponent: spinNoLimit
+            onLoaded: {
+              directionZItem = zDirectionLoader.item
+            }
+          }
+        }
+
+        Text {
+          visible: model.data[13] === 1
+          Layout.columnSpan: 6
+          text: "Spot features"
+          color: "dimgrey"
+          width: margin + indentation
+        }
+
+        // Left spacer
+        Item {
+          visible: model.data[13] === 1
+          Layout.rowSpan: 3
+          width: margin + indentation
+        }
+
+        Rectangle {
+          visible: model.data[13] === 1
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: innerAngleText.width + indentation*3
+          Loader {
+            id: loaderInnerAngle
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderInnerAngle.item.componentInfo = "Inner Angle"
+
+          Text {
+            visible: model.data[13] === 1
+            id : innerAngleText
+            text: ' Inner Angle:'
+            leftPadding: 5
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        Item {
+          visible: model.data[13] === 1
+          Layout.fillWidth: true
+          height: 40
+          Layout.columnSpan: 4
+          Loader {
+            id: innerAngleLoader
+            anchors.fill: parent
+            property double numberValue: model.data[17]
+            sourceComponent: spinAngle
+            onLoaded: {
+              innerAngleItem = innerAngleLoader.item
+            }
+          }
+        }
+
+        Rectangle {
+          visible: model.data[13] === 1
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: outerAngleText.width + indentation*3
+          Loader {
+            id: loaderOuterAngle
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderOuterAngle.item.componentInfo = "Outer Angle"
+
+          Text {
+            visible: model.data[13] === 1
+            id : outerAngleText
+            text: ' Outer angle:'
+            leftPadding: 5
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        Item {
+          visible: model.data[13] === 1
+          Layout.fillWidth: true
+          height: 40
+          Layout.columnSpan: 4
+          Loader {
+            id: outerAngleLoader
+            anchors.fill: parent
+            property double numberValue: model.data[18]
+            sourceComponent: spinAngle
+            onLoaded: {
+              outerAngleItem = outerAngleLoader.item
+            }
+          }
+        }
+        Rectangle {
+          visible: model.data[13] === 1
+          color: "transparent"
+          height: 40
+          Layout.preferredWidth: fallOffText.width + indentation*3
+          Loader {
+            id: loaderFallOff
+            width: iconWidth
+            height: iconHeight
+            y:10
+            sourceComponent: plotIcon
+          }
+          Component.onCompleted: loaderFallOff.item.componentInfo = "Spot falloff"
+
+          Text {
+            visible: model.data[13] === 1
+            id : fallOffText
+            text: ' Falloff:'
+            leftPadding: 5
+            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+            font.pointSize: 12
+            anchors.centerIn: parent
+          }
+        }
+        Item {
+          visible: model.data[13] === 1
+          Layout.fillWidth: true
+          height: 40
+          Layout.columnSpan: 4
+          Loader {
+            id: fallOffLoader
+            anchors.fill: parent
+            property double numberValue: model.data[19]
+            sourceComponent: spinZeroMax
+            onLoaded: {
+              falloffItem = fallOffLoader.item
             }
           }
         }

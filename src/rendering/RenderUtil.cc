@@ -461,6 +461,26 @@ void RenderUtil::Update()
           l->SetAttenuationQuadratic(light.second.QuadraticAttenuationFactor());
         if (l->CastShadows() != light.second.CastShadows())
           l->SetCastShadows(light.second.CastShadows());
+        auto lDirectional =
+          std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
+        if (lDirectional)
+        {
+          if (lDirectional->Direction() != light.second.Direction())
+            lDirectional->SetDirection(light.second.Direction());
+        }
+        auto lSpotLight =
+          std::dynamic_pointer_cast<rendering::SpotLight>(node);
+        if (lSpotLight)
+        {
+          if (lSpotLight->Direction() != light.second.Direction())
+            lSpotLight->SetDirection(light.second.Direction());
+          if (lSpotLight->InnerAngle() != light.second.SpotInnerAngle())
+            lSpotLight->SetInnerAngle(light.second.SpotInnerAngle());
+          if (lSpotLight->OuterAngle() != light.second.SpotOuterAngle())
+            lSpotLight->SetOuterAngle(light.second.SpotOuterAngle());
+          if (lSpotLight->Falloff() != light.second.SpotFalloff())
+            lSpotLight->SetFalloff(light.second.SpotFalloff());
+        }
       }
     }
   }

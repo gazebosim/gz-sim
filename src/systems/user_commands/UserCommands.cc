@@ -719,6 +719,16 @@ bool LightCommand::Execute()
       LightMsg->attenuation_quadratic());
   lightComp->Data().SetCastShadows(LightMsg->cast_shadows());
 
+  if (LightMsg->type() != ignition::msgs::Light::POINT) {
+    lightComp->Data().SetDirection(msgs::Convert(LightMsg->direction()));
+  }
+
+  if (LightMsg->type() == ignition::msgs::Light::SPOT) {
+    lightComp->Data().SetSpotInnerAngle(ignition::math::Angle(LightMsg->spot_inner_angle()));
+    lightComp->Data().SetSpotOuterAngle(ignition::math::Angle(LightMsg->spot_outer_angle()));
+    lightComp->Data().SetSpotFalloff(LightMsg->spot_falloff());
+  }
+
   auto lightPose = this->iface->ecm->Component<components::Pose>(entity);
   if (nullptr == lightPose)
     entity = kNullEntity;
