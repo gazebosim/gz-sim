@@ -153,27 +153,24 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
   if (_info.iterations >= this->nextIteration && !_info.paused) {
     // Update state based on secondaries messages.
-    const size_t nSecondaries = this->secondaries.size();
     std::vector<private_msgs::SecondaryStep> secondariesSteps;
     {
       std::unique_lock<std::mutex> guard{this->secondaryStatesMutex};
-      ++this->nextIteration;
-      this->secondaryStatesCv.wait(
-        guard,
-        [this, nSecondaries, iterations=_info.iterations]() {
-          auto it = this->secondaryStates.find(iterations);
-          return it != this->secondaryStates.end() && it->second.size() == nSecondaries;
-        });
+
+      const size_t nSecondaries = this->secondaries.size();
       auto it = this->secondaryStates.find(_info.iterations);
-      if (this->secondaryStates.end() != it) {
-        secondariesSteps = this->secondaryStates[_info.iterations];
-        this->secondaryStates.erase(this->secondaryStates.begin(), it);
-      } else {
-        ignerr <<
-          "Messages from secondaries for iteration {" << _info.iterations << "} were not sent"
-          << std::endl;
-        return false;
+      for(;
+        it == this->secondaryStates.end() || it->second.size() != nSecondaries;
+        it = this->secondaryStates.find(_info.iterations))
+      {
+        // SAFETY: This doesn't suffer from lost wakeups because we're first taking the lock,
+        // then checking the condition and finally waiting the condition variable.
+        this->secondaryStatesCv.wait(guard);
       }
+
+      ++this->nextIteration;
+      secondariesSteps = std::move(it->second);
+      this->secondaryStates.erase(this->secondaryStates.begin(), ++it);
     }
 
     if (
@@ -223,9 +220,10 @@ std::map<std::string, SecondaryControl::Ptr>
 void NetworkManagerPrimary::OnStepAck(const private_msgs::SecondaryStep &_msg)
 {
   std::unique_lock<std::mutex> guard{this->secondaryStatesMutex};
-  auto & secState = this->secondaryStates[_msg.stats().iterations()];
+  auto iteration = _msg.stats().iterations();
+  auto & secState = this->secondaryStates[iteration];
   secState.emplace_back(_msg);
-  if (secState.size() == this->secondaries.size())
+  if (iteration == this->nextIteration && secState.size() == this->secondaries.size())
   {
     guard.unlock();  // no need to hold the lock while notifying
     this->secondaryStatesCv.notify_one();

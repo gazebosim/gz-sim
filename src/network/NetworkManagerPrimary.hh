@@ -117,7 +117,7 @@ namespace ignition
       private: ignition::transport::Node::Publisher simStepPub;
 
       /// \brief Keep track of states received from secondaries.
-      private: uint64_t nextIteration{0u};
+      private: uint64_t nextIteration{1u};
 
       /// \brief Keep track of states received from secondaries.
       // TODO(ivanpauno): I could probably use a `deque` here instead of a `map`.
