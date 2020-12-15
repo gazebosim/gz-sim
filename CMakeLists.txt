@@ -75,7 +75,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui3 REQUIRED VERSION 3.1)
+ign_find_package(ignition-gui3 REQUIRED VERSION 3.4)
 set(IGN_GUI_VER ${ignition-gui3_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
