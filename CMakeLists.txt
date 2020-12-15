@@ -124,7 +124,9 @@ set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-tools
-ign_find_package(ignition-tools QUIET)
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
 
 #--------------------------------------
 # Find protobuf

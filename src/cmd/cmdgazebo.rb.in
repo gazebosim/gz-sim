@@ -447,7 +447,8 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       if options['server'] == 0 && options['gui'] == 0
 
         if plugin.end_with? ".dylib"
-          puts "`ign gazebo` currently only works with the -s argument on macOS."
+          puts "`ign gazebo` currently only works with the -s argument on macOS.
+See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
           exit(-1)
         end
 
@@ -501,7 +502,8 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       # Otherwise run the gui
       else options['gui']
         if plugin.end_with? ".dylib"
-          puts "`ign gazebo` currently only works with the -s argument on macOS."
+          puts "`ign gazebo` currently only works with the -s argument on macOS.
+See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
           exit(-1)
         end
 
