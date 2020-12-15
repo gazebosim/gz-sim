@@ -356,6 +356,14 @@ TEST_P(DiffDriveTest, OdomFrameId)
 
   server.Run(true, 100, false);
 
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
   EXPECT_EQ(5u, odomPosesCount);
 }
 
@@ -397,6 +405,14 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
   node.Subscribe("/model/vehicle/odometry", odomCb);
 
   server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
 
   EXPECT_EQ(5u, odomPosesCount);
 }
