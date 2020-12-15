@@ -119,8 +119,12 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 template<>
 void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
 {
-  int lightType = 0;
-  if (_data.Type() == sdf::LightType::SPOT)
+  int lightType = -1;
+  if (_data.Type() == sdf::LightType::POINT)
+  {
+    lightType = 0;
+  }
+  else if (_data.Type() == sdf::LightType::SPOT)
   {
     lightType = 1;
   }
@@ -145,13 +149,13 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
     QVariant(_data.ConstantAttenuationFactor()),
     QVariant(_data.QuadraticAttenuationFactor()),
     QVariant(_data.CastShadows()),
-    QVariant(lightType),
     QVariant(_data.Direction().X()),
     QVariant(_data.Direction().Y()),
     QVariant(_data.Direction().Z()),
     QVariant(_data.SpotInnerAngle().Radian()),
     QVariant(_data.SpotOuterAngle().Radian()),
-    QVariant(_data.SpotFalloff())
+    QVariant(_data.SpotFalloff()),
+    QVariant(lightType)
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -536,8 +540,7 @@ void ComponentInspector::Update(const UpdateInfo &,
 
       if (this->dataPtr->entity == this->dataPtr->worldEntity)
         this->dataPtr->worldName = comp->Data();
-      else
-        this->dataPtr->entityName = comp->Data();
+      this->dataPtr->entityName = comp->Data();
     }
     else if (typeId == components::ParentEntity::typeId)
     {
@@ -562,6 +565,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     }
     else if (typeId == components::Light::typeId)
     {
+      this->SetType("light");
       auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
@@ -791,6 +795,7 @@ void ComponentInspector::OnLight(
 
   ignition::msgs::Light req;
   req.set_name(this->dataPtr->entityName);
+  req.set_id(this->dataPtr->entity);
   ignition::msgs::Set(req.mutable_diffuse(),
     ignition::math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
   ignition::msgs::Set(req.mutable_specular(),
@@ -807,7 +812,8 @@ void ComponentInspector::OnLight(
   else
     req.set_type(ignition::msgs::Light::DIRECTIONAL);
 
-  if (_type == 1) {  // sdf::LightType::SPOT
+  if (_type == 1)  // sdf::LightType::SPOT
+  {
     req.set_spot_inner_angle(_innerAngle);
     req.set_spot_outer_angle(_outerAngle);
     req.set_spot_falloff(_falloff);
@@ -819,7 +825,7 @@ void ComponentInspector::OnLight(
       ignition::math::Vector3d(_directionX, _directionY, _directionZ));
   }
 
-  auto lightConfigService = "/world/lights/config";
+  auto lightConfigService = "/world/" + this->dataPtr->worldName + "/light/config";
   this->dataPtr->node.Request(lightConfigService, req, cb);
 }
 

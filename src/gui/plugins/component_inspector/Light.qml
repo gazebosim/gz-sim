@@ -23,7 +23,7 @@ import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
-// Item displaying 3D pose information.
+// Item displaying light information.
 Rectangle {
   height: header.height + content.height
   width: componentInspector.width
@@ -34,14 +34,6 @@ Rectangle {
 
   // Horizontal margins
   property int margin: 5
-
-  // Maximum spinbox value
-  property double spinMax: 1
-
-  // Read-only / write
-  property bool readOnly: {
-    return false;
-  }
 
   property int iconWidth: 20
   property int iconHeight: 20
@@ -103,7 +95,7 @@ Rectangle {
   // Loaded item for falloff (spotlight)
   property var falloffItem: {}
 
-  // Send new pose to C++
+  // Send new light data to C++
   function sendLight() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onLight(
@@ -126,7 +118,7 @@ Rectangle {
       innerAngleItem.value,
       outerAngleItem.value,
       falloffItem.value,
-      model.data[13]
+      model.data[19]
     );
   }
 
@@ -144,7 +136,7 @@ Rectangle {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0
-      maximumValue: spinMax
+      maximumValue: 1
       decimals: 6
       onEditingFinished: {
         sendLight()
@@ -165,19 +157,6 @@ Rectangle {
     }
   }
   Component {
-    id: spinAngle
-    IgnSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -3.1416
-      maximumValue: 3.1416
-      decimals: 6
-      onEditingFinished: {
-        sendLight()
-      }
-    }
-  }
-  Component {
     id: spinNoLimit
     IgnSpinBox {
       id: writableSpin
@@ -191,9 +170,6 @@ Rectangle {
     }
   }
 
-  /**
-   * Used to create a read-only number
-   */
   Component {
     id: readOnlyNumber
     Text {
@@ -279,7 +255,7 @@ Rectangle {
 
         Text {
           Layout.columnSpan: 6
-          text: "Specular"
+          text: "      Specular"
           color: "dimgrey"
           width: margin + indentation
         }
@@ -474,7 +450,7 @@ Rectangle {
 
         Text {
           Layout.columnSpan: 6
-          text: "Diffuse"
+          text: "      Diffuse"
           color: "dimgrey"
           width: margin + indentation
         }
@@ -635,7 +611,7 @@ Rectangle {
 
         Text {
           Layout.columnSpan: 6
-          text: "Attenuation"
+          text: "      Attenuation"
           color: "dimgrey"
           width: margin + indentation
         }
@@ -834,22 +810,22 @@ Rectangle {
         }
 
         Text {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           Layout.columnSpan: 6
-          text: "Direction"
+          text: "      Direction"
           color: "dimgrey"
           width: margin + indentation
         }
 
         // Left spacer
         Item {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           Layout.rowSpan: 3
           width: margin + indentation
         }
 
         Rectangle {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           color: "transparent"
           height: 40
           Layout.preferredWidth: xDirectionText.width + indentation*3
@@ -863,7 +839,7 @@ Rectangle {
           Component.onCompleted: loaderDirectionX.item.componentInfo = "X direction"
 
           Text {
-            visible: model.data[13] === 1 || model.data[13] === 2
+            visible: model.data[19] === 1 || model.data[19] === 2
             id : xDirectionText
             text: ' X:'
             leftPadding: 5
@@ -873,14 +849,14 @@ Rectangle {
           }
         }
         Item {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           Layout.fillWidth: true
           height: 40
           Layout.columnSpan: 4
           Loader {
             id: xDirectionLoader
             anchors.fill: parent
-            property double numberValue: model.data[14]
+            property double numberValue: model.data[13]
             sourceComponent: spinNoLimit
             onLoaded: {
               directionXItem = xDirectionLoader.item
@@ -889,7 +865,7 @@ Rectangle {
         }
 
         Rectangle {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           color: "transparent"
           height: 40
           Layout.preferredWidth: yDirectionText.width + indentation*3
@@ -903,7 +879,7 @@ Rectangle {
           Component.onCompleted: loaderDirectionY.item.componentInfo = "Y direction"
 
           Text {
-            visible: model.data[13] === 1 || model.data[13] === 2
+            visible: model.data[19] === 1 || model.data[19] === 2
             id : yDirectionText
             text: ' Y:'
             leftPadding: 5
@@ -913,14 +889,14 @@ Rectangle {
           }
         }
         Item {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           Layout.fillWidth: true
           height: 40
           Layout.columnSpan: 4
           Loader {
             id: yDirectionLoader
             anchors.fill: parent
-            property double numberValue: model.data[15]
+            property double numberValue: model.data[14]
             sourceComponent: spinNoLimit
             onLoaded: {
               directionYItem = yDirectionLoader.item
@@ -929,7 +905,7 @@ Rectangle {
         }
 
         Rectangle {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           color: "transparent"
           height: 40
           Layout.preferredWidth: zDirectionText.width + indentation*3
@@ -943,7 +919,7 @@ Rectangle {
           Component.onCompleted: loaderDirectionZ.item.componentInfo = "Z direction"
 
           Text {
-            visible: model.data[13] === 1 || model.data[13] === 2
+            visible: model.data[19] === 1 || model.data[19] === 2
             id : zDirectionText
             text: ' Z:'
             leftPadding: 5
@@ -953,14 +929,14 @@ Rectangle {
           }
         }
         Item {
-          visible: model.data[13] === 1 || model.data[13] === 2
+          visible: model.data[19] === 1 || model.data[19] === 2
           Layout.fillWidth: true
           height: 40
           Layout.columnSpan: 4
           Loader {
             id: zDirectionLoader
             anchors.fill: parent
-            property double numberValue: model.data[16]
+            property double numberValue: model.data[15]
             sourceComponent: spinNoLimit
             onLoaded: {
               directionZItem = zDirectionLoader.item
@@ -969,22 +945,22 @@ Rectangle {
         }
 
         Text {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           Layout.columnSpan: 6
-          text: "Spot features"
+          text: "      Spot features"
           color: "dimgrey"
           width: margin + indentation
         }
 
         // Left spacer
         Item {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           Layout.rowSpan: 3
           width: margin + indentation
         }
 
         Rectangle {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           color: "transparent"
           height: 40
           Layout.preferredWidth: innerAngleText.width + indentation*3
@@ -998,7 +974,7 @@ Rectangle {
           Component.onCompleted: loaderInnerAngle.item.componentInfo = "Inner Angle"
 
           Text {
-            visible: model.data[13] === 1
+            visible: model.data[19] === 1
             id : innerAngleText
             text: ' Inner Angle:'
             leftPadding: 5
@@ -1008,15 +984,15 @@ Rectangle {
           }
         }
         Item {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           Layout.fillWidth: true
           height: 40
           Layout.columnSpan: 4
           Loader {
             id: innerAngleLoader
             anchors.fill: parent
-            property double numberValue: model.data[17]
-            sourceComponent: spinAngle
+            property double numberValue: model.data[16]
+            sourceComponent: spinNoLimit
             onLoaded: {
               innerAngleItem = innerAngleLoader.item
             }
@@ -1024,7 +1000,7 @@ Rectangle {
         }
 
         Rectangle {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           color: "transparent"
           height: 40
           Layout.preferredWidth: outerAngleText.width + indentation*3
@@ -1038,7 +1014,7 @@ Rectangle {
           Component.onCompleted: loaderOuterAngle.item.componentInfo = "Outer Angle"
 
           Text {
-            visible: model.data[13] === 1
+            visible: model.data[19] === 1
             id : outerAngleText
             text: ' Outer angle:'
             leftPadding: 5
@@ -1048,22 +1024,22 @@ Rectangle {
           }
         }
         Item {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           Layout.fillWidth: true
           height: 40
           Layout.columnSpan: 4
           Loader {
             id: outerAngleLoader
             anchors.fill: parent
-            property double numberValue: model.data[18]
-            sourceComponent: spinAngle
+            property double numberValue: model.data[17]
+            sourceComponent: spinNoLimit
             onLoaded: {
               outerAngleItem = outerAngleLoader.item
             }
           }
         }
         Rectangle {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           color: "transparent"
           height: 40
           Layout.preferredWidth: fallOffText.width + indentation*3
@@ -1077,7 +1053,7 @@ Rectangle {
           Component.onCompleted: loaderFallOff.item.componentInfo = "Spot falloff"
 
           Text {
-            visible: model.data[13] === 1
+            visible: model.data[19] === 1
             id : fallOffText
             text: ' Falloff:'
             leftPadding: 5
@@ -1087,14 +1063,14 @@ Rectangle {
           }
         }
         Item {
-          visible: model.data[13] === 1
+          visible: model.data[19] === 1
           Layout.fillWidth: true
           height: 40
           Layout.columnSpan: 4
           Loader {
             id: fallOffLoader
             anchors.fill: parent
-            property double numberValue: model.data[19]
+            property double numberValue: model.data[18]
             sourceComponent: spinZeroMax
             onLoaded: {
               falloffItem = fallOffLoader.item

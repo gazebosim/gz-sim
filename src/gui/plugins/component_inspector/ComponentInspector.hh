@@ -71,7 +71,7 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const math::Pose3d &_data);
 
-  /// \brief Specialized to set ligth data.
+  /// \brief Specialized to set light data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
   template<>
@@ -228,7 +228,14 @@ namespace gazebo
     /// \param[in] _attLinear Linear attenuation
     /// \param[in] _attConstant Constant attenuation
     /// \param[in] _attQuadratic Quadratic attenuation
-    /// \param[in] _castShadows Cast Shadows attenuation
+    /// \param[in] _castShadows Specify if this light should cast shadows
+    /// \param[in] _directionX X direction of the light
+    /// \param[in] _directionY Y direction of the light
+    /// \param[in] _directionZ Z direction of the light
+    /// \param[in] _innerAngle Inner angle of the spotlight
+    /// \param[in] _outerAngle Outer angle of the spotlight
+    /// \param[in] _falloff Falloff of the spotlight
+    /// \param[in] _type light type
     public: Q_INVOKABLE void OnLight(
       double _rSpecular, double _gSpecular, double _bSpecular,
       double _aSpecular, double _rDiffuse, double _gDiffuse,

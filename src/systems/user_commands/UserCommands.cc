@@ -19,8 +19,8 @@
 
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/pose.pb.h>
 
 #include <string>
@@ -129,7 +129,7 @@ class RemoveCommand : public UserCommandBase
 class LightCommand : public UserCommandBase
 {
   /// \brief Constructor
-  /// \param[in] _msg Message identifying the entity to be removed.
+  /// \param[in] _msg Message identifying the entity to be edited.
   /// \param[in] _iface Pointer to user commands interface.
   public: LightCommand(msgs::Light *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
@@ -196,7 +196,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Callback for light service
   /// \param[in] _req Request containing light update of an entity.
   /// \param[in] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully moved.
+  /// It does not mean that the light will be successfully updated.
   /// \return True if successful.
   public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
 
@@ -271,12 +271,12 @@ void UserCommands::Configure(const Entity &_entity,
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
 
-  // Pose service
+  // Light service
   std::string lightService{"/world/" + worldName + "/config"};
   this->dataPtr->node.Advertise(lightService,
       &UserCommandsPrivate::LightService, this->dataPtr.get());
 
-  ignmsg << "Pose service on [" << lightService << "]" << std::endl;
+  ignmsg << "Light service on [" << lightService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -689,59 +689,64 @@ LightCommand::LightCommand(msgs::Light *_msg,
 //////////////////////////////////////////////////
 bool LightCommand::Execute()
 {
-  auto LightMsg = dynamic_cast<const msgs::Light *>(this->msg);
-  if (nullptr == LightMsg)
+  auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
+  if (nullptr == lightMsg)
   {
     ignerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
   auto entity = this->iface->ecm->EntityByComponents(
-      components::Name(LightMsg->name()),
+      components::Name(lightMsg->name()),
       components::ParentEntity(this->iface->worldEntity));
 
   auto lightComp = this->iface->ecm->Component<components::Light>(entity);
   if (nullptr == lightComp)
     entity = kNullEntity;
 
-  if (!entity) {
-    ignmsg << "Light component not available" << std::endl;
+  if (!entity)
+  {
+    ignmsg << "Failed to find light entity named [" << lightMsg->name() << "]." << std::endl;
     return false;
   }
 
-  lightComp->Data().SetDiffuse(msgs::Convert(LightMsg->diffuse()));
-  lightComp->Data().SetSpecular(msgs::Convert(LightMsg->specular()));
-  lightComp->Data().SetAttenuationRange(LightMsg->range());
-  lightComp->Data().SetLinearAttenuationFactor(LightMsg->attenuation_linear());
+  lightComp->Data().SetDiffuse(msgs::Convert(lightMsg->diffuse()));
+  lightComp->Data().SetSpecular(msgs::Convert(lightMsg->specular()));
+  lightComp->Data().SetAttenuationRange(lightMsg->range());
+  lightComp->Data().SetLinearAttenuationFactor(lightMsg->attenuation_linear());
   lightComp->Data().SetConstantAttenuationFactor(
-      LightMsg->attenuation_constant());
+      lightMsg->attenuation_constant());
   lightComp->Data().SetQuadraticAttenuationFactor(
-      LightMsg->attenuation_quadratic());
-  lightComp->Data().SetCastShadows(LightMsg->cast_shadows());
+      lightMsg->attenuation_quadratic());
+  lightComp->Data().SetCastShadows(lightMsg->cast_shadows());
 
-  if (LightMsg->type() != ignition::msgs::Light::POINT) {
-    lightComp->Data().SetDirection(msgs::Convert(LightMsg->direction()));
+  if (lightMsg->type() != ignition::msgs::Light::POINT)
+  {
+    lightComp->Data().SetDirection(msgs::Convert(lightMsg->direction()));
   }
 
-  if (LightMsg->type() == ignition::msgs::Light::SPOT) {
+  if (lightMsg->type() == ignition::msgs::Light::SPOT)
+  {
     lightComp->Data().SetSpotInnerAngle(
-      ignition::math::Angle(LightMsg->spot_inner_angle()));
+      ignition::math::Angle(lightMsg->spot_inner_angle()));
     lightComp->Data().SetSpotOuterAngle(
-      ignition::math::Angle(LightMsg->spot_outer_angle()));
-    lightComp->Data().SetSpotFalloff(LightMsg->spot_falloff());
+      ignition::math::Angle(lightMsg->spot_outer_angle()));
+    lightComp->Data().SetSpotFalloff(lightMsg->spot_falloff());
   }
 
   auto lightPose = this->iface->ecm->Component<components::Pose>(entity);
   if (nullptr == lightPose)
     entity = kNullEntity;
 
-  if (!entity) {
+  if (!entity)
+  {
     ignmsg << "Pose component not available" << std::endl;
     return false;
   }
 
-  if (LightMsg->has_pose()) {
-    lightPose->Data().Pos() = msgs::Convert(LightMsg->pose()).Pos();
+  if (lightMsg->has_pose())
+  {
+    lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
   }
 
   this->iface->ecm->SetChanged(entity,
