@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/light.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
@@ -670,4 +671,217 @@ TEST_F(UserCommandsTest, Pose)
   poseComp = ecm->Component<components::Pose>(boxEntity);
   ASSERT_NE(nullptr, poseComp);
   EXPECT_NEAR(500.0, poseComp->Data().Pos().Y(), 0.2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, Light)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/lights.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  msgs::Light req;
+  req.set_name("point");
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 1000;
+  std::string service{"/world/lights/config"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Point light
+  auto pointLightEntity = ecm->EntityByComponents(components::Name("point"));
+  EXPECT_NE(kNullEntity, pointLightEntity);
+
+  // Check entity has not been moved yet
+  auto pointLightComp = ecm->Component<components::Light>(pointLightEntity);
+  ASSERT_NE(nullptr, pointLightComp);
+  EXPECT_EQ(math::Pose3d(0, -1.5, 3, 0, 0, 0), pointLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(1, 0, 0, 1), pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.1, 0.1, 0.1, 1), pointLightComp->Data().Specular());
+  EXPECT_NEAR(4.0, pointLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.5, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.2, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.01, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_FALSE(pointLightComp->Data().CastShadows());
+
+  req.Clear();
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(0, 1, 1, 0));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(0.2, 0.2, 0.2, 0.2));
+  req.set_range(2.6);
+  req.set_name("point");
+  req.set_type(ignition::msgs::Light::POINT);
+  req.set_attenuation_linear(0.7);
+  req.set_attenuation_constant(0.6);
+  req.set_attenuation_quadratic(0.001);
+  req.set_cast_shadows(true);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 1, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  pointLightComp = ecm->Component<components::Light>(pointLightEntity);
+  ASSERT_NE(nullptr, pointLightComp);
+
+  EXPECT_EQ(math::Color(0, 1, 1, 0), pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 0.2),
+    pointLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, pointLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.001, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_TRUE(pointLightComp->Data().CastShadows());
+
+  // directional light
+  auto directionalLightEntity = ecm->EntityByComponents(
+      components::Name("directional"));
+  EXPECT_NE(kNullEntity, directionalLightEntity);
+
+  // Check entity has not been moved yet
+  auto directionalLightComp =
+    ecm->Component<components::Light>(directionalLightEntity);
+  ASSERT_NE(nullptr, directionalLightComp);
+
+  EXPECT_EQ(math::Pose3d(0, 0, 10, 0, 0, 0), directionalLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(0.8, 0.8, 0.8, 1), directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 1), directionalLightComp->Data().Specular());
+  EXPECT_NEAR(100, directionalLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.01, directionalLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(0.9, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.001, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
+  EXPECT_TRUE(directionalLightComp->Data().CastShadows());
+
+  req.Clear();
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(0, 1, 1, 0));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(0.3, 0.3, 0.3, 0.3));
+  req.set_range(2.6);
+  req.set_name("directional");
+  req.set_type(ignition::msgs::Light::DIRECTIONAL);
+  req.set_attenuation_linear(0.7);
+  req.set_attenuation_constant(0.6);
+  req.set_attenuation_quadratic(1);
+  req.set_cast_shadows(false);
+  ignition::msgs::Set(req.mutable_direction(),
+    ignition::math::Vector3d(1, 2, 3));
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 1, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  directionalLightComp = ecm->Component<components::Light>(directionalLightEntity);
+  ASSERT_NE(nullptr, directionalLightComp);
+
+  EXPECT_EQ(math::Color(0, 1, 1, 0), directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3, 0.3, 0.3, 0.3),
+    directionalLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, directionalLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, directionalLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
+  EXPECT_FALSE(directionalLightComp->Data().CastShadows());
+
+  // spot light
+  auto spotLightEntity = ecm->EntityByComponents(
+      components::Name("spot"));
+  EXPECT_NE(kNullEntity, spotLightEntity);
+
+  // Check entity has not been moved yet
+  auto spotLightComp =
+    ecm->Component<components::Light>(spotLightEntity);
+  ASSERT_NE(nullptr, spotLightComp);
+
+  EXPECT_EQ(math::Pose3d(0, 1.5, 3, 0, 0, 0), spotLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(0, 1, 0, 1), spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 1), spotLightComp->Data().Specular());
+  EXPECT_NEAR(5, spotLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.4, spotLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(0.3, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.001, spotLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(math::Vector3d(0, 0, -1), spotLightComp->Data().Direction());
+  EXPECT_FALSE(spotLightComp->Data().CastShadows());
+  EXPECT_NEAR(0.1, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.5, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.8, spotLightComp->Data().SpotFalloff(), 0.1);
+
+  req.Clear();
+  ignition::msgs::Set(req.mutable_diffuse(),
+    ignition::math::Color(1, 0, 1, 0));
+  ignition::msgs::Set(req.mutable_specular(),
+    ignition::math::Color(0.3, 0.3, 0.3, 0.3));
+  req.set_range(2.6);
+  req.set_name("spot");
+  req.set_type(ignition::msgs::Light::SPOT);
+  req.set_attenuation_linear(0.7);
+  req.set_attenuation_constant(0.6);
+  req.set_attenuation_quadratic(1);
+  req.set_cast_shadows(true);
+  ignition::msgs::Set(req.mutable_direction(),
+    ignition::math::Vector3d(1, 2, 3));
+  req.set_spot_inner_angle(1.5);
+  req.set_spot_outer_angle(0.3);
+  req.set_spot_falloff(0.9);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 1, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  spotLightComp = ecm->Component<components::Light>(spotLightEntity);
+  ASSERT_NE(nullptr, spotLightComp);
+
+  EXPECT_EQ(math::Color(1, 0, 1, 0), spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3, 0.3, 0.3, 0.3),
+    spotLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, spotLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, spotLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(1, spotLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), spotLightComp->Data().Direction());
+  EXPECT_TRUE(spotLightComp->Data().CastShadows());
+  EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.9, spotLightComp->Data().SpotFalloff(), 0.1);
+
 }
