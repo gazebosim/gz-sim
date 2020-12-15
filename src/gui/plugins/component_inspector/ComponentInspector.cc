@@ -825,7 +825,8 @@ void ComponentInspector::OnLight(
       ignition::math::Vector3d(_directionX, _directionY, _directionZ));
   }
 
-  auto lightConfigService = "/world/" + this->dataPtr->worldName + "/light/config";
+  auto lightConfigService = "/world/" + this->dataPtr->worldName +
+    "/light/config";
   this->dataPtr->node.Request(lightConfigService, req, cb);
 }
 

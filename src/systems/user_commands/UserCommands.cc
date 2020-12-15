@@ -706,7 +706,8 @@ bool LightCommand::Execute()
 
   if (!entity)
   {
-    ignmsg << "Failed to find light entity named [" << lightMsg->name() << "]." << std::endl;
+    ignmsg << "Failed to find light entity named [" << lightMsg->name()
+      << "]." << std::endl;
     return false;
   }
 
