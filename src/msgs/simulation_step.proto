@@ -34,5 +34,8 @@ message SimulationStep
   /// \brief Updated performer affinities. It will be empty if there are no
   /// affinity changes.
   repeated PerformerAffinity affinity = 2;
+
+  /// \brief How far the secondaries can move ahead.
+  uint64 max_iterations = 3;
 }
 

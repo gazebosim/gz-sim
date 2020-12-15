@@ -129,13 +129,14 @@ void NetworkManagerSecondary::AsyncStepTask()
       auto next_step = next_steps.front();
       next_steps.pop_front();
       auto info = convert<UpdateInfo>(next_step.stats());
-      // TODO(ivanpauno): Maybe, instead of N=1000 harcoded the number of steps that the simulation
-      // can move forward should be part of the message.
-      maxIteration = info.iterations + 1000u;
-      // Acks are sent each N/2 or when continuing from a pause, so this is needed.
-      // TODO(ivanpauno): handle this in a better fashion.
-      uint64_t currentIteration = std::max(lastUpdateInfo.iterations, info.iterations);
-      auto simTime = std::max(lastUpdateInfo.simTime, info.simTime);
+      // Max iteration is get from the primary message.
+      // lastUpdateInfo is updated with the primary provided message
+      // but `simTime` and `iterations` is not updated as the secondary
+      // may be "ahead".
+      // TODO(ivanpauno): Does realTime matter in the secondaries?
+      maxIteration = info.iterations + next_step.max_iterations();
+      uint64_t currentIteration = lastUpdateInfo.iterations;
+      auto simTime = lastUpdateInfo.simTime;
       lastUpdateInfo = info;
       lastUpdateInfo.iterations = currentIteration;
       lastUpdateInfo.simTime = simTime;
