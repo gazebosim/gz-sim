@@ -722,7 +722,8 @@ TEST_F(UserCommandsTest, Light)
   // Check entity has not been moved yet
   auto pointLightComp = ecm->Component<components::Light>(pointLightEntity);
   ASSERT_NE(nullptr, pointLightComp);
-  EXPECT_EQ(math::Pose3d(0, -1.5, 3, 0, 0, 0), pointLightComp->Data().RawPose());
+  EXPECT_EQ(
+    math::Pose3d(0, -1.5, 3, 0, 0, 0), pointLightComp->Data().RawPose());
   EXPECT_EQ(math::Color(1, 0, 0, 1), pointLightComp->Data().Diffuse());
   EXPECT_EQ(math::Color(0.1, 0.1, 0.1, 1), pointLightComp->Data().Specular());
   EXPECT_NEAR(4.0, pointLightComp->Data().AttenuationRange(), 0.1);
@@ -773,14 +774,21 @@ TEST_F(UserCommandsTest, Light)
     ecm->Component<components::Light>(directionalLightEntity);
   ASSERT_NE(nullptr, directionalLightComp);
 
-  EXPECT_EQ(math::Pose3d(0, 0, 10, 0, 0, 0), directionalLightComp->Data().RawPose());
-  EXPECT_EQ(math::Color(0.8, 0.8, 0.8, 1), directionalLightComp->Data().Diffuse());
-  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 1), directionalLightComp->Data().Specular());
+  EXPECT_EQ(
+    math::Pose3d(0, 0, 10, 0, 0, 0), directionalLightComp->Data().RawPose());
+  EXPECT_EQ(
+    math::Color(0.8, 0.8, 0.8, 1), directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(
+    math::Color(0.2, 0.2, 0.2, 1), directionalLightComp->Data().Specular());
   EXPECT_NEAR(100, directionalLightComp->Data().AttenuationRange(), 0.1);
-  EXPECT_NEAR(0.01, directionalLightComp->Data().LinearAttenuationFactor(), 0.01);
-  EXPECT_NEAR(0.9, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
-  EXPECT_NEAR(0.001, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.001);
-  EXPECT_EQ(math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
+  EXPECT_NEAR(
+    0.01, directionalLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(
+    0.9, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.001, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(
+    math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
   EXPECT_TRUE(directionalLightComp->Data().CastShadows());
 
   req.Clear();
@@ -805,16 +813,20 @@ TEST_F(UserCommandsTest, Light)
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
-  directionalLightComp = ecm->Component<components::Light>(directionalLightEntity);
+  directionalLightComp =
+    ecm->Component<components::Light>(directionalLightEntity);
   ASSERT_NE(nullptr, directionalLightComp);
 
   EXPECT_EQ(math::Color(0, 1, 1, 0), directionalLightComp->Data().Diffuse());
   EXPECT_EQ(math::Color(0.3, 0.3, 0.3, 0.3),
     directionalLightComp->Data().Specular());
   EXPECT_NEAR(2.6, directionalLightComp->Data().AttenuationRange(), 0.1);
-  EXPECT_NEAR(0.7, directionalLightComp->Data().LinearAttenuationFactor(), 0.1);
-  EXPECT_NEAR(0.6, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
-  EXPECT_NEAR(1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.7, directionalLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.6, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
   EXPECT_FALSE(directionalLightComp->Data().CastShadows());
 
@@ -883,5 +895,4 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
   EXPECT_NEAR(0.9, spotLightComp->Data().SpotFalloff(), 0.1);
-
 }
