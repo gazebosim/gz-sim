@@ -277,7 +277,15 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
     // set material
     rendering::MaterialPtr material{nullptr};
-    if (_visual.Material())
+    double transparency = _visual.Transparency();
+    // Heightmap's material is loaded together with it.
+    // Just make the dummy geometry invisible here.
+    if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+    {
+      material = this->dataPtr->scene->CreateMaterial();
+      transparency = 1;
+    }
+    else if (_visual.Material())
     {
       material = this->LoadMaterial(*_visual.Material());
     }
@@ -320,7 +328,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     if (material)
     {
       // set transparency
-      material->SetTransparency(_visual.Transparency());
+      material->SetTransparency(transparency);
 
       // cast shadows
       material->SetCastShadows(_visual.CastShadows());
@@ -461,7 +469,13 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     {
       ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
     }
+    geom = this->dataPtr->scene->CreateBox();
     scale = _geom.HeightmapShape()->Size();
+
+    // Heightmap's origin is on its lowest point
+    auto position = _geom.HeightmapShape()->Position();
+    position.Z() += scale.Z() * 0.5;
+    localPose.Set(position, math::Quaterniond::Identity);
   }
   else
   {
