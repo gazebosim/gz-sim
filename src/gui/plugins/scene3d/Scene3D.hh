@@ -618,6 +618,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
 
+    /// \brief Handle key press event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyRelease(QKeyEvent *_e);
+
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
 
@@ -629,12 +637,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
