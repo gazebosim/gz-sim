@@ -351,6 +351,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle model placement requests
     private: void HandleModelPlacement();
 
+    /// \brief Broadcasts the currently hovered 3d scene location.
+    private: void BroadcastHoverPos();
+
+    /// \brief Broadcasts a left click within the scene
+    private: void BroadcastLeftClick();
+
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
     private: Entity UniqueId();

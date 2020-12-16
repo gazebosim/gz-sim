@@ -55,6 +55,7 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
@@ -767,10 +768,42 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->BroadcastHoverPos();
+  this->BroadcastLeftClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastHoverPos()
+{
+  if (this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
+
+    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &hoverToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastLeftClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &leftClickToSceneEvent);
+  }
 }
 
 /////////////////////////////////////////////////
