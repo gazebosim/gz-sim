@@ -74,7 +74,7 @@ namespace ignition
     ///   when the level is reloaded. Likewise, they should not be deleted.
     /// * Entities spawned during simulation are part of the default level.
     ///
-    class LevelManager
+    class IGNITION_GAZEBO_VISIBLE LevelManager
     {
       /// \brief Constructor
       /// \param[in] _runner A pointer to the simulationrunner that owns this
