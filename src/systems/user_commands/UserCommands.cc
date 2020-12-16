@@ -39,6 +39,7 @@
 #include "ignition/common/Profiler.hh"
 
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -136,6 +137,27 @@ class LightCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
+
+  /// \brief Light equality comparison function.
+  public: std::function<bool(const sdf::Light &, const sdf::Light &)>
+          lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
+                     {
+                       return
+                         _a.Type() == _b.Type() &&
+                         _a.Name() == _b.Name() &&
+                         _a.Diffuse() == _b.Diffuse() &&
+                         _a.Specular() == _b.Specular() &&
+                         math::equal(_a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
+                         math::equal(_a.LinearAttenuationFactor(), _b.LinearAttenuationFactor(), 1e-6) &&
+                         math::equal(_a.ConstantAttenuationFactor(), _b.ConstantAttenuationFactor(), 1e-6) &&
+                         math::equal(_a.ConstantAttenuationFactor(), _b.ConstantAttenuationFactor(), 1e-6) &&
+                         math::equal(_a.QuadraticAttenuationFactor(), _b.QuadraticAttenuationFactor(), 1e-6) &&
+                         _a.CastShadows() == _b.CastShadows() &&
+                         _a.Direction() == _b.Direction() &&
+                         _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
+                         _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
+                         math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
+                     }};
 };
 
 /// \brief Command to update an entity's pose transform.
@@ -721,6 +743,15 @@ bool LightCommand::Execute()
       lightMsg->attenuation_quadratic());
   lightComp->Data().SetCastShadows(lightMsg->cast_shadows());
 
+  if (lightMsg->type() == ignition::msgs::Light::POINT)
+    lightComp->Data().SetType(sdf::LightType::POINT);
+  else if (lightMsg->type() == ignition::msgs::Light::SPOT)
+    lightComp->Data().SetType(sdf::LightType::SPOT);
+  else if (lightMsg->type() == ignition::msgs::Light::DIRECTIONAL)
+    lightComp->Data().SetType(sdf::LightType::DIRECTIONAL);
+
+  lightComp->Data().SetName(lightMsg->name());
+
   if (lightMsg->type() != ignition::msgs::Light::POINT)
   {
     lightComp->Data().SetDirection(msgs::Convert(lightMsg->direction()));
@@ -750,8 +781,22 @@ bool LightCommand::Execute()
     lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
   }
 
-  this->iface->ecm->SetChanged(entity,
-    components::Pose::typeId, ComponentState::OneTimeChange);
+  auto lightCmdComp =
+    this->iface->ecm->Component<components::LightCmd>(entity);
+  if (!lightCmdComp)
+  {
+    this->iface->ecm->CreateComponent(
+        entity, components::LightCmd(lightComp->Data()));
+  }
+  else
+  {
+    /// \todo(anyone) Moving an object is not captured in a log file.
+    auto state = lightCmdComp->SetData(lightComp->Data(), this->lightEql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    this->iface->ecm->SetChanged(entity, components::LightCmd::typeId,
+        state);
+  }
 
   return true;
 }

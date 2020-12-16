@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
@@ -567,6 +568,12 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       this->SetType("light");
       auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::LightCmd::typeId)
+    {
+      auto comp = _ecm.Component<components::LightCmd>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }

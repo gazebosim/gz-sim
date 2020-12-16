@@ -23,6 +23,8 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/components/Joint.hh>
+#include <ignition/gazebo/components/Light.hh>
+#include <ignition/gazebo/components/LightCmd.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
@@ -32,6 +34,8 @@
 #include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/components/Static.hh>
 #include <ignition/gazebo/components/WindMode.hh>
+
+#include <sdf/Light.hh>
 
 using namespace ignition;
 using namespace gazebo;
@@ -233,3 +237,50 @@ TEST_F(ModelIntegrationTest, SetWorldPoseCmd)
   EXPECT_TRUE(ecm.HasOneTimeComponentChanges());
 }
 
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, SetLightCmd)
+{
+  EntityComponentManager ecm;
+
+  // Model
+  auto eModel = ecm.CreateEntity();
+  Model model(eModel);
+
+  auto lightCmdComp = ecm.Component<components::LightCmd>(eModel);
+  EXPECT_EQ(nullptr, lightCmdComp);
+  EXPECT_FALSE(ecm.HasOneTimeComponentChanges());
+
+  sdf::Light light;
+  light.SetType(sdf::LightType::SPOT);
+  light.SetName("spot");
+  light.SetCastShadows(true);
+  light.SetDiffuse(math::Color(0.8, 0.8, 0.8, 1));
+  light.SetSpecular(math::Color(0.2, 0.2, 0.2, 1));
+  light.SetDirection(math::Vector3d(0.5, 0.2, -0.9));
+  light.SetAttenuationRange(1.0);
+  light.SetLinearAttenuationFactor(0.5);
+  light.SetConstantAttenuationFactor(0.3);
+  light.SetQuadraticAttenuationFactor(4.0);
+  light.SetSpotInnerAngle(math::Angle(0.1));
+  light.SetSpotOuterAngle(math::Angle(0.2));
+  light.SetSpotFalloff(0.001);
+
+  model.SetLightCmd(ecm, light);
+
+  lightCmdComp = ecm.Component<components::LightCmd>(eModel);
+  ASSERT_NE(nullptr, lightCmdComp);
+  EXPECT_EQ(sdf::LightType::SPOT, lightCmdComp->Data().Type());
+  EXPECT_EQ("spot", lightCmdComp->Data().Name());
+  EXPECT_TRUE(lightCmdComp->Data().CastShadows());
+  EXPECT_EQ(math::Color(0.2, 0.2, 0.2, 1), lightCmdComp->Data().Specular());
+  EXPECT_EQ(math::Color(0.8, 0.8, 0.8, 1), lightCmdComp->Data().Diffuse());
+  EXPECT_EQ(math::Vector3d(0.5, 0.2, -0.9), lightCmdComp->Data().Direction());
+  EXPECT_NEAR(1.0, lightCmdComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.5, lightCmdComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.3, lightCmdComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(4.0, lightCmdComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Angle(0.1), lightCmdComp->Data().SpotInnerAngle());
+  EXPECT_EQ(math::Angle(0.2), lightCmdComp->Data().SpotOuterAngle());
+  EXPECT_NEAR(0.001, lightCmdComp->Data().SpotFalloff(), 0.0001);
+  EXPECT_TRUE(ecm.HasOneTimeComponentChanges());
+}
