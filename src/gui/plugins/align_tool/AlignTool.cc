@@ -18,7 +18,12 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/pose.pb.h>
 
+#include <algorithm>
 #include <iostream>
+#include <map>
+#include <queue>
+#include <string>
+#include <vector>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/gazebo/rendering/RenderUtil.hh>
