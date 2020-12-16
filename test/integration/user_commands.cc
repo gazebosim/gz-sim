@@ -708,7 +708,7 @@ TEST_F(UserCommandsTest, Light)
   msgs::Boolean res;
   bool result;
   unsigned int timeout = 1000;
-  std::string service{"/world/lights/config"};
+  std::string service{"/world/lights/light_config"};
 
   transport::Node node;
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));

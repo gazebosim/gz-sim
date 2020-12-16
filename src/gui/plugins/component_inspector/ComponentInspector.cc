@@ -826,7 +826,7 @@ void ComponentInspector::OnLight(
   }
 
   auto lightConfigService = "/world/" + this->dataPtr->worldName +
-    "/light/config";
+    "/light_config";
   this->dataPtr->node.Request(lightConfigService, req, cb);
 }
 

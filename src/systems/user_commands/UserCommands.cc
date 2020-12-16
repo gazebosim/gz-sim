@@ -272,7 +272,7 @@ void UserCommands::Configure(const Entity &_entity,
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
 
   // Light service
-  std::string lightService{"/world/" + worldName + "/config"};
+  std::string lightService{"/world/" + worldName + "/light_config"};
   this->dataPtr->node.Advertise(lightService,
       &UserCommandsPrivate::LightService, this->dataPtr.get());
 

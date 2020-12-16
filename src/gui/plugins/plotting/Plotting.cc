@@ -228,27 +228,27 @@ void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
 
 void Plotting::SetData(std::string _Id, const sdf::Light &_light)
 {
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseR",
-    _light.Specular().R());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseG",
-    _light.Specular().G());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseB",
-    _light.Specular().B());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseA",
-    _light.Specular().A());
   this->dataPtr->components[_Id]->SetAttributeValue("specularR",
-    _light.Diffuse().R());
+    _light.Specular().R());
   this->dataPtr->components[_Id]->SetAttributeValue("specularG",
-    _light.Diffuse().G());
+    _light.Specular().G());
   this->dataPtr->components[_Id]->SetAttributeValue("specularB",
-    _light.Diffuse().B());
+    _light.Specular().B());
   this->dataPtr->components[_Id]->SetAttributeValue("specularA",
+    _light.Specular().A());
+  this->dataPtr->components[_Id]->SetAttributeValue("diffuseR",
+    _light.Diffuse().R());
+  this->dataPtr->components[_Id]->SetAttributeValue("diffuseG",
+    _light.Diffuse().G());
+  this->dataPtr->components[_Id]->SetAttributeValue("diffuseB",
+    _light.Diffuse().B());
+  this->dataPtr->components[_Id]->SetAttributeValue("diffuseA",
     _light.Diffuse().A());
   this->dataPtr->components[_Id]->SetAttributeValue("attRange",
     _light.AttenuationRange());
-  this->dataPtr->components[_Id]->SetAttributeValue("attConstant",
-    _light.LinearAttenuationFactor());
   this->dataPtr->components[_Id]->SetAttributeValue("attLinear",
+    _light.LinearAttenuationFactor());
+  this->dataPtr->components[_Id]->SetAttributeValue("attConstant",
     _light.ConstantAttenuationFactor());
   this->dataPtr->components[_Id]->SetAttributeValue("attQuadratic",
     _light.QuadraticAttenuationFactor());
