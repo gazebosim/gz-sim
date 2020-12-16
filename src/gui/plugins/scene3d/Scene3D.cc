@@ -315,6 +315,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
 
+    /// \brief Flag to indicate whether the escape key has been released.
+    public: bool escapeReleased = false;
+
     /// \brief ID of thread where render calls can be made.
     public: std::thread::id renderThreadId;
 
@@ -673,6 +676,17 @@ void IgnRenderer::Render()
     }
   }
 
+  // Escape action, clear all selections and terminate any
+  // spawned previews if escape button is released
+  {
+    if (this->dataPtr->escapeReleased)
+    {
+      this->DeselectAllEntities(true);
+      this->TerminateSpawnPreview();
+      this->dataPtr->escapeReleased = false;
+    }
+  }
+
   if (ignition::gui::App())
   {
     gui::events::Render event;
@@ -956,6 +970,9 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       break;
     case Qt::Key_Z:
       this->dataPtr->zPressed = false;
+      break;
+    case Qt::Key_Escape:
+      this->dataPtr->escapeReleased = true;
       break;
     default:
       break;
@@ -2880,7 +2897,6 @@ void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
-
   if (_e->key() == Qt::Key_Escape)
   {
     if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
@@ -2890,8 +2906,6 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.TerminateSpawnPreview();
   }
 }
 
