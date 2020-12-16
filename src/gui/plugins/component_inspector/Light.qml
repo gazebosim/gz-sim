@@ -306,7 +306,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderSpecularR.item.componentInfo = "r"
+          Component.onCompleted: loaderSpecularR.item.componentInfo = "specularR"
 
           Text {
             id : rSpecularText
@@ -341,7 +341,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderSpecularG.item.componentInfo = "g"
+          Component.onCompleted: loaderSpecularG.item.componentInfo = "specularG"
 
           Text {
             id : gSpecularText
@@ -383,7 +383,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderSpecularB.item.componentInfo = "b"
+          Component.onCompleted: loaderSpecularB.item.componentInfo = "specularB"
 
           Text {
             id : bSpecularText
@@ -418,7 +418,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderSpecularA.item.componentInfo = "a"
+          Component.onCompleted: loaderSpecularA.item.componentInfo = "specularA"
 
           Text {
             id : aSpecularText
@@ -472,7 +472,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDiffuseR.item.componentInfo = "r"
+          Component.onCompleted: loaderDiffuseR.item.componentInfo = "diffuseR"
 
           Text {
             id : rDiffuseText
@@ -507,7 +507,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDiffuseG.item.componentInfo = "g"
+          Component.onCompleted: loaderDiffuseG.item.componentInfo = "diffuseG"
 
           Text {
             id : gDiffuseText
@@ -549,7 +549,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDiffuseB.item.componentInfo = "b"
+          Component.onCompleted: loaderDiffuseB.item.componentInfo = "diffuseB"
 
           Text {
             id : bDiffuseText
@@ -584,7 +584,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDiffuseA.item.componentInfo = "a"
+          Component.onCompleted: loaderDiffuseA.item.componentInfo = "diffuseA"
 
           Text {
             id : aDiffuseText
@@ -633,7 +633,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderAttRange.item.componentInfo = "Attenuation Range"
+          Component.onCompleted: loaderAttRange.item.componentInfo = "attRange"
 
           Text {
             id : attRangeText
@@ -669,7 +669,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderAttLinear.item.componentInfo = "Attenuation linear"
+          Component.onCompleted: loaderAttLinear.item.componentInfo = "attLinear"
 
           Text {
             id : attLinearText
@@ -711,7 +711,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderAttConstant.item.componentInfo = "Attenuation  constant"
+          Component.onCompleted: loaderAttConstant.item.componentInfo = "attConstant"
 
           Text {
             id : attConstantText
@@ -746,7 +746,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderAttQuadratic.item.componentInfo = "Attenuation quadratic"
+          Component.onCompleted: loaderAttQuadratic.item.componentInfo = "attQuadratic"
 
           Text {
             id : attQuadraticText
@@ -782,7 +782,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderCastShadows.item.componentInfo = "Cast shadows"
+          Component.onCompleted: loaderCastShadows.item.componentInfo = "castshadows"
 
           Text {
             id : castShadowsText
@@ -836,7 +836,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDirectionX.item.componentInfo = "X direction"
+          Component.onCompleted: loaderDirectionX.item.componentInfo = "directionX"
 
           Text {
             visible: model.data[19] === 1 || model.data[19] === 2
@@ -876,7 +876,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDirectionY.item.componentInfo = "Y direction"
+          Component.onCompleted: loaderDirectionY.item.componentInfo = "directionY"
 
           Text {
             visible: model.data[19] === 1 || model.data[19] === 2
@@ -916,7 +916,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderDirectionZ.item.componentInfo = "Z direction"
+          Component.onCompleted: loaderDirectionZ.item.componentInfo = "directionZ"
 
           Text {
             visible: model.data[19] === 1 || model.data[19] === 2
@@ -971,7 +971,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderInnerAngle.item.componentInfo = "Inner Angle"
+          Component.onCompleted: loaderInnerAngle.item.componentInfo = "innerAngle"
 
           Text {
             visible: model.data[19] === 1
@@ -1011,7 +1011,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderOuterAngle.item.componentInfo = "Outer Angle"
+          Component.onCompleted: loaderOuterAngle.item.componentInfo = "outerAngle"
 
           Text {
             visible: model.data[19] === 1
@@ -1050,7 +1050,7 @@ Rectangle {
             y:10
             sourceComponent: plotIcon
           }
-          Component.onCompleted: loaderFallOff.item.componentInfo = "Spot falloff"
+          Component.onCompleted: loaderFallOff.item.componentInfo = "falloff"
 
           Text {
             visible: model.data[19] === 1
