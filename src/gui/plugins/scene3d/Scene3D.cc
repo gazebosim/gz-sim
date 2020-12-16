@@ -2897,6 +2897,7 @@ void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
+
   if (_e->key() == Qt::Key_Escape)
   {
     if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
