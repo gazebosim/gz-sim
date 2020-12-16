@@ -184,7 +184,7 @@ namespace graph
       for (auto const &v : this->vertices)
         res.emplace(std::make_pair(v.first, std::cref(v.second)));
 
-      return std::move(res);
+      return res;
     }
 
     /// \brief The collection of all vertices in the graph with name == _name.
@@ -199,7 +199,7 @@ namespace graph
           res.emplace(std::make_pair(vertex.first, std::cref(vertex.second)));
       }
 
-      return std::move(res);
+      return res;
     }
 
     /// \brief Add a new edge to the graph.
@@ -271,7 +271,7 @@ namespace graph
         res.emplace(std::make_pair(edge.first, std::cref(edge.second)));
       }
 
-      return std::move(res);
+      return res;
     }
 
     /// \brief Get all vertices that are directly connected with one edge
@@ -440,7 +440,7 @@ namespace graph
           res.emplace(std::make_pair(edge.Id(), std::cref(edge)));
       }
 
-      return std::move(res);
+      return res;
     }
 
     /// \brief Get the set of outgoing edges from a given vertex.
@@ -476,7 +476,7 @@ namespace graph
           res.emplace(std::make_pair(edge.Id(), std::cref(edge)));
       }
 
-      return std::move(res);
+      return res;
     }
 
     /// \brief Get the set of incoming edges to a given vertex.
