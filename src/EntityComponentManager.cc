@@ -772,6 +772,15 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
   // Find the entity in the message
   auto entIter = _msg.mutable_entities()->find(_entity);
+  // Add the entity to the message, if not already added
+  if (entIter == _msg.mutable_entities()->end())
+  {
+    msgs::SerializedEntityMap ent;
+    ent.set_id(_entity);
+    entIter =
+      (_msg.mutable_entities())->insert({static_cast<uint64_t>(_entity), ent})
+      .first;
+  }
 
   auto it = this->removedComponents.find(_entity);
   for (uint64_t i = 0; i < nEntityKeys; ++i)
