@@ -81,7 +81,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "DamagePlugin should be attached to a model "
+    ignerr << "KineticEnergyMonitor should be attached to a model "
       << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -116,7 +116,8 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   this->dataPtr->keThreshold = sdfClone->Get<double>(
       "kinetic_energy_threshold", 7.0).first;
 
-  std::string defaultTopic{"/model/" + this->dataPtr->modelName + "/damage"};
+  std::string defaultTopic{"/model/" + this->dataPtr->modelName +
+    "/kinetic_energy"};
   std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
 
   ignmsg << "KineticEnergyMonitor publishing messages on "
