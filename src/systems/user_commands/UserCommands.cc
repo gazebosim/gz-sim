@@ -135,6 +135,13 @@ class PoseCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 
+  public: const components::WorldPoseCmd *UpdateEntityPoseCommand(
+      const Entity _entity, const math::Pose3d &_pose);
+
+  public: const math::Pose3d &ChildToTopLevelAncestorTransform(
+      const Entity _child, const Entity _topLevelAncestor,
+      std::unordered_map<Entity, math::Pose3d> * _cachedPoses) const;
+
   /// \brief Pose3d equality comparison function.
   public: std::function<bool(const math::Pose3d &, const math::Pose3d &)>
           pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
@@ -695,24 +702,83 @@ bool PoseCommand::Execute()
     return false;
   }
 
+  const auto *poseCmdComp =
+    this->UpdateEntityPoseCommand(entity, msgs::Convert(*poseMsg));
+
+  // Also need to update descendants of the entity
+  auto *currentPose =
+    this->iface->ecm->Component<components::WorldPose>(entity);
+
+  const auto poseUpdateTransform = (currentPose) ?
+    currentPose->Data().Inverse() * poseCmdComp->Data() : poseCmdComp->Data();
+
+  std::unordered_map<Entity, math::Pose3d> cachedPoses;
+  for (const auto child : this->iface->ecm->Descendants(entity))
+  {
+    if (child == entity)
+      continue;
+
+    const auto & childToEntityPose =
+      ChildToTopLevelAncestorTransform(child, entity, &cachedPoses);
+    this->UpdateEntityPoseCommand(
+      child, poseUpdateTransform * childToEntityPose);
+  }
+
+  return true;
+}
+
+const math::Pose3d &PoseCommand::ChildToTopLevelAncestorTransform(
+    const Entity _child, const Entity _topLevelAncestor,
+    std::unordered_map<Entity, math::Pose3d> * _cachedPoses) const
+{
+  if (_topLevelAncestor == _child)
+    return math::Pose3d::Zero;
+
+  const auto cached_it = _cachedPoses->find(_child);
+  if (cached_it != _cachedPoses->end())
+    return cached_it->second;
+
+  const auto childLocalPose =
+    this->iface->ecm->Component<components::Pose>(_child);
+
+  // Recur upwards
+  const Entity directParent = this->iface->ecm->ParentEntity(_child);
+  const auto parentToTopLevelPoseTransform =
+    ChildToTopLevelAncestorTransform(
+      directParent, _topLevelAncestor, _cachedPoses);
+
+  const auto childToTopLevelPoseTransform =
+    parentToTopLevelPoseTransform * childLocalPose->Data();
+
+  // Place into cache and return
+  const auto[inserted_it, was_inserted] =
+    _cachedPoses->insert({_child, childToTopLevelPoseTransform});
+  return inserted_it->second;
+}
+
+const components::WorldPoseCmd *PoseCommand::UpdateEntityPoseCommand(
+  const Entity _entity, const math::Pose3d &_pose)
+{
   auto poseCmdComp =
-    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
+    this->iface->ecm->Component<components::WorldPoseCmd>(_entity);
+  // Transform to update nested components by
   if (!poseCmdComp)
   {
-    this->iface->ecm->CreateComponent(
-        entity, components::WorldPoseCmd(msgs::Convert(*poseMsg)));
+    const auto poseCmdKey = this->iface->ecm->CreateComponent(
+        _entity, components::WorldPoseCmd(_pose));
+    poseCmdComp =
+      this->iface->ecm->Component<components::WorldPoseCmd>(poseCmdKey);
   }
   else
   {
     /// \todo(anyone) Moving an object is not captured in a log file.
-    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql) ?
+    auto state = poseCmdComp->SetData(_pose, this->pose3Eql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+    this->iface->ecm->SetChanged(_entity, components::WorldPoseCmd::typeId,
         state);
   }
-
-  return true;
+  return poseCmdComp;
 }
 
 

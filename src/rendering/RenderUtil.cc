@@ -1466,6 +1466,8 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   else
   {
     ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    wireBox->SetBox(aabb);
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(true);

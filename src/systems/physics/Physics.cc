@@ -1459,14 +1459,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
-        // world pose cmd currently not supported for nested models
-        if (_entity != topLevelModel(_entity, _ecm))
-        {
-          ignerr << "Unable to set world pose for nested models."
-                 << std::endl;
-          return true;
-        }
-
         // The canonical link as specified by sdformat is different from the
         // canonical link of the FreeGroup object
 

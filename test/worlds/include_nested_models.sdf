@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="include_nested_models_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+      <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+    </scene>
+
+    <include>
+      <uri>include_nested</uri>
+      <name>include_nested_new_name</name>
+      <pose>0 0 0 1 2 3</pose>
+    </include>
+
+  </world>
+</sdf>

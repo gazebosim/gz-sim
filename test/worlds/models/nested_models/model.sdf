@@ -1,0 +1,71 @@
+<?xml version='1.0'?>
+<sdf version='1.8'>
+
+  <model name="nested_models">
+    <model name="model_00">
+      <pose>0 0 0 0 0 0</pose>
+      <frame name="frame_00" attached_to="model_01::frame_01">
+        <pose>10 11 12 0 0 0</pose>
+      </frame>
+      <link name="link_00">
+        <pose relative_to="model_01::frame_01">0 0 0 0 0 0</pose>
+        <collision name="collision_00">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_00">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+
+      <model name="model_01">
+        <frame name="frame_01">
+          <pose> 20 21 22 0 0 0</pose>
+        </frame>
+        <link name="link_01">
+          <pose relative_to="frame_01">0 0 0 0 0 0</pose>
+          <collision name="collision_01">
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+          <visual name="visual_01">
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </visual>
+        </link>
+
+        <joint name="joint_01" type="continuous">
+          <parent>frame_00</parent>
+          <child>frame_01</child>
+          <axis>
+            <pose>1 2 3 0 0 0</pose>
+            <xyz>1 0 0</xyz>
+          </axis>
+        </joint>
+        <plugin
+           filename="ignition-gazebo-pose-publisher-system"
+           name="ignition::gazebo::systems::PosePublisher">
+          <publish_link_pose>true</publish_link_pose>
+          <publish_sensor_pose>false</publish_sensor_pose>
+          <publish_collision_pose>false</publish_collision_pose>
+          <publish_visual_pose>false</publish_visual_pose>
+          <publish_nested_model_pose>false</publish_nested_model_pose>
+          <update_frequency>100</update_frequency>
+        </plugin>
+      </model>
+    </model>
+  </model>
+</sdf>

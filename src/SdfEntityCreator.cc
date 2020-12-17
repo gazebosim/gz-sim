@@ -108,6 +108,30 @@ static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
   return pose;
 }
 
+static std::optional<sdf::JointAxis> ResolveJointAxis(
+    const sdf::JointAxis *_unresolvedAxis)
+{
+  math::Vector3d axisXyz;
+  const sdf::Errors resolveAxisErrors = _unresolvedAxis->ResolveXyz(axisXyz);
+  if (!resolveAxisErrors.empty())
+  {
+    ignerr << "Failed to resolve axis" << std::endl;
+    return std::nullopt;
+  }
+
+  sdf::JointAxis resolvedAxis = *_unresolvedAxis;
+
+  const sdf::Errors setXyzErrors = resolvedAxis.SetXyz(axisXyz);
+  if (!setXyzErrors.empty())
+  {
+    ignerr << "Failed to resolve axis" << std::endl;
+    return std::nullopt;
+  }
+
+  resolvedAxis.SetXyzExpressedIn("");
+  return resolvedAxis;
+}
+
 //////////////////////////////////////////////////
 SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager)
@@ -280,6 +304,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
   // Links
   bool canonicalLinkCreated = false;
+  const auto[canonicalLink, canonicalLinkName] =
+    _model->CanonicalLinkAndRelativeName();
+
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
   {
@@ -288,9 +315,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
     this->SetParent(linkEntity, modelEntity);
 
-    if (_createCanonicalLink &&
-        ((_model->CanonicalLinkName().empty() && linkIndex == 0) ||
-        (link == _model->CanonicalLink())))
+    if (_createCanonicalLink && canonicalLink == link)
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
@@ -323,10 +348,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
     // Create nested model. Make sure to only create canonical link component
     // in the nested model if a canonical link has not been created in this
-    // model yet. Also override static propery of the nested model if this model
-    //  is static
+    // model yet and the canonical link of the top-level model is actually in
+    // the nested model. Also override static propery of the nested model if
+    // this model is static
+
+    const bool canonicalLinkInNestedModel =
+      (canonicalLink == nestedModel->CanonicalLink());
+    const bool createCanonicalLinkInNestedModel =
+      _createCanonicalLink
+      && !canonicalLinkCreated
+      && canonicalLinkInNestedModel;
+
     auto nestedModelEntity = this->CreateEntities(nestedModel,
-        (_createCanonicalLink && !canonicalLinkCreated), isStatic);
+        createCanonicalLinkInNestedModel, isStatic);
 
     this->SetParent(nestedModelEntity, modelEntity);
   }
@@ -465,28 +499,26 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 
   if (_joint->Axis(0))
   {
-    sdf::JointAxis axis = *_joint->Axis(0);
+    auto resolvedAxis = ResolveJointAxis(_joint->Axis(0));
+    if (!resolvedAxis)
+    {
+      return kNullEntity;
+    }
 
-    math::Vector3d axisXyz;
-    // TODO (addisu) Handle sdf errors
-    sdf::Errors errors = _joint->Axis(0)->ResolveXyz(axisXyz);
-    errors = axis.SetXyz(axisXyz);
-    axis.SetXyzExpressedIn("");
     this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::JointAxis(std::move(axis)));
+        components::JointAxis(std::move(*resolvedAxis)));
   }
 
   if (_joint->Axis(1))
   {
-    sdf::JointAxis axis = *_joint->Axis(1);
+    auto resolvedAxis = ResolveJointAxis(_joint->Axis(1));
+    if (!resolvedAxis)
+    {
+      return kNullEntity;
+    }
 
-    math::Vector3d axisXyz;
-    // TODO (addisu) Handle sdf errors
-    sdf::Errors errors = _joint->Axis(1)->ResolveXyz(axisXyz);
-    errors = axis.SetXyz(axisXyz);
-    axis.SetXyzExpressedIn("");
     this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::JointAxis2(std::move(axis)));
+        components::JointAxis2(std::move(*resolvedAxis)));
   }
 
   this->dataPtr->ecm->CreateComponent(jointEntity,
@@ -497,13 +529,31 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
       components::ThreadPitch(_joint->ThreadPitch()));
 
   std::string resolvedParentLinkName;
-  // TODO (addisu) Handle errors
-  _joint->ResolveParentLink(resolvedParentLinkName);
+  const auto resolveParentErrors =
+    _joint->ResolveParentLink(resolvedParentLinkName);
+  if (!resolveParentErrors.empty())
+  {
+    ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
+           << "' with parent name '" << _joint->ParentLinkName() << "'"
+           << std::endl;
+
+    return kNullEntity;
+  }
   this->dataPtr->ecm->CreateComponent(
       jointEntity, components::ParentLinkName(resolvedParentLinkName));
 
   std::string resolvedChildLinkName;
-  _joint->ResolveParentLink(resolvedChildLinkName);
+  const auto resolveChildErrors =
+    _joint->ResolveChildLink(resolvedChildLinkName);
+  if (!resolveChildErrors.empty())
+  {
+    ignerr << "Failed to resolve child link for joint '" << _joint->Name()
+           << "' with child name '" << _joint->ChildLinkName() << "'"
+           << std::endl;
+
+    return kNullEntity;
+  }
+
   this->dataPtr->ecm->CreateComponent(
       jointEntity, components::ChildLinkName(resolvedChildLinkName));
 
