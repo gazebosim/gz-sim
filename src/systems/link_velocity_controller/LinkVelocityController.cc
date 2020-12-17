@@ -16,14 +16,12 @@
  */
 
 #include <ignition/msgs/vector3d.pb.h>
-#include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
-// #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "LinkVelocityController.hh"
@@ -112,8 +110,6 @@ void LinkVelocityController::PreUpdate(
     const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LinkVelocityController::PreUpdate");
-
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     ignwarn << "Detected jump back in time ["
@@ -155,7 +151,6 @@ void LinkVelocityController::PreUpdate(
 void LinkVelocityController::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LinkVelocityController::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -168,8 +163,6 @@ void LinkVelocityControllerPrivate::UpdateVelocity(
     const ignition::gazebo::UpdateInfo &/*_info*/,
     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("LinkVelocityController::UpdateVelocity");
-
   double angVel;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
