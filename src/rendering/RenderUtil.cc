@@ -50,6 +50,7 @@
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -1141,13 +1142,31 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   // update lights
   _ecm.Each<components::Light, components::Pose>(
       [&](const Entity &_entity,
-        const components::Light *_light,
+        const components::Light *,
         const components::Pose *_pose)->bool
       {
         this->entityPoses[_entity] = _pose->Data();
-        this->entityLights[_entity] = _light->Data();
         return true;
       });
+
+  std::vector<Entity> entitiesLightCmd;
+  _ecm.Each<components::LightCmd>(
+      [&](const Entity &_entity,
+        const components::LightCmd *_lightCmd) -> bool
+      {
+        this->entityLights[_entity] = _lightCmd->Data();
+        entitiesLightCmd.push_back(_entity);
+        return true;
+      });
+
+  // Converting the const EntityComponentManager to a
+  // non-const EntityComponentManager to be able to remove the LightCmd
+  EntityComponentManager& _ecm_remove =
+    const_cast<EntityComponentManager&>(_ecm);
+  for (const auto entity : entitiesLightCmd)
+  {
+    _ecm_remove.RemoveComponent<components::LightCmd>(entity);
+  }
 
   // Update cameras
   _ecm.Each<components::Camera, components::Pose>(

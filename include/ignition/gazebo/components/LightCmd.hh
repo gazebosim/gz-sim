@@ -24,6 +24,7 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include "ignition/gazebo/components/Component.hh"
+#include <ignition/gazebo/components/Serialization.hh>
 
 namespace ignition
 {
@@ -31,11 +32,17 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using LightCmdSerializer =
+      serializers::ComponentToMsgSerializer<sdf::Light, msgs::Light>;
+}
+
 namespace components
 {
-  /// \brief A component type that contains commanded pose of an
-  /// entity in the world frame represented by ignition::math::Pose3d.
-  using LightCmd = Component<sdf::Light, class LightCmdTag>;
+  /// \brief A component type that contains commanded light of an
+  /// entity in the world frame represented by sdf::Light.
+  using LightCmd = Component<sdf::Light, class LightCmdTag, serializers::LightCmdSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LightCmd",
       LightCmd)
 }
