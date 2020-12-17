@@ -945,7 +945,8 @@ void EntityComponentManager::CalculateComponentThreadLoad() const
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
   this->dataPtr->numComponentThreads = std::min(numThreads, maxThreads);
-  int componentsPerThread = numComponents / this->dataPtr->numComponentThreads;
+  int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
+    this->dataPtr->numComponentThreads);
 
   // Push back the starting iterator
   this->dataPtr->entityComponentIterators.push_back(startIt);
