@@ -37,6 +37,65 @@ namespace systems
   /// \brief A system that monitors the kinetic energy of a link in a model
   /// and publishes when the kinetic energy surpasses a specified threshold.
   /// This system can be used to detect when a model could be damaged.
+  ///
+  /// # System Parameters
+  ///
+  /// `<link_name>`: Name of the link to monitor. This name must match
+  /// a name of link within the model.
+  ///
+  /// `<kinetic_energy_threshold>`: Threshold, in Joule (J), after which
+  /// a message is generated on `<topic>` with the kinetic energy value that
+  /// surpassed the threshold.
+  ///
+  /// `<topic>`: Custom topic that this system will publish to when kinetic
+  /// energy surpasses the threshold. This element if optional, and the
+  /// default value is `/model/{name_of_model}/kinetic_energy`.
+  ///
+  /// # Example Usage
+  ///
+  /** \verbatim
+   <model name="sphere">
+      <pose>0 0 5 0 0 0</pose>
+      <link name="sphere_link">
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+      <plugin
+        filename="ignition-gazebo-kinetic-energy-monitor-system"
+        name="ignition::gazebo::systems::KineticEnergyMonitor">
+        <base_link_name>sphere_link</base_link_name>
+        <kinetic_energy_threshold>100</kinetic_energy_threshold>
+      </plugin>
+    </model>
+  \endverbatim */
   class IGNITION_GAZEBO_VISIBLE KineticEnergyMonitor:
     public System,
     public ISystemConfigure,

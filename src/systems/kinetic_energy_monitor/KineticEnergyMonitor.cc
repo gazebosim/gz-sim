@@ -43,8 +43,8 @@ using namespace systems;
 /// \brief Private data class
 class ignition::gazebo::systems::KineticEnergyMonitorPrivate
 {
-  /// \brief Base link of the model.
-  public: Entity baseLinkEntity;
+  /// \brief Link of the model.
+  public: Entity linkEntity;
 
   /// \brief Name of the model this plugin is attached to.
   public: std::string modelName;
@@ -89,26 +89,25 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   this->dataPtr->modelName = this->dataPtr->model.Name(_ecm);
 
   auto sdfClone = _sdf->Clone();
-  std::string baseLinkName;
-  if (sdfClone->HasElement("base_link_name"))
+  std::string linkName;
+  if (sdfClone->HasElement("link_name"))
   {
-    baseLinkName = sdfClone->Get<std::string>("base_link_name");
+    linkName = sdfClone->Get<std::string>("link_name");
   }
 
-  if (baseLinkName.empty())
+  if (linkName.empty())
   {
-    ignerr << "found an empty baseLinkName parameter. Failed to initialize."
+    ignerr << "found an empty <link_name> parameter. Failed to initialize."
       << std::endl;
     return;
   }
 
   // Get the link entity
-  this->dataPtr->baseLinkEntity = this->dataPtr->model.LinkByName(_ecm,
-      baseLinkName);
+  this->dataPtr->linkEntity = this->dataPtr->model.LinkByName(_ecm, linkName);
 
-  if (this->dataPtr->baseLinkEntity == kNullEntity)
+  if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "Link " << baseLinkName
+    ignerr << "Link " << linkName
       << " could not be found. Failed to initialize.\n";
     return;
   }
@@ -126,38 +125,38 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   transport::Node node;
   this->dataPtr->pub = node.Advertise<msgs::Double>(topic);
 
-  if (!_ecm.Component<components::WorldPose>(this->dataPtr->baseLinkEntity))
+  if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
         components::WorldPose());
   }
 
-  if (!_ecm.Component<components::Inertial>(this->dataPtr->baseLinkEntity))
+  if (!_ecm.Component<components::Inertial>(this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(this->dataPtr->baseLinkEntity, components::Inertial());
+    _ecm.CreateComponent(this->dataPtr->linkEntity, components::Inertial());
   }
 
   // Create a world linear velocity component if one is not present.
   if (!_ecm.Component<components::WorldLinearVelocity>(
-        this->dataPtr->baseLinkEntity))
+        this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
         components::WorldLinearVelocity());
   }
 
   // Create an angular velocity component if one is not present.
   if (!_ecm.Component<components::AngularVelocity>(
-        this->dataPtr->baseLinkEntity))
+        this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
         components::AngularVelocity());
   }
 
   // Create an angular velocity component if one is not present.
   if (!_ecm.Component<components::WorldAngularVelocity>(
-        this->dataPtr->baseLinkEntity))
+        this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
         components::WorldAngularVelocity());
   }
 }
@@ -166,9 +165,9 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->baseLinkEntity != kNullEntity)
+  if (this->dataPtr->linkEntity != kNullEntity)
   {
-    Link link(this->dataPtr->baseLinkEntity);
+    Link link(this->dataPtr->linkEntity);
     if (std::nullopt != link.WorldKineticEnergy(_ecm))
     {
       double currKineticEnergy = *link.WorldKineticEnergy(_ecm);
