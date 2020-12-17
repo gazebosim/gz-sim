@@ -17,6 +17,7 @@
 
 #include "TriggeredPublisher.hh"
 
+#include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
 
@@ -26,6 +27,11 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/plugin/Register.hh>
+
+// bug https://github.com/protocolbuffers/protobuf/issues/5051
+#ifdef _WIN32
+#undef GetMessage
+#endif
 
 using namespace ignition;
 using namespace gazebo;
