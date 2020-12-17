@@ -271,8 +271,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
         _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
         jumpBackInTime;
-  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod;
+  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 
