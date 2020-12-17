@@ -2,9 +2,10 @@
   Ignition Gazebo link velocity control demo
 
   Try sending commands:
-    ign topic -t "/model/double_pendulum/link/upper_link/cmd_vel" -m ignition.msgs.Vector3d -p "x: 0, y: 0, z: 0.05"
+    ign topic -t "/model/double_pendulum_with_base/link/upper_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {z: 0.05}"
 
-    ign topic -t "/model/double_pendulum/link/lower_link/cmd_vel" -m ignition.msgs.Vector3d -p "x: 0, y: 0, z: 0.01"
+    ign topic -t "/model/double_pendulum_with_base/link/lower_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {z: -0.10}"
+
 -->
 
 <?xml version="1.0" ?>
@@ -65,6 +66,31 @@
                 <start_paused>true</start_paused>
                 <service>/world/car_world/control</service>
                 <stats_topic>/world/car_world/stats</stats_topic>
+            </plugin>
+
+            <!-- World statistics -->
+            <plugin filename="WorldStats" name="World stats">
+                <ignition-gui>
+                <title>World stats</title>
+                <property type="bool" key="showTitleBar">false</property>
+                <property type="bool" key="resizable">false</property>
+                <property type="double" key="height">110</property>
+                <property type="double" key="width">290</property>
+                <property type="double" key="z">1</property>
+
+                <property type="string" key="state">floating</property>
+                <anchors target="3D View">
+                    <line own="right" target="right"/>
+                    <line own="bottom" target="bottom"/>
+                </anchors>
+                </ignition-gui>
+
+                <sim_time>true</sim_time>
+                <real_time>true</real_time>
+                <real_time_factor>true</real_time_factor>
+                <iterations>true</iterations>
+                <topic>/world/velocity_control/stats</topic>
+
             </plugin>
 
             <!-- Entity tree -->

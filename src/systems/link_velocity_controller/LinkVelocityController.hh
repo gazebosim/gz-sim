@@ -38,16 +38,17 @@ namespace systems
   /// The topic name is
   /// "/model/<model_name>/link/<link_name>/<link_index>/cmd_vel"
   ///
-  /// This topic accepts ignition::msgs::Double values representing the target
+  /// This topic accepts ignition::msgs::Twist values representing the target
   /// velocity.
   ///
   /// ## System Parameters
-  /// 
+  ///
   /// `<link_name>` The name of the link to control. Required parameter.
   class IGNITION_GAZEBO_VISIBLE LinkVelocityController
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPreUpdate,
+        public ISystemPostUpdate
   {
     /// \brief Constructor
     public: LinkVelocityController();
@@ -65,6 +66,11 @@ namespace systems
     public: void PreUpdate(
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void PostUpdate(
+                const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<LinkVelocityControllerPrivate> dataPtr;

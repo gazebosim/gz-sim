@@ -22,7 +22,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/AngularVelocityCmd.hh"
 // #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/Model.hh"
 
@@ -34,30 +34,34 @@ using namespace systems;
 
 class ignition::gazebo::systems::LinkVelocityControllerPrivate
 {
-  /// \brief Callback for Velocity subscription
+  /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Vector3d &_msg);
+  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+
+  /// \brief Update link angular velocity.
+  /// \param[in] _info System update information.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  /// \brief Link Entity
+  /// \brief Link entity
   public: Entity linkEntity;
 
-  /// \brief Link 1 name
-  public: std::string link1Name;
+  /// \brief Link name
+  public: std::string linkName;
 
-  /// \brief Link 2 name
-  public: std::string link2Name;
+  /// \brief Angular velocity of link
+  public: math::Vector3d linkAngularVel {0, 0, 0};
 
-  // /// \brief Commanded Link Linear Velocity
-  // public: math::Vector3d linkLinearVelCmd;
+  /// \brief Mutex to protect link commands
+  public: std::mutex mutex;
 
-  /// \brief Commanded Link Angular Velocity
-  public: math::Vector3d linkAngularVelCmd;
-
-  /// \brief mutex to protect Link commands
-  public: std::mutex linkCmdMutex;
+  /// \brief Last target velocity requested.
+  public: msgs::Twist targetVel;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
@@ -85,11 +89,9 @@ void LinkVelocityController::Configure(const Entity &_entity,
   }
 
   // Get params from SDF
-  this->dataPtr->link1Name = _sdf->Get<std::string>("link1_name");
-  // ignerr << _sdf->ToString("") << std::endl;
-  // // if (_sdf->HasElement("link"))
-  // //   this->dataPtr->linkName = _sdf->GetAttribute("link");
-  if (this->dataPtr->link1Name == "")
+  // TODO: add link2_name
+  this->dataPtr->linkName = _sdf->Get<std::string>("link1_name");
+  if (this->dataPtr->linkName == "")
   {
     ignerr << "LinkVelocityController found an empty link1Name parameter. "
            << "Failed to initialize.";
@@ -98,10 +100,11 @@ void LinkVelocityController::Configure(const Entity &_entity,
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
-                    "/link/" + this->dataPtr->link1Name + "/cmd_vel"};
+                    "/link/" + this->dataPtr->linkName + "/cmd_vel"};
   this->dataPtr->node.Subscribe(
     topic, &LinkVelocityControllerPrivate::OnCmdVel, this->dataPtr.get());
-  igndbg << "Topic: ["      << topic     << "]"            << std::endl;
+  ignmsg << "LinkVelocityController subscribing to twist messages on [" << topic << "]"
+         << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -117,52 +120,78 @@ void LinkVelocityController::PreUpdate(
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
   // If the link hasn't been identified yet, look for it
   if (this->dataPtr->linkEntity == kNullEntity)
   {
     this->dataPtr->linkEntity =
-      this->dataPtr->model.LinkByName(_ecm, this->dataPtr->link1Name);
+      this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
   }
 
   if (this->dataPtr->linkEntity == kNullEntity)
     return;
-  
-  // Nothing left to do if paused
-  if (_info.paused)
-    return;
-  
-  // // Create link velocity componenet if one doesn't exist
-  // auto linearVelocityComp =
-  //   _ecm.Component<components::LinearVelocity>(this->dataPtr->linkEntity);
-  // if (linearVelocityComp == nullptr)
-  // {
-  //   _ecm.CreateComponent(
-  //     this->dataPtr->linkEntity, components::LinearVelocity());
-  // }
-  auto angularVelocityComp =
-    _ecm.Component<components::AngularVelocity>(this->dataPtr->linkEntity);
-  if (angularVelocityComp == nullptr)
+
+  // update angular velocity of link
+  auto angularVel =
+    _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->linkEntity);
+  if (angularVel == nullptr)
   {
     _ecm.CreateComponent(
-      this->dataPtr->linkEntity, components::AngularVelocity());
+      this->dataPtr->linkEntity,
+      components::AngularVelocityCmd({this->dataPtr->linkAngularVel}));
   }
-  if (angularVelocityComp == nullptr)
-    return;
+  else
+  {
+    *angularVel =
+      components::AngularVelocityCmd({this->dataPtr->linkAngularVel});
+  }
 }
 
 //////////////////////////////////////////////////
-void LinkVelocityControllerPrivate::OnCmdVel(const msgs::Vector3d &_msg)
+void LinkVelocityController::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
-  std::lock_guard<std::mutex> lock(this->linkCmdMutex);
-  // this->linkLinearVelCmd = _msg.data();
-  std::cout << _msg.x() << ", " << _msg.y() << ", " << _msg.z() << std::endl;
-  this->linkAngularVelCmd = math::Vector3d(_msg.x(), _msg.y(), _msg.z());
+  IGN_PROFILE("LinkVelocityController::PostUpdate");
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
+  this->dataPtr->UpdateVelocity(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
+void LinkVelocityControllerPrivate::UpdateVelocity(
+    const ignition::gazebo::UpdateInfo &/*_info*/,
+    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+{
+  IGN_PROFILE("LinkVelocityController::UpdateVelocity");
+
+  double angVel;
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    angVel = this->targetVel.angular().z();
+  }
+
+  this->linkAngularVel = math::Vector3d(
+    this->targetVel.angular().x(), this->targetVel.angular().y(), angVel);
+}
+
+//////////////////////////////////////////////////
+void LinkVelocityControllerPrivate::OnCmdVel(const msgs::Twist &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->targetVel = _msg;
 }
 
 IGNITION_ADD_PLUGIN(LinkVelocityController,
                     ignition::gazebo::System,
                     LinkVelocityController::ISystemConfigure,
-                    LinkVelocityController::ISystemPreUpdate)
+                    LinkVelocityController::ISystemPreUpdate,
+                    LinkVelocityController::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinkVelocityController,
                           "ignition::gazebo::systems::LinkVelocityController")
