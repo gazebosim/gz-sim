@@ -71,6 +71,7 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -1374,6 +1375,45 @@ TEST_F(ComponentsTest, Static)
   EXPECT_TRUE(comp11 != comp2);
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, TemperatureRange)
+{
+  // TODO(adlarkin) make sure min can't be >= max?
+  components::TemperatureRangeInfo range1;
+  range1.min = math::Temperature(125.0);
+  range1.max = math::Temperature(300.0);
+
+  components::TemperatureRangeInfo range2;
+  range2.min = math::Temperature(140.0);
+  range2.max = math::Temperature(200.0);
+
+  components::TemperatureRangeInfo range3;
+  range3.min = math::Temperature(125.0);
+  range3.max = math::Temperature(300.0);
+
+  // Create components
+  auto comp1 = components::TemperatureRange(range1);
+  auto comp2 = components::TemperatureRange(range2);
+  auto comp3 = components::TemperatureRange(range3);
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp3);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_NE(comp2, comp3);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("125 300", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::TemperatureRange comp4;
+  comp4.Deserialize(istr);
+  EXPECT_EQ(comp1, comp4);
 }
 
 /////////////////////////////////////////////////
