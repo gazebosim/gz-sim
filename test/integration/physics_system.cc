@@ -615,6 +615,75 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
 }
 
 /////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, GetBoundingBox)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  // a map of model name to its axis aligned box
+  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
+
+  // Create a system that records the bounding box of a model
+  test::Relay testSystem;
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Static>(
+        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Static *)->bool
+        {
+          // create axis aligned box to be filled by physics
+          if (_name->Data() == "box1")
+          {
+            auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
+            // the test only runs for 1 iteration so the component should be
+            // null in the first iteration.
+            EXPECT_EQ(bboxComp, nullptr);
+            _ecm.CreateComponent(_entity, components::AxisAlignedBox());
+            return true;
+          }
+          return true;
+        });
+    });
+
+  testSystem.OnPostUpdate(
+    [&](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      // store models that have axis aligned box computed
+      _ecm.Each<components::Model, components::Name, components::Static,
+        components::AxisAlignedBox>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Static *,
+        const components::AxisAlignedBox *_aabb)->bool
+        {
+          bbox[_name->Data()] = _aabb->Data();
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 1;
+  server.Run(true, iters, false);
+
+  EXPECT_EQ(1u, bbox.size());
+  EXPECT_EQ("box1", bbox.begin()->first);
+  EXPECT_EQ(ignition::math::AxisAlignedBox(
+      ignition::math::Vector3d(-1.25, -2, 0),
+      ignition::math::Vector3d(-0.25, 2, 1)),
+      bbox.begin()->second);
+}
+
+///////////////////////////////////////////////
 /// Test joint position reset component
 TEST_F(PhysicsSystemFixture, ResetPositionComponent)
 {
@@ -742,144 +811,34 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   // cppcheck-suppress variableScope
   bool firstRun = true;
 
-  testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Joint, components::Name>(
-        [&](const ignition::gazebo::Entity &_entity,
-            const components::Joint *, components::Name *_name) -> bool
-        {
-          if (_name->Data() == rotatingJointName)
-          {
-            auto resetComp =
-                _ecm.Component<components::JointVelocityReset>(_entity);
-            auto velocity = _ecm.Component<components::JointVelocity>(_entity);
+  modelIt = postUpModelPoses.find("model_01");
+  EXPECT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(1.0, 0, 0.0, 0, 0, 0), modelIt->second);
 
-            if (firstRun)
-            {
-              firstRun = false;
+  auto linkIt = postUpLinkPoses.find("link_00");
+  EXPECT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0.0, 0, 0, 0), linkIt->second);
 
-              EXPECT_EQ(nullptr, resetComp);
-              _ecm.CreateComponent(_entity,
-                                   components::JointVelocityReset({vel0}));
+  linkIt = postUpLinkPoses.find("link_01");
+  EXPECT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(0.25, 0, 0.0, 0, 0, 0), linkIt->second);
 
-              EXPECT_EQ(nullptr, velocity);
-              _ecm.CreateComponent(_entity, components::JointVelocity());
-            }
-            else
-            {
-              EXPECT_EQ(nullptr, resetComp);
-              EXPECT_NE(nullptr, velocity);
-            }
-          }
-          return true;
-        });
-    });
+  auto parentIt = parents.find("model_00");
+  EXPECT_NE(parents.end(), parentIt);
+  EXPECT_EQ("nested_model_world", parentIt->second);
 
-  std::vector<double> velocities;
+  parentIt = parents.find("model_01");
+  EXPECT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_00", parentIt->second);
 
-  testSystem.OnPostUpdate([&](
-    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Joint,
-                components::Name,
-                components::JointVelocity>(
-        [&](const ignition::gazebo::Entity &,
-            const components::Joint *,
-            const components::Name *_name,
-            const components::JointVelocity *_vel)
-        {
-          if (_name->Data() == rotatingJointName)
-          {
-            velocities.push_back(_vel->Data()[0]);
-          }
-          return true;
-        });
-    });
+  parentIt = parents.find("link_00");
+  EXPECT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_00", parentIt->second);
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, 2, false);
-
-  ASSERT_EQ(velocities.size(), 2ul);
-
-  // First velocity should be exactly the same
-  // TODO(anyone): we should use EXPECT_EQ but for some reason the
-  //               resulting velocity is 2.9999 instead of 3.0
-  EXPECT_NEAR(vel0, velocities[0], 2e-4);
-
-  // Second velocity should be different, but close
-  EXPECT_NEAR(vel0, velocities[1], 0.05);
+  parentIt = parents.find("link_01");
+  EXPECT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_01", parentIt->second);
 }
-
-/////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, GetBoundingBox)
-{
-  ignition::gazebo::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/contact.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  gazebo::Server server(serverConfig);
-
-  server.SetUpdatePeriod(1ns);
-
-  // a map of model name to its axis aligned box
-  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
-
-  // Create a system that records the bounding box of a model
-  test::Relay testSystem;
-
-  testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Model, components::Name, components::Static>(
-        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
-        const components::Name *_name, const components::Static *)->bool
-        {
-          // create axis aligned box to be filled by physics
-          if (_name->Data() == "box1")
-          {
-            auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
-            // the test only runs for 1 iteration so the component should be
-            // null in the first iteration.
-            EXPECT_EQ(bboxComp, nullptr);
-            _ecm.CreateComponent(_entity, components::AxisAlignedBox());
-            return true;
-          }
-          return true;
-        });
-    });
-
-  testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
-    {
-      // store models that have axis aligned box computed
-      _ecm.Each<components::Model, components::Name, components::Static,
-        components::AxisAlignedBox>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
-        const components::Name *_name, const components::Static *,
-        const components::AxisAlignedBox *_aabb)->bool
-        {
-          bbox[_name->Data()] = _aabb->Data();
-          return true;
-        });
-    });
-
-  server.AddSystem(testSystem.systemPtr);
-  const size_t iters = 1;
-  server.Run(true, iters, false);
-
-  EXPECT_EQ(1u, bbox.size());
-  EXPECT_EQ("box1", bbox.begin()->first);
-  EXPECT_EQ(ignition::math::AxisAlignedBox(
-      ignition::math::Vector3d(-1.25, -2, 0),
-      ignition::math::Vector3d(-0.25, 2, 1)),
-      bbox.begin()->second);
-}
-
 
 /////////////////////////////////////////////////
 // This tests whether nested models can be loaded correctly
@@ -891,7 +850,15 @@ TEST_F(PhysicsSystemFixture, NestedModel)
     "/test/worlds/nested_model.sdf";
 
   sdf::Root root;
-  root.Load(sdfFile);
+  const auto errors = root.Load(sdfFile);
+  if (errors.size() > 0)
+  {
+    for (const auto &error : errors)
+    {
+      std::cerr << error << std::endl;
+    }
+    ASSERT_EQ(0u, errors.size());
+  }
   const sdf::World *world = root.WorldByIndex(0);
   ASSERT_TRUE(nullptr != world);
 
@@ -935,12 +902,14 @@ TEST_F(PhysicsSystemFixture, NestedModel)
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
+          auto parentName = _ecm.Component<components::Name>(_parent->Data());
+          const std::string qualifiedLinkName =
+            parentName->Data() + "//" + _name->Data();
           // store link pose
-          postUpLinkPoses[_name->Data()] = _pose->Data();
+          postUpLinkPoses[qualifiedLinkName] = _pose->Data();
 
           // store parent model name
-          auto parentName = _ecm.Component<components::Name>(_parent->Data());
-          parents[_name->Data()] = parentName->Data();
+          parents[qualifiedLinkName] = parentName->Data();
           return true;
         });
 
@@ -954,35 +923,180 @@ TEST_F(PhysicsSystemFixture, NestedModel)
   EXPECT_EQ(2u, postUpLinkPoses.size());
   EXPECT_EQ(4u, parents.size());
 
+  // From nested_models
   auto modelIt = postUpModelPoses.find("model_00");
-  EXPECT_NE(postUpModelPoses.end(), modelIt);
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
   EXPECT_EQ(math::Pose3d(0, 0, 0.5, 0, 0, 0), modelIt->second);
 
+  // From nested_models
   modelIt = postUpModelPoses.find("model_01");
-  EXPECT_NE(postUpModelPoses.end(), modelIt);
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
   EXPECT_EQ(math::Pose3d(1.0, 0, 0.0, 0, 0, 0), modelIt->second);
 
-  auto linkIt = postUpLinkPoses.find("link_00");
-  EXPECT_NE(postUpLinkPoses.end(), linkIt);
+  auto linkIt = postUpLinkPoses.find("model_00//link_00");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
   EXPECT_EQ(math::Pose3d(0, 0, 0.0, 0, 0, 0), linkIt->second);
 
-  linkIt = postUpLinkPoses.find("link_01");
-  EXPECT_NE(postUpLinkPoses.end(), linkIt);
+  linkIt = postUpLinkPoses.find("model_01//link_01");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
   EXPECT_EQ(math::Pose3d(0.25, 0, 0.0, 0, 0, 0), linkIt->second);
 
   auto parentIt = parents.find("model_00");
-  EXPECT_NE(parents.end(), parentIt);
+  ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("nested_model_world", parentIt->second);
 
   parentIt = parents.find("model_01");
-  EXPECT_NE(parents.end(), parentIt);
+  ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_00", parentIt->second);
 
-  parentIt = parents.find("link_00");
-  EXPECT_NE(parents.end(), parentIt);
+  parentIt = parents.find("model_00//link_00");
+  ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_00", parentIt->second);
 
-  parentIt = parents.find("link_01");
-  EXPECT_NE(parents.end(), parentIt);
+  parentIt = parents.find("model_01//link_01");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_01", parentIt->second);
+}
+
+// This tests whether nested models can be loaded correctly
+TEST_F(PhysicsSystemFixture, IncludeNestedModel)
+{
+  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  setenv("IGN_GAZEBO_RESOURCE_PATH",
+         path.c_str(), 1);
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetResourceCache(path);
+
+  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/include_nested_models.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+  gazebo::Server server(serverConfig);
+
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, std::string> parents;
+  testSystem.OnPostUpdate(
+    [&postUpModelPoses, &postUpLinkPoses, &parents](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          // store model pose
+          postUpModelPoses[_name->Data()] = _pose->Data();
+
+          // store parent model name, if any
+          auto parentId = _ecm.Component<components::ParentEntity>(_entity);
+          if (parentId)
+          {
+            auto parentName =
+                _ecm.Component<components::Name>(parentId->Data());
+            parents[_name->Data()] = parentName->Data();
+          }
+          return true;
+        });
+
+      _ecm.Each<components::Link, components::Name, components::Pose,
+                components::ParentEntity>(
+        [&](const ignition::gazebo::Entity &, const components::Link *,
+        const components::Name *_name, const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+        {
+          auto parentName = _ecm.Component<components::Name>(_parent->Data());
+          const std::string qualifiedLinkName =
+            parentName->Data() + "//" + _name->Data();
+          // store link pose
+          postUpLinkPoses[qualifiedLinkName] = _pose->Data();
+
+          // store parent model name
+          parents[qualifiedLinkName] = parentName->Data();
+          return true;
+        });
+
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  // 2 in include_nested model, 3 in nested_models model
+  EXPECT_EQ(4u, postUpModelPoses.size());
+
+  // 0 in world, 2 in include_nested model, 2 in nested_models model
+  EXPECT_EQ(4u, postUpLinkPoses.size());
+
+  // 1 in world, 2 in include_nested, 4 in nested_models
+  EXPECT_EQ(8u, parents.size());
+
+  // From nested_models
+  auto modelIt = postUpModelPoses.find("model_00");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), modelIt->second);
+
+  // From nested_models
+  modelIt = postUpModelPoses.find("model_01");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0.0, 0, 0, 0), modelIt->second);
+
+  // From include_nested, but with name overwritten by include_nested_models
+  modelIt = postUpModelPoses.find("include_nested_new_name");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0, 1.0, 2.0, 3.0), modelIt->second);
+
+  // From nested_models, but with name overwritten by include_nested
+  modelIt = postUpModelPoses.find("nested_models_new_name");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), modelIt->second);
+
+  auto linkIt = postUpLinkPoses.find("model_00//link_00");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(20, 21, 22, 0, 0, 0), linkIt->second);
+
+  linkIt = postUpLinkPoses.find("include_nested_new_name//link_00");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(30, 32, 34, 0, 0, 0), linkIt->second);
+
+  linkIt = postUpLinkPoses.find("model_01//link_01");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(20, 21, 22.0, 0, 0, 0), linkIt->second);
+
+  auto parentIt = parents.find("model_00");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("nested_models_new_name", parentIt->second);
+
+  parentIt = parents.find("model_01");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_00", parentIt->second);
+
+  parentIt = parents.find("nested_models_new_name");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("include_nested_new_name", parentIt->second);
+
+  parentIt = parents.find("include_nested_new_name");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("include_nested_models_world", parentIt->second);
+
+  parentIt = parents.find("model_00//link_00");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_00", parentIt->second);
+
+  parentIt = parents.find("include_nested_new_name//link_00");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("include_nested_new_name", parentIt->second);
+
+  parentIt = parents.find("model_01//link_01");
+  ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
 }
