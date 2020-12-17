@@ -1,17 +1,51 @@
 #!/usr/bin/env bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+set -e
+
+SCRIPTNAME="$(basename $0)"
+HELP="$(cat << EOM
+
+$SCRIPTNAME [--secondaries N] [--robots N]
+
+  --secondaries, -s: Number of secondaries the primary expects, defaults to 2.
+  --robots, -r: Number of robots, defaults to 2.
+EOM
+)
+"
+
+ROBOTS="2"
+SECONDARIES="2"
+
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -s|--secondaries)
+    SECONDARIES="$2"
+    shift
+    shift
+    ;;
+    -r|--robots)
+    ROBOTS="$2"
+    shift
+    shift
+    ;;
+    *)
+    echo "$HELP"
+    exit 0
+    ;;
+esac
+done
+
+FILENAME="${SCRIPTNAME%.*}"
+TMPFILE=$(mktemp /tmp/primary.XXXXXX.sdf)
+function cleanup {
+  rm $TMPFILE
+}
+trap cleanup EXIT
+
+empy3 -o "$TMPFILE" "$FILENAME.sdf.em" $ROBOTS
 
 # --levels is implied by --network-role
-ign gazebo -v 4 -z 100000000 --network-role primary --network-secondaries 2 $DIR/primary.sdf
-
-# Ignition Gazebo 1.x.x and 2.x.x support using environment variables to
-# configure distributed simulation. This capability is deprecated in
-# version 2.x.x, and removed in verion 3.x.x of Inition Gazebo. Please use the
-# --network-role and --network-secondaries command line options instead.
-
-# export IGN_GAZEBO_NETWORK_ROLE="PRIMARY"
-# export IGN_GAZEBO_NETWORK_SECONDARIES=3
-# ign-gazebo -v 4 --distributed -f $DIR/primary.sdf
-
-
+ign gazebo -v 4 -z 100000000 --network-role primary --network-secondaries $SECONDARIES $TMPFILE
