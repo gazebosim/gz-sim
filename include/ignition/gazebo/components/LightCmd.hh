@@ -42,7 +42,8 @@ namespace components
 {
   /// \brief A component type that contains commanded light of an
   /// entity in the world frame represented by sdf::Light.
-  using LightCmd = Component<sdf::Light, class LightCmdTag, serializers::LightCmdSerializer>;
+  using LightCmd =
+    Component<sdf::Light, class LightCmdTag, serializers::LightCmdSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LightCmd",
       LightCmd)
 }
