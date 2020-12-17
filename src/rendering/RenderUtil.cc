@@ -16,7 +16,9 @@
  */
 
 #include <map>
+#include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <sdf/Actor.hh>
@@ -58,6 +60,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Transparency.hh"
@@ -167,8 +170,12 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
-  /// \brief A map of entity ids and temperature
-  public: std::map<Entity, float> entityTemp;
+  /// \brief A map of entity ids and temperature data.
+  /// A float indicates that the entity has a uniform temperature, which is
+  /// the value of the float. A string indicates that the entity's temperature
+  /// varies, which is specified by a file that defines the heat signature (the
+  /// string contains the path to this file).
+  public: std::map<Entity, std::variant<float, std::string>> entityTemp;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -596,7 +603,7 @@ void RenderUtil::Update()
   }
 
   // set visual temperature
-  for (auto &temp : entityTemp)
+  for (const auto &temp : entityTemp)
   {
     auto node = this->dataPtr->sceneManager.NodeById(temp.first);
     if (!node)
@@ -607,7 +614,10 @@ void RenderUtil::Update()
     if (!visual)
       continue;
 
-    visual->SetUserData("temperature", temp.second);
+    if (std::holds_alternative<float>(temp.second))
+      visual->SetUserData("temperature", std::get<float>(temp.second));
+    else if (std::holds_alternative<std::string>(temp.second))
+      visual->SetUserData("heat_signature", std::get<std::string>(temp.second));
   }
 }
 
@@ -731,6 +741,15 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (temp)
           {
             this->entityTemp[_entity] = temp->Data().Kelvin();
+          }
+          else
+          {
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            if (heatSignature)
+            {
+              this->entityTemp[_entity] = heatSignature->Data();
+            }
           }
 
           this->newVisuals.push_back(

@@ -15,15 +15,15 @@
  *
  */
 
-#include <ignition/common/Profiler.hh>
+#include "Thermal.hh"
+
+#include <string>
+
 #include <ignition/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
-
-#include "Thermal.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -48,14 +48,31 @@ void Thermal::Configure(const Entity &_entity,
     gazebo::EntityComponentManager &_ecm,
     gazebo::EventManager & /*_eventMgr*/)
 {
-  if (!_sdf->HasElement("temperature"))
+  const std::string temperatureTag = "temperature";
+  const std::string heatSignatureTag = "heat_signature";
+
+  if (_sdf->HasElement(temperatureTag) && _sdf->HasElement(heatSignatureTag))
   {
-    ignerr << "Fail to load thermal system: <temperature> is not specified"
-           << std::endl;
-    return;
+    ignerr << "Failed to load thermal system. "
+           << "Both <" << temperatureTag << "> and <" << heatSignatureTag
+           << "> were specified, but the thermal system only uses one.\n";
   }
-  double temperature = _sdf->Get<double>("temperature");
-  _ecm.CreateComponent(_entity, components::Temperature(temperature));
+  else if (_sdf->HasElement(temperatureTag))
+  {
+    double temperature = _sdf->Get<double>(temperatureTag);
+    _ecm.CreateComponent(_entity, components::Temperature(temperature));
+  }
+  else if (_sdf->HasElement(heatSignatureTag))
+  {
+    std::string heatSignature = _sdf->Get<std::string>(heatSignatureTag);
+    _ecm.CreateComponent(_entity, components::SourceFilePath(heatSignature));
+  }
+  else
+  {
+    ignerr << "Failed to load thermal system. "
+           << "Neither <" << temperatureTag << "> or <" << heatSignatureTag
+           << "> were specified.\n";
+  }
 }
 
 
