@@ -141,23 +141,36 @@ class LightCommand : public UserCommandBase
   /// \brief Light equality comparison function.
   public: std::function<bool(const sdf::Light &, const sdf::Light &)>
           lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
-                     {
-                       return
-                         _a.Type() == _b.Type() &&
-                         _a.Name() == _b.Name() &&
-                         _a.Diffuse() == _b.Diffuse() &&
-                         _a.Specular() == _b.Specular() &&
-                         math::equal(_a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
-                         math::equal(_a.LinearAttenuationFactor(), _b.LinearAttenuationFactor(), 1e-6) &&
-                         math::equal(_a.ConstantAttenuationFactor(), _b.ConstantAttenuationFactor(), 1e-6) &&
-                         math::equal(_a.ConstantAttenuationFactor(), _b.ConstantAttenuationFactor(), 1e-6) &&
-                         math::equal(_a.QuadraticAttenuationFactor(), _b.QuadraticAttenuationFactor(), 1e-6) &&
-                         _a.CastShadows() == _b.CastShadows() &&
-                         _a.Direction() == _b.Direction() &&
-                         _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
-                         _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
-                         math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
-                     }};
+            {
+             return
+                _a.Type() == _b.Type() &&
+                _a.Name() == _b.Name() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                math::equal(
+                  _a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
+               math::equal(
+                 _a.LinearAttenuationFactor(),
+                 _b.LinearAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.ConstantAttenuationFactor(),
+                 _b.ConstantAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.ConstantAttenuationFactor(),
+                 _b.ConstantAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.QuadraticAttenuationFactor(),
+                 _b.QuadraticAttenuationFactor(),
+                 1e-6) &&
+               _a.CastShadows() == _b.CastShadows() &&
+               _a.Direction() == _b.Direction() &&
+               _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
+               _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
+               math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
+            }};
 };
 
 /// \brief Command to update an entity's pose transform.
