@@ -36,6 +36,8 @@
 #include <ignition/common/MeshManager.hh>
 
 #include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Heightmap.hh>
+#include <ignition/rendering/HeightmapDescriptor.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/Material.hh>
 #include <ignition/rendering/Scene.hh>
@@ -277,13 +279,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
     // set material
     rendering::MaterialPtr material{nullptr};
-    double transparency = _visual.Transparency();
-    // Heightmap's material is loaded together with it.
-    // Just make the dummy geometry invisible here.
     if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
     {
-      material = this->dataPtr->scene->CreateMaterial();
-      transparency = 1;
+      // Heightmap's material is loaded together with it.
     }
     else if (_visual.Material())
     {
@@ -328,7 +326,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     if (material)
     {
       // set transparency
-      material->SetTransparency(transparency);
+      material->SetTransparency(_visual.Transparency());
 
       // cast shadows
       material->SetCastShadows(_visual.CastShadows());
@@ -436,46 +434,37 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     }
 
     rendering::HeightmapDescriptor descriptor;
-    descriptor.data = data;
-    descriptor.size = _geom.HeightmapShape()->Size();
-    descriptor.sampling = _geom.HeightmapShape()->Sampling();
+    descriptor.SetData(data);
+    descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
 
     for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
     {
       auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
-      rendering::HeightmapDescriptor::Texture textureDesc;
-      textureDesc.size = textureSdf->Size();
-      textureDesc.diffuse = asFullPath(textureSdf->Diffuse(),
-          _geom.HeightmapShape()->FilePath());
-      textureDesc.normal = asFullPath(textureSdf->Normal(),
-          _geom.HeightmapShape()->FilePath());
-      descriptor.textures.push_back(textureDesc);
+      rendering::HeightmapTexture textureDesc;
+      textureDesc.SetSize(textureSdf->Size());
+      textureDesc.SetDiffuse(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath()));
+      textureDesc.SetNormal(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath()));
+      descriptor.AddTexture(textureDesc);
     }
 
     for (uint64_t i = 0; i < _geom.HeightmapShape()->BlendCount(); ++i)
     {
       auto blendSdf = _geom.HeightmapShape()->BlendByIndex(i);
-      rendering::HeightmapDescriptor::Blend blendDesc;
-      blendDesc.minHeight = blendSdf->MinHeight();
-      blendDesc.fadeDistance = blendSdf->FadeDistance();
-      descriptor.blends.push_back(blendDesc);
+      rendering::HeightmapBlend blendDesc;
+      blendDesc.SetMinHeight(blendSdf->MinHeight());
+      blendDesc.SetFadeDistance(blendSdf->FadeDistance());
+      descriptor.AddBlend(blendDesc);
     }
 
-    // Heightmaps aren't geometries on ign-rendering. Instead of being attached
-    // to visuals, they're attached directly to the scene. So `geom` will
-    // be null and this is enough to attach it.
-    auto heightmap = this->dataPtr->scene->CreateHeightmap(descriptor);
-    if (nullptr == heightmap)
+    geom = this->dataPtr->scene->CreateHeightmap(descriptor);
+    if (nullptr == geom)
     {
       ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
     }
-    geom = this->dataPtr->scene->CreateBox();
     scale = _geom.HeightmapShape()->Size();
-
-    // Heightmap's origin is on its lowest point
-    auto position = _geom.HeightmapShape()->Position();
-    position.Z() += scale.Z() * 0.5;
-    localPose.Set(position, math::Quaterniond::Identity);
   }
   else
   {
