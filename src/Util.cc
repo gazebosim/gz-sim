@@ -383,19 +383,19 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
+  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  ignition::common::setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str(), 1);
+  ignition::common::setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
+  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
