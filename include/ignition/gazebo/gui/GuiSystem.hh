@@ -41,7 +41,7 @@ namespace gazebo
   /// GUI systems are different from `ignition::gazebo::System`s because they
   /// don't run in the same process as the physics. Instead, they run in a
   /// separate process that is stepped by updates coming through the network
-  class IGNITION_GAZEBO_VISIBLE GuiSystem : public ignition::gui::Plugin
+  class GuiSystem : public ignition::gui::Plugin
   {
     Q_OBJECT
 
