@@ -266,7 +266,13 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   }
 #else
   // Not a relative path, return unmodified
-  #if __GNUC__ < 8
+  #if (defined(_MSVC_LANG))
+    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
+      using namespace std::filesystem;
+    #else
+      using namespace std::experimental::filesystem;
+    #endif
+  #elif __GNUC__ < 8
     using namespace std::experimental::filesystem;
   #else
     using namespace std::filesystem;
