@@ -40,121 +40,26 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+/// \brief Private data class
 class ignition::gazebo::systems::VehicleDamagePrivate
 {
-  private: Entity baseLinkEntity;
-  private: std::string modelName;
-  private: double prevKineticEnergy {0.0};
-  private: double keThreshold;
+  /// \brief Base link of the model.
+  public: Entity baseLinkEntity;
+
+  /// \brief Name of the model this plugin is attached to.
+  public: std::string modelName;
+
+  /// \brief Kinetic energy during the previous step.
+  public: double prevKineticEnergy {0.0};
+
+  /// \brief Kinetic energy threshold.
+  public: double keThreshold {7.0};
+
   /// \brief Ignition communication publisher.
-  private: transport::Node::Publisher pub;
+  public: transport::Node::Publisher pub;
 
+  /// \brief The model this plugin is attached to.
   public: Model model;
-
-  public: void Load(EntityComponentManager &_ecm,
-                  const std::shared_ptr<const sdf::Element> &_sdf)
-  {
-    if (!this->model.Valid(_ecm))
-    {
-      ignerr << "DamagePlugin should be attached to a model "
-            << "entity. Failed to initialize." << std::endl;
-      return;
-    }
-
-    this->modelName = this->model.Name(_ecm);
-
-    auto sdfClone = _sdf->Clone();
-    std::string baseLinkName;
-    if (sdfClone->HasElement("base_link_name"))
-    {
-      baseLinkName = sdfClone->Get<std::string>("base_link_name");
-    }
-
-    if (baseLinkName.empty())
-    {
-      ignerr << "found an empty baseLinkName parameter. Failed to initialize."
-        << std::endl;
-      return;
-    }
-
-    // Get the link entity
-    this->baseLinkEntity = this->model.LinkByName(_ecm, baseLinkName);
-
-    if (this->baseLinkEntity == kNullEntity)
-    {
-      ignerr << "Link " << baseLinkName
-            << " could not be found. Failed to initialize.\n";
-      return;
-    }
-
-    this->keThreshold = sdfClone->Get<double>(
-                                        "kinetic_energy_threshold", 7.0).first;
-
-    std::string defaultTopic{"/model/" + this->modelName + "/damage"};
-    std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
-
-    ignmsg << "PerformerDetector publishing messages on "
-           << "[" << topic << "]" << std::endl;
-
-    transport::Node node;
-    this->pub = node.Advertise<msgs::Double>(topic);
-
-    if (!_ecm.Component<components::WorldPose>(this->baseLinkEntity))
-    {
-      _ecm.CreateComponent(this->baseLinkEntity, components::WorldPose());
-    }
-
-    if (!_ecm.Component<components::Inertial>(this->baseLinkEntity))
-    {
-      _ecm.CreateComponent(this->baseLinkEntity, components::Inertial());
-    }
-
-    // Create a world linear velocity component if one is not present.
-    if (!_ecm.Component<components::WorldLinearVelocity>(this->baseLinkEntity))
-    {
-      _ecm.CreateComponent(this->baseLinkEntity,
-        components::WorldLinearVelocity());
-    }
-
-    // Create an angular velocity component if one is not present.
-    if (!_ecm.Component<components::AngularVelocity>(this->baseLinkEntity))
-    {
-      _ecm.CreateComponent(this->baseLinkEntity, components::AngularVelocity());
-    }
-
-    // Create an angular velocity component if one is not present.
-    if (!_ecm.Component<components::WorldAngularVelocity>(this->baseLinkEntity))
-    {
-      _ecm.CreateComponent(this->baseLinkEntity,
-        components::WorldAngularVelocity());
-    }
-  }
-
-  public: void Update(const UpdateInfo &/*_info*/,
-      const EntityComponentManager &_ecm)
-  {
-    if (this->baseLinkEntity != kNullEntity)
-    {
-     Link link(this->baseLinkEntity);
-     if (std::nullopt != link.WorldKineticEnergy(_ecm))
-     {
-      double currKineticEnergy = *link.WorldKineticEnergy(_ecm);
-
-      // We only care about positive values of this (the links looses energy)
-      double deltaKE = this->prevKineticEnergy - currKineticEnergy;
-      this->prevKineticEnergy = currKineticEnergy;
-
-      if (deltaKE > this->keThreshold )
-      {
-        ignmsg << this->modelName << " Crashed - deltaKE: " << deltaKE
-          << std::endl;
-        msgs::Double msg;
-        msg.set_data(deltaKE);
-        this->pub.Publish(msg);
-      }
-     }
-    }
-  }
 };
 
 //////////////////////////////////////////////////
@@ -173,14 +78,114 @@ void VehicleDamage::Configure(const Entity &_entity,
         EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_entity);
-  this->dataPtr->Load(_ecm, _sdf);
+
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    ignerr << "DamagePlugin should be attached to a model "
+      << "entity. Failed to initialize." << std::endl;
+    return;
+  }
+
+  this->dataPtr->modelName = this->dataPtr->model.Name(_ecm);
+
+  auto sdfClone = _sdf->Clone();
+  std::string baseLinkName;
+  if (sdfClone->HasElement("base_link_name"))
+  {
+    baseLinkName = sdfClone->Get<std::string>("base_link_name");
+  }
+
+  if (baseLinkName.empty())
+  {
+    ignerr << "found an empty baseLinkName parameter. Failed to initialize."
+      << std::endl;
+    return;
+  }
+
+  // Get the link entity
+  this->dataPtr->baseLinkEntity = this->dataPtr->model.LinkByName(_ecm,
+      baseLinkName);
+
+  if (this->dataPtr->baseLinkEntity == kNullEntity)
+  {
+    ignerr << "Link " << baseLinkName
+      << " could not be found. Failed to initialize.\n";
+    return;
+  }
+
+  this->dataPtr->keThreshold = sdfClone->Get<double>(
+      "kinetic_energy_threshold", 7.0).first;
+
+  std::string defaultTopic{"/model/" + this->dataPtr->modelName + "/damage"};
+  std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
+
+  ignmsg << "VehicleDamage publishing messages on "
+    << "[" << topic << "]" << std::endl;
+
+  transport::Node node;
+  this->dataPtr->pub = node.Advertise<msgs::Double>(topic);
+
+  if (!_ecm.Component<components::WorldPose>(this->dataPtr->baseLinkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+        components::WorldPose());
+  }
+
+  if (!_ecm.Component<components::Inertial>(this->dataPtr->baseLinkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->baseLinkEntity, components::Inertial());
+  }
+
+  // Create a world linear velocity component if one is not present.
+  if (!_ecm.Component<components::WorldLinearVelocity>(
+        this->dataPtr->baseLinkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+        components::WorldLinearVelocity());
+  }
+
+  // Create an angular velocity component if one is not present.
+  if (!_ecm.Component<components::AngularVelocity>(
+        this->dataPtr->baseLinkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+        components::AngularVelocity());
+  }
+
+  // Create an angular velocity component if one is not present.
+  if (!_ecm.Component<components::WorldAngularVelocity>(
+        this->dataPtr->baseLinkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->baseLinkEntity,
+        components::WorldAngularVelocity());
+  }
 }
 
 //////////////////////////////////////////////////
-void VehicleDamage::PostUpdate(const UpdateInfo &_info,
+void VehicleDamage::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_ecm)
 {
-  this->dataPtr->Update(_info, _ecm);
+  if (this->dataPtr->baseLinkEntity != kNullEntity)
+  {
+    Link link(this->dataPtr->baseLinkEntity);
+    if (std::nullopt != link.WorldKineticEnergy(_ecm))
+    {
+      double currKineticEnergy = *link.WorldKineticEnergy(_ecm);
+
+      // We only care about positive values of this (the links looses energy)
+      double deltaKE = this->dataPtr->prevKineticEnergy - currKineticEnergy;
+      this->dataPtr->prevKineticEnergy = currKineticEnergy;
+
+      if (deltaKE > this->dataPtr->keThreshold)
+      {
+        ignmsg << this->dataPtr->modelName << " Crashed - deltaKE: " << deltaKE
+          << std::endl;
+        msgs::Double msg;
+        msg.set_data(deltaKE);
+        this->dataPtr->pub.Publish(msg);
+      }
+    }
+  }
 }
 
 IGNITION_ADD_PLUGIN(VehicleDamage, System,

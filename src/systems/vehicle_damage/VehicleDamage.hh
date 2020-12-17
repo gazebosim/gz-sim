@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,9 @@ namespace systems
   // Forward declarations.
   class VehicleDamagePrivate;
 
-  /// \brief A system that simulates a simple wind model.
-  /// The wind is described as a uniform worldwide model. So it is independent
-  /// from model position for simple computations. Its components are computed
-  /// separately:
+  /// \brief A system that monitors the kinetic energy of a link in a model
+  /// and publishes when the kinetic energy surpasses a specified threshold.
+  /// This system can be used to detect when a model could be damaged.
   class IGNITION_GAZEBO_VISIBLE VehicleDamage:
     public System,
     public ISystemConfigure,
