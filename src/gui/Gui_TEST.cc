@@ -42,9 +42,9 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   igndbg << "Start test" << std::endl;
 
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-         "/from_env:/tmp/more_env", 1);
-  ignition::common::setenv("SDF_PATH", "", 1);
-  ignition::common::setenv("IGN_FILE_PATH", "", 1);
+         "/from_env:/tmp/more_env");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
   igndbg << "Environment set" << std::endl;
 
   transport::Node node;

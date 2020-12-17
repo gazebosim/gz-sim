@@ -49,7 +49,7 @@ class ServerFixture : public ::testing::TestWithParam<int>
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
     ignition::common::Console::SetVerbosity(4);
   }
@@ -785,7 +785,7 @@ TEST_P(ServerFixture, ResourcePath)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str(), 1);
+          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -872,7 +872,7 @@ TEST_P(ServerFixture, ResourcePath)
 TEST_P(ServerFixture, GetResourcePaths)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
+      "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -903,7 +903,7 @@ TEST_P(ServerFixture, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  ignition::common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
+  ignition::common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =
@@ -928,9 +928,9 @@ TEST_P(ServerFixture, CachedFuelWorld)
 TEST_P(ServerFixture, AddResourcePaths)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
-  ignition::common::setenv("SDF_PATH", "", 1);
-  ignition::common::setenv("IGN_FILE_PATH", "", 1);
+      "/tmp/some/path:/home/user/another_path");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
