@@ -32,6 +32,7 @@
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -311,7 +312,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 std::vector<std::string> resourcePaths()
 {
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -331,7 +332,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 {
   // SDF paths (for <include>s)
   std::vector<std::string> sdfPaths;
-  char *sdfPathCStr = getenv(kSdfPathEnv.c_str());
+  char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
     sdfPaths = common::Split(sdfPathCStr, ':');
@@ -340,7 +341,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   // Ignition file paths (for <uri>s)
   auto systemPaths = common::systemPaths();
   std::vector<std::string> ignPaths;
-  char *ignPathCStr = getenv(systemPaths->FilePathEnv().c_str());
+  char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
   if (ignPathCStr && *ignPathCStr != '\0')
   {
     ignPaths = common::Split(ignPathCStr, ':');
@@ -348,7 +349,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   // Gazebo resource paths
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -382,19 +383,19 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
+  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str(), 1);
+  ignition::common::setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str(), 1);
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
+  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
 
   // Force re-evaluation
   // SDF is evaluated at find call
