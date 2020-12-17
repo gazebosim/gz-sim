@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_VEHICLE_DAMAGE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_VEHICLE_DAMAGE_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
+#define IGNITION_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
@@ -32,21 +32,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
-  class VehicleDamagePrivate;
+  class KineticEnergyMonitorPrivate;
 
   /// \brief A system that monitors the kinetic energy of a link in a model
   /// and publishes when the kinetic energy surpasses a specified threshold.
   /// This system can be used to detect when a model could be damaged.
-  class IGNITION_GAZEBO_VISIBLE VehicleDamage:
+  class IGNITION_GAZEBO_VISIBLE KineticEnergyMonitor:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: VehicleDamage();
+    public: KineticEnergyMonitor();
 
     /// \brief Destructor
-    public: ~VehicleDamage() final;
+    public: ~KineticEnergyMonitor() final;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -59,7 +59,7 @@ namespace systems
                             const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<VehicleDamagePrivate> dataPtr;
+    private: std::unique_ptr<KineticEnergyMonitorPrivate> dataPtr;
   };
 }
 }

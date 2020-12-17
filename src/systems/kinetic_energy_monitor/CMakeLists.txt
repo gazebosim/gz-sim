@@ -1,6 +1,6 @@
-gz_add_system(vehicle-damage
+gz_add_system(kinetic-energy-monitor
   SOURCES
-    VehicleDamage.cc
+    KineticEnergyMonitor.cc
   PUBLIC_LINK_LIBS
     ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
 )

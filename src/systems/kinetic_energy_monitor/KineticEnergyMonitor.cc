@@ -34,14 +34,14 @@
 
 #include <ignition/transport/Node.hh>
 
-#include "VehicleDamage.hh"
+#include "KineticEnergyMonitor.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
 /// \brief Private data class
-class ignition::gazebo::systems::VehicleDamagePrivate
+class ignition::gazebo::systems::KineticEnergyMonitorPrivate
 {
   /// \brief Base link of the model.
   public: Entity baseLinkEntity;
@@ -63,16 +63,16 @@ class ignition::gazebo::systems::VehicleDamagePrivate
 };
 
 //////////////////////////////////////////////////
-VehicleDamage::VehicleDamage() : System(),
-    dataPtr(std::make_unique<VehicleDamagePrivate>())
+KineticEnergyMonitor::KineticEnergyMonitor() : System(),
+    dataPtr(std::make_unique<KineticEnergyMonitorPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-VehicleDamage::~VehicleDamage() = default;
+KineticEnergyMonitor::~KineticEnergyMonitor() = default;
 
 //////////////////////////////////////////////////
-void VehicleDamage::Configure(const Entity &_entity,
+void KineticEnergyMonitor::Configure(const Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
         EntityComponentManager &_ecm,
         EventManager &/*_eventMgr*/)
@@ -119,7 +119,7 @@ void VehicleDamage::Configure(const Entity &_entity,
   std::string defaultTopic{"/model/" + this->dataPtr->modelName + "/damage"};
   std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
 
-  ignmsg << "VehicleDamage publishing messages on "
+  ignmsg << "KineticEnergyMonitor publishing messages on "
     << "[" << topic << "]" << std::endl;
 
   transport::Node node;
@@ -162,7 +162,7 @@ void VehicleDamage::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void VehicleDamage::PostUpdate(const UpdateInfo &/*_info*/,
+void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_ecm)
 {
   if (this->dataPtr->baseLinkEntity != kNullEntity)
@@ -188,10 +188,10 @@ void VehicleDamage::PostUpdate(const UpdateInfo &/*_info*/,
   }
 }
 
-IGNITION_ADD_PLUGIN(VehicleDamage, System,
-  VehicleDamage::ISystemConfigure,
-  VehicleDamage::ISystemPostUpdate
+IGNITION_ADD_PLUGIN(KineticEnergyMonitor, System,
+  KineticEnergyMonitor::ISystemConfigure,
+  KineticEnergyMonitor::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(VehicleDamage,
-  "ignition::gazebo::systems::VehicleDamage")
+IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+  "ignition::gazebo::systems::KineticEnergyMonitor")
