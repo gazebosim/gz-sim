@@ -556,6 +556,105 @@ void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 }
 
 /////////////////////////////////////////////////
+ServerConfig::PluginInfo
+ServerConfig::LogPlaybackPlugin() const
+{
+  auto entityName = "*";
+  auto entityType = "world";
+  auto pluginName = "ignition::gazebo::systems::LogPlayback";
+  auto pluginFilename= std::string("ignition-gazebo") +
+    IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
+
+  sdf::ElementPtr playbackElem;
+  playbackElem = std::make_shared<sdf::Element>();
+  playbackElem->SetName("plugin");
+
+  if (!this->LogPlaybackPath().empty())
+  {
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    playbackElem->AddElementDescription(pathElem);
+    pathElem = playbackElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(this->LogPlaybackPath());
+  }
+
+  return ServerConfig::PluginInfo(entityName,
+      entityType,
+      pluginFilename,
+      pluginName,
+      playbackElem);
+}
+
+/////////////////////////////////////////////////
+ServerConfig::PluginInfo
+ServerConfig::LogRecordPlugin() const
+{
+  auto entityName = "*";
+  auto entityType = "world";
+  auto pluginName = "ignition::gazebo::systems::LogRecord";
+  auto pluginFilename= std::string("ignition-gazebo") +
+    IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
+
+  sdf::ElementPtr recordElem;
+
+  recordElem = std::make_shared<sdf::Element>();
+  recordElem->SetName("plugin");
+
+  if (!this->LogRecordPath().empty())
+  {
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    recordElem->AddElementDescription(pathElem);
+    pathElem = recordElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(this->LogRecordPath());
+  }
+
+  // Set whether to record resources
+  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+  resourceElem->SetName("record_resources");
+  recordElem->AddElementDescription(resourceElem);
+  resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->AddValue("bool", "false", false, "");
+  resourceElem->Set<bool>(this->LogRecordResources() ? true : false);
+
+  // Set whether to compress
+  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+  compressElem->SetName("compress");
+  recordElem->AddElementDescription(compressElem);
+  compressElem = recordElem->GetElement("compress");
+  compressElem->AddValue("bool", "false", false, "");
+  compressElem->Set<bool>(this->LogRecordCompressPath().empty() ? false :
+    true);
+
+  // Set compress path
+  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+  cPathElem->SetName("compress_path");
+  recordElem->AddElementDescription(cPathElem);
+  cPathElem = recordElem->GetElement("compress_path");
+  cPathElem->AddValue("string", "", false, "");
+  cPathElem->Set<std::string>(this->LogRecordCompressPath());
+
+  // If record topics specified, add in SDF
+  for (const std::string &topic : this->LogRecordTopics())
+  {
+    sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
+    topicElem->SetName("record_topic");
+    recordElem->AddElementDescription(topicElem);
+    topicElem = recordElem->AddElement("record_topic");
+    topicElem->AddValue("string", "false", false, "");
+    topicElem->Set<std::string>(topic);
+  }
+
+  return ServerConfig::PluginInfo(entityName,
+      entityType,
+      pluginFilename,
+      pluginName,
+      recordElem);
+}
+
+/////////////////////////////////////////////////
 const std::list<ServerConfig::PluginInfo> &ServerConfig::Plugins() const
 {
   return this->dataPtr->plugins;
@@ -743,6 +842,9 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
         ignwarn << gazebo::kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
+      igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
+        "[" << envConfig << "]\n";
+
       return ret;
     }
     else

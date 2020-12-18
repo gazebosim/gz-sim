@@ -188,7 +188,8 @@ namespace ignition
 
       /// \brief Load server plugins for a given entity.
       /// \param[in] _config Configuration to load plugins from.
-      public: void LoadServerPlugins(const ServerConfig &_config);
+      public: void LoadServerPlugins(const ServerConfig &_config,
+                                     bool _injectLogPlugins=false);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.

@@ -30,6 +30,9 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
+
+#include "systems/log/LogRecord.hh"
+
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
@@ -157,7 +160,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->levelMgr->UpdateLevelsState();
 
   // Load any additional plugins from the Server Configuration
-  this->LoadServerPlugins(this->serverConfig);
+  this->LoadServerPlugins(this->serverConfig, false);
 
   // If we have reached this point and no systems have been loaded, then load
   // a default set of systems.
@@ -165,7 +168,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
 
-    ServerConfig tmpConfig;
+    ServerConfig tmpConfig {this->serverConfig};
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
     auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
 
@@ -173,7 +176,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     {
       tmpConfig.AddPlugin(plugin);
     }
-    this->LoadServerPlugins(tmpConfig);
+    this->LoadServerPlugins(tmpConfig, true);
   }
 
   // World control
@@ -774,6 +777,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
           this->entityCompMgr,
           this->eventMgr);
     }
+
     this->AddSystem(system.value());
     igndbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
@@ -781,7 +785,8 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
+void SimulationRunner::LoadServerPlugins(const ServerConfig &_config,
+                                         bool _injectLogPlugins)
 {
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
@@ -789,13 +794,42 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config)
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
-  igndbg << "LOADSERVERPLUGINS" << std::endl;
-  for (const ServerConfig::PluginInfo &plugin : _config.Plugins())
+  igndbg << "LOADSERVERPLUGINS: " << _config.Plugins().size() << std::endl;
+
+  std::list<ServerConfig::PluginInfo> plugins(_config.Plugins());
+
+  igndbg << "LogRecord: " << _injectLogPlugins << " " << _config.UseLogRecord() << std::endl;
+  if (_injectLogPlugins)
+  {
+    if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+    {
+      ignerr << "Both recording and playback are specified, defaulting to playback\n";
+    }
+
+    if(!_config.LogPlaybackPath().empty())
+    {
+      igndbg << "LogPlayback: injecting plugin" << std::endl;
+      auto playbackPlugin = _config.LogPlaybackPlugin();
+      plugins.push_back(playbackPlugin);
+    }
+    else if(_config.UseLogRecord())
+    {
+      igndbg << "LogRecord: injecting plugin" << std::endl;
+      auto recordPlugin = _config.LogRecordPlugin();
+      plugins.push_back(recordPlugin);
+    }
+  }
+
+  for (const ServerConfig::PluginInfo &plugin : plugins)
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
     // logic should be moved somewhere else.
-    igndbg << "plugin: " << plugin.EntityName() << " " << plugin.EntityType() << std::endl;
+    igndbg << "plugin: " <<
+      plugin.Name() <<  " "  <<
+      plugin.EntityName() << " "  <<
+      plugin.EntityType() << " " <<
+      plugin.Sdf()->ToString("") << std::endl;
 
     Entity entity{kNullEntity};
 

@@ -351,6 +351,14 @@ namespace ignition
       /// \param[in] _info Information about the plugin to load.
       public: void AddPlugin(const PluginInfo &_info);
 
+      /// \brief Add multiple plugins to the simulation
+      /// \param[in] _info List of Information about the plugin to load.
+      public: void AddPlugins(const std::list<PluginInfo> &_plugins);
+
+      public: PluginInfo LogRecordPlugin() const;
+
+      public: PluginInfo LogPlaybackPlugin() const;
+
       /// \brief Get all the plugins that should be loaded.
       /// \return A list of all the plugins specified via
       /// AddPlugin(const PluginInfo &).

@@ -1270,8 +1270,8 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/inclue/ignition/gazebo/server.config");
-  ASSERT_EQ(0, common::setenv(gazebo::kServerConfigPathEnv, config));
+    "/include/ignition/gazebo/server.config");
+  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, config));
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();

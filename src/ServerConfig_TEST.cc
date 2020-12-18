@@ -140,7 +140,7 @@ TEST(parsePluginsFromFile, playbackConfig)
     "/include/ignition/gazebo/playback_server.config");
 
   auto plugins = parsePluginsFromFile(config);
-  ASSERT_EQ(3u, plugins.size());
+  ASSERT_EQ(2u, plugins.size());
 }
 
 //////////////////////////////////////////////////
@@ -165,11 +165,25 @@ TEST(loadPluginInfo, fromValidEnv)
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
 
-  EXPECT_EQ("default2", plugins.begin()->EntityName());
+  EXPECT_EQ("*", plugins.begin()->EntityName());
   EXPECT_EQ("world", plugins.begin()->EntityType());
   EXPECT_EQ("TestWorldSystem", plugins.begin()->Filename());
   EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugins.begin()->Name());
 
   EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
+}
+
+//////////////////////////////////////////////////
+TEST(ServerConfig, generateRecordPlugin)
+{
+  ServerConfig config;
+  config.SetUseLogRecord(true);
+  config.SetLogRecordPath("foo/bar");
+  config.SetLogRecordResources(true);
+
+  auto plugin = config.LogRecordPlugin();
+  EXPECT_EQ(plugin.EntityName(), "*");
+  EXPECT_EQ(plugin.EntityType(), "world");
+  EXPECT_EQ(plugin.Name(), "ignition::gazebo::systems::LogRecord");
 }
 

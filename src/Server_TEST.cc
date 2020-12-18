@@ -324,6 +324,7 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
     serverConfig.SetLogRecordPath(logPath);
 
     gazebo::Server server(serverConfig);
+
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
