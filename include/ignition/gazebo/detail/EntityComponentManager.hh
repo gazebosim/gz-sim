@@ -63,6 +63,7 @@ namespace traits
 template<typename DataType>
 auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 {
+  // cppcheck-suppress syntaxError
   if constexpr (std::is_same<DataType, double>::value)
   {
     return math::equal(_a, _b);
