@@ -94,6 +94,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
+    /// \brief Set whether to enable sky in the scene
+    /// \param[in] _enabled True to enable sky, false to disable sky
+    public: void SetSkyEnabled(bool _enabled);
+
     /// \brief Show grid view in the scene
     public: void ShowGrid();
 
