@@ -2,7 +2,19 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.7.0 (2020-1X-XX)
+## Ignition Math 6.8.0 (2020-12-17)
+
+1. Ellipsoid: new shape class with inertia calculation method
+    * [Pull request 182](https://github.com/ignitionrobotics/ign-math/pull/182)
+
+1. Avoid moving a return value, it might prevent (N)RVO
+    * [Pull request 183](https://github.com/ignitionrobotics/ign-math/pull/183)
+
+1. Properly handle stream errors when reading math objects
+    * [Pull request 180](https://github.com/ignitionrobotics/ign-math/pull/180)
+    * [Pull request 181](https://github.com/ignitionrobotics/ign-math/pull/181)
+
+## Ignition Math 6.7.0 (2020-11-23)
 
 1. Capsule: new shape class with inertia calculation method
     * [Pull request 163](https://github.com/ignitionrobotics/ign-math/pull/163)
