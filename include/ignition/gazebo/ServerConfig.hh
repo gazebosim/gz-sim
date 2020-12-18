@@ -355,8 +355,18 @@ namespace ignition
       /// \param[in] _info List of Information about the plugin to load.
       public: void AddPlugins(const std::list<PluginInfo> &_plugins);
 
+      /// \brief Generate PluginInfo for Log recording based on the
+      /// internal state of this ServerConfig object:
+      /// \sa UseLogRecord
+      /// \sa LogRecordPath
+      /// \sa LogRecordResources
+      /// \sa LogRecordCompressPath
+      /// \sa LogRecordTopics
       public: PluginInfo LogRecordPlugin() const;
 
+      /// \brief Generate PluginInfo for Log playback based on the
+      /// internal state of this ServerConfig object:
+      /// \sa LogPlaybackPath
       public: PluginInfo LogPlaybackPlugin() const;
 
       /// \brief Get all the plugins that should be loaded.

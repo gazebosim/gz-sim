@@ -562,7 +562,7 @@ ServerConfig::LogPlaybackPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "ignition::gazebo::systems::LogPlayback";
-  auto pluginFilename= std::string("ignition-gazebo") +
+  auto pluginFilename = std::string("ignition-gazebo") +
     IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
 
   sdf::ElementPtr playbackElem;
@@ -593,7 +593,7 @@ ServerConfig::LogRecordPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "ignition::gazebo::systems::LogRecord";
-  auto pluginFilename= std::string("ignition-gazebo") +
+  auto pluginFilename = std::string("ignition-gazebo") +
     IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
 
   sdf::ElementPtr recordElem;
