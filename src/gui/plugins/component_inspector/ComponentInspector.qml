@@ -45,6 +45,11 @@ Rectangle {
   property string entityType: ComponentInspector.type
 
   /**
+   * Get if entity is nested model or not
+   */
+  property bool nestedModel : ComponentInspector.nestedModel
+
+  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?

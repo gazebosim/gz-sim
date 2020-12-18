@@ -33,8 +33,12 @@ namespace gazebo
   /// \brief Resource used to update the ResourceModel
   struct Resource
   {
-    /// \brief The name of the local model
+    /// \brief The name of the resource.
     std::string name = "";
+
+    /// \brief The owner of the resource, if the resource is local,
+    /// owner will be empty.
+    std::string owner = "";
 
     /// \brief The absolute path to the sdf corresponding to the local model
     std::string sdfPath = "";
@@ -51,6 +55,28 @@ namespace gazebo
     /// always be false with local models as it is irrelevant in this case
     // cppcheck-suppress unusedStructMember
     bool isDownloaded = false;
+  };
+
+  /// \brief Data used by the `DisplayData()` function to filter and sort
+  /// the resources to be displayed.
+  struct Display
+  {
+    /// \brief The currently entered keyword that the user wants to search,
+    /// empty if there is currently no search query.
+    std::string searchKeyword = "";
+
+    /// \brief The currently chosen method of sorting, which includes "A - Z",
+    /// "Z - A", "Most Recent", and "Downloaded."  The default sort method is
+    /// "Most Recent" as that is the order the fuel models are initially loaded.
+    std::string sortMethod = "";
+
+    /// \brief The name of the owner if the user has Fuel resources chosen,
+    /// and the name of the local path if the user has local resources chosen.
+    std::string ownerPath = "";
+
+    /// \brief True if the user is currently observing fuel resources and false
+    /// if the user is currently observing local resources.
+    bool isFuel = false;
   };
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
@@ -85,9 +111,13 @@ namespace gazebo
     /// \brief Destructor
     public: ~ResourceModel() override = default;
 
-    /// \brief Add a local resource to the grid view.
+    /// \brief Add a resource to the grid view.
     /// param[in] _resource The local resource to be added
-    public slots: void AddResource(Resource &_resource);
+    public: void AddResource(Resource &_resource);
+
+    /// \brief Add a vector of resources to the grid view.
+    /// param[in] _resource The vector of local resources to be added
+    public: void AddResources(std::vector<Resource> &_resources);
 
     /// \brief Clear the current resource model
     public: void Clear();
@@ -102,13 +132,9 @@ namespace gazebo
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
 
-    // \brief Index to keep track of the position of each fuel resource,
-    // used primarily to access currently loaded resources for updates
-    public: int fuelGridIndex = 0;
-
-    // \brief Index to keep track of the position of each local resource,
-    // used primarily to access currently loaded resources for updates
-    public: int localGridIndex = 0;
+    // \brief Index to keep track of the position of each resource in the qml
+    // grid, used primarily to access currently loaded resources for updates.
+    public: int gridIndex = 0;
   };
 
   /// \brief Provides interface for communicating to backend for generation
@@ -130,24 +156,47 @@ namespace gazebo
     /// \param[in] _sdfPath The absolute path to the resource's sdf file
     public slots: void OnResourceSpawn(const QString &_sdfPath);
 
-    /// \brief Loads a local model from an absolute path to a model.config,
-    /// does nothing if a path not containing model.config is passed in
-    /// \param[in] _path The path to search
-    public: void LoadLocalResource(const std::string &_path);
+    /// \brief Returns the resource corresponding to the model.config file
+    /// \param[in] _path The path of the model.config file
+    /// \return The local resource
+    public: Resource LocalResource(const std::string &_path);
 
     /// \brief Adds a path to the path list model.
     /// \param[in] _path The path to add
     public: void AddPath(const std::string &_path);
 
-    /// \brief Recursively searches the provided path for all model.config's
-    /// and populates a vector of local models with the information
+    /// \brief Returns the local resources as a vector located under
+    /// the passed in path.
     /// \param[in] _path The path to search
-    public: void FindLocalResources(const std::string &_path);
+    /// \return The vector of resources
+    public: std::vector<Resource> LocalResources(const std::string &_path);
 
-    /// \brief Searches through the previously loaded fuel resources to locate
-    /// the models belonging to the passed in owner.
+    /// \brief Returns the fuel resources as a vector belonging to the
+    /// passed in owner.
     /// \param[in] _owner The name of the owner
-    public: void FindFuelResources(const std::string &_owner);
+    /// \return The vector of resources
+    public: std::vector<Resource> FuelResources(const std::string &_owner);
+
+    /// \brief Populates the passed in `_resources` vector with the
+    /// currently selected group of resources.
+    /// \param[in,out] _resources The vector of resources to populate
+    public: void Resources(std::vector<Resource> &_resources);
+
+    /// \brief Filters the vector of resources by the previously entered
+    /// search keyword.
+    /// \param[in,out] _resources The vector of resources to filter
+    public: void FilterResources(std::vector<Resource> &_resources);
+
+    /// \brief Sorts the vector of resources by the previously entered
+    /// sort method.  The sorting types as a string, are "Most Recent",
+    /// "A - Z", "Z - A", and "Downloaded." The sort defaults to
+    /// "Most Recent."
+    /// \param[in,out] _resources The vector of resources to sort
+    public: void SortResources(std::vector<Resource> &_resources);
+
+    /// \brief Displays the resources to the qml grid abiding by all search
+    /// and sort criteria.
+    public slots: void DisplayResources();
 
     /// \brief Callback when a resource path is selected, will clear the
     /// currently loaded resources and load the ones at the specified path
@@ -163,7 +212,19 @@ namespace gazebo
     /// \brief Callback when a request is made to download a fuel resource.
     /// \param[in] _path URI to the fuel resource
     /// \param[in] index The index of the grid pane to update
-    public slots: void OnDownloadFuelResource(const QString &_path, int index);
+    public slots: void OnDownloadFuelResource(const QString &_path,
+        const QString &_name, const QString &_owner, int index);
+
+    /// \brief Callback when a sort request is made.
+    /// \param[in] _sortType The sorting type as a string, accepts
+    /// "Most Recent", "A - Z", "Z - A", and "Downloaded." Defaults to
+    /// "Most Recent."
+    public slots: void OnSortChosen(const QString &_sortType);
+
+    /// \brief Callback when a search request is made.
+    /// \param[in] _searchKeyword The search keyword, applies to either the
+    /// resource's name or owner
+    public slots: void OnSearchEntered(const QString &_searchKeyword);
 
     /// \brief Finds a thumbnail on the provided thumbnail path and
     /// sets the model's thumbnail path attribute to it, no action is

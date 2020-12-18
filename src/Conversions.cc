@@ -113,6 +113,7 @@ math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
                    _in.orientation().x(),
                    _in.orientation().y(),
                    _in.orientation().z());
+  out.Correct();
 
   return out;
 }
@@ -279,17 +280,27 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
     if (workflow)
     {
       pbrMsg->set_metalness(workflow->Metalness());
-      pbrMsg->set_metalness_map(workflow->MetalnessMap());
+      pbrMsg->set_metalness_map(workflow->MetalnessMap().empty() ? "" :
+          asFullPath(workflow->MetalnessMap(), _in.FilePath()));
       pbrMsg->set_roughness(workflow->Roughness());
-      pbrMsg->set_roughness_map(workflow->RoughnessMap());
+      pbrMsg->set_roughness_map(workflow->RoughnessMap().empty() ? "" :
+          asFullPath(workflow->RoughnessMap(), _in.FilePath()));
       pbrMsg->set_glossiness(workflow->Glossiness());
-      pbrMsg->set_glossiness_map(workflow->GlossinessMap());
-      pbrMsg->set_specular_map(workflow->SpecularMap());
-      pbrMsg->set_albedo_map(workflow->AlbedoMap());
-      pbrMsg->set_normal_map(workflow->NormalMap());
-      pbrMsg->set_ambient_occlusion_map(workflow->AmbientOcclusionMap());
-      pbrMsg->set_environment_map(workflow->EnvironmentMap());
-      pbrMsg->set_emissive_map(workflow->EmissiveMap());
+      pbrMsg->set_glossiness_map(workflow->GlossinessMap().empty() ? "" :
+          asFullPath(workflow->GlossinessMap(), _in.FilePath()));
+      pbrMsg->set_specular_map(workflow->SpecularMap().empty() ? "" :
+          asFullPath(workflow->SpecularMap(), _in.FilePath()));
+      pbrMsg->set_albedo_map(workflow->AlbedoMap().empty() ? "" :
+          asFullPath(workflow->AlbedoMap(), _in.FilePath()));
+      pbrMsg->set_normal_map(workflow->NormalMap().empty() ? "" :
+          asFullPath(workflow->NormalMap(), _in.FilePath()));
+      pbrMsg->set_ambient_occlusion_map(
+          workflow->AmbientOcclusionMap().empty() ? "" :
+          asFullPath(workflow->AmbientOcclusionMap(), _in.FilePath()));
+      pbrMsg->set_environment_map(workflow->EnvironmentMap().empty() ? "" :
+          asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
+      pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
+          asFullPath(workflow->EmissiveMap(), _in.FilePath()));
     }
   }
   return out;
@@ -384,12 +395,12 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   for (int i = 0; i < _in.animations_size(); ++i)
   {
     const auto &anim = _in.animations(i);
-    auto newAnim = new sdf::Animation();
-    newAnim->SetName(anim.name());
-    newAnim->SetFilename(anim.filename());
-    newAnim->SetScale(anim.scale());
-    newAnim->SetInterpolateX(anim.interpolate_x());
-    out.AddAnimation(*newAnim);
+    sdf::Animation newAnim;
+    newAnim.SetName(anim.name());
+    newAnim.SetFilename(anim.filename());
+    newAnim.SetScale(anim.scale());
+    newAnim.SetInterpolateX(anim.interpolate_x());
+    out.AddAnimation(newAnim);
   }
   out.SetScriptLoop(_in.script_loop());
   out.SetScriptDelayStart(_in.script_delay_start());
@@ -397,19 +408,19 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   for (int i = 0; i < _in.trajectories_size(); ++i)
   {
     const auto &traj = _in.trajectories(i);
-    auto newTraj = new sdf::Trajectory();
-    newTraj->SetId(traj.id());
-    newTraj->SetType(traj.type());
-    newTraj->SetTension(traj.tension());
+    sdf::Trajectory newTraj;
+    newTraj.SetId(traj.id());
+    newTraj.SetType(traj.type());
+    newTraj.SetTension(traj.tension());
     for (int j = 0; j < traj.waypoints_size(); ++j)
     {
       const auto &point = traj.waypoints(j);
-      auto newPoint = new sdf::Waypoint();
-      newPoint->SetTime(point.time());
-      newPoint->SetPose(msgs::Convert(point.pose()));
-      newTraj->AddWaypoint(*newPoint);
+      sdf::Waypoint newPoint;
+      newPoint.SetTime(point.time());
+      newPoint.SetPose(msgs::Convert(point.pose()));
+      newTraj.AddWaypoint(newPoint);
     }
-    out.AddTrajectory(*newTraj);
+    out.AddTrajectory(newTraj);
   }
   return out;
 }
