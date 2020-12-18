@@ -111,6 +111,22 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief A mutex to protect entity remove.
   public: std::mutex entityRemoveMutex;
 
+  public: std::mutex msgEntityMutex;
+
+  public: std::vector<bool> readyThreads;
+
+  public: std::atomic_int threadsDone;
+
+  public: std::shared_mutex msgMutex;
+
+  public: std::condition_variable_any msgCV;
+
+  public: std::unique_ptr<msgs::SerializedStateMap> msgDataPtr;
+
+  public: std::unique_ptr<std::unordered_set<Entity>> entitiesDataPtr;
+
+  public: std::unique_ptr<std::unordered_set<ComponentTypeId>> typesDataPtr;
+
   /// \brief A mutex to protect from concurrent writes to views
   public: mutable std::mutex viewsMutex;
 
@@ -131,6 +147,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
+  this->CalculateComponentThreadLoad();
+  this->SpawnComponentWorkerThreads();
 }
 
 //////////////////////////////////////////////////
@@ -925,6 +943,64 @@ void EntityComponentManager::ChangedState(
   // TODO(anyone) New / removed / changed components
 }
 
+void EntityComponentManager::WorkFunctor(int i) const
+{
+  while (1)
+  {
+    // Wait for signal from main thread
+    std::shared_lock<std::shared_mutex> lk(this->dataPtr->msgMutex);
+    ignwarn << i << std::endl;
+    this->dataPtr->msgCV.wait(lk, [this, i]{return this->dataPtr->readyThreads[i];});
+    ignwarn << "running " << i << std::endl;
+    this->dataPtr->readyThreads[i] = false;
+
+    // Check if we need to run
+    if (i >= this->dataPtr->numComponentThreads)
+      continue;
+
+    // Do work
+    auto startIter = this->dataPtr->entityComponentIterators[i];
+    auto endIter = this->dataPtr->entityComponentIterators[i + 1];
+    auto entities = (*this->dataPtr->entitiesDataPtr);
+    auto types = (*this->dataPtr->typesDataPtr);
+ 
+    msgs::SerializedStateMap threadMap;
+    while (startIter != endIter)
+    {
+      if (entities.empty() ||
+          entities.find((*startIter).first) != entities.end())
+      {
+        // TODO replace false with `full`
+        this->AddEntityToMessage(threadMap, (*startIter).first, types, false);
+      }
+      startIter++;
+    }
+ 
+    std::lock_guard<std::mutex> lock(this->dataPtr->msgEntityMutex);
+ 
+    msgs::SerializedStateMap &state = *this->dataPtr->msgDataPtr;
+    for (auto &entity : threadMap.entities())
+    {
+      (*state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
+          entity.second;
+    }
+    this->dataPtr->threadsDone++;
+    this->dataPtr->msgCV.notify_all();
+  }
+}
+
+void EntityComponentManager::SpawnComponentWorkerThreads() const
+{
+  int maxThreads = std::thread::hardware_concurrency();
+
+  for (int i = 0; i < maxThreads; ++i)
+  {
+    std::thread workerThread(&EntityComponentManager::WorkFunctor, this, i);
+    workerThread.detach();
+    this->dataPtr->readyThreads.push_back(false);
+  }
+}
+
 void EntityComponentManager::CalculateComponentThreadLoad() const
 {
   // If the entity component vector is dirty, we need to recalculate the
@@ -974,11 +1050,19 @@ ignition::msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types) const
 {
+  ignition::msgs::SerializedState stateMsg;
+  /*
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
-  ignition::msgs::SerializedState stateMsg;
 
   this->CalculateComponentThreadLoad();
+
+  for (int i = 0; i < this->dataPtr->readyThreads.size(); i++)
+  {
+    this->dataPtr->readyThreads[i] = true;
+  }
+  this->dataPtr->msgCV.notify_all();
+  std::shared_lock<std::shared_mutex> lk(this->dataPtr->msgCV);
 
   auto functor = [&](auto itStart, auto itEnd) {
     msgs::SerializedState threadStateMsg;
@@ -1013,7 +1097,7 @@ ignition::msgs::SerializedState EntityComponentManager::State(
   // Wait for each thread to finish processing its components
   std::for_each(workers.begin(), workers.end(),
       [](std::thread &t){ t.join(); });
-
+*/
   return stateMsg;
 }
 
@@ -1026,9 +1110,23 @@ void EntityComponentManager::State(
 {
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
-
+  auto types = _types;
+  auto entities = _entities;
+  this->dataPtr->msgDataPtr.reset(&_state);
+  this->dataPtr->entitiesDataPtr.reset(&entities);
+  this->dataPtr->typesDataPtr.reset(&types);
   this->CalculateComponentThreadLoad();
-
+  for (int i = 0; i < this->dataPtr->numComponentThreads; i++)
+  {
+    this->dataPtr->readyThreads[i] = true;
+  }
+  ignwarn << "main thread notifying" << std::endl;
+  this->dataPtr->msgCV.notify_all();
+  std::shared_lock<std::shared_mutex> lk(this->dataPtr->msgMutex);
+  ignwarn << "main thread waiting" << std::endl;
+  this->dataPtr->msgCV.wait(lk, [this]{return (this->dataPtr->threadsDone == this->dataPtr->numComponentThreads);});
+  this->dataPtr->threadsDone = 0;
+  /*
   auto functor = [&](auto itStart, auto itEnd) {
     msgs::SerializedStateMap threadMap;
     while (itStart != itEnd)
@@ -1061,6 +1159,7 @@ void EntityComponentManager::State(
   // Wait for each thread to finish processing its components
   std::for_each(workers.begin(), workers.end(),
       [](std::thread &t){ t.join(); });
+  */
 }
 
 //////////////////////////////////////////////////
