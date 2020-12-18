@@ -188,8 +188,10 @@ namespace ignition
 
       /// \brief Load server plugins for a given entity.
       /// \param[in] _config Configuration to load plugins from.
+      /// \param[in] _injectLogPlugins Inject log playback or record
+      ///     plugins based on the _config contents
       public: void LoadServerPlugins(const ServerConfig &_config,
-                                     bool _injectLogPlugins=false);
+                                     bool _injectLogPlugins = false);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.

@@ -290,9 +290,6 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   }
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
-  // Use ign-transport directly
-  //sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
-
   // Add default topics if no topics were specified.
   std::string dynPoseTopic = "/world/" + this->worldName +
     "/dynamic_pose/info";
