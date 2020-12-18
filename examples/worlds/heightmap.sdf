@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <!--
 
+  Demonstrates a heightmap terrain.
+
+  At the moment, only the visuals work, but not the physics collisions, see
+  https://github.com/ignitionrobotics/ign-physics/issues/156.
 
 -->
 <sdf version="1.6">
