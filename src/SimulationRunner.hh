@@ -352,6 +352,10 @@ namespace ignition
       /// \brief Set the next step to be blocking and paused.
       public: void SetNextStepAsBlockingPaused(const bool value);
 
+      /// \brief Updates the physics parameters of the simulation based on the
+      /// Physics component of the world, if any.
+      public: void UpdatePhysicsParams();
+
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
 
@@ -441,6 +445,9 @@ namespace ignition
 
       /// \brief Step size
       private: ignition::math::clock::duration stepSize{10ms};
+
+      /// \brief Desired real time factor
+      private: double desiredRtf{1.0};
 
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;

@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
@@ -74,7 +75,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       dur);
 
   // Desired real time factor
-  double desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
+  this->desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
 
   // The instantaneous real time factor is given as:
   //
@@ -100,7 +101,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   //
   // period = step_size / RTF
   this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(this->stepSize.count() / desiredRtf));
+      static_cast<int>(this->stepSize.count() / this->desiredRtf));
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -306,6 +307,36 @@ void SimulationRunner::UpdateCurrentInfo()
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
   }
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::UpdatePhysicsParams()
+{
+  auto world_en = this->entityCompMgr.EntityByComponents(components::World());
+  const auto physicsCmdComp =
+    this->entityCompMgr.Component<components::PhysicsCmd>(world_en);
+  if (!physicsCmdComp)
+  {
+    return;
+  }
+
+  const auto& physicsParams = physicsCmdComp->Data();
+  const auto newStepSize = std::chrono::duration<double>(physicsParams.MaxStepSize());
+  const double newRTF = physicsParams.RealTimeFactor();
+
+  const double eps = 0.00001;
+  if (newStepSize != this->stepSize || std::abs(newRTF - this->desiredRtf) > eps)
+  {
+    this->SetStepSize(
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(newStepSize));
+    this->desiredRtf = newRTF;
+    this->updatePeriod = std::chrono::nanoseconds(
+        static_cast<int>(this->stepSize.count() / this->desiredRtf));
+
+    this->simTimes.clear();
+    this->realTimes.clear();
+  }
+  this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(world_en);
 }
 
 /////////////////////////////////////////////////
@@ -704,6 +735,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Update all the systems.
   this->UpdateSystems();
+
+  // Update the step size and desired rtf
+  this->UpdatePhysicsParams();
 
   if (!this->Paused() && this->pendingSimIterations > 0)
   {
