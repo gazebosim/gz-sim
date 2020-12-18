@@ -15,6 +15,12 @@
  *
  */
 
+#include "Imu.hh"
+
+#include <unordered_map>
+#include <utility>
+#include <string>
+
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Element.hh>
@@ -37,8 +43,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "Imu.hh"
 
 using namespace ignition;
 using namespace gazebo;
