@@ -87,8 +87,7 @@ void LinkVelocityController::Configure(const Entity &_entity,
   }
 
   // Get params from SDF
-  // TODO: add link2_name
-  this->dataPtr->linkName = _sdf->Get<std::string>("link1_name");
+  this->dataPtr->linkName = _sdf->Get<std::string>("link2_name");
   if (this->dataPtr->linkName == "")
   {
     ignerr << "LinkVelocityController found an empty link1Name parameter. "
