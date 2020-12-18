@@ -18,7 +18,7 @@
 #ifndef __APPLE__
   #if (defined(_MSVC_LANG))
     #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
-      #include <filesystem>  //C++17
+      #include <filesystem>  // C++17
     #else
       #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
       #include <experimental/filesystem>
