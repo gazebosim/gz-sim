@@ -464,45 +464,69 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
     const auto *value = manager.Component<IntComponent>(eInt);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(123, value->Data());
+
+    auto data = manager.ComponentData<IntComponent>(eInt);
+    EXPECT_EQ(123, data);
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(eDouble);
     ASSERT_NE(nullptr, value);
     EXPECT_DOUBLE_EQ(0.123, value->Data());
+
+    auto data = manager.ComponentData<DoubleComponent>(eDouble);
+    EXPECT_EQ(0.123, data);
   }
 
   {
     const auto *value = manager.Component<IntComponent>(eIntDouble);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(456, value->Data());
+
+    auto data = manager.ComponentData<IntComponent>(eIntDouble);
+    EXPECT_EQ(456, data);
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(eIntDouble);
     ASSERT_NE(nullptr, value);
     EXPECT_DOUBLE_EQ(0.456, value->Data());
+
+    auto data = manager.ComponentData<DoubleComponent>(eIntDouble);
+    EXPECT_EQ(0.456, data);
   }
 
   // Failure cases
   {
     const auto *value = manager.Component<IntComponent>(eDouble);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<IntComponent>(eDouble);
+    EXPECT_EQ(std::nullopt, data);
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(eInt);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<DoubleComponent>(eInt);
+    EXPECT_EQ(std::nullopt, data);
   }
 
   {
     const auto *value = manager.Component<IntComponent>(999);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<IntComponent>(999);
+    EXPECT_EQ(std::nullopt, data);
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(999);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<DoubleComponent>(999);
+    EXPECT_EQ(std::nullopt, data);
   }
 }
 

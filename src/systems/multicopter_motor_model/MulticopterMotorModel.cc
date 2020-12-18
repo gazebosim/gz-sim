@@ -20,7 +20,11 @@
  * limitations under the License.
  *
  */
+
+#include "MulticopterMotorModel.hh"
+
 #include <mutex>
+#include <string>
 
 #include <ignition/common/Profiler.hh>
 
@@ -45,8 +49,6 @@
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "MulticopterMotorModel.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.

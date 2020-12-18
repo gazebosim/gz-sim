@@ -15,7 +15,12 @@
  *
  */
 
+#include "Sensors.hh"
+
+#include <map>
 #include <set>
+#include <utility>
+#include <vector>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -34,6 +39,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -42,8 +48,6 @@
 
 #include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
-
-#include "Sensors.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -206,6 +210,9 @@ void SensorsPrivate::RunOnce()
   });
 
   if (!this->running)
+    return;
+
+  if (!this->scene)
     return;
 
   IGN_PROFILE("SensorsPrivate::RunOnce");
@@ -378,6 +385,14 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       auto atmosphereSdf = atmosphere->Data();
       this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
+    }
+
+    // Set render engine if specified from command line
+    auto renderEngineServerComp =
+      _ecm.Component<components::RenderEngineServerPlugin>(worldEntity);
+    if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
+    {
+      this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
     }
   }
 

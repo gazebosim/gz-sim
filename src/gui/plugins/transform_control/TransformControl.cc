@@ -14,10 +14,15 @@
  * limitations under the License.
  *
 */
+
+#include "TransformControl.hh"
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
 #include <iostream>
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -36,8 +41,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "TransformControl.hh"
 
 namespace ignition::gazebo
 {
@@ -105,12 +108,12 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
 
-  auto event = new gui::events::SnapIntervals(
+  gui::events::SnapIntervals event(
       this->dataPtr->xyzSnapVals,
       this->dataPtr->rpySnapVals,
       this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
 
   this->newSnapValues();
 }

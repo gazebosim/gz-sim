@@ -172,6 +172,15 @@ TEST(Conversions, Pose)
 
   auto pose = convert<math::Pose3d>(msg);
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3, 0.4), pose);
+
+  // Test empty orientation.
+  msgs::Pose msg2;
+  msg2.mutable_position()->set_x(1);
+  msg2.mutable_position()->set_y(2);
+  msg2.mutable_position()->set_z(3);
+
+  pose = convert<math::Pose3d>(msg2);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 1.0, 0, 0, 0), pose);
 }
 
 /////////////////////////////////////////////////

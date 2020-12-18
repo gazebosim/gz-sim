@@ -15,7 +15,11 @@
  *
 */
 
+#include "EntityTree.hh"
+
 #include <iostream>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
@@ -37,8 +41,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "EntityTree.hh"
 
 namespace ignition::gazebo
 {
@@ -125,8 +127,8 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 
   if (nullptr == parentItem)
   {
-    ignerr << "Failed to find parent entity [" << _parentEntity << "]"
-           << std::endl;
+    this->pendingEntities.push_back(
+      {_entity, _entityName, _parentEntity, _type});
     return;
   }
 
@@ -140,6 +142,19 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
   parentItem->appendRow(entityItem);
 
   this->entityItems[_entity] = entityItem;
+
+  // Check if there are pending children
+  auto sep = std::partition(this->pendingEntities.begin(),
+      this->pendingEntities.end(), [&_entity](const EntityInfo &_entityInfo)
+      {
+        return _entityInfo.parentEntity != _entity;
+      });
+
+  for (auto it = sep; it != this->pendingEntities.end(); ++it)
+  {
+    this->AddEntity(it->entity, it->name, it->parentEntity, it->type);
+  }
+  this->pendingEntities.erase(sep, this->pendingEntities.end());
 }
 
 /////////////////////////////////////////////////
@@ -155,6 +170,14 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 
   if (nullptr == item)
   {
+    // See if it's pending
+    auto toRemove = std::remove_if(this->pendingEntities.begin(),
+        this->pendingEntities.end(), [&_entity](const EntityInfo &_entityInfo)
+        {
+          return _entityInfo.entity == _entity;
+        });
+    this->pendingEntities.erase(toRemove, this->pendingEntities.end());
+
     return;
   }
 
@@ -350,19 +373,19 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 {
   std::vector<Entity> entitySet {_entity};
-  auto event = new gui::events::EntitiesSelected(entitySet, true);
+  gui::events::EntitiesSelected event(entitySet, true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      event);
+      &event);
 }
 
 /////////////////////////////////////////////////
 void EntityTree::DeselectAllEntities()
 {
-  auto event = new gui::events::DeselectAllEntities(true);
+  gui::events::DeselectAllEntities event(true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      event);
+      &event);
 }
 
 /////////////////////////////////////////////////
