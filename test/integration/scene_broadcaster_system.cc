@@ -82,6 +82,8 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
 
   unsigned int sleep{0u};
   unsigned int maxSleep{10u};
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
 
@@ -447,6 +449,8 @@ TEST_P(SceneBroadcasterTest, State)
   node.Request("/world/default/state_async", req);
 
   sleep = 0;
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
   {
     // Run server
