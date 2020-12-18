@@ -11,16 +11,16 @@ jobs:
         uses: actions/checkout@v2
       - name: Compile and test
         id: ci
-        uses: ignition-tooling/action-ignition-ci@master
+        uses: ignition-tooling/action-ignition-ci@ign-tooling-bionic
         with:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
   # TODO(anyone) Enable Focal CI and fix failing tests
-  # focal-ci:
-  #   runs-on: ubuntu-latest
-  #   name: Ubuntu Focal CI
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-  #     - name: Compile and test
-  #       id: ci
-  #       uses: ignition-tooling/action-ignition-ci@focal
+  focal-ci:
+    runs-on: ubuntu-latest
+    name: Ubuntu Focal CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Compile and test
+        id: ci
+        uses: ignition-tooling/action-ignition-ci@ign-tooling-focal
