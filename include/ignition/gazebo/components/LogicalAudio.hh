@@ -91,7 +91,7 @@ namespace logical_audio
     }
 
     /// \brief Whether the source is currently playing or not
-    bool playing;
+    bool playing{false};
 
     /// \brief How long the source should play for, in seconds.
     /// Setting this to 0 means the source has a play duration of infinity
