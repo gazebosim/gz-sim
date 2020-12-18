@@ -2,9 +2,9 @@
   Ignition Gazebo link velocity control demo
 
   Try sending commands:
-    ign topic -t "/model/double_pendulum_with_base/link/upper_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {z: 0.05}"
+    ign topic -t "/model/double_pendulum_with_base/link/upper_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {y: 0.05}"
 
-    ign topic -t "/model/double_pendulum_with_base/link/lower_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {z: -0.10}"
+    ign topic -t "/model/double_pendulum_with_base/link/lower_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {y: -0.10}"
 
 -->
 

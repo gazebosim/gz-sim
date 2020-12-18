@@ -1649,18 +1649,13 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt == this->entityLinkMap.end())
           return true;
-        std::cout << "Found link" << std::endl;
         auto freeGroup = linkIt->second->FindFreeGroup();
         if (!freeGroup)
           return true;
-        std::cout << "Found free group" << std::endl;
         const components::Pose *poseComp =
             _ecm.Component<components::Pose>(_entity);
-        // std::cout << "rotation: " << poseComp->Data().Rot() << std::endl;
         math::Vector3d worldAngularVel = poseComp->Data().Rot() *
             _angularVelocityCmd->Data();
-        // std::cout << "angular velocity cmd: " << _angularVelocityCmd->Data()[2] << std::endl;
-        // std::cout << "world angular velocity: " << worldAngularVel[0] << ",  " << worldAngularVel[1] << ", " << worldAngularVel[2] << std::endl;
         auto worldAngularVelFeature = entityCast(_entity, freeGroup,
             this->entityWorldVelocityCommandMap);
         if (!worldAngularVelFeature)
