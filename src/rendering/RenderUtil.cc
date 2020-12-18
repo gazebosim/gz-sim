@@ -167,6 +167,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and light updates.
   public: std::unordered_map<Entity, sdf::Light> entityLights;
 
+  /// \brief A map of entity ids and light updates.
+  public: std::vector<Entity> entityLightsCmdToDelete;
+
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
@@ -238,6 +241,29 @@ RenderUtil::~RenderUtil() = default;
 rendering::ScenePtr RenderUtil::Scene() const
 {
   return this->dataPtr->scene;
+}
+//////////////////////////////////////////////////
+void RenderUtil::UpdateECM(const UpdateInfo &,
+                           EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+
+  auto entityLightsCmdToDelete = std::move(this->dataPtr->entityLightsCmdToDelete);
+  this->dataPtr->entityLightsCmdToDelete.clear();
+
+  _ecm.Each<components::LightCmd>(
+      [&](const Entity &_entity,
+          const components::LightCmd * _lightCmd) -> bool
+      {
+        this->dataPtr->entityLights[_entity] = _lightCmd->Data();
+        this->dataPtr->entityLightsCmdToDelete.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entityLightsCmdToDelete)
+  {
+    _ecm.RemoveComponent<components::LightCmd>(entity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -433,7 +459,7 @@ void RenderUtil::Update()
     }
   }
 
-  // update entities' pose
+  // update lights
   {
     IGN_PROFILE("RenderUtil::Update Lights");
     for (const auto &light : entityLights) {
@@ -1148,25 +1174,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
-
-  std::vector<Entity> entitiesLightCmd;
-  _ecm.Each<components::LightCmd>(
-      [&](const Entity &_entity,
-        const components::LightCmd *_lightCmd) -> bool
-      {
-        this->entityLights[_entity] = _lightCmd->Data();
-        entitiesLightCmd.push_back(_entity);
-        return true;
-      });
-
-  // Converting the const EntityComponentManager to a
-  // non-const EntityComponentManager to be able to remove the LightCmd
-  EntityComponentManager& _ecm_remove =
-    const_cast<EntityComponentManager&>(_ecm);
-  for (const auto entity : entitiesLightCmd)
-  {
-    _ecm_remove.RemoveComponent<components::LightCmd>(entity);
-  }
 
   // Update cameras
   _ecm.Each<components::Camera, components::Pose>(

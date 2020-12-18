@@ -406,6 +406,16 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
+void Sensors::Update(const UpdateInfo &_info,
+                     EntityComponentManager &_ecm)
+{
+  if (this->dataPtr->running && this->dataPtr->initialized)
+  {
+    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+  }
+}
+
+//////////////////////////////////////////////////
 void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
@@ -570,6 +580,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
 
