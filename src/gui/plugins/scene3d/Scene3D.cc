@@ -2356,16 +2356,15 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     {
       if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
       {
-        std::string useSimTimeStr =
-            common::lowercase(useSimTimeElem->GetText());
-        if (useSimTimeStr == "true" || useSimTimeStr == "1")
-          renderWindow->SetRecordVideoUseSimTime(true);
-        else if (useSimTimeStr == "false" || useSimTimeStr == "0")
-          renderWindow->SetRecordVideoUseSimTime(false);
+        bool useSimTime = false;
+        if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Faild to parse <use_sim_time> value: "
+                 << useSimTimeElem->GetText() << std::endl;
+        }
         else
         {
-          ignerr << "Faild to parse <use_sim_time> value: " << useSimTimeStr
-                 << std::endl;
+          renderWindow->SetRecordVideoUseSimTime(useSimTime);
         }
       }
     }
