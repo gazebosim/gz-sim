@@ -2226,6 +2226,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       this->dataPtr->renderUtil->SetBackgroundColor(bgColor);
     }
 
+    if (auto elem = _pluginElem->FirstChildElement("sky"))
+    {
+      this->dataPtr->renderUtil->SetSkyEnabled(true);
+      if (!elem->NoChildren())
+        ignwarn << "Child elements of <sky> are not supported yet" << std::endl;
+    }
+
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
     {
       math::Pose3d pose;
