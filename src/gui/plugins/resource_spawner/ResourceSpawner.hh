@@ -18,6 +18,7 @@
 #ifndef IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
 #define IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>

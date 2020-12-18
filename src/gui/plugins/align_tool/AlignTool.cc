@@ -18,7 +18,13 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
+#include <algorithm>
+#include <queue>
 #include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/common/Console.hh>
