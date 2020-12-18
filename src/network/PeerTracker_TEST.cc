@@ -272,7 +272,7 @@ TEST(PeerTracker, PartitionedEnv)
   auto tracker1 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
-  igniton::common:setenv("IGN_PARTITION", "p2");
+  ignition::common:setenv("IGN_PARTITION", "p2");
   auto tracker2 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
@@ -283,11 +283,11 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(0u, tracker1.NumPeers());
   EXPECT_EQ(0u, tracker2.NumPeers());
 
-  igniton::common:setenv("IGN_PARTITION", "p1");
+  ignition::common:setenv("IGN_PARTITION", "p1");
   auto tracker3 = PeerTracker(
       PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
-  igniton::common:setenv("IGN_PARTITION", "p2");
+  ignition::common:setenv("IGN_PARTITION", "p2");
   auto tracker4 = PeerTracker(
       PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
@@ -301,6 +301,6 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(1u, tracker3.NumPeers());
   EXPECT_EQ(1u, tracker4.NumPeers());
 
-  igniton::common:unsetenv("IGN_PARTITION");
+  ignition::common:unsetenv("IGN_PARTITION");
 }
 #endif
