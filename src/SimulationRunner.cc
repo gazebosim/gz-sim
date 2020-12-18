@@ -794,27 +794,23 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config,
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
-  igndbg << "LOADSERVERPLUGINS: " << _config.Plugins().size() << std::endl;
-
   std::list<ServerConfig::PluginInfo> plugins(_config.Plugins());
 
-  igndbg << "LogRecord: " << _injectLogPlugins << " " << _config.UseLogRecord() << std::endl;
   if (_injectLogPlugins)
   {
     if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
     {
-      ignerr << "Both recording and playback are specified, defaulting to playback\n";
+      ignwarn <<
+        "Both recording and playback are specified, defaulting to playback\n";
     }
 
     if(!_config.LogPlaybackPath().empty())
     {
-      igndbg << "LogPlayback: injecting plugin" << std::endl;
       auto playbackPlugin = _config.LogPlaybackPlugin();
       plugins.push_back(playbackPlugin);
     }
     else if(_config.UseLogRecord())
     {
-      igndbg << "LogRecord: injecting plugin" << std::endl;
       auto recordPlugin = _config.LogRecordPlugin();
       plugins.push_back(recordPlugin);
     }
@@ -825,12 +821,6 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config,
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
     // logic should be moved somewhere else.
-    igndbg << "plugin: " <<
-      plugin.Name() <<  " "  <<
-      plugin.EntityName() << " "  <<
-      plugin.EntityType() << " " <<
-      plugin.Sdf()->ToString("") << std::endl;
-
     Entity entity{kNullEntity};
 
     if ("model" == plugin.EntityType())
@@ -859,7 +849,6 @@ void SimulationRunner::LoadServerPlugins(const ServerConfig &_config,
 
       for (auto sensor : sensors)
       {
-        igndbg << "scopedName: " << scopedName(sensor, this->entityCompMgr, "::", false) << std::endl;
         if (scopedName(sensor, this->entityCompMgr, "::", false) ==
             plugin.EntityName())
         {
