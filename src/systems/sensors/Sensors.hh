@@ -21,7 +21,7 @@
 #include <string>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/sensors-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 #include <sdf/Sensor.hh>
 
@@ -39,7 +39,7 @@ namespace systems
   /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
   /// \brief TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?
-  class IGNITION_GAZEBO_VISIBLE Sensors:
+  class IGNITION_GAZEBO_SENSORS_SYSTEM_VISIBLE Sensors:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

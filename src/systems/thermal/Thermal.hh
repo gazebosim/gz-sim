@@ -19,7 +19,7 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/thermal-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -34,7 +34,7 @@ namespace systems
   class ThermalPrivate;
 
   /// \brief A thermal plugin that sets the temperature for the parent entity
-  class IGNITION_GAZEBO_VISIBLE Thermal:
+  class IGNITION_GAZEBO_THERMAL_SYSTEM_VISIBLE Thermal:
     public System,
     public ISystemConfigure
   {

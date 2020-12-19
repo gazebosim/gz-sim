@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include <ignition/gazebo/diff-drive-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -61,7 +62,7 @@ namespace systems
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
-  class IGNITION_GAZEBO_VISIBLE DiffDrive
+  class IGNITION_GAZEBO_DIFF_DRIVE_SYSTEM_VISIBLE DiffDrive
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
