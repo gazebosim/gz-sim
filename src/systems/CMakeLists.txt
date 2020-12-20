@@ -61,11 +61,11 @@ function(gz_add_system system_name)
   # (i.e. libignition-gazebo1-name-system.so), but for portability of SDF
   # files, we also install an unversioned symlink into the same versioned folder.
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(unversioned_file_name ${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${unversioned_file_name})
+  set(unversioned ${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_PREFIX}${unversioned_file_name})
   if (WIN32)
     # symlinks on Windows require admin priviledges, fallback to copy
-    install(FILES ${versioned} DESTINATION ${CMAKE_SHARED_LIBRARY_PREFIX} RENAME ${unversioned_file_name})
+    add_custom_command(TARGET ${system_target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${versioned} ${unversioned})
   else()
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
   endif()
