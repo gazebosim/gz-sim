@@ -21,7 +21,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/gui/Export.hh>
 #include <ignition/gui/Plugin.hh>
 
 #include <sdf/Element.hh>

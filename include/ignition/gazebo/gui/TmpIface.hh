@@ -24,7 +24,7 @@
 #include <ignition/msgs.hh>
 #include <ignition/transport.hh>
 
-#include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
 {

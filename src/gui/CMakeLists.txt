@@ -33,6 +33,7 @@ ign_add_component(gui
 
 target_link_libraries(${gui_target}
   PUBLIC
+    ${PROJECT_LIBRARY_TARGET_NAME}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
     ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
