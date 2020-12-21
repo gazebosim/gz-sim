@@ -742,7 +742,7 @@ bool LightCommand::Execute()
     // try to find the light inside a link
     this->iface->ecm->Each<components::Name>(
         [&](const Entity & _entity,
-          const components::Name *_name) -> bool
+          const components::Name *) -> bool
         {
           auto subentity_light = this->iface->ecm->EntityByComponents(
               components::Name(lightMsg->name()),
