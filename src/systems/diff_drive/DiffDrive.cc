@@ -21,6 +21,7 @@
 
 #include <limits>
 #include <mutex>
+#include <set>
 #include <string>
 #include <vector>
 
