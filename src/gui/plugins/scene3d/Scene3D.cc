@@ -209,7 +209,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// By default (false), video encoding is done using real time.
     public: bool recordVideoUseSimTime = false;
 
-<<<<<<< HEAD
     /// \brief Lockstep gui with ECM when recording
     public: bool recordVideoLockstep = false;
 
@@ -226,8 +225,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Camera pose publisher
     public: transport::Node::Publisher recorderStatsPub;
 
-=======
->>>>>>> ign-gazebo3
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
 
@@ -567,7 +564,6 @@ void IgnRenderer::Render()
           t = std::chrono::steady_clock::time_point(
               this->dataPtr->renderUtil.SimTime());
         }
-<<<<<<< HEAD
         bool frameAdded = this->dataPtr->videoEncoder.AddFrame(
             this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
 
@@ -591,17 +587,12 @@ void IgnRenderer::Render()
           msg.set_nsec(nsec);
           this-dataPtr->recorderStatsPub.Publish(msg);
         }
-=======
-        this->dataPtr->videoEncoder.AddFrame(
-            this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
->>>>>>> ign-gazebo3
       }
       // Video recorder is idle. Start recording.
       else
       {
         if (this->dataPtr->recordVideoUseSimTime)
           ignmsg << "Recording video using sim time." << std::endl;
-<<<<<<< HEAD
         if (this->dataPtr->recordVideoLockstep)
         {
           ignmsg << "Recording video in lockstep mode" << std::endl;
@@ -611,11 +602,8 @@ void IgnRenderer::Render()
                     << "when recording video in lockstep mode." << std::endl;
           }
         }
-
         ignmsg << "Recording video using bitrate: "
                << this->dataPtr->recordVideoBitrate <<  std::endl;
-=======
->>>>>>> ign-gazebo3
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
             this->dataPtr->recordVideoSavePath, width, height, 25,
             this->dataPtr->recordVideoBitrate);
@@ -1851,7 +1839,6 @@ void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
 }
 
 /////////////////////////////////////////////////
-<<<<<<< HEAD
 void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1866,8 +1853,6 @@ void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
 }
 
 /////////////////////////////////////////////////
-=======
->>>>>>> ign-gazebo3
 void IgnRenderer::SetMoveTo(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2495,37 +2480,28 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     {
       if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
       {
-<<<<<<< HEAD
-        std::string useSimTimeStr =
-            common::lowercase(useSimTimeElem->GetText());
-        if (useSimTimeStr == "true" || useSimTimeStr == "1")
-          renderWindow->SetRecordVideoUseSimTime(true);
-        else if (useSimTimeStr == "false" || useSimTimeStr == "0")
-          renderWindow->SetRecordVideoUseSimTime(false);
+        bool useSimTime = false;
+        if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Faild to parse <use_sim_time> value: "
+                 << useSimTimeElem->GetText() << std::endl;
+        }
         else
         {
-          ignerr << "Faild to parse <use_sim_time> value: " << useSimTimeStr
-                 << std::endl;
+          renderWindow->SetRecordVideoUseSimTime(useSimTime);
         }
       }
       if (auto lockstepElem = elem->FirstChildElement("lockstep"))
       {
-        std::string lockstepStr =
-            common::lowercase(lockstepElem->GetText());
-        if (lockstepStr == "true" || lockstepStr == "1")
+        bool lockstep = false;
+        if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
         {
-          this->dataPtr->recordVideoLockstep = true;
-          renderWindow->SetRecordVideoLockstep(true);
-        }
-        else if (lockstepStr == "false" || lockstepStr == "0")
-        {
-          this->dataPtr->recordVideoLockstep = false;
-          renderWindow->SetRecordVideoLockstep(false);
+          ignerr << "Faild to parse <lockstep> value: "
+                 << lockstepElem->GetText() << std::endl;
         }
         else
         {
-          ignerr << "Faild to parse <lockstep> value: " << lockstepStr
-                 << std::endl;
+          renderWindow->SetRecordVideoLockstep(lockstep);
         }
       }
       if (auto bitrateElem = elem->FirstChildElement("bitrate"))
@@ -2542,17 +2518,6 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         {
           ignerr << "Video recorder bitrate must be larger than 0"
                  << std::endl;
-=======
-        bool useSimTime = false;
-        if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
-        {
-          ignerr << "Faild to parse <use_sim_time> value: "
-                 << useSimTimeElem->GetText() << std::endl;
-        }
-        else
-        {
-          renderWindow->SetRecordVideoUseSimTime(useSimTime);
->>>>>>> ign-gazebo3
         }
       }
     }
@@ -3062,7 +3027,6 @@ void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
 }
 
 /////////////////////////////////////////////////
-<<<<<<< HEAD
 void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
@@ -3077,8 +3041,6 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 }
 
 /////////////////////////////////////////////////
-=======
->>>>>>> ign-gazebo3
 void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
