@@ -363,6 +363,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle model placement requests
     private: void HandleModelPlacement();
 
+    /// \brief Broadcasts the currently hovered 3d scene location.
+    private: void BroadcastHoverPos();
+
+    /// \brief Broadcasts a left click within the scene
+    private: void BroadcastLeftClick();
+
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
     private: Entity UniqueId();
@@ -629,6 +635,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
 
+    /// \brief Handle key press event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyRelease(QKeyEvent *_e);
+
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
 
@@ -640,12 +654,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view

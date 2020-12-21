@@ -57,6 +57,7 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
@@ -208,6 +209,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// By default (false), video encoding is done using real time.
     public: bool recordVideoUseSimTime = false;
 
+<<<<<<< HEAD
     /// \brief Lockstep gui with ECM when recording
     public: bool recordVideoLockstep = false;
 
@@ -224,6 +226,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Camera pose publisher
     public: transport::Node::Publisher recorderStatsPub;
 
+=======
+>>>>>>> ign-gazebo3
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
 
@@ -340,6 +344,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
+
+    /// \brief Flag to indicate whether the escape key has been released.
+    public: bool escapeReleased = false;
 
     /// \brief ID of thread where render calls can be made.
     public: std::thread::id renderThreadId;
@@ -560,6 +567,7 @@ void IgnRenderer::Render()
           t = std::chrono::steady_clock::time_point(
               this->dataPtr->renderUtil.SimTime());
         }
+<<<<<<< HEAD
         bool frameAdded = this->dataPtr->videoEncoder.AddFrame(
             this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
 
@@ -583,12 +591,17 @@ void IgnRenderer::Render()
           msg.set_nsec(nsec);
           this-dataPtr->recorderStatsPub.Publish(msg);
         }
+=======
+        this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
+>>>>>>> ign-gazebo3
       }
       // Video recorder is idle. Start recording.
       else
       {
         if (this->dataPtr->recordVideoUseSimTime)
           ignmsg << "Recording video using sim time." << std::endl;
+<<<<<<< HEAD
         if (this->dataPtr->recordVideoLockstep)
         {
           ignmsg << "Recording video in lockstep mode" << std::endl;
@@ -601,6 +614,8 @@ void IgnRenderer::Render()
 
         ignmsg << "Recording video using bitrate: "
                << this->dataPtr->recordVideoBitrate <<  std::endl;
+=======
+>>>>>>> ign-gazebo3
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
             this->dataPtr->recordVideoSavePath, width, height, 25,
             this->dataPtr->recordVideoBitrate);
@@ -785,6 +800,17 @@ void IgnRenderer::Render()
     }
   }
 
+  // Escape action, clear all selections and terminate any
+  // spawned previews if escape button is released
+  {
+    if (this->dataPtr->escapeReleased)
+    {
+      this->DeselectAllEntities(true);
+      this->TerminateSpawnPreview();
+      this->dataPtr->escapeReleased = false;
+    }
+  }
+
   if (ignition::gui::App())
   {
     gui::events::Render event;
@@ -884,10 +910,42 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->BroadcastHoverPos();
+  this->BroadcastLeftClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastHoverPos()
+{
+  if (this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
+
+    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &hoverToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastLeftClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &leftClickToSceneEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1040,6 +1098,9 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       break;
     case Qt::Key_Z:
       this->dataPtr->zPressed = false;
+      break;
+    case Qt::Key_Escape:
+      this->dataPtr->escapeReleased = true;
       break;
     default:
       break;
@@ -1790,6 +1851,7 @@ void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD
 void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1804,6 +1866,8 @@ void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
 }
 
 /////////////////////////////////////////////////
+=======
+>>>>>>> ign-gazebo3
 void IgnRenderer::SetMoveTo(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2431,6 +2495,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     {
       if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
       {
+<<<<<<< HEAD
         std::string useSimTimeStr =
             common::lowercase(useSimTimeElem->GetText());
         if (useSimTimeStr == "true" || useSimTimeStr == "1")
@@ -2477,6 +2542,17 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         {
           ignerr << "Video recorder bitrate must be larger than 0"
                  << std::endl;
+=======
+        bool useSimTime = false;
+        if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Faild to parse <use_sim_time> value: "
+                 << useSimTimeElem->GetText() << std::endl;
+        }
+        else
+        {
+          renderWindow->SetRecordVideoUseSimTime(useSimTime);
+>>>>>>> ign-gazebo3
         }
       }
     }
@@ -2546,6 +2622,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -2760,7 +2838,26 @@ void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyPress(keyEvent);
+    }
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyRelease(keyEvent);
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -2965,6 +3062,7 @@ void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD
 void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
@@ -2979,6 +3077,8 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 }
 
 /////////////////////////////////////////////////
+=======
+>>>>>>> ign-gazebo3
 void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
@@ -3051,13 +3151,13 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
 
@@ -3070,8 +3170,6 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.TerminateSpawnPreview();
   }
 }
 
