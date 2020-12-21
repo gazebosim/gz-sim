@@ -770,9 +770,11 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
   if (nEntityKeys == 0)
     return;
 
-  // Find the entity in the message
+  // The message need not necessarily contain the entity. For instance when
+  // AddEntityToMessage() calls this function, the entity may have some
+  // removed components, but none in entityComponents that changed, so the
+  // entity may not have been added to the message beforehand.
   auto entIter = _msg.mutable_entities()->find(_entity);
-  // Add the entity to the message, if not already added
   if (entIter == _msg.mutable_entities()->end())
   {
     msgs::SerializedEntityMap ent;
