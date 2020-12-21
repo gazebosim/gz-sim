@@ -750,7 +750,8 @@ bool LightCommand::Execute()
           if (subentity_light)
           {
             entity = subentity_light;
-            lightComp = this->iface->ecm->Component<components::Light>(subentity_light);
+            lightComp =
+              this->iface->ecm->Component<components::Light>(subentity_light);
           }
           return true;
         });
