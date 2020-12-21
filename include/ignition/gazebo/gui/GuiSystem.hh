@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
 #define IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
 
-#include <QtCore>
-
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/gui/Export.hh>
@@ -43,8 +41,6 @@ namespace gazebo
   /// separate process that is stepped by updates coming through the network
   class GuiSystem : public ignition::gui::Plugin
   {
-    Q_OBJECT
-
     /// \brief Update callback called every time the system is stepped.
     /// This is called at an Ignition transport thread, so any interaction
     /// with Qt should be done through signals and slots.
