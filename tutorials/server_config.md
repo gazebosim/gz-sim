@@ -2,7 +2,7 @@
 
 Most functionality on Ignition Gazebo is provided by plugins, which means that
 users can choose exactly what functionality is available to their simulations.
-Even running the physics engine is optional. This giver users great control
+Even running the physics engine is optional. This gives users great control
 and makes sure only what's crucial for a given simulation is loaded.
 
 This tutorial will go over how to specify what system plugins to be loaded for

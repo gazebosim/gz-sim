@@ -328,6 +328,60 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       pluginElem = pluginElem->GetNextElement();
     }
   }
+
+  // A record plugin is not already specified in SDF. Add one.
+  sdf::ElementPtr recordElem = worldElem->AddElement("plugin");
+  sdf::ParamPtr recordName = recordElem->GetAttribute("name");
+  recordName->SetFromString(LoggingPlugin::RecordPluginName());
+  sdf::ParamPtr recordFileName = recordElem->GetAttribute("filename");
+  recordFileName->SetFromString(LoggingPlugin::LoggingPluginFileName());
+
+  // Add custom record path
+  if (!_config.LogRecordPath().empty())
+  {
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    recordElem->AddElementDescription(pathElem);
+    pathElem = recordElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(_config.LogRecordPath());
+  }
+
+  // Set whether to record resources
+  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+  resourceElem->SetName("record_resources");
+  recordElem->AddElementDescription(resourceElem);
+  resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->AddValue("bool", "false", false, "");
+  resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
+
+  // Set whether to compress
+  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+  compressElem->SetName("compress");
+  recordElem->AddElementDescription(compressElem);
+  compressElem = recordElem->GetElement("compress");
+  compressElem->AddValue("bool", "false", false, "");
+  compressElem->Set<bool>(_config.LogRecordCompressPath().empty() ? false :
+    true);
+
+  // Set compress path
+  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+  cPathElem->SetName("compress_path");
+  recordElem->AddElementDescription(cPathElem);
+  cPathElem = recordElem->GetElement("compress_path");
+  cPathElem->AddValue("string", "", false, "");
+  cPathElem->Set<std::string>(_config.LogRecordCompressPath());
+
+  // If record topics specified, add in SDF
+  for (const std::string &topic : _config.LogRecordTopics())
+  {
+    sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
+    topicElem->SetName("record_topic");
+    recordElem->AddElementDescription(topicElem);
+    topicElem = recordElem->AddElement("record_topic");
+    topicElem->AddValue("string", "false", false, "");
+    topicElem->Set<std::string>(topic);
+  }
 }
 
 //////////////////////////////////////////////////

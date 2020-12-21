@@ -26,7 +26,7 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-TEST(parsePluginsFromString, valid)
+TEST(ParsePluginsFromString, Valid)
 {
   std::string config = R"(
   <server_config>
@@ -58,14 +58,30 @@ TEST(parsePluginsFromString, valid)
   auto plugins = parsePluginsFromString(config);
   ASSERT_EQ(3u, plugins.size());
 
-  EXPECT_EQ("default", plugins.begin()->EntityName());
-  EXPECT_EQ("world", plugins.begin()->EntityType());
-  EXPECT_EQ("TestWorldSystem", plugins.begin()->Filename());
-  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugins.begin()->Name());
+  auto plugin = plugins.begin();
+
+  EXPECT_EQ("default", plugin->EntityName());
+  EXPECT_EQ("world", plugin->EntityType());
+  EXPECT_EQ("TestWorldSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugin->Name());
+
+  plugin = std::next(plugin, 1);
+
+  EXPECT_EQ("box", plugin->EntityName());
+  EXPECT_EQ("model", plugin->EntityType());
+  EXPECT_EQ("TestModelSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
+
+  plugin = std::next(plugin, 1);
+
+  EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
+  EXPECT_EQ("sensor", plugin->EntityType());
+  EXPECT_EQ("TestSensorSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestSensorSystem", plugin->Name());
 }
 
 //////////////////////////////////////////////////
-TEST(parsePluginsFromString, invalid)
+TEST(ParsePluginsFromString, Invalid)
 {
   std::string config = R"(
   <server_config>
@@ -86,25 +102,41 @@ TEST(parsePluginsFromString, invalid)
 }
 
 //////////////////////////////////////////////////
-TEST(parsePluginsFromFile, valid)
+TEST(ParsePluginsFromFile, Valid)
 {
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/test/worlds/server_valid.config");
+    "test", "worlds", "server_valid.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
 
-  EXPECT_EQ("default", plugins.begin()->EntityName());
-  EXPECT_EQ("world", plugins.begin()->EntityType());
-  EXPECT_EQ("TestWorldSystem", plugins.begin()->Filename());
-  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugins.begin()->Name());
+  auto plugin = plugins.begin();
+
+  EXPECT_EQ("default", plugin->EntityName());
+  EXPECT_EQ("world", plugin->EntityType());
+  EXPECT_EQ("TestWorldSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugin->Name());
+
+  plugin = std::next(plugin, 1);
+
+  EXPECT_EQ("box", plugin->EntityName());
+  EXPECT_EQ("model", plugin->EntityType());
+  EXPECT_EQ("TestModelSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
+
+  plugin = std::next(plugin, 1);
+
+  EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
+  EXPECT_EQ("sensor", plugin->EntityType());
+  EXPECT_EQ("TestSensorSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestSensorSystem", plugin->Name());
 }
 
 //////////////////////////////////////////////////
-TEST(parsePluginsFromFile, invalid)
+TEST(ParsePluginsFromFile, Invalid)
 {
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/test/worlds/server_invalid.config");
+    "test", "worlds", "server_invalid.config");
 
   // Valid file without valid content
   auto plugins = parsePluginsFromFile(config);
@@ -116,35 +148,35 @@ TEST(parsePluginsFromFile, invalid)
 }
 
 //////////////////////////////////////////////////
-TEST(parsePluginsFromFile, defaultConfig)
+TEST(ParsePluginsFromFile, DefaultConfig)
 {
   // Note: This test validates that that the default
   // configuration always parses.
   // If more systems are added, then the number needs
   // to be adjusted below.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/include/ignition/gazebo/server.config");
+    "include", "ignition", "gazebo", "server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
 }
 
 //////////////////////////////////////////////////
-TEST(parsePluginsFromFile, playbackConfig)
+TEST(ParsePluginsFromFile, PlaybackConfig)
 {
   // Note: This test validates that that the default
   // configuration always parses.
   // If more systems are added, then the number needs
   // to be adjusted below.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/include/ignition/gazebo/playback_server.config");
+    "include", "ignition", "gazebo", "playback_server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(2u, plugins.size());
 }
 
 //////////////////////////////////////////////////
-TEST(loadPluginInfo, fromEmptyEnv)
+TEST(LoadPluginInfo, FromEmptyEnv)
 {
   // Set environment to something that doesn't exist
   ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, "foo"));
@@ -155,26 +187,35 @@ TEST(loadPluginInfo, fromEmptyEnv)
 }
 
 //////////////////////////////////////////////////
-TEST(loadPluginInfo, fromValidEnv)
+TEST(LoadPluginInfo, FromValidEnv)
 {
   auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/test/worlds/server_valid2.config");
+    "test", "worlds", "server_valid2.config");
 
   ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, validPath));
 
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
 
-  EXPECT_EQ("*", plugins.begin()->EntityName());
-  EXPECT_EQ("world", plugins.begin()->EntityType());
-  EXPECT_EQ("TestWorldSystem", plugins.begin()->Filename());
-  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugins.begin()->Name());
+  auto plugin = plugins.begin();
+
+  EXPECT_EQ("*", plugin->EntityName());
+  EXPECT_EQ("world", plugin->EntityType());
+  EXPECT_EQ("TestWorldSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugin->Name());
+
+  plugin = std::next(plugin, 1);
+
+  EXPECT_EQ("box", plugin->EntityName());
+  EXPECT_EQ("model", plugin->EntityType());
+  EXPECT_EQ("TestModelSystem", plugin->Filename());
+  EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
 
   EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
-TEST(ServerConfig, generateRecordPlugin)
+TEST(ServerConfig, GenerateRecordPlugin)
 {
   ServerConfig config;
   config.SetUseLogRecord(true);
