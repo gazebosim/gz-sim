@@ -737,7 +737,24 @@ bool LightCommand::Execute()
 
   auto lightComp = this->iface->ecm->Component<components::Light>(entity);
   if (nullptr == lightComp)
+  {
     entity = kNullEntity;
+    // try to find the light inside a link
+    this->iface->ecm->Each<components::Name>(
+        [&](const Entity & _entity,
+          const components::Name *_name) -> bool
+        {
+          auto subentity_light = this->iface->ecm->EntityByComponents(
+              components::Name(lightMsg->name()),
+              components::ParentEntity(_entity));
+          if (subentity_light)
+          {
+            entity = subentity_light;
+            lightComp = this->iface->ecm->Component<components::Light>(subentity_light);
+          }
+          return true;
+        });
+  }
 
   if (!entity)
   {
