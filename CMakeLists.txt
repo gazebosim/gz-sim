@@ -34,6 +34,15 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+iF(NSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  add_compile_options(/wd4251 /wd4146)
+endif()
+
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
