@@ -198,6 +198,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Stores change event information during PreUpdate.
+  public: bool changeEvent{false};
 };
 
 //////////////////////////////////////////////////
@@ -235,6 +238,16 @@ void SceneBroadcaster::Configure(
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+{
+  bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
+  this->dataPtr->changeEvent =  _ecm.HasEntitiesMarkedForRemoval() ||
+        _ecm.HasNewEntities() || _ecm.HasOneTimeComponentChanges() ||
+        jumpBackInTime;
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
@@ -266,15 +279,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   //     * jump back in time
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
-  bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   auto now = std::chrono::system_clock::now();
-  bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-        jumpBackInTime;
   bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (changeEvent || itsPubTime);
+       (this->dataPtr->changeEvent || itsPubTime);
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
@@ -284,7 +293,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
     // Publish full state if there are change events
-    if (changeEvent || this->dataPtr->stateServiceRequest)
+    if (this->dataPtr->changeEvent || this->dataPtr->stateServiceRequest)
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
@@ -912,6 +921,7 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
                     ignition::gazebo::System,
                     SceneBroadcaster::ISystemConfigure,
+                    SceneBroadcaster::ISystemPreUpdate,
                     SceneBroadcaster::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version

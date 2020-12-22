@@ -41,6 +41,7 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE SceneBroadcaster:
     public System,
     public ISystemConfigure,
+    public ISystemPreUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -55,6 +56,12 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 
