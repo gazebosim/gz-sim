@@ -323,5 +323,28 @@
       <static>true</static>
     </model>
 
+    <model name="rescue randy">
+      <include>
+        <name>rescue_randy</name>
+        <pose>-2 1 0 0 0 1.570796</pose>
+        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
+      </include>
+
+      <link name="rescue_randy_link">
+        <visual name="rescue_randy_visual">
+          <pose>-2 1 0 0 0 1.570796</pose>
+          <geometry>
+            <mesh>
+              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy/1/files/meshes/rescue_randy.dae</uri>
+            </mesh>
+          </geometry>
+          <plugin
+            filename="ignition-gazebo-thermal-system"
+            name="ignition::gazebo::systems::Thermal">
+            <heat_signature>pathToHeatSignatureFile</heat_signature>
+          </plugin>
+        </visual>
+      </link>
+    </model>
   </world>
 </sdf>
