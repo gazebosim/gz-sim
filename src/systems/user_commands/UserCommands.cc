@@ -40,6 +40,7 @@
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -740,21 +741,20 @@ bool LightCommand::Execute()
   {
     entity = kNullEntity;
     // try to find the light inside a link
-    this->iface->ecm->Each<components::Name>(
-        [&](const Entity & _entity,
-          const components::Name *) -> bool
-        {
-          auto subentity_light = this->iface->ecm->EntityByComponents(
-              components::Name(lightMsg->name()),
-              components::ParentEntity(_entity));
-          if (subentity_light)
-          {
-            entity = subentity_light;
-            lightComp =
-              this->iface->ecm->Component<components::Light>(subentity_light);
-          }
-          return true;
-        });
+    auto lightEnt = this->iface->ecm->EntityByComponents(
+      components::Name(lightMsg->name()));
+    if (lightEnt != kNullEntity)
+    {
+      // check if light parent is a link
+      auto parentComp = this->iface->ecm->Component<components::ParentEntity>(
+        lightEnt);
+      if (parentComp && this->iface->ecm->Component<components::Link>(
+        parentComp->Data()))
+      {
+        lightComp = this->iface->ecm->Component<components::Light>(lightEnt);
+        entity = lightEnt;
+      }
+    }
   }
 
   if (!entity)
