@@ -18,6 +18,8 @@
 #include <google/protobuf/message.h>
 #include <ignition/msgs/double.pb.h>
 
+#include <string>
+
 #include <ignition/gazebo/components/AngularVelocity.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/LinearVelocity.hh>
@@ -178,8 +180,9 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
 
       if (deltaKE > this->dataPtr->keThreshold)
       {
-        ignmsg << this->dataPtr->modelName << " Crashed - deltaKE: " << deltaKE
-          << std::endl;
+        ignmsg << this->dataPtr->modelName
+          << " Change in kinetic energy above threshold - deltaKE: "
+          << deltaKE << std::endl;
         msgs::Double msg;
         msg.set_data(deltaKE);
         this->dataPtr->pub.Publish(msg);

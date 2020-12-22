@@ -35,7 +35,8 @@ namespace systems
   class KineticEnergyMonitorPrivate;
 
   /// \brief A system that monitors the kinetic energy of a link in a model
-  /// and publishes when the kinetic energy surpasses a specified threshold.
+  /// and publishes when there is a lost of kinetic energy during a timestep
+  /// that surpasses a specific threshold.
   /// This system can be used to detect when a model could be damaged.
   ///
   /// # System Parameters
