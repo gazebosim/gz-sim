@@ -15,6 +15,11 @@
  *
 */
 
+#include <map>
+#include <set>
+#include <utility>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
