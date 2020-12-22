@@ -15,10 +15,15 @@
  *
 */
 
+#include "Scene3D.hh"
+
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -50,6 +55,7 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
@@ -59,8 +65,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
-
-#include "Scene3D.hh"
 
 Q_DECLARE_METATYPE(std::string)
 
@@ -311,6 +315,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
 
+    /// \brief Flag to indicate whether the escape key has been released.
+    public: bool escapeReleased = false;
+
     /// \brief ID of thread where render calls can be made.
     public: std::thread::id renderThreadId;
 
@@ -405,6 +412,14 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+  {
+    ignwarn << "Scene is null. The render step will not occur in Scene3D."
+      << std::endl;
+    return;
+  }
+
   this->dataPtr->renderThreadId = std::this_thread::get_id();
 
   IGN_PROFILE_THREAD_NAME("RenderThread");
@@ -440,7 +455,6 @@ void IgnRenderer::Render()
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
   {
-    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
     if (!target && !this->dataPtr->followTargetWait)
     {
@@ -498,7 +512,6 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
         rendering::NodePtr target = scene->NodeByName(
             this->dataPtr->moveToTarget);
         if (target)
@@ -554,7 +567,6 @@ void IgnRenderer::Render()
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::NodePtr target = scene->NodeByName(
           this->dataPtr->followTarget);
       if (target)
@@ -645,7 +657,6 @@ void IgnRenderer::Render()
     if (this->dataPtr->isSpawning)
     {
       // Generate spawn preview
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
       sdf::Root root;
       if (!this->dataPtr->spawnSdfString.empty())
@@ -662,6 +673,17 @@ void IgnRenderer::Render()
       }
       this->dataPtr->isPlacing = this->GeneratePreview(root);
       this->dataPtr->isSpawning = false;
+    }
+  }
+
+  // Escape action, clear all selections and terminate any
+  // spawned previews if escape button is released
+  {
+    if (this->dataPtr->escapeReleased)
+    {
+      this->DeselectAllEntities(true);
+      this->TerminateSpawnPreview();
+      this->dataPtr->escapeReleased = false;
     }
   }
 
@@ -760,10 +782,42 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->BroadcastHoverPos();
+  this->BroadcastLeftClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastHoverPos()
+{
+  if (this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
+
+    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &hoverToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastLeftClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &leftClickToSceneEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -916,6 +970,9 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       break;
     case Qt::Key_Z:
       this->dataPtr->zPressed = false;
+      break;
+    case Qt::Key_Escape:
+      this->dataPtr->escapeReleased = true;
       break;
     default:
       break;
@@ -1466,6 +1523,9 @@ void IgnRenderer::Initialize()
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+    return;
+
   auto root = scene->RootVisual();
 
   // Camera
@@ -1497,6 +1557,7 @@ void IgnRenderer::Destroy()
   auto scene = engine->SceneByName(this->dataPtr->renderUtil.SceneName());
   if (!scene)
     return;
+
   scene->DestroySensor(this->dataPtr->camera);
 
   // If that was the last sensor, destroy scene
@@ -2351,6 +2412,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
   ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
+  ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
@@ -2551,7 +2614,26 @@ void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyPress(keyEvent);
+    }
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyRelease(keyEvent);
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -2827,13 +2909,13 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
 
@@ -2846,8 +2928,6 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.TerminateSpawnPreview();
   }
 }
 

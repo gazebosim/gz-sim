@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.0.0)
+project(ignition-gazebo4 VERSION 4.1.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -75,7 +75,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui4 REQUIRED)
+ign_find_package(ignition-gui4 REQUIRED VERSION 4.1)
 set(IGN_GUI_VER ${ignition-gui4_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -114,7 +114,7 @@ set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED)
+ign_find_package(ignition-rendering4 REQUIRED VERSION 4.1.0)
 set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
 
 #--------------------------------------

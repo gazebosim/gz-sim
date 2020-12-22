@@ -171,6 +171,15 @@ TEST(Conversions, Pose)
 
   auto pose = convert<math::Pose3d>(msg);
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3, 0.4), pose);
+
+  // Test empty orientation.
+  msgs::Pose msg2;
+  msg2.mutable_position()->set_x(1);
+  msg2.mutable_position()->set_y(2);
+  msg2.mutable_position()->set_z(3);
+
+  pose = convert<math::Pose3d>(msg2);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 1.0, 0, 0, 0), pose);
 }
 
 /////////////////////////////////////////////////
@@ -196,6 +205,9 @@ TEST(Conversions, Material)
   material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
+
+  // todo(anyone) add double_sided field to msgs::Material
+  material.SetDoubleSided(true);
 
   sdf::Pbr pbr;
   sdf::PbrWorkflow workflow;
@@ -226,6 +238,11 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
 
+  // todo(anyone) double_sided is temporarily stored in header
+  // Need to add double_sided field to msgs::Material
+  bool doubleSided = math::parseInt(materialMsg.header().data(0).value(0));
+  EXPECT_TRUE(doubleSided);
+
   EXPECT_TRUE(materialMsg.has_pbr());
   const auto &pbrMsg = materialMsg.pbr();
   EXPECT_EQ(msgs::Material_PBR_WorkflowType_METAL, pbrMsg.type());
@@ -248,6 +265,7 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
   EXPECT_TRUE(newMaterial.Lighting());
+  EXPECT_TRUE(newMaterial.DoubleSided());
 
   sdf::Pbr *newPbrMaterial = newMaterial.PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);

@@ -22,6 +22,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
