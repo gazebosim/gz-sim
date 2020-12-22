@@ -1224,7 +1224,9 @@ void EntityComponentManager::SetState(
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
-            ComponentState::PeriodicChange);
+            _stateMsg.is_periodic_change() ?
+            ComponentState::PeriodicChange :
+            ComponentState::OneTimeChange);
       }
     }
   }

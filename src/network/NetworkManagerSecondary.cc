@@ -167,6 +167,7 @@ void NetworkManagerSecondary::OnStep(
   msgs::SerializedStateMap stateMsg;
   if (!entities.empty())
     this->dataPtr->ecm->State(stateMsg, entities);
+  stateMsg.set_is_periodic_change(!this->dataPtr->ecm->HasOneTimeComponentChanges());
 
   this->stepAckPub.Publish(stateMsg);
 
