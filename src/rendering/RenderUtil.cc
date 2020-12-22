@@ -617,7 +617,7 @@ void RenderUtil::Update()
     if (std::holds_alternative<float>(temp.second))
       visual->SetUserData("temperature", std::get<float>(temp.second));
     else if (std::holds_alternative<std::string>(temp.second))
-      visual->SetUserData("heat_signature", std::get<std::string>(temp.second));
+      visual->SetUserData("temperature", std::get<std::string>(temp.second));
   }
 }
 
