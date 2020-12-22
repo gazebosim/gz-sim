@@ -585,7 +585,7 @@ void IgnRenderer::Render()
           msgs::Time msg;
           msg.set_sec(sec);
           msg.set_nsec(nsec);
-          this-dataPtr->recorderStatsPub.Publish(msg);
+          this->dataPtr->recorderStatsPub.Publish(msg);
         }
       }
       // Video recorder is idle. Start recording.
@@ -2496,7 +2496,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         bool lockstep = false;
         if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Faild to parse <lockstep> value: "
+          ignerr << "Failed to parse <lockstep> value: "
                  << lockstepElem->GetText() << std::endl;
         }
         else
