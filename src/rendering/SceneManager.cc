@@ -439,6 +439,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
