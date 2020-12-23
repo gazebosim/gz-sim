@@ -55,52 +55,9 @@
 
     <!-- Included model without meshes -->
     <include>
-      <name>Double pendulum</name>
-      <pose>-3 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Double pendulum with base</uri>
-    </include>
-
-    <!-- Included model with meshes -->
-    <include>
-      <pose>3 -1 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack</uri>
-    </include>
-
-    <!-- Included model with meshes using relative paths -->
-    <include>
-      <name>Gazebo (relative paths)</name>
-      <pose>2 5 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo - relative paths</uri>
-    </include>
-
-    <!-- Included actor with meshes using relative paths -->
-    <include>
-      <name>Actor Test</name>
+      <name>Tile</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rough Tunnel Tile 4-way Intersection</uri>
     </include>
-
-    <!-- Model with meshes -->
-    <model name="Radio">
-      <pose>3 -1.5 0 0 0 0</pose>
-      <static>true</static>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <mesh>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
-            </mesh>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <mesh>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-      </link>
-    </model>
-
   </world>
 </sdf>
