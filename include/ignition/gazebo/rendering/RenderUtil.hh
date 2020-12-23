@@ -24,7 +24,7 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/rendering/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 #include "ignition/gazebo/rendering/SceneManager.hh"
