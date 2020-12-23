@@ -210,6 +210,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _true True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
+
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
@@ -529,6 +537,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _true True record video using sim time
     public: void SetRecordVideoUseSimTime(bool _useSimTime);
 
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
+
     /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
     public: void SetMoveTo(const std::string &_target);
@@ -609,6 +625,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _hoverPos 2D coordinates of the hovered mouse position on
     /// the render window.
     public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
+
+    /// \brief Get whether the renderer is initialized. The renderer is
+    /// initialized when the context is created and the render thread is
+    /// started.
+    /// \return True if the renderer is initialized.
+    public: bool RendererInitialized() const;
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
