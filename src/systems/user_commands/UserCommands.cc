@@ -426,40 +426,7 @@ bool CreateCommand::Execute()
         return false;
       }
 
-      sdf::Light lightSDF;
-      lightSDF.SetDiffuse(msgs::Convert(lightMsg.diffuse()));
-      lightSDF.SetSpecular(msgs::Convert(lightMsg.specular()));
-      lightSDF.SetAttenuationRange(lightMsg.range());
-      lightSDF.SetLinearAttenuationFactor(lightMsg.attenuation_linear());
-      lightSDF.SetConstantAttenuationFactor(
-          lightMsg.attenuation_constant());
-      lightSDF.SetQuadraticAttenuationFactor(
-          lightMsg.attenuation_quadratic());
-      lightSDF.SetCastShadows(lightMsg.cast_shadows());
-
-      if (lightMsg.type() == ignition::msgs::Light::POINT)
-        lightSDF.SetType(sdf::LightType::POINT);
-      else if (lightMsg.type() == ignition::msgs::Light::SPOT)
-        lightSDF.SetType(sdf::LightType::SPOT);
-      else if (lightMsg.type() == ignition::msgs::Light::DIRECTIONAL)
-        lightSDF.SetType(sdf::LightType::DIRECTIONAL);
-
-      lightSDF.SetName(lightMsg.name());
-
-      if (lightMsg.type() != ignition::msgs::Light::POINT)
-      {
-        lightSDF.SetDirection(msgs::Convert(lightMsg.direction()));
-      }
-
-      if (lightMsg.type() == ignition::msgs::Light::SPOT)
-      {
-        lightSDF.SetSpotInnerAngle(
-          ignition::math::Angle(lightMsg.spot_inner_angle()));
-        lightSDF.SetSpotOuterAngle(
-          ignition::math::Angle(lightMsg.spot_outer_angle()));
-        lightSDF.SetSpotFalloff(lightMsg.spot_falloff());
-      }
-
+      sdf::Light lightSDF = convert<sdf::Light>(lightMsg);
       Entity entity = this->iface->creator->CreateEntities(&lightSDF);
       this->iface->creator->SetParent(entity, lightMsg.parent_id());
 
