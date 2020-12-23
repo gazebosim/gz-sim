@@ -414,9 +414,64 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kLight:
     {
-      // TODO(louise) Support light msg
-      ignerr << "light field not yet supported." << std::endl;
-      return false;
+      auto lightMsg = createMsg->light();
+      // Check if there's already a top-level entity with the given name
+      if (kNullEntity != this->iface->ecm->EntityByComponents(
+          components::Name(lightMsg.name()),
+          components::ParentEntity(lightMsg.parent_id())))
+      {
+        ignwarn << "Light entity named [" << lightMsg.name() << "] already"
+                << " exists. Entity not spawned."
+                << std::endl;
+        return false;
+      }
+
+      sdf::Light lightSDF;
+      lightSDF.SetDiffuse(msgs::Convert(lightMsg.diffuse()));
+      lightSDF.SetSpecular(msgs::Convert(lightMsg.specular()));
+      lightSDF.SetAttenuationRange(lightMsg.range());
+      lightSDF.SetLinearAttenuationFactor(lightMsg.attenuation_linear());
+      lightSDF.SetConstantAttenuationFactor(
+          lightMsg.attenuation_constant());
+      lightSDF.SetQuadraticAttenuationFactor(
+          lightMsg.attenuation_quadratic());
+      lightSDF.SetCastShadows(lightMsg.cast_shadows());
+
+      if (lightMsg.type() == ignition::msgs::Light::POINT)
+        lightSDF.SetType(sdf::LightType::POINT);
+      else if (lightMsg.type() == ignition::msgs::Light::SPOT)
+        lightSDF.SetType(sdf::LightType::SPOT);
+      else if (lightMsg.type() == ignition::msgs::Light::DIRECTIONAL)
+        lightSDF.SetType(sdf::LightType::DIRECTIONAL);
+
+      lightSDF.SetName(lightMsg.name());
+
+      if (lightMsg.type() != ignition::msgs::Light::POINT)
+      {
+        lightSDF.SetDirection(msgs::Convert(lightMsg.direction()));
+      }
+
+      if (lightMsg.type() == ignition::msgs::Light::SPOT)
+      {
+        lightSDF.SetSpotInnerAngle(
+          ignition::math::Angle(lightMsg.spot_inner_angle()));
+        lightSDF.SetSpotOuterAngle(
+          ignition::math::Angle(lightMsg.spot_outer_angle()));
+        lightSDF.SetSpotFalloff(lightMsg.spot_falloff());
+      }
+
+      Entity entity = this->iface->creator->CreateEntities(&lightSDF);
+      this->iface->creator->SetParent(entity, lightMsg.parent_id());
+
+      // Pose
+      if (lightMsg.has_pose())
+      {
+        auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+        *poseComp = components::Pose(msgs::Convert(lightMsg.pose()));
+      }
+      igndbg << "Created light entity [" << entity << "] named [" <<
+        lightSDF.Name() << "]" << std::endl;
+      return true;
     }
     case msgs::EntityFactory::kCloneName:
     {
