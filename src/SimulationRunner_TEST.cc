@@ -86,7 +86,7 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
     common::Console::SetVerbosity(4);
 
     common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      common::joinPaths(PROJECT_BINARY_PATH, "/lib"));
+      common::joinPaths(PROJECT_BINARY_PATH, "lib"));
   }
 };
 
@@ -112,7 +112,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/shapes.sdf"));
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -525,7 +525,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/lights.sdf"));
+      "test", "worlds", "lights.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -795,7 +795,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/demo_joint_types.sdf"));
+      "test", "worlds", "demo_joint_types.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -936,7 +936,7 @@ TEST_P(SimulationRunnerTest, Time)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/shapes.sdf"));
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -1058,7 +1058,7 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/plugins.sdf"));
+      "test", "worlds", "plugins.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -1144,12 +1144,12 @@ TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/plugins_empty.sdf"));
+      "test", "worlds", "plugins_empty.sdf"));
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
   // ServerConfig will fall back to environment variable
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/test/worlds/server_valid2.config");
+    "test", "worlds", "server_valid2.config");
   ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
   ServerConfig serverConfig;
 
@@ -1166,13 +1166,13 @@ TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/plugins_empty.sdf"));
+      "test", "worlds", "plugins_empty.sdf"));
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
   // Create a server configuration with plugins
   // No fallback expected
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/test/worlds/server_valid.config");
+    "test", "worlds", "server_valid.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
@@ -1266,11 +1266,13 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/plugins_empty.sdf"));
+      "test", "worlds", "plugins_empty.sdf"));
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
+  // Load the default config, but not through the default code path.
+  // The user may have modified their local config.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/include/ignition/gazebo/server.config");
+    "include", "ignition", "gazebo", "server.config");
   ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, config));
 
   // Create simulation runner
@@ -1286,7 +1288,7 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   // Load SDF file without plugins
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/shapes.sdf"));
+      "test", "worlds", "shapes.sdf"));
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
   // Create simulation runner
@@ -1321,7 +1323,7 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   // Load SDF file with plugins
   sdf::Root rootWith;
   rootWith.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/plugins.sdf"));
+      "test", "worlds", "plugins.sdf"));
   ASSERT_EQ(1u, rootWith.WorldCount());
 
   // Emit plugin loading event
@@ -1379,7 +1381,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/shapes.sdf"));
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -1416,7 +1418,7 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
   // Load SDF file
   sdf::Root root;
   root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/shapes.sdf"));
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 

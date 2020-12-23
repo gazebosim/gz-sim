@@ -38,7 +38,15 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 
-#include <sdf/sdf.hh>
+#include <sdf/Collision.hh>
+#include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Link.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
+#include <sdf/Visual.hh>
+#include <sdf/World.hh>
 
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -655,7 +663,7 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     else
     {
       auto worldSdfComp = _ecm.Component<components::WorldSdf>(worldEntity);
-      if (worldSdfComp == nullptr)
+      if (worldSdfComp == nullptr || worldSdfComp->Data().Element() == nullptr)
       {
         ignerr << "Could not load world SDF data\n";
       }

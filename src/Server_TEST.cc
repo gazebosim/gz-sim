@@ -59,12 +59,6 @@ class ServerFixture : public ::testing::TestWithParam<int>
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
 {
-  // Always override to the default config, in case
-  // a user has customized their installed config
-  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
-    "/include/ignition/gazebo/server.config");
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, validPath));
-
   ignition::gazebo::ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
@@ -227,8 +221,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/air_pressure.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "air_pressure.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
