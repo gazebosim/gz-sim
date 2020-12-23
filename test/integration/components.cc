@@ -59,6 +59,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
@@ -1356,4 +1357,62 @@ TEST_F(ComponentsTest, Scene)
   EXPECT_TRUE(comp3.Data().Shadows());
   EXPECT_FALSE(comp3.Data().Grid());
   EXPECT_TRUE(comp3.Data().OriginVisual());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitter)
+{
+  particles::Emitter emitter1;
+  emitter1.id = 0;
+  emitter1.name = "emitter_1";
+  emitter1.type = particles::EmitterType::BOX;
+  emitter1.size = ignition::math::Vector3d(1, 2, 3);
+  emitter1.rate = 4.0;
+  emitter1.duration = 5.0;
+  emitter1.emitting = false;
+  emitter1.particleSize = ignition::math::Vector3d(0.1, 0.2, 0.3);
+  emitter1.lifetime = 6.0;
+  emitter1.minVelocity = 7.0;
+  emitter1.maxVelocity = 8.0;
+  emitter1.colorStart = ignition::math::Color::Red;
+  emitter1.colorEnd = ignition::math::Color::White;
+  emitter1.scaleRate = 9.0;
+  emitter1.colorRangeImage = "path_to_texture";
+
+  particles::Emitter emitter2;
+  emitter2.id = 1;
+  emitter2.name = emitter1.name;
+  emitter2.type = emitter1.type;
+  emitter2.size = emitter1.size;
+  emitter2.rate = emitter1.rate;
+  emitter2.duration = emitter1.duration;
+  emitter2.emitting = emitter1.emitting;
+  emitter2.particleSize = emitter1.particleSize;
+  emitter2.lifetime = emitter1.lifetime;
+  emitter2.minVelocity = emitter1.minVelocity;
+  emitter2.maxVelocity = emitter1.maxVelocity;
+  emitter2.colorStart = emitter1.colorStart;
+  emitter2.colorEnd = emitter1.colorEnd;
+  emitter2.scaleRate = emitter1.scaleRate;
+  emitter2.colorRangeImage = emitter1.colorRangeImage;
+
+  // Create components.
+  auto comp1 = components::ParticleEmitter(emitter1);
+  auto comp2 = components::ParticleEmitter(emitter2);
+
+  // Equality operators.
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0 emitter_1 1 1 2 3 4 5 0 0.1 0.2 0.3 6 7 8 1 0 0 1 1 1 1 1 9 "
+            "path_to_texture", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
 }
