@@ -30,6 +30,15 @@
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Flag used to end the gUpdateThread.
+static bool gRunning = false;
+
+/// \brief Mutex to protect the plugin update.
+static std::mutex gUpdateMutex;
+
+/// \brief The plugin update thread..
+static std::thread gUpdateThread;
+
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
 {
@@ -51,10 +60,32 @@ GuiRunner::GuiRunner(const std::string &_worldName)
          << std::endl;
 
   this->RequestState();
+
+  // Periodically update the plugins
+  // \todo(anyone) Pimplize GuiRunner and move these global variables to the
+  // private class.
+  gRunning = true;
+  gUpdateThread = std::thread([&]()
+  {
+    while (gRunning)
+    {
+      {
+        std::lock_guard<std::mutex> lock(gUpdateMutex);
+        this->UpdatePlugins();
+      }
+      // This is roughly a 30Hz update rate.
+      std::this_thread::sleep_for(std::chrono::milliseconds(33));
+    }
+  });
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner() = default;
+GuiRunner::~GuiRunner()
+{
+  gRunning = false;
+  if (gUpdateThread.joinable())
+    gUpdateThread.join();
+}
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
@@ -108,16 +139,22 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
 
+  std::lock_guard<std::mutex> lock(gUpdateMutex);
   this->ecm.SetState(_msg.state());
 
   // Update all plugins
   this->updateInfo = convert<UpdateInfo>(_msg.stats());
+  this->UpdatePlugins();
+  this->ecm.ClearNewlyCreatedEntities();
+  this->ecm.ProcessRemoveEntityRequests();
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::UpdatePlugins()
+{
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
     plugin->Update(this->updateInfo, this->ecm);
   }
-  this->ecm.ClearNewlyCreatedEntities();
-  this->ecm.ProcessRemoveEntityRequests();
 }
-

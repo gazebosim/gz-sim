@@ -74,6 +74,10 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 
   /// \brief Latest update info
   private: UpdateInfo updateInfo;
+
+  /// \brief Update the plugins.
+  /// \todo(anyone) Move to a private data class.
+  private: void UpdatePlugins();
 };
 }
 }
