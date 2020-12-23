@@ -15,9 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "TapeMeasure.hh"
+#include <ignition/msgs/marker.pb.h>
 
 #include <iostream>
 #include <unordered_set>
@@ -28,11 +26,13 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/msgs/marker.pb.h>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+
+#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "TapeMeasure.hh"
 
 namespace ignition::gazebo
 {

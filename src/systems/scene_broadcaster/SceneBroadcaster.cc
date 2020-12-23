@@ -229,6 +229,11 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
+  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
+  this->dataPtr->statePublishPeriod =
+      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
+      std::chrono::milliseconds(1000/stateHerz.first));
+
   // Add to graph
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
