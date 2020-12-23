@@ -63,8 +63,8 @@
                 <play_pause>true</play_pause>
                 <step>true</step>
                 <start_paused>true</start_paused>
-                <service>/world/link_velocity_controller/control</service>
-                <stats_topic>/world/link_velocity_controller/stats</stats_topic>
+                <service>/world/velocity_control/control</service>
+                <stats_topic>/world/velocity_control/stats</stats_topic>
             </plugin>
 
             <!-- World statistics -->
@@ -88,7 +88,7 @@
                 <real_time>true</real_time>
                 <real_time_factor>true</real_time_factor>
                 <iterations>true</iterations>
-                <topic>/world/link_velocity_controller/stats</topic>
+                <topic>/world/velocity_control/stats</topic>
 
             </plugin>
 
@@ -337,8 +337,8 @@
             </joint>
 
             <plugin
-                filename="ignition-gazebo-link-velocity-controller-system"
-                name="ignition::gazebo::systems::LinkVelocityController">
+                filename="ignition-gazebo-velocity-control-system"
+                name="ignition::gazebo::systems::VelocityControl">
                 <link1_name>upper_link</link1_name>
                 <link2_name>lower_link</link2_name>
             </plugin>
