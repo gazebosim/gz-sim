@@ -1,5 +1,24 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.26.0 (2020-12-23)
+
+1. Playback scrubber
+    * [Pull Request 299](https://github.com/ignitionrobotics/ign-gazebo/pull/299)
+
+1. Documentation
+    * [Pull Request 403](https://github.com/ignitionrobotics/ign-gazebo/pull/403)
+    * [Pull Request 425](https://github.com/ignitionrobotics/ign-gazebo/pull/425)
+    * [Pull Request 467](https://github.com/ignitionrobotics/ign-gazebo/pull/467)
+
+1. Resolve updated cppcheck issues
+    * [Pull Request 443](https://github.com/ignitionrobotics/ign-gazebo/pull/443)
+
+1. Use new backpack version in tests
+    * [Pull Request 455](https://github.com/ignitionrobotics/ign-gazebo/pull/455)
+
+1. Fix segfault in the Breadcrumb system when associated model is unloaded
+    * [Pull Request 454](https://github.com/ignitionrobotics/ign-gazebo/pull/454)
+
 ### Ignition Gazebo 2.25.0 (2020-09-17)
 
 1. Added wheel slip system plugin.
