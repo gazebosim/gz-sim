@@ -1364,7 +1364,6 @@ TEST_F(ComponentsTest, ParticleEmitter)
 {
   particles::Emitter emitter1;
   emitter1.id = 0;
-  emitter1.name = "emitter_1";
   emitter1.type = particles::EmitterType::BOX;
   emitter1.size = ignition::math::Vector3d(1, 2, 3);
   emitter1.rate = 4.0;
@@ -1381,7 +1380,6 @@ TEST_F(ComponentsTest, ParticleEmitter)
 
   particles::Emitter emitter2;
   emitter2.id = 1;
-  emitter2.name = emitter1.name;
   emitter2.type = emitter1.type;
   emitter2.size = emitter1.size;
   emitter2.rate = emitter1.rate;
@@ -1408,7 +1406,7 @@ TEST_F(ComponentsTest, ParticleEmitter)
   // Stream operators.
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("0 emitter_1 1 1 2 3 4 5 0 0.1 0.2 0.3 6 7 8 1 0 0 1 1 1 1 1 9 "
+  EXPECT_EQ("0 1 1 2 3 4 5 0 0.1 0.2 0.3 6 7 8 1 0 0 1 1 1 1 1 9 "
             "path_to_texture", ostr.str());
 
   std::istringstream istr(ostr.str());

@@ -43,15 +43,14 @@ namespace particles
   /// A particle emitter also has:
   ///    * a pose, which can be stored as a component of
   ///      an emitter entity via ignition::gazebo::components::Pose
+  ///    * a name, which can be stored as a component of
+  ///      an emitter entity via ignition::gazebo::components::Name
   ///    * a material, which can be stored as a component of
   ///      an emitter entity via ignition::gazebo::components::Material
   struct Emitter
   {
     /// \brief The particle emitter's id.
     unsigned int id;
-
-    /// \brief The emitter's name.
-    std::string name;
 
     /// \brief The emitter's type.
     particles::EmitterType type;
@@ -137,13 +136,13 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const particles::Emitter &_emitter)
     {
-      _out << _emitter.id << " " << _emitter.name << " " << _emitter.type
-           << " " << _emitter.size << " " << _emitter.rate
-           << " " << _emitter.duration << " " << _emitter.emitting
+      _out <<        _emitter.id           << " " << _emitter.type
+           << " " << _emitter.size         << " " << _emitter.rate
+           << " " << _emitter.duration     << " " << _emitter.emitting
            << " " << _emitter.particleSize << " " << _emitter.lifetime
-           << " " << _emitter.minVelocity << " " << _emitter.maxVelocity
-           << " " << _emitter.colorStart << " " << _emitter.colorEnd
-           << " " << _emitter.scaleRate << " " << _emitter.colorRangeImage;
+           << " " << _emitter.minVelocity  << " " << _emitter.maxVelocity
+           << " " << _emitter.colorStart   << " " << _emitter.colorEnd
+           << " " << _emitter.scaleRate    << " " << _emitter.colorRangeImage;
       return _out;
     }
 
@@ -154,12 +153,13 @@ namespace serializers
     public: static std::istream &Deserialize(std::istream &_in,
                                              particles::Emitter &_emitter)
     {
-      _in >> _emitter.id >> _emitter.name >> _emitter.type
-          >> _emitter.size >> _emitter.rate >> _emitter.duration
-          >> _emitter.emitting >> _emitter.particleSize >> _emitter.lifetime
-          >> _emitter.minVelocity >> _emitter.maxVelocity >> _emitter.colorStart
-          >> _emitter.colorEnd >> _emitter.scaleRate
-          >> _emitter.colorRangeImage;
+      _in >> _emitter.id           >> _emitter.type
+          >> _emitter.size         >> _emitter.rate
+          >> _emitter.duration     >> _emitter.emitting
+          >> _emitter.particleSize >> _emitter.lifetime
+          >> _emitter.minVelocity  >> _emitter.maxVelocity
+          >> _emitter.colorStart   >> _emitter.colorEnd
+          >> _emitter.scaleRate    >> _emitter.colorRangeImage;
       return _in;
     }
   };
