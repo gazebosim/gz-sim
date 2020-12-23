@@ -84,7 +84,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   };
 
   /// \brief Scene manager class for loading and managing objects in the scene
-  class IGNITION_GAZEBO_VISIBLE SceneManager
+  class IGNITION_GAZEBO_RENDERING_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();

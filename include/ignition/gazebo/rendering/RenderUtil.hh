@@ -41,7 +41,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class RenderUtilPrivate;
 
   /// \class RenderUtil RenderUtil.hh ignition/gazebo/gui/plugins/RenderUtil.hh
-  class IGNITION_GAZEBO_VISIBLE RenderUtil
+  class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
     public: explicit RenderUtil();
