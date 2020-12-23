@@ -764,38 +764,8 @@ bool LightCommand::Execute()
     return false;
   }
 
-  lightComp->Data().SetDiffuse(msgs::Convert(lightMsg->diffuse()));
-  lightComp->Data().SetSpecular(msgs::Convert(lightMsg->specular()));
-  lightComp->Data().SetAttenuationRange(lightMsg->range());
-  lightComp->Data().SetLinearAttenuationFactor(lightMsg->attenuation_linear());
-  lightComp->Data().SetConstantAttenuationFactor(
-      lightMsg->attenuation_constant());
-  lightComp->Data().SetQuadraticAttenuationFactor(
-      lightMsg->attenuation_quadratic());
-  lightComp->Data().SetCastShadows(lightMsg->cast_shadows());
-
-  if (lightMsg->type() == ignition::msgs::Light::POINT)
-    lightComp->Data().SetType(sdf::LightType::POINT);
-  else if (lightMsg->type() == ignition::msgs::Light::SPOT)
-    lightComp->Data().SetType(sdf::LightType::SPOT);
-  else if (lightMsg->type() == ignition::msgs::Light::DIRECTIONAL)
-    lightComp->Data().SetType(sdf::LightType::DIRECTIONAL);
-
-  lightComp->Data().SetName(lightMsg->name());
-
-  if (lightMsg->type() != ignition::msgs::Light::POINT)
-  {
-    lightComp->Data().SetDirection(msgs::Convert(lightMsg->direction()));
-  }
-
-  if (lightMsg->type() == ignition::msgs::Light::SPOT)
-  {
-    lightComp->Data().SetSpotInnerAngle(
-      ignition::math::Angle(lightMsg->spot_inner_angle()));
-    lightComp->Data().SetSpotOuterAngle(
-      ignition::math::Angle(lightMsg->spot_outer_angle()));
-    lightComp->Data().SetSpotFalloff(lightMsg->spot_falloff());
-  }
+  sdf::Light lightSDF = convert<sdf::Light>(*lightMsg);
+  lightComp->Data() = lightSDF;
 
   auto lightPose = this->iface->ecm->Component<components::Pose>(entity);
   if (nullptr == lightPose)
