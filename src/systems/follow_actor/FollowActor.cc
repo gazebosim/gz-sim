@@ -15,6 +15,8 @@
  *
  */
 
+#include <string>
+
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/common/Profiler.hh>
