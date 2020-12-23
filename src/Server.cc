@@ -182,12 +182,6 @@ Server::Server(const ServerConfig &_config)
     return;
   }
 
-  // Add record plugin
-  if (_config.UseLogRecord())
-  {
-    this->dataPtr->AddRecordPlugin(_config);
-  }
-
   this->dataPtr->CreateEntities();
 
   // Set the desired update period, this will override the desired RTF given in
