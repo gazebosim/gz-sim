@@ -15,6 +15,9 @@
  *
  */
 
+#include <string>
+#include <vector>
+
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/gazebo/components/Geometry.hh>
