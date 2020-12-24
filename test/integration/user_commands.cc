@@ -678,8 +678,8 @@ TEST_F(UserCommandsTest, Light)
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/lights.sdf";
+  const auto sdfFile = ignition::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -719,7 +719,7 @@ TEST_F(UserCommandsTest, Light)
   auto pointLightEntity = ecm->EntityByComponents(components::Name("point"));
   EXPECT_NE(kNullEntity, pointLightEntity);
 
-  // Check entity has not been moved yet
+  // Check entity has not been edited yet
   auto pointLightComp = ecm->Component<components::Light>(pointLightEntity);
   ASSERT_NE(nullptr, pointLightComp);
   EXPECT_EQ(
@@ -763,6 +763,7 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_NEAR(0.6, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
   EXPECT_NEAR(0.001, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_TRUE(pointLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   // directional light
   auto directionalLightEntity = ecm->EntityByComponents(
@@ -790,6 +791,7 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_EQ(
     math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
   EXPECT_TRUE(directionalLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   req.Clear();
   ignition::msgs::Set(req.mutable_diffuse(),
@@ -829,6 +831,8 @@ TEST_F(UserCommandsTest, Light)
     1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
   EXPECT_FALSE(directionalLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::DIRECTIONAL,
+    directionalLightComp->Data().Type());
 
   // spot light
   auto spotLightEntity = ecm->EntityByComponents(
@@ -850,6 +854,7 @@ TEST_F(UserCommandsTest, Light)
     0.001, spotLightComp->Data().QuadraticAttenuationFactor(), 0.001);
   EXPECT_EQ(math::Vector3d(0, 0, -1), spotLightComp->Data().Direction());
   EXPECT_FALSE(spotLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
   EXPECT_NEAR(0.1, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.5, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
   EXPECT_NEAR(0.8, spotLightComp->Data().SpotFalloff(), 0.1);
@@ -892,6 +897,7 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_NEAR(1, spotLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_EQ(math::Vector3d(1, 2, 3), spotLightComp->Data().Direction());
   EXPECT_TRUE(spotLightComp->Data().CastShadows());
+  EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
   EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
   EXPECT_NEAR(0.9, spotLightComp->Data().SpotFalloff(), 0.1);

@@ -827,7 +827,8 @@ void ComponentInspector::OnLight(
   }
 
   // if sdf::LightType::SPOT || sdf::LightType::DIRECTIONAL
-  if (_type == 1 || _type == 2) {
+  if (_type == 1 || _type == 2)
+  {
     ignition::msgs::Set(req.mutable_direction(),
       ignition::math::Vector3d(_directionX, _directionY, _directionZ));
   }

@@ -410,6 +410,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Sensors::Update");
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);

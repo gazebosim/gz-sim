@@ -171,12 +171,6 @@ namespace ignition
       public: void SetWorldPoseCmd(EntityComponentManager &_ecm,
           const math::Pose3d &_pose);
 
-      /// \brief Set a command to change the light.
-      /// \param[in] _ecm Entity-component manager.
-      /// \param[in] _light New model light.
-      public: void SetLightCmd(EntityComponentManager &_ecm,
-          const sdf::Light &_light);
-
       /// \brief Pointer to private data.
       private: std::unique_ptr<ModelPrivate> dataPtr;
     };

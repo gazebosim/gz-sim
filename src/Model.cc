@@ -193,22 +193,3 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
         components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
   }
 }
-
-//////////////////////////////////////////////////
-void Model::SetLightCmd(EntityComponentManager &_ecm,
-    const sdf::Light &_light)
-{
-  auto lightCmdComp = _ecm.Component<components::LightCmd>(
-      this->dataPtr->id);
-  if (!lightCmdComp)
-  {
-    _ecm.CreateComponent(this->dataPtr->id, components::LightCmd(_light));
-  }
-  else
-  {
-    lightCmdComp->SetData(_light,
-        [](const sdf::Light &, const sdf::Light &){return false;});
-    _ecm.SetChanged(this->dataPtr->id,
-        components::LightCmd::typeId, ComponentState::OneTimeChange);
-  }
-}

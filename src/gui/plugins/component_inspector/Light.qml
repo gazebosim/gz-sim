@@ -170,20 +170,6 @@ Rectangle {
     }
   }
 
-  Component {
-    id: readOnlyNumber
-    Text {
-      id: numberText
-      anchors.fill: parent
-      horizontalAlignment: Text.AlignRight
-      verticalAlignment: Text.AlignVCenter
-      text: {
-        var decimals = numberText.width < 100 ? 2 : 6
-        return numberValue.toFixed(decimals)
-      }
-    }
-  }
-
   Column {
     anchors.fill: parent
 

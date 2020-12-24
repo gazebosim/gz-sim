@@ -312,7 +312,8 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(lightService,
       &UserCommandsPrivate::LightService, this->dataPtr.get());
 
-  ignmsg << "Light service on [" << lightService << "]" << std::endl;
+  ignmsg << "Light configuration service on [" << lightService << "]"
+    << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -728,7 +729,7 @@ bool LightCommand::Execute()
   auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
   if (nullptr == lightMsg)
   {
-    ignerr << "Internal error, null create message" << std::endl;
+    ignerr << "Internal error, null light message" << std::endl;
     return false;
   }
 
@@ -791,7 +792,6 @@ bool LightCommand::Execute()
   }
   else
   {
-    /// \todo(anyone) Moving an object is not captured in a log file.
     auto state = lightCmdComp->SetData(lightComp->Data(), this->lightEql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
