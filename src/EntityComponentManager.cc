@@ -52,15 +52,21 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
-  /// \param[out] _msg Entity message
+  /// \param[in, out] _msg Entity message
+  /// \param[in] _types _types Type IDs of components to be serialized. Leave
+  /// empty to get all removed components.
   public: void SetRemovedComponentsMsgs(Entity &_entity,
-                          msgs::SerializedEntity *_msg);
+      msgs::SerializedEntity *_msg,
+      const std::unordered_set<ComponentTypeId> &_types = {});
 
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
-  /// \param[out] _msg State message
+  /// \param[in, out] _msg State message
+  /// \param[in] _types _types Type IDs of components to be serialized. Leave
+  /// empty to get all removed components.
   public: void SetRemovedComponentsMsgs(Entity &_entity,
-                        msgs::SerializedStateMap &_msg);
+      msgs::SerializedStateMap &_msg,
+      const std::unordered_set<ComponentTypeId> &_types = {});
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
@@ -738,7 +744,8 @@ void EntityComponentManager::RebuildViews()
 
 //////////////////////////////////////////////////
 void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
-                                        msgs::SerializedEntity *_entityMsg)
+    msgs::SerializedEntity *_entityMsg,
+    const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
   uint64_t nEntityKeys = this->removedComponents.count(_entity);
@@ -748,9 +755,14 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
   auto it = this->removedComponents.find(_entity);
   for (uint64_t i = 0; i < nEntityKeys; ++i)
   {
-    auto compMsg = _entityMsg->add_components();
-
     auto removedComponent = it->second;
+
+    if (!_types.empty() && _types.find(removedComponent.first) == _types.end())
+    {
+      continue;
+    }
+
+    auto compMsg = _entityMsg->add_components();
 
     // Empty data is needed for the component to be processed afterwards
     compMsg->set_component(" ");
@@ -763,17 +775,18 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
 //////////////////////////////////////////////////
 void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
-                                    msgs::SerializedStateMap &_msg)
+    msgs::SerializedStateMap &_msg,
+    const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
   uint64_t nEntityKeys = this->removedComponents.count(_entity);
   if (nEntityKeys == 0)
     return;
 
-  // The message need not necessarily contain the entity. For instance when
-  // AddEntityToMessage() calls this function, the entity may have some
-  // removed components, but none in entityComponents that changed, so the
-  // entity may not have been added to the message beforehand.
+  // The message need not necessarily contain the entity initially. For
+  // instance, when AddEntityToMessage() calls this function, the entity may
+  // have some removed components but none in entityComponents that changed,
+  // so the entity may not have been added to the message beforehand.
   auto entIter = _msg.mutable_entities()->find(_entity);
   if (entIter == _msg.mutable_entities()->end())
   {
@@ -788,6 +801,11 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
   for (uint64_t i = 0; i < nEntityKeys; ++i)
   {
     auto removedComponent = it->second;
+
+    if (!_types.empty() && _types.find(removedComponent.first) == _types.end())
+    {
+      continue;
+    }
 
     msgs::SerializedComponent compMsg;
 
@@ -853,7 +871,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
-  this->dataPtr->SetRemovedComponentsMsgs(_entity, entityMsg);
+  this->dataPtr->SetRemovedComponentsMsgs(_entity, entityMsg, _types);
 }
 
 //////////////////////////////////////////////////
@@ -955,7 +973,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
-  this->dataPtr->SetRemovedComponentsMsgs(_entity, _msg);
+  this->dataPtr->SetRemovedComponentsMsgs(_entity, _msg, _types);
 }
 
 //////////////////////////////////////////////////
