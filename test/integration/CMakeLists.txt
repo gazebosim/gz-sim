@@ -25,6 +25,7 @@ set(tests
   level_manager_runtime_performers.cc
   link.cc
   logical_camera_system.cc
+  logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
   multicopter.cc
