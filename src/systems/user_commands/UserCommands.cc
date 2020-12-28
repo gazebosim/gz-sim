@@ -776,7 +776,8 @@ bool LightCommand::Execute()
       if (parentComp && this->iface->ecm->Component<components::Link>(
         parentComp->Data()))
       {
-        lightComp = this->iface->ecm->Component<components::Light>(tempLightEnty);
+        lightComp =
+          this->iface->ecm->Component<components::Light>(tempLightEnty);
         lightEntity = tempLightEnty;
       }
     }
