@@ -18,6 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
@@ -111,7 +112,7 @@ Rectangle {
       attLinearItem.value,
       attConstantItem.value,
       attQuadraticItem.value,
-      castShadowsItem,
+      castShadowsItem.checked,
       directionXItem.value,
       directionYItem.value,
       directionZItem.value,
@@ -131,18 +132,32 @@ Rectangle {
    * Used to create a spin box
    */
   Component {
-    id: spinZeroOne
-    IgnSpinBox {
+    id: sliderZeroOne
+    Slider {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: 0
-      maximumValue: 1
-      decimals: 6
-      onEditingFinished: {
+      from: 0.0
+      to: 1.0
+      onValueChanged: {
+        if (hovered){
+          sendLight()
+        }
+      }
+    }
+  }
+
+  Component {
+    id: ignSwitch
+    Switch {
+      id: booleanSwitch
+      checked: numberValue
+      enabled: true
+      onToggled: {
         sendLight()
       }
     }
   }
+
   Component {
     id: spinZeroMax
     IgnSpinBox {
@@ -167,6 +182,35 @@ Rectangle {
       onEditingFinished: {
         sendLight()
       }
+    }
+  }
+
+  Component {
+    id: plotIcon
+    Image {
+      property string componentInfo: ""
+      source: "plottable_icon.svg"
+      anchors.top: parent.top
+      anchors.left: parent.left
+
+      Drag.mimeData: { "text/plain" : (model === null) ? "" :
+      "Component," + model.entity + "," + model.typeId + "," +
+                     model.dataType + "," + componentInfo + "," + model.shortName
+      }
+      Drag.dragType: Drag.Automatic
+      Drag.supportedActions : Qt.CopyAction
+      Drag.active: dragMouse.drag.active
+      // a point to drag from
+      Drag.hotSpot.x: 0
+      Drag.hotSpot.y: y
+      MouseArea {
+        id: dragMouse
+        anchors.fill: parent
+        drag.target: (model === null) ? null : parent
+        onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
+        onReleased: parent.Drag.drop();
+        cursorShape: Qt.DragCopyCursor
+     }
     }
   }
 
@@ -233,833 +277,819 @@ Rectangle {
         }
       }
 
-
-      GridLayout {
+      ColumnLayout {
         id: grid
         width: parent.width
-        columns: 6
 
-        Text {
-          Layout.columnSpan: 6
-          text: "      Specular"
-          color: "dimgrey"
-          width: margin + indentation
+        RowLayout {
+          Layout.alignment : Qt.AlignLeft
+          Text {
+            text: "      Specular"
+            color: "dimgrey"
+            width: margin + indentation
+          }
         }
-
-        // Left spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Component {
-          id: plotIcon
-          Image {
-            property string componentInfo: ""
-            source: "plottable_icon.svg"
-            anchors.top: parent.top
-            anchors.left: parent.left
-
-            Drag.mimeData: { "text/plain" : (model === null) ? "" :
-            "Component," + model.entity + "," + model.typeId + "," +
-                           model.dataType + "," + componentInfo + "," + model.shortName
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: rSpecularText.width + indentation*3
+            Loader {
+              id: loaderSpecularR
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
             }
-            Drag.dragType: Drag.Automatic
-            Drag.supportedActions : Qt.CopyAction
-            Drag.active: dragMouse.drag.active
-            // a point to drag from
-            Drag.hotSpot.x: 0
-            Drag.hotSpot.y: y
-            MouseArea {
-              id: dragMouse
+            Component.onCompleted: loaderSpecularR.item.componentInfo = "specularR"
+
+            Text {
+              id : rSpecularText
+              text: ' R'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: rSpecularLoader
               anchors.fill: parent
-              drag.target: (model === null) ? null : parent
-              onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
-              onReleased: parent.Drag.drop();
-              cursorShape: Qt.DragCopyCursor
-           }
+              property double numberValue: model.data[0]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                rSpecularItem = rSpecularLoader.item
+              }
+            }
           }
-        }
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: gSpecularText.width + indentation*3
+            Loader {
+              id: loaderSpecularG
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderSpecularG.item.componentInfo = "specularG"
 
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: rSpecularText.width + indentation*3
-          Loader {
-            id: loaderSpecularR
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            Text {
+              id : gSpecularText
+              text: ' G'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderSpecularR.item.componentInfo = "specularR"
-
-          Text {
-            id : rSpecularText
-            text: ' R'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: rSpecularLoader
-            anchors.fill: parent
-            property double numberValue: model.data[0]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              rSpecularItem = rSpecularLoader.item
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: gSpecularLoader
+              anchors.fill: parent
+              property double numberValue: model.data[1]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                gSpecularItem = gSpecularLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: gSpecularText.width + indentation*3
-          Loader {
-            id: loaderSpecularG
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: bSpecularText.width + indentation*3
+            Loader {
+              id: loaderSpecularB
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderSpecularB.item.componentInfo = "specularB"
+
+            Text {
+              id : bSpecularText
+              text: ' B'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderSpecularG.item.componentInfo = "specularG"
-
-          Text {
-            id : gSpecularText
-            text: ' G'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: bSpecularLoader
+              anchors.fill: parent
+              property double numberValue: model.data[2]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                bSpecularItem = bSpecularLoader.item
+              }
+            }
           }
-        }
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: aSpecularText.width + indentation*3
+            Loader {
+              id: loaderSpecularA
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderSpecularA.item.componentInfo = "specularA"
 
-        // Right spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: gSpecularLoader
-            anchors.fill: parent
-            property double numberValue: model.data[1]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              gSpecularItem = gSpecularLoader.item
+            Text {
+              id : aSpecularText
+              text: ' A'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: aSpecularLoader
+              anchors.fill: parent
+              property double numberValue: model.data[3]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                aSpecularItem = aSpecularLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: bSpecularText.width + indentation*3
-          Loader {
-            id: loaderSpecularB
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderSpecularB.item.componentInfo = "specularB"
-
-          Text {
-            id : bSpecularText
-            text: ' B'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: bSpecularLoader
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              bSpecularItem = bSpecularLoader.item
+        RowLayout {
+          Layout.alignment: Qt.AlignHCenter
+          Button {
+            Layout.alignment: Qt.AlignHCenter
+            id: specularColor
+            text: qsTr("Specular Color")
+            onClicked: colorDialog.open()
+            ColorDialog {
+              id: colorDialog
+              title: "Choose a specular color"
+              visible: false
+              onAccepted: {
+                rSpecularLoader.numberValue = colorDialog.color.r
+                gSpecularLoader.numberValue = colorDialog.color.g
+                bSpecularLoader.numberValue = colorDialog.color.b
+                aSpecularLoader.numberValue = colorDialog.color.a
+                sendLight()
+                colorDialog.close()
+              }
+              onRejected: {
+                colorDialog.close()
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: aSpecularText.width + indentation*3
-          Loader {
-            id: loaderSpecularA
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderSpecularA.item.componentInfo = "specularA"
-
+        RowLayout {
           Text {
-            id : aSpecularText
-            text: ' A'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+            Layout.columnSpan: 6
+            text: "      Diffuse"
+            color: "dimgrey"
+            width: margin + indentation
           }
         }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: aSpecularLoader
-            anchors.fill: parent
-            property double numberValue: model.data[3]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              aSpecularItem = aSpecularLoader.item
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: rDiffuseText.width + indentation*3
+            Loader {
+              id: loaderDiffuseR
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDiffuseR.item.componentInfo = "diffuseR"
+
+            Text {
+              id : rDiffuseText
+              text: ' R'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: rDiffuseLoader
+              anchors.fill: parent
+              property double numberValue: model.data[4]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                rDiffuseItem = rDiffuseLoader.item
+              }
+            }
+          }
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: gDiffuseText.width + indentation*3
+            Loader {
+              id: loaderDiffuseG
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDiffuseG.item.componentInfo = "diffuseG"
+
+            Text {
+              id : gDiffuseText
+              text: ' G'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: gDiffuseLoader
+              anchors.fill: parent
+              property double numberValue: model.data[5]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                gDiffuseItem = gDiffuseLoader.item
+              }
             }
           }
         }
-        // Right spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: bDiffuseText.width + indentation*3
+            Loader {
+              id: loaderDiffuseB
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDiffuseB.item.componentInfo = "diffuseB"
 
-        Text {
-          Layout.columnSpan: 6
-          text: "      Diffuse"
-          color: "dimgrey"
-          width: margin + indentation
-        }
-
-        // Left spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: rDiffuseText.width + indentation*3
-          Loader {
-            id: loaderDiffuseR
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            Text {
+              id : bDiffuseText
+              text: ' B'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderDiffuseR.item.componentInfo = "diffuseR"
-
-          Text {
-            id : rDiffuseText
-            text: ' R'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: bDiffuseLoader
+              anchors.fill: parent
+              property double numberValue: model.data[6]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                bDiffuseItem = bDiffuseLoader.item
+              }
+            }
           }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: rDiffuseLoader
-            anchors.fill: parent
-            property double numberValue: model.data[4]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              rDiffuseItem = rDiffuseLoader.item
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: aDiffuseText.width + indentation*3
+            Loader {
+              id: loaderDiffuseA
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDiffuseA.item.componentInfo = "diffuseA"
+
+            Text {
+              id : aDiffuseText
+              text: ' A'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: aDiffuseLoader
+              anchors.fill: parent
+              property double numberValue: model.data[7]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                aDiffuseItem = aDiffuseLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: gDiffuseText.width + indentation*3
-          Loader {
-            id: loaderDiffuseG
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderDiffuseG.item.componentInfo = "diffuseG"
-
-          Text {
-            id : gDiffuseText
-            text: ' G'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-
-        // Right spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: gDiffuseLoader
-            anchors.fill: parent
-            property double numberValue: model.data[5]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              gDiffuseItem = gDiffuseLoader.item
+        RowLayout {
+          Layout.alignment: Qt.AlignHCenter
+          Button {
+            Layout.alignment: Qt.AlignHCenter
+            id: diffuseColor
+            text: qsTr("Diffuse Color")
+            onClicked: colorDialogDiffuse.open()
+            ColorDialog {
+              id: colorDialogDiffuse
+              title: "Choose a diffuse color"
+              visible: false
+              onAccepted: {
+                rDiffuseLoader.numberValue = colorDialogDiffuse.color.r
+                gDiffuseLoader.numberValue = colorDialogDiffuse.color.g
+                bDiffuseLoader.numberValue = colorDialogDiffuse.color.b
+                aDiffuseLoader.numberValue = colorDialogDiffuse.color.a
+                sendLight()
+                colorDialogDiffuse.close()
+              }
+              onRejected: {
+                colorDialogDiffuse.close()
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: bDiffuseText.width + indentation*3
-          Loader {
-            id: loaderDiffuseB
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderDiffuseB.item.componentInfo = "diffuseB"
-
+        RowLayout {
           Text {
-            id : bDiffuseText
-            text: ' B'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+            Layout.columnSpan: 6
+            text: "      Attenuation"
+            color: "dimgrey"
+            width: margin + indentation
           }
         }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: bDiffuseLoader
-            anchors.fill: parent
-            property double numberValue: model.data[6]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              bDiffuseItem = bDiffuseLoader.item
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: attRangeText.width + indentation*3
+            Loader {
+              id: loaderAttRange
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderAttRange.item.componentInfo = "attRange"
+
+            Text {
+              id : attRangeText
+              text: ' Range'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: attRangeLoader
+              anchors.fill: parent
+              property double numberValue: model.data[8]
+              sourceComponent: spinZeroMax
+              onLoaded: {
+                attRangeItem = attRangeLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: aDiffuseText.width + indentation*3
-          Loader {
-            id: loaderDiffuseA
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderDiffuseA.item.componentInfo = "diffuseA"
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: attLinearText.width + indentation*3
+            Loader {
+              id: loaderAttLinear
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderAttLinear.item.componentInfo = "attLinear"
 
-          Text {
-            id : aDiffuseText
-            text: ' A'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+            Text {
+              id : attLinearText
+              text: ' Linear'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: aDiffuseLoader
-            anchors.fill: parent
-            property double numberValue: model.data[7]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              aDiffuseItem = aDiffuseLoader.item
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: attLinearLoader
+              anchors.fill: parent
+              property double numberValue: model.data[9]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                attLinearItem = attLinearLoader.item
+              }
             }
           }
         }
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: attConstantText.width + indentation*3
+            Loader {
+              id: loaderAttConstant
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderAttConstant.item.componentInfo = "attConstant"
 
-        Text {
-          Layout.columnSpan: 6
-          text: "      Attenuation"
-          color: "dimgrey"
-          width: margin + indentation
-        }
-
-        // Left spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: attRangeText.width + indentation*3
-          Loader {
-            id: loaderAttRange
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            Text {
+              id : attConstantText
+              text: ' Constant'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderAttRange.item.componentInfo = "attRange"
-
-          Text {
-            id : attRangeText
-            text: ' Range'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: attRangeLoader
-            anchors.fill: parent
-            property double numberValue: model.data[8]
-            sourceComponent: spinZeroMax
-            onLoaded: {
-              attRangeItem = attRangeLoader.item
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: attConstantLoader
+              anchors.fill: parent
+              property double numberValue: model.data[10]
+              sourceComponent: sliderZeroOne
+              onLoaded: {
+                attConstantItem = attConstantLoader.item
+              }
             }
           }
         }
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: attQuadraticText.width + indentation*3
+            Loader {
+              id: loaderAttQuadratic
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderAttQuadratic.item.componentInfo = "attQuadratic"
 
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: attLinearText.width + indentation*3
-          Loader {
-            id: loaderAttLinear
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            Text {
+              id : attQuadraticText
+              text: ' Quadratic'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderAttLinear.item.componentInfo = "attLinear"
-
-          Text {
-            id : attLinearText
-            text: ' Linear'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-
-        // Right spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: attLinearLoader
-            anchors.fill: parent
-            property double numberValue: model.data[9]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              attLinearItem = attLinearLoader.item
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Loader {
+              id: attQuadraticLoader
+              anchors.fill: parent
+              property double numberValue: model.data[11]
+              sourceComponent: spinZeroMax
+              onLoaded: {
+                attQuadraticItem = attQuadraticLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: attConstantText.width + indentation*3
-          Loader {
-            id: loaderAttConstant
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderAttConstant.item.componentInfo = "attConstant"
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: castShadowsText.width + indentation*3
+            Loader {
+              id: loaderCastShadows
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderCastShadows.item.componentInfo = "castshadows"
 
-          Text {
-            id : attConstantText
-            text: ' Constant'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+            Text {
+              id : castShadowsText
+              text: ' Cast shadows'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: attConstantLoader
-            anchors.fill: parent
-            property double numberValue: model.data[10]
-            sourceComponent: spinZeroOne
-            onLoaded: {
-              attConstantItem = attConstantLoader.item
+          Item {
+            Layout.fillWidth: true
+            height: 40
+
+            Loader {
+              id: castShadowLoader
+              anchors.fill: parent
+              property double numberValue: model.data[12]
+              sourceComponent: ignSwitch
+              onLoaded: {
+                castShadowsItem = castShadowLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: attQuadraticText.width + indentation*3
-          Loader {
-            id: loaderAttQuadratic
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderAttQuadratic.item.componentInfo = "attQuadratic"
-
-          Text {
-            id : attQuadraticText
-            text: ' Quadratic'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: attQuadraticLoader
-            anchors.fill: parent
-            property double numberValue: model.data[11]
-            sourceComponent: spinZeroMax
-            onLoaded: {
-              attQuadraticItem = attQuadraticLoader.item
-            }
-          }
-        }
-
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: castShadowsText.width + indentation*3
-          Loader {
-            id: loaderCastShadows
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderCastShadows.item.componentInfo = "castshadows"
-
-          Text {
-            id : castShadowsText
-            text: ' Cast shadows'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          Layout.fillWidth: true
-          height: 40
-
-          Switch {
-            id: booleanSwitchCastShadows
-            checked: model.data[12]
-            enabled: true
-
-            onToggled: {
-              castShadowsItem = checked
-              sendLight()
-            }
-          }
-        }
-
-        Text {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          Layout.columnSpan: 6
-          text: "      Direction"
-          color: "dimgrey"
-          width: margin + indentation
-        }
-
-        // Left spacer
-        Item {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Rectangle {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: xDirectionText.width + indentation*3
-          Loader {
-            id: loaderDirectionX
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderDirectionX.item.componentInfo = "directionX"
-
+        RowLayout {
           Text {
             visible: model.data[19] === 1 || model.data[19] === 2
-            id : xDirectionText
-            text: ' X:'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+            Layout.columnSpan: 6
+            text: "      Direction"
+            color: "dimgrey"
+            width: margin + indentation
           }
         }
-        Item {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          Layout.fillWidth: true
-          height: 40
-          Layout.columnSpan: 4
-          Loader {
-            id: xDirectionLoader
-            anchors.fill: parent
-            property double numberValue: model.data[13]
-            sourceComponent: spinNoLimit
-            onLoaded: {
-              directionXItem = xDirectionLoader.item
-            }
-          }
-        }
-
-        Rectangle {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: yDirectionText.width + indentation*3
-          Loader {
-            id: loaderDirectionY
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderDirectionY.item.componentInfo = "directionY"
-
-          Text {
+        RowLayout {
+          Rectangle {
             visible: model.data[19] === 1 || model.data[19] === 2
-            id : yDirectionText
-            text: ' Y:'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          Layout.fillWidth: true
-          height: 40
-          Layout.columnSpan: 4
-          Loader {
-            id: yDirectionLoader
-            anchors.fill: parent
-            property double numberValue: model.data[14]
-            sourceComponent: spinNoLimit
-            onLoaded: {
-              directionYItem = yDirectionLoader.item
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: xDirectionText.width + indentation*3
+            Loader {
+              id: loaderDirectionX
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDirectionX.item.componentInfo = "directionX"
+
+            Text {
+              visible: model.data[19] === 1 || model.data[19] === 2
+              id : xDirectionText
+              text: ' X:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
             }
           }
-        }
-
-        Rectangle {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: zDirectionText.width + indentation*3
-          Loader {
-            id: loaderDirectionZ
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderDirectionZ.item.componentInfo = "directionZ"
-
-          Text {
+          Item {
             visible: model.data[19] === 1 || model.data[19] === 2
-            id : zDirectionText
-            text: ' Z:'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          visible: model.data[19] === 1 || model.data[19] === 2
-          Layout.fillWidth: true
-          height: 40
-          Layout.columnSpan: 4
-          Loader {
-            id: zDirectionLoader
-            anchors.fill: parent
-            property double numberValue: model.data[15]
-            sourceComponent: spinNoLimit
-            onLoaded: {
-              directionZItem = zDirectionLoader.item
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: xDirectionLoader
+              anchors.fill: parent
+              property double numberValue: model.data[13]
+              sourceComponent: spinNoLimit
+              onLoaded: {
+                directionXItem = xDirectionLoader.item
+              }
             }
           }
         }
+        RowLayout {
+          Rectangle {
+            visible: model.data[19] === 1 || model.data[19] === 2
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: yDirectionText.width + indentation*3
+            Loader {
+              id: loaderDirectionY
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDirectionY.item.componentInfo = "directionY"
 
-        Text {
-          visible: model.data[19] === 1
-          Layout.columnSpan: 6
-          text: "      Spot features"
-          color: "dimgrey"
-          width: margin + indentation
-        }
-
-        // Left spacer
-        Item {
-          visible: model.data[19] === 1
-          Layout.rowSpan: 3
-          width: margin + indentation
-        }
-
-        Rectangle {
-          visible: model.data[19] === 1
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: innerAngleText.width + indentation*3
-          Loader {
-            id: loaderInnerAngle
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            Text {
+              visible: model.data[19] === 1 || model.data[19] === 2
+              id : yDirectionText
+              text: ' Y:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderInnerAngle.item.componentInfo = "innerAngle"
-
-          Text {
-            visible: model.data[19] === 1
-            id : innerAngleText
-            text: ' Inner Angle:'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          visible: model.data[19] === 1
-          Layout.fillWidth: true
-          height: 40
-          Layout.columnSpan: 4
-          Loader {
-            id: innerAngleLoader
-            anchors.fill: parent
-            property double numberValue: model.data[16]
-            sourceComponent: spinNoLimit
-            onLoaded: {
-              innerAngleItem = innerAngleLoader.item
+          Item {
+            visible: model.data[19] === 1 || model.data[19] === 2
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: yDirectionLoader
+              anchors.fill: parent
+              property double numberValue: model.data[14]
+              sourceComponent: spinNoLimit
+              onLoaded: {
+                directionYItem = yDirectionLoader.item
+              }
             }
           }
         }
+        RowLayout {
+          Rectangle {
+            visible: model.data[19] === 1 || model.data[19] === 2
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: zDirectionText.width + indentation*3
+            Loader {
+              id: loaderDirectionZ
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderDirectionZ.item.componentInfo = "directionZ"
 
-        Rectangle {
-          visible: model.data[19] === 1
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: outerAngleText.width + indentation*3
-          Loader {
-            id: loaderOuterAngle
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            Text {
+              visible: model.data[19] === 1 || model.data[19] === 2
+              id : zDirectionText
+              text: ' Z:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
-          Component.onCompleted: loaderOuterAngle.item.componentInfo = "outerAngle"
-
-          Text {
-            visible: model.data[19] === 1
-            id : outerAngleText
-            text: ' Outer angle:'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
-        Item {
-          visible: model.data[19] === 1
-          Layout.fillWidth: true
-          height: 40
-          Layout.columnSpan: 4
-          Loader {
-            id: outerAngleLoader
-            anchors.fill: parent
-            property double numberValue: model.data[17]
-            sourceComponent: spinNoLimit
-            onLoaded: {
-              outerAngleItem = outerAngleLoader.item
+          Item {
+            visible: model.data[19] === 1 || model.data[19] === 2
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: zDirectionLoader
+              anchors.fill: parent
+              property double numberValue: model.data[15]
+              sourceComponent: spinNoLimit
+              onLoaded: {
+                directionZItem = zDirectionLoader.item
+              }
             }
           }
         }
-        Rectangle {
-          visible: model.data[19] === 1
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: fallOffText.width + indentation*3
-          Loader {
-            id: loaderFallOff
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderFallOff.item.componentInfo = "falloff"
-
+        RowLayout {
           Text {
             visible: model.data[19] === 1
-            id : fallOffText
-            text: ' Falloff:'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
+            Layout.columnSpan: 6
+            text: "      Spot features"
+            color: "dimgrey"
+            width: margin + indentation
           }
         }
-        Item {
-          visible: model.data[19] === 1
-          Layout.fillWidth: true
-          height: 40
-          Layout.columnSpan: 4
-          Loader {
-            id: fallOffLoader
-            anchors.fill: parent
-            property double numberValue: model.data[18]
-            sourceComponent: spinZeroMax
-            onLoaded: {
-              falloffItem = fallOffLoader.item
+        RowLayout {
+          Rectangle {
+            visible: model.data[19] === 1
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: innerAngleText.width + indentation*3
+            Loader {
+              id: loaderInnerAngle
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderInnerAngle.item.componentInfo = "innerAngle"
+
+            Text {
+              visible: model.data[19] === 1
+              id : innerAngleText
+              text: ' Inner Angle:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            visible: model.data[19] === 1
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: innerAngleLoader
+              anchors.fill: parent
+              property double numberValue: model.data[16]
+              sourceComponent: spinNoLimit
+              onLoaded: {
+                innerAngleItem = innerAngleLoader.item
+              }
+            }
+          }
+        }
+        RowLayout {
+          Rectangle {
+            visible: model.data[19] === 1
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: outerAngleText.width + indentation*3
+            Loader {
+              id: loaderOuterAngle
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderOuterAngle.item.componentInfo = "outerAngle"
+
+            Text {
+              visible: model.data[19] === 1
+              id : outerAngleText
+              text: ' Outer angle:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            visible: model.data[19] === 1
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: outerAngleLoader
+              anchors.fill: parent
+              property double numberValue: model.data[17]
+              sourceComponent: spinNoLimit
+              onLoaded: {
+                outerAngleItem = outerAngleLoader.item
+              }
+            }
+          }
+        }
+        RowLayout {
+          Rectangle {
+            visible: model.data[19] === 1
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: fallOffText.width + indentation*3
+            Loader {
+              id: loaderFallOff
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderFallOff.item.componentInfo = "falloff"
+
+            Text {
+              visible: model.data[19] === 1
+              id : fallOffText
+              text: ' Falloff:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            visible: model.data[19] === 1
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: fallOffLoader
+              anchors.fill: parent
+              property double numberValue: model.data[18]
+              sourceComponent: spinZeroMax
+              onLoaded: {
+                falloffItem = fallOffLoader.item
+              }
             }
           }
         }

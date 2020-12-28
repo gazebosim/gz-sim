@@ -733,32 +733,56 @@ bool LightCommand::Execute()
     return false;
   }
 
-  auto entity = this->iface->ecm->EntityByComponents(
-      components::Name(lightMsg->name()),
-      components::ParentEntity(this->iface->worldEntity));
+  Entity lightEntity{kNullEntity};
 
-  auto lightComp = this->iface->ecm->Component<components::Light>(entity);
+  if (lightMsg->id() != 0)
+  {
+    lightEntity = lightMsg->id();
+  }
+  else if (!lightMsg->name().empty())
+  {
+    if (lightMsg->parent_id() != 0)
+    {
+      lightEntity = this->iface->ecm->EntityByComponents(
+        components::Name(lightMsg->name()),
+        components::ParentEntity(lightMsg->parent_id()));
+    }
+    else
+    {
+      lightEntity = this->iface->ecm->EntityByComponents(
+        components::Name(lightMsg->name()));
+    }
+  }
+  if (kNullEntity == lightEntity)
+  {
+    ignerr << "Failed to find light with name [" << lightMsg->name()
+           << "], ID [" << lightMsg->id() << "] and parent ID ["
+           << lightMsg->parent_id() << "]." << std::endl;
+    return false;
+  }
+
+  auto lightComp = this->iface->ecm->Component<components::Light>(lightEntity);
   if (nullptr == lightComp)
   {
-    entity = kNullEntity;
+    lightEntity = kNullEntity;
     // try to find the light inside a link
-    auto lightEnt = this->iface->ecm->EntityByComponents(
+    auto tempLightEnty = this->iface->ecm->EntityByComponents(
       components::Name(lightMsg->name()));
-    if (lightEnt != kNullEntity)
+    if (tempLightEnty != kNullEntity)
     {
       // check if light parent is a link
       auto parentComp = this->iface->ecm->Component<components::ParentEntity>(
-        lightEnt);
+        tempLightEnty);
       if (parentComp && this->iface->ecm->Component<components::Link>(
         parentComp->Data()))
       {
-        lightComp = this->iface->ecm->Component<components::Light>(lightEnt);
-        entity = lightEnt;
+        lightComp = this->iface->ecm->Component<components::Light>(tempLightEnty);
+        lightEntity = tempLightEnty;
       }
     }
   }
 
-  if (!entity)
+  if (!lightEntity)
   {
     ignmsg << "Failed to find light entity named [" << lightMsg->name()
       << "]." << std::endl;
@@ -768,11 +792,11 @@ bool LightCommand::Execute()
   sdf::Light lightSDF = convert<sdf::Light>(*lightMsg);
   lightComp->Data() = lightSDF;
 
-  auto lightPose = this->iface->ecm->Component<components::Pose>(entity);
+  auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
   if (nullptr == lightPose)
-    entity = kNullEntity;
+    lightEntity = kNullEntity;
 
-  if (!entity)
+  if (!lightEntity)
   {
     ignmsg << "Pose component not available" << std::endl;
     return false;
@@ -784,18 +808,18 @@ bool LightCommand::Execute()
   }
 
   auto lightCmdComp =
-    this->iface->ecm->Component<components::LightCmd>(entity);
+    this->iface->ecm->Component<components::LightCmd>(lightEntity);
   if (!lightCmdComp)
   {
     this->iface->ecm->CreateComponent(
-        entity, components::LightCmd(lightComp->Data()));
+        lightEntity, components::LightCmd(lightComp->Data()));
   }
   else
   {
     auto state = lightCmdComp->SetData(lightComp->Data(), this->lightEql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::LightCmd::typeId,
+    this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
         state);
   }
 
