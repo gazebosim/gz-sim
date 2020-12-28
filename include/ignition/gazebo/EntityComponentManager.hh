@@ -226,6 +226,20 @@ namespace ignition
               std::optional<typename ComponentTypeT::Type> ComponentData(
               const Entity _entity) const;
 
+      /// \brief Set the data from a component.
+      /// * If the component type doesn't hold any data, this won't compile.
+      /// * If the entity doesn't have that component, the component will be
+      ///   created.
+      /// * If the entity has the component, its data will be updated.
+      /// \param[in] _entity The entity.
+      /// \param[in] _data New component data
+      /// \tparam ComponentTypeT Component type
+      /// \return True if data has changed. It will always be true if the data
+      /// type doesn't have an equality operator.
+      public: template<typename ComponentTypeT>
+              bool SetComponentData(const Entity _entity,
+              const typename ComponentTypeT::Type &_data);
+
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.
       /// \return All the component type IDs.
