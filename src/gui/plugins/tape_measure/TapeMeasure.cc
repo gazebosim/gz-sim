@@ -288,7 +288,9 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 
         // Notify Scene3D that we are done using the right click, so it can
         // re-enable the settings menu
-        ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(true);
+        ignition::gui::events::DropdownMenuEnabled
+          dropdownMenuEnabledEvent(true);
+
         ignition::gui::App()->sendEvent(
             ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
             &dropdownMenuEnabledEvent);

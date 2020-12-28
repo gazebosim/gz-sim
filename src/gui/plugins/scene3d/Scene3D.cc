@@ -264,9 +264,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// resource with the shapes plugin or not
     public: bool isPlacing = false;
 
-    /// \brief Atomic bool indicating whether the right click menu
+    /// \brief Atomic bool indicating whether the dropdown menu
     /// is currently enabled or disabled.
-    public: std::atomic_bool rightClickMenuEnabled = true;
+    public: std::atomic_bool dropdownMenuEnabled = true;
 
     /// \brief The SDF string of the resource to be used with plugins that spawn
     /// entities.
@@ -948,8 +948,8 @@ void IgnRenderer::BroadcastRightClick()
       this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
       !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
   {
-    // If the right click menu is disabled, quash the mouse event
-    if (!this->dataPtr->rightClickMenuEnabled)
+    // If the dropdown menu is disabled, quash the mouse event
+    if (!this->dataPtr->dropdownMenuEnabled)
       this->dataPtr->mouseDirty = false;
 
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
@@ -1847,9 +1847,9 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRightClickMenu(bool _enableRightClickMenu)
+void IgnRenderer::SetDropdownMenuEnabled(bool _enableDropdownMenu)
 {
-  this->dataPtr->rightClickMenuEnabled = _enableRightClickMenu;
+  this->dataPtr->dropdownMenuEnabled = _enableDropdownMenu;
 }
 
 /////////////////////////////////////////////////
@@ -2940,7 +2940,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     if (dropdownMenuEnabledEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetRightClickMenu(dropdownMenuEnabledEvent->MenuEnabled());
+      renderWindow->SetDropdownMenuEnabled(
+          dropdownMenuEnabledEvent->MenuEnabled());
     }
   }
 
@@ -2975,9 +2976,10 @@ void RenderWindowItem::SetModelPath(const std::string &_filePath)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::SetRightClickMenu(bool _enableRightClickMenu)
+void RenderWindowItem::SetDropdownMenuEnabled(bool _enableDropdownMenu)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRightClickMenu(_enableRightClickMenu);
+  this->dataPtr->renderThread->ignRenderer.SetDropdownMenuEnabled(
+      _enableDropdownMenu);
 }
 
 /////////////////////////////////////////////////
