@@ -28,6 +28,10 @@
       name="ignition::gazebo::systems::Altimeter">
     </plugin>
     <plugin
+      filename="ignition-gazebo-gps-system"
+      name="ignition::gazebo::systems::Gps">
+    </plugin>
+    <plugin
       filename="ignition-gazebo-imu-system"
       name="ignition::gazebo::systems::Imu">
     </plugin>
@@ -153,6 +157,13 @@
           </air_pressure>
         </sensor>
 
+        <sensor name="gps" type="gps">
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+          <visualize>true</visualize>
+          <topic>gps</topic>
+        </sensor>
+
         <sensor name="imu" type="imu">
           <always_on>1</always_on>
           <update_rate>100</update_rate>
@@ -160,6 +171,7 @@
           <topic>imu</topic>
           <enable_metrics>true</enable_metrics>
         </sensor>
+
         <sensor name="magnetometer" type="magnetometer">
           <always_on>1</always_on>
           <update_rate>100</update_rate>
@@ -178,7 +190,7 @@
                 <mean>0.0</mean>
                 <stddev>0.1</stddev>
               </noise>
-            </y>
+	    </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
