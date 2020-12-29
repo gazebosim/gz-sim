@@ -264,6 +264,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// resource with the shapes plugin or not
     public: bool isPlacing = false;
 
+    /// \brief Atomic bool indicating whether the dropdown menu
+    /// is currently enabled or disabled.
+    public: std::atomic_bool dropdownMenuEnabled = true;
+
     /// \brief The SDF string of the resource to be used with plugins that spawn
     /// entities.
     public: std::string spawnSdfString;
@@ -900,6 +904,7 @@ void IgnRenderer::HandleMouseEvent()
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->BroadcastHoverPos();
   this->BroadcastLeftClick();
+  this->BroadcastRightClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
@@ -933,6 +938,26 @@ void IgnRenderer::BroadcastLeftClick()
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &leftClickToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastRightClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    // If the dropdown menu is disabled, quash the mouse event
+    if (!this->dataPtr->dropdownMenuEnabled)
+      this->dataPtr->mouseDirty = false;
+
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &rightClickToSceneEvent);
   }
 }
 
@@ -1819,6 +1844,12 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->isSpawning = true;
   this->dataPtr->spawnSdfPath = _filePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+{
+  this->dataPtr->dropdownMenuEnabled = _enableDropdownMenu;
 }
 
 /////////////////////////////////////////////////
@@ -2901,6 +2932,18 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
     }
   }
+  else if (_event->type() ==
+      ignition::gui::events::DropdownMenuEnabled::kType)
+  {
+    auto dropdownMenuEnabledEvent =
+      reinterpret_cast<ignition::gui::events::DropdownMenuEnabled *>(_event);
+    if (dropdownMenuEnabledEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetDropdownMenuEnabled(
+          dropdownMenuEnabledEvent->MenuEnabled());
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
@@ -2930,6 +2973,13 @@ void RenderWindowItem::SetModel(const std::string &_model)
 void RenderWindowItem::SetModelPath(const std::string &_filePath)
 {
   this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+{
+  this->dataPtr->renderThread->ignRenderer.SetDropdownMenuEnabled(
+      _enableDropdownMenu);
 }
 
 /////////////////////////////////////////////////
