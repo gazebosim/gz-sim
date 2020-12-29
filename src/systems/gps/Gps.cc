@@ -182,10 +182,21 @@ void GpsPrivate::UpdateGps(const EntityComponentManager &_ecm)
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          math::Vector3d linearVel;
+          math::Vector3d worldCoords;
           math::Pose3d worldPose = _worldPose->Data();
-          it->second->SetLatitude(worldPose.Pos().X());
-          it->second->SetLongitude(worldPose.Pos().Y());
+          math::SphericalCoordinates sphericalCoords;
+
+          //TODO apply position noise before converting to global frame
+
+          worldCoords = sphericalCoords.SphericalFromLocalPosition(
+            worldPose.Pos()
+          );
+
+          it->second->SetLatitude(worldCoords.X());
+          it->second->SetLongitude(worldCoords.Y());
+          //TODO set altitude
+          //TODO set velocity
+
           //it->second->SetPosition(worldPose.Pos().Z());
           //it->second->SetVerticalVelocity(_worldLinearVel->Data().Z());
         }
