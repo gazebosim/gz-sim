@@ -543,6 +543,12 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/demo_joint_types.sdf";
+  sdf::Root root;
+  const auto errors = root.Load(sdfFile);
+  for (const auto & error : errors)
+  {
+    std::cerr << error << std::endl;
+  }
   serverConfig.SetSdfFile(sdfFile);
 
   gazebo::Server server(serverConfig);
@@ -615,75 +621,6 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, GetBoundingBox)
-{
-  ignition::gazebo::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/contact.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  gazebo::Server server(serverConfig);
-
-  server.SetUpdatePeriod(1ns);
-
-  // a map of model name to its axis aligned box
-  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
-
-  // Create a system that records the bounding box of a model
-  test::Relay testSystem;
-
-  testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Model, components::Name, components::Static>(
-        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
-        const components::Name *_name, const components::Static *)->bool
-        {
-          // create axis aligned box to be filled by physics
-          if (_name->Data() == "box1")
-          {
-            auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
-            // the test only runs for 1 iteration so the component should be
-            // null in the first iteration.
-            EXPECT_EQ(bboxComp, nullptr);
-            _ecm.CreateComponent(_entity, components::AxisAlignedBox());
-            return true;
-          }
-          return true;
-        });
-    });
-
-  testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
-    {
-      // store models that have axis aligned box computed
-      _ecm.Each<components::Model, components::Name, components::Static,
-        components::AxisAlignedBox>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
-        const components::Name *_name, const components::Static *,
-        const components::AxisAlignedBox *_aabb)->bool
-        {
-          bbox[_name->Data()] = _aabb->Data();
-          return true;
-        });
-    });
-
-  server.AddSystem(testSystem.systemPtr);
-  const size_t iters = 1;
-  server.Run(true, iters, false);
-
-  EXPECT_EQ(1u, bbox.size());
-  EXPECT_EQ("box1", bbox.begin()->first);
-  EXPECT_EQ(ignition::math::AxisAlignedBox(
-      ignition::math::Vector3d(-1.25, -2, 0),
-      ignition::math::Vector3d(-0.25, 2, 1)),
-      bbox.begin()->second);
-}
-
-///////////////////////////////////////////////
 /// Test joint position reset component
 TEST_F(PhysicsSystemFixture, ResetPositionComponent)
 {
@@ -761,10 +698,17 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
               const components::JointPosition *_pos)
           {
             EXPECT_NE(nullptr, _name);
-
-            if (_name->Data() == rotatingJointName)
+            EXPECT_NE(nullptr, _pos);
+            if (nullptr == _pos)
             {
-              positions.push_back(_pos->Data()[0]);
+              return true;
+            }
+
+            if (_name->Data() == rotatingJointName && _pos->Data().size() > 0)
+            {
+              const auto & d = _pos->Data();
+              double x = d[0];
+              positions.push_back(x);
             }
             return true;
           });
@@ -811,33 +755,142 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
   // cppcheck-suppress variableScope
   bool firstRun = true;
 
-  modelIt = postUpModelPoses.find("model_01");
-  EXPECT_NE(postUpModelPoses.end(), modelIt);
-  EXPECT_EQ(math::Pose3d(1.0, 0, 0.0, 0, 0, 0), modelIt->second);
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Joint *, components::Name *_name) -> bool
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            auto resetComp =
+                _ecm.Component<components::JointVelocityReset>(_entity);
+            auto velocity = _ecm.Component<components::JointVelocity>(_entity);
 
-  auto linkIt = postUpLinkPoses.find("link_00");
-  EXPECT_NE(postUpLinkPoses.end(), linkIt);
-  EXPECT_EQ(math::Pose3d(0, 0, 0.0, 0, 0, 0), linkIt->second);
+            if (firstRun)
+            {
+              firstRun = false;
 
-  linkIt = postUpLinkPoses.find("link_01");
-  EXPECT_NE(postUpLinkPoses.end(), linkIt);
-  EXPECT_EQ(math::Pose3d(0.25, 0, 0.0, 0, 0, 0), linkIt->second);
+              EXPECT_EQ(nullptr, resetComp);
+              _ecm.CreateComponent(_entity,
+                                   components::JointVelocityReset({vel0}));
 
-  auto parentIt = parents.find("model_00");
-  EXPECT_NE(parents.end(), parentIt);
-  EXPECT_EQ("nested_model_world", parentIt->second);
+              EXPECT_EQ(nullptr, velocity);
+              _ecm.CreateComponent(_entity, components::JointVelocity());
+            }
+            else
+            {
+              EXPECT_EQ(nullptr, resetComp);
+              EXPECT_NE(nullptr, velocity);
+            }
+          }
+          return true;
+        });
+    });
 
-  parentIt = parents.find("model_01");
-  EXPECT_NE(parents.end(), parentIt);
-  EXPECT_EQ("model_00", parentIt->second);
+  std::vector<double> velocities;
 
-  parentIt = parents.find("link_00");
-  EXPECT_NE(parents.end(), parentIt);
-  EXPECT_EQ("model_00", parentIt->second);
+  testSystem.OnPostUpdate([&](
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint,
+                components::Name,
+                components::JointVelocity>(
+        [&](const ignition::gazebo::Entity &,
+            const components::Joint *,
+            const components::Name *_name,
+            const components::JointVelocity *_vel)
+        {
+          if (_name->Data() == rotatingJointName && !_vel->Data().empty())
+          {
+            velocities.push_back(_vel->Data()[0]);
+          }
+          return true;
+        });
+    });
 
-  parentIt = parents.find("link_01");
-  EXPECT_NE(parents.end(), parentIt);
-  EXPECT_EQ("model_01", parentIt->second);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 2, false);
+
+  ASSERT_EQ(velocities.size(), 2ul);
+
+  // First velocity should be exactly the same
+  // TODO(anyone): we should use EXPECT_EQ but for some reason the
+  //               resulting velocity is 2.9999 instead of 3.0
+  EXPECT_NEAR(vel0, velocities[0], 2e-4);
+
+  // Second velocity should be different, but close
+  EXPECT_NEAR(vel0, velocities[1], 0.05);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, GetBoundingBox)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  // a map of model name to its axis aligned box
+  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
+
+  // Create a system that records the bounding box of a model
+  test::Relay testSystem;
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Static>(
+        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Static *)->bool
+        {
+          // create axis aligned box to be filled by physics
+          if (_name->Data() == "box1")
+          {
+            auto bboxComp = _ecm.Component<components::AxisAlignedBox>(_entity);
+            // the test only runs for 1 iteration so the component should be
+            // null in the first iteration.
+            EXPECT_EQ(bboxComp, nullptr);
+            _ecm.CreateComponent(_entity, components::AxisAlignedBox());
+            return true;
+          }
+          return true;
+        });
+    });
+
+  testSystem.OnPostUpdate(
+    [&](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      // store models that have axis aligned box computed
+      _ecm.Each<components::Model, components::Name, components::Static,
+        components::AxisAlignedBox>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Static *,
+        const components::AxisAlignedBox *_aabb)->bool
+        {
+          bbox[_name->Data()] = _aabb->Data();
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 1;
+  server.Run(true, iters, false);
+
+  EXPECT_EQ(1u, bbox.size());
+  EXPECT_EQ("box1", bbox.begin()->first);
+  EXPECT_EQ(ignition::math::AxisAlignedBox(
+      ignition::math::Vector3d(-1.25, -2, 0),
+      ignition::math::Vector3d(-0.25, 2, 1)),
+      bbox.begin()->second);
 }
 
 /////////////////////////////////////////////////
