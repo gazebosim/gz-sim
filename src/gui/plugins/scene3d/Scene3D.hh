@@ -199,6 +199,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath Sdf path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the dropdown menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
@@ -369,6 +374,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Broadcasts a left click within the scene
     private: void BroadcastLeftClick();
 
+    /// \brief Broadcasts a right click within the scene
+    private: void BroadcastRightClick();
+
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
     private: Entity UniqueId();
@@ -525,6 +533,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the path of the model to hover.
     /// \param[in] _filePath File path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
+
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
 
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
