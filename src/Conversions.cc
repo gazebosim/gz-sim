@@ -49,6 +49,7 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Imu.hh>
+#include <sdf/Gps.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
@@ -846,6 +847,31 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     else
     {
       ignerr << "Attempting to convert a camera SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+  else if (_in.Type() == sdf::SensorType::GPS)
+  {
+    if (_in.GpsSensor())
+    {
+        /*
+      msgs::GPSSensor *sensor = out.mutable_gps();
+
+      if (_in.GpsSensor()->PositionNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_position_noise(),
+            _in.GpsSensor()->PositionNoise());
+      }
+      if (_in.GpsSensor()->VelocityNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_velocity_noise(),
+            _in.GpsSensor()->VelocityNoise());
+      }*/ //TODO
+      igndbg << "Attempting to convert a GPS SDF sensor but not sure what converting is\n";
+    }
+    else
+    {
+      ignerr << "Attempting to convert a GPS SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }

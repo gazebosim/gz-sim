@@ -37,6 +37,7 @@
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
+#include "ignition/gazebo/components/Gps.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -626,6 +627,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
         components::WorldPose(math::Pose3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPS)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::Gps(*_sensor));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::WorldPose(math::Pose3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {
