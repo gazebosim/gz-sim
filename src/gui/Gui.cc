@@ -210,9 +210,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
         executed = node.Request(service, timeout, res, result);
 
         if (!executed)
-          ignerr << "Service call timed out for [" << service << "]" << std::endl;
+        {
+          ignerr << "Service call timed out for [" << service << "]"
+                 << std::endl;
+        }
         else if (!result)
+        {
           ignerr << "Service call failed for [" << service << "]" << std::endl;
+        }
       }
 
       // GUI runner

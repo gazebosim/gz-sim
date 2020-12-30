@@ -15,6 +15,8 @@
  *
  */
 
+#include <vector>
+
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 

@@ -166,13 +166,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   auto validNs = transport::TopicUtils::AsValidTopic(ns);
   if (validNs.empty())
   {
-    ignerr << "Using invalid namespace [" << ns << "]" << std::endl;
-    opts.SetNameSpace(ns);
+    ignerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
   }
-  else
-  {
-    opts.SetNameSpace(validNs);
-  }
+  opts.SetNameSpace(validNs);
 
   this->node = std::make_unique<transport::Node>(opts);
 

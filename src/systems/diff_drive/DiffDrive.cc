@@ -259,7 +259,7 @@ void DiffDrive::Configure(const Entity &_entity,
   {
     topics.push_back(_sdf->Get<std::string>("topic"));
   }
-  topics.push_back("/world/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
 
   this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
@@ -270,7 +270,8 @@ void DiffDrive::Configure(const Entity &_entity,
   {
     odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
   }
-  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/odometry");
+  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/odometry");
   auto odomTopic = validTopic(odomTopics);
 
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(

@@ -238,7 +238,8 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::CreateService, this->dataPtr.get());
 
   // Create service for EntityFactory_V
-  std::string createServiceMultiple{"/world/" + validWorldName + "/create_multiple"};
+  std::string createServiceMultiple{"/world/" + validWorldName +
+      "/create_multiple"};
   this->dataPtr->node.Advertise(createServiceMultiple,
       &UserCommandsPrivate::CreateServiceMultiple, this->dataPtr.get());
 

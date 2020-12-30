@@ -73,7 +73,8 @@ void GuiRunner::RequestState()
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
   if (reqSrvValid.empty())
   {
-    ignerr << "Failed to generate valid service [" << reqSrv << "]" << std::endl;
+    ignerr << "Failed to generate valid service [" << reqSrv << "]"
+           << std::endl;
     return;
   }
   reqSrv = reqSrvValid;
