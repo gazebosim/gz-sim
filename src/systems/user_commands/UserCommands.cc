@@ -434,56 +434,58 @@ bool CreateCommand::Execute()
       if (lightMsg.type() == msgs::Light::DIRECTIONAL)
         lightType = "directional";
 
-      std::string lightStr = " <sdf version='1.7'>\
-      <light type='" + lightType + "' name='" + lightMsg.name() + "'> \
-        <cast_shadows>" + std::to_string(lightMsg.cast_shadows()) + "</cast_shadows> \
-        <pose>" +
+      std::string lightStr = std::string("<sdf version='1.7'>") +
+      "<light type='" + lightType + "' name='" + lightMsg.name() + "'> " +
+        "<cast_shadows>" +
+        std::to_string(lightMsg.cast_shadows()) +
+        "</cast_shadows>" +
+        "<pose>" +
         std::to_string(sdfLight.RawPose().Pos().X()) + " " +
         std::to_string(sdfLight.RawPose().Pos().Y()) + " " +
         std::to_string(sdfLight.RawPose().Pos().Z()) + " " +
         std::to_string(sdfLight.RawPose().Rot().Roll()) + " " +
         std::to_string(sdfLight.RawPose().Rot().Pitch()) + " " +
         std::to_string(sdfLight.RawPose().Rot().Yaw()) +
-        "</pose> \
-        <diffuse>" +
+        "</pose>" +
+        "<diffuse>" +
         std::to_string(sdfLight.Diffuse().R()) + " " +
         std::to_string(sdfLight.Diffuse().G()) + " " +
         std::to_string(sdfLight.Diffuse().B()) + " " +
         std::to_string(sdfLight.Diffuse().A()) +
-        "</diffuse> \
-        <specular>" +
+        "</diffuse>" +
+        "<specular>" +
         std::to_string(sdfLight.Specular().R()) + " " +
         std::to_string(sdfLight.Specular().G()) + " " +
         std::to_string(sdfLight.Specular().B()) + " " +
         std::to_string(sdfLight.Specular().A()) +
-        "</specular> \
-        <attenuation> \
-          <range>" + std::to_string(lightMsg.range()) + "</range> \
-          <constant>" +
+        "</specular>" +
+        "<attenuation>" +
+          "<range>" + std::to_string(lightMsg.range()) + "</range>" +
+          "<constant>" +
           std::to_string(lightMsg.cast_shadows()) +
-          "</constant> \
-          <linear>" +
+          "</constant>" +
+          "<linear>" +
           std::to_string(lightMsg.cast_shadows()) +
-          "</linear> \
-          <quadratic>" +
+          "</linear>" +
+          "<quadratic>" +
           std::to_string(lightMsg.cast_shadows()) +
-          "</quadratic> \
-        </attenuation> \
-        <direction>" +
+          "</quadratic>" +
+        "</attenuation>" +
+        "<direction>" +
         std::to_string(sdfLight.Direction().X()) + " " +
         std::to_string(sdfLight.Direction().Y()) + " " +
         std::to_string(sdfLight.Direction().Z()) +
-        "</direction> \
-        <spot> \
-          <inner_angle>" +
+        "</direction>" +
+        "<spot>" +
+          "<inner_angle>" +
           std::to_string(lightMsg.spot_inner_angle()) +
-          "</inner_angle> \
-          <outer_angle>" +
+          "</inner_angle>" +
+          "<outer_angle>" +
           std::to_string(lightMsg.spot_outer_angle()) +
-          "</outer_angle> \
-          <falloff>" + std::to_string(lightMsg.spot_falloff()) + "</falloff> \
-        </spot> \
-      </light></sdf>";
+          "</outer_angle>" +
+          "<falloff>" + std::to_string(lightMsg.spot_falloff()) + "</falloff>" +
+        "</spot>" +
+      "</light></sdf>";
 
       root.LoadSdfString(lightStr);
       break;
