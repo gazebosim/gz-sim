@@ -150,21 +150,18 @@ void GpsPrivate::CreateGpsEntities(EntityComponentManager &_ecm)
           return true;
         }
 
-        igndbg << "Creating GPS Entity" << std::endl;
 
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
         sensor->SetParent(parentName);
-
-        sensor->SetLatitude(0.0);
-        sensor->SetLongitude(0.0);
-
         // Set topic
         _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
+
+        igndbg << "Creating GPS Entity" << std::endl;
 
         return true;
       });
@@ -174,31 +171,31 @@ void GpsPrivate::CreateGpsEntities(EntityComponentManager &_ecm)
 void GpsPrivate::UpdateGps(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Gps::UpdateGps");
-  _ecm.Each<components::Gps, components::WorldPose>(
+
+  _ecm.Each<components::Gps, components::WorldPose,
+   components::WorldLinearVelocity>(
     [&](const Entity &_entity,
         const components::Gps * /*_gps*/,
-        const components::WorldPose *_worldPose)->bool
+        const components::WorldPose *_worldPose,
+        const components::WorldLinearVelocity *_worldLinearVel
+        )->bool
       {
         auto it = this->entitySensorMap.find(_entity);
+        
         if (it != this->entitySensorMap.end())
         {
           math::Vector3d worldCoords;
-          math::Pose3d worldPose = _worldPose->Data();
           math::SphericalCoordinates sphericalCoords;
+          math::Vector3d worldvel = _worldLinearVel->Data();
 
-          //TODO apply position noise before converting to global frame
-
-          worldCoords = sphericalCoords.SphericalFromLocalPosition(
-            worldPose.Pos()
-          );
+          worldCoords = sphericalCoords.PositionTransform(_worldPose->Data().Pos(), 
+          math::SphericalCoordinates::GLOBAL,
+          math::SphericalCoordinates::SPHERICAL);
 
           it->second->SetLatitude(worldCoords.X());
           it->second->SetLongitude(worldCoords.Y());
-          //TODO set altitude
-          //TODO set velocity
-
-          //it->second->SetPosition(worldPose.Pos().Z());
-          //it->second->SetVerticalVelocity(_worldLinearVel->Data().Z());
+          it->second->SetAltitude(worldCoords.Z());
+          it->second->SetVelocity(worldvel);
         }
         else
         {
@@ -219,6 +216,7 @@ void GpsPrivate::RemoveGpsEntities(
     [&](const Entity &_entity,
         const components::Gps *)->bool
       {
+        igndbg << "Removing GPS entity" << std::endl;
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {

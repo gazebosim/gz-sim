@@ -22,6 +22,7 @@
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/gps_sensor.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/actor.pb.h>
@@ -854,20 +855,23 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
   {
     if (_in.GpsSensor())
     {
-        /*
       msgs::GPSSensor *sensor = out.mutable_gps();
 
       if (_in.GpsSensor()->PositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_position_noise(),
+        ignition::gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
             _in.GpsSensor()->PositionNoise());
+        ignition::gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
+            _in.GpsSensor()->PositionNoise());
+
       }
       if (_in.GpsSensor()->VelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_velocity_noise(),
+        ignition::gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
             _in.GpsSensor()->VelocityNoise());
-      }*/ //TODO
-      igndbg << "Attempting to convert a GPS SDF sensor but not sure what converting is\n";
+        ignition::gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+            _in.GpsSensor()->VelocityNoise());
+      }
     }
     else
     {

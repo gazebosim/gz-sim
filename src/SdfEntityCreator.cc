@@ -636,6 +636,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::WorldPose(math::Pose3d::Zero));
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::WorldLinearVelocity(math::Vector3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {

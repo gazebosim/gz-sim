@@ -152,7 +152,7 @@
 
         <sensor name="gps" type="gps">
           <always_on>1</always_on>
-          <update_rate>100</update_rate>
+          <update_rate>1</update_rate>
           <visualize>true</visualize>
           <topic>gps</topic>
         </sensor>
