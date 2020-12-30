@@ -29,9 +29,9 @@ namespace ignition
 {
 namespace gazebo
 {
-namespace gui {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace gui {
 /// \brief Namespace for all events. Refer to the EventManager class for
 /// more information about events.
 namespace events
