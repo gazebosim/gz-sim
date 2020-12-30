@@ -426,19 +426,67 @@ bool CreateCommand::Execute()
         return false;
       }
 
-      sdf::Light lightSDF = convert<sdf::Light>(lightMsg);
-      Entity entity = this->iface->creator->CreateEntities(&lightSDF);
-      this->iface->creator->SetParent(entity, lightMsg.parent_id());
+      sdf::Light sdfLight = convert<sdf::Light>(lightMsg);
 
-      // Pose
-      if (lightMsg.has_pose())
-      {
-        auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-        *poseComp = components::Pose(msgs::Convert(lightMsg.pose()));
-      }
-      igndbg << "Created light entity [" << entity << "] named [" <<
-        lightSDF.Name() << "]" << std::endl;
-      return true;
+      std::string lightType = "point";
+      if (lightMsg.type() == msgs::Light::SPOT)
+        lightType = "spot";
+      if (lightMsg.type() == msgs::Light::DIRECTIONAL)
+        lightType = "directional";
+
+      std::string lightStr = " <sdf version='1.7'>\
+      <light type='" + lightType + "' name='" + lightMsg.name() + "'> \
+        <cast_shadows>" + std::to_string(lightMsg.cast_shadows()) + "</cast_shadows> \
+        <pose>" +
+        std::to_string(sdfLight.RawPose().Pos().X()) + " " +
+        std::to_string(sdfLight.RawPose().Pos().Y()) + " " +
+        std::to_string(sdfLight.RawPose().Pos().Z()) + " " +
+        std::to_string(sdfLight.RawPose().Rot().Roll()) + " " +
+        std::to_string(sdfLight.RawPose().Rot().Pitch()) + " " +
+        std::to_string(sdfLight.RawPose().Rot().Yaw()) +
+        "</pose> \
+        <diffuse>" +
+        std::to_string(sdfLight.Diffuse().R()) + " " +
+        std::to_string(sdfLight.Diffuse().G()) + " " +
+        std::to_string(sdfLight.Diffuse().B()) + " " +
+        std::to_string(sdfLight.Diffuse().A()) +
+        "</diffuse> \
+        <specular>" +
+        std::to_string(sdfLight.Specular().R()) + " " +
+        std::to_string(sdfLight.Specular().G()) + " " +
+        std::to_string(sdfLight.Specular().B()) + " " +
+        std::to_string(sdfLight.Specular().A()) +
+        "</specular> \
+        <attenuation> \
+          <range>" + std::to_string(lightMsg.range()) + "</range> \
+          <constant>" +
+          std::to_string(lightMsg.cast_shadows()) +
+          "</constant> \
+          <linear>" +
+          std::to_string(lightMsg.cast_shadows()) +
+          "</linear> \
+          <quadratic>" +
+          std::to_string(lightMsg.cast_shadows()) +
+          "</quadratic> \
+        </attenuation> \
+        <direction>" +
+        std::to_string(sdfLight.Direction().X()) + " " +
+        std::to_string(sdfLight.Direction().Y()) + " " +
+        std::to_string(sdfLight.Direction().Z()) +
+        "</direction> \
+        <spot> \
+          <inner_angle>" +
+          std::to_string(lightMsg.spot_inner_angle()) +
+          "</inner_angle> \
+          <outer_angle>" +
+          std::to_string(lightMsg.spot_outer_angle()) +
+          "</outer_angle> \
+          <falloff>" + std::to_string(lightMsg.spot_falloff()) + "</falloff> \
+        </spot> \
+      </light></sdf>";
+
+      root.LoadSdfString(lightStr);
+      break;
     }
     case msgs::EntityFactory::kCloneName:
     {
