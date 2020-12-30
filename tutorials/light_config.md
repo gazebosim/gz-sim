@@ -1,6 +1,6 @@
 \page light_config Light config
 
-This tutorial gives an introduction to Ignition Gazebo's services `/world/`<world name>`/create` and
+This tutorial gives an introduction to Ignition Gazebo's services `/world/<world name>/create` and
 `/world/`<world name>`/light_config`. These services will allow to create entities and lights and modify
 existing lights in the scene.
 
@@ -48,7 +48,7 @@ ign service --list
 To create new entities in the world we need to use the [ignition::msgs::EntityFactory](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html) message. This message allow us to create entities from
 string, files, [Models](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
 [Lights](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html) or even clone models.
-This tutorial introduce how to create entities from strings and Lights.
+This tutorial introduces how to create entities from strings and Lights.
 
 ## Include a model based on a string
 
@@ -59,7 +59,7 @@ let's start creating a sphere in the world. In the next snippet you can learn ho
 
 The variable `modelStr` will contain the SDF of the model that we want to create in the world. In this
 case we are creating a sphere of 1 meter os radius in the position: `x: 0 y:0 z:0.5 roll: 0 pitch: 0 yaw: 0`.
-Then we need to call the service `/world/`<world_name>`/create`:
+Then we need to call the service `/world/<world_name>/create`:
 
 \snippet examples/standalone/light_control/light_control.cc call service create sphere
 
@@ -72,13 +72,13 @@ To include a light in the world we should use the field `light` inside the `igni
 In the following snippet you can see how the light's fields are filled.
 
 Please check the API to know which fields are available for each type of light. There are three types of lights:
- - Point [API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1Light.html)
- - Directional [API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1DirectionalLight.html)
- - Spot [API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1SpotLight.html)
+ - Point [rendering API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1Light.html) [light msgs API](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html)
+ - Directional [rendering API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1DirectionalLight.html)[light msgs API](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html)
+ - Spot [rendering API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1SpotLight.html)[light msgs API](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html)
 
 \snippet examples/standalone/light_control/light_control.cc create light
 
-Finally we should call the same service `/world/`<world_name>`/create`:
+Finally we should call the same service `/world/<world_name>/create`:
 
 # Modifying lights
 
