@@ -140,37 +140,54 @@ class LightCommand : public UserCommandBase
   public: bool Execute() final;
 
   /// \brief Light equality comparison function.
-  public: std::function<bool(const sdf::Light &, const sdf::Light &)>
-          lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
+  public: std::function<bool(const msgs::Light &, const msgs::Light &)>
+          lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
             {
              return
-                _a.Type() == _b.Type() &&
-                _a.Name() == _b.Name() &&
-                _a.Diffuse() == _b.Diffuse() &&
-                _a.Specular() == _b.Specular() &&
+                _a.type() == _b.type() &&
+                _a.name() == _b.name() &&
                 math::equal(
-                  _a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
+                   _a.diffuse().a(), _b.diffuse().a(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().r(), _b.diffuse().r(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().g(), _b.diffuse().g(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().b(), _b.diffuse().b(), 1e-6f) &&
+                math::equal(
+                  _a.specular().a(), _b.specular().a(), 1e-6f) &&
+                math::equal(
+                  _a.specular().r(), _b.specular().r(), 1e-6f) &&
+                math::equal(
+                  _a.specular().g(), _b.specular().g(), 1e-6f) &&
+                math::equal(
+                  _a.specular().b(), _b.specular().b(), 1e-6f) &&
+                math::equal(
+                  _a.range(), _b.range(), 1e-6f) &&
                math::equal(
-                 _a.LinearAttenuationFactor(),
-                 _b.LinearAttenuationFactor(),
-                 1e-6) &&
+                 _a.attenuation_linear(),
+                 _b.attenuation_linear(),
+                 1e-6f) &&
                math::equal(
-                 _a.ConstantAttenuationFactor(),
-                 _b.ConstantAttenuationFactor(),
-                 1e-6) &&
+                 _a.attenuation_constant(),
+                 _b.attenuation_constant(),
+                 1e-6f) &&
                math::equal(
-                 _a.ConstantAttenuationFactor(),
-                 _b.ConstantAttenuationFactor(),
-                 1e-6) &&
+                 _a.attenuation_quadratic(),
+                 _b.attenuation_quadratic(),
+                 1e-6f) &&
+               _a.cast_shadows() == _b.cast_shadows() &&
                math::equal(
-                 _a.QuadraticAttenuationFactor(),
-                 _b.QuadraticAttenuationFactor(),
-                 1e-6) &&
-               _a.CastShadows() == _b.CastShadows() &&
-               _a.Direction() == _b.Direction() &&
-               _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
-               _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
-               math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
+                 _a.direction().x(), _b.direction().x(), 1e-6) &&
+               math::equal(
+                 _a.direction().y(), _b.direction().y(), 1e-6) &&
+               math::equal(
+                 _a.direction().z(), _b.direction().z(), 1e-6) &&
+               math::equal(
+                 _a.spot_inner_angle(), _b.spot_inner_angle(), 1e-6f) &&
+               math::equal(
+                 _a.spot_outer_angle(), _b.spot_outer_angle(), 1e-6f) &&
+               math::equal(_a.spot_falloff(), _b.spot_falloff(), 1e-6f);
             }};
 };
 
@@ -790,9 +807,6 @@ bool LightCommand::Execute()
     return false;
   }
 
-  sdf::Light lightSDF = convert<sdf::Light>(*lightMsg);
-  lightComp->Data() = lightSDF;
-
   auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
   if (nullptr == lightPose)
     lightEntity = kNullEntity;
@@ -813,15 +827,15 @@ bool LightCommand::Execute()
   if (!lightCmdComp)
   {
     this->iface->ecm->CreateComponent(
-        lightEntity, components::LightCmd(lightComp->Data()));
+        lightEntity, components::LightCmd(*lightMsg));
   }
   else
   {
-    auto state = lightCmdComp->SetData(lightComp->Data(), this->lightEql) ?
+    auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
     this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
-        state);
+      state);
   }
 
   return true;

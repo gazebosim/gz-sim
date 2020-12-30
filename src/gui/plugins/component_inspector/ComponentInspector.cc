@@ -118,18 +118,18 @@ void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 {
   int lightType = -1;
-  if (_data.Type() == sdf::LightType::POINT)
+  if (_data.type() == msgs::Light::POINT)
   {
     lightType = 0;
   }
-  else if (_data.Type() == sdf::LightType::SPOT)
+  else if (_data.type() == msgs::Light::SPOT)
   {
     lightType = 1;
   }
-  else if (_data.Type() == sdf::LightType::DIRECTIONAL)
+  else if (_data.type() == msgs::Light::DIRECTIONAL)
   {
     lightType = 2;
   }
@@ -137,25 +137,25 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Light &_data)
   _item->setData(QString("Light"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
-    QVariant(_data.Specular().R()),
-    QVariant(_data.Specular().G()),
-    QVariant(_data.Specular().B()),
-    QVariant(_data.Specular().A()),
-    QVariant(_data.Diffuse().R()),
-    QVariant(_data.Diffuse().G()),
-    QVariant(_data.Diffuse().B()),
-    QVariant(_data.Diffuse().A()),
-    QVariant(_data.AttenuationRange()),
-    QVariant(_data.LinearAttenuationFactor()),
-    QVariant(_data.ConstantAttenuationFactor()),
-    QVariant(_data.QuadraticAttenuationFactor()),
-    QVariant(_data.CastShadows()),
-    QVariant(_data.Direction().X()),
-    QVariant(_data.Direction().Y()),
-    QVariant(_data.Direction().Z()),
-    QVariant(_data.SpotInnerAngle().Radian()),
-    QVariant(_data.SpotOuterAngle().Radian()),
-    QVariant(_data.SpotFalloff()),
+    QVariant(_data.specular().r()),
+    QVariant(_data.specular().g()),
+    QVariant(_data.specular().b()),
+    QVariant(_data.specular().a()),
+    QVariant(_data.diffuse().r()),
+    QVariant(_data.diffuse().g()),
+    QVariant(_data.diffuse().b()),
+    QVariant(_data.diffuse().a()),
+    QVariant(_data.range()),
+    QVariant(_data.attenuation_linear()),
+    QVariant(_data.attenuation_constant()),
+    QVariant(_data.attenuation_quadratic()),
+    QVariant(_data.cast_shadows()),
+    QVariant(_data.direction().x()),
+    QVariant(_data.direction().y()),
+    QVariant(_data.direction().z()),
+    QVariant(_data.spot_inner_angle()),
+    QVariant(_data.spot_outer_angle()),
+    QVariant(_data.spot_falloff()),
     QVariant(lightType)
   }), ComponentsModel::RoleNames().key("data"));
 }
@@ -568,12 +568,14 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       this->SetType("light");
       auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
+      msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
       if (comp)
-        setData(item, comp->Data());
+        setData(item, lightMsgs);
     }
     else if (typeId == components::LightCmd::typeId)
     {
       auto comp = _ecm.Component<components::LightCmd>(this->dataPtr->entity);
+      msgs::Light lightMsgs = comp->Data();
       if (comp)
         setData(item, comp->Data());
     }

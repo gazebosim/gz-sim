@@ -227,46 +227,46 @@ void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
   this->dataPtr->components[_Id]->SetAttributeValue("z", _vector.Z());
 }
 
-void Plotting::SetData(std::string _Id, const sdf::Light &_light)
+void Plotting::SetData(std::string _Id, const msgs::Light &_light)
 {
   this->dataPtr->components[_Id]->SetAttributeValue("specularR",
-    _light.Specular().R());
+    _light.specular().r());
   this->dataPtr->components[_Id]->SetAttributeValue("specularG",
-    _light.Specular().G());
+    _light.specular().g());
   this->dataPtr->components[_Id]->SetAttributeValue("specularB",
-    _light.Specular().B());
+    _light.specular().b());
   this->dataPtr->components[_Id]->SetAttributeValue("specularA",
-    _light.Specular().A());
+    _light.specular().a());
   this->dataPtr->components[_Id]->SetAttributeValue("diffuseR",
-    _light.Diffuse().R());
+    _light.diffuse().r());
   this->dataPtr->components[_Id]->SetAttributeValue("diffuseG",
-    _light.Diffuse().G());
+    _light.diffuse().g());
   this->dataPtr->components[_Id]->SetAttributeValue("diffuseB",
-    _light.Diffuse().B());
+    _light.diffuse().b());
   this->dataPtr->components[_Id]->SetAttributeValue("diffuseA",
-    _light.Diffuse().A());
+    _light.diffuse().a());
   this->dataPtr->components[_Id]->SetAttributeValue("attRange",
-    _light.AttenuationRange());
+    _light.range());
   this->dataPtr->components[_Id]->SetAttributeValue("attLinear",
-    _light.LinearAttenuationFactor());
+    _light.attenuation_linear());
   this->dataPtr->components[_Id]->SetAttributeValue("attConstant",
-    _light.ConstantAttenuationFactor());
+    _light.attenuation_constant());
   this->dataPtr->components[_Id]->SetAttributeValue("attQuadratic",
-    _light.QuadraticAttenuationFactor());
+    _light.attenuation_quadratic());
   this->dataPtr->components[_Id]->SetAttributeValue("castshadows",
-    _light.CastShadows());
+    _light.cast_shadows());
   this->dataPtr->components[_Id]->SetAttributeValue("directionX",
-    _light.Direction().X());
+    _light.direction().x());
   this->dataPtr->components[_Id]->SetAttributeValue("directionY",
-    _light.Direction().Y());
+    _light.direction().y());
   this->dataPtr->components[_Id]->SetAttributeValue("directionZ",
-    _light.Direction().Z());
+    _light.direction().z());
   this->dataPtr->components[_Id]->SetAttributeValue("innerAngle",
-    _light.SpotInnerAngle().Radian());
+    _light.spot_inner_angle());
   this->dataPtr->components[_Id]->SetAttributeValue("outerAngle",
-    _light.SpotOuterAngle().Radian());
+    _light.spot_outer_angle());
   this->dataPtr->components[_Id]->SetAttributeValue("falloff",
-    _light.SpotFalloff());
+    _light.spot_falloff());
 }
 
 //////////////////////////////////////////////////
@@ -451,8 +451,10 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
     else if (typeId == components::Light::typeId)
     {
       auto comp = _ecm.Component<components::Light>(entity);
-      if (comp)
-        this->SetData(component.first, comp->Data());
+      if (comp){
+        msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
+        this->SetData(component.first, lightMsgs);
+      }
     }
     else if (typeId == components::LightCmd::typeId)
     {

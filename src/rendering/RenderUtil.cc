@@ -38,6 +38,8 @@
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/msgs/Utility.hh>
+
 #include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -165,7 +167,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::unordered_map<Entity, math::Pose3d> entityPoses;
 
   /// \brief A map of entity ids and light updates.
-  public: std::unordered_map<Entity, sdf::Light> entityLights;
+  public: std::unordered_map<Entity, msgs::Light> entityLights;
 
   /// \brief A map of entity ids and light updates.
   public: std::vector<Entity> entityLightsCmdToDelete;
@@ -206,6 +208,36 @@ class ignition::gazebo::RenderUtilPrivate
   /// The function returns the id of the rendering sensor created.
   public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
           const std::string &)> createSensorCb;
+
+  /// \brief Light equality comparison function.
+  public: std::function<bool(const sdf::Light &, const sdf::Light &)>
+          lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
+            {
+             return
+                _a.Type() == _b.Type() &&
+                _a.Name() == _b.Name() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                math::equal(
+                  _a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
+               math::equal(
+                 _a.LinearAttenuationFactor(),
+                 _b.LinearAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.ConstantAttenuationFactor(),
+                 _b.ConstantAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.QuadraticAttenuationFactor(),
+                 _b.QuadraticAttenuationFactor(),
+                 1e-6) &&
+               _a.CastShadows() == _b.CastShadows() &&
+               _a.Direction() == _b.Direction() &&
+               _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
+               _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
+               math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
+            }};
 
   /// \brief Callback function for removing sensors.
   /// The function arg is the entity id
@@ -258,6 +290,17 @@ void RenderUtil::UpdateECM(const UpdateInfo &,
       {
         this->dataPtr->entityLights[_entity] = _lightCmd->Data();
         this->dataPtr->entityLightsCmdToDelete.push_back(_entity);
+
+        auto lightComp = _ecm.Component<components::Light>(_entity);
+        if (lightComp)
+        {
+          sdf::Light sdfLight = convert<sdf::Light>(_lightCmd->Data());
+          auto state = lightComp->SetData(sdfLight,
+              this->dataPtr->lightEql) ?
+              ComponentState::OneTimeChange :
+              ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Light::typeId, state);
+        }
         return true;
       });
 
@@ -470,54 +513,68 @@ void RenderUtil::Update()
       auto l = std::dynamic_pointer_cast<rendering::Light>(node);
       if (l)
       {
-        if (l->DiffuseColor() != light.second.Diffuse())
-          l->SetDiffuseColor(light.second.Diffuse());
-        if (l->SpecularColor() != light.second.Specular())
-          l->SetSpecularColor(light.second.Specular());
-        if (ignition::math::equal(
-            l->AttenuationRange(), light.second.AttenuationRange()))
+        if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
+          l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
+        if (l->SpecularColor() != msgs::Convert(light.second.specular()))
         {
-          l->SetAttenuationRange(light.second.AttenuationRange());
+          l->SetSpecularColor(msgs::Convert(light.second.specular()));
         }
         if (ignition::math::equal(
-            l->AttenuationLinear(), light.second.LinearAttenuationFactor()))
+            l->AttenuationRange(),
+            static_cast<double>(light.second.range())))
         {
-          l->SetAttenuationLinear(light.second.LinearAttenuationFactor());
+          l->SetAttenuationRange(light.second.range());
         }
         if (ignition::math::equal(
-            l->AttenuationConstant(), light.second.ConstantAttenuationFactor()))
+            l->AttenuationLinear(),
+            static_cast<double>(light.second.attenuation_linear())))
         {
-          l->SetAttenuationConstant(light.second.ConstantAttenuationFactor());
+          l->SetAttenuationLinear(light.second.attenuation_linear());
+        }
+        if (ignition::math::equal(
+            l->AttenuationConstant(),
+            static_cast<double>(light.second.attenuation_constant())))
+        {
+          l->SetAttenuationConstant(light.second.attenuation_constant());
         }
         if (ignition::math::equal(
             l->AttenuationQuadratic(),
-            light.second.QuadraticAttenuationFactor()))
+            static_cast<double>(light.second.attenuation_quadratic())))
         {
-          l->SetAttenuationQuadratic(light.second.QuadraticAttenuationFactor());
+          l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
         }
-        if (l->CastShadows() != light.second.CastShadows())
-          l->SetCastShadows(light.second.CastShadows());
+        if (l->CastShadows() != light.second.cast_shadows())
+          l->SetCastShadows(light.second.cast_shadows());
         auto lDirectional =
           std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
         if (lDirectional)
         {
-          if (lDirectional->Direction() != light.second.Direction())
-            lDirectional->SetDirection(light.second.Direction());
+          if (lDirectional->Direction() !=
+              msgs::Convert(light.second.direction()))
+          {
+            lDirectional->SetDirection(
+              msgs::Convert(light.second.direction()));
+          }
         }
         auto lSpotLight =
           std::dynamic_pointer_cast<rendering::SpotLight>(node);
         if (lSpotLight)
         {
-          if (lSpotLight->Direction() != light.second.Direction())
-            lSpotLight->SetDirection(light.second.Direction());
-          if (lSpotLight->InnerAngle() != light.second.SpotInnerAngle())
-            lSpotLight->SetInnerAngle(light.second.SpotInnerAngle());
-          if (lSpotLight->OuterAngle() != light.second.SpotOuterAngle())
-            lSpotLight->SetOuterAngle(light.second.SpotOuterAngle());
-          if (ignition::math::equal(
-              lSpotLight->Falloff(), light.second.SpotFalloff()))
+          if (lSpotLight->Direction() !=
+            msgs::Convert(light.second.direction()))
           {
-            lSpotLight->SetFalloff(light.second.SpotFalloff());
+            lSpotLight->SetDirection(
+              msgs::Convert(light.second.direction()));
+          }
+          if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
+            lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
+          if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
+            lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
+          if (ignition::math::equal(
+              lSpotLight->Falloff(),
+              static_cast<double>(light.second.spot_falloff())))
+          {
+            lSpotLight->SetFalloff(light.second.spot_falloff());
           }
         }
       }

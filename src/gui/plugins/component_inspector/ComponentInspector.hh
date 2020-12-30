@@ -28,7 +28,7 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
-#include <sdf/Light.hh>
+#include <ignition/msgs/light.pb.h>
 
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
@@ -75,7 +75,7 @@ namespace gazebo
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
   template<>
-  void setData(QStandardItem *_item, const sdf::Light &_data);
+  void setData(QStandardItem *_item, const msgs::Light &_data);
 
   /// \brief Specialized to set vector data.
   /// \param[in] _item Item whose data will be set.
