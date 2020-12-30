@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "VelocityControl.hh"
 
@@ -87,9 +88,13 @@ void VelocityControl::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
-    topic = _sdf->Get<std::string>("topic");
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  auto topic = validTopic(topics);
   this->dataPtr->node.Subscribe(
     topic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
 

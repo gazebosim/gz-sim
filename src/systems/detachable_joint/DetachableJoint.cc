@@ -22,13 +22,14 @@
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/components/DetachableJoint.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "DetachableJoint.hh"
 
@@ -93,9 +94,14 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
 
   // Setup detach topic
-  std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
-                             "/detachable_joint/detach"};
-  this->topic = _sdf->Get<std::string>("topic", defaultTopic).first;
+  std::vector<std::string> topics;
+  if (_sdf->HasElement("topic"))
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" + this->model.Name(_ecm) +
+      "/detachable_joint/detach");
+  this->topic = validTopic(topics);
 
   this->suppressChildWarning =
       _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)

@@ -164,6 +164,13 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     return;
   }
   this->ns = _sdf->Get<std::string>("namespace");
+  auto validNs = transport::TopicUtils::AsValidTopic(this->ns);
+  if (validNs.empty())
+  {
+    ignerr << "<namespace> [" << this->ns << "] is invalid." << std::endl;
+    return;
+  }
+  this->ns = validNs;
 
   // Target time
   if (!_sdf->HasElement("time"))

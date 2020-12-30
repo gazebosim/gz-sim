@@ -157,14 +157,21 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // World control
   transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
   if (this->networkMgr)
   {
-    opts.SetNameSpace(this->networkMgr->Namespace() +
-                      "/world/" + this->worldName);
+    ns = this->networkMgr->Namespace() + ns;
+  }
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
+  {
+    ignerr << "Using invalid namespace [" << ns << "]" << std::endl;
+    opts.SetNameSpace(ns);
   }
   else
   {
-    opts.SetNameSpace("/world/" + this->worldName);
+    opts.SetNameSpace(validNs);
   }
 
   this->node = std::make_unique<transport::Node>(opts);
