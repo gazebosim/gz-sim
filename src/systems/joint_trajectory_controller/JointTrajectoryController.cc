@@ -574,6 +574,13 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
     return;
   }
 
+  // Warn user that accelerations are currently ignored if the first point contains them
+  if (_msg.points(0).accelerations_size() > 0)
+  {
+    ignwarn << "[JointTrajectoryController] JointTrajectory message contains acceleration commands,"
+               " which are currently ignored.\n";
+  }
+
   // Lock mutex guarding the trajectory
   std::lock_guard<std::mutex> lock(this->trajectoryMutex);
 
