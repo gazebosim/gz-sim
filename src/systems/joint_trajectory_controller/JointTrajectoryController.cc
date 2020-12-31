@@ -523,35 +523,35 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
     const auto *jointType = _ecm.Component<components::JointType>(jointEntity);
     switch (jointType->Data())
     {
-    case sdf::JointType::PRISMATIC:
-    case sdf::JointType::REVOLUTE:
-    case sdf::JointType::CONTINUOUS:
-    case sdf::JointType::GEARBOX:
-    {
-      // Supported joint type
-      break;
-    }
-    case sdf::JointType::FIXED:
-    {
-      igndbg << "[JointTrajectoryController] Fixed joint [" << jointName << "(Entity="
-             << jointEntity << ")] is skipped.\n";
-      continue;
-    }
-    case sdf::JointType::REVOLUTE2:
-    case sdf::JointType::SCREW:
-    case sdf::JointType::BALL:
-    case sdf::JointType::UNIVERSAL:
-    {
-      ignwarn << "[JointTrajectoryController] Joint [" << jointName << "(Entity=" << jointEntity
-              << ")] is of unsupported type. Only joints with a single axis are supported.\n";
-      continue;
-    }
-    default:
-    {
-      ignwarn << "[JointTrajectoryController] Joint [" << jointName << "(Entity=" << jointEntity
-              << ")] is of unknown type.\n";
-      continue;
-    }
+      case sdf::JointType::PRISMATIC:
+      case sdf::JointType::REVOLUTE:
+      case sdf::JointType::CONTINUOUS:
+      case sdf::JointType::GEARBOX:
+      {
+        // Supported joint type
+        break;
+      }
+      case sdf::JointType::FIXED:
+      {
+        igndbg << "[JointTrajectoryController] Fixed joint [" << jointName << "(Entity="
+              << jointEntity << ")] is skipped.\n";
+        continue;
+      }
+      case sdf::JointType::REVOLUTE2:
+      case sdf::JointType::SCREW:
+      case sdf::JointType::BALL:
+      case sdf::JointType::UNIVERSAL:
+      {
+        ignwarn << "[JointTrajectoryController] Joint [" << jointName << "(Entity=" << jointEntity
+                << ")] is of unsupported type. Only joints with a single axis are supported.\n";
+        continue;
+      }
+      default:
+      {
+        ignwarn << "[JointTrajectoryController] Joint [" << jointName << "(Entity=" << jointEntity
+                << ")] is of unknown type.\n";
+        continue;
+      }
     }
     output.push_back(jointEntity);
   }
