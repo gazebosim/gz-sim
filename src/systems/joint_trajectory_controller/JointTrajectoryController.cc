@@ -349,7 +349,7 @@ void JointTrajectoryController::Configure(const Entity &_entity,
   }
   // Make sure the topic is valid
   const auto validTrajectoryTopic = transport::TopicUtils::AsValidTopic(trajectoryTopic);
-  if (!transport::TopicUtils::IsValidTopic(validTrajectoryTopic))
+  if (validTrajectoryTopic.empty())
   {
     ignerr << "[JointTrajectoryController] Cannot subscribe to invalid topic [" << trajectoryTopic
            << "].\n";
@@ -537,7 +537,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       case sdf::JointType::FIXED:
       {
         igndbg << "[JointTrajectoryController] Fixed joint [" << jointName << "(Entity="
-              << jointEntity << ")] is skipped.\n";
+               << jointEntity << ")] is skipped.\n";
         continue;
       }
       case sdf::JointType::REVOLUTE2:
