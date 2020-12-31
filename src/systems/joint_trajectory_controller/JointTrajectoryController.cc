@@ -18,21 +18,21 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/JointType.hh>
-#include <ignition/gazebo/components/JointPosition.hh>
-#include <ignition/gazebo/components/JointVelocity.hh>
 #include <ignition/gazebo/components/JointForceCmd.hh>
+#include <ignition/gazebo/components/JointPosition.hh>
+#include <ignition/gazebo/components/JointType.hh>
+#include <ignition/gazebo/components/JointVelocity.hh>
+#include <ignition/gazebo/components/Name.hh>
+#include <ignition/gazebo/components/ParentEntity.hh>
+#include <ignition/gazebo/Model.hh>
 
 #include <ignition/math/PID.hh>
 
+#include <ignition/msgs/float.pb.h>
+#include <ignition/msgs/joint_trajectory.pb.h>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
-#include <ignition/msgs/joint_trajectory.pb.h>
-#include <ignition/msgs/float.pb.h>
 
 #include "JointTrajectoryController.hh"
 
