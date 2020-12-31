@@ -51,65 +51,84 @@ namespace systems
   /// applied to the joint. Each PID controller can be configured with system
   /// parameters described below.
   ///
-  /// This trajectory can be produced by a motion planning framework, e.g. MoveIt2.
+  /// Input trajectory can be produced by a motion planning framework such as
+  /// MoveIt2. For smooth execution of the trajectory, its points should to be
+  /// interpolated before sending them via Ignition Transport (interpolation
+  /// might already be implemented and in the motion planning framework of your
+  /// choice).
   ///
-  /// The progress of the current trajectory can be similarly tracked on
-  /// another topic whose name is derived as `<topic>_progress`.
+  /// The progress of the current trajectory can be tracked on topic whose name
+  /// is derived as `<topic>_progress`. This progress is indicated in the range
+  /// of (0.0, 1.0] and is currently based purely on `time_from_start` contained
+  /// in the trajectory points.
   ///
   /// ## System Parameters
   ///
-  /// `<topic>` The topic name that this plugin subscribes to. Optional parameter.
-  ///  Defaults to "/joint_trajectory".
+  /// `<topic>` The name of the topic that this plugin subscribes to.
+  ///  Optional parameter.
+  ///  Defaults to "/model/${MODEL_NAME}/joint_trajectory".
   ///
-  /// `<use_header_start_time>` Trajectory starts based on header stamps. Optional parameter.
+  /// `<use_header_start_time>` If enabled, trajectory execution begins at the
+  ///  timestamp contained in the header of received trajectory messages.
+  ///  Optional parameter.
   ///  Defaults to false.
   ///
-  /// `<joint_names>` Joints to control. Optional parameter.
-  ///  Separate values by whitespace (e.g. "panda_joint1 panda_joint2 ...")
-  ///  Defaults to all joints contained in SDF with their respective order.
+  /// `<joint_name>` Name of a joint to control.
+  ///  This parameter can be specified multiple times, i.e. once for each joint.
+  ///  Optional parameter.
+  ///  Defaults to all 1-axis joints contained in the model SDF (order is kept).
   ///
-  /// `<initial_positions>` Initial joint positions. Optionald parameter.
-  ///  Separate values by whitespace (e.g. "0 1.57 ..."). Follows `joint_names` order.
+  /// `<initial_position>` Initial position of a joint (for position control).
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  Defaults to 0 for all joints.
   ///
-  /// `<%s_p_gain>` The proportional gain of the PID. Optional parameter.
+  /// `<%s_p_gain>` The proportional gain of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
-  ///  Separate values by whitespace (e.g. "10.0 30.0 ..."). Follows `joint_names` order.
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is 0 (disabled).
   ///
   /// `<%s_i_gain>` The integral gain of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_i_gain").
-  ///  Separate values by whitespace (e.g. "1.0 3.0 ..."). Follows `joint_names` order.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is 0 (disabled).
   ///
-  /// `<%s_d_gain>` The derivative gain of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_d_gain").
-  ///  Separate values by whitespace (e.g. "0.1 0.3 ..."). Follows `joint_names` order.
+  /// `<%s_d_gain>` The derivative gain of the PID.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is 0 (disabled).
   ///
-  /// `<%s_i_max>` The integral upper limit of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_i_max").
-  ///  Separate values by whitespace (e.g. "1 0.75 ..."). Follows `joint_names` order.
-  ///  The default value is -1 (no limit if lower than `%s_i_min`).
-  ///
-  /// `<%s_i_min>` The integral lower limit of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_i_min").
-  ///  Separate values by whitespace (e.g. "-1.33 0 ..."). Follows `joint_names` order.
+  /// `<%s_i_min>` The integral lower limit of the PID.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is 0 (no limit if higher than `%s_i_max`).
   ///
-  /// `<%s_cmd_max>` Output max value of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_cmd_max").
-  ///  Separate values by whitespace (e.g. "1000 5 ..."). Follows `joint_names` order.
+  /// `<%s_i_max>` The integral upper limit of the PID.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is -1 (no limit if lower than `%s_i_min`).
   ///
-  /// `<%s_cmd_min>` Output min value of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_cmd_min").
-  ///  Separate values by whitespace (e.g. "-1000 -10 ..."). Follows `joint_names` order.
+  /// `<%s_cmd_min>` Output min value of the PID.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is 0 (no limit if higher than `%s_i_max`).
   ///
-  /// `<%s_cmd_offset>` Command offset (feed-forward) of the PID. Optional parameter.
-  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_cmd_offset").
-  ///  Separate values by whitespace (e.g. "0.1 0 ..."). Follows `joint_names` order.
+  /// `<%s_cmd_max>` Output max value of the PID.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
+  ///  The default value is -1 (no limit if lower than `%s_i_min`).
+  ///
+  /// `<%s_cmd_offset>` Command offset (feed-forward) of the PID.
+  ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
+  ///  This parameter can be specified multiple times. Follows joint_name order.
+  ///  Optional parameter.
   ///  The default value is 0 (no offset).
   class IGNITION_GAZEBO_VISIBLE JointTrajectoryController
       : public System,
@@ -129,8 +148,9 @@ namespace systems
                            EventManager &_eventMgr) override;
 
     // Documentation inherited
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                           ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointTrajectoryControllerPrivate> dataPtr;
