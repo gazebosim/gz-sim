@@ -318,8 +318,8 @@ void JointTrajectoryController::Configure(const Entity &_entity,
     const auto jointName = _ecm.Component<components::Name>(jointEntity)->Data();
     this->dataPtr->actuatedJoints[jointName] = ActuatedJoint(jointEntity,
                                                              jointParameters[jointName]);
-    ignmsg << "[JointTrajectoryController] Configured joint [" << jointName << "(Entity=" << _entity
-           << ")].\n";
+    ignmsg << "[JointTrajectoryController] Configured joint [" << jointName << "(Entity="
+           << jointEntity << ")].\n";
   }
 
   // Make sure at least one joint is configured
