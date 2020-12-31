@@ -33,6 +33,7 @@
 #include <ignition/msgs/joint_trajectory.pb.h>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+#include <ignition/transport/TopicUtils.hh>
 
 #include "JointTrajectoryController.hh"
 
@@ -343,26 +344,28 @@ void JointTrajectoryController::Configure(const Entity &_entity,
   auto trajectoryTopic = _sdf->Get<std::string>("topic");
   if (trajectoryTopic.empty())
   {
+    // If not specified, use the default topic based on model name
     trajectoryTopic = "/model/" + model.Name(_ecm) + "/joint_trajectory";
-    ignmsg << "[JointTrajectoryController] No topic specified for joint trajectories,"
-              " defaulting to ["
-           << trajectoryTopic << "].\n";
   }
-  else
+  // Make sure the topic is valid
+  const auto validTrajectoryTopic = transport::TopicUtils::AsValidTopic(trajectoryTopic);
+  if (!transport::TopicUtils::IsValidTopic(validTrajectoryTopic))
   {
-    if (trajectoryTopic[0] != '/')
-    {
-      trajectoryTopic.insert(0, "/");
-    }
-    ignmsg << "[JointTrajectoryController] Joint trajectory topic set to ["
-           << trajectoryTopic << "].\n";
+    ignerr << "[JointTrajectoryController] Cannot subscribe to invalid topic [" << trajectoryTopic
+           << "].\n";
+    return;
   }
-  this->dataPtr->node.Subscribe(trajectoryTopic,
+  // Subscribe
+  ignmsg << "[JointTrajectoryController] Subscribing to joint trajectory commands on topic ["
+         << validTrajectoryTopic << "].\n";
+  this->dataPtr->node.Subscribe(validTrajectoryTopic,
                                 &JointTrajectoryControllerPrivate::JointTrajectoryCallback,
                                 this->dataPtr.get());
 
   // Advertise progress
-  const auto progressTopic = trajectoryTopic + "_progress";
+  const auto progressTopic = validTrajectoryTopic + "_progress";
+  ignmsg << "[JointTrajectoryController] Advertising joint trajectory progress on topic ["
+         << progressTopic << "].\n";
   this->dataPtr->progressPub = this->dataPtr->node.Advertise<ignition::msgs::Float>(progressTopic);
 }
 
