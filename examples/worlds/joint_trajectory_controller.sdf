@@ -7,8 +7,8 @@
     - Position control (Red RR robot) -
 
     ign topic -t "/model/RR_position_control/joint_trajectory" -m ignition.msgs.JointTrajectory -p '
-    joint_names: "RR_joint1"
-    joint_names: "RR_joint2"
+    joint_names: "RR_position_control_joint1"
+    joint_names: "RR_position_control_joint2"
     points {
       positions: -0.7854
       positions: 1.5708
@@ -46,11 +46,11 @@
     - Velocity control (Green RR robot) -
 
     ign topic -t "/model/RR_velocity_control/joint_trajectory" -m ignition.msgs.JointTrajectory -p '
-    joint_names: "RR_joint1"
-    joint_names: "RR_joint2"
+    joint_names: "RR_velocity_control_joint1"
+    joint_names: "RR_velocity_control_joint2"
     points {
-      velocities: 0
-      velocities: 1.5708
+      velocities: 0.7854
+      velocities: -0.7854
       time_from_start {
         sec: 0
         nsec: 50000000
@@ -58,25 +58,25 @@
     }
     points {
       velocities: 1.5708
-      velocities: 3.1416
+      velocities: 0
       time_from_start {
         sec: 1
+        nsec: 50000000
+      }
+    }
+    points {
+      velocities: 2.3562
+      velocities: -1.5708
+      time_from_start {
+        sec: 3
         nsec: 0
       }
     }
     points {
       velocities: 3.1416
-      velocities: 1.5708
+      velocities: -3.1416
       time_from_start {
-        sec: 1
-        nsec: 500000000
-      }
-    }
-    points {
-      velocities: 6.2832
-      velocities: 1.5708
-      time_from_start {
-        sec: 2
+        sec: 5
         nsec: 0
       }
     }'
@@ -85,8 +85,8 @@
     - Effort control (Blue RR robot) -
 
     ign topic -t "/custom_topic_effort_control" -m ignition.msgs.JointTrajectory -p '
-    joint_names: "RR_joint1"
-    joint_names: "RR_joint2"
+    joint_names: "RR_effort_control_joint1"
+    joint_names: "RR_effort_control_joint2"
     points {
       effort: 1
       effort: 0.5
@@ -96,8 +96,8 @@
       }
     }
     points {
-      effort: 5
-      effort: 3
+      effort: 2.5
+      effort: 1.5
       time_from_start {
         sec: 1
         nsec: 500000000
@@ -105,7 +105,7 @@
     }
     points {
       effort: -0.4
-      effort: -0.15
+      effort: -0.2
       time_from_start {
         sec: 1
         nsec: 750000000
@@ -136,7 +136,7 @@
       }
     }
 -->
-<sdf version="1.7">
+<sdf version="1.6">
   <world name="default">
     <!-- Physics -->
     <plugin
@@ -256,20 +256,20 @@
     <model name="RR_position_control">
       <pose>0 0 0.25 -2.3561945 0 0</pose>
       <!-- Fix To World -->
-      <joint name="RR_world" type="fixed">
+      <joint name="RR_position_control_world" type="fixed">
         <parent>world</parent>
-        <child>RR_link0</child>
+        <child>RR_position_control_link0</child>
       </joint>
       <!-- Links -->
-      <link name="RR_link0">
-        <collision name="RR_link0_collision_0">
+      <link name="RR_position_control_link0">
+        <collision name="RR_position_control_link0_collision_0">
           <geometry>
             <sphere>
               <radius>0.025</radius>
             </sphere>
           </geometry>
         </collision>
-        <visual name="RR_link0_visual_0">
+        <visual name="RR_position_control_link0_visual_0">
           <geometry>
             <sphere>
               <radius>0.025</radius>
@@ -282,9 +282,9 @@
           </material>
         </visual>
       </link>
-      <link name="RR_link1">
-        <pose relative_to="RR_joint1">0 0 0.1 0 0 0</pose>
-        <collision name="RR_link1_collision_0">
+      <link name="RR_position_control_link1">
+        <pose relative_to="RR_position_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_position_control_link1_collision_0">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -292,14 +292,14 @@
             </cylinder>
           </geometry>
         </collision>
-        <collision name="RR_link1_collision_1">
+        <collision name="RR_position_control_link1_collision_1">
           <geometry>
             <sphere>
               <radius>0.0125</radius>
             </sphere>
           </geometry>
         </collision>
-        <visual name="RR_link1_visual_0">
+        <visual name="RR_position_control_link1_visual_0">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -312,8 +312,8 @@
             <specular>0.8 0 0 1</specular>
           </material>
         </visual>
-        <visual name="RR_link1_visual_1">
-          <pose relative_to="RR_joint1">0 0 0.2 0 0 0</pose>
+        <visual name="RR_position_control_link1_visual_1">
+          <pose relative_to="RR_position_control_joint1">0 0 0.2 0 0 0</pose>
           <geometry>
             <sphere>
               <radius>0.0125</radius>
@@ -334,9 +334,9 @@
           </inertia>
         </inertial>
       </link>
-      <link name="RR_link2">
-        <pose relative_to="RR_joint2">0 0 0.1 0 0 0</pose>
-        <collision name="RR_link2_collision">
+      <link name="RR_position_control_link2">
+        <pose relative_to="RR_position_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_position_control_link2_collision">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -344,7 +344,7 @@
             </cylinder>
           </geometry>
         </collision>
-        <visual name="RR_link2_visual">
+        <visual name="RR_position_control_link2_visual">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -367,25 +367,25 @@
         </inertial>
       </link>
       <!-- Joints -->
-      <joint name="RR_joint1" type="revolute">
-        <pose relative_to="RR_link0">0 0 0 0 0 0</pose>
-        <parent>RR_link0</parent>
-        <child>RR_link1</child>
+      <joint name="RR_position_control_joint1" type="revolute">
+        <pose relative_to="RR_position_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_position_control_link0</parent>
+        <child>RR_position_control_link1</child>
         <axis>
           <xyz>1 0 0</xyz>
           <dynamics>
-            <damping>2.0</damping>
+            <damping>0.5</damping>
           </dynamics>
         </axis>
       </joint>
-      <joint name="RR_joint2" type="revolute">
-        <pose relative_to="RR_link1">0 0 0.1 0 0 0</pose>
-        <parent>RR_link1</parent>
-        <child>RR_link2</child>
+      <joint name="RR_position_control_joint2" type="revolute">
+        <pose relative_to="RR_position_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_position_control_link1</parent>
+        <child>RR_position_control_link2</child>
         <axis>
           <xyz>1 0 0</xyz>
           <dynamics>
-            <damping>1.0</damping>
+            <damping>0.25</damping>
           </dynamics>
         </axis>
       </joint>
@@ -393,17 +393,23 @@
       <plugin
         filename="libignition-gazebo-joint-trajectory-controller-system.so"
         name="ignition::gazebo::systems::JointTrajectoryController">
-        <joint_name>RR_joint1</joint_name>
+        <joint_name>RR_position_control_joint1</joint_name>
         <initial_position>0.7854</initial_position>
-        <position_p_gain>40</position_p_gain>
+        <position_p_gain>20</position_p_gain>
+        <position_i_gain>0.4</position_i_gain>
         <position_d_gain>1.0</position_d_gain>
+        <position_i_min>-1</position_i_min>
+        <position_i_max>1</position_i_max>
         <position_cmd_min>-20</position_cmd_min>
         <position_cmd_max>20</position_cmd_max>
 
-        <joint_name>RR_joint2</joint_name>
+        <joint_name>RR_position_control_joint2</joint_name>
         <initial_position>-1.5708</initial_position>
-        <position_p_gain>20</position_p_gain>
+        <position_p_gain>10</position_p_gain>
+        <position_i_gain>0.2</position_i_gain>
         <position_d_gain>0.5</position_d_gain>
+        <position_i_min>-1</position_i_min>
+        <position_i_max>1</position_i_max>
         <position_cmd_min>-10</position_cmd_min>
         <position_cmd_max>10</position_cmd_max>
       </plugin>
@@ -414,20 +420,20 @@
     <model name="RR_velocity_control">
       <pose>0 -0.5 -0.25 0 0 0</pose>
       <!-- Fix To World -->
-      <joint name="RR_world" type="fixed">
+      <joint name="RR_velocity_control_world" type="fixed">
         <parent>world</parent>
-        <child>RR_link0</child>
+        <child>RR_velocity_control_link0</child>
       </joint>
       <!-- Links -->
-      <link name="RR_link0">
-        <collision name="RR_link0_collision_0">
+      <link name="RR_velocity_control_link0">
+        <collision name="RR_velocity_control_link0_collision_0">
           <geometry>
             <sphere>
               <radius>0.025</radius>
             </sphere>
           </geometry>
         </collision>
-        <visual name="RR_link0_visual_0">
+        <visual name="RR_velocity_control_link0_visual_0">
           <geometry>
             <sphere>
               <radius>0.025</radius>
@@ -440,9 +446,9 @@
           </material>
         </visual>
       </link>
-      <link name="RR_link1">
-        <pose relative_to="RR_joint1">0 0 0.1 0 0 0</pose>
-        <collision name="RR_link1_collision_0">
+      <link name="RR_velocity_control_link1">
+        <pose relative_to="RR_velocity_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_velocity_control_link1_collision_0">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -450,14 +456,14 @@
             </cylinder>
           </geometry>
         </collision>
-        <collision name="RR_link1_collision_1">
+        <collision name="RR_velocity_control_link1_collision_1">
           <geometry>
             <sphere>
               <radius>0.0125</radius>
             </sphere>
           </geometry>
         </collision>
-        <visual name="RR_link1_visual_0">
+        <visual name="RR_velocity_control_link1_visual_0">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -470,8 +476,8 @@
             <specular>0 0.8 0 1</specular>
           </material>
         </visual>
-        <visual name="RR_link1_visual_1">
-          <pose relative_to="RR_joint1">0 0 0.2 0 0 0</pose>
+        <visual name="RR_velocity_control_link1_visual_1">
+          <pose relative_to="RR_velocity_control_joint1">0 0 0.2 0 0 0</pose>
           <geometry>
             <sphere>
               <radius>0.0125</radius>
@@ -492,9 +498,9 @@
           </inertia>
         </inertial>
       </link>
-      <link name="RR_link2">
-        <pose relative_to="RR_joint2">0 0 0.1 0 0 0</pose>
-        <collision name="RR_link2_collision">
+      <link name="RR_velocity_control_link2">
+        <pose relative_to="RR_velocity_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_velocity_control_link2_collision">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -502,7 +508,7 @@
             </cylinder>
           </geometry>
         </collision>
-        <visual name="RR_link2_visual">
+        <visual name="RR_velocity_control_link2_visual">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -525,10 +531,10 @@
         </inertial>
       </link>
       <!-- Joints -->
-      <joint name="RR_joint1" type="revolute">
-        <pose relative_to="RR_link0">0 0 0 0 0 0</pose>
-        <parent>RR_link0</parent>
-        <child>RR_link1</child>
+      <joint name="RR_velocity_control_joint1" type="revolute">
+        <pose relative_to="RR_velocity_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_velocity_control_link0</parent>
+        <child>RR_velocity_control_link1</child>
         <axis>
           <xyz>1 0 0</xyz>
         </axis>
@@ -536,10 +542,10 @@
           <damping>0.02</damping>
         </dynamics>
       </joint>
-      <joint name="RR_joint2" type="revolute">
-        <pose relative_to="RR_link1">0 0 0.1 0 0 0</pose>
-        <parent>RR_link1</parent>
-        <child>RR_link2</child>
+      <joint name="RR_velocity_control_joint2" type="revolute">
+        <pose relative_to="RR_velocity_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_velocity_control_link1</parent>
+        <child>RR_velocity_control_link2</child>
         <axis>
           <xyz>1 0 0</xyz>
         </axis>
@@ -553,19 +559,15 @@
         name="ignition::gazebo::systems::JointTrajectoryController">
         <!-- Note: If joint names are omitted, their respective order from model will be preserved
              when applying other parameters during configuration -->
-        <velocity_p_gain>1.0</velocity_p_gain>
-        <velocity_i_gain>0.4</velocity_i_gain>
-        <velocity_i_min>-2</velocity_i_min>
-        <velocity_i_max>2</velocity_i_max>
-        <velocity_cmd_min>-20</velocity_cmd_min>
-        <velocity_cmd_max>20</velocity_cmd_max>
-
-        <velocity_p_gain>0.5</velocity_p_gain>
-        <velocity_i_gain>0.2</velocity_i_gain>
-        <velocity_i_min>-1</velocity_i_min>
-        <velocity_i_max>1</velocity_i_max>
+        <velocity_p_gain>0.6</velocity_p_gain>
+        <velocity_i_gain>175</velocity_i_gain>
         <velocity_cmd_min>-10</velocity_cmd_min>
         <velocity_cmd_max>10</velocity_cmd_max>
+
+        <velocity_p_gain>0.1</velocity_p_gain>
+        <velocity_i_gain>200</velocity_i_gain>
+        <velocity_cmd_min>-5</velocity_cmd_min>
+        <velocity_cmd_max>5</velocity_cmd_max>
       </plugin>
     </model>
 
@@ -574,20 +576,20 @@
     <model name="RR_effort_control">
       <pose>0 0.5 -0.25 -0.7854 0 0</pose>
       <!-- Fix To World -->
-      <joint name="RR_world" type="fixed">
+      <joint name="RR_effort_control_world" type="fixed">
         <parent>world</parent>
-        <child>RR_link0</child>
+        <child>RR_effort_control_link0</child>
       </joint>
       <!-- Links -->
-      <link name="RR_link0">
-        <collision name="RR_link0_collision_0">
+      <link name="RR_effort_control_link0">
+        <collision name="RR_effort_control_link0_collision_0">
           <geometry>
             <sphere>
               <radius>0.025</radius>
             </sphere>
           </geometry>
         </collision>
-        <visual name="RR_link0_visual_0">
+        <visual name="RR_effort_control_link0_visual_0">
           <geometry>
             <sphere>
               <radius>0.025</radius>
@@ -600,9 +602,9 @@
           </material>
         </visual>
       </link>
-      <link name="RR_link1">
-        <pose relative_to="RR_joint1">0 0 0.1 0 0 0</pose>
-        <collision name="RR_link1_collision_0">
+      <link name="RR_effort_control_link1">
+        <pose relative_to="RR_effort_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_effort_control_link1_collision_0">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -610,14 +612,14 @@
             </cylinder>
           </geometry>
         </collision>
-        <collision name="RR_link1_collision_1">
+        <collision name="RR_effort_control_link1_collision_1">
           <geometry>
             <sphere>
               <radius>0.0125</radius>
             </sphere>
           </geometry>
         </collision>
-        <visual name="RR_link1_visual_0">
+        <visual name="RR_effort_control_link1_visual_0">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -630,8 +632,8 @@
             <specular>0 0 0.8 1</specular>
           </material>
         </visual>
-        <visual name="RR_link1_visual_1">
-          <pose relative_to="RR_joint1">0 0 0.2 0 0 0</pose>
+        <visual name="RR_effort_control_link1_visual_1">
+          <pose relative_to="RR_effort_control_joint1">0 0 0.2 0 0 0</pose>
           <geometry>
             <sphere>
               <radius>0.0125</radius>
@@ -652,9 +654,9 @@
           </inertia>
         </inertial>
       </link>
-      <link name="RR_link2">
-        <pose relative_to="RR_joint2">0 0 0.1 0 0 0</pose>
-        <collision name="RR_link2_collision">
+      <link name="RR_effort_control_link2">
+        <pose relative_to="RR_effort_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_effort_control_link2_collision">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -662,7 +664,7 @@
             </cylinder>
           </geometry>
         </collision>
-        <visual name="RR_link2_visual">
+        <visual name="RR_effort_control_link2_visual">
           <geometry>
             <cylinder>
               <radius>0.01</radius>
@@ -685,10 +687,10 @@
         </inertial>
       </link>
       <!-- Joints -->
-      <joint name="RR_joint1" type="revolute">
-        <pose relative_to="RR_link0">0 0 0 0 0 0</pose>
-        <parent>RR_link0</parent>
-        <child>RR_link1</child>
+      <joint name="RR_effort_control_joint1" type="revolute">
+        <pose relative_to="RR_effort_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_effort_control_link0</parent>
+        <child>RR_effort_control_link1</child>
         <axis>
           <xyz>1 0 0</xyz>
           <dynamics>
@@ -696,10 +698,10 @@
           </dynamics>
         </axis>
       </joint>
-      <joint name="RR_joint2" type="revolute">
-        <pose relative_to="RR_link1">0 0 0.1 0 0 0</pose>
-        <parent>RR_link1</parent>
-        <child>RR_link2</child>
+      <joint name="RR_effort_control_joint2" type="revolute">
+        <pose relative_to="RR_effort_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_effort_control_link1</parent>
+        <child>RR_effort_control_link2</child>
         <axis>
           <xyz>1 0 0</xyz>
           <dynamics>
