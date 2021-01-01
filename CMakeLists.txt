@@ -161,6 +161,9 @@ ign_create_packages()
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
 
+# disable doxygen on macOS due to issues with doxygen 1.9.0
+# there is an unreleased fix; revert this when 1.9.1 is released
+# https://github.com/ignitionrobotics/ign-gazebo/issues/520
 if (NOT APPLE)
   ign_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
