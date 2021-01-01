@@ -491,25 +491,45 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
 {
   std::vector<Entity> output;
 
-  // Get list of user-enabled joints. If empty, enable all 1-axis joints
+  // Get list of user-enabled joint names. If empty, enable all 1-axis joints
   const auto enabledJoints = JointParameters::Parse<std::string>(_sdf, "joint_name");
 
-  // Iterate over all joints and verify whether they can be enabled or not
-  for (const auto &jointEntity : _ecm.ChildrenByComponents(_entity, components::Joint()))
+  // Get list of joint entities of the model
+  // If there are joints explicitely enabled by the user, get only those
+  std::vector<Entity> jointEntities;
+  if (!enabledJoints.empty())
   {
-    const auto jointName = _ecm.Component<components::Name>(jointEntity)->Data();
-
-    // Skip if joint is not enabled
-    if (!enabledJoints.empty())
+    for (const auto &enabledJointName : enabledJoints)
     {
-      const auto it = std::find(enabledJoints.begin(), enabledJoints.end(), jointName);
-      if (it == enabledJoints.end())
+      auto enabledJointEntity = _ecm.ChildrenByComponents(_entity,
+                                                          components::Joint(),
+                                                          components::Name(enabledJointName));
+      // Check that model has exactly one joint that matches the name
+      if (enabledJointEntity.empty())
       {
-        ignmsg << "[JointTrajectoryController] Ignoring disabled joint [" << jointName
-               << "(Entity=" << jointEntity << ")]\".\n";
+        ignerr << "[JointTrajectoryController] Model does not contain joint [" << enabledJointName
+               << "], which was explicitly enabled.\n";
         continue;
       }
+      else if (enabledJointEntity.size() > 1)
+      {
+        ignwarn << "[JointTrajectoryController] Model has " << enabledJointEntity.size()
+                << " duplicate joints named [" << enabledJointName << "]. Only the first (Entity="
+                << enabledJointEntity[0] << ") will be configured.\n";
+      }
+      // Add entity to the list of enabled joints
+      jointEntities.push_back(enabledJointEntity[0]);
     }
+  }
+  else
+  {
+    jointEntities = _ecm.ChildrenByComponents(_entity, components::Joint());
+  }
+
+  // Iterate over all joints and verify whether they can be enabled or not
+  for (const auto &jointEntity : jointEntities)
+  {
+    const auto jointName = _ecm.Component<components::Name>(jointEntity)->Data();
 
     // Ignore duplicate joints
     for (const auto &actuatedJoint : this->actuatedJoints)
@@ -517,7 +537,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       if (actuatedJoint.second.entity == jointEntity)
       {
         ignwarn << "[JointTrajectoryController] Ignoring duplicate joint [" << jointName
-                << "(Entity=" << jointEntity << ")]\".\n";
+                << "(Entity=" << jointEntity << ")].\n";
         continue;
       }
     }
