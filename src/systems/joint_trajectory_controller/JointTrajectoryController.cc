@@ -137,8 +137,7 @@ class ActuatedJoint
 
   /// \brief Setup components required for control of this joint
   /// \param[in,out] _ecm Ignition Entity Component Manager
-  /// \return True if setup was successful, False if any of the components could not be created
-  public: bool SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const;
+  public: void SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const;
 
   /// \brief Set target of the joint that the controller will attempt to reach
   /// \param[in] _targetPoint Targets of all controlled joint
@@ -381,10 +380,7 @@ void JointTrajectoryController::PreUpdate(const ignition::gazebo::UpdateInfo &_i
     for (auto &actuatedJoint : this->dataPtr->actuatedJoints)
     {
       ActuatedJoint *joint = &actuatedJoint.second;
-      if (!joint->SetupComponents(_ecm))
-      {
-        return;
-      }
+      joint->SetupComponents(_ecm);
     }
     this->dataPtr->componentSetupFinished = true;
   }
@@ -825,50 +821,25 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-bool ActuatedJoint::SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const
+void ActuatedJoint::SetupComponents(ignition::gazebo::EntityComponentManager &_ecm) const
 {
-  const auto jointName = _ecm.Component<components::Name>(this->entity)->Data();
-
   // Create JointPosition component if one does not exist
-  auto jointPositionComponent = _ecm.Component<components::JointPosition>(this->entity);
-  if (jointPositionComponent == nullptr)
+  if (nullptr == _ecm.Component<components::JointPosition>(this->entity))
   {
     _ecm.CreateComponent(this->entity, components::JointPosition());
   }
-  if (jointPositionComponent == nullptr)
-  {
-    ignwarn << "[JointTrajectoryController] Cannot create JointPosition component for a joint ["
-            << jointName << "(Entity=" << this->entity << ")].\n";
-    return false;
-  }
 
   // Create JointVelocity component if one does not exist
-  auto jointVelocityComponent = _ecm.Component<components::JointVelocity>(this->entity);
-  if (jointVelocityComponent == nullptr)
+  if (nullptr == _ecm.Component<components::JointVelocity>(this->entity))
   {
     _ecm.CreateComponent(this->entity, components::JointVelocity());
   }
-  if (jointVelocityComponent == nullptr)
-  {
-    ignwarn << "[JointTrajectoryController] Cannot create JointVelocity component for a joint ["
-            << jointName << "(Entity=" << this->entity << ")].\n";
-    return false;
-  }
 
   // Create JointForceCmd component if one does not exist
-  auto jointForceCmdComponent = _ecm.Component<components::JointForceCmd>(this->entity);
-  if (jointForceCmdComponent == nullptr)
+  if (nullptr == _ecm.Component<components::JointForceCmd>(this->entity))
   {
     _ecm.CreateComponent(this->entity, components::JointForceCmd({0.0}));
   }
-  if (jointForceCmdComponent == nullptr)
-  {
-    ignwarn << "[JointTrajectoryController] Cannot create JointForceCmd component for a joint ["
-            << jointName << "(Entity=" << this->entity << ")].\n";
-    return false;
-  }
-
-  return true;
 }
 
 //////////////////////////////////////////////////
