@@ -2137,5 +2137,5 @@ TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
+INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,
     EntityComponentManagerFixture, ::testing::Range(1, 10));
