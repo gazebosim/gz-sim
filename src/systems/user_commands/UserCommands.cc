@@ -462,13 +462,13 @@ bool CreateCommand::Execute()
         "<attenuation>" +
           "<range>" + std::to_string(lightMsg.range()) + "</range>" +
           "<constant>" +
-          std::to_string(lightMsg.cast_shadows()) +
+          std::to_string(lightMsg.attenuation_constant()) +
           "</constant>" +
           "<linear>" +
-          std::to_string(lightMsg.cast_shadows()) +
+          std::to_string(lightMsg.attenuation_linear()) +
           "</linear>" +
           "<quadratic>" +
-          std::to_string(lightMsg.cast_shadows()) +
+          std::to_string(lightMsg.attenuation_quadratic()) +
           "</quadratic>" +
         "</attenuation>" +
         "<direction>" +
