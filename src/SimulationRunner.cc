@@ -160,19 +160,24 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->levelMgr->UpdateLevelsState();
 
   // Load any additional plugins from the Server Configuration
-  this->LoadServerPlugins(this->serverConfig.Plugins());
+  this->LoadServerPlugins(this->serverConfig, false);
 
   // If we have reached this point and no systems have been loaded, then load
   // a default set of systems.
   if (this->systems.empty() && this->pendingSystems.empty())
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+
+    ServerConfig tmpConfig {this->serverConfig};
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
     auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
-    this->LoadServerPlugins(plugins);
-  }
 
-  this->LoadLoggingPlugins(this->serverConfig);
+    for (const auto &plugin : plugins)
+    {
+      tmpConfig.AddPlugin(plugin);
+    }
+    this->LoadServerPlugins(tmpConfig, true);
+  }
 
   // World control
   transport::NodeOptions opts;
@@ -780,8 +785,8 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadServerPlugins(
-    const std::list<ServerConfig::PluginInfo> &_plugins)
+void SimulationRunner::LoadServerPlugins(const ServerConfig &_config,
+                                         bool _injectLogPlugins)
 {
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
@@ -789,9 +794,29 @@ void SimulationRunner::LoadServerPlugins(
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
-  igndbg << "Loading (" << _plugins.size() << ") from server config\n";
+  std::list<ServerConfig::PluginInfo> plugins(_config.Plugins());
 
-  for (const ServerConfig::PluginInfo &plugin : _plugins)
+  if (_injectLogPlugins)
+  {
+    if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+    {
+      ignwarn <<
+        "Both recording and playback are specified, defaulting to playback\n";
+    }
+
+    if(!_config.LogPlaybackPath().empty())
+    {
+      auto playbackPlugin = _config.LogPlaybackPlugin();
+      plugins.push_back(playbackPlugin);
+    }
+    else if(_config.UseLogRecord())
+    {
+      auto recordPlugin = _config.LogRecordPlugin();
+      plugins.push_back(recordPlugin);
+    }
+  }
+
+  for (const ServerConfig::PluginInfo &plugin : plugins)
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
@@ -860,31 +885,6 @@ void SimulationRunner::LoadServerPlugins(
       this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
     }
   }
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
-{
-  std::list<ServerConfig::PluginInfo> plugins;
-
-  if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
-  {
-    ignwarn <<
-      "Both recording and playback are specified, defaulting to playback\n";
-  }
-
-  if(!_config.LogPlaybackPath().empty())
-  {
-    auto playbackPlugin = _config.LogPlaybackPlugin();
-    plugins.push_back(playbackPlugin);
-  }
-  else if(_config.UseLogRecord())
-  {
-    auto recordPlugin = _config.LogRecordPlugin();
-    plugins.push_back(recordPlugin);
-  }
-
-  this->LoadServerPlugins(plugins);
 }
 
 //////////////////////////////////////////////////
