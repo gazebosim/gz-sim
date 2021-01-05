@@ -523,6 +523,9 @@ void RenderUtil::Update()
 
   // create new collision visuals
   {
+    if (!newCollisionLinks.empty())
+      DeselectAllEntities();
+
     for (auto const& link : newCollisionLinks)
     {
       std::vector<Entity> colEntities =
