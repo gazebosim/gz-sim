@@ -279,7 +279,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   if (hasRecordTopics)
   {
     this->config.ClearLogRecordTopics();
-    for (auto topic: sdfRecordTopics)
+    for (auto topic : sdfRecordTopics)
     {
       this->config.AddLogRecordTopic(topic);
     }
@@ -341,7 +341,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   if (_config.LogRecordTopics().size())
   {
     this->config.ClearLogRecordTopics();
-    for (auto topic: _config.LogRecordTopics())
+    for (auto topic : _config.LogRecordTopics())
     {
       this->config.AddLogRecordTopic(topic);
     }

@@ -189,7 +189,8 @@ namespace ignition
       /// \brief Load server plugins for a given entity.
       /// \param[in] _config Configuration to load plugins from.
       ///     plugins based on the _config contents
-      public: void LoadServerPlugins(const std::list<ServerConfig::PluginInfo> &_plugins);
+      public: void LoadServerPlugins(
+          const std::list<ServerConfig::PluginInfo> &_plugins);
 
       /// \brief Load logging/playback plugins
       /// \param[in] _config Configuration to load plugins from.
