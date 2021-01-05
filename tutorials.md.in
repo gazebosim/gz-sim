@@ -12,6 +12,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.
+* \subpage model_creation "Model creation": Insert models or lights using services.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
 * \subpage battery "Battery": Keep track of battery charge on robot models.
