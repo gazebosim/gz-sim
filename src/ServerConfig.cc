@@ -235,7 +235,8 @@ class ignition::gazebo::ServerConfigPrivate
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
-            seed(_cfg->seed) { }
+            seed(_cfg->seed),
+            logRecordTopics(_cfg->logRecordTopics) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
