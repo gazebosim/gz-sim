@@ -680,18 +680,31 @@ void IgnRenderer::Render()
     IGN_PROFILE("IgnRenderer::Render ViewCollisions");
     if (!this->dataPtr->viewCollisionsTarget.empty())
     {
-      rendering::NodePtr targetNode = scene->NodeByName(
-          this->dataPtr->viewCollisionsTarget);
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewCollisionsTarget);
 
       if (!targetNode)
       {
-        // TODO(jenn) fix error
-        std::cout << "No target" << std::endl;
+        // workaround for selecting collision
+        size_t found = this->dataPtr->viewCollisionsTarget.find_last_of("::");
+        if (found != std::string::npos)
+        {
+          targetNode = scene->NodeByName(
+              this->dataPtr->viewCollisionsTarget.substr(0, found-1));
+        }
+      }
+
+      if (targetNode)
+      {
+        Entity targetEntity =
+            this->dataPtr->renderUtil.SceneManager().EntityFromNode(targetNode);
+        this->dataPtr->renderUtil.ViewCollisions(targetEntity);
       }
       else
       {
-        Entity targetEntity = this->dataPtr->renderUtil.SceneManager().EntityFromNode(targetNode);
-        this->dataPtr->renderUtil.SetViewCollisions(true, targetEntity);
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewCollisionsTarget
+               << "] to view collisions" << std::endl;
       }
 
       this->dataPtr->viewCollisionsTarget.clear();

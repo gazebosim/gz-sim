@@ -235,7 +235,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The world pose to set the camera to.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
-    /// TODO(jenn) doc
+    /// \brief View collisions of the specified target
+    /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
 
     /// \brief Set the p gain for the camera follow movement
@@ -547,7 +548,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose The new camera pose in the world frame.
     public: void SetMoveToPose(const math::Pose3d &_pose);
 
-    /// TODO(jenn) doc
+    /// \brief View collisions of the specified target
+    /// \param[in] _target Target to view collisions
     public: void SetViewCollisionsTarget(const std::string &_target);
 
     /// \brief Set the p gain for the camera follow movement

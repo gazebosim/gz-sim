@@ -342,6 +342,17 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::GetVisual(Entity _id)
+{
+  if (this->dataPtr->visuals.find(_id) == this->dataPtr->visuals.end())
+  {
+    ignerr << "Could not find visual for entity: " << _id << std::endl;
+    return nullptr;
+  }
+  return this->dataPtr->visuals[_id];
+}
+
+/////////////////////////////////////////////////
 rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     math::Vector3d &_scale, math::Pose3d &_localPose)
 {

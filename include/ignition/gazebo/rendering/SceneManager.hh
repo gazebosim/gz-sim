@@ -96,6 +96,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Retrieve visual
+    /// \param[in] _id Unique visual (entity) id
+    /// \return Pointer to requested visual
+    public: rendering::VisualPtr GetVisual(Entity _id);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _visual Actor sdf dom

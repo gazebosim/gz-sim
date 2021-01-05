@@ -112,8 +112,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         std::string(const sdf::Sensor &, const std::string &)>
         _createSensorCb = {});
 
-    // TODO(jenn) doc
-    public: void SetViewCollisions(const bool &_viewCollision, const Entity &_entity);
+    /// \brief View collisions of specified entity which are shown in orange
+    /// \param[in] _entity Entity to view collisions
+    public: void ViewCollisions(const Entity &_entity);
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.

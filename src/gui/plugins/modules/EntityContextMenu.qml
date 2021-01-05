@@ -37,13 +37,27 @@ Item {
       text: "Remove"
       onTriggered: context.OnRemove(context.entity, context.type)
     }
-    Menu {
+    MenuItem {
       id: viewSubmenu
-      title: "View"
-      MenuItem {
-        id: viewCollisionsMenu
-        text: "Collisions"
-        onTriggered: context.OnRequest("viewCollisions", context.entity)
+      text: "View >"
+      MouseArea {
+        id: viewSubMouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: secondMenu.open()
+      }
+    }
+  }
+  Menu {
+    id: secondMenu
+    x: menu.x + menu.width
+    y: menu.y + viewSubmenu.y
+    MenuItem {
+      id: viewCollisionsMenu
+      text: "Collisions"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("viewCollisions", context.entity)
       }
     }
   }
