@@ -86,8 +86,7 @@ Item {
       removeMenu.enabled = true
     }
 
-    if (context.type == "model" || context.type == "link" ||
-        context.type == "collision" )
+    if (context.type == "model" || context.type == "link")
     {
       viewCollisionsMenu.enabled = true;
     }

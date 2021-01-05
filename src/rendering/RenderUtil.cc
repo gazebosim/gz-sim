@@ -202,9 +202,13 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief New collisions to be created
   public: std::vector<Entity> newCollisions;
 
-  /// \brief Render collision entities (displayed in orange)
+  /// \brief Finds the links (collision parent) that are used to create child
+  /// collision visuals in RenderUtil::Update
   /// \param[in] _ecm The entity-component manager
-  public: void CreateCollisions(const EntityComponentManager &_ecm);
+  public: void FindCollisionLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to create new collision visuals
+  public: std::vector<Entity> newCollisionLinks;
 
   /// \brief A map of collision entity ids and their SDF DOM
   public: std::map<Entity, sdf::Collision> entityCollisions;
@@ -246,11 +250,11 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
-  this->dataPtr->CreateCollisions(_ecm);
+  this->dataPtr->FindCollisionLinks(_ecm);
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::CreateCollisions(const EntityComponentManager &_ecm)
+void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
 {
   if (this->newCollisions.empty())
     return;
@@ -277,29 +281,9 @@ void RenderUtilPrivate::CreateCollisions(const EntityComponentManager &_ecm)
       continue;
     }
 
-    for (auto const& link : links)
-    {
-      std::vector<Entity> colEntities = this->linkToCollisionEntities[link];
-
-      for (const auto& colEntity : colEntities)
-      {
-        if (!this->sceneManager.HasEntity(colEntity))
-        {
-          sdf::Collision collision = this->entityCollisions[colEntity];
-
-          sdf::Material material;
-          material.SetAmbient(math::Color(1, 0.5088, 0.0468, 1));
-          material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 1));
-          material.SetSpecular(math::Color(0.5, 0.5, 0.5, 1));
-
-          sdf::Visual visual;
-          visual.SetGeom(*collision.Geom());
-          visual.SetMaterial(material);
-          this->sceneManager.CreateVisual(colEntity, visual, link);
-          this->viewingCollisions[colEntity] = true;
-        }
-      }
-    }
+    this->newCollisionLinks.insert(this->newCollisionLinks.end(),
+        links.begin(),
+        links.end());
   }
   this->newCollisions.clear();
 }
@@ -340,6 +324,7 @@ void RenderUtil::Update()
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -351,6 +336,7 @@ void RenderUtil::Update()
   this->dataPtr->entityPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->newCollisionLinks.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -532,6 +518,34 @@ void RenderUtil::Update()
         continue;
 
       visual->SetUserData("temperature", temp.second);
+    }
+  }
+
+  // create new collision visuals
+  {
+    for (auto const& link : newCollisionLinks)
+    {
+      std::vector<Entity> colEntities =
+          this->dataPtr->linkToCollisionEntities[link];
+
+      for (const auto& colEntity : colEntities)
+      {
+        if (!this->dataPtr->sceneManager.HasEntity(colEntity))
+        {
+          sdf::Collision collision = this->dataPtr->entityCollisions[colEntity];
+
+          sdf::Material material;
+          material.SetAmbient(math::Color(1, 0.5088, 0.0468, 1));
+          material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 1));
+          material.SetSpecular(math::Color(0.5, 0.5, 0.5, 1));
+
+          sdf::Visual visual;
+          visual.SetGeom(*collision.Geom());
+          visual.SetMaterial(material);
+          this->dataPtr->sceneManager.CreateVisual(colEntity, visual, link);
+          this->dataPtr->viewingCollisions[colEntity] = true;
+        }
+      }
     }
   }
 }
