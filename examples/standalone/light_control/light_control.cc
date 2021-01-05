@@ -135,6 +135,7 @@ int main(int argc, char **argv)
   while (1){
     float x, y, z;
     double m = 0;
+//! [random numbers]
     while (m < epsilon) {
       x = distr(twister);
       y = distr(twister);
@@ -144,6 +145,7 @@ int main(int argc, char **argv)
     x /= m;
     y /= m;
     z /= m;
+//! [random numbers]
 
 //! [modify light]
     lightRequest.set_name("point");

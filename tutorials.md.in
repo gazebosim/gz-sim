@@ -14,6 +14,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
+* \subpage light_config "Light config": Configure lights on the scene.
 * \subpage battery "Battery": Keep track of battery charge on robot models.
 * \subpage gui_config "GUI configuration": Customizing your layout.
 * \subpage debugging "Debugging": Information about debugging Gazebo.
