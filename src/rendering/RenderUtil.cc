@@ -46,6 +46,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -568,6 +569,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
+          }
+
           // todo(anyone) make visual updates more generic without using extra
           // variables like entityTemp just for storing one specific visual
           // param?
@@ -739,6 +746,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (material != nullptr)
           {
             visual.SetMaterial(material->Data());
+          }
+
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
           }
 
           this->newVisuals.push_back(

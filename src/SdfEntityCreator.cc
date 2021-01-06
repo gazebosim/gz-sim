@@ -41,6 +41,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
@@ -502,6 +503,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       components::CastShadows(_visual->CastShadows()));
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Transparency(_visual->Transparency()));
+
+  if (_visual->HasLaserRetro()){
+    this->dataPtr->ecm->CreateComponent(visualEntity,
+        components::LaserRetro(_visual->LaserRetro()));
+  }
 
   if (_visual->Geom())
   {
