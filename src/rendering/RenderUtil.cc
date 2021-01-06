@@ -1294,6 +1294,13 @@ MarkerManager &RenderUtil::MarkerManager()
   return this->dataPtr->markerManager;
 }
 
+//////////////////////////////////////////////////
+std::chrono::steady_clock::duration RenderUtil::SimTime() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  return this->dataPtr->simTime;
+}
+
 /////////////////////////////////////////////////
 // NOLINTNEXTLINE
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)

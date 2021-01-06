@@ -15,8 +15,14 @@
  *
  */
 
+#include "ResourceSpawner.hh"
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
+
+#include <algorithm>
+#include <set>
+#include <unordered_map>
 
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
@@ -32,12 +38,8 @@
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 
-#include <set>
-
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "ResourceSpawner.hh"
 
 namespace ignition::gazebo
 {
