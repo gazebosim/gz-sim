@@ -47,8 +47,6 @@ void createLight()
   ignition::msgs::EntityFactory entityFactoryRequest;
 
   entityFactoryRequest.mutable_light()->set_name("point");
-  entityFactoryRequest.mutable_light()->set_id(22);
-  entityFactoryRequest.mutable_light()->set_parent_id(1);
   entityFactoryRequest.mutable_light()->set_range(4);
   entityFactoryRequest.mutable_light()->set_attenuation_linear(0.5);
   entityFactoryRequest.mutable_light()->set_attenuation_constant(0.2);
@@ -149,7 +147,6 @@ int main(int argc, char **argv)
 
 //! [modify light]
     lightRequest.set_name("point");
-    lightRequest.set_id(22);
     lightRequest.set_range(4);
     lightRequest.set_attenuation_linear(0.5);
     lightRequest.set_attenuation_constant(0.2);
