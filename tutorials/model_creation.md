@@ -3,7 +3,18 @@
 This tutorial gives an introduction to the Ignition Gazebo's service `/world/<world name>/create`.
 This service will allow to create models in the scene such us spheres, lights, etc.
 
-Ignition Gazebo creates many services. You can check this typing:
+Ignition Gazebo creates many services which depends on the plugins that are specified in the SDF.
+In this case we need to load the `UserCommands` plugin, this will offer the `create` services.
+You can include the `UserCommands` system plugin including this lines in your SDF:
+
+```xml
+<plugin
+  filename="ignition-gazebo-user-commands-system"
+  name="ignition::gazebo::systems::UserCommands">
+</plugin>
+```
+
+You can check this typing:
 
 In one terminal
 ```bash
@@ -58,14 +69,16 @@ In the next snippet you can see how to create models based on strings.
 The variable `modelStr` contains the SDF of the model that we want to create in the world.
 In this case we are creating a sphere of 1 meter of radius in the position: `x: 0 y:0 z:0.5 roll: 0 pitch: 0 yaw: 0`.
 
-**NOTE**: You can insert here all kind of models that you can described using a SDF string.
+**NOTE**: You can insert here all kinds of models that you can described using a SDF string.
 
 Then we need to call the service `/world/<world_name>/create`:
 
 \snippet examples/standalone/model_creation/model_creation.cc call service create sphere
 
 **NOTE**: If the entity name does not exist then the entity will be created in the world or if the entity already
-exist then nothing will happens. You may see some traces in the console showing this information.
+exist then nothing will happen. You may see some traces in the console showing this information.
+There is the option to create a new entity every time that the message is sent by setting
+`allow_renaming` to true (you can use the method `set_allow_renaming()`).
 
 ## Include a light
 
@@ -82,10 +95,7 @@ Or we can create a SDF string:
 
 \snippet examples/standalone/model_creation/model_creation.cc create light str
 
-Please check the API to know which fields are available for each type of light. There are three types of lights:
- - Point [rendering API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1Light.html) [light msgs API](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html)
- - Directional [rendering API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1DirectionalLight.html)[light msgs API](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html)
- - Spot [rendering API](https://ignitionrobotics.org/api/rendering/4.1/classignition_1_1rendering_1_1SpotLight.html)[light msgs API](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html)
+Please check the API to know which fields are available in the [Light msgs](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html). There are three types of lights: Point, Directional and Spot.
 
 Finally we should call the same service `/world/<world_name>/create`:
 

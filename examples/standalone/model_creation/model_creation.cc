@@ -39,8 +39,6 @@ void createLight()
   ignition::msgs::EntityFactory entityFactoryRequest;
 
   entityFactoryRequest.mutable_light()->set_name("point");
-  entityFactoryRequest.mutable_light()->set_id(22);
-  entityFactoryRequest.mutable_light()->set_parent_id(1);
   entityFactoryRequest.mutable_light()->set_range(4);
   entityFactoryRequest.mutable_light()->set_attenuation_linear(0.5);
   entityFactoryRequest.mutable_light()->set_attenuation_constant(0.2);
@@ -72,7 +70,7 @@ void createLight()
 //! [call service create]
 }
 
-void createModelFromStr(const std::string modelStr)
+void createEntityFromStr(const std::string modelStr)
 {
   bool result;
   ignition::msgs::EntityFactory req;
@@ -178,9 +176,9 @@ int main(int argc, char **argv)
     </sdf>)";
 //! [create sphere]
 
-  createModelFromStr(sphereStr);
+  createEntityFromStr(sphereStr);
 
-  createModelFromStr(
+  createEntityFromStr(
     generateLightStr("spot", "spot_light", false,
       ignition::math::Pose3d(0, 0, 4, 0, 0, 0),
       ignition::math::Color(0, 0, 1.0, 1.0),
