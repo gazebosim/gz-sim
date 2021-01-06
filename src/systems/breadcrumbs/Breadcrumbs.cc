@@ -132,17 +132,32 @@ void Breadcrumbs::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
-                    this->modelRoot.ModelByIndex(0)->Name() + "/deploy"};
+  this->topic = "/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
+                    this->modelRoot.ModelByIndex(0)->Name() + "/deploy";
 
   if (_sdf->HasElement("topic"))
-    topic = _sdf->Get<std::string>("topic");
+    this->topic = _sdf->Get<std::string>("topic");
 
-  this->node.Subscribe(topic, &Breadcrumbs::OnDeploy, this);
-  this->remainingPub = this->node.Advertise<msgs::Int32>(topic + "/remaining");
+  this->topicStatistics = _sdf->Get<bool>("topic_statistics",
+      this->topicStatistics).first;
 
-  ignmsg << "Breadcrumbs subscribing to deploy messages on [" << topic << "]"
-         << std::endl;
+  // Enable topic statistics when requested.
+  if (this->topicStatistics)
+  {
+    if (!node.EnableStats(this->topic, true))
+    {
+      ignerr << "Unable to enable topic statistics on topic["
+        << this->topic << "]." << std::endl;
+      this->topicStatistics = false;
+    }
+  }
+
+  this->node.Subscribe(this->topic, &Breadcrumbs::OnDeploy, this);
+  this->remainingPub = this->node.Advertise<msgs::Int32>(
+      this->topic + "/remaining");
+
+  ignmsg << "Breadcrumbs subscribing to deploy messages on ["
+    << this->topic << "]" << std::endl;
 
   this->creator = std::make_unique<SdfEntityCreator>(_ecm, _eventMgr);
 
@@ -385,6 +400,30 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
   IGN_PROFILE("Breadcrumbs::PreUpdate");
   {
     std::lock_guard<std::mutex> lock(this->pendingCmdsMutex);
+
+    // Check topic statistics for dropped messages
+    if (this->topicStatistics)
+    {
+      ignmsg << "Received breadcrumb deployment for " <<
+        this->modelRoot.ModelByIndex(0)->Name() << std::endl;
+      std::optional<transport::TopicStatistics> stats =
+        this->node.TopicStats(this->topic);
+      if (stats)
+      {
+        if (stats->DroppedMsgCount() > 0)
+        {
+        ignwarn << "Dropped message count of " << stats->DroppedMsgCount()
+          << " for breadcrumbs on model "
+          << this->modelRoot.ModelByIndex(0)->Name() << std::endl;
+        }
+      }
+      else
+      {
+        ignerr << "Unable to get topic statistics for topic["
+          << this->topic << "]." << std::endl;
+      }
+    }
+
     this->pendingCmds.push_back(true);
   }
 }
