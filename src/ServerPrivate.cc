@@ -254,7 +254,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     {
       sdf::ElementPtr recordTopicElem =
         recordPluginElem->GetElement("record_topic");
-      while(recordTopicElem)
+      while (recordTopicElem)
       {
         auto topic = recordTopicElem->Get<std::string>();
         sdfRecordTopics.push_back(topic);

@@ -31,8 +31,6 @@
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
 
-#include "systems/log/LogRecord.hh"
-
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 

@@ -563,8 +563,7 @@ ServerConfig::LogPlaybackPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "ignition::gazebo::systems::LogPlayback";
-  auto pluginFilename = std::string("ignition-gazebo") +
-    IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
+  auto pluginFilename = "ignition-gazebo-log-system";
 
   sdf::ElementPtr playbackElem;
   playbackElem = std::make_shared<sdf::Element>();
@@ -909,7 +908,8 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   if (ret.empty())
   {
     // This may be desired behavior, but warn just in case.
-    ignwarn << "Loaded IGN_HOME config, but no plugins found\n";
+    ignwarn << "Loaded config: [" << defaultConfig
+      << "], but no plugins found\n";
   }
 
   igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
