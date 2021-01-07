@@ -1,0 +1,4 @@
+gz_add_gui_plugin(JointPositionController
+  SOURCES JointPositionController.cc
+  QT_HEADERS JointPositionController.hh
+)
