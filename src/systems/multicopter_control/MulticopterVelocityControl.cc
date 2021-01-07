@@ -259,8 +259,15 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (sdfClone->HasElement("robotNamespace"))
   {
-    this->robotNamespace =
-        sdfClone->Get<std::string>("robotNamespace");
+    this->robotNamespace = transport::TopicUtils::AsValidTopic(
+        sdfClone->Get<std::string>("robotNamespace"));
+    if (this->robotNamespace.empty())
+    {
+      ignerr << "Robot namespace ["
+             << sdfClone->Get<std::string>("robotNamespace") <<"] is invalid."
+             << std::endl;
+      return;
+    }
   }
   else
   {
@@ -270,9 +277,23 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   sdfClone->Get<std::string>("commandSubTopic",
       this->commandSubTopic, this->commandSubTopic);
+  this->commandSubTopic = transport::TopicUtils::AsValidTopic(
+      this->commandSubTopic);
+  if (this->commandSubTopic.empty())
+  {
+    ignerr << "Invalid command sub-topic." << std::endl;
+    return;
+  }
 
   sdfClone->Get<std::string>("enableSubTopic",
       this->enableSubTopic, this->enableSubTopic);
+  this->enableSubTopic = transport::TopicUtils::AsValidTopic(
+      this->enableSubTopic);
+  if (this->enableSubTopic.empty())
+  {
+    ignerr << "Invalid enable sub-topic." << std::endl;
+    return;
+  }
 
   // Subscribe to actuator command messages
   std::string topic{this->robotNamespace + "/" + this->commandSubTopic};
