@@ -1170,6 +1170,15 @@ void IgnRenderer::HandleModelPlacement()
       this->dataPtr->createCmdService = "/world/" + this->worldName
           + "/create";
     }
+    this->dataPtr->createCmdService = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->createCmdService);
+    if (this->dataPtr->createCmdService.empty())
+    {
+      ignerr << "Failed to create valid create command service for world ["
+             << this->worldName <<"]" << std::endl;
+      return;
+    }
+
     this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
     this->dataPtr->isPlacing = false;
     this->dataPtr->mouseDirty = false;
@@ -1387,6 +1396,14 @@ void IgnRenderer::HandleMouseTransformControl()
           {
             this->dataPtr->poseCmdService = "/world/" + this->worldName
                 + "/set_pose";
+          }
+          this->dataPtr->poseCmdService = transport::TopicUtils::AsValidTopic(
+              this->dataPtr->poseCmdService);
+          if (this->dataPtr->poseCmdService.empty())
+          {
+            ignerr << "Failed to create valid pose command service for world ["
+                   << this->worldName <<"]" << std::endl;
+            return;
           }
           this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
         }
