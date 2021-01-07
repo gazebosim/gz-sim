@@ -34,11 +34,6 @@ Rectangle {
   property int tooltipDelay: 500
 
   /**
-   * Height of each item in pixels
-   */
-  property int itemHeight: 30
-
-  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?
@@ -51,14 +46,6 @@ Rectangle {
   property color darkGrey: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
-
-  /**
-   * Highlight color
-   */
-  property color highlightColor: Qt.rgba(
-    Material.accent.r,
-    Material.accent.g,
-    Material.accent.b, 0.3)
 
   function delegateQml() {
     return 'Joint.qml'
@@ -86,7 +73,6 @@ Rectangle {
 
       Label {
         text: JointPositionController.modelName
-        font.capitalization: Font.Capitalize
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
         padding: 3

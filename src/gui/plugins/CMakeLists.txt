@@ -57,6 +57,8 @@ endfunction()
 #
 # [QT_HEADERS]: Qt headers that need to be moc'ed
 #
+# [TEST_SOURCES]: Source files for unit tests.
+#
 # [PUBLIC_LINK_LIBS]: Specify a list of libraries to be publicly linked.
 #
 # [PRIVATE_LINK_LIBS]: Specify a list of libraries to be privately linked.
@@ -64,7 +66,13 @@ endfunction()
 function(gz_add_gui_plugin plugin_name)
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs SOURCES QT_HEADERS PUBLIC_LINK_LIBS PRIVATE_LINK_LIBS)
+  set(multiValueArgs
+    SOURCES
+    QT_HEADERS
+    TEST_SOURCES
+    PUBLIC_LINK_LIBS
+    PRIVATE_LINK_LIBS
+  )
 
   cmake_parse_arguments(gz_add_gui_plugin "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -74,6 +82,22 @@ function(gz_add_gui_plugin plugin_name)
     PUBLIC_LINK_LIBS ${gz_add_gui_plugin_PUBLIC_LINK_LIBS}
     PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} ignition-plugin${IGN_PLUGIN_VER}::register
   )
+
+  if(gz_add_gui_plugin_TEST_SOURCES)
+    ign_build_tests(TYPE UNIT
+      SOURCES
+        ${gz_add_gui_plugin_TEST_SOURCES}
+      LIB_DEPS
+        ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+        ${plugin_name}
+      INCLUDE_DIRS
+        # Used to make internal source file headers visible to the unit tests
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        # Used to make test-directory headers visible to the unit tests
+        ${PROJECT_SOURCE_DIR}
+        # Used to make test_config.h visible to the unit tests
+        ${PROJECT_BINARY_DIR})
+  endif()
 
   install (TARGETS ${plugin_name} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
 endfunction()

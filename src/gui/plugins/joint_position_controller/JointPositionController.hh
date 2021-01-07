@@ -31,6 +31,8 @@ namespace ignition
 {
 namespace gazebo
 {
+namespace gui
+{
   class JointPositionControllerPrivate;
 
   /// \brief Model holding information about joints
@@ -51,8 +53,8 @@ namespace gazebo
     /// \return A hash connecting a unique identifier to a role name.
     public: static QHash<int, QByteArray> RoleNames();
 
-    /// \brief Add a component type to the inspector.
-    /// \param[in] _typeId Type of component to be added.
+    /// \brief Add a joint to the list.
+    /// \param[in] _typeId Joint to be added.
     /// \return Newly created item.
     public slots: QStandardItem *AddJoint(Entity _entity);
 
@@ -66,17 +68,29 @@ namespace gazebo
     /// \brief Keep track of items in the list, according to joint entity.
     public: std::map<Entity, QStandardItem *> items;
   };
-  /// \brief
+
+  /// \brief Control position of all joints in the selected model.
+  /// The model must have loaded an
+  /// `ignition::gazebo::systems::JointPositionController`
+  /// for each joint to be controlled.
+  ///
+  /// This plugin publishes position command messages (`ignition::msgs::Double`)
+  /// on topics in the format `/model/<model_name>/joint/<joint_name/0/cmd_pos`.
+  ///
+  /// Only the 1st axis of each joint is considered. Joints without axes are
+  /// ignored.
   ///
   /// ## Configuration
-  /// None
+  ///
+  /// `<model_name>`: Load the widget pointed at the given model, so it's not
+  /// necessary to select it.
   class JointPositionController : public gazebo::GuiSystem
   {
     Q_OBJECT
 
     /// \brief Model entity
     Q_PROPERTY(
-      int modelEntity
+      Entity modelEntity
       READ ModelEntity
       WRITE SetModelEntity
       NOTIFY ModelEntityChanged
@@ -115,46 +129,47 @@ namespace gazebo
     /// \param[in] _pos New joint position
     public: Q_INVOKABLE void OnCommand(const QString &_jointName, double _pos);
 
-    // Documentation inherited
-    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+    /// \brief Get the model currently controlled.
+    /// \return Model entity ID.
+    public: Q_INVOKABLE Entity ModelEntity() const;
 
-    /// \brief Get the entity currently inspected.
-    /// \return ModelEntity ID.
-    public: Q_INVOKABLE int ModelEntity() const;
-
-    /// \brief Set the entity currently inspected.
-    /// \param[in] _entity ModelEntity ID.
-    public: Q_INVOKABLE void SetModelEntity(const int &_entity);
+    /// \brief Set the model currently controlled.
+    /// \param[in] _entity Model entity ID.
+    public: Q_INVOKABLE void SetModelEntity(Entity _entity);
 
     /// \brief Notify that entity has changed.
     signals: void ModelEntityChanged();
 
-    /// \brief Get the type of entity currently inspected.
+    /// \brief Get the name of model currently controlled.
     /// \return ModelName, such as 'world' or 'model'
     public: Q_INVOKABLE QString ModelName() const;
 
-    /// \brief Set the type of entity currently inspected.
-    /// \param[in] _type ModelName, such as 'world' or 'model'.
-    public: Q_INVOKABLE void SetModelName(const QString &_entity);
+    /// \brief Set the name of model currently controlled.
+    /// \param[in] _name ModelName, such as 'world' or 'model'.
+    public: Q_INVOKABLE void SetModelName(const QString &_name);
 
-    /// \brief Notify that entity type has changed
+    /// \brief Notify that model name has changed
     signals: void ModelNameChanged();
 
-    /// \brief Get whether the inspector is currently locked on an entity.
+    /// \brief Get whether the controller is currently locked on a model.
     /// \return True for locked
     public: Q_INVOKABLE bool Locked() const;
 
-    /// \brief Set whether the inspector is currently locked on an entity.
+    /// \brief Set whether the controller is currently locked on a model.
     /// \param[in] _locked True for locked.
     public: Q_INVOKABLE void SetLocked(bool _locked);
 
     /// \brief Notify that locked has changed.
     signals: void LockedChanged();
 
+    // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<JointPositionControllerPrivate> dataPtr;
   };
+}
 }
 }
 

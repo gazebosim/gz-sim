@@ -38,15 +38,15 @@
 
 #include "JointPositionController.hh"
 
-namespace ignition::gazebo
+namespace ignition::gazebo::gui
 {
   class JointPositionControllerPrivate
   {
     /// \brief Model holding all the current components.
     public: JointsModel jointsModel;
 
-    /// \brief Entity being inspected. Default to world.
-    public: Entity modelEntity{1};
+    /// \brief Model entity being inspected.
+    public: Entity modelEntity{kNullEntity};
 
     /// \brief Name of the model
     public: QString modelName;
@@ -56,11 +56,15 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief Whether the initial model set from XML has been setup.
+    public: bool sdfModelInitialized{false};
   };
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 JointsModel::JointsModel() : QStandardItemModel()
@@ -142,10 +146,22 @@ JointPositionController::JointPositionController()
 JointPositionController::~JointPositionController() = default;
 
 /////////////////////////////////////////////////
-void JointPositionController::LoadConfig(const tinyxml2::XMLElement *)
+void JointPositionController::LoadConfig(
+    const tinyxml2::XMLElement *_pluginElem)
 {
   if (this->title.empty())
     this->title = "Joint position controller";
+
+  if (_pluginElem)
+  {
+    if (auto elem = _pluginElem->FirstChildElement("model_name"))
+    {
+      this->dataPtr->modelName = QString::fromStdString(elem->GetText());
+    }
+  }
+
+  // If model name isn't set, initialization is complete.
+  this->dataPtr->sdfModelInitialized = this->dataPtr->modelName.isEmpty();
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
@@ -153,6 +169,7 @@ void JointPositionController::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "JointsModel", &this->dataPtr->jointsModel);
+  this->dataPtr->jointsModel.setParent(this);
 }
 
 //////////////////////////////////////////////////
@@ -161,14 +178,23 @@ void JointPositionController::Update(const UpdateInfo &,
 {
   IGN_PROFILE("JointPositionController::Update");
 
+  if (!this->dataPtr->sdfModelInitialized)
+  {
+    this->dataPtr->modelEntity = _ecm.EntityByComponents(
+        components::Name(this->dataPtr->modelName.toStdString()));
+    this->dataPtr->sdfModelInitialized;
+    this->SetLocked(true);
+  }
+
   if (this->dataPtr->modelEntity == kNullEntity ||
       nullptr == _ecm.Component<components::Model>(
       this->dataPtr->modelEntity))
   {
     QMetaObject::invokeMethod(&this->dataPtr->jointsModel,
         "Clear",
-        Qt::BlockingQueuedConnection);
+        Qt::QueuedConnection);
     this->SetModelName("No model selected");
+    this->SetLocked(false);
     return;
   }
 
@@ -293,17 +319,21 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-int JointPositionController::ModelEntity() const
+Entity JointPositionController::ModelEntity() const
 {
   return this->dataPtr->modelEntity;
 }
 
 /////////////////////////////////////////////////
-void JointPositionController::SetModelEntity(const int &_entity)
+void JointPositionController::SetModelEntity(Entity _entity)
 {
-  // TODO: check it's model
   this->dataPtr->modelEntity = _entity;
   this->ModelEntityChanged();
+
+  if (this->dataPtr->modelEntity == kNullEntity)
+  {
+    this->dataPtr->modelName.clear();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -355,5 +385,5 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::JointPositionController,
+IGNITION_ADD_PLUGIN(ignition::gazebo::gui::JointPositionController,
                     ignition::gui::Plugin)
