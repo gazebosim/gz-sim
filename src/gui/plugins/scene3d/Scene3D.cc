@@ -1987,8 +1987,9 @@ TextureNode::TextureNode(QQuickWindow *_window)
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->texture = this->window->createTextureFromId(0, QSize(1, 1));
 #else
+  void * nativeLayout;
   this->texture = this->window->createTextureFromNativeObject(
-      QQuickWindow::NativeObjectTexture, nullptr, 0, QSize(1, 1),
+      QQuickWindow::NativeObjectTexture, &nativeLayout, 0, QSize(1, 1),
       QQuickWindow::TextureIsOpaque);
 #endif
   this->setTexture(this->texture);
