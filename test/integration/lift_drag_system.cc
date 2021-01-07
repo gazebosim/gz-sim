@@ -21,6 +21,7 @@
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -51,7 +52,7 @@ class LiftDragTestFixture : public ::testing::Test
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
 };

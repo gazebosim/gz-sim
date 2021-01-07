@@ -21,6 +21,7 @@
 
 #include <ignition/common/Battery.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 
 #include <sdf/Root.hh>
@@ -48,7 +49,7 @@ class BatteryPluginTest : public ::testing::Test
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",

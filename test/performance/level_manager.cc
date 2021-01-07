@@ -21,6 +21,7 @@
 
 #include <ignition/math/Stopwatch.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -35,7 +36,7 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 
   common::Console::SetVerbosity(4);
 
-  setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+  ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
          (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
 
   ignition::gazebo::ServerConfig serverConfig;
