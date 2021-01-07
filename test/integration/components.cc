@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/msgs/particle_emitter.pb.h>
+
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
 #include <sdf/AirPressure.hh>
@@ -1363,36 +1365,58 @@ TEST_F(ComponentsTest, Scene)
 TEST_F(ComponentsTest, ParticleEmitter)
 {
   particles::Emitter emitter1;
-  emitter1.id = 0;
-  emitter1.type = particles::EmitterType::BOX;
-  emitter1.size = ignition::math::Vector3d(1, 2, 3);
-  emitter1.rate = 4.0;
-  emitter1.duration = 5.0;
-  emitter1.emitting = false;
-  emitter1.particleSize = ignition::math::Vector3d(0.1, 0.2, 0.3);
-  emitter1.lifetime = 6.0;
-  emitter1.minVelocity = 7.0;
-  emitter1.maxVelocity = 8.0;
-  emitter1.colorStart = ignition::math::Color::Red;
-  emitter1.colorEnd = ignition::math::Color::White;
-  emitter1.scaleRate = 9.0;
-  emitter1.colorRangeImage = "path_to_texture";
+  emitter1.data.set_name("emitter1");
+  emitter1.data.set_id(0);
+  emitter1.data.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter1.data.mutable_size()->set_x(1);
+  emitter1.data.mutable_size()->set_y(2);
+  emitter1.data.mutable_size()->set_z(3);
+  emitter1.data.set_rate(4.0);
+  emitter1.data.set_duration(5.0);
+  emitter1.data.set_emitting(false);
+  emitter1.data.mutable_particle_size()->set_x(0.1);
+  emitter1.data.mutable_particle_size()->set_y(0.2);
+  emitter1.data.mutable_particle_size()->set_z(0.3);
+  emitter1.data.set_lifetime(6.0);
+  emitter1.data.set_min_velocity(7.0);
+  emitter1.data.set_max_velocity(8.0);
+  emitter1.data.mutable_color_start()->set_r(1.0);
+  emitter1.data.mutable_color_start()->set_g(0);
+  emitter1.data.mutable_color_start()->set_b(0);
+  emitter1.data.mutable_color_start()->set_a(0);
+  emitter1.data.mutable_color_end()->set_r(1.0);
+  emitter1.data.mutable_color_end()->set_g(1.0);
+  emitter1.data.mutable_color_end()->set_b(1.0);
+  emitter1.data.mutable_color_end()->set_a(0);
+  emitter1.data.set_scale_rate(9.0);
+  emitter1.data.set_color_range_image("path_to_texture");
 
   particles::Emitter emitter2;
-  emitter2.id = 1;
-  emitter2.type = emitter1.type;
-  emitter2.size = emitter1.size;
-  emitter2.rate = emitter1.rate;
-  emitter2.duration = emitter1.duration;
-  emitter2.emitting = emitter1.emitting;
-  emitter2.particleSize = emitter1.particleSize;
-  emitter2.lifetime = emitter1.lifetime;
-  emitter2.minVelocity = emitter1.minVelocity;
-  emitter2.maxVelocity = emitter1.maxVelocity;
-  emitter2.colorStart = emitter1.colorStart;
-  emitter2.colorEnd = emitter1.colorEnd;
-  emitter2.scaleRate = emitter1.scaleRate;
-  emitter2.colorRangeImage = emitter1.colorRangeImage;
+  emitter2.data.set_name("emitter2");
+  emitter2.data.set_id(1);
+  emitter2.data.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter2.data.mutable_size()->set_x(1);
+  emitter2.data.mutable_size()->set_y(2);
+  emitter2.data.mutable_size()->set_z(3);
+  emitter2.data.set_rate(4.0);
+  emitter2.data.set_duration(5.0);
+  emitter2.data.set_emitting(false);
+  emitter2.data.mutable_particle_size()->set_x(0.1);
+  emitter2.data.mutable_particle_size()->set_y(0.2);
+  emitter2.data.mutable_particle_size()->set_z(0.3);
+  emitter2.data.set_lifetime(6.0);
+  emitter2.data.set_min_velocity(7.0);
+  emitter2.data.set_max_velocity(8.0);
+  emitter2.data.mutable_color_start()->set_r(1.0);
+  emitter2.data.mutable_color_start()->set_g(0);
+  emitter2.data.mutable_color_start()->set_b(0);
+  emitter2.data.mutable_color_start()->set_a(0);
+  emitter2.data.mutable_color_end()->set_r(1.0);
+  emitter2.data.mutable_color_end()->set_g(1.0);
+  emitter2.data.mutable_color_end()->set_b(1.0);
+  emitter2.data.mutable_color_end()->set_a(0);
+  emitter2.data.set_scale_rate(9.0);
+  emitter2.data.set_color_range_image("path_to_texture");
 
   // Create components.
   auto comp1 = components::ParticleEmitter(emitter1);
@@ -1406,8 +1430,6 @@ TEST_F(ComponentsTest, ParticleEmitter)
   // Stream operators.
   std::ostringstream ostr;
   comp1.Serialize(ostr);
-  EXPECT_EQ("0 1 1 2 3 4 5 0 0.1 0.2 0.3 6 7 8 1 0 0 1 1 1 1 1 9 "
-            "path_to_texture", ostr.str());
 
   std::istringstream istr(ostr.str());
   components::ParticleEmitter comp3;
