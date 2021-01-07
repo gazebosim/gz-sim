@@ -68,19 +68,15 @@ function(gz_add_system system_name)
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
   install(TARGETS ${system_target} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 
+  if (NOT WIN32)
   # The library created by `ign_add_component` includes the ign-gazebo version
   # (i.e. libignition-gazebo1-name-system.so), but for portability of SDF
   # files, we also install an unversioned symlink into the same versioned folder.
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(unversioned ${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_PREFIX}${unversioned_file_name})
-  if (WIN32)
-    # symlinks on Windows require admin priviledges, fallback to copy
-    add_custom_command(TARGET ${system_target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${versioned} ${unversioned})
-  else()
+  set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
   endif()
-  INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(air_pressure)
