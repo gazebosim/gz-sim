@@ -22,6 +22,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <string>
+#include <unordered_set>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
@@ -74,6 +75,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
   public: bool StateService(ignition::msgs::SerializedStepMap &_res);
+
+  /// \brief Callback for state service - non blocking.
+  /// \param[out] _res Response containing the last available full state.
+  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -190,6 +195,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
+
+  /// \brief A list of async state requests
+  public: std::unordered_set<std::string> stateRequests;
 };
 
 //////////////////////////////////////////////////
@@ -270,6 +278,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
+    std::unique_lock<std::mutex> lock(this->dataPtr->stateMutex);
     this->dataPtr->stepMsg.Clear();
 
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
@@ -292,6 +301,16 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       this->dataPtr->stateServiceRequest = false;
       this->dataPtr->stateCv.notify_all();
+    }
+
+    // process async state requests
+    if (!this->dataPtr->stateRequests.empty())
+    {
+      for (const auto &reqSrv : this->dataPtr->stateRequests)
+      {
+        this->dataPtr->node->Request(reqSrv, this->dataPtr->stepMsg);
+      }
+      this->dataPtr->stateRequests.clear();
     }
 
     // Poses periodically + change events
@@ -425,8 +444,16 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
+  auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
+  if (ns.empty())
+  {
+    ignerr << "Failed to create valid namespace for world [" << _worldName
+           << "]" << std::endl;
+    return;
+  }
+
   transport::NodeOptions opts;
-  opts.SetNameSpace("/world/" + _worldName);
+  opts.SetNameSpace(ns);
   this->node = std::make_unique<transport::Node>(opts);
 
   // Scene info service
@@ -448,6 +475,8 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << graphService << "]" << std::endl;
 
   // State service
+  // Note: GuiRunner used to call this service but it is now using the async
+  // version (state_async)
   std::string stateService{"state"};
 
   this->node->Advertise(stateService, &SceneBroadcasterPrivate::StateService,
@@ -456,8 +485,17 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   ignmsg << "Serving full state on [" << opts.NameSpace() << "/"
          << stateService << "]" << std::endl;
 
+  // Async State service
+  std::string stateAsyncService{"state_async"};
+
+  this->node->Advertise(stateAsyncService,
+      &SceneBroadcasterPrivate::StateAsyncService, this);
+
+  ignmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
+         << stateAsyncService << "]" << std::endl;
+
   // Scene info topic
-  std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
+  std::string sceneTopic{ns + "/scene/info"};
 
   this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
 
@@ -465,7 +503,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << "]" << std::endl;
 
   // Entity deletion publisher
-  std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
+  std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
       this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
@@ -474,7 +512,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << std::endl;
 
   // State topic
-  std::string stateTopic{"/world/" + _worldName + "/state"};
+  std::string stateTopic{ns + "/state"};
 
   this->statePub =
       this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
@@ -524,6 +562,15 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::StateAsyncService(
+    const ignition::msgs::StringMsg &_req)
+{
+  std::unique_lock<std::mutex> lock(this->stateMutex);
+  this->stateServiceRequest = true;
+  this->stateRequests.insert(_req.data());
+}
+
+//////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
     ignition::msgs::SerializedStepMap &_res)
 {
@@ -531,6 +578,7 @@ bool SceneBroadcasterPrivate::StateService(
 
   // Lock and wait for an iteration to be run and fill the state
   std::unique_lock<std::mutex> lock(this->stateMutex);
+
   this->stateServiceRequest = true;
   auto success = this->stateCv.wait_for(lock, 5s, [&]
   {
