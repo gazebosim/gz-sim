@@ -55,6 +55,7 @@
 
     <!-- Included model without meshes -->
     <include>
+      <name>Double pendulum</name>
       <pose>-3 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Double pendulum with base</uri>
     </include>
@@ -67,12 +68,15 @@
 
     <!-- Included model with meshes using relative paths -->
     <include>
+      <name>Gazebo (relative paths)</name>
       <pose>2 5 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo - relative paths</uri>
     </include>
 
     <!-- Included actor with meshes using relative paths -->
     <include>
+      <name>Actor Test</name>
+      <pose>0 0 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths</uri>
     </include>
 

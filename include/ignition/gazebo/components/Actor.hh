@@ -19,6 +19,10 @@
 
 #include <ignition/msgs/actor.pb.h>
 
+#include <chrono>
+#include <ratio>
+#include <string>
+
 #include <sdf/Actor.hh>
 
 #include <ignition/gazebo/components/Factory.hh>
@@ -37,6 +41,34 @@ namespace serializers
 {
   using ActorSerializer =
       serializers::ComponentToMsgSerializer<sdf::Actor, msgs::Actor>;
+
+  class AnimationTimeSerializer
+  {
+    /// \brief Serialization for `std::chrono::steady_clock::duration`.
+    /// \param[in] _out Output stream.
+    /// \param[in] _time Time to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                const std::chrono::steady_clock::duration &_time)
+    {
+      _out << std::chrono::duration_cast<std::chrono::nanoseconds>(
+          _time).count();
+      return _out;
+    }
+
+    /// \brief Deserialization for `std::chrono::steady_clock::duration`.
+    /// \param[in] _in Input stream.
+    /// \param[out] _time Time to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                std::chrono::steady_clock::duration &_time)
+    {
+      int64_t time;
+      _in >> time;
+      _time = std::chrono::duration<int64_t, std::nano>(time);
+      return _in;
+    }
+  };
 }
 
 namespace components
@@ -47,6 +79,18 @@ namespace components
   using Actor =
       Component<sdf::Actor, class ActorTag, serializers::ActorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Actor", Actor)
+
+  /// \brief Time in seconds within animation being currently played.
+  using AnimationTime = Component<std::chrono::steady_clock::duration,
+      class AnimationTimeTag, serializers::AnimationTimeSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AnimationTime",
+      AnimationTime)
+
+  /// \brief Name of animation being currently played.
+  using AnimationName = Component<std::string, class AnimationNameTag,
+      serializers::StringSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AnimationName",
+      AnimationName)
 }
 }
 }

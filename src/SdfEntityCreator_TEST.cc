@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Transparency.hh"
+#include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -359,6 +360,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
            components::CastShadows,
            components::Geometry,
            components::Material,
+           components::VisibilityFlags,
            components::Pose,
            components::ParentEntity,
            components::Name>(
@@ -368,6 +370,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         const components::CastShadows *_castShadows,
         const components::Geometry *_geometry,
         const components::Material *_material,
+        const components::VisibilityFlags *_visibilityFlags,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
         const components::Name *_name)->bool
@@ -377,6 +380,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       EXPECT_NE(nullptr, _castShadows);
       EXPECT_NE(nullptr, _geometry);
       EXPECT_NE(nullptr, _material);
+      EXPECT_NE(nullptr, _visibilityFlags);
       EXPECT_NE(nullptr, _pose);
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
@@ -405,6 +409,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Specular());
+
+        EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
       else if (visualCount == 2)
       {
@@ -428,6 +434,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
+
+        EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
       else if (visualCount == 3)
       {
@@ -450,6 +458,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
+
+        EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
       return true;
     });

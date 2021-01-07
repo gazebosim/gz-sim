@@ -16,7 +16,7 @@
 */
 
 #include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -26,7 +26,6 @@
 #include <vector>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-#include <ignition/gazebo/rendering/RenderUtil.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -37,6 +36,7 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/WireBox.hh>
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/Name.hh"
 
@@ -66,7 +66,12 @@ namespace ignition::gazebo
     /// \brief The current align state.
     public: AlignState currentState{AlignState::NONE};
 
-    /// \brief Flag to indicate if the entities should be aligned to the first
+    public: AlignConfig config{AlignConfig::ALIGN_MID};
+
+    /// \brief Flag to indicate if the align direction should be reversed.
+    public: bool reverse{false};
+
+    /// \brief Flag to indicate if the entities to should aligned to the first
     /// or last entity selected.
     public: bool first{true};
 
@@ -130,6 +135,42 @@ void AlignTool::Update(const UpdateInfo &/* _info */,
           return true;
         });
   }
+}
+
+/////////////////////////////////////////////////
+void AlignTool::OnAlignConfig(const QString &_config)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::string newConfig = _config.toStdString();
+  std::transform(newConfig.begin(), newConfig.end(),
+                 newConfig.begin(), ::tolower);
+
+  if (newConfig == "min")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MIN;
+  }
+  else if (newConfig == "mid")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MID;
+  }
+  else if (newConfig == "max")
+  {
+    this->dataPtr->config = AlignConfig::ALIGN_MAX;
+  }
+  else
+  {
+    ignwarn << "Invalid align axis config: " << newConfig << "\n";
+    ignwarn << "The valid options are:\n";
+    ignwarn << " - min\n";
+    ignwarn << " - mid\n";
+    ignwarn << " - max\n";
+  }
+}
+
+/////////////////////////////////////////////////
+void AlignTool::OnReverse(bool _reverse)
+{
+  this->dataPtr->reverse = _reverse;
 }
 
 /////////////////////////////////////////////////
@@ -216,7 +257,8 @@ void AlignTool::AddState(const AlignState &_state)
 }
 
 ////////////////////////////////////////////////
-void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
+void AlignTool::UpdateTransparency(const rendering::NodePtr &_node,
+    bool _makeTransparent)
 {
   if (!_node)
     return;
@@ -224,56 +266,7 @@ void AlignTool::MakeTransparent(const rendering::NodePtr &_node)
   for (auto n = 0u; n < _node->ChildCount(); ++n)
   {
     auto child = _node->ChildByIndex(n);
-    this->MakeTransparent(child);
-  }
-
-  auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
-  if (nullptr == vis)
-    return;
-
-  // Visual material
-  auto visMat = vis->Material();
-  if (nullptr != visMat)
-  {
-    // If the entity isn't already transparent, make it transparent
-    if (this->dataPtr->originalTransparency.find(vis->Name()) ==
-        this->dataPtr->originalTransparency.end())
-    {
-      this->dataPtr->originalTransparency[vis->Name()] = visMat->Transparency();
-      visMat->SetTransparency(visMat->Transparency() + 0.5);
-    }
-  }
-
-  for (auto g = 0u; g < vis->GeometryCount(); ++g)
-  {
-    auto geom = vis->GeometryByIndex(g);
-
-    // Geometry material
-    auto geomMat = geom->Material();
-    if (nullptr == geomMat)
-      continue;
-
-    // If the entity isn't already transparent, make it transparent
-    if (this->dataPtr->originalTransparency.find(geom->Name()) ==
-        this->dataPtr->originalTransparency.end())
-    {
-      this->dataPtr->originalTransparency[geom->Name()] =
-          geomMat->Transparency();
-      geomMat->SetTransparency(geomMat->Transparency() + 0.5);
-    }
-  }
-}
-
-/////////////////////////////////////////////////
-void AlignTool::MakeSolid(const rendering::NodePtr &_node)
-{
-  if (!_node)
-    return;
-
-  for (auto n = 0u; n < _node->ChildCount(); ++n)
-  {
-    auto child = _node->ChildByIndex(n);
-    this->MakeSolid(child);
+    this->UpdateTransparency(child, _makeTransparent);
   }
 
   auto vis = std::dynamic_pointer_cast<rendering::Visual>(_node);
@@ -286,26 +279,57 @@ void AlignTool::MakeSolid(const rendering::NodePtr &_node)
   {
     auto visTransparency =
         this->dataPtr->originalTransparency.find(vis->Name());
-    if (visTransparency != this->dataPtr->originalTransparency.end())
+    if (_makeTransparent)
     {
-      visMat->SetTransparency(visTransparency->second);
+      // If the entity isn't already transparent, make it transparent
+      if (visTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[vis->Name()] =
+          visMat->Transparency();
+        visMat->SetTransparency(1.0 - ((1.0 - visMat->Transparency()) * 0.5));
+      }
+    }
+    else
+    {
+      if (visTransparency != this->dataPtr->originalTransparency.end())
+      {
+        visMat->SetTransparency(visTransparency->second);
+      }
     }
   }
 
   for (auto g = 0u; g < vis->GeometryCount(); ++g)
   {
     auto geom = vis->GeometryByIndex(g);
+    auto wireBox = std::dynamic_pointer_cast<rendering::WireBox>(geom);
+
+    // Skip wirebox geometry
+    if (wireBox)
+      continue;
 
     // Geometry material
     auto geomMat = geom->Material();
     if (nullptr == geomMat)
       continue;
-
     auto geomTransparency =
         this->dataPtr->originalTransparency.find(geom->Name());
-    if (geomTransparency != this->dataPtr->originalTransparency.end())
+
+    if (_makeTransparent)
     {
-      geomMat->SetTransparency(geomTransparency->second);
+      // If the entity isn't already transparent, make it transparent
+      if (geomTransparency == this->dataPtr->originalTransparency.end())
+      {
+        this->dataPtr->originalTransparency[geom->Name()] =
+            geomMat->Transparency();
+        geomMat->SetTransparency(1.0 - ((1.0 - geomMat->Transparency()) * 0.5));
+      }
+    }
+    else
+    {
+      if (geomTransparency != this->dataPtr->originalTransparency.end())
+      {
+        geomMat->SetTransparency(geomTransparency->second);
+      }
     }
   }
 }
@@ -374,9 +398,15 @@ void AlignTool::Align()
       ignition::rendering::VisualPtr vis = scene->VisualByIndex(i);
       if (!vis)
         continue;
+
       if (std::get<int>(vis->UserData("gazebo-entity")) ==
           static_cast<int>(entityId))
       {
+        // Check here to see if visual is top level or not, continue if not
+        rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
+        if (topLevelVis != vis)
+          continue;
+
         selectedList.push_back(vis);
       }
     }
@@ -410,11 +440,21 @@ void AlignTool::Align()
   int axisIndex = static_cast<int>(this->dataPtr->axis);
   ignition::msgs::Pose req;
 
+  ignition::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
+  ignition::math::Vector3d targetMin = targetBox.Min();
+  ignition::math::Vector3d targetMax = targetBox.Max();
+
   // Index math to avoid iterating through the selected node
   for (unsigned int i = this->dataPtr->first;
        i < selectedList.size() + this->dataPtr->first - 1; i++)
   {
     rendering::VisualPtr vis = selectedList[i];
+    if (!vis)
+      continue;
+
+    ignition::math::AxisAlignedBox box = vis->BoundingBox();
+    ignition::math::Vector3d min = box.Min();
+    ignition::math::Vector3d max = box.Max();
 
     // Check here to see if visual is top level or not, continue if not
     rendering::VisualPtr topLevelVis = this->TopLevelVisual(scene, vis);
@@ -423,15 +463,14 @@ void AlignTool::Align()
 
     math::Vector3d newPos = vis->WorldPosition();
 
-    // If a reset is occuring, the user has not clicked align,
-    // so pull all of the previous positions and set
+    // If a reset is occurring, pull all of the previous positions and set
     if (this->dataPtr->currentState == AlignState::RESET)
     {
       // Index offset given the relative node does not get added to the
       // prevPositions vector
       newPos = this->dataPtr->prevPositions[i-this->dataPtr->first];
 
-      this->MakeSolid(vis);
+      this->UpdateTransparency(vis, false /* opaque */);
       vis->SetWorldPosition(newPos);
       vis->SetUserData("pause-update", static_cast<int>(0));
     }
@@ -439,7 +478,7 @@ void AlignTool::Align()
     // make a request to the backend to send the node to the new position
     else if (this->dataPtr->currentState == AlignState::ALIGN)
     {
-      this->MakeSolid(vis);
+      this->UpdateTransparency(vis, false /* opaque */);
       req.set_name(vis->Name());
       msgs::Set(req.mutable_position(), newPos);
       msgs::Set(req.mutable_orientation(), vis->WorldRotation());
@@ -452,13 +491,39 @@ void AlignTool::Align()
     // and store the current position of the nodes
     else if (this->dataPtr->currentState == AlignState::HOVER)
     {
-      newPos[axisIndex] = relativeVisual->WorldPosition()[axisIndex];
+      double translation = 0.0;
+      if (this->dataPtr->config == AlignConfig::ALIGN_MID)
+      {
+        translation = (targetMin[axisIndex] + (targetMax[axisIndex]
+                                 - targetMin[axisIndex]) / 2) - (min[axisIndex]
+                                 + (max[axisIndex] - min[axisIndex]) / 2);
+      }
+      else
+      {
+        if (this->dataPtr->reverse)
+        {
+          if (this->dataPtr->config == AlignConfig::ALIGN_MIN)
+            translation = targetMin[axisIndex] - max[axisIndex];
+          else if (this->dataPtr->config == AlignConfig::ALIGN_MAX)
+            translation = targetMax[axisIndex] - min[axisIndex];
+        }
+        else
+        {
+          if (this->dataPtr->config == AlignConfig::ALIGN_MIN)
+            translation = targetMin[axisIndex] - min[axisIndex];
+          else if (this->dataPtr->config == AlignConfig::ALIGN_MAX)
+            translation = targetMax[axisIndex] - max[axisIndex];
+        }
+      }
+
+      // Add calculated translation to the chosen index
+      newPos[axisIndex] += translation;
 
       // Store the vis's world positions in a vector
       this->dataPtr->prevPositions.push_back(vis->WorldPosition());
 
       // Make the visual transparent and update to new position
-      this->MakeTransparent(vis);
+      this->UpdateTransparency(vis, true /* transparent */);
       vis->SetWorldPosition(newPos);
       vis->SetUserData("pause-update", static_cast<int>(1));
     }
@@ -545,8 +610,8 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     {
       for (const auto &_entity : selectedEvent->Data())
       {
-        // If the element already exists in the selected entities vector,
-        // continue
+        // If the element already exists in the selected entity's
+        // vector, then continue
         if (std::find(this->dataPtr->selectedEntities.begin(),
               this->dataPtr->selectedEntities.end(),
               _entity) != this->dataPtr->selectedEntities.end())

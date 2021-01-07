@@ -214,7 +214,7 @@ void LogRecord::Configure(const Entity &_entity,
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
-    auto logPath = _sdf->Get<std::string>("path");
+    auto logPath = _sdf->Get<std::string>("record_path");
     // Path is initialized by server if record is set from command line options.
     //   Otherwise, path is loaded from SDF. If a path is not specified in
     //   SDF, initialize to default here.

@@ -31,6 +31,8 @@
 #include <sdf/Visual.hh>
 
 #include <ignition/common/KeyFrame.hh>
+#include <ignition/common/Animation.hh>
+#include <ignition/common/graphics/Types.hh>
 
 #include <ignition/rendering/RenderTypes.hh>
 
@@ -46,6 +48,40 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declaration
   class SceneManagerPrivate;
+
+  /// \brief Data structure for updating skeleton animations
+  class AnimationUpdateData
+  {
+    /// \brief Timepoint in the animation.
+    /// Note that animation time is different from sim time. An actor can
+    /// have multiple animations. Animation time is associated with
+    /// current animation that is being played. This value is also adjusted if
+    /// interpolate_x is enabled
+    public: std::chrono::steady_clock::duration time;
+
+    /// \brief True if animation is looped
+    public: bool loop = false;
+
+    /// \brief True if trajectory animation is on
+    public: bool followTrajectory = false;
+
+    /// \brief Trajectory to be followed
+    public: common::TrajectoryInfo trajectory;
+
+    /// \brief Name of animation to play. This field is set only if the actor
+    /// is not animated by manually using skeleton transforms
+    public: std::string animationName;
+
+    /// \brief Transform of the root node in the skeleton. The actor's
+    /// skeleton's root node transform needs to be set if trajectory
+    /// animation is enabled. This field is set only if the actor
+    /// is not animated by manually using skeleton transforms
+    public: math::Matrix4d rootTransform;
+
+    /// \brief True if this animation update data is valid. If false, this
+    /// update data should be ignored
+    public: bool valid = false;
+  };
 
   /// \brief Scene manager class for loading and managing objects in the scene
   class IGNITION_GAZEBO_VISIBLE SceneManager
@@ -137,11 +173,39 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to requested entity's mesh
     public: rendering::MeshPtr ActorMeshById(Entity _id) const;
 
+    /// \brief Get a skeleton given an id
+    /// \param[in] _id Actor entity's unique id
+    /// \return Pointer to requested entity's skeleton
+    public: common::SkeletonPtr ActorSkeletonById(Entity _id) const;
+
     /// \brief Get the animation of actor mesh given an id
+    /// Use this function if you are animating the actor manually by its
+    /// skeleton node pose.
     /// \param[in] _id Entity's unique id
-    /// \param[in] _time Timepoint for the animation
+    /// \param[in] _time Simulation time
     /// \return Map from the skeleton node name to transforms
-    public: std::map<std::string, math::Matrix4d> ActorMeshAnimationAt(
+    /// \deprecated see ActorSkeletonTransformAt
+    public: std::map<std::string, math::Matrix4d> IGN_DEPRECATED(4.0)
+        ActorMeshAnimationAt(
+        Entity _id, std::chrono::steady_clock::duration _time) const;
+
+    /// \brief Get the skeleton local transforms of actor mesh given an id.
+    /// Use this function if you are animating the actor manually by its
+    /// skeleton node pose.
+    /// \param[in] _id Entity's unique id
+    /// \param[in] _time SimulationTime
+    /// \return Map from the skeleton node name to transforms
+    public: std::map<std::string, math::Matrix4d> ActorSkeletonTransformsAt(
+        Entity _id, std::chrono::steady_clock::duration _time) const;
+
+    /// \brief Get the actor animation update data given an id.
+    /// Use this function to let the render engine handle the actor animation.
+    /// by setting the animation name to be played.
+    /// \param[in] _id Entity's unique id
+    /// \param[in] _time Simulation time
+    /// \return Data needed to update the animation, including the name and
+    /// time of animation to play, and trajectory animation info.
+    public: AnimationUpdateData ActorAnimationAt(
         Entity _id, std::chrono::steady_clock::duration _time) const;
 
     /// \brief Remove an entity by id
@@ -153,7 +217,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return The entity for that node, or `kNullEntity` for no entity.
     /// \todo(anyone) Deprecate in favour of
     /// `ignition::rendering::Node::UserData` once that's available.
-    public: Entity EntityFromNode(const rendering::NodePtr &_node) const;
+    public: Entity IGN_DEPRECATED(4)
+        EntityFromNode(const rendering::NodePtr &_node) const;
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
@@ -175,10 +240,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
     /// \return Top level visual containining this visual
-    /// \TODO(anyone) Make it const ref when merging forward
     public: rendering::VisualPtr TopLevelVisual(
-        // NOLINTNEXTLINE
-        rendering::VisualPtr _visual) const;
+        const rendering::VisualPtr &_visual) const;
 
     /// \brief Get the top level node for the given node, which
     /// is the ancestor which is a direct child to the root visual.

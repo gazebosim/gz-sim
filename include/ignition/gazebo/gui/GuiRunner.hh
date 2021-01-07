@@ -20,8 +20,6 @@
 #include <ignition/msgs/serialized.pb.h>
 
 #include <QtCore>
-#include <memory>
-#include <mutex>
 #include <string>
 
 #include <ignition/transport/Node.hh>

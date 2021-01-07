@@ -19,6 +19,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -27,7 +28,6 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
@@ -68,7 +68,6 @@ class ignition::gazebo::systems::SensorsPrivate
   public: RenderUtil renderUtil;
 
   /// \brief Unique set of sensor ids
-  // TODO(anyone) Remove element when sensor is deleted
   public: std::set<sensors::SensorId> sensorIds;
 
   /// \brief rendering scene to be managed by the scene manager and used to
@@ -84,6 +83,12 @@ class ignition::gazebo::systems::SensorsPrivate
   /// Value: Pointer to camera
   // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
+
+  /// \brief Maps gazebo entity to its matching sensor ID
+  ///
+  /// Useful for detecting when a sensor Entity has been deleted and trigger
+  /// the destruction of the corresponding ignition::sensors Sensor object
+  public: std::unordered_map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
   public: std::atomic<bool> running { false };
@@ -111,7 +116,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: ignition::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
-  public: ignition::common::Time updateTime;
+  public: std::chrono::steady_clock::duration updateTime;
 
   /// \brief Sensors to include in the next rendering iteration
   public: std::vector<sensors::RenderingSensor *> activeSensors;
@@ -120,7 +125,8 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorMaskMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId, ignition::common::Time> sensorMask;
+  public: std::map<sensors::SensorId,
+    std::chrono::steady_clock::duration> sensorMask;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
@@ -232,7 +238,8 @@ void SensorsPrivate::RunOnce()
     for (const auto & sensor : this->activeSensors)
     {
       // 90% of update delta (1/UpdateRate());
-      ignition::common::Time delta(0.9 / sensor->UpdateRate());
+      auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
+        std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
     }
     this->sensorMaskMutex.unlock();
@@ -277,7 +284,8 @@ void SensorsPrivate::RenderThread()
     this->RunOnce();
   }
 
-  for (auto id : this->sensorIds)
+  // clean up before exiting
+  for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
   igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
@@ -314,6 +322,32 @@ void SensorsPrivate::Stop()
 }
 
 //////////////////////////////////////////////////
+void Sensors::RemoveSensor(const Entity &_entity)
+{
+  auto idIter = this->dataPtr->entityToIdMap.find(_entity);
+  if (idIter != this->dataPtr->entityToIdMap.end())
+  {
+    // Remove from active sensors as well
+    // Locking mutex to make sure the vector is not being changed while
+    // the rendering thread is iterating over it
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
+      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(idIter->second);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      auto activeSensorIt = std::find(this->dataPtr->activeSensors.begin(),
+          this->dataPtr->activeSensors.end(), rs);
+      if (activeSensorIt != this->dataPtr->activeSensors.end())
+      {
+        this->dataPtr->activeSensors.erase(activeSensorIt);
+      }
+    }
+    this->dataPtr->sensorIds.erase(idIter->second);
+    this->dataPtr->sensorManager.Remove(idIter->second);
+    this->dataPtr->entityToIdMap.erase(idIter);
+  }
+}
+
+//////////////////////////////////////////////////
 Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 {
 }
@@ -338,7 +372,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
-      std::placeholders::_1, std::placeholders::_2));
+      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    this->dataPtr->renderUtil.SetRemoveSensorCb(
+      std::bind(&Sensors::RemoveSensor, this, std::placeholders::_1));
 
   // parse sensor-specific data
   auto worldEntity = _ecm.EntityByComponents(components::World());
@@ -402,7 +438,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
     auto time = math::durationToSecNsec(_info.simTime);
-    auto t = common::Time(time.first, time.second);
+    auto t = math::secNsecToDuration(time.first, time.second);
 
     std::vector<sensors::RenderingSensor *> activeSensors;
 
@@ -425,7 +461,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         }
       }
 
-      if (rs && rs->NextUpdateTime() <= t)
+      if (rs && rs->NextDataUpdateTime() <= t)
       {
         activeSensors.push_back(rs);
       }
@@ -453,8 +489,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
-    const std::string &_parentName)
+std::string Sensors::CreateSensor(const Entity &_entity,
+    const sdf::Sensor &_sdf, const std::string &_parentName)
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
   {
@@ -465,6 +501,9 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   // Create within ign-sensors
   auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+
+  // Add to sensorID -> entity map
+  this->dataPtr->entityToIdMap.insert({_entity, sensorId});
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {
