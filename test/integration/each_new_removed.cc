@@ -44,7 +44,7 @@ class EachNewRemovedFixture : public ::testing::Test
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+      (std::string(PROJECT_BINARY_PATH) + "/lib")c_str());
   }
 };
 

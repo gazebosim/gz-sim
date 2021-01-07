@@ -52,7 +52,7 @@ class MulticopterTest : public ::testing::Test
   {
     ignition::common::Console::SetVerbosity(4);
     ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+           (std::string(PROJECT_BINARY_PATH) + "/lib")c_str());
   }
 
   protected: std::unique_ptr<Server> StartServer(const std::string &_filePath)
