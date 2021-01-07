@@ -20,11 +20,13 @@ set(tests
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
+  kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
   link.cc
   logical_camera_system.cc
+  logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
   multicopter.cc
