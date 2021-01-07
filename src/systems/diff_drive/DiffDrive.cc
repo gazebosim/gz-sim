@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "SpeedLimiter.hh"
 
@@ -253,16 +254,26 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
-    topic = _sdf->Get<std::string>("topic");
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  auto topic = validTopic(topics);
+
   this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
-  std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/odometry"};
+  std::vector<std::string> odomTopics;
   if (_sdf->HasElement("odom_topic"))
-    odomTopic = _sdf->Get<std::string>("odom_topic");
+  {
+    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+  }
+  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/odometry");
+  auto odomTopic = validTopic(odomTopics);
+
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
