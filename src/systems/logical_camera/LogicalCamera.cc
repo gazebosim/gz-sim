@@ -114,7 +114,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
       // Update sensor
       auto time = math::durationToSecNsec(_info.simTime);
       dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          common::Time(time.first, time.second), false);
+          math::secNsecToDuration(time.first, time.second), false);
     }
   }
 

@@ -753,10 +753,13 @@ In the new code we explicitly reference each Ignition package that we use:
 # NEW
 find_package(sdformat9 REQUIRED)
 find_package(ignition-common3-all REQUIRED)
-find_package(ignition-gazebo3-all REQUIRED VERSION 3.6)
+find_package(ignition-gazebo4-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
-find_package(ignition-msgs5-all REQUIRED)
-find_package(ignition-transport8-all REQUIRED)
+find_package(ignition-msgs6-all REQUIRED)
+find_package(ignition-physics3-all REQUIRED)
+find_package(ignition-sensors4-all REQUIRED)
+find_package(ignition-transport9-all REQUIRED)
+
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:

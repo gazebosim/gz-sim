@@ -24,8 +24,7 @@ as described below, and to launch Gazebo with the `--levels` flag.
 All the situations described here refer to simulation running in a single
 server.
 
-> Take a look at the [terminology](terminology.html) tutorial to get familiar with
-> concepts used in this tutorial.
+\note Take a look at the [terminology](terminology.html) tutorial to get familiar with concepts used in this tutorial.
 
 ## Try it out
 
@@ -87,7 +86,7 @@ but the same logic can be extended to multiple performers.
 levels (`L1`~`L3`).
 
 * The **light blue area** represents the buffer zone for level `L1`. Zones
-  for `L2` and `L3` have been ommitted.
+  for `L2` and `L3` have been omitted.
 
 * Each **orange shape** represents a static model in the world (`M1`~`M6`)
 
@@ -198,7 +197,7 @@ In addition, the `<performer>` tag contains information about the volume
 occupied by the performer. This volume is specified by the `<geometry>` tag.
 Only the `<box>` tag is currently supported.
 
-\note The volume for a performer maybe automatically generated in future
+\note The volume for a performer may be automatically generated in future
 versions of Gazebo.
 
 Example snippet:
@@ -216,7 +215,7 @@ Example snippet:
 
 ### Runtime performers
 
-Performers can be specified at runtime using an Igntion Transport service.
+Performers can be specified at runtime using an Ignition Transport service.
 This functionality can be used when a performer is not known at load time. For
 example, you may need to start simulation with an empty world and spawn
 models (performers) into simulation at a later time.
@@ -236,7 +235,9 @@ successfuly added.
 ign gazebo levels_no_performers.sdf -v 4 --levels
 ```
 
-2. In another terminal call the add performer service.
+Here you will see the two vehicles, which are regular models that do not trigger level loading. They are not performers until you call the service.
+
+2. In another terminal call the add performer service for the blue vehicle.
 
 ```
 ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'

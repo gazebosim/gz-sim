@@ -264,6 +264,12 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_lighting(_in.Lighting());
 
+  // todo(anyone) add double_sided field to msgs::Material
+  auto data = out.mutable_header()->add_data();
+  data->set_key("double_sided");
+  std::string *value = data->add_value();
+  *value = std::to_string(_in.DoubleSided());
+
   sdf::Pbr *pbr = _in.PbrMaterial();
   if (pbr)
   {
@@ -316,6 +322,14 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetLighting(_in.lighting());
+
+  // todo(anyone) add double_sided field to msgs::Material
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    const auto &data = _in.header().data(i);
+    if (data.key() == "double_sided" && data.value_size() > 0)
+      out.SetDoubleSided(math::parseInt(data.value(0)));
+  }
 
   if (_in.has_pbr())
   {
@@ -581,14 +595,6 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  out.set_use_parent_model_frame(_in.UseParentModelFrame());
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#endif
   out.set_xyz_expressed_in(_in.XyzExpressedIn());
   out.set_damping(_in.Damping());
   out.set_friction(_in.Friction());
@@ -617,15 +623,10 @@ template<>
 sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
-  out.SetXyz(msgs::Convert(_in.xyz()));
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  out.SetUseParentModelFrame(_in.use_parent_model_frame());
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#endif
+  sdf::Errors errors = out.SetXyz(msgs::Convert(_in.xyz()));
+  for (const auto &err : errors) {
+    ignerr << err.Message() << std::endl;
+  }
   out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
   out.SetFriction(_in.friction());

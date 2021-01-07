@@ -26,7 +26,6 @@
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Time.hh>
 #include <ignition/fuel_tools/Zip.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/msgs/Utility.hh>

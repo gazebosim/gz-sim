@@ -9,12 +9,12 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/ign-gazebo3/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-master-windows7-amd64)
 
-Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
+Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
 Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Ignition Robotics](https://ignitionrobotics.org) project.
 
@@ -42,7 +42,7 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 [Code of Conduct](#code-of-conduct)
 
-[Contributing](#code-of-contributing)
+[Contributing](#contributing)
 
 [Versioning](#versioning)
 
@@ -61,7 +61,7 @@ of environments with high-quality lighting, shadows, and textures.
 
 * **Sensors and noise models**: Generate sensor data, optionally with noise,
 from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors,
-force-torque, IMU, GPS, and more, powered by
+force-torque, IMU, GPS, and more, all powered by
 [Ignition Sensors](https://github.com/ignitionrobotics/ign-sensors)
 
 * **Plugins**: Develop custom plugins for robot, sensor, and
@@ -122,7 +122,7 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo3-dev
+    sudo apt-get install libignition-gazebo4-dev
     ```
 
 ## Source Install
@@ -158,7 +158,7 @@ for dependency installation instructions for each supported operating system.
 2. Install package dependencies:
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo4
     ```
 
     ```
@@ -186,7 +186,7 @@ for dependency installation instructions for each supported operating system.
 3. Clone the repository if you haven't already.
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo4
     ```
 
 4. Configure and build.
@@ -234,8 +234,8 @@ line is using symbolic links to each library's YAML file.
 mkdir ~/.ignition/tools/configs -p
 cd ~/.ignition/tools/configs/
 ln -s /usr/local/share/ignition/fuel4.yaml .
-ln -s /usr/local/share/ignition/transport7.yaml .
-ln -s /usr/local/share/ignition/transportlog7.yaml .
+ln -s /usr/local/share/ignition/transport9.yaml .
+ln -s /usr/local/share/ignition/transportlog9.yaml .
 ...
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```

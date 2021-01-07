@@ -1,8 +1,16 @@
 \page createsystemplugins Create System Plugins
 
-In Ignition Gazebo, all systems are loaded as plugins at runtime.  To create
-a system plugin for use in the simulation environment, follow the steps
-below.
+In Ignition Gazebo, all systems are loaded as plugins at runtime. Each system
+is associated with an entity in simulation. Systems can be attached to the
+following entity types:
+
+* World
+* Model
+* Sensor
+* Actor
+
+To create a system plugin for use in the simulation environment, follow the
+steps below.
 
 ## Decide on interfaces to implement
 
@@ -10,7 +18,12 @@ The first step of implementing a system plugin is to determine the subset of
 available interfaces to implement.  Aside from the base `System` object,
 there are currently three additional available interfaces:
 
-1. ISystemPreUpdate
+1. ISystemConfigure
+  1. Has read-write access to world entities and components.
+  2. Executed once the moment the plugin is loaded.
+  3. Can be used to get custom configuration from the SDF file, register events
+     with the event manager, as well as modifying entities and components.
+2. ISystemPreUpdate
   1. Has read-write access to world entities and components.
   2. This is where systems say what they'd like to happen at time ignition::gazebo::UpdateInfo::simTime.
   3. Can be used to modify state before physics runs, for example for applying control signals or performing network synchronization.
@@ -69,21 +82,16 @@ Implement the system class as usual, for example:
 In your `CMakeLists.txt` add the following
 
 ```
-cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
+set(IGN_PLUGIN_VER 0)
+ign_find_package(ignition-plugin0 REQUIRED COMPONENTS register)
 
-find_package(ignition-cmake2 REQUIRED)
-
-project(SampleSystem)
-
-find_package(ignition-plugin1 REQUIRED COMPONENTS register)
-set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
-
-find_package(ignition-gazebo3 REQUIRED)
-add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
+# Add sources for each plugin to be registered.
+add_library(SampleSystem SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
-  PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  PRIVATE ignition-gazebo3::ignition-gazebo3)
+  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+)
 ```
 
 ## Loading your plugin

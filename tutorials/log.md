@@ -64,19 +64,10 @@ Recording can be specified in the SDF, under `<world>` tag:
     <plugin
       filename="ignition-gazebo-log-system"
       name="ignition::gazebo::systems::LogRecord">
-      <!--
-         Deprecated: Specifying the path on SDF is deprecated on Blueprint and
-         Citadel, and will be removed on Dome. Use one of the other methods to
-         speficy the path instead.
-      -->
-      <!--path>/tmp/log</path-->
     </plugin>
     ...
 </world>
 ```
-
-Use of `<path>` results in the console log and state recording being written
-to different locations. Existing paths are overwritten by default. See below.
 
 Currently, it is enforced that only one recording instance is allowed to
 start during a Gazebo run.
@@ -95,12 +86,6 @@ The final record path will depend on a few options:
         * If no `--log-overwrite`, logs are recorded to a new path with a number
           appended, i.e. `/tmp/log(1)`, `/tmp/log(2)`...
         * If `--log-overwrite`, the directory is cleared and logs recorded to it.
-* If `<path>` in SDF (deprecated, not recommended):
-    * It will be used unless the path is specified through the command line or API.
-    * The SDF doesn't affect the console log, so that file will still go to the
-      timestamped directory.
-    * If the path exists, it will always be overwritten and there's no way to
-      disable this behaviour.
 
 ## Playback
 
@@ -110,35 +95,6 @@ Playback can be triggered by `--playback` command line flag. `<path>` is the
 directory specified to record:
 
 `ign gazebo -r -v 4 --playback <path>`
-
-
-### From plugin in SDF
-
-This feature is deprecated and will be removed in Ignition Dome.
-Use the command line argument instead.
-
-Alternatively, playback can be specified in an SDF file. See example file
-`examples/worlds/log_playback.sdf`:
-
-```{.xml}
-<world name="default">
-    ...
-    <plugin
-      filename='ignition-gazebo-log-system'
-      name='ignition::gazebo::systems::LogPlayback'>
-      <path>/tmp/log</path>
-    </plugin>
-    ...
-</world>
-```
-
-\note The physics plugin should not be specified in the SDF. If specified,
-it will be automatically removed so that physics does not clash with the
-recorded poses.
-
-\note If both a world file `<file>` and `--playback <path>` are
-specified, an error is printed. This is not allowed, because the world file
-may be a very different world from the one that was recorded.
 
 ## Known issues
 

@@ -95,7 +95,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetAmbientLight(const math::Color &_ambient);
 
     /// \brief Show grid view in the scene
-    /// \param[in] _scene Pointer to the scene object
     public: void ShowGrid();
 
     /// \brief Set whether to use the current GL context
@@ -105,11 +104,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set whether to create rendering sensors
     /// \param[in] _enable True to create rendering sensors
     /// \param[in] _createSensorCb Callback function for creating the sensors
-    /// The callback function args are: sensor sdf, and parent name, and
-    /// returns the name of the rendering sensor created.
+    /// The callback function args are: sensor entity, sensor sdf
+    /// and parent name, it returns the name of the rendering sensor created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string(const sdf::Sensor &, const std::string &)>
-        _createSensorCb = {});
+        std::string(const gazebo::Entity &, const sdf::Sensor &,
+          const std::string &)> _createSensorCb = {});
+
+    /// \brief Set the callback function for removing the sensors
+    /// \param[in] _removeSensorCb Callback function for removing the sensors
+    /// The callback function arg is the sensor entity to remove
+    public : void SetRemoveSensorCb(
+        std::function<void(const gazebo::Entity &)> _removeSensorCb);
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
@@ -126,21 +131,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
-    /// \TODO(anyone) Make const ref when merging forward
-    // NOLINTNEXTLINE
-    public: void SetSelectedEntity(rendering::NodePtr _node);
-
-    /// \brief Get the entity for a given node.
-    /// \param[in] _node Node to get the entity for.
-    /// \return The entity for that node, or `kNullEntity` for no entity.
-    /// \deprecated Use `ignition::rendering::Visual::UserData` instead.
-    public: Entity IGN_DEPRECATED(3)
-        EntityFromNode(const rendering::NodePtr &_node);
+    public: void SetSelectedEntity(const rendering::NodePtr &_node);
 
     /// \brief Get the entity being selected. This will only return the
     /// last entity selected.
-    /// \TODO(anyone) Deprecate in favour of SelectedEntities
-    public: rendering::NodePtr SelectedEntity() const;
+    public: rendering::NodePtr IGN_DEPRECATED(4) SelectedEntity() const;
 
     /// \brief Get the entities currently selected, in order of selection.
     /// \return Vector of currently selected entities
