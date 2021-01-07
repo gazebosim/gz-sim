@@ -19,6 +19,8 @@
 
 #include <ignition/msgs/particle_emitter.pb.h>
 
+#include <chrono>
+
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
 #include <sdf/AirPressure.hh>
@@ -55,6 +57,7 @@
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalAudio.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -858,6 +861,112 @@ TEST_F(ComponentsTest, Link)
   std::istringstream istr("ignored");
   components::Link comp3;
   comp3.Deserialize(istr);
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, LogicalAudioSource)
+{
+  logical_audio::Source source1;
+  source1.id = 0;
+  source1.attFunc = logical_audio::AttenuationFunction::LINEAR;
+  source1.attShape = logical_audio::AttenuationShape::UNDEFINED;
+  source1.innerRadius = 0.25;
+  source1.falloffDistance = 5.0;
+  source1.emissionVolume = 1.0;
+
+  logical_audio::Source source2;
+  source2.id = 1;
+  source2.attFunc = source1.attFunc;
+  source2.attShape = source1.attShape;
+  source2.innerRadius = source1.innerRadius;
+  source2.falloffDistance = source1.falloffDistance;
+  source2.emissionVolume = source1.emissionVolume;
+
+  // create components
+  auto comp1 = components::LogicalAudioSource(source1);
+  auto comp2 = components::LogicalAudioSource(source2);
+
+  // equality operators
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0 0 1 0.25 5 1", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::LogicalAudioSource comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, LogicalAudioSourcePlayInfo)
+{
+  auto start = std::chrono::steady_clock::now();
+  auto end = start + std::chrono::seconds(1);
+
+  logical_audio::SourcePlayInfo playInfo1;
+  playInfo1.playing = true;
+  playInfo1.playDuration = std::chrono::seconds(1);
+  playInfo1.startTime = end - start;
+
+  logical_audio::SourcePlayInfo playInfo2;
+  playInfo2.playing = false;
+  playInfo2.playDuration = std::chrono::seconds(5);
+  playInfo2.startTime = end - start;
+
+  // create components
+  auto comp1 = components::LogicalAudioSourcePlayInfo(playInfo1);
+  auto comp2 = components::LogicalAudioSourcePlayInfo(playInfo2);
+
+  // equality operators
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("1 1 1000000000", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::LogicalAudioSourcePlayInfo comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, LogicalMicrophone)
+{
+  logical_audio::Microphone mic1;
+  mic1.id = 0;
+  mic1.volumeDetectionThreshold = 0.5;
+
+  logical_audio::Microphone mic2;
+  mic2.id = 1;
+  mic2.volumeDetectionThreshold = mic1.volumeDetectionThreshold;
+
+  // create components
+  auto comp1 = components::LogicalMicrophone(mic1);
+  auto comp2 = components::LogicalMicrophone(mic2);
+
+  // equality operators
+  EXPECT_NE(mic1, mic2);
+  EXPECT_FALSE(mic1 == mic2);
+  EXPECT_TRUE(mic1 != mic2);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0 0.5", ostr.str());
+
+  std::istringstream istr;
+  components::LogicalMicrophone comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
 }
 
 /////////////////////////////////////////////////
