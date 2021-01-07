@@ -3103,6 +3103,7 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
       _bitrate);
+}
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
