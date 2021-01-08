@@ -246,15 +246,13 @@ namespace ignition
 
       /// \brief Get whether to ignore the path specified in SDF.
       /// \return Whether to ignore the path specified in SDF
-      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
-      public: bool LogIgnoreSdfPath() const;
+      public: bool IGN_DEPRECATED(4) LogIgnoreSdfPath() const;
 
       /// \brief Set whether to ignore the path specified in SDF. Path in SDF
       /// should be ignored if a record path is specified on the command line,
       /// for example.
       /// \param[in] _ignore Whether to ignore the path specified in SDF
-      /// \TODO(anyone) Deprecate on Dome, SDF path will always be ignored.
-      public: void SetLogIgnoreSdfPath(bool _ignore);
+      public: void IGN_DEPRECATED(4) SetLogIgnoreSdfPath(bool _ignore);
 
       /// \brief Add a topic to record.
       /// \param[in] _topic Topic name, which can include wildcards.

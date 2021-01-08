@@ -216,7 +216,7 @@ void LogRecord::Configure(const Entity &_entity,
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
-    auto logPath = _sdf->Get<std::string>("path");
+    auto logPath = _sdf->Get<std::string>("record_path");
     // Path is initialized by server if record is set from command line options.
     //   Otherwise, path is loaded from SDF. If a path is not specified in
     //   SDF, initialize to default here.
@@ -283,11 +283,31 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // Use directory basename as topic name, to be able to retrieve at playback
   std::string sdfTopic = "/" + common::basename(this->logPath) + "/sdf";
-  this->sdfPub = this->node.Advertise(sdfTopic, this->sdfMsg.GetTypeName());
+  auto validSdfTopic = transport::TopicUtils::AsValidTopic(sdfTopic);
+  if (!validSdfTopic.empty())
+  {
+    this->sdfPub = this->node.Advertise(validSdfTopic,
+        this->sdfMsg.GetTypeName());
+  }
+  else
+  {
+    ignerr << "Failed to generate valid topic to publish SDF. Tried ["
+           << sdfTopic << "]." << std::endl;
+  }
 
   // TODO(louise) Combine with SceneBroadcaster's state topic
   std::string stateTopic = "/world/" + this->worldName + "/changed_state";
-  this->statePub = this->node.Advertise<msgs::SerializedStateMap>(stateTopic);
+  auto validStateTopic = transport::TopicUtils::AsValidTopic(stateTopic);
+  if (!validStateTopic.empty())
+  {
+    this->statePub = this->node.Advertise<msgs::SerializedStateMap>(
+        validStateTopic);
+  }
+  else
+  {
+    ignerr << "Failed to generate valid topic to publish state. Tried ["
+           << stateTopic << "]." << std::endl;
+  }
 
   // Append file name
   std::string dbPath = common::joinPaths(this->logPath, "state.tlog");

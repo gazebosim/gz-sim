@@ -40,7 +40,14 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
 
-  this->stateTopic = "/world/" + _worldName + "/state";
+  this->stateTopic = transport::TopicUtils::AsValidTopic("/world/" +
+      _worldName + "/state");
+  if (this->stateTopic.empty())
+  {
+    ignerr << "Failed to generate valid topic for world [" << _worldName << "]"
+           << std::endl;
+    return;
+  }
 
   common::addFindFileURICallback([] (common::URI _uri)
   {
@@ -63,6 +70,15 @@ void GuiRunner::RequestState()
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =
       this->node.Options().NameSpace() + "/" + id + "/state_async";
+  auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
+  if (reqSrvValid.empty())
+  {
+    ignerr << "Failed to generate valid service [" << reqSrv << "]"
+           << std::endl;
+    return;
+  }
+  reqSrv = reqSrvValid;
+
   this->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
   ignition::msgs::StringMsg req;
   req.set_data(reqSrv);
@@ -119,5 +135,6 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   }
   this->ecm.ClearNewlyCreatedEntities();
   this->ecm.ProcessRemoveEntityRequests();
+  this->ecm.ClearRemovedComponents();
 }
 

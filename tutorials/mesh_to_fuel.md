@@ -126,17 +126,17 @@ Click the `Add folders` button, or drag and drop the `Electrical Box` folder you
 All the files in your model description will be listed there.
 Press `Upload`, and the "Fuel Model Info" page for your model will open.
 
-![Electrical Box Test](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/983d50937cbcaa75c790515b2ec5797fe82f1188/tutorials/files/mesh_to_fuel/model_info2.png)
+![Electrical Box Test](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/mesh_to_fuel/model_info2.png)
 
 You can always delete a model by clicking the "Edit model" button and then selecting "Delete model" at the bottom of the page
 
-![Delete model](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/983d50937cbcaa75c790515b2ec5797fe82f1188/tutorials/files/mesh_to_fuel/delete2.png)
+![Delete model](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/mesh_to_fuel/delete2.png)
 
 ## Include the Model in a World
 
 With your mesh successfully uploaded to Fuel, you can now easily include it in a world SDF file.
 
-Copy [this example world code](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo3/examples/worlds/import_mesh.sdf) into a text editor and save it as `import_mesh.sdf`.
+Copy [this example world code](https://github.com/ignitionrobotics/ign-gazebo/raw/master/examples/worlds/import_mesh.sdf) into a text editor and save it as `import_mesh.sdf`.
 This is a simple world SDF file, which you can learn more about on the [SDF website](http://sdformat.org/).
 
 Scroll all the way to the bottom of the file until you see the `include` tag section following the `<!-- mesh -->` comment line.
@@ -182,4 +182,4 @@ To launch the world and see your mesh, run Ignition from inside the directory wh
 ign gazebo import_mesh.sdf
 ```
 
-![Launch sample world with mesh](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/983d50937cbcaa75c790515b2ec5797fe82f1188/tutorials/files/mesh_to_fuel/launch_world2.png)
+![Launch sample world with mesh](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/mesh_to_fuel/launch_world2.png)

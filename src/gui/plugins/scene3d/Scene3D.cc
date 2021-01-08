@@ -1170,6 +1170,15 @@ void IgnRenderer::HandleModelPlacement()
       this->dataPtr->createCmdService = "/world/" + this->worldName
           + "/create";
     }
+    this->dataPtr->createCmdService = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->createCmdService);
+    if (this->dataPtr->createCmdService.empty())
+    {
+      ignerr << "Failed to create valid create command service for world ["
+             << this->worldName <<"]" << std::endl;
+      return;
+    }
+
     this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
     this->dataPtr->isPlacing = false;
     this->dataPtr->mouseDirty = false;
@@ -1387,6 +1396,14 @@ void IgnRenderer::HandleMouseTransformControl()
           {
             this->dataPtr->poseCmdService = "/world/" + this->worldName
                 + "/set_pose";
+          }
+          this->dataPtr->poseCmdService = transport::TopicUtils::AsValidTopic(
+              this->dataPtr->poseCmdService);
+          if (this->dataPtr->poseCmdService.empty())
+          {
+            ignerr << "Failed to create valid pose command service for world ["
+                   << this->worldName <<"]" << std::endl;
+            return;
           }
           this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
         }
@@ -1677,6 +1694,7 @@ void IgnRenderer::Initialize()
   this->dataPtr->camera->SetImageHeight(this->textureSize.height());
   this->dataPtr->camera->SetAntiAliasing(8);
   this->dataPtr->camera->SetHFOV(M_PI * 0.5);
+  this->dataPtr->camera->SetVisibilityMask(this->visibilityMask);
   // setting the size and calling PreRender should cause the render texture to
   //  be rebuilt
   this->dataPtr->camera->PreRender();
@@ -2137,8 +2155,9 @@ TextureNode::TextureNode(QQuickWindow *_window)
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->texture = this->window->createTextureFromId(0, QSize(1, 1));
 #else
+  void * nativeLayout;
   this->texture = this->window->createTextureFromNativeObject(
-      QQuickWindow::NativeObjectTexture, nullptr, 0, QSize(1, 1),
+      QQuickWindow::NativeObjectTexture, &nativeLayout, 0, QSize(1, 1),
       QQuickWindow::TextureIsOpaque);
 #endif
   this->setTexture(this->texture);
@@ -2562,6 +2581,20 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         ignition::gui::App()->findChild
           <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
       }
+    }
+
+    if (auto elem = _pluginElem->FirstChildElement("visibility_mask"))
+    {
+      uint32_t visibilityMask = 0xFFFFFFFFu;
+      std::stringstream visibilityMaskStr;
+      visibilityMaskStr << std::string(elem->GetText());
+      bool isHex = common::lowercase(
+          visibilityMaskStr.str()).compare(0, 2, "0x") == 0;
+      if (isHex)
+        visibilityMaskStr >> std::hex >> visibilityMask;
+      else
+        visibilityMaskStr >> visibilityMask;
+      renderWindow->SetVisibilityMask(visibilityMask);
     }
   }
 
@@ -3088,6 +3121,12 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 {
   this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
       _bitrate);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
+{
+  this->dataPtr->renderThread->ignRenderer.visibilityMask = _mask;
 }
 
 /////////////////////////////////////////////////

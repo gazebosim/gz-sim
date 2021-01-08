@@ -285,53 +285,9 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     }
   }
 
-  if (!_config.LogRecordPath().empty() && hasRecordPath)
-  {
-    if (hasRecordPath)
-    {
-      // If record path came from command line, overwrite SDF <path>
-      if (_config.LogIgnoreSdfPath())
-      {
-        this->config.SetLogRecordPath(_config.LogRecordPath());
-      }
-      // TODO(anyone) In Ignition-D, remove this. <path> will be
-      //   permanently ignored in favor of common::ignLogDirectory().
-      //   Always overwrite SDF.
-      // Otherwise, record path is same as the default timestamp log
-      //   path. Take the path in SDF <path>.
-      // Deprecated.
-      else
-      {
-        ignwarn << "--record-path is not specified on command line. "
-          << "<path> is specified in SDF. Will record to <path>. "
-          << "Console will be logged to [" << ignLogDirectory()
-          << "]. Note: In Ignition-D, <path> will be ignored, and "
-          << "all recordings will be written to default console log "
-          << "path if no path is specified on command line.\n";
-
-        // In the case that the --compress flag is set, then
-        // this field will be populated with just the file extension
-        if(_config.LogRecordCompressPath() == ".zip")
-        {
-          sdfCompressPath = std::string(sdfRecordPath);
-          if (!std::string(1, sdfCompressPath.back()).compare(
-            ignition::common::separator("")))
-          {
-            // Remove the separator at end of path
-            sdfCompressPath = sdfCompressPath.substr(0,
-                sdfCompressPath.length() - 1);
-          }
-          sdfCompressPath += ".zip";
-          this->config.SetLogRecordCompressPath(sdfCompressPath);
-        }
-      }
-    }
-    else
-    {
-      this->config.SetLogRecordPath(_config.LogRecordPath());
-    }
-  }
-
+  if (!_config.LogRecordPath().empty())
+    this->config.SetLogRecordPath(_config.LogRecordPath());
+  
   if (_config.LogRecordResources())
     this->config.SetLogRecordResources(true);
 
