@@ -102,7 +102,7 @@ Each box model also has a different name and pose to ensure they show up as indi
     %>
 ```
 
-[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo3/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
+[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
 
 Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
 
