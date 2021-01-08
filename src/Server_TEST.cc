@@ -995,4 +995,4 @@ TEST_P(ServerFixture, AddResourcePaths)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
