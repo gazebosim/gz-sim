@@ -692,7 +692,7 @@ TEST_F(LogSystemTest, LogPaths)
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeOrigc_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()), 0);
 
   this->RemoveLogsDir();
 }
