@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
