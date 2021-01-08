@@ -79,28 +79,31 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// each thread.
   public: bool entityComponentsDirty{true};
 
-  /// \brief The number of threads to run entity component computations.
-  /// Initialized to 1, but calculated later based on the hardware thread
-  /// support and number of components each thread is allowed to handle, see
-  /// `componentsPerThread`
+  /// \brief The number of threads to run entity component computations in
+  /// the `State` function. Initialized to 1, but calculated later based
+  /// on the hardware thread support and number of components each thread
+  ///is allowed to handle, see `componentsPerThread`.
   public: uint64_t numComponentThreads = 1;
 
-  /// \brief The minimum number of entity components each thread is allowed
-  /// to process.  For instance, if `componentsPerThread` is 50, any number of
-  /// entity components below 50 would only spawn one worker thread, 100 would
-  /// spawn two, and so on.  If the number of components is greater than
-  /// `componentsPerThread` * `numComponentThreads`, the work will be
-  /// distributed evenly between all threads.
-  public: const uint64_t componentsPerThread = 50;
+  /// \brief The minimum number of entity components each thread in the `State`
+  /// function is allowed to process.  For instance, if `componentsPerThread`
+  /// is 50, any number of entity components below 50 would only spawn one
+  /// worker thread, 100 would spawn two, and so on.  If the number of
+  /// components is greater than `componentsPerThread` * `numComponentThreads`,
+  /// the work will be distributed evenly between all threads.
+  public: const uint64_t componentsPerThread = 1;
 
-  /// \brief The set of components that each entity has
+  /// \brief The set of components that each entity has.
+  /// NOTE: Any modification of this data structure must be followed
+  /// by setting `entityComponentsDirty` to true.
   public: std::unordered_map<Entity,
           std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
 
   /// \brief A vector of iterators to evenly distributed spots in the
-  /// `entityComponents` map.  Threads use this vector for easy access of
-  /// their pre-allocated work.  This vector is recalculated if
-  /// `entityComponents` is changed (when `entityComponentsDirty` == true).
+  /// `entityComponents` map.  Threads in the `State` function use this
+  /// vector for easy access of their pre-allocated work.  This vector
+  /// is recalculated if `entityComponents` is changed (when 
+  /// `entityComponentsDirty` == true).
   public: std::vector<std::unordered_map<Entity,
           std::unordered_map<ComponentTypeId, ComponentKey>>::iterator>
             entityComponentIterators;
@@ -1051,53 +1054,17 @@ ignition::msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types) const
 {
   ignition::msgs::SerializedState stateMsg;
-  /*
-  std::mutex stateMapMutex;
-  std::vector<std::thread> workers;
-
-  this->CalculateComponentThreadLoad();
-
-  for (int i = 0; i < this->dataPtr->readyThreads.size(); i++)
+  for (const auto &it : this->dataPtr->entityComponents)
   {
-    this->dataPtr->readyThreads[i] = true;
-  }
-  this->dataPtr->msgCV.notify_all();
-  std::shared_lock<std::shared_mutex> lk(this->dataPtr->msgCV);
-
-  auto functor = [&](auto itStart, auto itEnd) {
-    msgs::SerializedState threadStateMsg;
-    while (itStart != itEnd)
+    auto entity = it.first;
+    if (!_entities.empty() && _entities.find(entity) == _entities.end())
     {
-      if (_entities.empty() ||
-          _entities.find((*itStart).first) != _entities.end())
-      {
-        this->AddEntityToMessage(threadStateMsg, (*itStart).first, _types);
-      }
-      itStart++;
+      continue;
     }
-    std::lock_guard<std::mutex> lock(stateMapMutex);
 
-    for (auto &entity : threadStateMsg.entities())
-    {
-      auto entityMsg = stateMsg.add_entities();
-      entityMsg->set_id(entity.id());
-      entityMsg->set_remove(entity.remove());
-    }
-  };
-
-  // Spawn workers
-  uint64_t numThreads = this->dataPtr->entityComponentIterators.size() - 1;
-  for (uint64_t i = 0; i < numThreads; i++)
-  {
-    workers.push_back(std::thread(functor,
-        this->dataPtr->entityComponentIterators[i],
-        this->dataPtr->entityComponentIterators[i+1]));
+    this->AddEntityToMessage(stateMsg, entity, _types);
   }
 
-  // Wait for each thread to finish processing its components
-  std::for_each(workers.begin(), workers.end(),
-      [](std::thread &t){ t.join(); });
-*/
   return stateMsg;
 }
 
