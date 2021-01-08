@@ -54,11 +54,11 @@ void Null::PostUpdate(const UpdateInfo &/*_info*/,
 {
 }
 
-IGNITION_ADD_PLUGIN(Null,
+IGNITION_ADD_PLUGIN(ignition::gazebo::Null,
                     ignition::gazebo::System,
-                    Null::ISystemConfigure,
-                    Null::ISystemPreUpdate,
-                    Null::ISystemUpdate,
-                    Null::ISystemPostUpdate)
+                    ignition::gazebo::Null::ISystemConfigure,
+                    ignition::gazebo::Null::ISystemPreUpdate,
+                    ignition::gazebo::Null::ISystemUpdate,
+                    ignition::gazebo::Null::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Null, "ignition::gazebo::systems::Null")
