@@ -401,30 +401,30 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
   {
     std::lock_guard<std::mutex> lock(this->pendingCmdsMutex);
 
-    // Check topic statistics for dropped messages
-    if (this->topicStatistics)
+    this->pendingCmds.push_back(true);
+  }
+
+  // Check topic statistics for dropped messages
+  if (this->topicStatistics)
+  {
+    ignmsg << "Received breadcrumb deployment for " <<
+      this->modelRoot.ModelByIndex(0)->Name() << std::endl;
+    std::optional<transport::TopicStatistics> stats =
+      this->node.TopicStats(this->topic);
+    if (stats)
     {
-      ignmsg << "Received breadcrumb deployment for " <<
-        this->modelRoot.ModelByIndex(0)->Name() << std::endl;
-      std::optional<transport::TopicStatistics> stats =
-        this->node.TopicStats(this->topic);
-      if (stats)
+      if (stats->DroppedMsgCount() > 0)
       {
-        if (stats->DroppedMsgCount() > 0)
-        {
         ignwarn << "Dropped message count of " << stats->DroppedMsgCount()
           << " for breadcrumbs on model "
           << this->modelRoot.ModelByIndex(0)->Name() << std::endl;
-        }
-      }
-      else
-      {
-        ignerr << "Unable to get topic statistics for topic["
-          << this->topic << "]." << std::endl;
       }
     }
-
-    this->pendingCmds.push_back(true);
+    else
+    {
+      ignerr << "Unable to get topic statistics for topic["
+        << this->topic << "]." << std::endl;
+    }
   }
 }
 
