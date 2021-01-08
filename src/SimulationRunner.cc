@@ -344,8 +344,6 @@ void SimulationRunner::UpdatePhysicsParams()
         ComponentState::OneTimeChange);
   }
   auto res = this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
-  this->entityCompMgr.SetChanged(worldEntity, components::PhysicsCmd::typeId,
-      ComponentState::OneTimeChange);
 }
 
 /////////////////////////////////////////////////
