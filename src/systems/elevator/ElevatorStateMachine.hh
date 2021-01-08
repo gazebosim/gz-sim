@@ -99,27 +99,30 @@ class ElevatorStateMachine_
   /// \brief Alias to make transition table cleaner
   private: using none = boost::msm::front::none;
 
-  /// \brief The transition_table struct
-  // clang-format off
+  /// \brief Transition table
   public: struct transition_table
       : boost::mpl::vector<
-            //   Start            Event                   Next             Action                          Guard
-            // +----------------+-----------------------+----------------+-------------------------------+---------------------------+
-            Row< IdleState      , EnqueueNewTargetEvent , none           , EnqueueNewTargetAction<true>  , none                      >,
-            Row< IdleState      , NewTargetEvent        , OpenDoorState  , NewTargetAction               , CabinAtTargetGuard<false> >,
-            Row< IdleState      , NewTargetEvent        , MoveCabinState , NewTargetAction               , CabinAtTargetGuard<true>  >,
-            // +----------------+-----------------------+----------------+-------------------------------+---------------------------+
-            Row< OpenDoorState  , DoorOpenEvent         , WaitState      , none                          , none                      >,
-            // +----------------+-----------------------+----------------+-------------------------------+---------------------------+
-            Row< WaitState      , TimeoutEvent          , CloseDoorState , none                          , none                      >,
-            // +----------------+-----------------------+----------------+-------------------------------+---------------------------+
-            Row< CloseDoorState , EnqueueNewTargetEvent , none           , EnqueueNewTargetAction<false> , none                      >,
-            Row< CloseDoorState , DoorClosedEvent       , IdleState      , none                          , NoTargetGuard<false>      >,
-            Row< CloseDoorState , DoorClosedEvent       , MoveCabinState , none                          , NoTargetGuard<true>       >,
-            // +----------------+-----------------------+----------------+-------------------------------+---------------------------+
-            Row< MoveCabinState , CabinAtTargetEvent    , OpenDoorState  , CabinAtTargetAction           , none                      > >
-            // +----------------+-----------------------+----------------+-------------------------------+---------------------------+
-  // clang-format on
+            // +--------------------------------------------------------------+
+            Row<IdleState, EnqueueNewTargetEvent, none,
+                EnqueueNewTargetAction<true>, none>,
+            Row<IdleState, NewTargetEvent, OpenDoorState, NewTargetAction,
+                CabinAtTargetGuard<false> >,
+            Row<IdleState, NewTargetEvent, MoveCabinState, NewTargetAction,
+                CabinAtTargetGuard<true> >,
+            // +--------------------------------------------------------------+
+            Row<OpenDoorState, DoorOpenEvent, WaitState, none, none>,
+            // +--------------------------------------------------------------+
+            Row<WaitState, TimeoutEvent, CloseDoorState, none, none>,
+            // +--------------------------------------------------------------+
+            Row<CloseDoorState, EnqueueNewTargetEvent, none,
+                EnqueueNewTargetAction<false>, none>,
+            Row<CloseDoorState, DoorClosedEvent, IdleState, none,
+                NoTargetGuard<false> >,
+            Row<CloseDoorState, DoorClosedEvent, MoveCabinState, none,
+                NoTargetGuard<true> >,
+            // +--------------------------------------------------------------+
+            Row<MoveCabinState, CabinAtTargetEvent, OpenDoorState,
+                CabinAtTargetAction, none> >
   {
   };
 
