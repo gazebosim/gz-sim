@@ -124,6 +124,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Returns reference to the marker manager.
     public: class MarkerManager &MarkerManager();
 
+    /// \brief Get simulation time that the current rendering state corresponds
+    /// to
+    /// \returns Simulation time.
+    public: std::chrono::steady_clock::duration SimTime() const;
+
     /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(const rendering::NodePtr &_node);

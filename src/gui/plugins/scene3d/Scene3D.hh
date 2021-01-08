@@ -199,12 +199,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath Sdf path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the dropdown menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
 
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
@@ -350,6 +367,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Handle model placement requests
     private: void HandleModelPlacement();
+
+    /// \brief Broadcasts the currently hovered 3d scene location.
+    private: void BroadcastHoverPos();
+
+    /// \brief Broadcasts a left click within the scene
+    private: void BroadcastLeftClick();
+
+    /// \brief Broadcasts a right click within the scene
+    private: void BroadcastRightClick();
 
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
@@ -515,12 +541,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath File path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
 
     /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
@@ -603,8 +646,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the render window.
     public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
 
+    /// \brief Get whether the renderer is initialized. The renderer is
+    /// initialized when the context is created and the render thread is
+    /// started.
+    /// \return True if the renderer is initialized.
+    public: bool RendererInitialized() const;
+
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
+
+    /// \brief Handle key press event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyRelease(QKeyEvent *_e);
 
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
@@ -617,12 +674,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
