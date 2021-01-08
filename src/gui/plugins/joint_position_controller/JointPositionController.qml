@@ -29,11 +29,6 @@ Rectangle {
   anchors.fill: parent
 
   /**
-   * Time delay for tooltip to show, in ms
-   */
-  property int tooltipDelay: 500
-
-  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?
@@ -47,15 +42,18 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
 
-  function delegateQml() {
-    return 'Joint.qml'
-  }
-
   /**
    * Forward posiiton changes to C++
    */
   function onCommand(_jointName, _pos) {
     JointPositionController.OnCommand(_jointName, _pos)
+  }
+
+  Connections {
+    target: JointPositionController
+    onLockedChanged: {
+      lockButton.checked = JointPositionController.Locked()
+    }
   }
 
   Rectangle {
@@ -138,7 +136,7 @@ Rectangle {
 
     delegate: Loader {
       id: loader
-      source: delegateQml(model)
+      source: 'Joint.qml'
     }
   }
 }

@@ -58,7 +58,7 @@ namespace ignition::gazebo::gui
     public: transport::Node node;
 
     /// \brief Whether the initial model set from XML has been setup.
-    public: bool sdfModelInitialized{false};
+    public: bool xmlModelInitialized{false};
   };
 }
 
@@ -161,7 +161,7 @@ void JointPositionController::LoadConfig(
   }
 
   // If model name isn't set, initialization is complete.
-  this->dataPtr->sdfModelInitialized = this->dataPtr->modelName.isEmpty();
+  this->dataPtr->xmlModelInitialized = this->dataPtr->modelName.isEmpty();
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
@@ -178,12 +178,12 @@ void JointPositionController::Update(const UpdateInfo &,
 {
   IGN_PROFILE("JointPositionController::Update");
 
-  if (!this->dataPtr->sdfModelInitialized)
+  if (!this->dataPtr->xmlModelInitialized)
   {
-    this->dataPtr->modelEntity = _ecm.EntityByComponents(
-        components::Name(this->dataPtr->modelName.toStdString()));
-    this->dataPtr->sdfModelInitialized;
+    this->SetModelEntity(_ecm.EntityByComponents(
+        components::Name(this->dataPtr->modelName.toStdString())));
     this->SetLocked(true);
+    this->dataPtr->xmlModelInitialized = true;
   }
 
   if (this->dataPtr->modelEntity == kNullEntity ||

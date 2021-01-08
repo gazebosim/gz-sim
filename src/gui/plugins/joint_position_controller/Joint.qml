@@ -32,14 +32,14 @@ Rectangle {
   // Horizontal margins
   property int margin: 15
 
-   Connections {
-     target: joint
-     onValueChanged: {
-       jointPositionController.onCommand(model.name, joint.value);
-       spin.value = joint.value;
-       slider.value = joint.value;
-     }
-   }
+  Connections {
+    target: joint
+    onValueChanged: {
+      jointPositionController.onCommand(model.name, joint.value);
+      spin.value = joint.value;
+      slider.value = joint.value;
+    }
+  }
 
   RowLayout {
     anchors.fill: parent
@@ -55,7 +55,20 @@ Rectangle {
       Layout.alignment: Qt.AlignVCenter
       Layout.preferredWidth: 100
       elide: Text.ElideRight
-      // TODO: tooltip
+      ToolTip {
+        visible: ma.containsMouse
+        delay: Qt.styleHints.mousePressAndHoldInterval
+        text: model.name
+        y: -30
+        enter: null
+        exit: null
+      }
+      MouseArea {
+        id: ma
+        anchors.fill: parent
+        hoverEnabled: true
+        acceptedButtons: Qt.RightButton
+      }
     }
 
     IgnSpinBox {
