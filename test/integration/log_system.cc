@@ -339,7 +339,7 @@ TEST_F(LogSystemTest, LogDefaults)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFakec_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()), 0);
 
   // Test case 1:
   // No path specified, on both command line and SDF. This does not go through
@@ -423,7 +423,7 @@ TEST_F(LogSystemTest, LogDefaults)
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeOrigc_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()), 0);
 }
 
 /////////////////////////////////////////////////
@@ -479,7 +479,7 @@ TEST_F(LogSystemTest, LogPaths)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFakec_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()), 0);
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
@@ -1563,7 +1563,7 @@ TEST_F(LogSystemTest, LogResources)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFakec_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()), 0);
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1628,7 +1628,7 @@ TEST_F(LogSystemTest, LogResources)
       "models", "X2 Config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeOrigc_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()), 0);
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1650,7 +1650,7 @@ TEST_F(LogSystemTest, LogTopics)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFakec_str()), 0);
+  EXPECT_EQ(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()), 0);
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
