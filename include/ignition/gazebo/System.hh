@@ -62,10 +62,10 @@ namespace ignition
     class System
     {
       /// \brief Constructor
-      public: System();
+      public: System() = default;
 
       /// \brief Destructor
-      public: virtual ~System();
+      public: virtual ~System() = default;
     };
 
     /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
