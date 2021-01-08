@@ -29,8 +29,8 @@ namespace ignition {
       public gazebo::ISystemUpdate,
       public gazebo::ISystemPostUpdate
     {
-      MockSystem() = default;
-      ~MockSystem() = default;
+      public: MockSystem() = default;
+      public: ~MockSystem() = default;
       public: size_t preUpdateCallCount {0};
       public: size_t updateCallCount {0};
       public: size_t postUpdateCallCount {0};
