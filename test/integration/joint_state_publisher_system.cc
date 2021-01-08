@@ -35,7 +35,7 @@ class JointStatePublisherTest : public ::testing::TestWithParam<int>
   {
     common::Console::SetVerbosity(4);
     ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib")c_str());
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
