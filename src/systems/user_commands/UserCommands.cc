@@ -44,8 +44,10 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
@@ -753,32 +755,22 @@ bool PhysicsCommand::Execute()
     return false;
   }
 
-  auto world_en = this->iface->ecm->EntityByComponents(components::World());
-  if (world_en == kNullEntity)
+  auto worldEntity = this->iface->ecm->EntityByComponents(components::World());
+  if (worldEntity == kNullEntity)
   {
     ignmsg << "Failed to find world entity" << std::endl;
     return false;
   }
 
-  if (!this->iface->ecm->EntityHasComponentType(world_en,
+  if (!this->iface->ecm->EntityHasComponentType(worldEntity,
     components::PhysicsCmd().TypeId()))
   {
-    // For testing
-    sdf::Physics physics;
-    physics.SetRealTimeFactor(physicsMsg->real_time_factor());
-    physics.SetMaxStepSize(physicsMsg->max_step_size());
-    this->iface->ecm->CreateComponent(world_en, components::PhysicsCmd(physics));
+    auto physics = convert<sdf::Physics>(*physicsMsg);
+    this->iface->ecm->CreateComponent(worldEntity, components::PhysicsCmd(physics));
+    // HACK, the component is meant to be updated in SimulationRunner
+    //auto physicsComponent = this->iface->ecm->Component<components::Physics>(worldEntity);
+    //physicsComponent->Data() = components::Physics(physics).Data();
   }
-
-  /*else
-  {
-    /// \todo(anyone) Moving an object is not captured in a log file.
-    auto state = lightCmdComp->SetData(lightComp->Data(), this->lightEql) ?
-        ComponentState::OneTimeChange :
-        ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::LightCmd::typeId,
-        state);
-  }*/
 
   return true;
 }

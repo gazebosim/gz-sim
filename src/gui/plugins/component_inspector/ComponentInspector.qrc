@@ -4,6 +4,7 @@
   <file>ComponentInspector.qml</file>
   <file>NoData.qml</file>
   <file>Pose3d.qml</file>
+  <file>Physics.qml</file>
   <file>String.qml</file>
   <file>TypeHeader.qml</file>
   <file>Vector3d.qml</file>

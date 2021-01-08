@@ -28,6 +28,8 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
+#include "ignition/gazebo/components/Physics.hh"
+
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
@@ -74,6 +76,9 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const math::Vector3d &_data);
+
+  template<>
+  void setData(QStandardItem *_item, const sdf::Physics &_data);
 
   /// \brief Specialized to set boolean data.
   /// \param[in] _item Item whose data will be set.
@@ -206,6 +211,12 @@ namespace gazebo
     /// \param[in] _yaw Yaw
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
+
+    /// \brief Callback in Qt thread when physics' properties change.
+    /// \param[in] _stepSize step size
+    /// \param[in] _realTimeFactor real time factor
+    public: Q_INVOKABLE void OnPhysics(double _stepSize,
+        double _realTimeFactor);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise

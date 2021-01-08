@@ -54,6 +54,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -201,6 +202,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   // Gravity
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Gravity(_world->Gravity()));
+
+  // Physics
+  // \todo(anyone) Support picking a specific physics profile
+  auto physics = _world->PhysicsByIndex(0);
+  if (!physics)
+  {
+    physics = _world->PhysicsDefault();
+  }
+  ignerr << "Creating physics component in SDF creator" << std::endl;
+  this->dataPtr->ecm->CreateComponent(worldEntity,
+      components::Physics(*physics));
 
   // MagneticField
   this->dataPtr->ecm->CreateComponent(worldEntity,

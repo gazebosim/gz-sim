@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -59,8 +60,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
-  // Get the first physics profile
-  // \todo(louise) Support picking a specific profile
+  // Get the physics profile
+  // TODO remove, this logic is already in SdfEntityCreator
   auto physics = _world->PhysicsByIndex(0);
   if (!physics)
   {
@@ -312,13 +313,14 @@ void SimulationRunner::UpdateCurrentInfo()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdatePhysicsParams()
 {
-  auto world_en = this->entityCompMgr.EntityByComponents(components::World());
+  auto worldEntity = this->entityCompMgr.EntityByComponents(components::World());
   const auto physicsCmdComp =
-    this->entityCompMgr.Component<components::PhysicsCmd>(world_en);
+    this->entityCompMgr.Component<components::PhysicsCmd>(worldEntity);
   if (!physicsCmdComp)
   {
     return;
   }
+  auto physicsComp = this->entityCompMgr.Component<components::Physics>(worldEntity);
 
   const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize = std::chrono::duration<double>(physicsParams.MaxStepSize());
@@ -335,8 +337,15 @@ void SimulationRunner::UpdatePhysicsParams()
 
     this->simTimes.clear();
     this->realTimes.clear();
+    // Update physics components
+    physicsComp->Data().SetMaxStepSize(physicsParams.MaxStepSize());
+    physicsComp->Data().SetRealTimeFactor(newRTF);
+    this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+        ComponentState::OneTimeChange);
   }
-  this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(world_en);
+  auto res = this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
+  this->entityCompMgr.SetChanged(worldEntity, components::PhysicsCmd::typeId,
+      ComponentState::OneTimeChange);
 }
 
 /////////////////////////////////////////////////
