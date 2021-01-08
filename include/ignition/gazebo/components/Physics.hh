@@ -44,7 +44,8 @@ namespace components
 {
   /// \brief A component type that contains the physics properties of
   /// the World entity.
-  using Physics = Component<sdf::Physics, class PhysicsTag, serializers::PhysicsSerializer>;
+  using Physics = Component<sdf::Physics, class PhysicsTag,
+      serializers::PhysicsSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Physics",
       Physics)
 }

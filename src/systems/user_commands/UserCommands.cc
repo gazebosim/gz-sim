@@ -203,7 +203,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
   /// \brief Callback for physics service
-  /// \param[in] _req Request containing updates to the world's physics parameters.
+  /// \param[in] _req Request containing updates to the physics parameters.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the physics parameters will be successfully updated.
   /// \return True if successful.
@@ -765,10 +765,12 @@ bool PhysicsCommand::Execute()
     components::PhysicsCmd().TypeId()))
   {
     auto physics = convert<sdf::Physics>(*physicsMsg);
-    this->iface->ecm->CreateComponent(worldEntity, components::PhysicsCmd(physics));
+    this->iface->ecm->CreateComponent(worldEntity,
+        components::PhysicsCmd(physics));
     // HACK, the component is meant to be updated in SimulationRunner
-    //auto physicsComponent = this->iface->ecm->Component<components::Physics>(worldEntity);
-    //physicsComponent->Data() = components::Physics(physics).Data();
+    // auto physicsComponent = 
+    //  this->iface->ecm->Component<components::Physics>(worldEntity);
+    // physicsComponent->Data() = components::Physics(physics).Data();
   }
 
   return true;

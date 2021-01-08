@@ -61,7 +61,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->systemLoader = _systemLoader;
 
   // Get the physics profile
-  // TODO remove, this logic is already in SdfEntityCreator
+  // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
   if (!physics)
   {
