@@ -37,7 +37,7 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
   common::Console::SetVerbosity(4);
 
   ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-         (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+         (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
