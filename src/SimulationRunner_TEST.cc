@@ -16,6 +16,8 @@
 */
 
 #include <gtest/gtest.h>
+#include <tinyxml2.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
@@ -25,6 +27,7 @@
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
+
 
 #include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -48,6 +51,7 @@
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
 #include "SimulationRunner.hh"
 
@@ -81,8 +85,8 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
   {
     common::Console::SetVerbosity(4);
 
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      common::joinPaths(PROJECT_BINARY_PATH, "lib"));
   }
 };
 
@@ -107,8 +111,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -520,8 +524,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/lights.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "lights.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -790,8 +794,8 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/demo_joint_types.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "demo_joint_types.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -931,8 +935,8 @@ TEST_P(SimulationRunnerTest, Time)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -1053,8 +1057,8 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/plugins.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugins.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -1136,12 +1140,155 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 }
 
 /////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadServerNoPlugins)
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugins_empty.sdf"));
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // ServerConfig will fall back to environment variable
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ServerConfig serverConfig;
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+      serverConfig);
+
+  ASSERT_EQ(2u, runner.SystemCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadServerConfigPlugins)
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugins_empty.sdf"));
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // Create a server configuration with plugins
+  // No fallback expected
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid.config");
+
+  auto plugins = parsePluginsFromFile(config);
+  ASSERT_EQ(3u, plugins.size());
+
+  ServerConfig serverConfig;
+  for (auto plugin : plugins)
+  {
+    serverConfig.AddPlugin(plugin);
+  }
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+      serverConfig);
+
+  // Get world entity
+  Entity worldId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::World *_world)->bool
+      {
+        EXPECT_NE(nullptr, _world);
+        worldId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, worldId);
+
+  // Get model entity
+  Entity modelId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Model *_model)->bool
+      {
+        EXPECT_NE(nullptr, _model);
+        modelId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, modelId);
+
+  // Get sensor entity
+  Entity sensorId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Sensor>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Sensor *_sensor)->bool
+      {
+        EXPECT_NE(nullptr, _sensor);
+        sensorId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, sensorId);
+
+  // Check component registered by world plugin
+  std::string worldComponentName{"WorldPluginComponent"};
+  auto worldComponentId = ignition::common::hash64(worldComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(worldComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
+      worldComponentId));
+
+  // Check component registered by model plugin
+  std::string modelComponentName{"ModelPluginComponent"};
+  auto modelComponentId = ignition::common::hash64(modelComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(modelComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
+      modelComponentId));
+
+  // Check component registered by sensor plugin
+  std::string sensorComponentName{"SensorPluginComponent"};
+  auto sensorComponentId = ignition::common::hash64(sensorComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
+      sensorComponentId));
+
+  // Clang re-registers components between tests. If we don't unregister them
+  // beforehand, the new plugin tries to create a storage type from a previous
+  // plugin, causing a crash.
+  // Is this only a problem with GTest, or also during simulation? How to
+  // reproduce? Maybe we need to test unloading plugins, but we have no API for
+  // it yet.
+  #if defined (__clang__)
+    components::Factory::Instance()->Unregister(worldComponentId);
+    components::Factory::Instance()->Unregister(modelComponentId);
+    components::Factory::Instance()->Unregister(sensorComponentId);
+  #endif
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadPluginsDefault)
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugins_empty.sdf"));
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // Load the default config, but not through the default code path.
+  // The user may have modified their local config.
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "include", "ignition", "gazebo", "server.config");
+  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, config));
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
+  ASSERT_EQ(3u, runner.SystemCount());
+  common::unsetenv(gazebo::kServerConfigPathEnv);
+}
+
+/////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, LoadPluginsEvent)
 {
   // Load SDF file without plugins
   sdf::Root rootWithout;
-  rootWithout.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
   ASSERT_EQ(1u, rootWithout.WorldCount());
 
   // Create simulation runner
@@ -1175,8 +1322,8 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
 
   // Load SDF file with plugins
   sdf::Root rootWith;
-  rootWith.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/plugins.sdf");
+  rootWith.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugins.sdf"));
   ASSERT_EQ(1u, rootWith.WorldCount());
 
   // Emit plugin loading event
@@ -1233,8 +1380,8 @@ TEST_P(SimulationRunnerTest, GuiInfo)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
@@ -1270,8 +1417,8 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
 {
   // Load SDF file
   sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   ASSERT_EQ(1u, root.WorldCount());
 
