@@ -12,6 +12,7 @@ set(tests
   detachable_joint.cc
   diff_drive_system.cc
   each_new_removed.cc
+  elevator_system.cc
   entity_erase.cc
   events.cc
   examples_build.cc
