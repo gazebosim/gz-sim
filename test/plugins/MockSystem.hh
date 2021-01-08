@@ -23,7 +23,7 @@
 
 namespace ignition {
   namespace gazebo {
-    class IGNITION_GAZEBO_VISIBLE MockSystem :
+    class MockSystem :
       public gazebo::System,
       public gazebo::ISystemPreUpdate,
       public gazebo::ISystemUpdate,
