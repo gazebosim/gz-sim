@@ -25,7 +25,7 @@ namespace ignition
 {
 namespace gazebo
 {
-class IGNITION_GAZEBO_VISIBLE EventTriggerSystem :
+class EventTriggerSystem :
   public gazebo::System,
   public gazebo::ISystemConfigure,
   public gazebo::ISystemUpdate
