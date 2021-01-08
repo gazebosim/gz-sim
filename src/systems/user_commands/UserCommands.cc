@@ -430,12 +430,17 @@ bool CreateCommand::Execute()
 
       std::string lightType = "point";
       if (lightMsg.type() == msgs::Light::SPOT)
+      {
         lightType = "spot";
-      if (lightMsg.type() == msgs::Light::DIRECTIONAL)
+      }
+      else if (lightMsg.type() == msgs::Light::DIRECTIONAL)
+      {
         lightType = "directional";
+      }
 
-      std::string lightStr = std::string("<sdf version='1.7'>") +
-      "<light type='" + lightType + "' name='" + lightMsg.name() + "'> " +
+      std::string lightStr =
+        std::string("<sdf version=") + SDF_VERSION + std::string(">") +
+        "<light type='" + lightType + "' name='" + lightMsg.name() + "'> " +
         "<cast_shadows>" +
         std::to_string(lightMsg.cast_shadows()) +
         "</cast_shadows>" +
