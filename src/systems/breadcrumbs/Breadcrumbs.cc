@@ -42,6 +42,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -132,11 +133,15 @@ void Breadcrumbs::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  this->topic = "/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
-                    this->modelRoot.ModelByIndex(0)->Name() + "/deploy";
-
+  std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
-    this->topic = _sdf->Get<std::string>("topic");
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" +
+      this->model.Name(_ecm) + "/breadcrumbs/" +
+      this->modelRoot.ModelByIndex(0)->Name() + "/deploy");
+  this->topic = validTopic(topics);
 
   this->topicStatistics = _sdf->Get<bool>("topic_statistics",
       this->topicStatistics).first;
