@@ -32,6 +32,9 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+
 //////////////////////////////////////////////////
 namespace traits
 {
@@ -544,6 +547,7 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
   const auto typeId = ComponentTypeT::typeId;
   return this->RemoveComponent(_entity, typeId);
+}
 }
 }
 }
