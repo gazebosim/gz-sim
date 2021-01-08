@@ -80,10 +80,14 @@ namespace gui
   /// Only the 1st axis of each joint is considered. Joints without axes are
   /// ignored.
   ///
+  /// When the lock button is checked, the model doesn't change even if it's
+  /// deselected.
+  ///
   /// ## Configuration
   ///
   /// `<model_name>`: Load the widget pointed at the given model, so it's not
-  /// necessary to select it.
+  /// necessary to select it. If a model is given at startup, the plugin starts
+  /// in locked mode.
   class JointPositionController : public gazebo::GuiSystem
   {
     Q_OBJECT

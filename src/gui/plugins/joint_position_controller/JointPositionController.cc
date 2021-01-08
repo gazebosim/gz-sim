@@ -42,10 +42,10 @@ namespace ignition::gazebo::gui
 {
   class JointPositionControllerPrivate
   {
-    /// \brief Model holding all the current components.
+    /// \brief Model holding all the joints.
     public: JointsModel jointsModel;
 
-    /// \brief Model entity being inspected.
+    /// \brief Model entity being controller.
     public: Entity modelEntity{kNullEntity};
 
     /// \brief Name of the model
@@ -79,7 +79,7 @@ QStandardItem *JointsModel::AddJoint(Entity _entity)
 
   auto itemIt = this->items.find(_entity);
 
-  // Existing component item
+  // Existing item
   if (itemIt != this->items.end())
   {
     return itemIt->second;
@@ -101,7 +101,7 @@ void JointsModel::RemoveJoint(Entity _entity)
 
   auto itemIt = this->items.find(_entity);
 
-  // Existing component item
+  // Existing item
   if (itemIt != this->items.end())
   {
     this->invisibleRootItem()->removeRow(itemIt->second->row());
@@ -229,7 +229,7 @@ void JointPositionController::Update(const UpdateInfo &,
     {
       item = itemIt->second;
     }
-    // Add component to list
+    // Add joint to list
     else
     {
       // TODO(louise) Blocking here is not the best idea
