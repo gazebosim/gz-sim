@@ -492,7 +492,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       {
         material->SetTexture(fullPath);
         // Use alpha channel for transparency
-        material->SetAlphaFromTexture(true, 0.5, false);
+        material->SetAlphaFromTexture(true, 0.5, _material.DoubleSided());
       }
       else
         ignerr << "Unable to find file [" << albedoMap << "]\n";
