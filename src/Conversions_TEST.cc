@@ -248,10 +248,8 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", pbrMsg.ambient_occlusion_map());
   EXPECT_EQ("dummy_glossiness_map.png", pbrMsg.glossiness_map());
   EXPECT_EQ("dummy_specular_map.png", pbrMsg.specular_map());
-
-  // todo(anyone) add light_map to material.proto
-  EXPECT_EQ("light_map.png", materialMsg.header().data(0).value(0));
-  EXPECT_EQ(1, std::stoi(materialMsg.header().data(0).value(1)));
+  EXPECT_EQ("light_map.png", pbrMsg.light_map());
+  EXPECT_EQ(1u, pbrMsg.light_map_texcoord_set());
 
   EXPECT_DOUBLE_EQ(0.3, pbrMsg.metalness());
   EXPECT_DOUBLE_EQ(0.9, pbrMsg.roughness());

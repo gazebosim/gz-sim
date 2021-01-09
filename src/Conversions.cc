@@ -301,14 +301,17 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
           asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
       pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
           asFullPath(workflow->EmissiveMap(), _in.FilePath()));
+      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" :
+          asFullPath(workflow->LightMap(), _in.FilePath()));
+      pbrMsg->set_light_map_texcoord_set(workflow->LightMapTexCoordSet());
 
       // todo(anyone) add light_map to material.proto
       // storing lightmap in header for now
-      auto data = out.mutable_header()->add_data();
-      data->set_key("lightmap");
-      data->add_value(workflow->LightMap().empty() ? "" :
-          asFullPath(workflow->LightMap(), _in.FilePath()));
-      data->add_value(std::to_string(workflow->LightMapTexCoordSet()));
+      // auto data = out.mutable_header()->add_data();
+      // data->set_key("lightmap");
+      // data->add_value(workflow->LightMap().empty() ? "" :
+      //     asFullPath(workflow->LightMap(), _in.FilePath()));
+      // data->add_value(std::to_string(workflow->LightMapTexCoordSet()));
     }
   }
   return out;
@@ -346,18 +349,20 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     workflow.SetEmissiveMap(pbrMsg.emissive_map());
+    workflow.SetLightMap(pbrMsg.light_map());
+    workflow.SetLightMapTexCoordSet(pbrMsg.light_map_texcoord_set());
 
     // todo(anyone) add light_map to material.proto
     // lightmap is temporarily stored in header
-    for (int i = 0; i < _in.header().data_size(); ++i)
-    {
-      if (_in.header().data(i).key() == "lightmap")
-      {
-        workflow.SetLightMap(_in.header().data(i).value(0),
-            std::stoi(_in.header().data(i).value(1)));
-        break;
-      }
-    }
+    // for (int i = 0; i < _in.header().data_size(); ++i)
+    // {
+    //   if (_in.header().data(i).key() == "lightmap")
+    //   {
+    //     workflow.SetLightMap(_in.header().data(i).value(0),
+    //         std::stoi(_in.header().data(i).value(1)));
+    //     break;
+    //   }
+    // }
 
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
