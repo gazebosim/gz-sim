@@ -48,7 +48,7 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport9 REQUIRED COMPONENTS log)
+ign_find_package(ignition-transport9 REQUIRED COMPONENTS log VERSION 9.1)
 set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 
 #--------------------------------------
@@ -121,6 +121,12 @@ set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+
+#--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
 
 #--------------------------------------
 # Find protobuf
