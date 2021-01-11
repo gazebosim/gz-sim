@@ -397,6 +397,18 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 }
 
 /////////////////////////////////////////////////
+std::unordered_set<ComponentTypeId>
+    EntityComponentManager::GetPeriodicChangedComponents() const
+{
+  std::unordered_set<ComponentTypeId> periodicComponents;
+  for (const auto& compPair : this->dataPtr->periodicChangedComponents)
+  {
+    periodicComponents.insert(compPair.first);
+  }
+  return periodicComponents;
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
   auto vertex = this->dataPtr->entities.VertexFromId(_entity);
