@@ -226,24 +226,16 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   auto recordPluginElem = GetRecordPluginElem(this->sdfRoot);
   bool sdfUseLogRecord = (recordPluginElem != nullptr);
 
-  bool hasRecordPath {false};
-  bool hasCompressPath {false};
   bool hasRecordResources {false};
   bool hasCompress {false};
   bool hasRecordTopics {false};
 
-  std::string sdfRecordPath;
-  std::string sdfCompressPath;
   bool sdfRecordResources;
   bool sdfCompress;
   std::vector<std::string> sdfRecordTopics;
 
   if (sdfUseLogRecord)
   {
-    std::tie(sdfRecordPath, hasRecordPath) =
-      recordPluginElem->Get<std::string>("path", "");
-    std::tie(sdfCompressPath, hasCompressPath) =
-      recordPluginElem->Get<std::string>("compress_path", "");
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
     std::tie(sdfCompress, hasCompress) =
@@ -269,10 +261,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   }
 
   // Set the config based on what is in the SDF:
-  if (hasRecordPath)
-    this->config.SetLogRecordPath(sdfRecordPath);
-  if (hasCompressPath)
-    this->config.SetLogRecordCompressPath(sdfCompressPath);
   if (hasRecordResources)
     this->config.SetLogRecordResources(sdfRecordResources);
 
@@ -286,13 +274,17 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   }
 
   if (!_config.LogRecordPath().empty())
+  {
     this->config.SetLogRecordPath(_config.LogRecordPath());
-  
+  }
+
   if (_config.LogRecordResources())
     this->config.SetLogRecordResources(true);
 
   if (_config.LogRecordCompressPath() != ".zip")
+  {
     this->config.SetLogRecordCompressPath(_config.LogRecordCompressPath());
+  }
 
   if (_config.LogRecordTopics().size())
   {

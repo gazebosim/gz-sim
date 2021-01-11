@@ -593,20 +593,21 @@ ServerConfig::LogRecordPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "ignition::gazebo::systems::LogRecord";
-  auto pluginFilename = std::string("ignition-gazebo") +
-    IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
+  auto pluginFilename = "ignition-gazebo-log-system";
 
   sdf::ElementPtr recordElem;
 
   recordElem = std::make_shared<sdf::Element>();
   recordElem->SetName("plugin");
 
+  igndbg << "Generating LogRecord SDF:" << std::endl;
+
   if (!this->LogRecordPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("record_path");
     recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("path");
+    pathElem = recordElem->GetElement("record_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogRecordPath());
   }
@@ -619,22 +620,24 @@ ServerConfig::LogRecordPlugin() const
   resourceElem->AddValue("bool", "false", false, "");
   resourceElem->Set<bool>(this->LogRecordResources() ? true : false);
 
-  // Set whether to compress
-  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
-  compressElem->SetName("compress");
-  recordElem->AddElementDescription(compressElem);
-  compressElem = recordElem->GetElement("compress");
-  compressElem->AddValue("bool", "false", false, "");
-  compressElem->Set<bool>(this->LogRecordCompressPath().empty() ? false :
-    true);
+  if (!this->LogRecordCompressPath().empty())
+  {
+    // Set whether to compress
+    sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+    compressElem->SetName("compress");
+    recordElem->AddElementDescription(compressElem);
+    compressElem = recordElem->GetElement("compress");
+    compressElem->AddValue("bool", "false", false, "");
+    compressElem->Set<bool>(true);
 
   // Set compress path
-  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
-  cPathElem->SetName("compress_path");
-  recordElem->AddElementDescription(cPathElem);
-  cPathElem = recordElem->GetElement("compress_path");
-  cPathElem->AddValue("string", "", false, "");
-  cPathElem->Set<std::string>(this->LogRecordCompressPath());
+    sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+    cPathElem->SetName("compress_path");
+    recordElem->AddElementDescription(cPathElem);
+    cPathElem = recordElem->GetElement("compress_path");
+    cPathElem->AddValue("string", "", false, "");
+    cPathElem->Set<std::string>(this->LogRecordCompressPath());
+  }
 
   // If record topics specified, add in SDF
   for (const std::string &topic : this->LogRecordTopics())
@@ -646,6 +649,8 @@ ServerConfig::LogRecordPlugin() const
     topicElem->AddValue("string", "false", false, "");
     topicElem->Set<std::string>(topic);
   }
+
+  igndbg << recordElem->ToString("") << std::endl;
 
   return ServerConfig::PluginInfo(entityName,
       entityType,
