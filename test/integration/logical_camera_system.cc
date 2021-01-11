@@ -105,7 +105,8 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
                 const components::Name *_name) -> bool
             {
               // Sensor 1
-              if (_name->Data() == sensorName1) {
+              if (_name->Data() == sensorName1)
+              {
                 auto sensorComp = _ecm.Component<components::Sensor>(_entity);
                 EXPECT_NE(nullptr, sensorComp);
 
@@ -118,7 +119,8 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
                 update1Checked = true;
               }
               // Sensor 2
-              else if (_name->Data() == sensorName2) {
+              else if (_name->Data() == sensorName2)
+              {
                 auto sensorComp = _ecm.Component<components::Sensor>(_entity);
                 EXPECT_NE(nullptr, sensorComp);
 
