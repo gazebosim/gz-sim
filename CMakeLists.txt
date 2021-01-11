@@ -123,6 +123,12 @@ ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
+
+#--------------------------------------
 # Find protobuf
 set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
