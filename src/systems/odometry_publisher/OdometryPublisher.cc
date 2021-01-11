@@ -199,14 +199,6 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   // Construct the odometry message and publish it.
   msgs::Odometry msg;
 
-  auto pos = _ecm.Component<components::Pose>(this->model.Entity());
-  if (!pos)
-  {
-    return;
-  }
-  //auto world_pos = worldPose(this->model.Entity(), _ecm);
-  //std::cout << "Pose: " << pos->Data() << " World pose: " << world_pos << std::endl;
-
   // Compute x, y and heading using velocity
   const std::chrono::duration<double> dt =
     std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
@@ -216,15 +208,16 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
     return;
 
   // World to odom transformation
-  msg.mutable_pose()->mutable_position()->set_x(pos->Data().Pos().X());
-  msg.mutable_pose()->mutable_position()->set_y(pos->Data().Pos().Y());
-  msgs::Set(msg.mutable_pose()->mutable_orientation(), pos->Data().Rot());
+  const math::Pose3d pose = worldPose(this->model.Entity(), _ecm);
+  msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
+  msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
+  msgs::Set(msg.mutable_pose()->mutable_orientation(), pose.Rot());
 
   // Get linear and angular displacements from last updated pose
-  double linearDisplacementX = pos->Data().Pos().X() - this->lastUpdatePose.Pos().X();
-  double linearDisplacementY = pos->Data().Pos().Y() - this->lastUpdatePose.Pos().Y();
+  double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
+  double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
 
-  double currentYaw = pos->Data().Rot().Yaw();
+  double currentYaw = pose.Rot().Yaw();
   const double lastYaw = this->lastUpdatePose.Rot().Yaw();
   while (currentYaw < lastYaw - M_PI) currentYaw += 2 * M_PI;
   while (currentYaw > lastYaw + M_PI) currentYaw -= 2 * M_PI;
@@ -255,7 +248,7 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   childFrame->set_key("child_frame_id");
   childFrame->add_value(this->model.Name(_ecm) + "/" + robotBaseFrame);
 
-  this->lastUpdatePose = pos->Data();
+  this->lastUpdatePose = pose;
   this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
 
   // Throttle publishing
