@@ -32,20 +32,26 @@ namespace systems
   // Forward declaration
   class OdometryPublisherPrivate;
 
-  /// \brief Odometry Publisher
+  /// \brief Odometry Publisher which can be attached to any entity in
+  /// order to periodically publish its odometry in the form of
+  /// ignition::msgs::Odometry messages.
   ///
   /// # System Parameters
-  /// `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
-  /// `/model/{name_of_model}/odometry`.
   ///
-  /// `<odom_frame>`:
+  /// `<odom_frame>`: Name of the world-fixed coordinate frame for the
+  //  odometry message. This element is optional, and the default value
+  /// is `odom`.
+  ///
+  /// `<robot_base_frame>`: Name of the coordinate frame rigidly attached
+  /// to the mobile robot base. This element is optional, and the default
+  /// value is `robot_base_frame`.
   ///
   /// `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
-  /// `<robot_base_frame>`:
-  ///
+  /// `<odom_topic>`: Custom topic on which this system will publish odometry
+  /// messages. This element is optional, and the default value is
+  /// `/model/{name_of_model}/odometry`.
   class IGNITION_GAZEBO_VISIBLE OdometryPublisher
       : public System,
         public ISystemConfigure,

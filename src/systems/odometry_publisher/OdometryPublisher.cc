@@ -21,6 +21,7 @@
 
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -41,7 +42,7 @@ using namespace systems;
 
 class ignition::gazebo::systems::OdometryPublisherPrivate
 {
-  /// \brief Update odometry and publish an odometry message.
+  /// \brief Calculates odometry and publishes an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
@@ -54,8 +55,11 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief Name of the world-fixed coordinate frame for the odometry message.
   public: std::string odomFrame;
 
+  /// \brief Name of the coordinate frame rigidly attached to the mobile
+  /// robot base.
   public: std::string robotBaseFrame;
 
   /// \brief Update period calculated from <odom__publish_frequency>.
@@ -73,8 +77,10 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
   /// \brief Rolling mean accumulators for the angular velocity
   public: math::RollingMean angularMean;
 
+  /// \brief Initialized flag.
   public: bool initialized{false};
 
+  /// \brief Current pose of the model in the odom frame.
   public: math::Pose3d lastUpdatePose{0, 0, 0, 0, 0, 0};
 
   /// \brief Current timestamp.
@@ -111,7 +117,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->odomFrame = "odom";
   if (!_sdf->HasElement("odom_frame"))
   {
-    ignwarn << "PlanarMovePlugin missing <odom_frame>, "
+    ignwarn << "OdometryPublisher system plugin missing <odom_frame>, "
       << "defaults to \"" << this->dataPtr->odomFrame << "\"" << std::endl;
   }
   else
@@ -122,7 +128,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->robotBaseFrame = "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
   {
-    ignwarn << "PlanarMovePlugin missing <robot_base_frame>, "
+    ignwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
       << "defaults to \"" << this->dataPtr->robotBaseFrame << "\"" << std::endl;
   }
   else
@@ -133,14 +139,14 @@ void OdometryPublisher::Configure(const Entity &_entity,
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
   if (odomFreq > 0)
   {
-    std::chrono::duration<double> odomPer{1 / odomFreq};
+    std::chrono::duration<double> period{1 / odomFreq};
     this->dataPtr->odomPubPeriod =
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
   }
 
   // Setup odometry
   std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/odometryFoo"};
+    "/odometry"};
   if (_sdf->HasElement("odom_topic"))
     odomTopic = _sdf->Get<std::string>("odom_topic");
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
@@ -184,22 +190,22 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
+void OdometryPublisherPrivate::UpdateOdometry(
+    const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::UpdateOdometry");
-  // Initialize, if not already initialized.
+  // Record start time.
   if (!this->initialized)
   {
     this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
     this->initialized = true;
-    return; //to check why
+    return;
   }
 
   // Construct the odometry message and publish it.
   msgs::Odometry msg;
 
-  // Compute x, y and heading using velocity
   const std::chrono::duration<double> dt =
     std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
   // We cannot estimate the speed if the time interval is zero (or near
@@ -207,13 +213,13 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   if (math::equal(0.0, dt.count()))
     return;
 
-  // World to odom transformation
+  // Get and set robotBaseFrame to odom transformation.
   const math::Pose3d pose = worldPose(this->model.Entity(), _ecm);
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
   msgs::Set(msg.mutable_pose()->mutable_orientation(), pose.Rot());
 
-  // Get linear and angular displacements from last updated pose
+  // Get linear and angular displacements from last updated pose.
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
   double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
 
@@ -223,8 +229,7 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   while (currentYaw > lastYaw + M_PI) currentYaw -= 2 * M_PI;
   const float angularDiff = currentYaw - lastYaw;
 
-  // auto odom_lin_vel_comp = linearVelocity->Data();
-  // Get velocities in child frame (i.e. base_link frame) and add to message
+  // Get velocities in robotBaseFrame and add to message.
   double linearVelocityX = (cosf(currentYaw) * linearDisplacementX
     + sinf(currentYaw) * linearDisplacementX) / dt.count();
   double linearVelocityY = (cosf(currentYaw) * linearDisplacementY
@@ -236,14 +241,14 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   msg.mutable_twist()->mutable_linear()->set_y(this->linearMean.second.Mean());
   msg.mutable_twist()->mutable_angular()->set_z(this->angularMean.Mean());
 
-  // Set the time stamp in the header
+  // Set the time stamp in the header.
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
 
   // Set the frame ids.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  frame->add_value(this->model.Name(_ecm) + "/" +odomFrame);
+  frame->add_value(this->model.Name(_ecm) + "/" + odomFrame);
   auto childFrame = msg.mutable_header()->add_data();
   childFrame->set_key("child_frame_id");
   childFrame->add_value(this->model.Name(_ecm) + "/" + robotBaseFrame);
@@ -251,7 +256,7 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   this->lastUpdatePose = pose;
   this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
 
-  // Throttle publishing
+  // Throttle publishing.
   auto diff = _info.simTime - this->lastOdomPubTime;
   if (diff > std::chrono::steady_clock::duration::zero() &&
       diff < this->odomPubPeriod)
@@ -259,7 +264,6 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
     return;
   }
   this->lastOdomPubTime = _info.simTime;
-  // Publish the message
   this->odomPub.Publish(msg);
 }
 
@@ -269,4 +273,5 @@ IGNITION_ADD_PLUGIN(OdometryPublisher,
                     OdometryPublisher::ISystemPreUpdate,
                     OdometryPublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(OdometryPublisher, "ignition::gazebo::systems::OdometryPublisher")
+IGNITION_ADD_PLUGIN_ALIAS(OdometryPublisher,
+                          "ignition::gazebo::systems::OdometryPublisher")
