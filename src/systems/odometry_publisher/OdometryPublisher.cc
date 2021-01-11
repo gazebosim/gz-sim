@@ -20,43 +20,24 @@
 #include <ignition/msgs/odometry.pb.h>
 
 #include <limits>
-#include <mutex>
-#include <set>
 #include <string>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/math/DiffDriveOdometry.hh>
+#include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/RollingMean.hh>
-#include <ignition/math/Pose3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Link.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
-
-/// \brief Velocity command.
-struct Commands
-{
-  /// \brief Linear velocity.
-  double lin;
-
-  /// \brief Angular velocity.
-  double ang;
-
-  Commands() : lin(0.0), ang(0.0) {}
-};
 
 class ignition::gazebo::systems::OdometryPublisherPrivate
 {
@@ -77,9 +58,6 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
 
   public: std::string robotBaseFrame;
 
-  /// \brief The model's canonical link.
-  //public: Link canonicalLink{kNullEntity};
-
   /// \brief Update period calculated from <odom__publish_frequency>.
   public: std::chrono::steady_clock::duration odomPubPeriod{0};
 
@@ -88,21 +66,6 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
 
   /// \brief Diff drive odometry message publisher.
   public: transport::Node::Publisher odomPub;
-
-  /// \brief A mutex to protect the target velocity command.
-  //public: std::mutex mutex;
-
-  /// \brief Integrates the velocities (linear and angular) using 2nd order
-  /// Runge-Kutta.
-  /// \param[in] _linear Linear velocity.
-  /// \param[in] _angular Angular velocity.
-  //public: void IntegrateRungeKutta2(double _linear, double _angular);
-
-  /// \brief Integrates the velocities (linear and angular) using exact
-  /// method.
-  /// \param[in] _linear Linear velocity.
-  /// \param[in] _angular Angular velocity.
-  //public: void IntegrateExact(double _linear, double _angular);
 
   /// \brief Rolling mean accumulators for the linear velocity
   public: std::pair<math::RollingMean, math::RollingMean> linearMean;
@@ -156,7 +119,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->odomFrame = _sdf->Get<std::string>("odom_frame");
   }
 
-  this->dataPtr->robotBaseFrame = "robotBaseFrame";
+  this->dataPtr->robotBaseFrame = "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
   {
     ignwarn << "PlanarMovePlugin missing <robot_base_frame>, "
@@ -175,7 +138,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
   }
 
-  // Setup odometry.
+  // Setup odometry
   std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/odometryFoo"};
   if (_sdf->HasElement("odom_topic"))
@@ -198,29 +161,13 @@ void OdometryPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  auto modelName = this->dataPtr->model.Name(_ecm);
-
-  // Create the pose component it does not exist.
+  // Create the pose component if it does not exist.
   auto pos = _ecm.Component<components::Pose>(
       this->dataPtr->model.Entity());
   if (!pos)
   {
     _ecm.CreateComponent(this->dataPtr->model.Entity(),
         components::Pose());
-  }
-  auto linearVelocity = _ecm.Component<components::LinearVelocity>(
-      this->dataPtr->model.Entity());
-  if (!linearVelocity)
-  {
-    _ecm.CreateComponent(this->dataPtr->model.Entity(),
-        components::LinearVelocity());
-  }
-  auto angularVelocity = _ecm.Component<components::AngularVelocity>(
-      this->dataPtr->model.Entity());
-  if (!angularVelocity)
-  {
-    _ecm.CreateComponent(this->dataPtr->model.Entity(),
-        components::AngularVelocity());
   }
 }
 
@@ -248,52 +195,53 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
     this->initialized = true;
     return; //to check why
   }
+
   // Construct the odometry message and publish it.
   msgs::Odometry msg;
 
   auto pos = _ecm.Component<components::Pose>(this->model.Entity());
-  auto linearVelocity = _ecm.Component<components::LinearVelocity>(this->model.Entity());
-  auto angularVelocity = _ecm.Component<components::AngularVelocity>(this->model.Entity());
-  if (!pos || !linearVelocity || !angularVelocity)
+  if (!pos)
   {
     return;
   }
+  //auto world_pos = worldPose(this->model.Entity(), _ecm);
+  //std::cout << "Pose: " << pos->Data() << " World pose: " << world_pos << std::endl;
 
   // Compute x, y and heading using velocity
   const std::chrono::duration<double> dt =
     std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
-
   // We cannot estimate the speed if the time interval is zero (or near
   // zero).
   if (math::equal(0.0, dt.count()))
     return;
 
   // World to odom transformation
-  msgs::Set(msg.mutable_pose()->mutable_position(), pos->Data().Pos()); //to only set x,y
-  msgs::Set(msg.mutable_pose()->mutable_orientation(), pos->Data().Rot()); //to only set yaw
+  msg.mutable_pose()->mutable_position()->set_x(pos->Data().Pos().X());
+  msg.mutable_pose()->mutable_position()->set_y(pos->Data().Pos().Y());
+  msgs::Set(msg.mutable_pose()->mutable_orientation(), pos->Data().Rot());
 
   // Get linear and angular displacements from last updated pose
   double linearDisplacementX = pos->Data().Pos().X() - this->lastUpdatePose.Pos().X();
   double linearDisplacementY = pos->Data().Pos().Y() - this->lastUpdatePose.Pos().Y();
 
-  double curr_yaw = pos->Data().Rot().Yaw();
-  const double last_yaw = this->lastUpdatePose.Rot().Yaw();
-  while (curr_yaw < last_yaw - M_PI) curr_yaw += 2 * M_PI;
-  while (curr_yaw > last_yaw + M_PI) curr_yaw -= 2 * M_PI;
-  const float angularDiff = curr_yaw - last_yaw;
+  double currentYaw = pos->Data().Rot().Yaw();
+  const double lastYaw = this->lastUpdatePose.Rot().Yaw();
+  while (currentYaw < lastYaw - M_PI) currentYaw += 2 * M_PI;
+  while (currentYaw > lastYaw + M_PI) currentYaw -= 2 * M_PI;
+  const float angularDiff = currentYaw - lastYaw;
 
   // auto odom_lin_vel_comp = linearVelocity->Data();
   // Get velocities in child frame (i.e. base_link frame) and add to message
-  double linearVelocityX = (cosf(curr_yaw) * linearDisplacementX
-    + sinf(curr_yaw) * linearDisplacementX) / dt.count();
-  double linearVelocityY = (cosf(curr_yaw) * linearDisplacementY
-    - sinf(curr_yaw) * linearDisplacementY) / dt.count();
+  double linearVelocityX = (cosf(currentYaw) * linearDisplacementX
+    + sinf(currentYaw) * linearDisplacementX) / dt.count();
+  double linearVelocityY = (cosf(currentYaw) * linearDisplacementY
+    - sinf(currentYaw) * linearDisplacementY) / dt.count();
   this->linearMean.first.Push(linearVelocityX);
   this->linearMean.second.Push(linearVelocityY);
   this->angularMean.Push(angularDiff / dt.count());
   msg.mutable_twist()->mutable_linear()->set_x(this->linearMean.first.Mean());
   msg.mutable_twist()->mutable_linear()->set_y(this->linearMean.second.Mean());
-  msg.mutable_twist()->mutable_angular()->set_z(this->angularMean.Mean());//(angularVelocity->Data()[2]);
+  msg.mutable_twist()->mutable_angular()->set_z(this->angularMean.Mean());
 
   // Set the time stamp in the header
   msg.mutable_header()->mutable_stamp()->CopyFrom(
@@ -302,10 +250,10 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   // Set the frame ids.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  frame->add_value(odomFrame);//this->model.Name(_ecm) + "/odom");
+  frame->add_value(this->model.Name(_ecm) + "/" +odomFrame);
   auto childFrame = msg.mutable_header()->add_data();
   childFrame->set_key("child_frame_id");
-  childFrame->add_value(robotBaseFrame);//this->model.Name(_ecm) + "/" + "...");
+  childFrame->add_value(this->model.Name(_ecm) + "/" + robotBaseFrame);
 
   this->lastUpdatePose = pos->Data();
   this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
@@ -321,36 +269,6 @@ void OdometryPublisherPrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo
   // Publish the message
   this->odomPub.Publish(msg);
 }
-
-//////////////////////////////////////////////////
-/*void OdometryPublisherPrivate::IntegrateRungeKutta2(
-    double _linear, double _angular)
-{
-  const double direction = *this->heading + _angular * 0.5;
-
-  // Runge-Kutta 2nd order integration:
-  this->x += _linear * std::cos(direction);
-  this->y += _linear * std::sin(direction);
-  this->heading += _angular;
-}
-
-//////////////////////////////////////////////////
-void OdometryPublisherPrivate::IntegrateExact(double _linear, double _angular)
-{
-  if (std::fabs(_angular) < 1e-6)
-  {
-    this->IntegrateRungeKutta2(_linear, _angular);
-  }
-  else
-  {
-    // Exact integration (should solve problems when angular is zero):
-    const double headingOld = *this->heading;
-    const double ratio = _linear / _angular;
-    this->heading += _angular;
-    this->x += ratio * (std::sin(*this->heading) - std::sin(headingOld));
-    this->y += -ratio * (std::cos(*this->heading) - std::cos(headingOld));
-  }
-}*/
 
 IGNITION_ADD_PLUGIN(OdometryPublisher,
                     ignition::gazebo::System,
