@@ -24,7 +24,6 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
@@ -455,12 +454,6 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
         msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
         this->SetData(component.first, lightMsgs);
       }
-    }
-    else if (typeId == components::LightCmd::typeId)
-    {
-      auto comp = _ecm.Component<components::LightCmd>(entity);
-      if (comp)
-        this->SetData(component.first, comp->Data());
     }
 
     for (auto attribute : component.second->Data())
