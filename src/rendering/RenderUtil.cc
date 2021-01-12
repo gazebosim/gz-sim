@@ -535,7 +535,7 @@ void RenderUtil::Update()
       {
         if (!this->dataPtr->sceneManager.HasEntity(colEntity))
         {
-          this->dataPtr->sceneManager.CreateCollision(colEntity, 
+          this->dataPtr->sceneManager.CreateCollision(colEntity,
               this->dataPtr->entityCollisions[colEntity], link);
           this->dataPtr->viewingCollisions[colEntity] = true;
         }
@@ -1067,6 +1067,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Model *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->modelToLinkEntities.erase(_entity);
         return true;
       });
 
@@ -1074,6 +1075,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Link *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->linkToCollisionEntities.erase(_entity);
         return true;
       });
 
@@ -1139,6 +1141,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       {
         this->removeEntities[_entity] = _info.iterations;
         this->viewingCollisions.erase(_entity);
+        this->entityCollisions.erase(_entity);
         return true;
       });
 }
