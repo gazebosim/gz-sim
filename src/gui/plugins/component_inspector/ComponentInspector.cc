@@ -572,13 +572,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, lightMsgs);
     }
-    else if (typeId == components::LightCmd::typeId)
-    {
-      auto comp = _ecm.Component<components::LightCmd>(this->dataPtr->entity);
-      msgs::Light lightMsgs = comp->Data();
-      if (comp)
-        setData(item, comp->Data());
-    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
