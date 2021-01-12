@@ -119,6 +119,9 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \brief Diff drive odometry message publisher.
   public: transport::Node::Publisher odomPub;
 
+  /// \brief Diff drive tf message publisher.
+  public: transport::Node::Publisher tfPub;
+
   /// \brief Linear velocity limiter.
   public: std::unique_ptr<SpeedLimiter> limiterLin;
 
@@ -270,6 +273,9 @@ void DiffDrive::Configure(const Entity &_entity,
     odomTopic = _sdf->Get<std::string>("odom_topic");
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
+
+  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+      "tf");
 
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
@@ -465,9 +471,17 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
     childFrame->add_value(this->sdfChildFrameId);
   }
 
+  // Construct the Pose_V/tf message and publish it.
+  msgs::Pose_V tf_msg;
+  ignition::msgs::Pose *tf_msg_pose = nullptr;
+  tf_msg_pose = tf_msg.add_pose();
+  tf_msg_pose->mutable_header()->CopyFrom(*msg.mutable_header());
+  tf_msg_pose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
+  tf_msg_pose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
 
-  // Publish the message
+  // Publish the messages
   this->odomPub.Publish(msg);
+  this->tfPub.Publish(tf_msg);
 }
 
 //////////////////////////////////////////////////
