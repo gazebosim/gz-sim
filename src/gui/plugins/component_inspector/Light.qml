@@ -445,10 +445,10 @@ Rectangle {
               title: "Choose a specular color"
               visible: false
               onAccepted: {
-                rSpecularLoader.numberValue = colorDialog.color.r
-                gSpecularLoader.numberValue = colorDialog.color.g
-                bSpecularLoader.numberValue = colorDialog.color.b
-                aSpecularLoader.numberValue = colorDialog.color.a
+                rSpecularLoader.item.value = colorDialog.color.r
+                gSpecularLoader.item.value = colorDialog.color.g
+                bSpecularLoader.item.value = colorDialog.color.b
+                aSpecularLoader.item.value = colorDialog.color.a
                 sendLight()
                 colorDialog.close()
               }
@@ -622,10 +622,10 @@ Rectangle {
               title: "Choose a diffuse color"
               visible: false
               onAccepted: {
-                rDiffuseLoader.numberValue = colorDialogDiffuse.color.r
-                gDiffuseLoader.numberValue = colorDialogDiffuse.color.g
-                bDiffuseLoader.numberValue = colorDialogDiffuse.color.b
-                aDiffuseLoader.numberValue = colorDialogDiffuse.color.a
+                rDiffuseLoader.item.value = colorDialogDiffuse.color.r
+                gDiffuseLoader.item.value = colorDialogDiffuse.color.g
+                bDiffuseLoader.item.value = colorDialogDiffuse.color.b
+                aDiffuseLoader.item.value = colorDialogDiffuse.color.a
                 sendLight()
                 colorDialogDiffuse.close()
               }
