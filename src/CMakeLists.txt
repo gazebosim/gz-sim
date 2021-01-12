@@ -43,6 +43,7 @@ set (sources
   Conversions.cc
   EntityComponentManager.cc
   LevelManager.cc
+  Link.cc
   Model.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
@@ -69,6 +70,8 @@ set (gtest_sources
   ign_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
+  SdfEntityCreator_TEST.cc
+  SdfGenerator_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
@@ -76,20 +79,9 @@ set (gtest_sources
   Util_TEST.cc
   World_TEST.cc
   network/NetworkConfig_TEST.cc
+  network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
 )
-
-# Disable test for problem in EventManager in MSVC
-# https://github.com/ignitionrobotics/ign-gazebo/issues/545
-if (NOT WIN32)
-  set (gtest_sources
-    ${gtest_sources}
-    Link.cc
-    SdfEntityCreator_TEST.cc
-    SdfGenerator_TEST.cc
-    network/PeerTracker_TEST.cc
-  )
-endif()
 
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
