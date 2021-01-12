@@ -54,10 +54,10 @@ namespace ignition
     class EventManager
     {
       /// \brief Constructor
-      public: EventManager();
+      public: EventManager() = default;
 
       /// \brief Destructor
-      public: ~EventManager();
+      public: ~EventManager() = default;
 
       /// \brief Add a connection to an event.
       /// \param[in] _subscriber A std::function callback function. The function
