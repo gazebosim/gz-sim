@@ -70,16 +70,16 @@ namespace ignition
     struct WorldControl
     {
       /// \brief True to pause simulation.
-      /// cppcheck-suppress unusedStructMember
+      // cppcheck-suppress unusedStructMember
       bool pause{false};  // NOLINT
 
       /// \biref Run a given number of simulation iterations.
-      /// cppcheck-suppress unusedStructMember
+      // cppcheck-suppress unusedStructMember
       uint64_t multiStep{0u};  // NOLINT
 
       /// \brief Reset simulation back to time zero. Rewinding resets sim time,
       /// real time and iterations.
-      /// cppcheck-suppress unusedStructMember
+      // cppcheck-suppress unusedStructMember
       bool rewind{false};  // NOLINT
 
       /// \brief A simulation time in the future to run to and then pause.

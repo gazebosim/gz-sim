@@ -13,13 +13,13 @@ RUN apt-get update \
  && apt-get install -y \
     libignition-cmake2-dev \
     libignition-common3-dev \
-    libignition-fuel-tools5-dev \
+    libignition-fuel-tools6-dev \
     libignition-math6-eigen3-dev \
     libignition-plugin-dev \
     libignition-physics3-dev \
     libignition-rendering5-dev \
     libignition-tools-dev \
-    libignition-transport9-dev \
+    libignition-transport10-dev \
     libignition-gui5-dev \
     libignition-msgs7-dev \
     libignition-sensors5-dev \

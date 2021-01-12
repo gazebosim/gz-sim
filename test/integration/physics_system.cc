@@ -626,7 +626,7 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
   sdf::Root root;
   root.Load(sdfFile);
   const sdf::World *world = root.WorldByIndex(0);
-  ASSERT_TRUE(nullptr != world);
+  ASSERT_NE(nullptr, world);
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -640,7 +640,7 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
 
   double pos0 = 0.42;
 
-  /// cppcheck-suppress variableScope
+  // cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
@@ -650,6 +650,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
         [&](const ignition::gazebo::Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
       {
+        EXPECT_NE(nullptr, _name);
+
         if (_name->Data() == rotatingJointName)
         {
           auto resetComp =
@@ -669,8 +671,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
           }
           else
           {
-              EXPECT_EQ(nullptr, resetComp);
-              EXPECT_NE(nullptr, position);
+            EXPECT_EQ(nullptr, resetComp);
+            EXPECT_NE(nullptr, position);
           }
         }
         return true;
@@ -689,6 +691,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
               const components::Name *_name,
               const components::JointPosition *_pos)
           {
+            EXPECT_NE(nullptr, _name);
+
             if (_name->Data() == rotatingJointName)
             {
               positions.push_back(_pos->Data()[0]);
@@ -697,16 +701,16 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
           });
     });
 
-    server.AddSystem(testSystem.systemPtr);
-    server.Run(true, 2, false);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 2, false);
 
-    ASSERT_EQ(positions.size(), 2ul);
+  ASSERT_EQ(positions.size(), 2ul);
 
-    // First position should be exactly the same
-    EXPECT_DOUBLE_EQ(pos0, positions[0]);
+  // First position should be exactly the same
+  EXPECT_DOUBLE_EQ(pos0, positions[0]);
 
-    // Second position should be different, but close
-    EXPECT_NEAR(pos0, positions[1], 0.01);
+  // Second position should be different, but close
+  EXPECT_NEAR(pos0, positions[1], 0.01);
 }
 
 /////////////////////////////////////////////////
@@ -735,7 +739,7 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
 
   double vel0 = 3.0;
 
-  /// cppcheck-suppress variableScope
+  // cppcheck-suppress variableScope
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
