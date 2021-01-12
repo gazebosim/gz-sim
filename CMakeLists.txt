@@ -48,13 +48,13 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport9 REQUIRED COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
+ign_find_package(ignition-transport10 REQUIRED COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
+ign_find_package(ignition-msgs7 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
@@ -70,8 +70,8 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools5 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
+ign_find_package(ignition-fuel_tools6 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
@@ -130,7 +130,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs7_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
