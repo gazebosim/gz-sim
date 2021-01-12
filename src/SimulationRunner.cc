@@ -313,24 +313,29 @@ void SimulationRunner::UpdateCurrentInfo()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdatePhysicsParams()
 {
-  auto worldEntity = this->entityCompMgr.EntityByComponents(components::World());
+  auto worldEntity =
+    this->entityCompMgr.EntityByComponents(components::World());
   const auto physicsCmdComp =
     this->entityCompMgr.Component<components::PhysicsCmd>(worldEntity);
   if (!physicsCmdComp)
   {
     return;
   }
-  auto physicsComp = this->entityCompMgr.Component<components::Physics>(worldEntity);
+  auto physicsComp =
+    this->entityCompMgr.Component<components::Physics>(worldEntity);
 
   const auto& physicsParams = physicsCmdComp->Data();
-  const auto newStepSize = std::chrono::duration<double>(physicsParams.MaxStepSize());
+  const auto newStepSize =
+    std::chrono::duration<double>(physicsParams.MaxStepSize());
   const double newRTF = physicsParams.RealTimeFactor();
 
   const double eps = 0.00001;
-  if (newStepSize != this->stepSize || std::abs(newRTF - this->desiredRtf) > eps)
+  if (newStepSize != this->stepSize ||
+      std::abs(newRTF - this->desiredRtf) > eps)
   {
     this->SetStepSize(
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(newStepSize));
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        newStepSize));
     this->desiredRtf = newRTF;
     this->updatePeriod = std::chrono::nanoseconds(
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
@@ -343,7 +348,7 @@ void SimulationRunner::UpdatePhysicsParams()
     this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
         ComponentState::OneTimeChange);
   }
-  auto res = this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
+  this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
 }
 
 /////////////////////////////////////////////////

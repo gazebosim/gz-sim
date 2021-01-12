@@ -28,6 +28,7 @@
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -96,6 +97,11 @@ PlotComponent::PlotComponent(const std::string &_type,
   }
   else if (_type == "double")
     this->dataPtr->data["value"] = std::make_shared<PlotData>();
+  else if (_type == "Physics")
+  {
+    this->dataPtr->data["stepSize"] = std::make_shared<PlotData>();
+    this->dataPtr->data["realTimeFactor"] = std::make_shared<PlotData>();
+  }
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
@@ -216,6 +222,15 @@ void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
 }
 
 //////////////////////////////////////////////////
+void Plotting::SetData(std::string _Id, const sdf::Physics &_physics)
+{
+  this->dataPtr->components[_Id]->SetAttributeValue("stepSize",
+      _physics.MaxStepSize());
+  this->dataPtr->components[_Id]->SetAttributeValue("realTimeFactor",
+      _physics.RealTimeFactor());
+}
+
+//////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const double &_value)
 {
   this->dataPtr->components[_Id]->SetAttributeValue("value", _value);
@@ -322,6 +337,12 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
     else if (typeId == components::ParentEntity::typeId)
     {
       auto comp = _ecm.Component<components::ParentEntity>(entity);
+      if (comp)
+        this->SetData(component.first, comp->Data());
+    }
+    else if (typeId == components::Physics::typeId)
+    {
+      auto comp = _ecm.Component<components::Physics>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
