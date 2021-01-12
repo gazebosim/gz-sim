@@ -817,17 +817,6 @@ void IgnRenderer::Render()
       rendering::NodePtr targetNode =
           scene->NodeByName(this->dataPtr->viewCollisionsTarget);
 
-      if (!targetNode)
-      {
-        // workaround for selecting collision
-        size_t found = this->dataPtr->viewCollisionsTarget.find_last_of("::");
-        if (found != std::string::npos)
-        {
-          targetNode = scene->NodeByName(
-              this->dataPtr->viewCollisionsTarget.substr(0, found-1));
-        }
-      }
-
       if (targetNode)
       {
         Entity targetEntity =

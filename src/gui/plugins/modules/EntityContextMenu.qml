@@ -37,6 +37,17 @@ Item {
       text: "Remove"
       onTriggered: context.OnRemove(context.entity, context.type)
     }
+    //   // cascading submenu only works in Qt 5.10+ on focal
+    //   Menu {
+    //     id: viewSubmenu
+    //     title: "View"
+    //     MenuItem {
+    //       id: viewCollisionsMenu
+    //       text: "Collisions"
+    //       onTriggered: context.OnRequest("view_collisions", context.entity)
+    //     }
+    //   }
+    // workaround for getting submenu's to work on bionic (< Qt 5.10)
     MenuItem {
       id: viewSubmenu
       text: "View >"
@@ -57,7 +68,7 @@ Item {
       text: "Collisions"
       onTriggered: {
         menu.close()
-        context.OnRequest("viewCollisions", context.entity)
+        context.OnRequest("view_collisions", context.entity)
       }
     }
   }

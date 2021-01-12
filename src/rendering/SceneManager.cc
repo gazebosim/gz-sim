@@ -19,6 +19,7 @@
 #include <map>
 
 #include <sdf/Box.hh>
+#include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
@@ -342,7 +343,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::GetVisual(Entity _id)
+rendering::VisualPtr SceneManager::VisualById(Entity _id)
 {
   if (this->dataPtr->visuals.find(_id) == this->dataPtr->visuals.end())
   {
@@ -352,6 +353,21 @@ rendering::VisualPtr SceneManager::GetVisual(Entity _id)
   return this->dataPtr->visuals[_id];
 }
 
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
+    const sdf::Collision &_collision, Entity _parentId)
+{
+  sdf::Material material;
+  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+
+  sdf::Visual visual;
+  visual.SetGeom(*_collision.Geom());
+  visual.SetMaterial(material);
+  visual.SetCastShadows(false);
+  rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  return collisionVis;
+}
 /////////////////////////////////////////////////
 rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     math::Vector3d &_scale, math::Pose3d &_localPose)

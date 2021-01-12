@@ -152,7 +152,7 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
   }
-  else if (request == "viewCollisions")
+  else if (request == "view_collisions")
   {
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());

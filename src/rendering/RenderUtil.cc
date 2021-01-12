@@ -535,17 +535,8 @@ void RenderUtil::Update()
       {
         if (!this->dataPtr->sceneManager.HasEntity(colEntity))
         {
-          sdf::Collision collision = this->dataPtr->entityCollisions[colEntity];
-
-          sdf::Material material;
-          material.SetAmbient(math::Color(1, 0.5088, 0.0468, 1));
-          material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 1));
-          material.SetSpecular(math::Color(0.5, 0.5, 0.5, 1));
-
-          sdf::Visual visual;
-          visual.SetGeom(*collision.Geom());
-          visual.SetMaterial(material);
-          this->dataPtr->sceneManager.CreateVisual(colEntity, visual, link);
+          this->dataPtr->sceneManager.CreateCollision(colEntity, 
+              this->dataPtr->entityCollisions[colEntity], link);
           this->dataPtr->viewingCollisions[colEntity] = true;
         }
       }
@@ -1493,7 +1484,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
     }
 
     rendering::VisualPtr colVisual =
-        this->dataPtr->sceneManager.GetVisual(colEntity);
+        this->dataPtr->sceneManager.VisualById(colEntity);
     if (colVisual == nullptr)
     {
       ignerr << "Could not find collision visual for entity [" << colEntity
