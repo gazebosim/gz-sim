@@ -19,6 +19,8 @@
 
 #include <string>
 
+#include <ignition/common/URI.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/SourceFilePath.hh"
@@ -65,7 +67,16 @@ void Thermal::Configure(const Entity &_entity,
   else if (_sdf->HasElement(heatSignatureTag))
   {
     std::string heatSignature = _sdf->Get<std::string>(heatSignatureTag);
-    _ecm.CreateComponent(_entity, components::SourceFilePath(heatSignature));
+
+    // check if this is a fuel model (if so, use the heat signature path in
+    // fuel's local cache instead of the user-specified path)
+    ignition::fuel_tools::FuelClient fuelClient;
+    std::string fuelPath;
+    if (fuelClient.CachedModelFile(ignition::common::URI(heatSignature),
+          fuelPath))
+      _ecm.CreateComponent(_entity, components::SourceFilePath(fuelPath));
+    else
+      _ecm.CreateComponent(_entity, components::SourceFilePath(heatSignature));
   }
   else
   {
