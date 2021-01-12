@@ -42,7 +42,6 @@ set (sources
   Barrier.cc
   Conversions.cc
   EntityComponentManager.cc
-  EventManager.cc
   LevelManager.cc
   Link.cc
   Model.cc
