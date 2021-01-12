@@ -38,8 +38,8 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat10 REQUIRED)
-set(SDF_VER ${sdformat10_VERSION_MAJOR})
+ign_find_package(sdformat11 REQUIRED)
+set(SDF_VER ${sdformat11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -87,13 +87,13 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3 VERSION 3.1
+ign_find_package(ignition-physics4 VERSION 3.1
   COMPONENTS
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics3_VERSION_MAJOR})
+set(IGN_PHYSICS_VER ${ignition-physics4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
