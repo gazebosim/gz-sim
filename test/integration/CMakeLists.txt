@@ -35,7 +35,6 @@ set(tests
   pose_publisher_system.cc
   save_world.cc
   scene_broadcaster_system.cc
-  sdf_frame_semantics.cc
   sdf_include.cc
   thermal_system.cc
   touch_plugin.cc
@@ -47,6 +46,15 @@ set(tests
   wind_effects.cc
   world.cc
 )
+
+# Disable test for problem in EventManager in MSVC
+# https://github.com/ignitionrobotics/ign-gazebo/issues/545
+if (NOT WIN32)
+  set(tests
+    sdf_frame_semantics.cc
+    ${tests}
+  )
+endif()
 
 # Tests that require a valid display
 set(tests_needing_display
