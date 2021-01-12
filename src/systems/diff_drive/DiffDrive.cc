@@ -477,7 +477,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   tf_msg_pose = tf_msg.add_pose();
   tf_msg_pose->mutable_header()->CopyFrom(*msg.mutable_header());
   tf_msg_pose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
-  tf_msg_pose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
+  tf_msg_pose->mutable_orientation()->
+      CopyFrom(msg.mutable_pose()->orientation());
 
   // Publish the messages
   this->odomPub.Publish(msg);
