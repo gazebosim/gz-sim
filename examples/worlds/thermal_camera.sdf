@@ -328,5 +328,11 @@
       <name>rescue_randy</name>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy Heat Signature</uri>
     </include>
+
+    <include>
+      <pose>2.25 .5 .1 0 0 1.570796</pose>
+      <name>phone</name>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Samsung J8 Black Heat Signature</uri>
+    </include>
   </world>
 </sdf>
