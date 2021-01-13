@@ -25,6 +25,7 @@
 
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -52,6 +53,8 @@ void Thermal::Configure(const Entity &_entity,
 {
   const std::string temperatureTag = "temperature";
   const std::string heatSignatureTag = "heat_signature";
+  const std::string minTempTag = "min_temp";
+  const std::string maxTempTag = "max_temp";
 
   if (_sdf->HasElement(temperatureTag) && _sdf->HasElement(heatSignatureTag))
   {
@@ -77,6 +80,23 @@ void Thermal::Configure(const Entity &_entity,
       _ecm.CreateComponent(_entity, components::SourceFilePath(fuelPath));
     else
       _ecm.CreateComponent(_entity, components::SourceFilePath(heatSignature));
+
+    // see if the user defined a custom temperature range
+    float min = 0.0;
+    float max = 100.0;
+    if (_sdf->HasElement(minTempTag))
+      min = _sdf->Get<float>(minTempTag);
+    else
+      ignwarn << "Missing <" << minTempTag << ">. Defaulting to 0.\n";
+    if (_sdf->HasElement(maxTempTag))
+      max = _sdf->Get<float>(maxTempTag);
+    else
+      ignwarn << "Missing <" << maxTempTag << ">. Defaulting to 100.\n";
+
+    components::TemperatureRangeInfo rangeInfo;
+    rangeInfo.min = min;
+    rangeInfo.max = max;
+    _ecm.CreateComponent(_entity, components::TemperatureRange(rangeInfo));
   }
   else
   {
