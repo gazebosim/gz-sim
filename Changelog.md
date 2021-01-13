@@ -1,6 +1,35 @@
 ## Ignition Gazebo 4.x
 
-### Ignition Gazebo 4.X.X (20XX-XX-XX)
+### Ignition Gazebo 4.2.0 (2020-01-13)
+
+1. Automatically load a subset of world plugins.
+    * [Pull Request 537](https://github.com/ignitionrobotics/ign-gazebo/pull/537)
+
+1. Fix to handle multiple logical cameras.
+    * [Pull Request 539](https://github.com/ignitionrobotics/ign-gazebo/pull/539)
+
+1. Improve ign tool support on macOS.
+    * [Pull Request 477](https://github.com/ignitionrobotics/ign-gazebo/pull/477)
+
+1. Add support for topic statistics on breadcrumb deployments.
+    * [Pull Request 532](https://github.com/ignitionrobotics/ign-gazebo/pull/532)
+
+1. Fix slot in Plotting plugin.
+    * [Pull Request 490](https://github.com/ignitionrobotics/ign-gazebo/pull/490)
+
+1. Fix shadow artifacts by disabling double sided rendering.
+    * [Pull Request 446](https://github.com/ignitionrobotics/ign-gazebo/pull/446)
+
+1. Kinetic energy monitor plugin.
+    * [Pull Request 492](https://github.com/ignitionrobotics/ign-gazebo/pull/492)
+
+1. Change nullptr to a int ptr for qt 5.15.2.
+    * [Pull Request 527](https://github.com/ignitionrobotics/ign-gazebo/pull/527)
+
+1. Generate valid topics everywhere (support names with spaces).
+    * [Pull Request 522](https://github.com/ignitionrobotics/ign-gazebo/pull/522)
+
+1. All changes up to version 3.7.0.
 
 ### Ignition Gazebo 4.1.0 (2020-12-11)
 
