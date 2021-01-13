@@ -156,13 +156,3 @@ can come from the following, in order:
 exist, the default `gui.config` file that is installed with Ignition Gazebo
 will be copied to that location)
 
-# Troubleshooting
-
-### GUI failing to find resources that the server can find
-
-If the GUI is printing errors and failing to find resources that the server can
-find, it's possible that the GUI failed to get the list of resource paths from
-the server at startup. In that case, trigger a new request from the top-left menu
-by choosing "Request resource paths". If you run in the most verbose mode `-v 4`,
-you should see messages indicating the request has been made and received.
-

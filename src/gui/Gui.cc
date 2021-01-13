@@ -103,7 +103,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
-  context->setContextProperty("PathManager", pathManager);
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");

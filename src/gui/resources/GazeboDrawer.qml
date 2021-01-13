@@ -60,9 +60,6 @@ Rectangle {
       case "loadWorld":
         loadWorldDialog.open();
         break
-      case "requestPaths":
-        PathManager.RequestResourcePaths();
-        break
       // Forward others to default drawer
       default:
         parent.onAction(_action);
@@ -94,10 +91,6 @@ Rectangle {
       title: "Save world as..."
       action: "saveWorldAs"
       type: "world"
-    }
-    ListElement {
-      title: "Request resource paths"
-      action: "requestPaths"
     }
 
     // Actions provided by Ignition GUI, with custom titles
