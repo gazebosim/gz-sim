@@ -42,6 +42,9 @@ class IGNITION_GAZEBO_VISIBLE PathManager : public QObject
   /// \brief Constructor
   public: PathManager();
 
+  /// \brief Trigger a new request for all resource paths from the server.
+  public: Q_INVOKABLE void RequestResourcePaths();
+
   /// \brief Transport node.
   private: transport::Node node;
 };
