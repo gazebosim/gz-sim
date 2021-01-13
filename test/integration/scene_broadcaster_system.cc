@@ -564,5 +564,5 @@ TEST_P(SceneBroadcasterTest, StateStatic)
 }
 
 // Run multiple times
-INSTANTIATE_TEST_CASE_P(ServerRepeat, SceneBroadcasterTest,
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));

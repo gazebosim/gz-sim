@@ -1294,5 +1294,5 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, SimulationRunnerTest,
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, SimulationRunnerTest,
     ::testing::Range(1, 2));

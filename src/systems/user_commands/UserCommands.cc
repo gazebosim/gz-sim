@@ -223,27 +223,37 @@ void UserCommands::Configure(const Entity &_entity,
   const components::Name *constCmp = _ecm.Component<components::Name>(_entity);
   const std::string &worldName = constCmp->Data();
 
+  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
+  if (validWorldName.empty())
+  {
+    ignerr << "World name [" << worldName
+           << "] doesn't work well with transport, services not advertised."
+           << std::endl;
+    return;
+  }
+
   // Create service
-  std::string createService{"/world/" + worldName + "/create"};
+  std::string createService{"/world/" + validWorldName + "/create"};
   this->dataPtr->node.Advertise(createService,
       &UserCommandsPrivate::CreateService, this->dataPtr.get());
 
   // Create service for EntityFactory_V
-  std::string createServiceMultiple{"/world/" + worldName + "/create_multiple"};
+  std::string createServiceMultiple{"/world/" + validWorldName +
+      "/create_multiple"};
   this->dataPtr->node.Advertise(createServiceMultiple,
       &UserCommandsPrivate::CreateServiceMultiple, this->dataPtr.get());
 
   ignmsg << "Create service on [" << createService << "]" << std::endl;
 
   // Remove service
-  std::string removeService{"/world/" + worldName + "/remove"};
+  std::string removeService{"/world/" + validWorldName + "/remove"};
   this->dataPtr->node.Advertise(removeService,
       &UserCommandsPrivate::RemoveService, this->dataPtr.get());
 
   ignmsg << "Remove service on [" << removeService << "]" << std::endl;
 
   // Pose service
-  std::string poseService{"/world/" + worldName + "/set_pose"};
+  std::string poseService{"/world/" + validWorldName + "/set_pose"};
   this->dataPtr->node.Advertise(poseService,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
