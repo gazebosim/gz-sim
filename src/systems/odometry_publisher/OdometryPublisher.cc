@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,8 +149,15 @@ void OdometryPublisher::Configure(const Entity &_entity,
     "/odometry"};
   if (_sdf->HasElement("odom_topic"))
     odomTopic = _sdf->Get<std::string>("odom_topic");
+  std::string odomTopicValid {transport::TopicUtils::AsValidTopic(odomTopic)};
+  if (odomTopicValid.empty())
+  {
+    ignerr << "Failed to generate odom topic ["
+           << odomTopic << "]" << std::endl;
+    return;
+  }
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic);
+      odomTopicValid);
 }
 
 //////////////////////////////////////////////////

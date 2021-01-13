@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ namespace systems
   class OdometryPublisherPrivate;
 
   /// \brief Odometry Publisher which can be attached to any entity in
-  /// order to periodically publish its odometry in the form of
+  /// order to periodically publish 2D odometry data in the form of
   /// ignition::msgs::Odometry messages.
   ///
   /// # System Parameters
