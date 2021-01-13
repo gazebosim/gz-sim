@@ -259,7 +259,7 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
   if (this->newCollisions.empty())
     return;
 
-  for (auto const& entity : this->newCollisions)
+  for (const auto &entity : this->newCollisions)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
@@ -526,12 +526,12 @@ void RenderUtil::Update()
     if (!newCollisionLinks.empty())
       DeselectAllEntities();
 
-    for (auto const& link : newCollisionLinks)
+    for (const auto &link : newCollisionLinks)
     {
       std::vector<Entity> colEntities =
           this->dataPtr->linkToCollisionEntities[link];
 
-      for (const auto& colEntity : colEntities)
+      for (const auto &colEntity : colEntities)
       {
         if (!this->dataPtr->sceneManager.HasEntity(colEntity))
         {
@@ -1461,14 +1461,17 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
            this->dataPtr->modelToLinkEntities.end())
   {
     std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
-    for (auto const& link : links)
+    for (const auto &link : links)
       colEntities.insert(colEntities.end(),
           this->dataPtr->linkToCollisionEntities[link].begin(),
           this->dataPtr->linkToCollisionEntities[link].end());
   }
 
+  // create and/or toggle collision visuals
+
   bool showCol, showColInit = false;
-  for (auto const &colEntity : colEntities)
+  // first loop looks for new collisions
+  for (const auto &colEntity : colEntities)
   {
     if (this->dataPtr->viewingCollisions.find(colEntity) ==
         this->dataPtr->viewingCollisions.end())
@@ -1477,6 +1480,14 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
       showColInit = showCol = true;
       continue;
     }
+  }
+
+  // second loop toggles already created collisions
+  for (const auto &colEntity : colEntities)
+  {
+    if (this->dataPtr->viewingCollisions.find(colEntity) ==
+        this->dataPtr->viewingCollisions.end())
+      continue;
 
     // when viewing multiple collisions (e.g. _entity is a model),
     // boolean for view collisions is based on first colEntity in list
