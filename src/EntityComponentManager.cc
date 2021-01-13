@@ -91,7 +91,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// worker thread, 100 would spawn two, and so on.  If the number of
   /// components is greater than `componentsPerThread` * `numComponentThreads`,
   /// the work will be distributed evenly between all threads.
-  public: const uint64_t componentsPerThread = 1;
+  public: const uint64_t componentsPerThread = 10;
 
   /// \brief The set of components that each entity has.
   /// NOTE: Any modification of this data structure must be followed
@@ -118,17 +118,19 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   public: std::vector<bool> readyThreads;
 
-  public: std::atomic_int threadsDone;
+  public: std::atomic_int threadsDone = 0;
 
   public: std::shared_mutex msgMutex;
 
   public: std::condition_variable_any msgCV;
 
-  public: std::unique_ptr<msgs::SerializedStateMap> msgDataPtr;
+  public: msgs::SerializedStateMap *msgDataPtr;
 
   public: std::unique_ptr<std::unordered_set<Entity>> entitiesDataPtr;
 
   public: std::unique_ptr<std::unordered_set<ComponentTypeId>> typesDataPtr;
+
+  public: bool stateThreadsInit = false;
 
   /// \brief A mutex to protect from concurrent writes to views
   public: mutable std::mutex viewsMutex;
@@ -150,8 +152,6 @@ class ignition::gazebo::EntityComponentManagerPrivate
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
-  this->CalculateComponentThreadLoad();
-  this->SpawnComponentWorkerThreads();
 }
 
 //////////////////////////////////////////////////
@@ -952,9 +952,7 @@ void EntityComponentManager::WorkFunctor(int i) const
   {
     // Wait for signal from main thread
     std::shared_lock<std::shared_mutex> lk(this->dataPtr->msgMutex);
-    ignwarn << i << std::endl;
     this->dataPtr->msgCV.wait(lk, [this, i]{return this->dataPtr->readyThreads[i];});
-    ignwarn << "running " << i << std::endl;
     this->dataPtr->readyThreads[i] = false;
 
     // Check if we need to run
@@ -981,10 +979,9 @@ void EntityComponentManager::WorkFunctor(int i) const
  
     std::lock_guard<std::mutex> lock(this->dataPtr->msgEntityMutex);
  
-    msgs::SerializedStateMap &state = *this->dataPtr->msgDataPtr;
     for (auto &entity : threadMap.entities())
     {
-      (*state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
+      (*this->dataPtr->msgDataPtr->mutable_entities())[static_cast<uint64_t>(entity.first)] =
           entity.second;
     }
     this->dataPtr->threadsDone++;
@@ -995,12 +992,11 @@ void EntityComponentManager::WorkFunctor(int i) const
 void EntityComponentManager::SpawnComponentWorkerThreads() const
 {
   int maxThreads = std::thread::hardware_concurrency();
-
   for (int i = 0; i < maxThreads; ++i)
   {
+    this->dataPtr->readyThreads.push_back(false);
     std::thread workerThread(&EntityComponentManager::WorkFunctor, this, i);
     workerThread.detach();
-    this->dataPtr->readyThreads.push_back(false);
   }
 }
 
@@ -1024,6 +1020,7 @@ void EntityComponentManager::CalculateComponentThreadLoad() const
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
   this->dataPtr->numComponentThreads = std::min(numThreads, maxThreads);
+
   int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
     this->dataPtr->numComponentThreads);
 
@@ -1075,23 +1072,29 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
+  this->dataPtr->msgCV.notify_all();
+  if (!this->dataPtr->stateThreadsInit)
+  {
+    this->CalculateComponentThreadLoad();
+    this->SpawnComponentWorkerThreads();
+    this->dataPtr->stateThreadsInit = true;
+  }
+  
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
-  auto types = _types;
-  auto entities = _entities;
-  this->dataPtr->msgDataPtr.reset(&_state);
-  this->dataPtr->entitiesDataPtr.reset(&entities);
-  this->dataPtr->typesDataPtr.reset(&types);
+  this->dataPtr->msgDataPtr = &_state;
+  this->dataPtr->entitiesDataPtr = std::make_unique<std::unordered_set<Entity>>(_entities);
+  this->dataPtr->typesDataPtr = std::make_unique<std::unordered_set<ComponentTypeId>>(_types);
   this->CalculateComponentThreadLoad();
   for (int i = 0; i < this->dataPtr->numComponentThreads; i++)
   {
     this->dataPtr->readyThreads[i] = true;
   }
-  ignwarn << "main thread notifying" << std::endl;
   this->dataPtr->msgCV.notify_all();
   std::shared_lock<std::shared_mutex> lk(this->dataPtr->msgMutex);
-  ignwarn << "main thread waiting" << std::endl;
-  this->dataPtr->msgCV.wait(lk, [this]{return (this->dataPtr->threadsDone == this->dataPtr->numComponentThreads);});
+  this->dataPtr->msgCV.wait(lk, [this]{
+      return (this->dataPtr->threadsDone ==
+      this->dataPtr->numComponentThreads);});
   this->dataPtr->threadsDone = 0;
   /*
   auto functor = [&](auto itStart, auto itEnd) {
