@@ -49,18 +49,31 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _logCompress --log-compress option
 /// \param[in] _playback --playback option
 /// \param[in] _physicsEngine --physics-engine option
+/// \param[in] _renderEngineServer --render-engine-server option
+/// \param[in] _renderEngineGui --render-engine-gui option
 /// \param[in] _file Path to file being loaded
+/// \param[in] _recordTopics Colon separated list of topics to record. Leave
+/// null to record the default topics.
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
     int _logCompress, const char *_playback,
-    const char *_physicsEngine, const char *_file);
+    const char *_physicsEngine, const char *_renderEngineServer,
+    const char *_renderEngineGui, const char *_file,
+    const char *_recordTopics);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
+
+/// \brief External hook to find or download a fuel world provided a URL.
+/// \param[in] _pathToResource Path to the fuel world resource, ie,
+/// https://staging-fuel.ignitionrobotics.org/1.0/gmas/worlds/ShapesClone
+/// \return C-string containing the path to the local world sdf file
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+    char *_pathToResource);
 
 #endif

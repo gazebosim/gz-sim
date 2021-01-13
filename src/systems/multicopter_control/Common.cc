@@ -15,6 +15,10 @@
  *
  */
 
+#include "Common.hh"
+
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 
@@ -27,8 +31,6 @@
 #include <ignition/gazebo/components/Pose.hh>
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
-
-#include "Common.hh"
 
 namespace ignition
 {

@@ -22,6 +22,7 @@
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
+#include <vector>
 #include <sdf/Element.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -253,6 +254,19 @@ namespace ignition
       /// \param[in] _ignore Whether to ignore the path specified in SDF
       public: void IGN_DEPRECATED(4) SetLogIgnoreSdfPath(bool _ignore);
 
+      /// \brief Add a topic to record.
+      /// \param[in] _topic Topic name, which can include wildcards.
+      public: void AddLogRecordTopic(const std::string &_topic);
+
+      /// \brief Clear topics to record. This will remove all topics set
+      /// using AddLogRecordTopic.
+      public: void ClearLogRecordTopics();
+
+      /// \brief Get the topics to record that were added using
+      /// AddLogRecordTopic.
+      /// \return The topics to record.
+      public: const std::vector<std::string> &LogRecordTopics() const;
+
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
       public: const std::string LogPlaybackPath() const;
@@ -313,10 +327,45 @@ namespace ignition
       /// \param[in] _physicsEngine File containing physics engine library.
       public: void SetPhysicsEngine(const std::string &_physicsEngine);
 
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineServer() const;
+
+      /// \brief Render engine plugin library to load.
+      /// \return File containing render engine library.
+      public: const std::string &RenderEngineGui() const;
+
+      /// \brief Set the render engine server plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineServer(
+                  const std::string &_renderEngineServer);
+
+      /// \brief Set the render engine gui plugin library.
+      /// \param[in] _renderEngine File containing render engine library.
+      public: void SetRenderEngineGui(const std::string &_renderEngineGui);
+
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.
       /// \param[in] _info Information about the plugin to load.
       public: void AddPlugin(const PluginInfo &_info);
+
+      /// \brief Add multiple plugins to the simulation
+      /// \param[in] _info List of Information about the plugin to load.
+      public: void AddPlugins(const std::list<PluginInfo> &_plugins);
+
+      /// \brief Generate PluginInfo for Log recording based on the
+      /// internal state of this ServerConfig object:
+      /// \sa UseLogRecord
+      /// \sa LogRecordPath
+      /// \sa LogRecordResources
+      /// \sa LogRecordCompressPath
+      /// \sa LogRecordTopics
+      public: PluginInfo LogRecordPlugin() const;
+
+      /// \brief Generate PluginInfo for Log playback based on the
+      /// internal state of this ServerConfig object:
+      /// \sa LogPlaybackPath
+      public: PluginInfo LogPlaybackPlugin() const;
 
       /// \brief Get all the plugins that should be loaded.
       /// \return A list of all the plugins specified via
@@ -339,6 +388,45 @@ namespace ignition
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
+
+    /// \brief Parse plugins from XML configuration file.
+    /// \param[in] _fname Absolute path to the configuration file to parse.
+    /// \return A list of all of the plugins found in the configuration file
+    std::list<ServerConfig::PluginInfo>
+    IGNITION_GAZEBO_VISIBLE
+    parsePluginsFromFile(const std::string &_fname);
+
+    /// \brief Parse plugins from XML configuration string.
+    /// \param[in] _str XML configuration content to parse
+    /// \return A list of all of the plugins found in the configuration string.
+    std::list<ServerConfig::PluginInfo>
+    IGNITION_GAZEBO_VISIBLE
+    parsePluginsFromString(const std::string &_str);
+
+    /// \brief Load plugin information, following ordering.
+    ///
+    /// This method is used when no plugins are found in an SDF
+    /// file to load either a default or custom set of plugins.
+    ///
+    /// The following order is used to resolve:
+    /// 1. Config file located at IGN_GAZEBO_SERVER_CONFIG_PATH environment
+    ///    variable.
+    ///   * If IGN_GAZEBO_SERVER_CONFIG_PATH is set but empty, no plugins
+    ///     are loaded.
+    /// 2. File at ${IGN_HOMEDIR}/.ignition/gazebo/server.config
+    /// 3. File at ${IGN_DATA_INSTALL_DIR}/server.config
+    ///
+    /// If any of the above files exist but are empty, resolution
+    /// stops and the plugin list will be empty.
+    ///
+    //
+    /// \param[in] _isPlayback Is the server in playback mode. If so, fallback
+    /// to playback_server.config.
+    //
+    /// \return A list of plugins to load, based on above ordering
+    std::list<ServerConfig::PluginInfo>
+    IGNITION_GAZEBO_VISIBLE
+    loadPluginInfo(bool _isPlayback = false);
     }
   }
 }

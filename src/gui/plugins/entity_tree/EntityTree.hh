@@ -20,6 +20,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
@@ -75,6 +76,28 @@ namespace gazebo
 
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
+
+    /// \brief Entity information used to queue the pending entities
+    struct EntityInfo
+    {
+      /// \brief Entity ID
+      // cppcheck-suppress unusedStructMember
+      unsigned int entity;
+
+      /// \brief Entity name
+      QString name;
+
+      /// \brief Parent ID
+      // cppcheck-suppress unusedStructMember
+      unsigned int parentEntity;
+
+      /// \brief Entity type
+      QString type;
+    };
+
+    /// \brief If an entity is added before its parent, we queue it in this
+    /// vector until their parent shows up or they are deleted.
+    private: std::vector<EntityInfo> pendingEntities;
   };
 
   /// \brief Displays a tree view with all the entities in the world.

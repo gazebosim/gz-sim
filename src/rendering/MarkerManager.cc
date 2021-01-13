@@ -64,6 +64,13 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \param[in] _req The marker message.
   public: void OnMarkerMsg(const ignition::msgs::Marker &_req);
 
+  /// \brief Callback that receives multiple marker messages.
+  /// \param[in] _req The vector of marker messages
+  /// \param[in] _res Response data
+  /// \return True if the request is received
+  public: bool OnMarkerMsgArray(const ignition::msgs::Marker_V &_req,
+              ignition::msgs::Boolean &_res);
+
   /// \brief Services callback that returns a list of markers.
   /// \param[out] _rep Service reply
   /// \return True on success.
@@ -172,6 +179,14 @@ bool MarkerManager::Init(const ignition::rendering::ScenePtr &_scene)
   {
     ignerr << "Unable to advertise to the " << this->dataPtr->topicName
            << " service.\n";
+  }
+
+  // Advertise to the marker_array service
+  if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "_array",
+        &MarkerManagerPrivate::OnMarkerMsgArray, this->dataPtr.get()))
+  {
+    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+           << "_array service.\n";
   }
 
   return true;
@@ -308,11 +323,14 @@ void MarkerManagerPrivate::SetMarker(const ignition::msgs::Marker &_msg,
   _markerPtr->SetType(markerType);
 
   // Set Marker Material
-  rendering::MaterialPtr materialPtr = MsgToMaterial(_msg);
-  _markerPtr->SetMaterial(materialPtr, true /* clone */);
+  if (_msg.has_material())
+  {
+    rendering::MaterialPtr materialPtr = MsgToMaterial(_msg);
+    _markerPtr->SetMaterial(materialPtr, true /* clone */);
 
-  // clean up material after clone
-  this->scene->DestroyMaterial(materialPtr);
+    // clean up material after clone
+    this->scene->DestroyMaterial(materialPtr);
+  }
 
   // Assume the presence of points means we clear old ones
   if (_msg.point().size() > 0)
@@ -498,7 +516,10 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const ignition::msgs::Marker &_msg)
       visualPtr->AddGeometry(markerPtr);
 
       // Add visual to root visual
-      this->scene->RootVisual()->AddChild(visualPtr);
+      if (!visualPtr->HasParent())
+      {
+        this->scene->RootVisual()->AddChild(visualPtr);
+      }
 
       // Store the visual
       this->visuals[ns][id] = visualPtr;
@@ -594,4 +615,15 @@ void MarkerManagerPrivate::OnMarkerMsg(const ignition::msgs::Marker &_req)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->markerMsgs.push_back(_req);
+}
+
+/////////////////////////////////////////////////
+bool MarkerManagerPrivate::OnMarkerMsgArray(
+    const ignition::msgs::Marker_V&_req, ignition::msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  std::copy(_req.marker().begin(), _req.marker().end(),
+            std::back_inserter(this->markerMsgs));
+  _res.set_data(true);
+  return true;
 }

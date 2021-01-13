@@ -1,0 +1,120 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="breadcrumbs_levels">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <model name="tile_1">
+      <pose>0 0 0.1 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10 10 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10 10 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.0 0.8 0.0 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+       <max_deployments>3</max_deployments>
+       <disable_physics_time>15</disable_physics_time>
+       <allow_renaming>true</allow_renaming>
+       <breadcrumb>
+         <sdf version="1.6">
+          <model name="B1">
+            <pose>0 0 5 0 0 0</pose>
+            <link name='body'>
+              <visual name='visual'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+              </visual>
+              <collision name='collision'>
+                <geometry>
+                  <box>
+                    <size>0.3 0.3 0.5</size>
+                  </box>
+                </geometry>
+              </collision>
+            </link>
+          </model>
+        </sdf>
+       </breadcrumb>
+      </plugin>
+    </model>
+
+    <model name="sphere">
+      <pose>0 0 2 0 0 0</pose>
+      <static>true</static>
+      <link name="sphere_link">
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere>
+              <radius>1.0</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>1.0</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <plugin name="ignition::gazebo" filename="dummy">
+      <performer name="perf1">
+        <ref>sphere</ref>
+        <geometry>
+          <box>
+            <size>4 4 2</size>
+          </box>
+        </geometry>
+      </performer>
+      <level name="level1">
+        <pose>0 0 2.5 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>10 10 10</size>
+          </box>
+        </geometry>
+        <buffer>2</buffer>
+        <ref>tile_1</ref>
+      </level>
+    </plugin>
+  </world>
+</sdf>
+
+

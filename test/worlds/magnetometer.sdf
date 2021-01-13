@@ -7,11 +7,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-magnetometer-system.so"
+      filename="ignition-gazebo-magnetometer-system"
       name="ignition::gazebo::systems::Magnetometer">
     </plugin>
 

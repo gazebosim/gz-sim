@@ -113,6 +113,7 @@ math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
                    _in.orientation().x(),
                    _in.orientation().y(),
                    _in.orientation().z());
+  out.Correct();
 
   return out;
 }
@@ -263,6 +264,12 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_lighting(_in.Lighting());
 
+  // todo(anyone) add double_sided field to msgs::Material
+  auto data = out.mutable_header()->add_data();
+  data->set_key("double_sided");
+  std::string *value = data->add_value();
+  *value = std::to_string(_in.DoubleSided());
+
   sdf::Pbr *pbr = _in.PbrMaterial();
   if (pbr)
   {
@@ -279,17 +286,27 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
     if (workflow)
     {
       pbrMsg->set_metalness(workflow->Metalness());
-      pbrMsg->set_metalness_map(workflow->MetalnessMap());
+      pbrMsg->set_metalness_map(workflow->MetalnessMap().empty() ? "" :
+          asFullPath(workflow->MetalnessMap(), _in.FilePath()));
       pbrMsg->set_roughness(workflow->Roughness());
-      pbrMsg->set_roughness_map(workflow->RoughnessMap());
+      pbrMsg->set_roughness_map(workflow->RoughnessMap().empty() ? "" :
+          asFullPath(workflow->RoughnessMap(), _in.FilePath()));
       pbrMsg->set_glossiness(workflow->Glossiness());
-      pbrMsg->set_glossiness_map(workflow->GlossinessMap());
-      pbrMsg->set_specular_map(workflow->SpecularMap());
-      pbrMsg->set_albedo_map(workflow->AlbedoMap());
-      pbrMsg->set_normal_map(workflow->NormalMap());
-      pbrMsg->set_ambient_occlusion_map(workflow->AmbientOcclusionMap());
-      pbrMsg->set_environment_map(workflow->EnvironmentMap());
-      pbrMsg->set_emissive_map(workflow->EmissiveMap());
+      pbrMsg->set_glossiness_map(workflow->GlossinessMap().empty() ? "" :
+          asFullPath(workflow->GlossinessMap(), _in.FilePath()));
+      pbrMsg->set_specular_map(workflow->SpecularMap().empty() ? "" :
+          asFullPath(workflow->SpecularMap(), _in.FilePath()));
+      pbrMsg->set_albedo_map(workflow->AlbedoMap().empty() ? "" :
+          asFullPath(workflow->AlbedoMap(), _in.FilePath()));
+      pbrMsg->set_normal_map(workflow->NormalMap().empty() ? "" :
+          asFullPath(workflow->NormalMap(), _in.FilePath()));
+      pbrMsg->set_ambient_occlusion_map(
+          workflow->AmbientOcclusionMap().empty() ? "" :
+          asFullPath(workflow->AmbientOcclusionMap(), _in.FilePath()));
+      pbrMsg->set_environment_map(workflow->EnvironmentMap().empty() ? "" :
+          asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
+      pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
+          asFullPath(workflow->EmissiveMap(), _in.FilePath()));
     }
   }
   return out;
@@ -305,6 +322,14 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetLighting(_in.lighting());
+
+  // todo(anyone) add double_sided field to msgs::Material
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    const auto &data = _in.header().data(i);
+    if (data.key() == "double_sided" && data.value_size() > 0)
+      out.SetDoubleSided(math::parseInt(data.value(0)));
+  }
 
   if (_in.has_pbr())
   {
@@ -384,12 +409,12 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   for (int i = 0; i < _in.animations_size(); ++i)
   {
     const auto &anim = _in.animations(i);
-    auto newAnim = new sdf::Animation();
-    newAnim->SetName(anim.name());
-    newAnim->SetFilename(anim.filename());
-    newAnim->SetScale(anim.scale());
-    newAnim->SetInterpolateX(anim.interpolate_x());
-    out.AddAnimation(*newAnim);
+    sdf::Animation newAnim;
+    newAnim.SetName(anim.name());
+    newAnim.SetFilename(anim.filename());
+    newAnim.SetScale(anim.scale());
+    newAnim.SetInterpolateX(anim.interpolate_x());
+    out.AddAnimation(newAnim);
   }
   out.SetScriptLoop(_in.script_loop());
   out.SetScriptDelayStart(_in.script_delay_start());
@@ -397,19 +422,19 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
   for (int i = 0; i < _in.trajectories_size(); ++i)
   {
     const auto &traj = _in.trajectories(i);
-    auto newTraj = new sdf::Trajectory();
-    newTraj->SetId(traj.id());
-    newTraj->SetType(traj.type());
-    newTraj->SetTension(traj.tension());
+    sdf::Trajectory newTraj;
+    newTraj.SetId(traj.id());
+    newTraj.SetType(traj.type());
+    newTraj.SetTension(traj.tension());
     for (int j = 0; j < traj.waypoints_size(); ++j)
     {
       const auto &point = traj.waypoints(j);
-      auto newPoint = new sdf::Waypoint();
-      newPoint->SetTime(point.time());
-      newPoint->SetPose(msgs::Convert(point.pose()));
-      newTraj->AddWaypoint(*newPoint);
+      sdf::Waypoint newPoint;
+      newPoint.SetTime(point.time());
+      newPoint.SetPose(msgs::Convert(point.pose()));
+      newTraj.AddWaypoint(newPoint);
     }
-    out.AddTrajectory(*newTraj);
+    out.AddTrajectory(newTraj);
   }
   return out;
 }
@@ -570,14 +595,6 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  out.set_use_parent_model_frame(_in.UseParentModelFrame());
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#endif
   out.set_xyz_expressed_in(_in.XyzExpressedIn());
   out.set_damping(_in.Damping());
   out.set_friction(_in.Friction());
@@ -606,15 +623,10 @@ template<>
 sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
-  out.SetXyz(msgs::Convert(_in.xyz()));
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  out.SetUseParentModelFrame(_in.use_parent_model_frame());
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#endif
+  sdf::Errors errors = out.SetXyz(msgs::Convert(_in.xyz()));
+  for (const auto &err : errors) {
+    ignerr << err.Message() << std::endl;
+  }
   out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
   out.SetFriction(_in.friction());

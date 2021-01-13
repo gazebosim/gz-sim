@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -64,7 +65,7 @@ void depthCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Depth Camera readings when it faces a box
-TEST_F(DepthCameraTest, DepthCameraBox)
+TEST_F(DepthCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
@@ -85,11 +86,12 @@ TEST_F(DepthCameraTest, DepthCameraBox)
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
 
-  ignition::common::Time waitTime = ignition::common::Time(0.001);
+  auto waitTime = std::chrono::duration_cast< std::chrono::milliseconds>(
+      std::chrono::duration<double>(0.001));
   int i = 0;
   while (i < 300)
   {
-    ignition::common::Time::Sleep(waitTime);
+    std::this_thread::sleep_for(waitTime);
     i++;
   }
   EXPECT_NE(depthBuffer, nullptr);

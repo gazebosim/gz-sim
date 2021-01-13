@@ -16,15 +16,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -65,8 +65,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/video_record_pendulum/control</service>
-        <stats_topic>/world/video_record_pendulum/stats</stats_topic>
 
       </plugin>
 
@@ -91,7 +89,6 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/video_record_pendulum/stats</topic>
 
       </plugin>
 

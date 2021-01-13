@@ -6,11 +6,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-altimeter-system.so"
+      filename="ignition-gazebo-altimeter-system"
       name="ignition::gazebo::systems::Altimeter">
     </plugin>
 
@@ -72,6 +72,13 @@
           <visualize>true</visualize>
         </sensor>
       </link>
+
+      <plugin
+        filename="ignition-gazebo-kinetic-energy-monitor-system"
+        name="ignition::gazebo::systems::KineticEnergyMonitor">
+        <link_name>link</link_name>
+        <kinetic_energy_threshold>2</kinetic_energy_threshold>
+      </plugin>
     </model>
 
   </world>

@@ -7,11 +7,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-logical-camera-system.so"
+      filename="ignition-gazebo-logical-camera-system"
       name="ignition::gazebo::systems::LogicalCamera">
       <render_engine>ogre2</render_engine>
     </plugin>
@@ -96,7 +96,7 @@
       </link>
     </model>
 
-    <model name="logical_camera">
+    <model name="logical_camera-1">
       <static>true</static>
       <pose>0 0 0.5 0 0 0.0 </pose>
       <link name="logical_camera_link">
@@ -115,7 +115,39 @@
             </box>
           </geometry>
         </visual>
-        <sensor name='logical_camera' type='logical_camera'>"
+        <sensor name='logical_camera-1' type='logical_camera'>"
+          <update_rate>10</update_rate>
+          <logical_camera>
+            <near>0.55</near>
+            <far>5</far>
+            <horizontal_fov>1.04719755</horizontal_fov>
+            <aspect_ratio>1.778</aspect_ratio>
+          </logical_camera>
+          <alwaysOn>1</alwaysOn>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+    <model name="logical_camera-2">
+      <static>true</static>
+      <pose>0 -0.5 0.5 0 0 0.0 </pose>
+      <link name="logical_camera_link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name='logical_camera-2' type='logical_camera'>"
           <update_rate>10</update_rate>
           <logical_camera>
             <near>0.55</near>

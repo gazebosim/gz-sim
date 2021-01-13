@@ -15,10 +15,17 @@
  *
 */
 
+#include "Scene3D.hh"
+
+#include <algorithm>
 #include <cmath>
+#include <condition_variable>
+#include <limits>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -50,16 +57,21 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
-#include "Scene3D.hh"
+/// \brief condition variable for lockstepping video recording
+/// todo(anyone) avoid using a global condition variable when we support
+/// multiple viewports in the future.
+std::condition_variable g_renderCv;
 
 Q_DECLARE_METATYPE(std::string)
 
@@ -96,6 +108,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// complete
     public: void MoveTo(const rendering::CameraPtr &_camera,
         const rendering::NodePtr &_target, double _duration,
+        std::function<void()> _onAnimationComplete);
+
+    /// \brief Move the camera to the specified pose.
+    /// param[in] _camera Camera to be moved
+    /// param[in] _target Pose to move to
+    /// param[in] _duration Duration of the move to animation, in seconds.
+    /// param[in] _onAnimationComplete Callback function when animation is
+    /// complete
+    public: void MoveTo(const rendering::CameraPtr &_camera,
+        const math::Pose3d &_target, double _duration,
         std::function<void()> _onAnimationComplete);
 
     /// \brief Move the camera to look at the specified target
@@ -183,6 +205,26 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path to save the recorded video
     public: std::string recordVideoSavePath;
 
+    /// \brief Use sim time as timestamp during video recording
+    /// By default (false), video encoding is done using real time.
+    public: bool recordVideoUseSimTime = false;
+
+    /// \brief Lockstep gui with ECM when recording
+    public: bool recordVideoLockstep = false;
+
+    /// \brief Video recorder bitrate (bps)
+    public: unsigned int recordVideoBitrate = 2070000;
+
+    /// \brief Previous camera update time during video recording
+    /// only used in lockstep mode and recording in sim time.
+    public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
+
+    /// \brief Start tiem of video recording
+    public: std::chrono::steady_clock::time_point recordStartTime;
+
+    /// \brief Camera pose publisher
+    public: transport::Node::Publisher recorderStatsPub;
+
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
 
@@ -215,36 +257,46 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether we are in view angle mode or not
     public: bool viewAngle = false;
 
-    /// \brief Flag for indicating whether we are in shapes mode or not
-    public: bool spawnModel = false;
+    /// \brief Flag for indicating whether we are spawning or not.
+    public: bool isSpawning = false;
 
     /// \brief Flag for indicating whether the user is currently placing a
-    /// model with the shapes plugin or not
-    public: bool placingModel = false;
+    /// resource with the shapes plugin or not
+    public: bool isPlacing = false;
 
-    /// \brief The sdf string of the model to be used with the shapes plugin
-    public: std::string modelSdfString;
+    /// \brief Atomic bool indicating whether the dropdown menu
+    /// is currently enabled or disabled.
+    public: std::atomic_bool dropdownMenuEnabled = true;
 
-    /// \brief The pose of the preview model
-    public: ignition::math::Pose3d previewModelPose =
+    /// \brief The SDF string of the resource to be used with plugins that spawn
+    /// entities.
+    public: std::string spawnSdfString;
+
+    /// \brief Path of an SDF file, to be used with plugins that spawn entities.
+    public: std::string spawnSdfPath;
+
+    /// \brief The pose of the spawn preview.
+    public: ignition::math::Pose3d spawnPreviewPose =
             ignition::math::Pose3d::Zero;
 
     /// \brief The currently hovered mouse position in screen coordinates
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
-    /// \brief The model generated from the modelSdfString upon the user
-    /// clicking a shape in the shapes plugin
-    public: rendering::VisualPtr spawnPreviewModel = nullptr;
+    /// \brief The visual generated from the spawnSdfString / spawnSdfPath
+    public: rendering::VisualPtr spawnPreview = nullptr;
 
-    /// \brief A record of the ids currently used by the model generation
+    /// \brief A record of the ids currently used by the entity spawner
     /// for easy deletion of visuals later
-    public: std::vector<Entity> modelIds;
+    public: std::vector<Entity> previewIds;
 
     /// \brief The pose set during a view angle button press that holds
     /// the pose the camera should assume relative to the entit(y/ies).
     /// The vector (0, 0, 0) indicates to return the camera back to the home
     /// pose originally loaded from the sdf.
     public: math::Vector3d viewAngleDirection = math::Vector3d::Zero;
+
+    /// \brief The pose set from the move to pose service.
+    public: std::optional<math::Pose3d> moveToPoseValue;
 
     /// \brief Last move to animation time
     public: std::chrono::time_point<std::chrono::system_clock> prevMoveToTime;
@@ -294,6 +346,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
 
+    /// \brief Flag to indicate whether the escape key has been released.
+    public: bool escapeReleased = false;
+
     /// \brief ID of thread where render calls can be made.
     public: std::thread::id renderThreadId;
 
@@ -315,6 +370,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
+
+    //// \brief Set to true after the renderer is initialized
+    public: bool rendererInit = false;
 
     //// \brief List of threads
     public: static QList<QThread *> threads;
@@ -344,11 +402,33 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Follow service
     public: std::string followService;
 
-    /// \brief Follow service
+    /// \brief View angle service
     public: std::string viewAngleService;
+
+    /// \brief Move to pose service
+    public: std::string moveToPoseService;
 
     /// \brief Shapes service
     public: std::string shapesService;
+
+    /// \brief Camera pose topic
+    public: std::string cameraPoseTopic;
+
+    /// \brief Camera pose publisher
+    public: transport::Node::Publisher cameraPosePub;
+
+    /// \brief lockstep ECM updates with rendering
+    public: bool recordVideoLockstep = false;
+
+    /// \brief True to indicate video recording in progress
+    public: bool recording = false;
+
+    /// \brief mutex to protect the recording variable
+    public: std::mutex recordMutex;
+
+    /// \brief mutex to protect the render condition variable
+    /// Used when recording in lockstep mode.
+    public: std::mutex renderMutex;
   };
 }
 }
@@ -364,6 +444,13 @@ IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
   this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
+
+  // recorder stats topic
+  std::string recorderStatsTopic = "/gui/record_video/stats";
+  this->dataPtr->recorderStatsPub =
+    this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
+  ignmsg << "Video recorder stats topic advertised on ["
+         << recorderStatsTopic << "]" << std::endl;
 }
 
 
@@ -379,6 +466,14 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+  {
+    ignwarn << "Scene is null. The render step will not occur in Scene3D."
+      << std::endl;
+    return;
+  }
+
   this->dataPtr->renderThreadId = std::this_thread::get_id();
 
   IGN_PROFILE_THREAD_NAME("RenderThread");
@@ -414,7 +509,6 @@ void IgnRenderer::Render()
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
   {
-    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
     if (!target && !this->dataPtr->followTargetWait)
     {
@@ -425,7 +519,24 @@ void IgnRenderer::Render()
     }
   }
 
+  // check if recording is in lockstep mode and if it is using sim time
+  // if so, there is no need to update camera if sim time has not advanced
+  bool update = true;
+  if (this->dataPtr->recordVideoLockstep &&
+      this->dataPtr->recordVideoUseSimTime &&
+      this->dataPtr->videoEncoder.IsEncoding())
+  {
+    std::chrono::steady_clock::time_point t =
+        std::chrono::steady_clock::time_point(
+        this->dataPtr->renderUtil.SimTime());
+    if (t - this->dataPtr->recordVideoUpdateTime == std::chrono::seconds(0))
+      update = false;
+    else
+      this->dataPtr->recordVideoUpdateTime = t;
+  }
+
   // update and render to texture
+  if (update)
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
@@ -449,14 +560,59 @@ void IgnRenderer::Render()
       if (this->dataPtr->videoEncoder.IsEncoding())
       {
         this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
-        this->dataPtr->videoEncoder.AddFrame(
-            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
+
+        std::chrono::steady_clock::time_point t =
+            std::chrono::steady_clock::now();
+        if (this->dataPtr->recordVideoUseSimTime)
+        {
+          t = std::chrono::steady_clock::time_point(
+              this->dataPtr->renderUtil.SimTime());
+        }
+        bool frameAdded = this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
+
+        if (frameAdded)
+        {
+          // publish recorder stats
+          if (this->dataPtr->recordStartTime ==
+              std::chrono::steady_clock::time_point(
+              std::chrono::duration(std::chrono::seconds(0))))
+          {
+            // start time, i.e. time when first frame is added
+            this->dataPtr->recordStartTime = t;
+          }
+
+          std::chrono::steady_clock::duration dt;
+          dt = t - this->dataPtr->recordStartTime;
+          int64_t sec, nsec;
+          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          msgs::Time msg;
+          msg.set_sec(sec);
+          msg.set_nsec(nsec);
+          this->dataPtr->recorderStatsPub.Publish(msg);
+        }
       }
       // Video recorder is idle. Start recording.
       else
       {
+        if (this->dataPtr->recordVideoUseSimTime)
+          ignmsg << "Recording video using sim time." << std::endl;
+        if (this->dataPtr->recordVideoLockstep)
+        {
+          ignmsg << "Recording video in lockstep mode" << std::endl;
+          if (!this->dataPtr->recordVideoUseSimTime)
+          {
+            ignwarn << "It is recommended to set <use_sim_time> to true "
+                    << "when recording video in lockstep mode." << std::endl;
+          }
+        }
+        ignmsg << "Recording video using bitrate: "
+               << this->dataPtr->recordVideoBitrate <<  std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
-            this->dataPtr->recordVideoSavePath, width, height);
+            this->dataPtr->recordVideoSavePath, width, height, 25,
+            this->dataPtr->recordVideoBitrate);
+        this->dataPtr->recordStartTime = std::chrono::steady_clock::time_point(
+            std::chrono::duration(std::chrono::seconds(0)));
       }
     }
     else if (this->dataPtr->videoEncoder.IsEncoding())
@@ -472,7 +628,6 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
         rendering::NodePtr target = scene->NodeByName(
             this->dataPtr->moveToTarget);
         if (target)
@@ -498,6 +653,28 @@ void IgnRenderer::Render()
     }
   }
 
+  // Move to pose
+  {
+    IGN_PROFILE("IgnRenderer::Render MoveToPose");
+    if (this->dataPtr->moveToPoseValue)
+    {
+      if (this->dataPtr->moveToHelper.Idle())
+      {
+        this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera,
+            *(this->dataPtr->moveToPoseValue),
+            0.5, std::bind(&IgnRenderer::OnMoveToPoseComplete, this));
+        this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
+      }
+      else
+      {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> dt = now - this->dataPtr->prevMoveToTime;
+        this->dataPtr->moveToHelper.AddTime(dt.count());
+        this->dataPtr->prevMoveToTime = now;
+      }
+    }
+  }
+
   // Follow
   {
     IGN_PROFILE("IgnRenderer::Render Follow");
@@ -506,7 +683,6 @@ void IgnRenderer::Render()
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::NodePtr target = scene->NodeByName(
           this->dataPtr->followTarget);
       if (target)
@@ -594,52 +770,81 @@ void IgnRenderer::Render()
   // Shapes
   {
     IGN_PROFILE("IgnRenderer::Render Shapes");
-    if (this->dataPtr->spawnModel)
+    if (this->dataPtr->isSpawning)
     {
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+      // Generate spawn preview
       rendering::VisualPtr rootVis = scene->RootVisual();
-      this->dataPtr->placingModel =
-        this->GeneratePreviewModel(this->dataPtr->modelSdfString);
-      this->dataPtr->spawnModel = false;
+      sdf::Root root;
+      if (!this->dataPtr->spawnSdfString.empty())
+      {
+        root.LoadSdfString(this->dataPtr->spawnSdfString);
+      }
+      else if (!this->dataPtr->spawnSdfPath.empty())
+      {
+        root.Load(this->dataPtr->spawnSdfPath);
+      }
+      else
+      {
+        ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
+      }
+      this->dataPtr->isPlacing = this->GeneratePreview(root);
+      this->dataPtr->isSpawning = false;
+    }
+  }
+
+  // Escape action, clear all selections and terminate any
+  // spawned previews if escape button is released
+  {
+    if (this->dataPtr->escapeReleased)
+    {
+      this->DeselectAllEntities(true);
+      this->TerminateSpawnPreview();
+      this->dataPtr->escapeReleased = false;
     }
   }
 
   if (ignition::gui::App())
   {
+    gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        new gui::events::Render());
+        &event);
   }
+
+  // only has an effect in video recording lockstep mode
+  // this notifes ECM to continue updating the scene
+  g_renderCv.notify_one();
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
+bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 {
-  sdf::Root root;
-  root.LoadSdfString(_modelSdfString);
+  // Terminate any pre-existing spawned entities
+  this->TerminateSpawnPreview();
 
-  if (!root.ModelCount())
+  if (!_sdf.ModelCount())
   {
-    this->TerminatePreviewModel();
+    ignwarn << "Only model entities can be spawned at the moment." << std::endl;
+    this->TerminateSpawnPreview();
     return false;
   }
 
   // Only preview first model
-  sdf::Model model = *(root.ModelByIndex(0));
-  this->dataPtr->previewModelPose = model.RawPose();
+  sdf::Model model = *(_sdf.ModelByIndex(0));
+  this->dataPtr->spawnPreviewPose = model.RawPose();
   model.SetName(ignition::common::Uuid().String());
   Entity modelId = this->UniqueId();
   if (!modelId)
   {
-    this->TerminatePreviewModel();
+    this->TerminateSpawnPreview();
     return false;
   }
-  this->dataPtr->spawnPreviewModel =
+  this->dataPtr->spawnPreview =
     this->dataPtr->renderUtil.SceneManager().CreateModel(
         modelId, model,
         this->dataPtr->renderUtil.SceneManager().WorldId());
 
-  this->dataPtr->modelIds.push_back(modelId);
+  this->dataPtr->previewIds.push_back(modelId);
   for (auto j = 0u; j < model.LinkCount(); j++)
   {
     sdf::Link link = *(model.LinkByIndex(j));
@@ -647,12 +852,12 @@ bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
     Entity linkId = this->UniqueId();
     if (!linkId)
     {
-      this->TerminatePreviewModel();
+      this->TerminateSpawnPreview();
       return false;
     }
     this->dataPtr->renderUtil.SceneManager().CreateLink(
         linkId, link, modelId);
-    this->dataPtr->modelIds.push_back(linkId);
+    this->dataPtr->previewIds.push_back(linkId);
     for (auto k = 0u; k < link.VisualCount(); k++)
     {
      sdf::Visual visual = *(link.VisualByIndex(k));
@@ -660,24 +865,24 @@ bool IgnRenderer::GeneratePreviewModel(const std::string &_modelSdfString)
      Entity visualId = this->UniqueId();
      if (!visualId)
      {
-       this->TerminatePreviewModel();
+       this->TerminateSpawnPreview();
        return false;
      }
      this->dataPtr->renderUtil.SceneManager().CreateVisual(
          visualId, visual, linkId);
-     this->dataPtr->modelIds.push_back(visualId);
+     this->dataPtr->previewIds.push_back(visualId);
     }
   }
   return true;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::TerminatePreviewModel()
+void IgnRenderer::TerminateSpawnPreview()
 {
-  for (auto _id : this->dataPtr->modelIds)
+  for (auto _id : this->dataPtr->previewIds)
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
-  this->dataPtr->modelIds.clear();
-  this->dataPtr->placingModel = false;
+  this->dataPtr->previewIds.clear();
+  this->dataPtr->isPlacing = false;
 }
 
 /////////////////////////////////////////////////
@@ -697,10 +902,63 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->BroadcastHoverPos();
+  this->BroadcastLeftClick();
+  this->BroadcastRightClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastHoverPos()
+{
+  if (this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
+
+    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &hoverToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastLeftClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &leftClickToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastRightClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    // If the dropdown menu is disabled, quash the mouse event
+    if (!this->dataPtr->dropdownMenuEnabled)
+      this->dataPtr->mouseDirty = false;
+
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &rightClickToSceneEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -773,6 +1031,23 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
   }
 
+  // fullscreen
+  if (_e->key() == Qt::Key_F11)
+  {
+    if (ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->visibility()
+        == QWindow::FullScreen)
+    {
+      ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->showNormal();
+    }
+    else
+    {
+      ignition::gui::App()->findChild
+        <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+    }
+  }
+
   switch (_e->key())
   {
     case Qt::Key_X:
@@ -837,6 +1112,9 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
     case Qt::Key_Z:
       this->dataPtr->zPressed = false;
       break;
+    case Qt::Key_Escape:
+      this->dataPtr->escapeReleased = true;
+      break;
     default:
       break;
   }
@@ -845,14 +1123,14 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 /////////////////////////////////////////////////
 void IgnRenderer::HandleModelPlacement()
 {
-  if (!this->dataPtr->placingModel)
+  if (!this->dataPtr->isPlacing)
     return;
 
-  if (this->dataPtr->spawnPreviewModel && this->dataPtr->hoverDirty)
+  if (this->dataPtr->spawnPreview && this->dataPtr->hoverDirty)
   {
     math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
-    pos.Z(this->dataPtr->spawnPreviewModel->WorldPosition().Z());
-    this->dataPtr->spawnPreviewModel->SetWorldPosition(pos);
+    pos.Z(this->dataPtr->spawnPreview->WorldPosition().Z());
+    this->dataPtr->spawnPreview->SetWorldPosition(pos);
     this->dataPtr->hoverDirty = false;
   }
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
@@ -860,9 +1138,9 @@ void IgnRenderer::HandleModelPlacement()
       !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
   {
     // Delete the generated visuals
-    this->TerminatePreviewModel();
+    this->TerminateSpawnPreview();
 
-    math::Pose3d modelPose = this->dataPtr->previewModelPose;
+    math::Pose3d modelPose = this->dataPtr->spawnPreviewPose;
     std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
         [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
     {
@@ -872,7 +1150,18 @@ void IgnRenderer::HandleModelPlacement()
     math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseEvent.Pos());
     pos.Z(modelPose.Pos().Z());
     msgs::EntityFactory req;
-    req.set_sdf(this->dataPtr->modelSdfString);
+    if (!this->dataPtr->spawnSdfString.empty())
+    {
+      req.set_sdf(this->dataPtr->spawnSdfString);
+    }
+    else if (!this->dataPtr->spawnSdfPath.empty())
+    {
+      req.set_sdf_filename(this->dataPtr->spawnSdfPath);
+    }
+    else
+    {
+      ignwarn << "Failed to find SDF string or file path" << std::endl;
+    }
     req.set_allow_renaming(true);
     msgs::Set(req.mutable_pose(), math::Pose3d(pos, modelPose.Rot()));
 
@@ -881,9 +1170,20 @@ void IgnRenderer::HandleModelPlacement()
       this->dataPtr->createCmdService = "/world/" + this->worldName
           + "/create";
     }
+    this->dataPtr->createCmdService = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->createCmdService);
+    if (this->dataPtr->createCmdService.empty())
+    {
+      ignerr << "Failed to create valid create command service for world ["
+             << this->worldName <<"]" << std::endl;
+      return;
+    }
+
     this->dataPtr->node.Request(this->dataPtr->createCmdService, req, cb);
-    this->dataPtr->placingModel = false;
+    this->dataPtr->isPlacing = false;
     this->dataPtr->mouseDirty = false;
+    this->dataPtr->spawnSdfString.clear();
+    this->dataPtr->spawnSdfPath.clear();
   }
 }
 
@@ -920,10 +1220,10 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   if (_sendEvent)
   {
-    auto deselectEvent = new gui::events::DeselectAllEntities();
+    gui::events::DeselectAllEntities deselectEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        deselectEvent);
+        &deselectEvent);
   }
 }
 
@@ -1096,6 +1396,14 @@ void IgnRenderer::HandleMouseTransformControl()
           {
             this->dataPtr->poseCmdService = "/world/" + this->worldName
                 + "/set_pose";
+          }
+          this->dataPtr->poseCmdService = transport::TopicUtils::AsValidTopic(
+              this->dataPtr->poseCmdService);
+          if (this->dataPtr->poseCmdService.empty())
+          {
+            ignerr << "Failed to create valid pose command service for world ["
+                   << this->worldName <<"]" << std::endl;
+            return;
           }
           this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
         }
@@ -1326,7 +1634,10 @@ void IgnRenderer::HandleMouseViewControl()
     // Pan with left button
     if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::LEFT)
     {
-      this->dataPtr->viewControl.Pan(this->dataPtr->drag);
+      if (Qt::ShiftModifier == QGuiApplication::queryKeyboardModifiers())
+        this->dataPtr->viewControl.Orbit(this->dataPtr->drag);
+      else
+        this->dataPtr->viewControl.Pan(this->dataPtr->drag);
     }
     // Orbit with middle button
     else if (this->dataPtr->mouseEvent.Buttons() & common::MouseEvent::MIDDLE)
@@ -1370,6 +1681,9 @@ void IgnRenderer::Initialize()
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+    return;
+
   auto root = scene->RootVisual();
 
   // Camera
@@ -1401,6 +1715,7 @@ void IgnRenderer::Destroy()
   auto scene = engine->SceneByName(this->dataPtr->renderUtil.SceneName());
   if (!scene)
     return;
+
   scene->DestroySensor(this->dataPtr->camera);
 
   // If that was the last sensor, destroy scene
@@ -1502,11 +1817,11 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    auto selectEvent = new gui::events::EntitiesSelected(
+    gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-        selectEvent);
+        &selectEvent);
   }
 }
 
@@ -1537,8 +1852,22 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 void IgnRenderer::SetModel(const std::string &_model)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->spawnModel = true;
-  this->dataPtr->modelSdfString = _model;
+  this->dataPtr->isSpawning = true;
+  this->dataPtr->spawnSdfString = _model;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetModelPath(const std::string &_filePath)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->isSpawning = true;
+  this->dataPtr->spawnSdfPath = _filePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+{
+  this->dataPtr->dropdownMenuEnabled = _enableDropdownMenu;
 }
 
 /////////////////////////////////////////////////
@@ -1549,6 +1878,27 @@ void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
   this->dataPtr->recordVideo = _record;
   this->dataPtr->recordVideoFormat = _format;
   this->dataPtr->recordVideoSavePath = _savePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoUseSimTime = _useSimTime;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoLockstep = _useSimTime;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoBitrate = _bitrate;
 }
 
 /////////////////////////////////////////////////
@@ -1573,6 +1923,13 @@ void IgnRenderer::SetViewAngle(const math::Vector3d &_direction)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewAngle = true;
   this->dataPtr->viewAngleDirection = _direction;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToPoseValue = _pose;
 }
 
 /////////////////////////////////////////////////
@@ -1639,6 +1996,13 @@ void IgnRenderer::OnViewAngleComplete()
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::OnMoveToPoseComplete()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->moveToPoseValue.reset();
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -1677,6 +2041,14 @@ math::Vector3d IgnRenderer::ScreenToPlane(
   math::Vector3d direction = this->dataPtr->rayQuery->Direction();
   double distance = plane.Distance(origin, direction);
   return origin + direction * distance;
+}
+
+/////////////////////////////////////////////////
+math::Pose3d IgnRenderer::CameraPose() const
+{
+  if (this->dataPtr->camera)
+    return this->dataPtr->camera->WorldPose();
+  return math::Pose3d::Zero;
 }
 
 /////////////////////////////////////////////////
@@ -1780,7 +2152,14 @@ TextureNode::TextureNode(QQuickWindow *_window)
     : window(_window)
 {
   // Our texture node must have a texture, so use the default 0 texture.
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->texture = this->window->createTextureFromId(0, QSize(1, 1));
+#else
+  void * nativeLayout;
+  this->texture = this->window->createTextureFromNativeObject(
+      QQuickWindow::NativeObjectTexture, &nativeLayout, 0, QSize(1, 1),
+      QQuickWindow::TextureIsOpaque);
+#endif
   this->setTexture(this->texture);
 }
 
@@ -1816,8 +2195,23 @@ void TextureNode::PrepareNode()
     delete this->texture;
     // note: include QQuickWindow::TextureHasAlphaChannel if the rendered
     // content has alpha.
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     this->texture = this->window->createTextureFromId(
         newId, sz, QQuickWindow::TextureIsOpaque);
+#else
+    // TODO(anyone) Use createTextureFromNativeObject
+    // https://github.com/ignitionrobotics/ign-gui/issues/113
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    this->texture = this->window->createTextureFromId(
+        newId, sz, QQuickWindow::TextureIsOpaque);
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
+
+#endif
     this->setTexture(this->texture);
 
     this->markDirty(DirtyMaterial);
@@ -1882,6 +2276,14 @@ void RenderWindowItem::Ready()
 
   this->dataPtr->renderThread->start();
   this->update();
+
+  this->dataPtr->rendererInit = true;
+}
+
+/////////////////////////////////////////////////
+bool RenderWindowItem::RendererInitialized() const
+{
+  return this->dataPtr->rendererInit;
 }
 
 /////////////////////////////////////////////////
@@ -1899,7 +2301,23 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     current->doneCurrent();
 
     this->dataPtr->renderThread->context = new QOpenGLContext();
-    this->dataPtr->renderThread->context->setFormat(current->format());
+    if (this->RenderUtil()->EngineName() == "ogre2")
+    {
+      // Although it seems unbelievable, we can request another format for a
+      // shared context; it is needed because Qt selects by default a compat
+      // context which is much less likely to provide OpenGL 3.3 (only closed
+      // NVidia drivers). This means there will be mismatch between what is
+      // reported by QSG_INFO=1 and by OGRE.
+      auto surfaceFormat = QSurfaceFormat();
+      surfaceFormat.setMajorVersion(3);
+      surfaceFormat.setMinorVersion(3);
+      surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+      this->dataPtr->renderThread->context->setFormat(surfaceFormat);
+    }
+    else
+    {
+      this->dataPtr->renderThread->context->setFormat(current->format());
+    }
     this->dataPtr->renderThread->context->setShareContext(current);
     this->dataPtr->renderThread->context->create();
     this->dataPtr->renderThread->context->moveToThread(
@@ -2108,6 +2526,63 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       }
     }
 
+    if (auto elem = _pluginElem->FirstChildElement("record_video"))
+    {
+      if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
+      {
+        bool useSimTime = false;
+        if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Faild to parse <use_sim_time> value: "
+                 << useSimTimeElem->GetText() << std::endl;
+        }
+        else
+        {
+          renderWindow->SetRecordVideoUseSimTime(useSimTime);
+        }
+      }
+      if (auto lockstepElem = elem->FirstChildElement("lockstep"))
+      {
+        bool lockstep = false;
+        if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Failed to parse <lockstep> value: "
+                 << lockstepElem->GetText() << std::endl;
+        }
+        else
+        {
+          renderWindow->SetRecordVideoLockstep(lockstep);
+        }
+      }
+      if (auto bitrateElem = elem->FirstChildElement("bitrate"))
+      {
+        unsigned int bitrate = 0u;
+        std::stringstream bitrateStr;
+        bitrateStr << std::string(bitrateElem->GetText());
+        bitrateStr >> bitrate;
+        if (bitrate > 0u)
+        {
+          renderWindow->SetRecordVideoBitrate(bitrate);
+        }
+        else
+        {
+          ignerr << "Video recorder bitrate must be larger than 0"
+                 << std::endl;
+        }
+      }
+    }
+
+    if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
+    {
+      auto fullscreen = false;
+      elem->QueryBoolText(&fullscreen);
+      if (fullscreen)
+      {
+        ignition::gui::App()->findChild
+          <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+      }
+    }
+
     if (auto elem = _pluginElem->FirstChildElement("visibility_mask"))
     {
       uint32_t visibilityMask = 0xFFFFFFFFu;
@@ -2161,6 +2636,23 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View angle service on ["
          << this->dataPtr->viewAngleService << "]" << std::endl;
 
+  // move to pose service
+  this->dataPtr->moveToPoseService =
+      "/gui/move_to/pose";
+  this->dataPtr->node.Advertise(this->dataPtr->moveToPoseService,
+      &Scene3D::OnMoveToPose, this);
+  ignmsg << "Move to pose service on ["
+         << this->dataPtr->moveToPoseService << "]" << std::endl;
+
+  // camera position topic
+  this->dataPtr->cameraPoseTopic = "/gui/camera/pose";
+  this->dataPtr->cameraPosePub =
+    this->dataPtr->node.Advertise<msgs::Pose>(this->dataPtr->cameraPoseTopic);
+  ignmsg << "Camera pose topic advertised on ["
+         << this->dataPtr->cameraPoseTopic << "]" << std::endl;
+
+  ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
@@ -2173,10 +2665,11 @@ void Scene3D::Update(const UpdateInfo &_info,
     return;
 
   IGN_PROFILE("Scene3D::Update");
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
-    _ecm.EachNew<components::World, components::Name>(
+    _ecm.Each<components::World, components::Name>(
         [&](const Entity &/*_entity*/,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
@@ -2185,11 +2678,39 @@ void Scene3D::Update(const UpdateInfo &_info,
           return true;
         });
 
-    auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
     renderWindow->SetWorldName(this->dataPtr->worldName);
+    auto worldEntity =
+      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
+        components::World());
+    auto renderEngineGuiComp =
+      _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+    {
+      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
+    }
+    else
+    {
+      igndbg << "RenderEngineGuiPlugin component not found, "
+        "render engine won't be set from the ECM" << std::endl;
+    }
   }
 
+  if (this->dataPtr->cameraPosePub.HasConnections())
+  {
+    msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
+    this->dataPtr->cameraPosePub.Publish(poseMsg);
+  }
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+
+  // check if video recording is enabled and if we need to lock step
+  // ECM updates with GUI rendering during video recording
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep &&
+      renderWindow->RendererInitialized())
+  {
+    std::unique_lock<std::mutex> lock2(this->dataPtr->renderMutex);
+    g_renderCv.wait(lock2);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -2213,6 +2734,9 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
   renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
 
   _res.set_data(true);
+
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  this->dataPtr->recording = record;
   return true;
 }
 
@@ -2247,6 +2771,33 @@ bool Scene3D::OnViewAngle(const msgs::Vector3d &_msg,
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
 
   renderWindow->SetViewAngle(msgs::Convert(_msg));
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  math::Pose3d pose = msgs::Convert(_msg.pose());
+
+  // If there is no orientation in the message, then set a Rot value in the
+  // math::Pose3d object to infinite. This will prevent the orientation from
+  // being used when positioning the camera.
+  // See the MoveToHelper::MoveTo function
+  if (!_msg.pose().has_orientation())
+    pose.Rot().X() = math::INF_D;
+
+  // If there is no position in the message, then set a Pos value in the
+  // math::Pose3d object to infinite. This will prevent the orientation from
+  // being used when positioning the camera.
+  // See the MoveToHelper::MoveTo function
+  if (!_msg.pose().has_position())
+    pose.Pos().X() = math::INF_D;
+
+  renderWindow->SetMoveToPose(pose);
 
   _res.set_data(true);
   return true;
@@ -2316,7 +2867,26 @@ void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyPress(keyEvent);
+    }
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyRelease(keyEvent);
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -2376,12 +2946,35 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
   else if (_event->type() ==
       ignition::gazebo::gui::events::SpawnPreviewModel::kType)
   {
-    auto spawnPreviewModelEvent =
+    auto spawnPreviewEvent =
       reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
-    if (spawnPreviewModelEvent)
+    if (spawnPreviewEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetModel(spawnPreviewModelEvent->ModelSdfString());
+      renderWindow->SetModel(spawnPreviewEvent->ModelSdfString());
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::SpawnPreviewPath::kType)
+  {
+    auto spawnPreviewPathEvent =
+      reinterpret_cast<gui::events::SpawnPreviewPath *>(_event);
+    if (spawnPreviewPathEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
+    }
+  }
+  else if (_event->type() ==
+      ignition::gui::events::DropdownMenuEnabled::kType)
+  {
+    auto dropdownMenuEnabledEvent =
+      reinterpret_cast<ignition::gui::events::DropdownMenuEnabled *>(_event);
+    if (dropdownMenuEnabledEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetDropdownMenuEnabled(
+          dropdownMenuEnabledEvent->MenuEnabled());
     }
   }
 
@@ -2407,6 +3000,19 @@ void RenderWindowItem::SetTransformMode(const std::string &_mode)
 void RenderWindowItem::SetModel(const std::string &_model)
 {
   this->dataPtr->renderThread->ignRenderer.SetModel(_model);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetModelPath(const std::string &_filePath)
+{
+  this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+{
+  this->dataPtr->renderThread->ignRenderer.SetDropdownMenuEnabled(
+      _enableDropdownMenu);
 }
 
 /////////////////////////////////////////////////
@@ -2447,6 +3053,12 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
+{
+  this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
   this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
@@ -2471,6 +3083,14 @@ void RenderWindowItem::SetCameraPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+math::Pose3d RenderWindowItem::CameraPose() const
+{
+  if (this->dataPtr->renderThread)
+    return this->dataPtr->renderThread->ignRenderer.CameraPose();
+  return math::Pose3d::Zero;
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::SetInitCameraPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.SetInitCameraPose(_pose);
@@ -2480,6 +3100,27 @@ void RenderWindowItem::SetInitCameraPose(const math::Pose3d &_pose)
 void RenderWindowItem::SetWorldName(const std::string &_name)
 {
   this->dataPtr->renderThread->ignRenderer.worldName = _name;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
+      _useSimTime);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
+      _lockstep);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
+      _bitrate);
 }
 
 /////////////////////////////////////////////////
@@ -2550,20 +3191,24 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
   this->forceActiveFocus();
 
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::SCROLL);
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   this->dataPtr->mouseEvent.SetPos(_e->x(), _e->y());
+#else
+  this->dataPtr->mouseEvent.SetPos(_e->position().x(), _e->position().y());
+#endif
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
 
@@ -2576,8 +3221,6 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.TerminatePreviewModel();
   }
 }
 
@@ -2598,6 +3241,34 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 //  }
 // }
 //
+
+////////////////////////////////////////////////
+void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,
+    const ignition::math::Pose3d &_target,
+    double _duration, std::function<void()> _onAnimationComplete)
+{
+  this->camera = _camera;
+  this->poseAnim = std::make_unique<common::PoseAnimation>(
+      "move_to", _duration, false);
+  this->onAnimationComplete = std::move(_onAnimationComplete);
+
+  math::Pose3d start = _camera->WorldPose();
+
+  common::PoseKeyFrame *key = this->poseAnim->CreateKeyFrame(0);
+  key->Translation(start.Pos());
+  key->Rotation(start.Rot());
+
+  key = this->poseAnim->CreateKeyFrame(_duration);
+  if (_target.Pos().IsFinite())
+    key->Translation(_target.Pos());
+  else
+    key->Translation(start.Pos());
+
+  if (_target.Rot().IsFinite())
+    key->Rotation(_target.Rot());
+  else
+    key->Rotation(start.Rot());
+}
 
 ////////////////////////////////////////////////
 void MoveToHelper::MoveTo(const rendering::CameraPtr &_camera,

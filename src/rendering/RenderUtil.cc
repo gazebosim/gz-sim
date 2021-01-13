@@ -1210,15 +1210,19 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  ignition::common::SystemPaths pluginPath;
+  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
+  rendering::setPluginPaths(pluginPath.PluginPaths());
+
   std::map<std::string, std::string> params;
   if (this->dataPtr->useCurrentGLContext)
     params["useCurrentGLContext"] = "1";
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
-    ignerr << "Engine [" << this->dataPtr->engineName << "] is not supported"
-           << std::endl;
-    return;
+    ignerr << "Engine [" << this->dataPtr->engineName << "] is not supported. "
+           << "Loading OGRE2 instead." << std::endl;
+    this->dataPtr->engine = rendering::engine("ogre2", params);
   }
 
   // Scene
@@ -1229,8 +1233,11 @@ void RenderUtil::Init()
     igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
     this->dataPtr->scene =
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
-    this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
-    this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+    if (this->dataPtr->scene)
+    {
+      this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
+      this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+    }
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
@@ -1253,6 +1260,9 @@ void RenderUtil::SetAmbientLight(const math::Color &_ambient)
 /////////////////////////////////////////////////
 void RenderUtil::ShowGrid()
 {
+  if (!this->dataPtr->scene)
+    return;
+
   rendering::VisualPtr root = this->dataPtr->scene->RootVisual();
 
   // create gray material
@@ -1337,6 +1347,13 @@ SceneManager &RenderUtil::SceneManager()
 MarkerManager &RenderUtil::MarkerManager()
 {
   return this->dataPtr->markerManager;
+}
+
+//////////////////////////////////////////////////
+std::chrono::steady_clock::duration RenderUtil::SimTime() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  return this->dataPtr->simTime;
 }
 
 /////////////////////////////////////////////////

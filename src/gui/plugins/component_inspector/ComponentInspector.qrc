@@ -7,5 +7,6 @@
   <file>String.qml</file>
   <file>TypeHeader.qml</file>
   <file>Vector3d.qml</file>
+  <file>plottable_icon.svg</file>
 </qresource>
 </RCC>

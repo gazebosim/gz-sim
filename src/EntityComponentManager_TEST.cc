@@ -63,6 +63,15 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Even", Even)
 
 using Odd = components::Component<components::NoData, class OddTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
+
+struct Custom
+{
+  int dummy{123};
+};
+
+using CustomComponent = components::Component<Custom, class CustomTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CustomComponent",
+    CustomComponent)
 }
 }
 }
@@ -81,6 +90,10 @@ class EntityCompMgrTest : public EntityComponentManager
   public: void RunSetAllComponentsUnchanged()
   {
     this->SetAllComponentsUnchanged();
+  }
+  public: void RunClearRemovedComponents()
+  {
+    this->ClearRemovedComponents();
   }
 };
 
@@ -447,58 +460,162 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
   Entity eInt = manager.CreateEntity();
   Entity eDouble = manager.CreateEntity();
   Entity eIntDouble = manager.CreateEntity();
-  EXPECT_EQ(3u, manager.EntityCount());
+  Entity ePose = manager.CreateEntity();
+  Entity eCustom = manager.CreateEntity();
+  EXPECT_EQ(5u, manager.EntityCount());
 
   // Add components of different types to each entity
   manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
   manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
   manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
   manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  manager.CreateComponent<components::Pose>(ePose,
+      components::Pose({1, 2, 3, 0, 0, 0}));
+  manager.CreateComponent<CustomComponent>(eCustom,
+      CustomComponent(Custom()));
 
-  // Get component values
+  // Get and set component values
   {
     const auto *value = manager.Component<IntComponent>(eInt);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(123, value->Data());
+
+    auto data = manager.ComponentData<IntComponent>(eInt);
+    EXPECT_EQ(123, data);
+
+    EXPECT_TRUE(manager.SetComponentData<IntComponent>(eInt, 456));
+    data = manager.ComponentData<IntComponent>(eInt);
+    EXPECT_EQ(456, data);
+
+    EXPECT_FALSE(manager.SetComponentData<IntComponent>(eInt, 456));
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(eDouble);
     ASSERT_NE(nullptr, value);
     EXPECT_DOUBLE_EQ(0.123, value->Data());
+
+    auto data = manager.ComponentData<DoubleComponent>(eDouble);
+    EXPECT_EQ(0.123, data);
+
+    EXPECT_TRUE(manager.SetComponentData<DoubleComponent>(eDouble, 0.456));
+    data = manager.ComponentData<DoubleComponent>(eDouble);
+    EXPECT_EQ(0.456, data);
+
+    EXPECT_FALSE(manager.SetComponentData<DoubleComponent>(eDouble, 0.456));
   }
 
   {
     const auto *value = manager.Component<IntComponent>(eIntDouble);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(456, value->Data());
+
+    auto data = manager.ComponentData<IntComponent>(eIntDouble);
+    EXPECT_EQ(456, data);
+
+    EXPECT_TRUE(manager.SetComponentData<IntComponent>(eIntDouble, 789));
+    data = manager.ComponentData<IntComponent>(eIntDouble);
+    EXPECT_EQ(789, data);
+
+    EXPECT_FALSE(manager.SetComponentData<IntComponent>(eIntDouble, 789));
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(eIntDouble);
     ASSERT_NE(nullptr, value);
     EXPECT_DOUBLE_EQ(0.456, value->Data());
+
+    auto data = manager.ComponentData<DoubleComponent>(eIntDouble);
+    EXPECT_EQ(0.456, data);
+
+    EXPECT_TRUE(manager.SetComponentData<DoubleComponent>(eIntDouble, 0.789));
+    data = manager.ComponentData<DoubleComponent>(eIntDouble);
+    EXPECT_EQ(0.789, data);
+
+    EXPECT_FALSE(manager.SetComponentData<DoubleComponent>(eIntDouble, 0.789));
+  }
+
+  {
+    const auto *value = manager.Component<components::Pose>(ePose);
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), value->Data());
+
+    auto data = manager.ComponentData<components::Pose>(ePose);
+    EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), data);
+
+    EXPECT_TRUE(manager.SetComponentData<components::Pose>(ePose,
+        {4, 5, 6, 0, 0, 0}));
+    data = manager.ComponentData<components::Pose>(ePose);
+    EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), data);
+
+    EXPECT_FALSE(manager.SetComponentData<components::Pose>(ePose,
+        {4, 5, 6, 0, 0, 0}));
+  }
+
+  {
+    const auto *value = manager.Component<CustomComponent>(eCustom);
+    ASSERT_NE(nullptr, value);
+    EXPECT_EQ(123, value->Data().dummy);
+
+    auto data = manager.ComponentData<CustomComponent>(eCustom);
+    EXPECT_EQ(123, data->dummy);
+
+    EXPECT_TRUE(manager.SetComponentData<CustomComponent>(eCustom, {456}));
+    data = manager.ComponentData<CustomComponent>(eCustom);
+    EXPECT_EQ(456, data->dummy);
+
+    // No equality operator, always returns true
+    EXPECT_TRUE(manager.SetComponentData<CustomComponent>(eCustom, {456}));
   }
 
   // Failure cases
   {
     const auto *value = manager.Component<IntComponent>(eDouble);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<IntComponent>(eDouble);
+    EXPECT_EQ(std::nullopt, data);
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(eInt);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<DoubleComponent>(eInt);
+    EXPECT_EQ(std::nullopt, data);
   }
 
   {
     const auto *value = manager.Component<IntComponent>(999);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<IntComponent>(999);
+    EXPECT_EQ(std::nullopt, data);
   }
 
   {
     const auto *value = manager.Component<DoubleComponent>(999);
     ASSERT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<DoubleComponent>(999);
+    EXPECT_EQ(std::nullopt, data);
+  }
+
+  // Set new component type
+  {
+    const auto *value = manager.Component<IntComponent>(eDouble);
+    EXPECT_EQ(nullptr, value);
+
+    auto data = manager.ComponentData<IntComponent>(eDouble);
+    EXPECT_EQ(std::nullopt, data);
+
+    EXPECT_TRUE(manager.SetComponentData<IntComponent>(eDouble, 123));
+
+    value = manager.Component<IntComponent>(eDouble);
+    ASSERT_NE(nullptr, value);
+
+    data = manager.ComponentData<IntComponent>(eDouble);
+    EXPECT_EQ(123, data);
   }
 }
 
@@ -2009,7 +2126,241 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
       manager.ComponentState(e2, c2.first));
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
+{
+  // First entity should have a value of 1.
+  Entity entity = manager.CreateEntity();
+  EXPECT_EQ(1u, entity);
+
+  // Apply an offset.
+  manager.SetEntityCreateOffset(1000);
+  Entity entity2 = manager.CreateEntity();
+  EXPECT_EQ(1001u, entity2);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgAfterRemoveComponent)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // We use this map because the order in which components are iterated
+  // through depends on the (undetermined) order of unordered multimaps
+  std::map<ComponentTypeId, bool> expectations;
+  expectations.insert(std::make_pair(e1c0.first, false));
+  expectations.insert(std::make_pair(e1c1.first, true));
+  expectations.insert(std::make_pair(e1c2.first, true));
+
+  manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c2);
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &c0 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c0.remove(), expectations.find(c0.type())->second);
+
+    // Second component
+    const auto &c1 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c1.remove(), expectations.find(c1.type())->second);
+
+    // Third component
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectations.find(c2.type())->second);
+  }
+
+  // Check that removed components don't exist anymore after clearing them
+  manager.RunClearRemovedComponents();
+  msgs::SerializedStateMap newStateMsg;
+  manager.State(newStateMsg);
+
+  // Check message
+  {
+    auto iter = newStateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    EXPECT_EQ(1, e1Msg.components_size());
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &e1c0Msg = compIter->second;
+    EXPECT_FALSE(e1c0Msg.remove());
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // We use this map because the order in which components are iterated
+  // through depends on the (undetermined) order of unordered multimaps
+  std::map<ComponentTypeId, bool> expectations;
+  expectations.insert(std::make_pair(e1c0.first, false));
+  expectations.insert(std::make_pair(e1c1.first, true));
+  expectations.insert(std::make_pair(e1c2.first, true));
+
+  manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c2);
+
+  // Serialize into a message
+  msgs::SerializedState stateMsg;
+  stateMsg = manager.State();
+
+  // Check message
+  {
+    auto const &entityMsg = stateMsg.entities(0);
+
+    // First component
+    const auto &c0 = entityMsg.components(0);
+    EXPECT_EQ(c0.remove(), expectations.find(c0.type())->second);
+
+    // Second component
+    const auto &c1 = entityMsg.components(1);
+    EXPECT_EQ(c1.remove(), expectations.find(c1.type())->second);
+
+    // Third component
+    const auto &c2 = entityMsg.components(2);
+    EXPECT_EQ(c2.remove(), expectations.find(c2.type())->second);
+  }
+
+  // Check that removed components don't exist anymore after clearing them
+  manager.RunClearRemovedComponents();
+  msgs::SerializedState newStateMsg;
+  newStateMsg = manager.State();
+
+  // Check message
+  {
+    auto const &entityMsg = newStateMsg.entities(0);
+    EXPECT_EQ(1, entityMsg.components_size());
+
+    // First component
+    const auto &e1c0Msg = entityMsg.components(0);
+    EXPECT_FALSE(e1c0Msg.remove());
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
+{
+  // Simulate the GUI's ECM
+  EntityCompMgrTest guiManager;
+
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  // We use this map because the order in which components are iterated
+  // through depends on the (undetermined) order of unordered multimaps
+  std::map<ComponentTypeId, bool> expectationsBeforeRemoving;
+  expectationsBeforeRemoving.insert(std::make_pair(e1c0.first, false));
+  expectationsBeforeRemoving.insert(std::make_pair(e1c1.first, false));
+  expectationsBeforeRemoving.insert(std::make_pair(e1c2.first, false));
+
+  // Serialize server ECM into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Set GUI's ECM and serialize into a message
+  guiManager.SetState(stateMsg);
+  msgs::SerializedStateMap guiStateMsg;
+  guiManager.State(guiStateMsg);
+
+  // Check sync message
+  {
+    auto iter = guiStateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &c0 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c0.remove(), expectationsBeforeRemoving.find(c0.type())->second);
+
+    // Second component
+    const auto &c1 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c1.remove(), expectationsBeforeRemoving.find(c1.type())->second);
+
+    // Third component
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectationsBeforeRemoving.find(c2.type())->second);
+  }
+
+  std::map<ComponentTypeId, bool> expectationsAfterRemoving;
+  expectationsAfterRemoving.insert(std::make_pair(e1c0.first, false));
+  expectationsAfterRemoving.insert(std::make_pair(e1c1.first, true));
+  expectationsAfterRemoving.insert(std::make_pair(e1c2.first, true));
+
+  // Remove components and synchronize again
+  manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c2);
+
+  msgs::SerializedStateMap newStateMsg;
+  manager.State(newStateMsg);
+
+  EXPECT_TRUE(nullptr != guiManager.Component<IntComponent>(e1));
+  EXPECT_TRUE(nullptr != guiManager.Component<DoubleComponent>(e1));
+  EXPECT_TRUE(nullptr != guiManager.Component<StringComponent>(e1));
+  guiManager.SetState(newStateMsg);
+  EXPECT_TRUE(nullptr != guiManager.Component<IntComponent>(e1));
+  EXPECT_TRUE(nullptr == guiManager.Component<DoubleComponent>(e1));
+  EXPECT_TRUE(nullptr == guiManager.Component<StringComponent>(e1));
+
+  msgs::SerializedStateMap newGuiStateMsg;
+  guiManager.State(newGuiStateMsg);
+
+  // Check message
+  {
+    auto iter = newGuiStateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &c0 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c0.remove(), expectationsAfterRemoving.find(c0.type())->second);
+
+    // Second component
+    const auto &c1 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c1.remove(), expectationsAfterRemoving.find(c1.type())->second);
+
+    // Third component
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectationsAfterRemoving.find(c2.type())->second);
+  }
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
+INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,
     EntityComponentManagerFixture, ::testing::Range(1, 10));

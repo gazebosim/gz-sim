@@ -15,6 +15,10 @@
  *
  */
 
+#include "LevelManager.hh"
+
+#include <algorithm>
+
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Light.hh>
@@ -44,11 +48,12 @@
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "LevelManager.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
@@ -71,8 +76,14 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
   this->ReadLevelPerformerInfo();
   this->CreatePerformers();
 
-  std::string service = "/world/";
-  service += this->runner->sdfWorld->Name() + "/level/set_performer";
+  std::string service = transport::TopicUtils::AsValidTopic("/world/" +
+      this->runner->sdfWorld->Name() + "/level/set_performer");
+  if (service.empty())
+  {
+    ignerr << "Failed to generate set_performer topic for world ["
+           << this->runner->sdfWorld->Name() << "]" << std::endl;
+    return;
+  }
   this->node.Advertise(service, &LevelManager::OnSetPerformer, this);
 }
 
@@ -97,6 +108,14 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::PhysicsEnginePlugin(
       this->runner->serverConfig.PhysicsEngine()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEngineServerPlugin(
+      this->runner->serverConfig.RenderEngineServer()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEngineGuiPlugin(
+      this->runner->serverConfig.RenderEngineGui()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 

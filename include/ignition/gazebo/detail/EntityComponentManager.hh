@@ -20,8 +20,11 @@
 #include <cstring>
 #include <map>
 #include <set>
+#include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <ignition/math/Helpers.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -29,6 +32,52 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+//////////////////////////////////////////////////
+namespace traits
+{
+  /// \brief Helper struct to determine if an equality operator is present.
+  struct TestEqualityOperator
+  {
+  };
+  template<typename T>
+  TestEqualityOperator operator == (const T&, const T&);
+
+  /// \brief Type trait that determines if an operator== is defined for `T`.
+  template<typename T>
+  struct HasEqualityOperator
+  {
+    enum
+    {
+      // False positive codecheck "Using C-style cast"
+      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
+    };
+  };
+}
+
+//////////////////////////////////////////////////
+/// \brief Helper function to compare two objects of the same type using its
+/// equality operator.
+/// If `DataType` doesn't have an equality operator defined, it will return
+/// false.
+/// For doubles, `ignition::math::equal` will be used.
+template<typename DataType>
+auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
+{
+  // cppcheck-suppress syntaxError
+  if constexpr (std::is_same<DataType, double>::value)
+  {
+    return math::equal(_a, _b);
+  }
+  else if constexpr (traits::HasEqualityOperator<DataType>::value)
+  {
+    return _a == _b;
+  }
+
+  return false;
+};
+
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentKey EntityComponentManager::CreateComponent(const Entity _entity,
@@ -76,6 +125,34 @@ ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 {
   return static_cast<ComponentTypeT *>(
       this->ComponentImplementation(_key));
+}
+
+//////////////////////////////////////////////////
+template<typename ComponentTypeT>
+std::optional<typename ComponentTypeT::Type>
+    EntityComponentManager::ComponentData(const Entity _entity) const
+{
+  auto comp = this->Component<ComponentTypeT>(_entity);
+  if (!comp)
+    return std::nullopt;
+
+  return std::make_optional(comp->Data());
+}
+
+//////////////////////////////////////////////////
+template<typename ComponentTypeT>
+bool EntityComponentManager::SetComponentData(const Entity _entity,
+    const typename ComponentTypeT::Type &_data)
+{
+  auto comp = this->Component<ComponentTypeT>(_entity);
+
+  if (nullptr == comp)
+  {
+    this->CreateComponent(_entity, ComponentTypeT(_data));
+    return true;
+  }
+
+  return comp->SetData(_data, CompareData<typename ComponentTypeT::Type>);
 }
 
 //////////////////////////////////////////////////
@@ -469,6 +546,7 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
   const auto typeId = ComponentTypeT::typeId;
   return this->RemoveComponent(_entity, typeId);
+}
 }
 }
 }

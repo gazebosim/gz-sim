@@ -18,6 +18,8 @@
 #include <ignition/msgs/Utility.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -28,6 +30,8 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/WindMode.hh"
 
 #include "ignition/gazebo/Link.hh"
 
@@ -90,11 +94,7 @@ bool Link::Valid(const EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 std::optional<std::string> Link::Name(const EntityComponentManager &_ecm) const
 {
-  auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
-  if (!comp)
-    return std::nullopt;
-
-  return std::make_optional(comp->Data());
+  return _ecm.ComponentData<components::Name>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -109,14 +109,75 @@ std::optional<Model> Link::ParentModel(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
+Entity Link::CollisionByName(const EntityComponentManager &_ecm,
+    const std::string &_name) const
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Name(_name),
+      components::Collision());
+}
+
+//////////////////////////////////////////////////
+Entity Link::VisualByName(const EntityComponentManager &_ecm,
+    const std::string &_name) const
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Name(_name),
+      components::Visual());
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> Link::Collisions(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Collision());
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> Link::Visuals(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Visual());
+}
+
+//////////////////////////////////////////////////
+uint64_t Link::CollisionCount(const EntityComponentManager &_ecm) const
+{
+  return this->Collisions(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+uint64_t Link::VisualCount(const EntityComponentManager &_ecm) const
+{
+  return this->Visuals(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+bool Link::IsCanonical(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::CanonicalLink>(this->dataPtr->id);
+  return comp != nullptr;
+}
+
+//////////////////////////////////////////////////
+bool Link::WindMode(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::WindMode>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return false;
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Pose3d> Link::WorldPose(
     const EntityComponentManager &_ecm) const
 {
-  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
-  if (!worldPose)
-    return std::nullopt;
-
-  return std::make_optional(worldPose->Data());
+  return _ecm.ComponentData<components::WorldPose>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -136,13 +197,7 @@ std::optional<math::Pose3d> Link::WorldInertialPose(
 std::optional<math::Vector3d> Link::WorldLinearVelocity(
     const EntityComponentManager &_ecm) const
 {
-  auto worldLinVel =
-      _ecm.Component<components::WorldLinearVelocity>(this->dataPtr->id);
-
-  if (!worldLinVel)
-    return std::nullopt;
-
-  return std::make_optional(worldLinVel->Data());
+  return _ecm.ComponentData<components::WorldLinearVelocity>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -169,26 +224,16 @@ std::optional<math::Vector3d> Link::WorldLinearVelocity(
 std::optional<math::Vector3d> Link::WorldAngularVelocity(
     const EntityComponentManager &_ecm) const
 {
-  auto worldAngVel =
-      _ecm.Component<components::WorldAngularVelocity>(this->dataPtr->id);
-
-  if (!worldAngVel)
-    return std::nullopt;
-
-  return std::make_optional(worldAngVel->Data());
+  return _ecm.ComponentData<components::WorldAngularVelocity>(
+      this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
 std::optional<math::Vector3d> Link::WorldLinearAcceleration(
     const EntityComponentManager &_ecm) const
 {
-  auto worldLinAccel =
-      _ecm.Component<components::WorldLinearAcceleration>(this->dataPtr->id);
-
-  if (!worldLinAccel)
-    return std::nullopt;
-
-  return std::make_optional(worldLinAccel->Data());
+  return _ecm.ComponentData<components::WorldLinearAcceleration>(
+      this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////

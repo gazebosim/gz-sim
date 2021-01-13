@@ -18,7 +18,12 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 
+#include <algorithm>
 #include <iostream>
+#include <map>
+#include <queue>
+#include <string>
+#include <vector>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/common/Console.hh>
@@ -93,10 +98,10 @@ AlignTool::AlignTool()
   : GuiSystem(), dataPtr(std::make_unique<AlignToolPrivate>())
 {
   // Deselect all entities upon loading plugin
-  auto deselectEvent = new gui::events::DeselectAllEntities(true);
+  gui::events::DeselectAllEntities deselectEvent(true);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      deselectEvent);
+      &deselectEvent);
 }
 
 /////////////////////////////////////////////////

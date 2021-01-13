@@ -15,7 +15,13 @@
  *
  */
 
+#include "Altimeter.hh"
+
 #include <ignition/msgs/altimeter.pb.h>
+
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -33,11 +39,10 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "Altimeter.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -107,7 +112,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
       dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          common::Time(time.first, time.second), false);
+          math::secNsecToDuration(time.first, time.second), false);
     }
   }
 
@@ -138,6 +143,13 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         std::unique_ptr<sensors::AltimeterSensor> sensor =
             this->sensorFactory.CreateSensor<
             sensors::AltimeterSensor>(data);
+        if (nullptr == sensor)
+        {
+          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+                 << std::endl;
+          return true;
+        }
+
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
@@ -149,6 +161,9 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         double verticalReference = worldPose(_entity, _ecm).Pos().Z();
         sensor->SetVerticalReference(verticalReference);
         sensor->SetPosition(verticalReference);
+
+        // Set topic
+        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));

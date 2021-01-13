@@ -6,6 +6,7 @@ set(tests
   apply_joint_force_system.cc
   battery_plugin.cc
   breadcrumbs.cc
+  buoyancy.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -17,11 +18,15 @@ set(tests
   follow_actor_system.cc
   imu_system.cc
   joint_controller_system.cc
+  joint_position_controller_system.cc
+  joint_state_publisher_system.cc
+  kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
   link.cc
   logical_camera_system.cc
+  logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
   multicopter.cc
@@ -38,12 +43,16 @@ set(tests
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
+  velocity_control_system.cc
   log_system.cc
+  wheel_slip.cc
   wind_effects.cc
+  world.cc
 )
 
 # Tests that require a valid display
 set(tests_needing_display
+  camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc

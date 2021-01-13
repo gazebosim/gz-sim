@@ -7,7 +7,7 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
 
@@ -119,6 +119,15 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.5</mu>
+                <mu2>1</mu2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -153,6 +162,15 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.5</mu>
+                <mu2>1</mu2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -187,6 +205,15 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.5</mu>
+                <mu2>1</mu2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -221,6 +248,15 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.5</mu>
+                <mu2>1</mu2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -274,7 +310,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-diff-drive-system.so"
+        filename="ignition-gazebo-diff-drive-system"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>

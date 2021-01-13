@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/Server.hh"
 
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
@@ -23,58 +22,51 @@
 #include <sdf/Error.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/Util.hh"
+
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition;
+using namespace gazebo;
+
+//////////////////////////////////////////////////
+// Getting the first .sdf file in the path
+std::string findFuelResourceSdf(const std::string &_path)
+{
+  if (!common::exists(_path))
+    return "";
+
+  for (common::DirIter file(_path); file != common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (!common::isFile(current))
+      continue;
+
+    auto fileName = common::basename(current);
+    auto fileExtensionIndex = fileName.rfind(".");
+    auto fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+    if (fileExtension == "sdf")
+    {
+      return current;
+    }
+  }
+  return "";
+}
 
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
 {
-  /// \brief Get the default plugins as a string.
-  /// \return An SDF string that contains the default plugins.
-  public: static std::string &DefaultPlugins(const ServerConfig &_config)
-  {
-    std::vector<std::string> pluginsV = {
-      {
-        std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
-        "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-      }};
-
-    // The set of default gazebo plugins.
-    if (_config.LogPlaybackPath().empty())
-    {
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-        "name='ignition::gazebo::systems::Physics'></plugin>");
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
-        "name='ignition::gazebo::systems::UserCommands'></plugin>");
-    }
-
-    // Playback plugin
-    else
-    {
-      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so' "
-        "name='ignition::gazebo::systems::LogPlayback'><path>" +
-        _config.LogPlaybackPath() + "</path></plugin>");
-    }
-
-    static std::string plugins = std::accumulate(pluginsV.begin(),
-      pluginsV.end(), std::string(""));
-    return plugins;
-  }
-
   /// \brief Get the default world as a string.
+  /// Plugins will be loaded from the server.config file.
   /// \return An SDF string that contains the default world.
-  public: static std::string &World(const ServerConfig &_config)
+  public: static std::string &World()
   {
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
         "<world name='default'>") +
-          DefaultPlugins(_config) +
         "</world>"
       "</sdf>";
 
@@ -100,6 +92,8 @@ Server::Server(const ServerConfig &_config)
   common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
       this->dataPtr.get(), std::placeholders::_1));
 
+  addResourcePaths();
+
   sdf::Errors errors;
 
   // Load a world if specified. Check SDF string first, then SDF file
@@ -119,10 +113,51 @@ Server::Server(const ServerConfig &_config)
   }
   else if (!_config.SdfFile().empty())
   {
-    common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
-    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
-    std::string filePath = systemPaths.FindFile(_config.SdfFile());
+    std::string filePath;
+
+    // Check Fuel if it's a URL
+    auto sdfUri = common::URI(_config.SdfFile());
+    if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+    {
+      std::string fuelCachePath;
+      if (this->dataPtr->fuelClient->CachedWorld(common::URI(_config.SdfFile()),
+          fuelCachePath))
+      {
+        filePath = findFuelResourceSdf(fuelCachePath);
+      }
+      else if (auto result = this->dataPtr->fuelClient->DownloadWorld(
+          common::URI(_config.SdfFile()), fuelCachePath))
+      {
+        filePath = findFuelResourceSdf(fuelCachePath);
+      }
+      else
+      {
+        ignwarn << "Fuel couldn't download URL [" << _config.SdfFile()
+                << "], error: [" << result.ReadableResult() << "]"
+                << std::endl;
+      }
+    }
+
+    if (filePath.empty())
+    {
+      common::SystemPaths systemPaths;
+
+      // Worlds from environment variable
+      systemPaths.SetFilePathEnv(kResourcePathEnv);
+
+      // Worlds installed with ign-gazebo
+      systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+      filePath = systemPaths.FindFile(_config.SdfFile());
+    }
+
+    if (filePath.empty())
+    {
+      ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+             << std::endl;
+      return;
+    }
+
     ignmsg << "Loading SDF world file[" << filePath << "].\n";
 
     // \todo(nkoenig) Async resource download.
@@ -137,7 +172,7 @@ Server::Server(const ServerConfig &_config)
     ignmsg << "Loading default world.\n";
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World(_config));
+    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
   }
 
   if (!errors.empty())
@@ -214,6 +249,18 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   }
 
   return false;
+}
+
+/////////////////////////////////////////////////
+bool Server::RunOnce(const bool _paused)
+{
+  if (_paused)
+  {
+    for (auto &runner : this->dataPtr->simRunners)
+      runner->SetNextStepAsBlockingPaused(true);
+  }
+
+  return this->Run(true, 1, _paused);
 }
 
 /////////////////////////////////////////////////
@@ -352,4 +399,3 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 
   return false;
 }
-

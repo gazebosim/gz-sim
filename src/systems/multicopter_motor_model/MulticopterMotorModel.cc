@@ -20,7 +20,11 @@
  * limitations under the License.
  *
  */
+
+#include "MulticopterMotorModel.hh"
+
 #include <mutex>
+#include <string>
 
 #include <ignition/common/Profiler.hh>
 
@@ -45,8 +49,6 @@
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "MulticopterMotorModel.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
@@ -355,8 +357,14 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
           this->dataPtr->refMotorInput);
 
   // Subscribe to actuator command messages
-  std::string topic{this->dataPtr->robotNamespace + "/"
-                  + this->dataPtr->commandSubTopic};
+  std::string topic = transport::TopicUtils::AsValidTopic(
+      this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
+  if (topic.empty())
+  {
+    ignerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
+           << "]" << std::endl;
+    return;
+  }
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }

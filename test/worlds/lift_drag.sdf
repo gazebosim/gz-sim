@@ -4,7 +4,7 @@
   <world name="default">
 
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
 
@@ -166,7 +166,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
@@ -184,7 +184,7 @@
         <link_name>wing_1</link_name>
       </plugin>
       <plugin
-        filename="libignition-gazebo-lift-drag-system.so"
+        filename="ignition-gazebo-lift-drag-system"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>

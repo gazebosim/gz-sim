@@ -15,9 +15,14 @@
  *
  */
 
+#include "WindEffects.hh"
+
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+
+#include <string>
+#include <vector>
 
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
@@ -43,8 +48,6 @@
 #include "ignition/gazebo/components/WindMode.hh"
 
 #include "ignition/gazebo/Link.hh"
-
-#include "WindEffects.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -302,12 +305,20 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
 {
+  auto validWorldName = transport::TopicUtils::AsValidTopic(_worldName);
+  if (validWorldName.empty())
+  {
+    ignerr << "Failed to setup transport, invalid world name [" << _worldName
+           << "]" << std::endl;
+    return;
+  }
+
   // Wind seed velocity topic
-  this->node.Subscribe("/world/" + _worldName + "/wind",
+  this->node.Subscribe("/world/" + validWorldName + "/wind",
                        &WindEffectsPrivate::OnWindMsg, this);
 
   // Wind info service
-  this->node.Advertise("/world/" + _worldName + "/wind_info",
+  this->node.Advertise("/world/" + validWorldName + "/wind_info",
                        &WindEffectsPrivate::WindInfoService, this);
 }
 

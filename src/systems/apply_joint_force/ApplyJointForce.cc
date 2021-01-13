@@ -14,14 +14,18 @@
  * limitations under the License.
  *
  */
+
+#include "ApplyJointForce.hh"
+
+#include <string>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "ApplyJointForce.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -90,8 +94,15 @@ void ApplyJointForce::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
-                    this->dataPtr->jointName + "/cmd_force"};
+  auto topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
+      "/cmd_force");
+  if (topic.empty())
+  {
+    ignerr << "Failed to create valid topic for [" << this->dataPtr->jointName
+           << "]" << std::endl;
+    return;
+  }
   this->dataPtr->node.Subscribe(topic, &ApplyJointForcePrivate::OnCmdForce,
                                 this->dataPtr.get());
 

@@ -11,17 +11,21 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-sensors-system.so"
+      filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
 
     <gui fullscreen="0">
@@ -186,7 +190,7 @@
             <specular>1 0 0 1</specular>
           </material>
           <plugin
-            filename="libignition-gazebo-thermal-system.so"
+            filename="ignition-gazebo-thermal-system"
             name="ignition::gazebo::systems::Thermal">
             <temperature>200.0</temperature>
           </plugin>
@@ -228,7 +232,7 @@
             <specular>0 0 1 1</specular>
           </material>
           <plugin
-            filename="libignition-gazebo-thermal-system.so"
+            filename="ignition-gazebo-thermal-system"
             name="ignition::gazebo::systems::Thermal">
             <temperature>600.0</temperature>
           </plugin>
@@ -272,7 +276,7 @@
             <specular>0 1 0 1</specular>
           </material>
           <plugin
-            filename="libignition-gazebo-thermal-system.so"
+            filename="ignition-gazebo-thermal-system"
             name="ignition::gazebo::systems::Thermal">
             <temperature>400.0</temperature>
           </plugin>

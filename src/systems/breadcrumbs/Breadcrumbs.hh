@@ -19,10 +19,12 @@
 
 #include <memory>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
 #include <sdf/Root.hh>
 
 #include <ignition/transport/Node.hh>
@@ -63,7 +65,8 @@ namespace systems
   /// have no effect. If a negative number is set, the maximum deployment will
   /// be unbounded. If a value of zero is used, then the breadcrumb system will
   /// be disabled. A zero value is useful for situations where SDF files are
-  /// programmatically created.
+  /// programmatically created. The remaining deployment count is available on
+  /// the `<topic>/remaining` topic.
   /// `<disable_physics_time>`: The time in which the breadcrumb entity's
   /// dynamics remain enabled. After his specified time, the breadcrumb will
   /// be made static. If this value is <= 0 or the param is not specified, the
@@ -77,6 +80,9 @@ namespace systems
   /// Defaults to false.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
+  /// `<topic_statistics>`: If true, then topic statistics are enabled on
+  /// `<topic>` and error messages will be generated when messages are
+  /// dropped. Default to false.
   class IGNITION_GAZEBO_VISIBLE Breadcrumbs
       : public System,
         public ISystemConfigure,
@@ -158,6 +164,15 @@ namespace systems
 
     /// \brief SDF DOM of a static model with empty link
     private: sdf::Model staticModelToSpawn;
+
+    /// \brief Publishes remaining deployments.
+    public: transport::Node::Publisher remainingPub;
+
+    /// \brief True when topic statistics are enabled.
+    public: bool topicStatistics{false};
+
+    /// \brief Name of the deploy topic.
+    public: std::string topic;
   };
   }
 }

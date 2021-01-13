@@ -48,7 +48,9 @@
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
@@ -76,6 +78,9 @@ namespace ignition::gazebo
 
     /// \brief Entity type, such as 'world' or 'model'.
     public: QString type;
+
+    /// \brief Nested model or not
+    public: bool nestedModel = false;
 
     /// \brief Whether currently locked on a given entity
     public: bool locked{false};
@@ -256,7 +261,8 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
           std::pair(102, "shortName"),
           std::pair(103, "dataType"),
           std::pair(104, "unit"),
-          std::pair(105, "data")};
+          std::pair(105, "data"),
+          std::pair(106, "entity")};
 }
 
 /////////////////////////////////////////////////
@@ -308,6 +314,17 @@ void ComponentInspector::Update(const UpdateInfo &,
     if (typeId == components::Model::typeId)
     {
       this->SetType("model");
+
+      // check if entity is nested model
+      auto parentComp = _ecm.Component<components::ParentEntity>(
+           this->dataPtr->entity);
+      if (parentComp)
+      {
+        auto modelComp = _ecm.Component<components::Model>(parentComp->Data());
+        this->dataPtr->nestedModel = (modelComp);
+      }
+      this->NestedModelChanged();
+
       continue;
     }
 
@@ -382,6 +399,9 @@ void ComponentInspector::Update(const UpdateInfo &,
           Q_RETURN_ARG(QStandardItem *, item),
           Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
+
+    item->setData(QString::number(this->dataPtr->entity),
+                  ComponentsModel::RoleNames().key("entity"));
 
     if (nullptr == item)
     {
@@ -513,10 +533,24 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::TrajectoryPose::typeId)
+    else if (typeId == components::SelfCollide::typeId)
     {
-      auto comp = _ecm.Component<components::TrajectoryPose>(
-          this->dataPtr->entity);
+      auto comp =
+          _ecm.Component<components::SelfCollide>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::SensorTopic::typeId)
+    {
+      auto comp =
+          _ecm.Component<components::SensorTopic>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::SourceFilePath::typeId)
+    {
+      auto comp =
+          _ecm.Component<components::SourceFilePath>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
@@ -692,6 +726,12 @@ void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
   auto poseCmdService = "/world/" + this->dataPtr->worldName
       + "/set_pose";
   this->dataPtr->node.Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::NestedModel() const
+{
+  return this->dataPtr->nestedModel;
 }
 
 // Register this plugin

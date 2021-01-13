@@ -1,6 +1,11 @@
 <?xml version="1.0" ?>
 <!--
   World containing a long tunnel and a vehicle.
+
+  Run with `--levels` for the tunnels to load and unload as the vehicle moves.
+
+  Use the WASDX keys to drive the vehicle.
+
 -->
 <sdf version="1.6">
   <world name="diff_drive">
@@ -15,19 +20,6 @@
       <grid>false</grid>
       <origin_visual>false</origin_visual>
     </scene>
-
-    <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
-    </plugin>
 
     <gui fullscreen="0">
 
@@ -66,8 +58,6 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/diff_drive/control</service>
-        <stats_topic>/world/diff_drive/stats</stats_topic>
 
       </plugin>
 
@@ -92,193 +82,295 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/diff_drive/stats</topic>
-
       </plugin>
 
+      <!-- Inspector -->
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <ignition-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </ignition-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename="ImageDisplay" name="Image Display">
+        <ignition-gui>
+          <title>Vehicle camera</title>
+          <property key="state" type="string">docked</property>
+        </ignition-gui>
+        <topic>camera</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+
+      <!-- Translate / rotate -->
+      <plugin filename="TransformControl" name="Transform control">
+        <ignition-gui>
+          <title>Transform control</title>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">230</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </ignition-gui>
+      </plugin>
+
+      <!-- Insert simple shapes -->
+      <plugin filename="Shapes" name="Shapes">
+        <ignition-gui>
+          <anchors target="Transform control">
+            <line own="left" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">200</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename="KeyPublisher" name="Key publisher">
+        <ignition-gui>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
     </gui>
 
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
 
-    <!-- The base station / staging area -->
     <include>
       <static>true</static>
-      <name>BaseStation</name>
-      <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/subt_tunnel_staging_area</uri>
+      <name>staging_area</name>
+      <pose>0 0 -0.005 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/subt_tunnel_staging_area</uri>
     </include>
 
-    <!-- Fiducial marking the origin for artifacts reports -->
     <include>
-      <name>artifact_origin</name>
-      <pose>2 4 0.5 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Fiducial</uri>
+      <pose>9.23 2.18 0 0 0 -1.226</pose>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/chapulina/models/Extinguisher PBR
+      </uri>
     </include>
+
+    <light name="spotlight" type="spot">
+      <pose>0 0 5 0 0 0</pose>
+      <attenuation>
+        <range>6</range>
+        <linear>0.2</linear>
+        <constant>0.1</constant>
+        <quadratic>0.0025</quadratic>
+      </attenuation>
+      <diffuse>0.8 0.8 0.5 1</diffuse>
+      <specular>0.8 0.8 0.5 1</specular>
+      <spot>
+        <inner_angle>1</inner_angle>
+        <outer_angle>1.1</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+      <direction>0 0 -1</direction>
+      <cast_shadows>1</cast_shadows>
+    </light>
 
     <!-- Tunnel tiles and artifacts -->
     <include>
       <name>tile_0</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>240.000000 240.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_1</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>260.000000 240.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_2</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Constrained Tunnel Tile Tall</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Tall</uri>
       <pose>280.000000 240.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_3</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>300.000000 240.000000 -15.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>tile_4</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>160.000000 211.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_5</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>240.000000 220.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>radio_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Radio
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio
       </uri>
       <pose>241.500000 220.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_6</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>300.000000 220.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_7</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>69.000000 200.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_8</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_9</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>100.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_10</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>120.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_11</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_12</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>160.000000 200.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_13</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>180.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_14</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_15</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>220.000000 200.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_16</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>240.000000 200.000000 -15.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_17</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>300.000000 200.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_18</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>160.000000 180.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>backpack_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack
       </uri>
       <pose>219.000000 202.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_19</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>260.000000 180.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_20</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 180.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_21</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>300.000000 180.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_22</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>320.000000 180.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_23</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>340.000000 180.000000 -15.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>tile_24</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Constrained Tunnel Tile Tall
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Tall
       </uri>
       <pose>160.000000 160.000000 -15.000000 0 0 0.000000</pose>
     </include>
@@ -286,509 +378,509 @@
     <include>
       <name>phone_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Phone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone
       </uri>
       <pose>260.000000 160.000000 -14.996000 -1.570796 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_25</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>260.000000 160.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_26</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>300.000000 169.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_27</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>340.000000 160.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>toolbox_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Toolbox
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Toolbox
       </uri>
       <pose>342.000000 160.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_28</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>60.000000 131.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_29</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>80.000000 131.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_30</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>160.000000 140.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>extinguisher_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Extinguisher
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Extinguisher
       </uri>
       <pose>158.000000 140.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_31</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>260.000000 149.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_32</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>340.000000 149.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_33</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>60.000000 120.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_34</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>80.000000 120.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_35</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>100.000000 120.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_36</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>120.000000 120.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_37</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 120.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_38</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>160.000000 120.000000 -15.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_39</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 100.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_40</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>200.000000 100.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_41</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>220.000000 100.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_42</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>240.000000 100.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_43</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>260.000000 100.000000 -15.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>radio_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Radio
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio
       </uri>
       <pose>260.000000 82.300000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_44</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 80.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_45</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 80.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_46</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>260.000000 80.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_47</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>280.000000 80.000000 -15.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>tile_48</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 6</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 6</uri>
       <pose>80.000000 60.000000 -15.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_49</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 60.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_50</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 60.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>toolbox_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Toolbox
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Toolbox
       </uri>
       <pose>278.000000 60.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_51</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 40.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_52</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 40.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_53</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 40.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_54</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 20.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_55</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 20.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>phone_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Phone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone
       </uri>
       <pose>201.800000 20.000000 -14.996000 -1.570796 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_56</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 20.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_57</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>320.000000 20.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_58</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>340.000000 20.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_59</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>360.000000 20.000000 -20.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>electrical_box_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Electrical Box
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Electrical Box
       </uri>
       <pose>400.000000 -1.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_60</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>20.000000 0.000000 0.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_61</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 6</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 6</uri>
       <pose>40.000000 0.000000 -5.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_62</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 6</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 6</uri>
       <pose>60.000000 0.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_63</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>80.000000 0.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_64</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>100.000000 0.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_65</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>120.000000 0.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_66</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 0.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_67</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 6</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 6</uri>
       <pose>160.000000 0.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_68</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>180.000000 0.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_69</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>200.000000 0.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_70</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>211.000000 0.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_71</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>269.000000 0.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_72</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>280.000000 0.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_73</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 6</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 6</uri>
       <pose>300.000000 0.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_74</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>320.000000 0.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_75</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>340.000000 0.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_76</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 1</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 1</uri>
       <pose>360.000000 0.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_77</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>380.000000 0.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_78</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>400.000000 0.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_79</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>411.000000 0.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_80</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 7</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 7</uri>
       <pose>80.000000 -20.000000 -10.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_81</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 -20.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_82</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 -20.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_83</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>320.000000 -20.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_84</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>340.000000 -20.000000 -20.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_85</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>360.000000 -20.000000 -20.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_86</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 -40.000000 -5.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_87</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 -40.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_88</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 -40.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>backpack_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack
       </uri>
       <pose>340.000000 -22.000000 -20.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_89</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>80.000000 -60.000000 -5.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_90</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>200.000000 -60.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_91</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>220.000000 -60.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_92</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>240.000000 -60.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_93</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>260.000000 -60.000000 -15.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_94</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>280.000000 -60.000000 -15.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_95</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>80.000000 -80.000000 -5.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_96</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 7</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 7</uri>
       <pose>100.000000 -80.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_97</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>120.000000 -80.000000 -10.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>phone_3</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Phone
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Phone
       </uri>
       <pose>120.800000 -98.400000 -9.996000 1.570796 0 0.000000</pose>
     </include>
@@ -796,186 +888,763 @@
     <include>
       <name>valve_1</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Valve
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Valve
       </uri>
       <pose>240.000000 -58.000000 -15.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_98</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>120.000000 -100.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_99</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>140.000000 -100.000000 -10.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>tile_100</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 -120.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>valve_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Valve
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Valve
       </uri>
       <pose>141.750000 -119.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_101</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 -140.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_102</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Constrained Tunnel Tile Short
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Constrained Tunnel Tile Short
       </uri>
       <pose>140.000000 -160.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_103</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile Blocker</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
       <pose>280.000000 -169.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>electrical_box_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Electrical Box
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Electrical Box
       </uri>
       <pose>138.000000 -180.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_104</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 -180.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>backpack_3</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Backpack
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack
       </uri>
       <pose>180.000000 -198.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_105</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 -180.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_106</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>140.000000 -200.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_107</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>160.000000 -200.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_108</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>180.000000 -200.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_109</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>200.000000 -200.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_110</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>220.000000 -200.000000 -10.000000 0 0 4.712389</pose>
     </include>
 
     <include>
       <name>tile_111</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 -200.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_112</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>140.000000 -220.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_113</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>160.000000 -220.000000 -10.000000 0 0 3.141593</pose>
     </include>
 
     <include>
       <name>tile_114</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>220.000000 -220.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_115</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>280.000000 -220.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>extinguisher_2</name>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Extinguisher
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Extinguisher
       </uri>
       <pose>278.000000 -220.000000 -10.000000 0 0 0.000000</pose>
     </include>
 
     <include>
       <name>tile_116</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>220.000000 -240.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_117</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>240.000000 -240.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_118</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 5</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 5</uri>
       <pose>260.000000 -240.000000 -10.000000 0 0 1.570796</pose>
     </include>
 
     <include>
       <name>tile_119</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Tunnel Tile 2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 2</uri>
       <pose>280.000000 -240.000000 -10.000000 0 0 3.141593</pose>
     </include>
+    <model name="vehicle">
+        <link name="base_link">
+            <inertial>
+                <pose>0.002225 0.033355 0.022792 0 -0 0</pose>
+                <mass>111.0015</mass>
+                <inertia>
+                    <ixx>4.49753</ixx>
+                    <ixy>0.00199937</ixy>
+                    <ixz>-0.00152659</ixz>
+                    <iyy>2.46329</iyy>
+                    <iyz>-0.424901</iyz>
+                    <izz>5.57714</izz>
+                </inertia>
+            </inertial>
+            <collision name="base_link_collision">
+                <pose>0.25 0 0.0480 0 0 0</pose>
+                <geometry>
+                    <box>
+                        <size>0.6 0.55 0.428</size>
+                    </box>
+                </geometry>
+            </collision>
+            <collision name="base_link_fixed_joint_lump__sensor_payload_link_collision_1">
+                <pose>0.38 0 0.4 0 0 0</pose>
+                <geometry>
+                    <box>
+                        <size>0.28 0.28 0.4</size>
+                    </box>
+                </geometry>
+            </collision>
+            <visual name="connection_visual">
+                <pose>0 0 0 0 1.5707 0</pose>
+                <geometry>
+                    <cylinder>
+                        <length>0.5</length>
+                        <radius>0.05</radius>
+                    </cylinder>
+                </geometry>
+            </visual>
+            <visual name="base_link_visual">
+                <pose>0.180 0 .24 0 0 -1.5707963267948966</pose>
+                <geometry>
+                    <mesh>
+                        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/meshes/r2.dae</uri>
+                        <submesh>
+                            <name>BodyFront</name>
+                            <center>true</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Albedo.png</albedo_map>
+                            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Metalness.png</metalness_map>
+                            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                </material>
+            </visual>
+            <light name="front_light" type="spot">
+                <pose frame="">0.49 0 0.45 1.5707963267948966 1.5707963267948966 -1.5707963267948966</pose>
+                <attenuation>
+                    <range>50</range>
+                    <linear>0</linear>
+                    <constant>0.1</constant>
+                    <quadratic>0.0025</quadratic>
+                </attenuation>
+                <diffuse>0.8 0.8 0.5 1</diffuse>
+                <specular>0.8 0.8 0.5 1</specular>
+                <spot>
+                    <inner_angle>1</inner_angle>
+                    <outer_angle>1.1</outer_angle>
+                    <falloff>1</falloff>
+                </spot>
+                <direction>0 -1 0</direction>
+                <cast_shadows>1</cast_shadows>
+            </light>
+        <sensor name="camera" type="camera">
+          <pose>0.55 0 0.33 0 0 0</pose>
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>camera</topic>
+        </sensor>
+        </link>
+        <link name="Rear_Rocker_Link">
+            <pose>-0.047625 0 -0.0254 1.5707963267948966 0 0</pose>
+            <inertial>
+                <pose>-0.191018 -0.006403 -0 0 -0 0</pose>
+                <mass>42.8393</mass>
+                <inertia>
+                    <ixx>0.848992</ixx>
+                    <ixy>0.00301842</ixy>
+                    <ixz>5.21788e-06</ixz>
+                    <iyy>1.03049</iyy>
+                    <iyz>1.2171e-07</iyz>
+                    <izz>0.43679</izz>
+                </inertia>
+            </inertial>
+            <collision name="Rear_Rocker_Link_collision">
+                <pose>-0.2 0.072 0 0 0 0</pose>
+                <geometry>
+                    <box>
+                        <size>0.42 0.43 0.56</size>
+                    </box>
+                </geometry>
+            </collision>
+            <collision name="Rear_Rocker_Link_platform_collision1">
+                <pose>-0.70 0.2855 0 -0.005 0 0</pose>
+                <geometry>
+                    <box>
+                        <size>0.17 0.01 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <collision name="Rear_Rocker_Link_platform_collision2">
+                <pose>-0.35 0.2855 -0.005 -0.005 0 0</pose>
+                <geometry>
+                    <box>
+                        <size>0.678 0.01 0.69</size>
+                    </box>
+                </geometry>
+            </collision>
+            <visual name="BodyRear_visual">
+                <pose>-0.428 0.068 0 -1.5707963267948966 -1.5707963267948966 0</pose>
+                <geometry>
+                    <mesh>
+                        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/meshes/r2.dae</uri>
+                        <submesh>
+                            <name>BodyRear</name>
+                            <center>true</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Albedo.png</albedo_map>
+                            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Metalness.png</metalness_map>
+                            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                </material>
+            </visual>
+        </link>
+        <joint name="Center Pivot" type="revolute">
+            <child>Rear_Rocker_Link</child>
+            <parent>base_link</parent>
+            <axis>
+                <xyz>-1 0 0</xyz>
+                <limit>
+                    <lower>-0.5236</lower>
+                    <upper>0.5236</upper>
+                </limit>
+                <dynamics>
+                    <damping>10</damping>
+                    <friction>0.1</friction>
+                    <spring_reference>0.1</spring_reference>
+                    <spring_stiffness>100</spring_stiffness>
+                </dynamics>
+                <use_parent_model_frame>0</use_parent_model_frame>
+            </axis>
+        </joint>
+        <link name="left_front_wheel_link">
+            <pose>0.33421 0.363 -0.091538 -0.013747 -0 -1.5707963267948966</pose>
+            <inertial>
+                <pose>0.007124 -1.6e-05 4e-06 0 -0 0</pose>
+                <mass>11.5398</mass>
+                <inertia>
+                    <ixx>0.127932</ixx>
+                    <ixy>6.41777e-06</ixy>
+                    <ixz>2.40271e-06</ixz>
+                    <iyy>0.0695645</iyy>
+                    <iyz>1.35439e-09</iyz>
+                    <izz>0.0695643</izz>
+                </inertia>
+            </inertial>
+            <collision name="left_front_wheel_link_collision">
+                <pose>0 0 0 3.1415926535897931 1.5707963267948966 3.1415926535897931</pose>
+                <geometry>
+                    <cylinder>
+                        <length>0.1125</length>
+                        <radius>0.31</radius>
+                    </cylinder>
+                </geometry>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>0.5</mu>
+                            <mu2>1</mu2>
+                            <fdir1>0 0 1</fdir1>
+                            <slip1>0.0000235</slip1>
+                            <slip2>0</slip2>
+                            <max_vel>10</max_vel>
+                            <min_depth>0.1</min_depth>
+                        </ode>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>1e+07</kp>
+                            <kd>0.0001</kd>
+                        </ode>
+                    </contact>
+                </surface>
+            </collision>
+            <visual name="left_front_wheel_link_visual">
+                <geometry>
+                    <mesh>
+                        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/meshes/r2.dae</uri>
+                        <submesh>
+                            <name>WheelFL</name>
+                            <center>true</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Albedo.png</albedo_map>
+                            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Metalness.png</metalness_map>
+                            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                </material>
+            </visual>
+        </link>
+        <joint name="left_front_wheel" type="revolute">
+            <child>left_front_wheel_link</child>
+            <parent>base_link</parent>
+            <axis>
+                <xyz>-1 0 0</xyz>
+                <limit>
+                    <lower>-1e+16</lower>
+                    <upper>1e+16</upper>
+                </limit>
+                <dynamics>
+                    <damping>10</damping>
+                    <friction>0.1</friction>
+                    <spring_reference>0</spring_reference>
+                    <spring_stiffness>0</spring_stiffness>
+                </dynamics>
+                <use_parent_model_frame>0</use_parent_model_frame>
+            </axis>
+        </joint>
+        <link name="left_rear_wheel_link">
+            <pose>-0.334625 0.363 -0.083399 -0.014389 0.000148 -1.5707963267948966</pose>
+            <inertial>
+                <pose>0.007124 -1.6e-05 4e-06 0 -0 0</pose>
+                <mass>11.5398</mass>
+                <inertia>
+                    <ixx>0.127932</ixx>
+                    <ixy>6.41777e-06</ixy>
+                    <ixz>2.40271e-06</ixz>
+                    <iyy>0.0695645</iyy>
+                    <iyz>1.35439e-09</iyz>
+                    <izz>0.0695643</izz>
+                </inertia>
+            </inertial>
+            <collision name="left_rear_wheel_link_collision">
+                <pose>0 0 0 3.1415926535897931 1.5707963267948966 3.1415926535897931</pose>
+                <geometry>
+                    <cylinder>
+                        <length>0.1125</length>
+                        <radius>0.31</radius>
+                    </cylinder>
+                </geometry>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>0.5</mu>
+                            <mu2>1</mu2>
+                            <fdir1>0 0 1</fdir1>
+                            <slip1>0.0000235</slip1>
+                            <slip2>0</slip2>
+                            <max_vel>10</max_vel>
+                            <min_depth>0.1</min_depth>
+                        </ode>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>1e+07</kp>
+                            <kd>0.0001</kd>
+                        </ode>
+                    </contact>
+                </surface>
+            </collision>
+            <visual name="left_rear_wheel_link_visual">
+                <geometry>
+                    <mesh>
+                        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/meshes/r2.dae</uri>
+                        <submesh>
+                            <name>WheelBL</name>
+                            <center>true</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Albedo.png</albedo_map>
+                            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Metalness.png</metalness_map>
+                            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                </material>
+            </visual>
+        </link>
+        <joint name="left_rear_wheel" type="revolute">
+            <child>left_rear_wheel_link</child>
+            <parent>Rear_Rocker_Link</parent>
+            <axis>
+                <xyz>-1 0 0</xyz>
+                <limit>
+                    <lower>-1e+16</lower>
+                    <upper>1e+16</upper>
+                </limit>
+                <dynamics>
+                    <damping>10</damping>
+                    <friction>0.1</friction>
+                    <spring_reference>0</spring_reference>
+                    <spring_stiffness>0</spring_stiffness>
+                </dynamics>
+                <use_parent_model_frame>0</use_parent_model_frame>
+            </axis>
+        </joint>
+        <link name="right_front_wheel_link">
+            <pose>0.33421 -0.363 -0.091538 -0.013747 -0 1.5707963267948966</pose>
+            <inertial>
+                <pose>0.007124 -1.6e-05 4e-06 0 -0 0</pose>
+                <mass>11.5398</mass>
+                <inertia>
+                    <ixx>0.127932</ixx>
+                    <ixy>6.41777e-06</ixy>
+                    <ixz>2.40271e-06</ixz>
+                    <iyy>0.0695645</iyy>
+                    <iyz>1.35439e-09</iyz>
+                    <izz>0.0695643</izz>
+                </inertia>
+            </inertial>
+            <collision name="right_front_wheel_link_collision">
+                <pose>0 0 0 3.1415926535897931 1.5707963267948966 3.1415926535897931</pose>
+                <geometry>
+                    <cylinder>
+                        <length>0.1125</length>
+                        <radius>0.31</radius>
+                    </cylinder>
+                </geometry>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>0.5</mu>
+                            <mu2>1</mu2>
+                            <fdir1>0 0 1</fdir1>
+                            <slip1>0.0000235</slip1>
+                            <slip2>0</slip2>
+                            <max_vel>10</max_vel>
+                            <min_depth>0.1</min_depth>
+                        </ode>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>1e+07</kp>
+                            <kd>0.0001</kd>
+                        </ode>
+                    </contact>
+                </surface>
+            </collision>
+            <visual name="right_front_wheel_link_visual">
+                <geometry>
+                    <mesh>
+                        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/meshes/r2.dae</uri>
+                        <submesh>
+                            <name>WheelFR</name>
+                            <center>true</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Albedo.png</albedo_map>
+                            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Metalness.png</metalness_map>
+                            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                </material>
+            </visual>
+        </link>
+        <joint name="right_front_wheel" type="revolute">
+            <child>right_front_wheel_link</child>
+            <parent>base_link</parent>
+            <axis>
+                <xyz>1 0 0</xyz>
+                <limit>
+                    <lower>-1e+16</lower>
+                    <upper>1e+16</upper>
+                </limit>
+                <dynamics>
+                    <damping>10</damping>
+                    <friction>0.1</friction>
+                    <spring_reference>0</spring_reference>
+                    <spring_stiffness>0</spring_stiffness>
+                </dynamics>
+                <use_parent_model_frame>0</use_parent_model_frame>
+            </axis>
+        </joint>
+        <link name="right_rear_wheel_link">
+            <pose>-0.334625 -0.363 -0.083401 -0.014389 -0.000148 1.5707963267948966</pose>
+            <inertial>
+                <pose>0.007124 -1.6e-05 4e-06 0 -0 0</pose>
+                <mass>11.5398</mass>
+                <inertia>
+                    <ixx>0.127932</ixx>
+                    <ixy>6.41777e-06</ixy>
+                    <ixz>2.40271e-06</ixz>
+                    <iyy>0.0695645</iyy>
+                    <iyz>1.35439e-09</iyz>
+                    <izz>0.0695643</izz>
+                </inertia>
+            </inertial>
+            <collision name="right_rear_wheel_link_collision">
+                <pose>0 0 0 3.1415926535897931 1.5707963267948966 3.1415926535897931</pose>
+                <geometry>
+                    <cylinder>
+                        <length>0.1125</length>
+                        <radius>0.31</radius>
+                    </cylinder>
+                </geometry>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>0.5</mu>
+                            <mu2>1</mu2>
+                            <fdir1>0 0 1</fdir1>
+                            <slip1>0.0000235</slip1>
+                            <slip2>0</slip2>
+                            <max_vel>10</max_vel>
+                            <min_depth>0.1</min_depth>
+                        </ode>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>1e+07</kp>
+                            <kd>0.0001</kd>
+                        </ode>
+                    </contact>
+                </surface>
+            </collision>
+            <visual name="right_rear_wheel_link_visual">
+                <geometry>
+                    <mesh>
+                        <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/meshes/r2.dae</uri>
+                        <submesh>
+                            <name>WheelBR</name>
+                            <center>true</center>
+                        </submesh>
+                    </mesh>
+                </geometry>
+                <material>
+                    <diffuse>1.0 1.0 1.0</diffuse>
+                    <specular>1.0 1.0 1.0</specular>
+                    <pbr>
+                        <metal>
+                            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Albedo.png</albedo_map>
+                            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Metalness.png</metalness_map>
+                            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/EXPLORER_R2_SENSOR_CONFIG_2/3/files/materials/textures/R2_Roughness.png</roughness_map>
+                        </metal>
+                    </pbr>
+                </material>
+            </visual>
+        </link>
+        <joint name="right_rear_wheel" type="revolute">
+            <child>right_rear_wheel_link</child>
+            <parent>Rear_Rocker_Link</parent>
+            <axis>
+                <xyz>1 0 0</xyz>
+                <limit>
+                    <lower>-1e+16</lower>
+                    <upper>1e+16</upper>
+                </limit>
+                <dynamics>
+                    <damping>10</damping>
+                    <friction>0.1</friction>
+                    <spring_reference>0</spring_reference>
+                    <spring_stiffness>0</spring_stiffness>
+                </dynamics>
+                <use_parent_model_frame>0</use_parent_model_frame>
+            </axis>
+        </joint>
 
-    <include>
-      <name>x1</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X1 UGV</uri>
-      <pose>0 0 .2 0 0 0</pose>
-    </include>
+      <pose>0 0 0.38 0 0 0.0</pose>
+
+      <plugin
+        filename="ignition-gazebo-diff-drive-system"
+        name="ignition::gazebo::systems::DiffDrive">
+        <left_joint>left_rear_wheel</left_joint>
+        <left_joint>left_front_wheel</left_joint>
+        <right_joint>right_rear_wheel</right_joint>
+        <right_joint>right_front_wheel</right_joint>
+        <wheel_separation>1.25</wheel_separation>
+        <wheel_radius>0.3</wheel_radius>
+        <odom_publish_frequency>1</odom_publish_frequency>
+        <topic>cmd_vel</topic>
+      </plugin>
+
+      <!-- Moving Forward: W -->
+      <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+              name="ignition::gazebo::systems::TriggeredPublisher">
+          <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+              <match field="data">87</match>
+          </input>
+          <output type="ignition.msgs.Twist" topic="/cmd_vel">
+              linear: {x: 2.0}, angular: {z: 0.0}
+          </output>
+      </plugin>
+
+      <!-- Moving Backward: X -->
+      <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+              name="ignition::gazebo::systems::TriggeredPublisher">
+          <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+              <match field="data">88</match>
+          </input>
+          <output type="ignition.msgs.Twist" topic="/cmd_vel">
+              linear: {x: -2.0}, angular: {z: 0.0}
+          </output>
+      </plugin>
+
+      <!-- Rotating right: D -->
+      <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+              name="ignition::gazebo::systems::TriggeredPublisher">
+          <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+              <match field="data">68</match>
+          </input>
+          <output type="ignition.msgs.Twist" topic="/cmd_vel">
+              linear: {x: 0.0}, angular: {z: -0.5}
+          </output>
+      </plugin>
+
+      <!--Rotating left: A -->
+      <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+              name="ignition::gazebo::systems::TriggeredPublisher">
+          <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+              <match field="data">65</match>
+          </input>
+          <output type="ignition.msgs.Twist" topic="/cmd_vel">
+              linear: {x: 0.0}, angular: {z: 0.5}
+          </output>
+      </plugin>
+
+      <!--Stop: S -->
+      <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+              name="ignition::gazebo::systems::TriggeredPublisher">
+          <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+              <match field="data">83</match>
+          </input>
+          <output type="ignition.msgs.Twist" topic="/cmd_vel">
+              linear: {x: 0.0}, angular: {z: 0.0}
+          </output>
+      </plugin>
+
+    </model>
 
     <plugin name="ignition::gazebo" filename="dummy">
       <performer name="perf_x1">
-        <ref>x1</ref>
+        <ref>vehicle</ref>
         <geometry><box><size>2 2 2</size></box></geometry>
       </performer>
 

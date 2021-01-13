@@ -15,15 +15,20 @@
  *
  */
 
+#include "PosePublisher.hh"
+
 #include <ignition/msgs/pose.pb.h>
 
 #include <stack>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <sdf/Joint.hh>
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Time.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -44,7 +49,6 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Model.hh"
-#include "PosePublisher.hh"
 
 using namespace ignition;
 using namespace gazebo;

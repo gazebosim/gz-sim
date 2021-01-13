@@ -20,12 +20,15 @@
 #include <ignition/msgs/empty.pb.h>
 #include <ignition/msgs/twist.pb.h>
 
+#include <regex>
+
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -33,7 +36,8 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/test_config.hh"
 
-#include "../helpers/Relay.hh"
+#include "helpers/Relay.hh"
+#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -47,24 +51,96 @@ class BreadcrumbsTest : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
+  public: void LoadWorld(const std::string &_path, bool _useLevels = false)
+  {
+    this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
+    this->serverConfig.SetSdfFile(
+        common::joinPaths(PROJECT_SOURCE_PATH, _path));
+    this->serverConfig.SetUseLevels(_useLevels);
+
+    this->server = std::make_unique<Server>(this->serverConfig);
+    EXPECT_FALSE(this->server->Running());
+    EXPECT_FALSE(*this->server->Running(0));
+    using namespace std::chrono_literals;
+    this->server->SetUpdatePeriod(1ns);
+  }
+
+  public: ServerConfig serverConfig;
+  public: std::unique_ptr<Server> server;
 };
+
+int kRemaining{-1};
+
+/////////////////////////////////////////////////
+void remainingCb(const msgs::Int32 &_msg)
+{
+  kRemaining = _msg.data();
+}
+
+/////////////////////////////////////////////////
+// This test checks the .../deploy/remaining topic
+TEST_F(BreadcrumbsTest, Remaining)
+{
+  // Start server
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  kRemaining = 0;
+
+  test::Relay testSystem;
+  transport::Node node;
+  auto deployB1 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
+  node.Subscribe("/model/vehicle_blue/breadcrumbs/B1/deploy/remaining",
+      &remainingCb);
+  EXPECT_EQ(0, kRemaining);
+  kRemaining = -1;
+
+  deployB1.Publish(msgs::Empty());
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; kRemaining != 2 && sleep < maxSleep; ++sleep)
+  {
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  EXPECT_EQ(2, kRemaining);
+  kRemaining = -1;
+
+  deployB1.Publish(msgs::Empty());
+  sleep = 0;
+  for (; kRemaining != 1 && sleep < maxSleep; ++sleep)
+  {
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  EXPECT_EQ(1, kRemaining);
+  kRemaining = -1;
+
+  deployB1.Publish(msgs::Empty());
+  sleep = 0;
+  for (; kRemaining != 0 && sleep < maxSleep; ++sleep)
+  {
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  EXPECT_EQ(0, kRemaining);
+  kRemaining = -1;
+
+  deployB1.Publish(msgs::Empty());
+  sleep = 0;
+  for (; kRemaining != 0 && sleep < maxSleep; ++sleep)
+  {
+    this->server->Run(true, 1, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  EXPECT_EQ(0, kRemaining);
+}
 
 /////////////////////////////////////////////////
 // The test checks breadcrumbs are deployed at the correct pose
 TEST_F(BreadcrumbsTest, DeployAtOffset)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -120,8 +196,8 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 2001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 2001, false);
 }
 
 /////////////////////////////////////////////////
@@ -129,17 +205,7 @@ TEST_F(BreadcrumbsTest, DeployAtOffset)
 TEST_F(BreadcrumbsTest, MaxDeployments)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -184,9 +250,10 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 5001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 5001, false);
 }
+
 
 /////////////////////////////////////////////////
 // The test checks that including models from fuel works. Also checks custom
@@ -194,17 +261,7 @@ TEST_F(BreadcrumbsTest, MaxDeployments)
 TEST_F(BreadcrumbsTest, FuelDeploy)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -248,8 +305,8 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -257,18 +314,7 @@ TEST_F(BreadcrumbsTest, FuelDeploy)
 TEST_F(BreadcrumbsTest, Performer)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetUseLevels(true);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -332,8 +378,8 @@ TEST_F(BreadcrumbsTest, Performer)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -342,18 +388,7 @@ TEST_F(BreadcrumbsTest, Performer)
 TEST_F(BreadcrumbsTest, PerformerSetVolume)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetUseLevels(true);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf", true);
 
   test::Relay testSystem;
   transport::Node node;
@@ -399,8 +434,8 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, nIters, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
 }
 
 /////////////////////////////////////////////////
@@ -408,17 +443,7 @@ TEST_F(BreadcrumbsTest, PerformerSetVolume)
 TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   test::Relay testSystem;
   transport::Node node;
@@ -476,7 +501,7 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 
       // Verify that the breadcrumb stopped falling after 0.5s.
       sdf::Root root;
-      root.Load(sdfFile);
+      root.Load(this->serverConfig.SdfFile());
       const sdf::World *world = root.WorldByIndex(0);
       double gz = world->Gravity().Z();
       double z0 = 2.0;
@@ -486,8 +511,8 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
     }
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterTestStart + 2001, false);
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, iterTestStart + 2001, false);
 }
 
 /////////////////////////////////////////////////
@@ -496,17 +521,7 @@ TEST_F(BreadcrumbsTest, DeployDisablePhysics)
 TEST_F(BreadcrumbsTest, AllowRenaming)
 {
   // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/breadcrumbs.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  using namespace std::chrono_literals;
-  server.SetUpdatePeriod(1ns);
+  this->LoadWorld("test/worlds/breadcrumbs.sdf");
 
   transport::Node node;
   auto deployB1 =
@@ -516,21 +531,148 @@ TEST_F(BreadcrumbsTest, AllowRenaming)
   auto renameDeploy =
       node.Advertise<msgs::Empty>("/rename_deploy");
 
-  server.Run(true, 1, false);
+  this->server->Run(true, 1, false);
   deployB1.Publish(msgs::Empty());
-  server.Run(true, 100, false);
-  EXPECT_TRUE(server.HasEntity("B1_0"));
+  this->server->Run(true, 100, false);
+  EXPECT_TRUE(this->server->HasEntity("B1_0"));
 
   // Deploying via "/no_rename_deploy" will try to spawn B1_0, but since the
   // model already exists, the spawn should fail.
-  auto curEntityCount = server.EntityCount().value();
+  auto curEntityCount = this->server->EntityCount().value();
   noRenameDeploy.Publish(msgs::Empty());
-  server.Run(true, 100, false);
-  EXPECT_EQ(curEntityCount, server.EntityCount().value());
+  this->server->Run(true, 100, false);
+  EXPECT_EQ(curEntityCount, this->server->EntityCount().value());
 
   // Deploying via "/rename_deploy" will try to spawn B1_0, but since the
   // model already exists, it will spawn B1_0_1 instead.
   renameDeploy.Publish(msgs::Empty());
-  server.Run(true, 100, false);
-  EXPECT_TRUE(server.HasEntity("B1_0_1"));
+  this->server->Run(true, 100, false);
+  EXPECT_TRUE(this->server->HasEntity("B1_0_1"));
+}
+
+/////////////////////////////////////////////////
+/// Return a list of model entities whose names match the given regex
+std::vector<Entity> ModelsByNameRegex(
+    const gazebo::EntityComponentManager &_ecm, const std::regex &_re)
+{
+  std::vector<Entity> entities;
+  _ecm.Each<components::Model, components::Name>(
+      [&](const Entity _entity, const components::Model *,
+          const components::Name *_name)
+      {
+        if (std::regex_match(_name->Data(), _re))
+        {
+          entities.push_back(_entity);
+        }
+        return true;
+      });
+
+  return entities;
+}
+
+// The test checks that models containing Breadcrumbs can be unloaded and loaded
+// safely
+TEST_F(BreadcrumbsTest, LevelLoadUnload)
+{
+  // Start server
+  this->LoadWorld("test/worlds/breadcrumbs_levels.sdf", true);
+
+  test::Relay testSystem;
+  transport::Node node;
+  auto deploy =
+      node.Advertise<msgs::Empty>("/model/tile_1/breadcrumbs/B1/deploy");
+
+  const std::size_t iterTestStart = 1000;
+  const std::size_t nIters = iterTestStart + 10000;
+
+  std::regex reTile1{"tile_1"};
+  std::regex reBreadcrumb{"B1_.*"};
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        // Ensure that tile_1 is loaded at the start, deploy a breadcrumb
+        if (_info.iterations == iterTestStart)
+        {
+          auto tiles = ModelsByNameRegex(_ecm, reTile1);
+          EXPECT_EQ(1u, tiles.size());
+          EXPECT_TRUE(deploy.Publish(msgs::Empty()));
+        }
+        // Check if the breadcrumb has been deployed
+        else if (_info.iterations == iterTestStart + 1000)
+        {
+          auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
+          EXPECT_EQ(1u, breadcrumbs.size());
+        }
+        // Move the performer (sphere) outside the level. This should cause
+        // tile_1 to be unloaded
+        else if (_info.iterations == iterTestStart + 1001)
+        {
+          msgs::Pose req;
+          req.set_name("sphere");
+          req.mutable_position()->set_x(30);
+          msgs::Boolean rep;
+          bool result;
+          node.Request("/world/breadcrumbs_levels/set_pose", req, 1000, rep,
+                       result);
+          EXPECT_TRUE(result);
+        }
+        // Check that tile_1 is unloaded, then try deploying breadcrumb. This
+        // should fail because the model associated with the breadcrumb system
+        // is unloaded.
+        else if (_info.iterations == iterTestStart + 2000)
+        {
+          auto tiles = ModelsByNameRegex(_ecm, reTile1);
+          EXPECT_EQ(0u, tiles.size());
+          EXPECT_TRUE(deploy.Publish(msgs::Empty()));
+        }
+        // Check that no new breadcrumbs have been deployed
+        else if (_info.iterations == iterTestStart + 3000)
+        {
+          auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
+          EXPECT_EQ(1u, breadcrumbs.size());
+        }
+        // Move the performer (sphere) back into the level. This should load
+        // tile_1 and a new Breadcrumbs system.
+        else if (_info.iterations == iterTestStart + 3001)
+        {
+          msgs::Pose req;
+          req.set_name("sphere");
+          req.mutable_position()->set_x(0);
+          msgs::Boolean rep;
+          bool result;
+          node.Request("/world/breadcrumbs_levels/set_pose", req, 1000, rep,
+                       result);
+          EXPECT_TRUE(result);
+        }
+        // Check that tile_1 is loaded, then try deploying breadcrumb.
+        else if (_info.iterations == iterTestStart + 4000)
+        {
+          auto tiles = ModelsByNameRegex(_ecm, reTile1);
+          EXPECT_EQ(1u, tiles.size());
+          EXPECT_TRUE(deploy.Publish(msgs::Empty()));
+        }
+        // Check that only one additional breadcrumb has been deployed even
+        // though there are two Breadcrumbs systems associated with the model.
+        // The original Breadcrumbs system should now be invalid because the
+        // model gets a new Entity ID.
+        else if (_info.iterations == iterTestStart + 5000)
+        {
+          auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
+          EXPECT_EQ(2u, breadcrumbs.size());
+        }
+      });
+
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, nIters, false);
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int _argc, char **_argv)
+{
+  ::testing::InitGoogleTest(&_argc, _argv);
+  ::testing::AddGlobalTestEnvironment(
+      new test::UniqueTestDirectoryEnv("breadcrumbs_test_cache"));
+  return RUN_ALL_TESTS();
 }

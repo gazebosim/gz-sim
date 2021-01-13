@@ -15,8 +15,11 @@
  *
  */
 
+#include "TouchPlugin.hh"
+
 #include <algorithm>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -34,8 +37,6 @@
 
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "TouchPlugin.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -162,7 +163,14 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     ignerr << "Missing required parameter <namespace>" << std::endl;
     return;
   }
-  this->ns = _sdf->Get<std::string>("namespace");
+  this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
+      "namespace"));
+  if (this->ns.empty())
+  {
+    ignerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
+           << "] is invalid." << std::endl;
+    return;
+  }
 
   // Target time
   if (!_sdf->HasElement("time"))
@@ -185,7 +193,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   this->validConfig = true;
 
   // Start enabled or not
-  if (_sdf->Get<bool>("enabled", false).second)
+  if (_sdf->Get<bool>("enabled", false).first)
   {
     this->Enable(true);
   }

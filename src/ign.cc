@@ -14,16 +14,25 @@
  * limitations under the License.
  *
 */
+
+#include "ign.hh"
+
 #include <cstring>
+#include <string>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/fuel_tools/FuelClient.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+#include <ignition/fuel_tools/Result.hh>
+#include <ignition/fuel_tools/WorldIdentifier.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
-#include "ign.hh"
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()
@@ -51,11 +60,68 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 }
 
 //////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+    char *_pathToResource)
+{
+  std::string path;
+  std::string worldPath;
+  ignition::fuel_tools::FuelClient fuelClient;
+
+  // Attempt to find cached copy, and then attempt download
+  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
+  {
+    ignmsg << "Cached world found." << std::endl;
+    worldPath = path;
+  }
+  // cppcheck-suppress syntaxError
+  else if (ignition::fuel_tools::Result result =
+    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
+    result)
+  {
+    ignmsg << "Successfully downloaded world from fuel." << std::endl;
+    worldPath = path;
+  }
+  else
+  {
+    ignwarn << "Fuel world download failed because " << result.ReadableResult()
+        << std::endl;
+    return "";
+  }
+
+  if (!ignition::common::exists(worldPath))
+    return "";
+
+
+  // Find the first sdf file in the world path for now, the later intention is
+  // to load an optional world config file first and if that does not exist,
+  // continue to load the first sdf file found as done below
+  for (ignition::common::DirIter file(worldPath);
+       file != ignition::common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (ignition::common::isFile(current))
+    {
+      std::string fileName = ignition::common::basename(current);
+      std::string::size_type fileExtensionIndex = fileName.rfind(".");
+      std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+      if (fileExtension == "sdf")
+      {
+        return strdup(current.c_str());
+      }
+    }
+  }
+  return "";
+}
+
+//////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
-    const char *_playback, const char *_physicsEngine, const char *_file)
+    const char *_playback, const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file, const char *_recordTopics)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -73,7 +139,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
-    _record > 0 || _recordResources > 0)
+    _record > 0 || _recordResources > 0 ||
+    (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -195,6 +262,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
              << std::endl;
     }
     serverConfig.SetLogRecordPath(recordPathMod);
+
+    std::vector<std::string> topics = ignition::common::split(
+        _recordTopics, ":");
+    for (const std::string &topic : topics)
+    {
+      serverConfig.AddLogRecordTopic(topic);
+    }
   }
   else
   {
@@ -258,6 +332,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
     serverConfig.SetPhysicsEngine(_physicsEngine);
+  }
+
+  if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
+  {
+    serverConfig.SetRenderEngineServer(_renderEngineServer);
+  }
+
+  if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
+  {
+    serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
   // Create the Gazebo server
