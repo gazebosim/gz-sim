@@ -810,7 +810,7 @@ find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs7-all REQUIRED)
 find_package(ignition-physics3-all REQUIRED)
 find_package(ignition-sensors5-all REQUIRED)
-find_package(ignition-transport9-all REQUIRED)
+find_package(ignition-transport10-all REQUIRED)
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:

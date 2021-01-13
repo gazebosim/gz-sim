@@ -48,8 +48,8 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport9 REQUIRED COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
+ign_find_package(ignition-transport10 REQUIRED COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
@@ -70,8 +70,8 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools5 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
+ign_find_package(ignition-fuel_tools6 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui

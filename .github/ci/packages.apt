@@ -4,7 +4,7 @@ libglew-dev
 libignition-cmake2-dev
 libignition-common3-dev
 libignition-gui5-dev
-libignition-fuel-tools5-dev
+libignition-fuel-tools6-dev
 libignition-math6-eigen3-dev
 libignition-msgs7-dev
 libignition-physics3-dev
@@ -12,7 +12,7 @@ libignition-plugin-dev
 libignition-rendering5-dev
 libignition-sensors5-dev
 libignition-tools-dev
-libignition-transport9-dev
+libignition-transport10-dev
 libogre-1.9-dev
 libogre-2.1-dev
 libprotobuf-dev
