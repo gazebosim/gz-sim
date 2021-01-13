@@ -202,7 +202,9 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
         {
           const math::Pose3d &worldPose = _worldPose->Data();
           it->second->SetPose(worldPose);
-          it->second->SetModelPoses(std::move(modelPoses));
+          // Make a copy of modelPoses s.t. SetModelPoses can take ownership
+          auto modelPoses_ = modelPoses;
+          it->second->SetModelPoses(std::move(modelPoses_));
         }
         else
         {
