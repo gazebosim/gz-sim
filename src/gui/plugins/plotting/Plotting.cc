@@ -176,7 +176,7 @@ Plotting ::Plotting() : GuiSystem(),
 
   this->connect(this->dataPtr->plottingIface.get(), SIGNAL(ComponentUnSubscribe
               (uint64_t, uint64_t, std::string, int)),
-          this, SLOT(UnRegisterChartToComponent
+          this, SLOT(UnRegisterChartFromComponent
               (uint64_t, uint64_t, std::string, int)));
 
   this->connect(this->dataPtr->plottingIface.get(),

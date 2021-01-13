@@ -17,6 +17,7 @@
 
 #include <regex>
 #include <set>
+#include <string>
 #include <unordered_map>
 
 #include <ignition/common/Profiler.hh>
