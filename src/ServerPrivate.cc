@@ -183,160 +183,116 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
+sdf::ElementPtr GetRecordPluginElem(sdf::Root &_sdfRoot)
 {
-  const sdf::World *sdfWorld = this->sdfRoot.WorldByIndex(0);
-  sdf::ElementPtr worldElem = sdfWorld->Element();
+  sdf::ElementPtr rootElem = _sdfRoot.Element();
 
-  // Check if there is already a record plugin specified
-  if (worldElem->HasElement("plugin"))
+  if (rootElem->HasElement("world"))
   {
-    sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
-    while (pluginElem != nullptr)
+    sdf::ElementPtr worldElem = rootElem->GetElement("world");
+
+    if (worldElem->HasElement("plugin"))
     {
-      sdf::ParamPtr pluginName = pluginElem->GetAttribute("name");
-      sdf::ParamPtr pluginFileName = pluginElem->GetAttribute("filename");
+      sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
 
-      if (pluginName != nullptr && pluginFileName != nullptr)
+      while (pluginElem != nullptr)
       {
-        // Found a logging plugin
-        if (pluginFileName->GetAsString().find(
-            LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
+        sdf::ParamPtr pluginName = pluginElem->GetAttribute("name");
+        sdf::ParamPtr pluginFileName = pluginElem->GetAttribute("filename");
+
+        if (pluginName != nullptr && pluginFileName != nullptr)
         {
-          // If record plugin already specified in SDF, and record flags are
-          //   specified on command line, replace SDF parameters with those on
-          //   command line. (If none specified on command line, use those in
-          //   SDF - except for the record path.)
-          if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
+          // Found a logging plugin
+          if (pluginFileName->GetAsString().find(
+              LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
           {
-            // TODO(anyone) Specify paths below in a Component instead of
-            // injecting SDF, so as to not confuse the <path> specified by user
-            // stripped here, and the one injected below. With Components,
-            // would not need to strip user-specified <path>, can simply
-            // ignore it when setting component values.
-
-            if (!_config.LogRecordPath().empty())
+            if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
             {
-              // Explicitly allowing empty record paths through, always override
-              // <path>
-              sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-              pathElem->SetName("record_path");
-              pluginElem->AddElementDescription(pathElem);
-              pathElem = pluginElem->GetElement("record_path");
-              pathElem->AddValue("string", "", false, "");
-              pathElem->Set<std::string>(_config.LogRecordPath());
+              return pluginElem;
             }
-
-            // If resource flag specified on command line, replace in SDF
-            if (_config.LogRecordResources())
-            {
-              sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
-              resourceElem->SetName("record_resources");
-              pluginElem->AddElementDescription(resourceElem);
-              resourceElem = pluginElem->GetElement("record_resources");
-              resourceElem->AddValue("bool", "false", false, "");
-              resourceElem->Set<bool>(_config.LogRecordResources()
-                ? true : false);
-            }
-
-            // If compress flag specified on command line, replace in SDF
-            if (!_config.LogRecordCompressPath().empty())
-            {
-              sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
-              compressElem->SetName("compress");
-              pluginElem->AddElementDescription(compressElem);
-              compressElem = pluginElem->GetElement("compress");
-              compressElem->AddValue("bool", "false", false, "");
-              compressElem->Set<bool>(true);
-
-              sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
-              cPathElem->SetName("compress_path");
-              pluginElem->AddElementDescription(cPathElem);
-              cPathElem = pluginElem->GetElement("compress_path");
-              cPathElem->AddValue("string", "", false, "");
-              cPathElem->Set<std::string>(_config.LogRecordCompressPath());
-            }
-
-            // If record topics specified, add in SDF
-            for (const std::string &topic : _config.LogRecordTopics())
-            {
-              sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
-              topicElem->SetName("record_topic");
-              pluginElem->AddElementDescription(topicElem);
-              topicElem = pluginElem->AddElement("record_topic");
-              topicElem->AddValue("string", "false", false, "");
-              topicElem->Set<std::string>(topic);
-            }
-
-            return;
-          }
-
-          // If playback plugin also specified, do not add a record plugin
-          if (pluginName->GetAsString() == LoggingPlugin::PlaybackPluginName())
-          {
-            ignwarn << "Both record and playback are specified. "
-              << "Ignoring record.\n";
-            return;
           }
         }
+
+        pluginElem = pluginElem->GetNextElement();
+      }
+    }
+  }
+  return nullptr;
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
+{
+  auto recordPluginElem = GetRecordPluginElem(this->sdfRoot);
+  bool sdfUseLogRecord = (recordPluginElem != nullptr);
+
+  bool hasRecordResources {false};
+  bool hasCompress {false};
+  bool hasRecordTopics {false};
+
+  bool sdfRecordResources;
+  bool sdfCompress;
+  std::vector<std::string> sdfRecordTopics;
+
+  if (sdfUseLogRecord)
+  {
+    std::tie(sdfRecordResources, hasRecordResources) =
+      recordPluginElem->Get<bool>("record_resources", false);
+    std::tie(sdfCompress, hasCompress) =
+      recordPluginElem->Get<bool>("compress", false);
+
+    hasRecordTopics = recordPluginElem->HasElement("record_topic");
+    if (hasRecordTopics)
+    {
+      sdf::ElementPtr recordTopicElem =
+        recordPluginElem->GetElement("record_topic");
+      while (recordTopicElem)
+      {
+        auto topic = recordTopicElem->Get<std::string>();
+        sdfRecordTopics.push_back(topic);
       }
 
-      pluginElem = pluginElem->GetNextElement();
+      recordTopicElem = recordTopicElem->GetNextElement();
+    }
+
+    // Remove from SDF
+    recordPluginElem->RemoveFromParent();
+    recordPluginElem->Reset();
+  }
+
+  // Set the config based on what is in the SDF:
+  if (hasRecordResources)
+    this->config.SetLogRecordResources(sdfRecordResources);
+
+  if (hasRecordTopics)
+  {
+    this->config.ClearLogRecordTopics();
+    for (auto topic : sdfRecordTopics)
+    {
+      this->config.AddLogRecordTopic(topic);
     }
   }
 
-  // A record plugin is not already specified in SDF. Add one.
-  sdf::ElementPtr recordElem = worldElem->AddElement("plugin");
-  sdf::ParamPtr recordName = recordElem->GetAttribute("name");
-  recordName->SetFromString(LoggingPlugin::RecordPluginName());
-  sdf::ParamPtr recordFileName = recordElem->GetAttribute("filename");
-  recordFileName->SetFromString(LoggingPlugin::LoggingPluginFileName());
-
-  // Add custom record path
   if (!_config.LogRecordPath().empty())
   {
-    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("record_path");
-    recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("record_path");
-    pathElem->AddValue("string", "", false, "");
-    pathElem->Set<std::string>(_config.LogRecordPath());
+    this->config.SetLogRecordPath(_config.LogRecordPath());
   }
 
-  // Set whether to record resources
-  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
-  resourceElem->SetName("record_resources");
-  recordElem->AddElementDescription(resourceElem);
-  resourceElem = recordElem->GetElement("record_resources");
-  resourceElem->AddValue("bool", "false", false, "");
-  resourceElem->Set<bool>(_config.LogRecordResources() ? true : false);
+  if (_config.LogRecordResources())
+    this->config.SetLogRecordResources(true);
 
-  // Set whether to compress
-  sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
-  compressElem->SetName("compress");
-  recordElem->AddElementDescription(compressElem);
-  compressElem = recordElem->GetElement("compress");
-  compressElem->AddValue("bool", "false", false, "");
-  compressElem->Set<bool>(_config.LogRecordCompressPath().empty() ? false :
-    true);
-
-  // Set compress path
-  sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
-  cPathElem->SetName("compress_path");
-  recordElem->AddElementDescription(cPathElem);
-  cPathElem = recordElem->GetElement("compress_path");
-  cPathElem->AddValue("string", "", false, "");
-  cPathElem->Set<std::string>(_config.LogRecordCompressPath());
-
-  // If record topics specified, add in SDF
-  for (const std::string &topic : _config.LogRecordTopics())
+  if (_config.LogRecordCompressPath() != ".zip")
   {
-    sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
-    topicElem->SetName("record_topic");
-    recordElem->AddElementDescription(topicElem);
-    topicElem = recordElem->AddElement("record_topic");
-    topicElem->AddValue("string", "false", false, "");
-    topicElem->Set<std::string>(topic);
+    this->config.SetLogRecordCompressPath(_config.LogRecordCompressPath());
+  }
+
+  if (_config.LogRecordTopics().size())
+  {
+    this->config.ClearLogRecordTopics();
+    for (auto topic : _config.LogRecordTopics())
+    {
+      this->config.AddLogRecordTopic(topic);
+    }
   }
 }
 
