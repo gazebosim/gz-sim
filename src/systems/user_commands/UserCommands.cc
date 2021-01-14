@@ -449,7 +449,7 @@ bool CreateCommand::Execute()
       }
 
       std::string lightStr =
-        std::string("<sdf version=") + SDF_VERSION + std::string(">") +
+        std::string("<sdf version='") + SDF_VERSION + std::string("'>") +
         "<light type='" + lightType + "' name='" + lightMsg.name() + "'> " +
         "<cast_shadows>" +
         std::to_string(lightMsg.cast_shadows()) +
