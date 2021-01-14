@@ -30,6 +30,7 @@ set(tests
   model.cc
   multicopter.cc
   network_handshake.cc
+  particle_emitter.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
