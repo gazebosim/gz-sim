@@ -174,7 +174,7 @@ TEST_P(ExamplesBuild, Build)
 }
 
 //////////////////////////////////////////////////
-INSTANTIATE_TEST_CASE_P(Plugins, ExamplesBuild, ::testing::Values(
+INSTANTIATE_TEST_SUITE_P(Plugins, ExamplesBuild, ::testing::Values(
   "plugin",
   "standalone"
 ));
