@@ -19,9 +19,9 @@
 #include <ignition/msgs/vector3d.pb.h>
 
 #include <algorithm>
-#include <queue>
 #include <iostream>
 #include <map>
+#include <queue>
 #include <string>
 #include <vector>
 

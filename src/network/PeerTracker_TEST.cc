@@ -75,7 +75,17 @@ TEST(PeerTracker, PeerTracker)
   EXPECT_EQ(5, peers);
 
   // Allow all the heartbeats to propagate
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  int maxSleep{100};
+  int sleep{0};
+  for (; sleep < maxSleep &&
+      (tracker1->NumPeers() < 5 ||
+      tracker2->NumPeers() < 5 ||
+      tracker3->NumPeers() < 5 ||
+      tracker4->NumPeers() < 5 ||
+      tracker5->NumPeers() < 5); ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+  }
 
   // All counts exclude self.
   EXPECT_EQ(5u, tracker1->NumPeers());
@@ -156,10 +166,14 @@ TEST(PeerTracker, PeerTrackerStale)
   auto tracker2 = std::make_shared<PeerTracker>(info2);
   tracker2->SetHeartbeatPeriod(std::chrono::milliseconds(100));
 
-  for (int sleep = 0; sleep < 50 && tracker2->NumPeers() == 0; ++sleep)
+  int maxSleep{100};
+  int sleep{0};
+  for (; sleep < maxSleep && (tracker2->NumPeers() == 0 || stalePeers == 0);
+      ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
+  EXPECT_LT(sleep, maxSleep);
 
   EXPECT_EQ(1, stalePeers);
 

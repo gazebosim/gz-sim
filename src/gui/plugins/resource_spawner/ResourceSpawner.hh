@@ -77,6 +77,7 @@ namespace gazebo
 
     /// \brief True if the user is currently observing fuel resources and false
     /// if the user is currently observing local resources.
+    // cppcheck-suppress unusedStructMember
     bool isFuel = false;
   };
 

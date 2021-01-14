@@ -70,8 +70,8 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools5 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools5_VERSION_MAJOR})
+ign_find_package(ignition-fuel_tools6 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
