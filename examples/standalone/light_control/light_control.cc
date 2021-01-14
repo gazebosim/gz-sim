@@ -130,19 +130,21 @@ int main(int argc, char **argv)
   createSphere();
   createLight();
 
-  while (1){
-    float x, y, z;
+  while (1)
+  {
+    float r, g, b;
     double m = 0;
 //! [random numbers]
-    while (m < epsilon) {
-      x = distr(twister);
-      y = distr(twister);
-      z = distr(twister);
-      m = std::sqrt(x*x + y*y + z*z);
+    while (m < epsilon)
+    {
+      r = distr(twister);
+      g = distr(twister);
+      b = distr(twister);
+      m = std::sqrt(r*r + b*b + g*g);
     }
-    x /= m;
-    y /= m;
-    z /= m;
+    r /= m;
+    b /= m;
+    b /= m;
 //! [random numbers]
 
 //! [modify light]
@@ -153,18 +155,19 @@ int main(int argc, char **argv)
     lightRequest.set_attenuation_quadratic(0.01);
     lightRequest.set_cast_shadows(false);
     lightRequest.set_type(ignition::msgs::Light::POINT);
+    // direction field only affects spot / directional lights
     ignition::msgs::Set(lightRequest.mutable_direction(),
       ignition::math::Vector3d(directionX, directionY, directionZ));
     ignition::msgs::Set(lightRequest.mutable_pose(),
       ignition::math::Pose3d(0.0, -1.5, 3.0, 0.0, 0.0, 0.0));
     ignition::msgs::Set(lightRequest.mutable_diffuse(),
-      ignition::math::Color(x, y, z, 1));
+      ignition::math::Color(r, g, b, 1));
     ignition::msgs::Set(lightRequest.mutable_specular(),
-      ignition::math::Color(x, y, z, 1));
+      ignition::math::Color(r, g, b, 1));
 //! [modify light]
     bool executed = node.Request(lightConfigService, lightRequest, timeout,
         rep, result);
-    std::cout << "Service called: [" << x << ", " << y << ", " << z << "]"
+    std::cout << "Service called: [" << r << ", " << g << ", " << b << "]"
       << std::endl;
 
     if (executed)

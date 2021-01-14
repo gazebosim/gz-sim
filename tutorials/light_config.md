@@ -20,3 +20,26 @@ As you can see in the snippet we modify the specular and diffuse of the light th
 In this case we are creating random numbers to fill the diffuse and specular.
 
 \snippet examples/standalone/light_control/light_control.cc random numbers
+
+# Run the example
+
+To run this example you should `cd` into `examples/standalone/light_control` and build the code:
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
+Then you should open two terminals and run:
+
+ - Terminal one:
+ ```bash
+ ign gazebo -r -v 4 empty.world
+ ```
+
+ - Terminal two:
+ ```bash
+ ./light_control
+ ```
