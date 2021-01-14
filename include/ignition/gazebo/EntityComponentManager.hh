@@ -727,10 +727,6 @@ namespace ignition
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
 
-      /// \brief Allots the work for multiple threads prior to running
-      /// `AddEntityToMessage`.
-      private: void CalculateComponentThreadLoad() const;
-
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal
       // to Gazebo.
