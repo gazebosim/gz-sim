@@ -1478,7 +1478,6 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
     {
       this->dataPtr->newCollisions.push_back(_entity);
       showColInit = showCol = true;
-      continue;
     }
   }
 
