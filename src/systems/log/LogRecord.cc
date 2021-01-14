@@ -57,6 +57,8 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
+
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
@@ -190,6 +192,7 @@ LogRecord::~LogRecord()
       this->dataPtr->CompressStateAndResources();
     this->dataPtr->savedModels.clear();
 
+    LogRecordPrivate::started = false;
     ignmsg << "Stopping recording" << std::endl;
   }
 }
@@ -278,16 +281,6 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
     common::createDirectories(this->logPath);
   }
 
-  // Go up to root of SDF, to record entire SDF file
-  sdf::ElementPtr sdfRoot = this->sdf->GetParent();
-  while (sdfRoot->GetParent() != nullptr)
-  {
-    sdfRoot = sdfRoot->GetParent();
-  }
-
-  // Construct message with SDF string
-  this->sdfMsg.set_data(sdfRoot->ToString(""));
-
   // Use directory basename as topic name, to be able to retrieve at playback
   std::string sdfTopic = "/" + common::basename(this->logPath) + "/sdf";
   this->sdfPub = this->node.Advertise(sdfTopic, this->sdfMsg.GetTypeName());
@@ -304,9 +297,6 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
     common::removeFile(dbPath);
   }
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
-
-  // Use ign-transport directly
-  sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
 
   // Add default topics if no topics were specified.
   std::string dynPoseTopic = "/world/" + this->worldName +
@@ -664,8 +654,28 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
   // Publish only once
   if (!this->dataPtr->sdfPublished)
   {
-    this->dataPtr->sdfPub.Publish(this->dataPtr->sdfMsg);
-    this->dataPtr->sdfPublished = true;
+    // Construct message with SDF string
+    auto worldEntity = _ecm.EntityByComponents(components::World());
+    if (worldEntity == kNullEntity)
+    {
+      ignerr << "Could not find the world entity\n";
+    }
+    else
+    {
+      auto worldSdfComp = _ecm.Component<components::WorldSdf>(worldEntity);
+      if (worldSdfComp == nullptr || worldSdfComp->Data().Element() == nullptr)
+      {
+        ignerr << "Could not load world SDF data\n";
+      }
+      else
+      {
+        this->dataPtr->sdfMsg.set_data(
+            worldSdfComp->Data().Element()->ToString(""));
+
+        this->dataPtr->sdfPub.Publish(this->dataPtr->sdfMsg);
+        this->dataPtr->sdfPublished = true;
+      }
+    }
   }
 
   // TODO(louise) Use the SceneBroadcaster's topic once that publishes

@@ -131,14 +131,20 @@ COMMANDS = { 'gazebo' =>
   "  --render-engine [arg]        Ignition Rendering engine plugin to load for     \n"\
   "                               both the server and the GUI. Gazebo will use     \n"\
   "                               OGRE2 by default. (ogre2)                        \n"\
+  "                               Make sure custom plugins are in                  \n"\
+  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --render-engine-gui [arg]    Ignition Rendering engine plugin to load for     \n"\
   "                               the GUI. Gazebo will use OGRE2 by default.       \n"\
   "                               (ogre2)                                          \n"\
+  "                               Make sure custom plugins are in                  \n"\
+  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --render-engine-server [arg] Ignition Rendering engine plugin to load for     \n"\
   "                               the server. Gazebo will use OGRE2 by default.    \n"\
   "                               (ogre2)                                          \n"\
+  "                               Make sure custom plugins are in                  \n"\
+  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --version                    Print Gazebo version information.                \n"\
   "\n"\
@@ -150,6 +156,7 @@ COMMANDS = { 'gazebo' =>
   " resources such as worlds and models.                                 \n\n"\
   "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
   " locate system plugins.                                               \n\n"\
+  "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
   " plugins.                                                             \n\n"\
   "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\
@@ -417,6 +424,13 @@ class Cmd
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *)'
+
+      # If playback is specified, and the user has not specified a
+      # custom gui config, set the gui config to load the playback
+      # gui config
+      if (options['playback'] != '' and options['gui_config'] == '')
+        options['gui_config'] = "_playback_"
+      end
 
       # Neither the -s nor -g options were used, so run both the server
       # and gui.

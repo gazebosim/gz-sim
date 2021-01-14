@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="logical_audio_sensor">
+    <model name="source_model">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="source_link">
+      </link>
+      <plugin
+        filename="ignition-gazebo-logicalaudiosensorplugin-system"
+        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        <source>
+          <id>1</id>
+          <attenuation_function> linear</attenuation_function>
+          <attenuation_shape>sphere</attenuation_shape>
+          <inner_radius>3.0</inner_radius>
+          <falloff_distance>8.0</falloff_distance>
+          <volume_level>.9</volume_level>
+          <playing>true</playing>
+          <play_duration>0</play_duration>
+        </source>
+      </plugin>
+    </model>
+
+    <model name="mic_model_close">
+      <pose>1 1 0 0 0 0</pose>
+      <link name="mic_link">
+      </link>
+      <plugin
+        filename="ignition-gazebo-logicalaudiosensorplugin-system"
+        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        <microphone>
+          <id>2</id>
+          <pose>0.5 0 0 0 0 0</pose>
+          <volume_threshold>.1</volume_threshold>
+        </microphone>
+      </plugin>
+    </model>
+
+    <model name="mic_model_far">
+      <pose>10 1 0 0 0 0</pose>
+      <link name="mic_link">
+      </link>
+      <plugin
+        filename="ignition-gazebo-logicalaudiosensorplugin-system"
+        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        <microphone>
+          <id>1</id>
+        </microphone>
+      </plugin>
+    </model>
+  </world>
+</sdf>

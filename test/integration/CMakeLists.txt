@@ -24,6 +24,7 @@ set(tests
   level_manager_runtime_performers.cc
   link.cc
   logical_camera_system.cc
+  logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
   multicopter.cc
@@ -42,7 +43,9 @@ set(tests
   user_commands.cc
   velocity_control_system.cc
   log_system.cc
+  wheel_slip.cc
   wind_effects.cc
+  world.cc
 )
 
 # Tests that require a valid display

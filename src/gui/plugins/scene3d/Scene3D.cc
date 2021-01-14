@@ -15,10 +15,17 @@
  *
 */
 
+#include "Scene3D.hh"
+
+#include <algorithm>
 #include <cmath>
+#include <condition_variable>
+#include <limits>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -50,6 +57,7 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
@@ -60,7 +68,10 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
-#include "Scene3D.hh"
+/// \brief condition variable for lockstepping video recording
+/// todo(anyone) avoid using a global condition variable when we support
+/// multiple viewports in the future.
+std::condition_variable g_renderCv;
 
 Q_DECLARE_METATYPE(std::string)
 
@@ -194,6 +205,26 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Path to save the recorded video
     public: std::string recordVideoSavePath;
 
+    /// \brief Use sim time as timestamp during video recording
+    /// By default (false), video encoding is done using real time.
+    public: bool recordVideoUseSimTime = false;
+
+    /// \brief Lockstep gui with ECM when recording
+    public: bool recordVideoLockstep = false;
+
+    /// \brief Video recorder bitrate (bps)
+    public: unsigned int recordVideoBitrate = 2070000;
+
+    /// \brief Previous camera update time during video recording
+    /// only used in lockstep mode and recording in sim time.
+    public: std::chrono::steady_clock::time_point recordVideoUpdateTime;
+
+    /// \brief Start tiem of video recording
+    public: std::chrono::steady_clock::time_point recordStartTime;
+
+    /// \brief Camera pose publisher
+    public: transport::Node::Publisher recorderStatsPub;
+
     /// \brief Target to move the user camera to
     public: std::string moveToTarget;
 
@@ -232,6 +263,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag for indicating whether the user is currently placing a
     /// resource with the shapes plugin or not
     public: bool isPlacing = false;
+
+    /// \brief Atomic bool indicating whether the dropdown menu
+    /// is currently enabled or disabled.
+    public: std::atomic_bool dropdownMenuEnabled = true;
 
     /// \brief The SDF string of the resource to be used with plugins that spawn
     /// entities.
@@ -311,6 +346,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Flag to indicate whether the z key is currently being pressed
     public: bool zPressed = false;
 
+    /// \brief Flag to indicate whether the escape key has been released.
+    public: bool escapeReleased = false;
+
     /// \brief ID of thread where render calls can be made.
     public: std::thread::id renderThreadId;
 
@@ -332,6 +370,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
+
+    //// \brief Set to true after the renderer is initialized
+    public: bool rendererInit = false;
 
     //// \brief List of threads
     public: static QList<QThread *> threads;
@@ -375,6 +416,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Camera pose publisher
     public: transport::Node::Publisher cameraPosePub;
+
+    /// \brief lockstep ECM updates with rendering
+    public: bool recordVideoLockstep = false;
+
+    /// \brief True to indicate video recording in progress
+    public: bool recording = false;
+
+    /// \brief mutex to protect the recording variable
+    public: std::mutex recordMutex;
+
+    /// \brief mutex to protect the render condition variable
+    /// Used when recording in lockstep mode.
+    public: std::mutex renderMutex;
   };
 }
 }
@@ -390,6 +444,13 @@ IgnRenderer::IgnRenderer()
   : dataPtr(new IgnRendererPrivate)
 {
   this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
+
+  // recorder stats topic
+  std::string recorderStatsTopic = "/gui/record_video/stats";
+  this->dataPtr->recorderStatsPub =
+    this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
+  ignmsg << "Video recorder stats topic advertised on ["
+         << recorderStatsTopic << "]" << std::endl;
 }
 
 
@@ -405,6 +466,14 @@ RenderUtil *IgnRenderer::RenderUtil() const
 /////////////////////////////////////////////////
 void IgnRenderer::Render()
 {
+  rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+  {
+    ignwarn << "Scene is null. The render step will not occur in Scene3D."
+      << std::endl;
+    return;
+  }
+
   this->dataPtr->renderThreadId = std::this_thread::get_id();
 
   IGN_PROFILE_THREAD_NAME("RenderThread");
@@ -440,7 +509,6 @@ void IgnRenderer::Render()
   // reset follow mode if target node got removed
   if (!this->dataPtr->followTarget.empty())
   {
-    rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
     rendering::NodePtr target = scene->NodeByName(this->dataPtr->followTarget);
     if (!target && !this->dataPtr->followTargetWait)
     {
@@ -451,7 +519,24 @@ void IgnRenderer::Render()
     }
   }
 
+  // check if recording is in lockstep mode and if it is using sim time
+  // if so, there is no need to update camera if sim time has not advanced
+  bool update = true;
+  if (this->dataPtr->recordVideoLockstep &&
+      this->dataPtr->recordVideoUseSimTime &&
+      this->dataPtr->videoEncoder.IsEncoding())
+  {
+    std::chrono::steady_clock::time_point t =
+        std::chrono::steady_clock::time_point(
+        this->dataPtr->renderUtil.SimTime());
+    if (t - this->dataPtr->recordVideoUpdateTime == std::chrono::seconds(0))
+      update = false;
+    else
+      this->dataPtr->recordVideoUpdateTime = t;
+  }
+
   // update and render to texture
+  if (update)
   {
     IGN_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
@@ -475,14 +560,59 @@ void IgnRenderer::Render()
       if (this->dataPtr->videoEncoder.IsEncoding())
       {
         this->dataPtr->camera->Copy(this->dataPtr->cameraImage);
-        this->dataPtr->videoEncoder.AddFrame(
-            this->dataPtr->cameraImage.Data<unsigned char>(), width, height);
+
+        std::chrono::steady_clock::time_point t =
+            std::chrono::steady_clock::now();
+        if (this->dataPtr->recordVideoUseSimTime)
+        {
+          t = std::chrono::steady_clock::time_point(
+              this->dataPtr->renderUtil.SimTime());
+        }
+        bool frameAdded = this->dataPtr->videoEncoder.AddFrame(
+            this->dataPtr->cameraImage.Data<unsigned char>(), width, height, t);
+
+        if (frameAdded)
+        {
+          // publish recorder stats
+          if (this->dataPtr->recordStartTime ==
+              std::chrono::steady_clock::time_point(
+              std::chrono::duration(std::chrono::seconds(0))))
+          {
+            // start time, i.e. time when first frame is added
+            this->dataPtr->recordStartTime = t;
+          }
+
+          std::chrono::steady_clock::duration dt;
+          dt = t - this->dataPtr->recordStartTime;
+          int64_t sec, nsec;
+          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          msgs::Time msg;
+          msg.set_sec(sec);
+          msg.set_nsec(nsec);
+          this->dataPtr->recorderStatsPub.Publish(msg);
+        }
       }
       // Video recorder is idle. Start recording.
       else
       {
+        if (this->dataPtr->recordVideoUseSimTime)
+          ignmsg << "Recording video using sim time." << std::endl;
+        if (this->dataPtr->recordVideoLockstep)
+        {
+          ignmsg << "Recording video in lockstep mode" << std::endl;
+          if (!this->dataPtr->recordVideoUseSimTime)
+          {
+            ignwarn << "It is recommended to set <use_sim_time> to true "
+                    << "when recording video in lockstep mode." << std::endl;
+          }
+        }
+        ignmsg << "Recording video using bitrate: "
+               << this->dataPtr->recordVideoBitrate <<  std::endl;
         this->dataPtr->videoEncoder.Start(this->dataPtr->recordVideoFormat,
-            this->dataPtr->recordVideoSavePath, width, height);
+            this->dataPtr->recordVideoSavePath, width, height, 25,
+            this->dataPtr->recordVideoBitrate);
+        this->dataPtr->recordStartTime = std::chrono::steady_clock::time_point(
+            std::chrono::duration(std::chrono::seconds(0)));
       }
     }
     else if (this->dataPtr->videoEncoder.IsEncoding())
@@ -498,7 +628,6 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
         rendering::NodePtr target = scene->NodeByName(
             this->dataPtr->moveToTarget);
         if (target)
@@ -554,7 +683,6 @@ void IgnRenderer::Render()
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::NodePtr target = scene->NodeByName(
           this->dataPtr->followTarget);
       if (target)
@@ -645,7 +773,6 @@ void IgnRenderer::Render()
     if (this->dataPtr->isSpawning)
     {
       // Generate spawn preview
-      rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
       rendering::VisualPtr rootVis = scene->RootVisual();
       sdf::Root root;
       if (!this->dataPtr->spawnSdfString.empty())
@@ -665,6 +792,17 @@ void IgnRenderer::Render()
     }
   }
 
+  // Escape action, clear all selections and terminate any
+  // spawned previews if escape button is released
+  {
+    if (this->dataPtr->escapeReleased)
+    {
+      this->DeselectAllEntities(true);
+      this->TerminateSpawnPreview();
+      this->dataPtr->escapeReleased = false;
+    }
+  }
+
   if (ignition::gui::App())
   {
     gui::events::Render event;
@@ -672,6 +810,10 @@ void IgnRenderer::Render()
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
   }
+
+  // only has an effect in video recording lockstep mode
+  // this notifes ECM to continue updating the scene
+  g_renderCv.notify_one();
 }
 
 /////////////////////////////////////////////////
@@ -760,10 +902,63 @@ Entity IgnRenderer::UniqueId()
 void IgnRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->BroadcastHoverPos();
+  this->BroadcastLeftClick();
+  this->BroadcastRightClick();
   this->HandleMouseContextMenu();
   this->HandleModelPlacement();
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastHoverPos()
+{
+  if (this->dataPtr->hoverDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
+
+    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &hoverToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastLeftClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &leftClickToSceneEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::BroadcastRightClick()
+{
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT &&
+      this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
+      !this->dataPtr->mouseEvent.Dragging() && this->dataPtr->mouseDirty)
+  {
+    // If the dropdown menu is disabled, quash the mouse event
+    if (!this->dataPtr->dropdownMenuEnabled)
+      this->dataPtr->mouseDirty = false;
+
+    math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
+
+    ignition::gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &rightClickToSceneEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -916,6 +1111,9 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
       break;
     case Qt::Key_Z:
       this->dataPtr->zPressed = false;
+      break;
+    case Qt::Key_Escape:
+      this->dataPtr->escapeReleased = true;
       break;
     default:
       break;
@@ -1466,6 +1664,9 @@ void IgnRenderer::Initialize()
   this->dataPtr->renderUtil.Init();
 
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
+  if (!scene)
+    return;
+
   auto root = scene->RootVisual();
 
   // Camera
@@ -1496,6 +1697,7 @@ void IgnRenderer::Destroy()
   auto scene = engine->SceneByName(this->dataPtr->renderUtil.SceneName());
   if (!scene)
     return;
+
   scene->DestroySensor(this->dataPtr->camera);
 
   // If that was the last sensor, destroy scene
@@ -1645,6 +1847,12 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+{
+  this->dataPtr->dropdownMenuEnabled = _enableDropdownMenu;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
     const std::string &_savePath)
 {
@@ -1652,6 +1860,27 @@ void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
   this->dataPtr->recordVideo = _record;
   this->dataPtr->recordVideoFormat = _format;
   this->dataPtr->recordVideoSavePath = _savePath;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoUseSimTime = _useSimTime;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoLockstep = _useSimTime;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->recordVideoBitrate = _bitrate;
 }
 
 /////////////////////////////////////////////////
@@ -2028,6 +2257,14 @@ void RenderWindowItem::Ready()
 
   this->dataPtr->renderThread->start();
   this->update();
+
+  this->dataPtr->rendererInit = true;
+}
+
+/////////////////////////////////////////////////
+bool RenderWindowItem::RendererInitialized() const
+{
+  return this->dataPtr->rendererInit;
 }
 
 /////////////////////////////////////////////////
@@ -2270,6 +2507,52 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       }
     }
 
+    if (auto elem = _pluginElem->FirstChildElement("record_video"))
+    {
+      if (auto useSimTimeElem = elem->FirstChildElement("use_sim_time"))
+      {
+        bool useSimTime = false;
+        if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Faild to parse <use_sim_time> value: "
+                 << useSimTimeElem->GetText() << std::endl;
+        }
+        else
+        {
+          renderWindow->SetRecordVideoUseSimTime(useSimTime);
+        }
+      }
+      if (auto lockstepElem = elem->FirstChildElement("lockstep"))
+      {
+        bool lockstep = false;
+        if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
+        {
+          ignerr << "Failed to parse <lockstep> value: "
+                 << lockstepElem->GetText() << std::endl;
+        }
+        else
+        {
+          renderWindow->SetRecordVideoLockstep(lockstep);
+        }
+      }
+      if (auto bitrateElem = elem->FirstChildElement("bitrate"))
+      {
+        unsigned int bitrate = 0u;
+        std::stringstream bitrateStr;
+        bitrateStr << std::string(bitrateElem->GetText());
+        bitrateStr >> bitrate;
+        if (bitrate > 0u)
+        {
+          renderWindow->SetRecordVideoBitrate(bitrate);
+        }
+        else
+        {
+          ignerr << "Video recorder bitrate must be larger than 0"
+                 << std::endl;
+        }
+      }
+    }
+
     if (auto elem = _pluginElem->FirstChildElement("fullscreen"))
     {
       auto fullscreen = false;
@@ -2336,6 +2619,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
   ignition::gui::App()->findChild<
+      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
+  ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
@@ -2383,6 +2668,16 @@ void Scene3D::Update(const UpdateInfo &_info,
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+
+  // check if video recording is enabled and if we need to lock step
+  // ECM updates with GUI rendering during video recording
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  if (this->dataPtr->recording && this->dataPtr->recordVideoLockstep &&
+      renderWindow->RendererInitialized())
+  {
+    std::unique_lock<std::mutex> lock2(this->dataPtr->renderMutex);
+    g_renderCv.wait(lock2);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -2406,6 +2701,9 @@ bool Scene3D::OnRecordVideo(const msgs::VideoRecord &_msg,
   renderWindow->SetRecordVideo(record, _msg.format(), _msg.save_filename());
 
   _res.set_data(true);
+
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  this->dataPtr->recording = record;
   return true;
 }
 
@@ -2536,7 +2834,26 @@ void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
 /////////////////////////////////////////////////
 bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
+  if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyPress(keyEvent);
+    }
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->HandleKeyRelease(keyEvent);
+    }
+  }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -2615,6 +2932,18 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       renderWindow->SetModelPath(spawnPreviewPathEvent->FilePath());
     }
   }
+  else if (_event->type() ==
+      ignition::gui::events::DropdownMenuEnabled::kType)
+  {
+    auto dropdownMenuEnabledEvent =
+      reinterpret_cast<ignition::gui::events::DropdownMenuEnabled *>(_event);
+    if (dropdownMenuEnabledEvent)
+    {
+      auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+      renderWindow->SetDropdownMenuEnabled(
+          dropdownMenuEnabledEvent->MenuEnabled());
+    }
+  }
 
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
@@ -2644,6 +2973,13 @@ void RenderWindowItem::SetModel(const std::string &_model)
 void RenderWindowItem::SetModelPath(const std::string &_filePath)
 {
   this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+{
+  this->dataPtr->renderThread->ignRenderer.SetDropdownMenuEnabled(
+      _enableDropdownMenu);
 }
 
 /////////////////////////////////////////////////
@@ -2734,6 +3070,27 @@ void RenderWindowItem::SetWorldName(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
+      _useSimTime);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
+      _lockstep);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
+      _bitrate);
+}
+
+/////////////////////////////////////////////////
 void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
@@ -2806,13 +3163,13 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
   this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
 
@@ -2825,8 +3182,6 @@ void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
 
       _e->accept();
     }
-    this->DeselectAllEntities(true);
-    this->dataPtr->renderThread->ignRenderer.TerminateSpawnPreview();
   }
 }
 

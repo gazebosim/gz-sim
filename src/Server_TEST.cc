@@ -34,6 +34,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
@@ -220,8 +221,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/air_pressure.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "air_pressure.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
@@ -229,7 +230,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "ignition::gazebo::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
-  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor",
+  serverConfig.AddPlugin({
+      "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
       "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
       sdf});
 
@@ -238,6 +240,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(2u, *server.SystemCount());
 
   // Run the server
   igndbg << "Run server" << std::endl;
@@ -316,6 +319,7 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
     serverConfig.SetLogRecordPath(logPath);
 
     gazebo::Server server(serverConfig);
+
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
@@ -996,4 +1000,4 @@ TEST_P(ServerFixture, AddResourcePaths)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));

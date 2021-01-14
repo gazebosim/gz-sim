@@ -98,12 +98,6 @@ namespace ignition
       /// \return Model's name.
       public: std::string Name(const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the ID of the entity which is the immediate parent of this
-      /// model.
-      /// \param[in] _ecm Entity-component manager.
-      /// \return Parent entity ID.
-      public: gazebo::Entity Parent(const EntityComponentManager &_ecm) const;
-
       /// \brief Get whether this model is static.
       /// \param[in] _ecm Entity-component manager.
       /// \return True if static.

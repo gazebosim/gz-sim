@@ -56,6 +56,7 @@ set (sources
   SystemLoader.cc
   Util.cc
   View.cc
+  World.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
 )
@@ -74,10 +75,12 @@ set (gtest_sources
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc
+  ServerConfig_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
   Util_TEST.cc
+  World_TEST.cc
   network/NetworkConfig_TEST.cc
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
