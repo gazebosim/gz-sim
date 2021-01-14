@@ -234,13 +234,8 @@ TEST_F(UserCommandsTest, Create)
   // Run an iteration and check it was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount, ecm->EntityCount());
   entityCount = ecm->EntityCount();
-
-  light = ecm->EntityByComponents(components::Name("light_test"));
-  EXPECT_NE(kNullEntity, light);
-
-  EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
 
   // Queue commands and check they're all executed in the same iteration
   req.Clear();
