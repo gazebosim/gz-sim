@@ -939,6 +939,10 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
   int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
     numThreads);
 
+  igndbg << "Updated state thread iterators: " << numThreads
+         << " threads processing around " << componentsPerThread
+         << " components each." << std::endl;
+
   // Push back the starting iterator
   this->entityComponentIterators.push_back(startIt);
   for (uint64_t i = 0; i < numThreads; ++i)
