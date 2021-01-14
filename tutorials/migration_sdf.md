@@ -107,9 +107,6 @@ For example, this world can be loaded into both simulators:
       That's because a hardcoded offset was removed on Ignition and
       maintained on Gazebo classic for backwards compatibility.
 
-
-TODO https://github.com/ignitionrobotics/ign-gazebo/pull/281
-
 ### Path relative to the SDF file
 
 It's possible to use relative paths within SDF files to refer to other files
@@ -152,11 +149,19 @@ Each simulator uses a different environment variable:
     * `IGN_GAZEBO_RESOURCE_PATH` for worlds, models and other resources
 
 For example, if you have the file structure above, you can set the environment
-variable to `/home/username/models`, and inside `world.sdf` include the model with:
+variable to `/home/username/models`:
+
+```
+export GAZEBO_MODEL_PATH=/home/username/models
+export GAZEBO_RESOURCE_PATH=/home/username/models
+export IGN_GAZEBO_RESOURCE_PATH=/home/username/models
+```
+
+And inside `world.sdf` include the model with:
 
 `<include>model://model1</include>`
 
-And `model.sdf` can refer to `mesh.dae` as:
+Also, `model.sdf` can refer to `mesh.dae` as:
 
 `<uri>model://model1/meshes/mesh.dae</uri>`
 
@@ -188,7 +193,7 @@ to be specified for each simulator separately.
 Both simulators are installed with several built-in plugins.
 [Gazebo classic's plugins](https://github.com/osrf/gazebo/tree/gazebo11/plugins)
 and
-[Ignition Gazebo's plugins](https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems)
+[Ignition Gazebo's plugins](https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo3/src/systems)
 have different file names. For example, to use Gazebo classic's differential drive
 plugin, the user can refer to it as follows:
 
@@ -224,11 +229,11 @@ To load custom plugins, users need to set environment variables to the directory
 where that plugin is located. The variables are different for each simulator:
 
 * Gazebo classic:
-    * `GAZEBO_PLUGIN_PATH` for all plugin types
+    * `GAZEBO_PLUGIN_PATH` for all plugin types.
 * Ignition Gazebo:
     * `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` for Ignition Gazebo systems (world, model,
-      sensor and visual plugins)
-    * `IGN_GUI_PLUGIN_PATH`  for GUI plugins
+      sensor and visual plugins).
+    * `IGN_GUI_PLUGIN_PATH` for GUI plugins.
 
 ### Keeping plugins separate
 
@@ -241,20 +246,19 @@ That's why it's recommended not to specify plugins for both simulators
 side-by-side on the same file. Instead, keep separate files and inject the plugins as
 needed.
 
-There isn't a built-in mechanism on SDFormat to inject plugins into files, but users
-can make use of templating tools like [ERB]()
+There isn't a built-in mechanism on SDFormat to inject plugins into files yet,
+but users can make use of templating tools like [ERB](erb_template.html)
 and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct plugins.
 
 ### Default plugins
 
 Ignition Gazebo is more modular than Gazebo classic, so most features are optional.
-For example, by default, Ignition will load all the GUI plugins defined on the
+For example, by default, Ignition will load all the system plugins defined on
+the `~/.ignition/gazebo/server.config` file and all GUI plugins defined on the
 `~/.ignition/gazebo/gui.config` file. But the user can always remove plugins from
-that file, or choose different ones in the SDF file's `<gui>` tag. (For more details,
-see the
-[GUI configuration tutorial](https://ignitionrobotics.org/api/gazebo/3.3/gui_config.html)).
-
-TODO: add info about https://github.com/ignitionrobotics/ign-gazebo/pull/281
+those files, or choose different ones by adding `<plugin>` tags to the SDF file.
+(For more details, see the [Server configuration tutorial](server_config.html)
+and the [GUI configuration tutorial](gui_config.html)).
 
 This is important to keep in mind when migrating your SDF files, because files
 that worked on Gazebo classic may need more plugins on Ignition.
@@ -329,10 +333,4 @@ the script and the albedo map.
           </pbr>
         </material>
 ```
-
-
-
-
-
-
 
