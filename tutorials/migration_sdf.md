@@ -185,8 +185,13 @@ different directories.
 ## Plugins
 
 Plugins are binary files compiled to use with a specific simulator. Plugins
-for Gazebo classic and Ignition Gazebo aren't compatible, so plugins will need
-to be specified for each simulator separately.
+for Gazebo classic and Ignition Gazebo aren't usually compatible, so plugins
+will need to be specified for each simulator separately.
+
+It's important to note that for both simulators, plugins compiled against
+a major version of the simulator can't be loaded by other major versions.
+The shared libraries will usually have the same name, so it's important to make
+sure you're loading the correct plugins.
 
 ### Official plugins
 
