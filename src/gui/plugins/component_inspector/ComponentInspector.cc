@@ -763,6 +763,11 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
       + "/set_physics";
   physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
+  if (physicsCmdService.empty())
+  {
+    ignerr << "Invalid physics command service topic provided" << std::endl;
+    return;
+  }
   this->dataPtr->node.Request(physicsCmdService, req, cb);
 }
 
