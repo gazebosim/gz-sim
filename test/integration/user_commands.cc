@@ -27,7 +27,9 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -670,4 +672,65 @@ TEST_F(UserCommandsTest, Pose)
   poseComp = ecm->Component<components::Pose>(boxEntity);
   ASSERT_NE(nullptr, poseComp);
   EXPECT_NEAR(500.0, poseComp->Data().Pos().Y(), 0.2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, Physics)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/shapes.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Check that the physics properties are the ones specified in the sdf
+  auto worldEntity = ecm->EntityByComponents(components::World());
+  EXPECT_NE(kNullEntity, worldEntity);
+  auto physicsComp = ecm->Component<components::Physics>(worldEntity);
+  ASSERT_NE(nullptr, physicsComp);
+  EXPECT_DOUBLE_EQ(physicsComp->Data().MaxStepSize(), 0.001);
+  EXPECT_DOUBLE_EQ(physicsComp->Data().RealTimeFactor(), 1.0);
+
+  // Set physics properties
+  msgs::Physics req;
+  req.set_max_step_size(0.123);
+  req.set_real_time_factor(4.567);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/default/set_physics"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration
+  server.Run(true, 1, false);
+
+  // Check updated physics properties
+  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  EXPECT_DOUBLE_EQ(physicsComp->Data().MaxStepSize(), 0.123);
+  EXPECT_DOUBLE_EQ(physicsComp->Data().RealTimeFactor(), 4.567);
 }
