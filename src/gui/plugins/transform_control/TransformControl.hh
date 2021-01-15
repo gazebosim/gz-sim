@@ -133,6 +133,15 @@ namespace gazebo
     /// \brief Notify that new snapping values have been set.
     signals: void newSnapValues();
 
+    /// \brief Notify that selection has been activated
+    signals: void activateSelect();
+
+    /// \brief Notify that translation has been activated
+    signals: void activateTranslate();
+
+    /// \brief Notify that rotation has been activated
+    signals: void activateRotate();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<TransformControlPrivate> dataPtr;

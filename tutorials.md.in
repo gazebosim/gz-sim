@@ -7,27 +7,31 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 **Tutorials**
 
-* \subpage terminology "Terminology": List of terms used across the documentation
-* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins
-* \subpage levels "Levels": Load entities on demand in large environments
-* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes
-* \subpage resources "Finding resources": The different ways in which Ignition looks for files
+* \subpage terminology "Terminology": List of terms used across the documentation.
+* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage levels "Levels": Load entities on demand in large environments.
+* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
+* \subpage resources "Finding resources": The different ways in which Ignition looks for files.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
-* \subpage battery "Battery": Keep track of battery charge on robot models
+* \subpage battery "Battery": Keep track of battery charge on robot models.
 * \subpage gui_config "GUI configuration": Customizing your layout.
+* \subpage server_config "Server configuration": Customizing what system plugins are loaded.
 * \subpage debugging "Debugging": Information about debugging Gazebo.
-* \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations
+* \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations.
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Ignition Fuel app.
-* \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation
-* \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation
+* \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
+* \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
+* \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
+* \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 
-**Migration from Gazebo-classic**
+**Migration from Gazebo classic**
 
-* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
-* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
-* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo-classic
-* \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Classic Gazebo to Ignition Gazebo.
+* \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Ignition Gazebo
+* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
+* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
+* \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
+* \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Ignition Gazebo.
 
 ## License
 

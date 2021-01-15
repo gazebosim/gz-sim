@@ -32,6 +32,8 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
@@ -63,6 +65,7 @@ namespace traits
 template<typename DataType>
 auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 {
+  // cppcheck-suppress syntaxError
   if constexpr (std::is_same<DataType, double>::value)
   {
     return math::equal(_a, _b);
@@ -543,6 +546,7 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
   const auto typeId = ComponentTypeT::typeId;
   return this->RemoveComponent(_entity, typeId);
+}
 }
 }
 }
