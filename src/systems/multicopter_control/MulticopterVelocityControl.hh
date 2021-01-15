@@ -146,7 +146,9 @@ namespace systems
   /// # Examples
   /// See examples/worlds/quadcopter.sdf for a demonstration.
   ///
-  class IGNITION_GAZEBO_MULTICOPTER_CONTROL_SYSTEM_VISIBLE MulticopterVelocityControl
+  class
+  IGNITION_GAZEBO_MULTICOPTER_CONTROL_SYSTEM_VISIBLE
+  MulticopterVelocityControl
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

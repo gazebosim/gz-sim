@@ -154,8 +154,11 @@ namespace systems
   /// The current implementation of this system does not support specifying a
   /// subfield of a repeated field in the "field" attribute. i.e, if
   /// `field="f1.f2"`, `f1` cannot be a repeated field.
-  class IGNITION_GAZEBO_TRIGGERED_PUBLISHER_SYSTEM_VISIBLE TriggeredPublisher : public System,
-                                                     public ISystemConfigure
+  class
+  IGNITION_GAZEBO_TRIGGERED_PUBLISHER_SYSTEM_VISIBLE
+  TriggeredPublisher :
+    public System,
+    public ISystemConfigure
   {
     /// \brief Constructor
     public: TriggeredPublisher() = default;

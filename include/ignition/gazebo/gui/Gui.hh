@@ -60,7 +60,8 @@ namespace gui
   /// IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   /// \param[in] _loadPluginsFromSdf If true, plugins specified in the world
   /// SDFormat file will get loaded.
-  IGNITION_GAZEBO_GUI_VISIBLE std::unique_ptr<ignition::gui::Application> createGui(
+  IGNITION_GAZEBO_GUI_VISIBLE
+  std::unique_ptr<ignition::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 
