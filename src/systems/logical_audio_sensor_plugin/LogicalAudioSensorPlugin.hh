@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include <ignition/gazebo/logicalaudiosensorplugin-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -128,7 +129,7 @@ namespace systems
   /// <PREFIX>/mic_<id>/detection topic, where <PREFIX> is the scoped name
   /// for the microphone - see ignition::gazebo::scopedName for more details -
   /// and <id> is the value specified in the microphone's <id> tag from the SDF.
-  class IGNITION_GAZEBO_VISIBLE LogicalAudioSensorPlugin :
+  class IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE LogicalAudioSensorPlugin :
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate,

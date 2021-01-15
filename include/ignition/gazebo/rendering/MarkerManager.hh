@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include <ignition/gazebo/rendering/Export.hh>
+
 #include "ignition/rendering/RenderTypes.hh"
 
 namespace ignition
@@ -32,7 +34,7 @@ class MarkerManagerPrivate;
 
 /// \brief Creates, deletes, and maintains marker visuals. Only the
 /// Scene class should instantiate and use this class.
-class IGNITION_GAZEBO_VISIBLE MarkerManager
+class IGNITION_GAZEBO_RENDERING_VISIBLE MarkerManager
 {
   /// \brief Constructor
   public: MarkerManager();

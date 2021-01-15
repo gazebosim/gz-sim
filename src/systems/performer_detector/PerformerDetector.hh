@@ -25,6 +25,7 @@
 
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/performer-detector-system/Export.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/System.hh"
 
@@ -77,7 +78,7 @@ namespace systems
   /// contents are interpreted as strings. Keys value pairs are stored in a
   /// map, which means the keys are unique.
 
-  class IGNITION_GAZEBO_VISIBLE PerformerDetector
+  class IGNITION_GAZEBO_PERFORMER_DETECTOR_SYSTEM_VISIBLE PerformerDetector
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate

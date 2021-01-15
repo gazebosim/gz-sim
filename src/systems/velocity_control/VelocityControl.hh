@@ -18,7 +18,9 @@
 #define IGNITION_GAZEBO_SYSTEMS_VELOCITYCONTROL_HH_
 
 #include <memory>
+#include <optional>
 
+#include <ignition/gazebo/velocity-control-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -34,7 +36,7 @@ namespace systems
 
   /// \brief Linear and angular velocity controller
   /// which is directly set on a model.
-  class IGNITION_GAZEBO_VISIBLE VelocityControl
+  class IGNITION_GAZEBO_VELOCITY_CONTROL_SYSTEM_VISIBLE VelocityControl
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

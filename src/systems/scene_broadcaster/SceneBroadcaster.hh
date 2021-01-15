@@ -20,7 +20,7 @@
 #include <memory>
 #include <vector>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/scene-broadcaster-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -38,7 +38,7 @@ namespace systems
   **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
-  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster:
+  class IGNITION_GAZEBO_SCENE_BROADCASTER_SYSTEM_VISIBLE SceneBroadcaster:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

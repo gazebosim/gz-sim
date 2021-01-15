@@ -19,7 +19,7 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/altimeter-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -36,7 +36,7 @@ namespace systems
   /// \class Altimeter Altimeter.hh ignition/gazebo/systems/Altimeter.hh
   /// \brief An altimeter sensor that reports vertical position and velocity
   /// readings over ign transport
-  class IGNITION_GAZEBO_VISIBLE Altimeter:
+  class IGNITION_GAZEBO_ALTIMETER_SYSTEM_VISIBLE Altimeter:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

@@ -24,6 +24,7 @@
 #include <string>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/detachable-joint-system/Export.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/System.hh"
 
@@ -54,7 +55,7 @@ namespace systems
   /// will not print a warning message if a child model does not exist yet.
   /// Otherwise, a warning message is printed. Defaults to false.
 
-  class IGNITION_GAZEBO_VISIBLE DetachableJoint
+  class IGNITION_GAZEBO_DETACHABLE_JOINT_SYSTEM_VISIBLE DetachableJoint
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

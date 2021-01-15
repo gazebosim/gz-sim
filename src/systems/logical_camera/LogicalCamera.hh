@@ -19,7 +19,7 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/logical-camera-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -38,7 +38,7 @@ namespace systems
   **/
   /// \brief A logical camera sensor that reports objects detected within its
   /// frustum readings over ign transport
-  class IGNITION_GAZEBO_VISIBLE LogicalCamera:
+  class IGNITION_GAZEBO_LOGICAL_CAMERA_SYSTEM_VISIBLE LogicalCamera:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate
