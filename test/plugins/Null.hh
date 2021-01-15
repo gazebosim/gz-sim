@@ -33,7 +33,7 @@ namespace systems
 {
   /// \class Null Null.hh ignition/gazebo/systems/Null.hh
   /// \brief Minimal system implementation
-  class IGNITION_GAZEBO_VISIBLE Null:
+  class Null:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate,

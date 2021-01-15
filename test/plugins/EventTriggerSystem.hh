@@ -25,13 +25,14 @@ namespace ignition
 {
 namespace gazebo
 {
-class IGNITION_GAZEBO_VISIBLE EventTriggerSystem :
+class EventTriggerSystem :
   public gazebo::System,
   public gazebo::ISystemConfigure,
   public gazebo::ISystemUpdate
 {
   // needed for linter
   public: EventTriggerSystem() = default;
+  public: ~EventTriggerSystem() = default;
 
   public: void Configure(const Entity &/*_entity*/,
                          const std::shared_ptr<const sdf::Element> &/*_sdf*/,
