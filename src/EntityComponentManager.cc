@@ -50,6 +50,10 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \return True if created successfully.
   public: bool CreateComponentStorage(const ComponentTypeId _typeId);
 
+  /// \brief Allots the work for multiple threads prior to running
+  /// `AddEntityToMessage`.
+  public: void CalculateStateThreadLoad();
+
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
   public: std::unordered_map<ComponentTypeId,
@@ -79,20 +83,6 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// each thread.
   public: bool entityComponentsDirty{true};
 
-  /// \brief The number of threads to run entity component computations in
-  /// the `State` function. Initialized to 1, but calculated later based
-  /// on the hardware thread support and number of components each thread
-  ///is allowed to handle, see `componentsPerThread`.
-  public: uint64_t numComponentThreads = 1;
-
-  /// \brief The minimum number of entity components each thread in the `State`
-  /// function is allowed to process.  For instance, if `componentsPerThread`
-  /// is 50, any number of entity components below 50 would only spawn one
-  /// worker thread, 100 would spawn two, and so on.  If the number of
-  /// components is greater than `componentsPerThread` * `numComponentThreads`,
-  /// the work will be distributed evenly between all threads.
-  public: const uint64_t componentsPerThread = 1;
-
   /// \brief The set of components that each entity has.
   /// NOTE: Any modification of this data structure must be followed
   /// by setting `entityComponentsDirty` to true.
@@ -102,7 +92,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief A vector of iterators to evenly distributed spots in the
   /// `entityComponents` map.  Threads in the `State` function use this
   /// vector for easy access of their pre-allocated work.  This vector
-  /// is recalculated if `entityComponents` is changed (when 
+  /// is recalculated if `entityComponents` is changed (when
   /// `entityComponentsDirty` == true).
   public: std::vector<std::unordered_map<Entity,
           std::unordered_map<ComponentTypeId, ComponentKey>>::iterator>
@@ -928,46 +918,48 @@ void EntityComponentManager::ChangedState(
   // TODO(anyone) New / removed / changed components
 }
 
-void EntityComponentManager::CalculateComponentThreadLoad() const
+//////////////////////////////////////////////////
+void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
   // If the entity component vector is dirty, we need to recalculate the
   // threads and each threads work load
-  if (!this->dataPtr->entityComponentsDirty)
+  if (!this->entityComponentsDirty)
     return;
 
-  this->dataPtr->entityComponentsDirty = false;
-  this->dataPtr->entityComponentIterators.clear();
-  auto startIt = this->dataPtr->entityComponents.begin();
-  int numComponents = this->dataPtr->entityComponents.size();
-
-  // Each thread runs `this->dataPtr->componentsPerThread` or more
-  // entity components, an arbitrary number
-  int numThreads = numComponents / this->dataPtr->componentsPerThread + 1;
-  int maxThreads = std::thread::hardware_concurrency();
+  this->entityComponentsDirty = false;
+  this->entityComponentIterators.clear();
+  auto startIt = this->entityComponents.begin();
+  int numComponents = this->entityComponents.size();
 
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
-  this->dataPtr->numComponentThreads = std::min(numThreads, maxThreads);
+  int maxThreads = std::thread::hardware_concurrency();
+  uint64_t numThreads = std::min(numComponents, maxThreads);
+
   int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
-    this->dataPtr->numComponentThreads);
+    numThreads);
+
+  igndbg << "Updated state thread iterators: " << numThreads
+         << " threads processing around " << componentsPerThread
+         << " components each." << std::endl;
 
   // Push back the starting iterator
-  this->dataPtr->entityComponentIterators.push_back(startIt);
-  for (uint64_t i = 0; i < this->dataPtr->numComponentThreads; i++)
+  this->entityComponentIterators.push_back(startIt);
+  for (uint64_t i = 0; i < numThreads; ++i)
   {
     // If we have added all of the components to the iterator vector, we are
     // done so push back the end iterator
     numComponents -= componentsPerThread;
     if (numComponents <= 0)
     {
-      this->dataPtr->entityComponentIterators.push_back(
-          this->dataPtr->entityComponents.end());
+      this->entityComponentIterators.push_back(
+          this->entityComponents.end());
       break;
     }
 
     // Get the iterator to the next starting group of components
     auto nextIt = std::next(startIt, componentsPerThread);
-    this->dataPtr->entityComponentIterators.push_back(nextIt);
+    this->entityComponentIterators.push_back(nextIt);
     startIt = nextIt;
   }
 }
@@ -1002,22 +994,23 @@ void EntityComponentManager::State(
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
 
-  this->CalculateComponentThreadLoad();
+  this->dataPtr->CalculateStateThreadLoad();
 
-  auto functor = [&](auto itStart, auto itEnd) {
+  auto functor = [&](auto itStart, auto itEnd)
+  {
     msgs::SerializedStateMap threadMap;
     while (itStart != itEnd)
     {
-      if (_entities.empty() ||
-          _entities.find((*itStart).first) != _entities.end())
+      auto entity = (*itStart).first;
+      if (_entities.empty() || _entities.find(entity) != _entities.end())
       {
-        this->AddEntityToMessage(threadMap, (*itStart).first, _types, _full);
+        this->AddEntityToMessage(threadMap, entity, _types, _full);
       }
       itStart++;
     }
     std::lock_guard<std::mutex> lock(stateMapMutex);
 
-    for (auto &entity : threadMap.entities())
+    for (const auto &entity : threadMap.entities())
     {
       (*_state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
           entity.second;
@@ -1034,8 +1027,10 @@ void EntityComponentManager::State(
   }
 
   // Wait for each thread to finish processing its components
-  std::for_each(workers.begin(), workers.end(),
-      [](std::thread &t){ t.join(); });
+  std::for_each(workers.begin(), workers.end(), [](std::thread &_t)
+  {
+    _t.join();
+  });
 }
 
 //////////////////////////////////////////////////
