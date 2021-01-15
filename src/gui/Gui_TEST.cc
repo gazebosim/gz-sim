@@ -21,6 +21,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/StringUtils.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -40,10 +41,10 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;
 
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-         "/from_env:/tmp/more_env", 1);
-  setenv("SDF_PATH", "", 1);
-  setenv("IGN_FILE_PATH", "", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+         "/from_env:/tmp/more_env");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
   igndbg << "Environment set" << std::endl;
 
   transport::Node node;
@@ -95,7 +96,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
     igndbg << "Checking variable [" << env << "]" << std::endl;
-    char *pathCStr = getenv(env);
+    char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
     paths.erase(std::remove_if(paths.begin(), paths.end(),
@@ -141,7 +142,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
     igndbg << "Checking variable [" << env << "]" << std::endl;
-    char *pathCStr = getenv(env);
+    char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
     paths.erase(std::remove_if(paths.begin(), paths.end(),
