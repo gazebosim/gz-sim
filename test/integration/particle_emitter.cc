@@ -17,23 +17,12 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/empty.pb.h>
-#include <ignition/msgs/twist.pb.h>
-
-#include <regex>
-
-#include <sdf/Root.hh>
-#include <sdf/World.hh>
-
-#include <ignition/common/Console.hh>
-#include <ignition/transport/Node.hh>
-
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "helpers/Relay.hh"
@@ -70,11 +59,45 @@ class ParticleEmitterTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-// ToDo
+// Load an SDF with a particle emitter and verify its properties.
 TEST_F(ParticleEmitterTest, SDFLoad)
 {
-  // Start server
+  const ignition::math::Pose3d expectedPose(0, 0, 0, 0, 0, 0);
+  bool updateChecked{false};
+
   this->LoadWorld("test/worlds/particle_emitter.sdf");
+
+  // Create a system that checks a particle emitter.
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                              const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::ParticleEmitter,
+                  components::Name,
+                  components::Pose>(
+            [&](const ignition::gazebo::Entity &/*_entity*/,
+                const components::ParticleEmitter *_emitter,
+                const components::Name *_name,
+                const components::Pose *_pose) -> bool
+            {
+              updateChecked = true;
+
+              EXPECT_EQ("particle_emitter_smoke_emitter", _name->Data());
+              EXPECT_EQ(expectedPose, _pose->Data());
+              EXPECT_TRUE(_emitter->Data().data.emitting());
+              EXPECT_DOUBLE_EQ(2, _emitter->Data().data.lifetime());
+              EXPECT_DOUBLE_EQ(10, _emitter->Data().data.min_velocity());
+              EXPECT_DOUBLE_EQ(20, _emitter->Data().data.max_velocity());
+              EXPECT_DOUBLE_EQ(10, _emitter->Data().data.scale_rate());
+
+              return true;
+            });
+      });
+
+  this->server->AddSystem(testSystem.systemPtr);
+  this->server->Run(true, 1, false);
+
+  EXPECT_TRUE(updateChecked);
 }
 
 /////////////////////////////////////////////////
