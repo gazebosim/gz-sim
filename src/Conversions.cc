@@ -331,6 +331,12 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_lighting(_in.Lighting());
 
+  // todo(anyone) add double_sided field to msgs::Material
+  auto data = out.mutable_header()->add_data();
+  data->set_key("double_sided");
+  std::string *value = data->add_value();
+  *value = std::to_string(_in.DoubleSided());
+
   sdf::Pbr *pbr = _in.PbrMaterial();
   if (pbr)
   {
@@ -383,6 +389,14 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetLighting(_in.lighting());
+
+  // todo(anyone) add double_sided field to msgs::Material
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    const auto &data = _in.header().data(i);
+    if (data.key() == "double_sided" && data.value_size() > 0)
+      out.SetDoubleSided(math::parseInt(data.value(0)));
+  }
 
   if (_in.has_pbr())
   {
@@ -702,6 +716,21 @@ msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
   out.set_shadows(_in.Shadows());
   out.set_grid(_in.Grid());
   out.set_origin_visual(_in.OriginVisual());
+
+  if (_in.Sky())
+  {
+    msgs::Sky *skyMsg = out.mutable_sky();
+    skyMsg->set_time(_in.Sky()->Time());
+    skyMsg->set_sunrise(_in.Sky()->Sunrise());
+    skyMsg->set_sunset(_in.Sky()->Sunset());
+    skyMsg->set_wind_speed(_in.Sky()->CloudSpeed());
+    skyMsg->set_wind_direction(_in.Sky()->CloudDirection().Radian());
+    skyMsg->set_humidity(_in.Sky()->CloudHumidity());
+    skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
+    msgs::Set(skyMsg->mutable_cloud_ambient(),
+        _in.Sky()->CloudAmbient());
+  }
+
   return out;
 }
 
@@ -717,6 +746,20 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
   out.SetShadows(_in.shadows());
   out.SetGrid(_in.grid());
   out.SetOriginVisual(_in.origin_visual());
+
+  if (_in.has_sky())
+  {
+    sdf::Sky sky;
+    sky.SetTime(_in.sky().time());
+    sky.SetSunrise(_in.sky().sunrise());
+    sky.SetSunset(_in.sky().sunset());
+    sky.SetCloudSpeed(_in.sky().wind_speed());
+    sky.SetCloudDirection(math::Angle(_in.sky().wind_direction()));
+    sky.SetCloudHumidity(_in.sky().humidity());
+    sky.SetCloudMeanSize(_in.sky().mean_cloud_size());
+    sky.SetCloudAmbient(msgs::Convert(_in.sky().cloud_ambient()));
+    out.SetSky(sky);
+  }
   return out;
 }
 

@@ -945,15 +945,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
   this->dataPtr->SetRemovedComponentsMsgs(_entity, _msg);
-
-  // Remove the entity from the message if a component for the entity was
-  // not modified or added. This will allow the state message to shrink.
-  if (entIter == _msg.mutable_entities()->end() &&
-      (entIter = _msg.mutable_entities()->find(_entity)) !=
-      _msg.mutable_entities()->end())
-  {
-    _msg.mutable_entities()->erase(entIter);
-  }
 }
 
 //////////////////////////////////////////////////
@@ -1224,7 +1215,9 @@ void EntityComponentManager::SetState(
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
-            ComponentState::OneTimeChange);
+            _stateMsg.has_one_time_component_changes() ?
+            ComponentState::OneTimeChange :
+            ComponentState::PeriodicChange);
       }
     }
   }
