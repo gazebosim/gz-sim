@@ -762,6 +762,7 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
   req.set_real_time_factor(_realTimeFactor);
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
       + "/set_physics";
+  physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
   this->dataPtr->node.Request(physicsCmdService, req, cb);
 }
 
