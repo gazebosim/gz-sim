@@ -44,6 +44,7 @@ namespace sdf_generator
   /// \input[in] _config Configuration for the world generator
   /// \returns Generated world string if generation succeeded.
   /// Otherwise, nullopt
+  IGNITION_GAZEBO_VISIBLE
   std::optional<std::string> generateWorld(
       const EntityComponentManager &_ecm, const Entity &_entity,
       const IncludeUriMap &_includeUriMap = IncludeUriMap(),
@@ -56,6 +57,7 @@ namespace sdf_generator
   /// \input[in] _includeUriMap Map from file paths to URIs used to preserve
   /// included Fuel models
   /// \input[in] _config Configuration for the world generator
+  IGNITION_GAZEBO_VISIBLE
   bool updateWorldElement(
       sdf::ElementPtr _elem,
       const EntityComponentManager &_ecm, const Entity &_entity,
@@ -68,6 +70,7 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity Model entity
   /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
   bool updateModelElement(const sdf::ElementPtr &_elem,
                           const EntityComponentManager &_ecm,
                           const Entity &_entity);
@@ -79,6 +82,7 @@ namespace sdf_generator
   /// \input[in] _entity Entity of included resource
   /// \input[in] _uri Uri of the resource
   /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
   bool updateIncludeElement(const sdf::ElementPtr &_elem,
                             const EntityComponentManager &_ecm,
                             const Entity &_entity, const std::string &_uri);

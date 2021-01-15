@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include <ignition/gazebo/rendering/Export.hh>
+
 #include "ignition/rendering/RenderTypes.hh"
 
 namespace ignition

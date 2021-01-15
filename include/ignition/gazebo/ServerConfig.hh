@@ -49,7 +49,7 @@ namespace ignition
       /// type and name, but it can't tell apart multiple entities with the same
       /// name in different parts of the entity tree.
       /// \sa const std::list<PluginInfo> &Plugins() const
-      public: class PluginInfo
+      public: class IGNITION_GAZEBO_VISIBLE PluginInfo
       {
         /// \brief Default constructor.
         public: PluginInfo();
