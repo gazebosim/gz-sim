@@ -170,7 +170,20 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
+    // Remove warning suppression in v6
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else
+# pragma warning(push)
+# pragma warning(disable: 4996)
+#endif
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#else
+# pragma warning(pop)
+#endif
     runner->connect(app.get(), &ignition::gui::Application::PluginAdded, runner,
         &ignition::gazebo::GuiRunner::OnPluginAdded);
     ++runnerCount;
@@ -208,7 +221,20 @@ std::unique_ptr<ignition::gui::Application> createGui(
         ignerr << "Service call failed for [" << service << "]" << std::endl;
 
       // GUI runner
+      // Remove warning suppression in v6
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else
+# pragma warning(push)
+# pragma warning(disable: 4996)
+#endif
       auto runner = new ignition::gazebo::GuiRunner(worldName);
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#else
+# pragma warning(pop)
+#endif
       runner->connect(app.get(), &ignition::gui::Application::PluginAdded,
                       runner, &ignition::gazebo::GuiRunner::OnPluginAdded);
       runner->setParent(ignition::gui::App());

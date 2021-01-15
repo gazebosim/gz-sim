@@ -31,7 +31,24 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
+class ignition::gazebo::GuiRunnerPrivate
+{
+  /// \brief Entity-component manager.
+  public: gazebo::EntityComponentManager ecm;
+
+  /// \brief Transport node.
+  public: transport::Node node;
+
+  /// \brief Topic to request state
+  public: std::string stateTopic;
+
+  /// \brief Latest update info
+  public: UpdateInfo updateInfo;
+};
+
+/////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
+  : dataPtr(std::make_unique<GuiRunnerPrivate>())
 {
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
@@ -40,14 +57,14 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
 
-  this->stateTopic = "/world/" + _worldName + "/state";
+  this->dataPtr->stateTopic = "/world/" + _worldName + "/state";
 
   common::addFindFileURICallback([] (common::URI _uri)
   {
     return fuel_tools::fetchResource(_uri.Str());
   });
 
-  igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
+  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic << "]..."
          << std::endl;
 
   this->RequestState();
@@ -62,13 +79,13 @@ void GuiRunner::RequestState()
   // set up service for async state response callback
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =
-      this->node.Options().NameSpace() + "/" + id + "/state_async";
-  this->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
+      this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
+  this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
   ignition::msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // send async state request
-  this->node.Request(this->stateTopic + "_async", req);
+  this->dataPtr->node.Request(this->dataPtr->stateTopic + "_async", req);
 }
 
 /////////////////////////////////////////////////
@@ -82,7 +99,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
     return;
   }
 
-  plugin->Update(this->updateInfo, this->ecm);
+  plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
 }
 
 /////////////////////////////////////////////////
@@ -94,12 +111,15 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // and in RequestState()
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =
-      this->node.Options().NameSpace() + "/" + id + "/state_async";
-  this->node.UnadvertiseSrv(reqSrv);
+      this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
+  this->dataPtr->node.UnadvertiseSrv(reqSrv);
 
   // Only subscribe to periodic updates after receiving initial state
-  if (this->node.SubscribedTopics().empty())
-    this->node.Subscribe(this->stateTopic, &GuiRunner::OnState, this);
+  if (this->dataPtr->node.SubscribedTopics().empty())
+  {
+    this->dataPtr->node.Subscribe(this->dataPtr->stateTopic,
+        &GuiRunner::OnState, this);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -108,17 +128,17 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
 
-  this->ecm.SetState(_msg.state());
+  this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
-  this->updateInfo = convert<UpdateInfo>(_msg.stats());
+  this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
-    plugin->Update(this->updateInfo, this->ecm);
+    plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
   }
-  this->ecm.ClearNewlyCreatedEntities();
-  this->ecm.ProcessRemoveEntityRequests();
-  this->ecm.ClearRemovedComponents();
+  this->dataPtr->ecm.ClearNewlyCreatedEntities();
+  this->dataPtr->ecm.ProcessRemoveEntityRequests();
+  this->dataPtr->ecm.ClearRemovedComponents();
 }
 

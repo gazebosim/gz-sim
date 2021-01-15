@@ -20,6 +20,7 @@
 #include <ignition/msgs/serialized.pb.h>
 
 #include <QtCore>
+#include <memory>
 #include <string>
 
 #include <ignition/transport/Node.hh>
@@ -33,6 +34,7 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+class GuiRunnerPrivate;
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
 class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
@@ -41,7 +43,9 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 
   /// \brief Constructor
   /// \param[in] _worldName World name.
-  public: explicit GuiRunner(const std::string &_worldName);
+  /// \todo Move to src/gui on v6.
+  public: explicit IGN_DEPRECATED(5.0) GuiRunner(
+      const std::string &_worldName);
 
   /// \brief Destructor
   public: ~GuiRunner() override;
@@ -61,17 +65,9 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
 
-  /// \brief Entity-component manager.
-  private: gazebo::EntityComponentManager ecm;
 
-  /// \brief Transport node.
-  private: transport::Node node;
-
-  /// \brief Topic to request state
-  private: std::string stateTopic;
-
-  /// \brief Latest update info
-  private: UpdateInfo updateInfo;
+  /// \brief Pointer to private data.
+  private: std::unique_ptr<GuiRunnerPrivate> dataPtr;
 };
 }
 }
