@@ -284,7 +284,7 @@ void UserCommands::Configure(const Entity &_entity,
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
 
   // Physics service
-  std::string physicsService{"/world/" + worldName + "/set_physics"};
+  std::string physicsService{"/world/" + validWorldName + "/set_physics"};
   this->dataPtr->node.Advertise(physicsService,
       &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
 
