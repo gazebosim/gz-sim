@@ -31,7 +31,26 @@ namespace systems
 {
   class ParticleEmitterPrivate;
 
-  /// \brief ToDo
+  /// \brief A system for creating a particle emitter.
+  ///
+  /// System parameters
+  ///
+  /// `<emitter_name>`:
+  /// `<type>`:
+  /// `<pose>`:
+  /// `<size>`:
+  /// `<rate>`:
+  /// `<duration`>:
+  /// `<emitting>`:
+  /// `<particle_size>`:
+  /// `<lifetime>`:
+  /// `<material>`:
+  /// `<min_velocity>`:
+  /// `<max_velocity>`:
+  /// `<color_start>`:
+  /// `<color_end>`:
+  /// `<scale_rate>`:
+  /// `<color_range_image>`:
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter
       : public System,
         public ISystemConfigure,
