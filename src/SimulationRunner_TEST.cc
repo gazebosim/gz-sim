@@ -176,6 +176,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   EXPECT_EQ(1u, worldCount);
   EXPECT_NE(kNullEntity, worldEntity);
 
+  // Test step size, real time factor is not testable since it has no public API
+  auto stepSize = std::chrono::duration<double>(runner.StepSize()).count();
+  EXPECT_DOUBLE_EQ(0.001, stepSize);
+
   // Check models
   unsigned int modelCount{0};
   Entity boxModelEntity = kNullEntity;

@@ -42,6 +42,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
@@ -111,15 +112,19 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
   this->ecm.Each<components::World,
-           components::Name>(
+           components::Name,
+           components::Physics>(
     [&](const Entity &_entity,
         const components::World *_world,
-        const components::Name *_name)->bool
+        const components::Name *_name,
+        const components::Physics *_physics)->bool
     {
       EXPECT_NE(nullptr, _world);
       EXPECT_NE(nullptr, _name);
 
       EXPECT_EQ("default", _name->Data());
+      EXPECT_DOUBLE_EQ(0.001, _physics->Data().MaxStepSize());
+      EXPECT_DOUBLE_EQ(1.0, _physics->Data().RealTimeFactor());
 
       worldCount++;
 

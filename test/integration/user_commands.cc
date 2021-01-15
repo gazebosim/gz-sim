@@ -708,8 +708,8 @@ TEST_F(UserCommandsTest, Physics)
   EXPECT_NE(kNullEntity, worldEntity);
   auto physicsComp = ecm->Component<components::Physics>(worldEntity);
   ASSERT_NE(nullptr, physicsComp);
-  EXPECT_DOUBLE_EQ(physicsComp->Data().MaxStepSize(), 0.001);
-  EXPECT_DOUBLE_EQ(physicsComp->Data().RealTimeFactor(), 1.0);
+  EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(1.0, physicsComp->Data().RealTimeFactor());
 
   // Set physics properties
   msgs::Physics req;
@@ -731,6 +731,6 @@ TEST_F(UserCommandsTest, Physics)
 
   // Check updated physics properties
   physicsComp = ecm->Component<components::Physics>(worldEntity);
-  EXPECT_DOUBLE_EQ(physicsComp->Data().MaxStepSize(), 0.123);
-  EXPECT_DOUBLE_EQ(physicsComp->Data().RealTimeFactor(), 4.567);
+  EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 }

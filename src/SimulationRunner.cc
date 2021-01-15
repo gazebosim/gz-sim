@@ -78,7 +78,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       dur);
 
   // Desired real time factor
-  this->desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
+  this->desiredRtf = physics->RealTimeFactor();
 
   // The instantaneous real time factor is given as:
   //
