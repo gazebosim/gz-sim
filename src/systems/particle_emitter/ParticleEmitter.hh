@@ -18,20 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_PARTICLE_EMITTER_HH_
 
 #include <memory>
-#include <set>
-#include <unordered_map>
-#include <vector>
 
-#include <sdf/Element.hh>
-#include <sdf/Geometry.hh>
-#include <sdf/Root.hh>
-
-#include <ignition/transport/Node.hh>
-#include <ignition/math/Pose3.hh>
-
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/System.hh"
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {

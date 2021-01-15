@@ -20,10 +20,10 @@
 #include <string>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <sdf/Material.hh>
 
-#include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/components/Pose.hh>
@@ -48,10 +48,10 @@ ParticleEmitter::ParticleEmitter()
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter::Configure(const Entity &_entity,
+void ParticleEmitter::Configure(const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
-    EventManager &_eventMgr)
+    EventManager &/*_eventMgr*/)
 {
   // Name.
   if (!_sdf->HasElement("emitter_name"))
@@ -176,8 +176,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
+    ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("ParticleEmitter::PreUpdate");
 }
