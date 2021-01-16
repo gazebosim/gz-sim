@@ -305,12 +305,20 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
 {
+  auto validWorldName = transport::TopicUtils::AsValidTopic(_worldName);
+  if (validWorldName.empty())
+  {
+    ignerr << "Failed to setup transport, invalid world name [" << _worldName
+           << "]" << std::endl;
+    return;
+  }
+
   // Wind seed velocity topic
-  this->node.Subscribe("/world/" + _worldName + "/wind",
+  this->node.Subscribe("/world/" + validWorldName + "/wind",
                        &WindEffectsPrivate::OnWindMsg, this);
 
   // Wind info service
-  this->node.Advertise("/world/" + _worldName + "/wind_info",
+  this->node.Advertise("/world/" + validWorldName + "/wind_info",
                        &WindEffectsPrivate::WindInfoService, this);
 }
 

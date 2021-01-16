@@ -17,6 +17,7 @@
 
 #include <regex>
 #include <set>
+#include <string>
 #include <unordered_map>
 
 #include <ignition/common/Profiler.hh>
@@ -199,7 +200,13 @@ void CameraVideoRecorder::Configure(
   // video recorder service topic name
   if (_sdf->HasElement("service"))
   {
-    this->dataPtr->service = _sdf->Get<std::string>("service");
+    this->dataPtr->service = transport::TopicUtils::AsValidTopic(
+        _sdf->Get<std::string>("service"));
+    if (this->dataPtr->service.empty())
+    {
+      ignerr << "Service [" << _sdf->Get<std::string>("service")
+             << "] not valid. Ignoring." << std::endl;
+    }
   }
   this->dataPtr->eventMgr = &_eventMgr;
 
@@ -207,7 +214,15 @@ void CameraVideoRecorder::Configure(
   sdf::Sensor sensorSdf = cameraEntComp->Data();
   std::string topic  = sensorSdf.Topic();
   if (topic.empty())
-    topic = scopedName(_entity, _ecm) + "/image";
+  {
+    auto scoped = scopedName(_entity, _ecm);
+    topic = transport::TopicUtils::AsValidTopic(scoped + "/image");
+    if (topic.empty())
+    {
+      ignerr << "Failed to generate valid topic for entity [" << scoped
+             << "]" << std::endl;
+    }
+  }
   this->dataPtr->sensorTopic = topic;
 }
 
@@ -362,8 +377,15 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &,
 
   if (this->dataPtr->service.empty())
   {
-    this->dataPtr->service = scopedName(this->dataPtr->entity, _ecm) +
-      "/record_video";
+    auto scoped = scopedName(this->dataPtr->entity, _ecm);
+    this->dataPtr->service = transport::TopicUtils::AsValidTopic(scoped +
+        "/record_video");
+    if (this->dataPtr->service.empty())
+    {
+      ignerr << "Failed to create valid service for [" << scoped << "]"
+             << std::endl;
+    }
+    return;
   }
 
   this->dataPtr->node.Advertise(this->dataPtr->service,

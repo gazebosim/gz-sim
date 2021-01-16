@@ -187,5 +187,5 @@ TEST_P(FollowActorTest, PublishCmd)
 }
 
 // Run multiple times
-INSTANTIATE_TEST_CASE_P(ServerRepeat, FollowActorTest,
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, FollowActorTest,
     ::testing::Range(1, 2));

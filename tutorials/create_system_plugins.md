@@ -25,18 +25,19 @@ there are currently three additional available interfaces:
      with the event manager, as well as modifying entities and components.
 2. ISystemPreUpdate
   1. Has read-write access to world entities and components.
-  2. Executed every iteration with simulation time at (t).
-  3. Can be used to modify state before physics runs, for example for applying
-     control signals or performing network synchronization.
-3. ISystemUpdate
+  2. This is where systems say what they'd like to happen at time ignition::gazebo::UpdateInfo::simTime.
+  3. Can be used to modify state before physics runs, for example for applying control signals or performing network synchronization.
+2. ISystemUpdate
   1. Has read-write access to world entities and components.
-  2. Responsible for propagating time from (t) to (t + dt) for every iteration.
-  3. Used for physics simulation step.
-4. ISystemPostUpdate
+  2. Used for physics simulation step (i.e., simulates what happens at time ignition::gazebo::UpdateInfo::simTime).
+3. ISystemPostUpdate
   1. Has read-only access to world entities and components.
-  2. Executed every iteration with simulation time at (t + dt).
-  3. Used to read out results at the end of a simulation step to be used for
-     sensor or controller updates.
+  2. Captures everything that happened at time ignition::gazebo::UpdateInfo::simTime.
+  3. Used to read out results at the end of a simulation step to be used for sensor or controller updates.
+
+It's important to note that ignition::gazebo::UpdateInfo::simTime does not refer to the current time, but the time reached after the `PreUpdate` and `Update` calls have finished.
+So, if any of the `*Update` functions are called with simulation paused, time does not advance, which means the time reached after `PreUpdate` and `Update` is the same as the starting time.
+This explains why ignition::gazebo::UpdateInfo::simTime is initially 0 if simulation is started paused, while ignition::gazebo::UpdateInfo::simTime is initially ignition::gazebo::UpdateInfo::dt if simulation is started un-paused.
 
 Systems that are only used to read the current state of the world (sensors,
 graphics, and rendering) should implement `ISystemPostUpdate`.
