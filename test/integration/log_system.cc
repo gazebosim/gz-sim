@@ -902,11 +902,11 @@ TEST_F(LogSystemTest, LogControl)
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "rolling_shapes_log");
 
-  ServerConfig controlConfig;
-  controlConfig.SetLogPlaybackPath(logPath);
+  ServerConfig config;
+  config.SetLogPlaybackPath(logPath);
 
-  Server controlServer(controlConfig);
-  EXPECT_FALSE(controlServer.Running());
+  Server server(config);
+  EXPECT_FALSE(server.Running());
 
   test::Relay testSystem;
   math::Pose3d spherePose;
@@ -929,8 +929,8 @@ TEST_F(LogSystemTest, LogControl)
             });
       });
 
-  controlServer.AddSystem(testSystem.systemPtr);
-  controlServer.Run(true, 10, false);
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 10, false);
 
   EXPECT_TRUE(sphereFound);
   sphereFound = false;
@@ -960,7 +960,7 @@ TEST_F(LogSystemTest, LogControl)
 
     // Run 2 iterations because control messages are processed in the end of an
     // update cycle
-    controlServer.Run(true, 2, false);
+    server.Run(true, 2, false);
 
     EXPECT_TRUE(sphereFound);
     sphereFound = false;
@@ -979,7 +979,7 @@ TEST_F(LogSystemTest, LogControl)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  controlServer.Run(true, 2, false);
+  server.Run(true, 2, false);
 
   EXPECT_TRUE(sphereFound);
   sphereFound = false;
@@ -999,7 +999,7 @@ TEST_F(LogSystemTest, LogControl)
     EXPECT_TRUE(result);
     EXPECT_TRUE(res.data());
 
-    controlServer.Run(true, 2, false);
+    server.Run(true, 2, false);
 
     EXPECT_TRUE(sphereFound);
     sphereFound = false;
@@ -1391,8 +1391,6 @@ TEST_F(LogSystemTest, LogCompress)
   {
     // Pass changed SDF to server
     ServerConfig playServerConfig;
-    // playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
-    // playServerConfig.SetSdfFile(playSdfPath);
     playServerConfig.SetLogPlaybackPath(newCmpPath);
 
     // Run server
