@@ -336,7 +336,7 @@ TEST_F(LogSystemTest, LogDefaults)
   EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
 
   // Test case 1:
-  // No path specified on both command line. This does not go through
+  // No path specified on command line. This does not go through
   // ign.cc, so ignLogDirectory() is not initialized (empty string). Recording
   // should not take place.
   {
