@@ -297,7 +297,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     else
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-      auto periodicComponents = _manager.GetPeriodicChangedComponents();
+      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
           {}, periodicComponents);
     }

@@ -398,7 +398,7 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 
 /////////////////////////////////////////////////
 std::unordered_set<ComponentTypeId>
-    EntityComponentManager::GetPeriodicChangedComponents() const
+    EntityComponentManager::ComponentTypesWithPeriodicChanges() const
 {
   std::unordered_set<ComponentTypeId> periodicComponents;
   for (const auto& compPair : this->dataPtr->periodicChangedComponents)
