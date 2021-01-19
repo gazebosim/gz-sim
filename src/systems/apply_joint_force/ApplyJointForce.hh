@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_APPLYJOINTFORCE_HH_
 #define IGNITION_GAZEBO_SYSTEMS_APPLYJOINTFORCE_HH_
 
-#include <ignition/gazebo/apply-joint-force-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 #include <memory>
 
@@ -33,7 +32,7 @@ namespace systems
   class ApplyJointForcePrivate;
 
   /// \brief This system applies a force to the first axis of a specified joint.
-  class IGNITION_GAZEBO_APPLY_JOINT_FORCE_SYSTEM_VISIBLE ApplyJointForce
+  class ApplyJointForce
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

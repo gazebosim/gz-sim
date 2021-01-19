@@ -20,7 +20,6 @@
 
 #include <Eigen/Geometry>
 #include <memory>
-#include "ignition/gazebo/multicopter-control-system/Export.hh"
 #include "ignition/gazebo/config.hh"
 
 #include "Common.hh"
@@ -50,7 +49,7 @@ namespace multicopter_control
   /// https://github.com/ethz-asl/rotors_simulator/blob/master/rotors_control/include/rotors_control/lee_position_controller.h
   /// The controller can be used to command linear velocity and yaw angle
   /// velocity expressed in the body frame.
-  class IGNITION_GAZEBO_MULTICOPTER_CONTROL_SYSTEM_VISIBLE LeeVelocityController
+  class LeeVelocityController
   {
     /// \brief Factory function to create LeeVelocityController objects
     /// \param[in] _controllerParams Controller parameteres

@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
 #define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
 
-#include "ignition/gazebo/multicopter-motor-model-system/Export.hh"
 #include <ignition/gazebo/System.hh>
 #include <memory>
 

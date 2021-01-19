@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 
-#include <ignition/gazebo/triggered-publisher-system/Export.hh>
 #include <ignition/transport/Node.hh>
 #include "ignition/gazebo/System.hh"
 

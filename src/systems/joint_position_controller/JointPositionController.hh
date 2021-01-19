@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
 #include <memory>
-#include <ignition/gazebo/joint-position-controller-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition

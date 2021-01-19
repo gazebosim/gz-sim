@@ -19,7 +19,6 @@
 
 #include <memory>
 
-#include <ignition/gazebo/logicalaudiosensorplugin-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition

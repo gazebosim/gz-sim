@@ -42,7 +42,6 @@
 
 #include <memory>
 
-#include <ignition/gazebo/diff-drive-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -58,7 +57,7 @@ namespace systems
 
   /// \brief Class to limit velocity, acceleration and jerk.
   /// \ref https://github.com/ros-controls/ros_controllers/tree/melodic-devel/diff_drive_controller
-  class IGNITION_GAZEBO_DIFF_DRIVE_SYSTEM_VISIBLE SpeedLimiter
+  class SpeedLimiter
   {
     /// \brief Constructor.
     /// \param [in] _hasVelocityLimits     if true, applies velocity limits.

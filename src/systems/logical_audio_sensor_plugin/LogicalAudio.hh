@@ -21,7 +21,6 @@
 
 #include <ignition/gazebo/components/LogicalAudio.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/logicalaudiosensorplugin-system/Export.hh>
 #include <ignition/math/Pose3.hh>
 
 namespace ignition
