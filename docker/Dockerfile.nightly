@@ -16,14 +16,14 @@ RUN apt-get update \
     libignition-fuel-tools6-dev \
     libignition-math6-eigen3-dev \
     libignition-plugin-dev \
-    libignition-physics3-dev \
+    libignition-physics4-dev \
     libignition-rendering5-dev \
     libignition-tools-dev \
     libignition-transport10-dev \
     libignition-gui5-dev \
     libignition-msgs7-dev \
     libignition-sensors5-dev \
-    libsdformat10-dev
+    libsdformat11-dev
 
 COPY . ign-gazebo
 RUN cd ign-gazebo \
