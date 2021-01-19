@@ -315,6 +315,6 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(1u, tracker3.NumPeers());
   EXPECT_EQ(1u, tracker4.NumPeers());
 
-  ignition::common:unsetenv("IGN_PARTITION");
+  ignition::common::unsetenv("IGN_PARTITION");
 }
 #endif
