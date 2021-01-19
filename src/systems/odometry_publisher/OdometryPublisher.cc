@@ -114,7 +114,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     return;
   }
 
-  this->dataPtr->odomFrame = "odom";
+  this->dataPtr->odomFrame = this->dataPtr->model.Name(_ecm) + "/" + "odom";
   if (!_sdf->HasElement("odom_frame"))
   {
     ignwarn << "OdometryPublisher system plugin missing <odom_frame>, "
@@ -125,7 +125,8 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->odomFrame = _sdf->Get<std::string>("odom_frame");
   }
 
-  this->dataPtr->robotBaseFrame = "base_footprint";
+  this->dataPtr->robotBaseFrame = this->dataPtr->model.Name(_ecm)
+    + "/" + "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
   {
     ignwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
@@ -238,9 +239,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
 
   // Get velocities in robotBaseFrame and add to message.
   double linearVelocityX = (cosf(currentYaw) * linearDisplacementX
-    + sinf(currentYaw) * linearDisplacementX) / dt.count();
+    + sinf(currentYaw) * linearDisplacementY) / dt.count();
   double linearVelocityY = (cosf(currentYaw) * linearDisplacementY
-    - sinf(currentYaw) * linearDisplacementY) / dt.count();
+    - sinf(currentYaw) * linearDisplacementX) / dt.count();
   this->linearMean.first.Push(linearVelocityX);
   this->linearMean.second.Push(linearVelocityY);
   this->angularMean.Push(angularDiff / dt.count());
@@ -255,10 +256,10 @@ void OdometryPublisherPrivate::UpdateOdometry(
   // Set the frame ids.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  frame->add_value(this->model.Name(_ecm) + "/" + odomFrame);
+  frame->add_value(odomFrame);
   auto childFrame = msg.mutable_header()->add_data();
   childFrame->set_key("child_frame_id");
-  childFrame->add_value(this->model.Name(_ecm) + "/" + robotBaseFrame);
+  childFrame->add_value(robotBaseFrame);
 
   this->lastUpdatePose = pose;
   this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);

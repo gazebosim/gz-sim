@@ -40,11 +40,11 @@ namespace systems
   ///
   /// `<odom_frame>`: Name of the world-fixed coordinate frame for the
   //  odometry message. This element is optional, and the default value
-  /// is `odom`.
+  /// is `{name_of_model}/odom`.
   ///
   /// `<robot_base_frame>`: Name of the coordinate frame rigidly attached
   /// to the mobile robot base. This element is optional, and the default
-  /// value is `robot_base_frame`.
+  /// value is `{name_of_model}/base_footprint`.
   ///
   /// `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
