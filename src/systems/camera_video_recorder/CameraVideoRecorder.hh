@@ -41,7 +41,6 @@ namespace systems
   ///              /world/<world_name/model/<model_name>/link/<link_name>/
   ///                  sensor/<sensor_name>/record_video
   class
-  IGNITION_GAZEBO_CAMERA_VIDEO_RECORDER_SYSTEM_VISIBLE
   CameraVideoRecorder:
     public System,
     public ISystemConfigure,

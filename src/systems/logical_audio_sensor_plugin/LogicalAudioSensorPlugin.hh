@@ -128,9 +128,7 @@ namespace systems
   /// <PREFIX>/mic_<id>/detection topic, where <PREFIX> is the scoped name
   /// for the microphone - see ignition::gazebo::scopedName for more details -
   /// and <id> is the value specified in the microphone's <id> tag from the SDF.
-  class
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
-  LogicalAudioSensorPlugin :
+  class LogicalAudioSensorPlugin :
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate,
