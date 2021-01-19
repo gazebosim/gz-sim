@@ -19,7 +19,6 @@
 
 #include <cstdlib>
 #include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
 
 #include "PeerTracker.hh"
 #include "ignition/gazebo/EventManager.hh"
@@ -282,11 +281,11 @@ TEST(PeerTracker, PartitionedEnv)
   ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
-  ignition::common::setenv("IGN_PARTITION", "p1");
+  setenv("IGN_PARTITION", "p1", 1);
   auto tracker1 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
-  ignition::common:setenv("IGN_PARTITION", "p2");
+  setenv("IGN_PARTITION", "p2", 1);
   auto tracker2 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
@@ -297,11 +296,11 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(0u, tracker1.NumPeers());
   EXPECT_EQ(0u, tracker2.NumPeers());
 
-  ignition::common:setenv("IGN_PARTITION", "p1");
+  setenv("IGN_PARTITION", "p1", 1);
   auto tracker3 = PeerTracker(
       PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
-  ignition::common:setenv("IGN_PARTITION", "p2");
+  setenv("IGN_PARTITION", "p2", 1);
   auto tracker4 = PeerTracker(
       PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
@@ -315,6 +314,6 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(1u, tracker3.NumPeers());
   EXPECT_EQ(1u, tracker4.NumPeers());
 
-  ignition::common:unsetenv("IGN_PARTITION");
+  unsetenv("IGN_PARTITION");
 }
 #endif
