@@ -23,7 +23,7 @@
 #include <memory>
 #include <string>
 
-#include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 class GuiRunnerPrivate;
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
+class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
 
