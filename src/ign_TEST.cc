@@ -20,6 +20,7 @@
 #include <cstdlib>
 
 #include <string>
+#include <ignition/common/Util.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -94,7 +95,7 @@ TEST(CmdLine, Server)
 TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_MAC(CachedFuelWorld))
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
-  setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str(), true);
+  ignition::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
     " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -172,7 +173,7 @@ int main(int _argc, char **_argv)
 {
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
-  setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
+  ignition::common::setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH);
 
   ::testing::InitGoogleTest(&_argc, _argv);
   return RUN_ALL_TESTS();
