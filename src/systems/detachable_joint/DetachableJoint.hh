@@ -54,7 +54,7 @@ namespace systems
   /// will not print a warning message if a child model does not exist yet.
   /// Otherwise, a warning message is printed. Defaults to false.
 
-  class IGNITION_GAZEBO_VISIBLE DetachableJoint
+  class DetachableJoint
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
