@@ -523,9 +523,6 @@ void RenderUtil::Update()
 
   // create new collision visuals
   {
-    if (!newCollisionLinks.empty())
-      DeselectAllEntities();
-
     for (const auto &link : newCollisionLinks)
     {
       std::vector<Entity> colEntities =
@@ -535,9 +532,27 @@ void RenderUtil::Update()
       {
         if (!this->dataPtr->sceneManager.HasEntity(colEntity))
         {
-          this->dataPtr->sceneManager.CreateCollision(colEntity,
+          auto vis = this->dataPtr->sceneManager.CreateCollision(colEntity,
               this->dataPtr->entityCollisions[colEntity], link);
           this->dataPtr->viewingCollisions[colEntity] = true;
+
+          // add geometry material to originalEmissive map
+          for (auto g = 0u; g < vis->GeometryCount(); ++g)
+          {
+            auto geom = vis->GeometryByIndex(g);
+
+            // Geometry material
+            auto geomMat = geom->Material();
+            if (nullptr == geomMat)
+              continue;
+
+            if (this->dataPtr->originalEmissive.find(geom->Name()) ==
+                this->dataPtr->originalEmissive.end())
+            {
+              this->dataPtr->originalEmissive[geom->Name()] =
+                  geomMat->Emissive();
+            }
+          }
         }
       }
     }
