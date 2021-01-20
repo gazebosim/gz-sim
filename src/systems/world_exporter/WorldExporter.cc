@@ -89,10 +89,7 @@ class ignition::gazebo::systems::WorldExporterPrivate
       std::string name = _name->Data().empty() ? std::to_string(_entity) :
           _name->Data();
 
-      igndbg << "====================== Starting: " << name << " - "
-        << _entity << "  ====================== " << std::endl;
-
-      math::Pose3d localPose = gazebo::worldPose(_entity, _ecm);
+      math::Pose3d worldPose = gazebo::worldPose(_entity, _ecm);
 
       common::MaterialPtr mat = std::make_shared<common::Material>();
       auto material = _ecm.Component<components::Material>(_entity);
@@ -105,65 +102,50 @@ class ignition::gazebo::systems::WorldExporterPrivate
       }
       mat->SetTransparency(_transparency->Data());
 
-      const ignition::common::Mesh * mesh;
+      const ignition::common::Mesh *mesh;
       std::weak_ptr<ignition::common::SubMesh> subm;
       math::Vector3d scale;
-      math::Matrix4d matrix(localPose);
+      math::Matrix4d matrix(worldPose);
       ignition::common::MeshManager *meshManager =
           ignition::common::MeshManager::Instance();
 
+      auto addSubmeshFunc = [&](int i) {
+          subm = worldMesh.AddSubMesh(
+              *mesh->SubMeshByIndex(0).lock().get());
+          subm.lock()->SetMaterialIndex(i);
+          subm.lock()->Scale(scale);
+          subMeshMatrix.push_back(matrix);
+      };
+
       if (_geom->Data().Type() == sdf::GeometryType::BOX)
       {
-        igndbg << "It is a Box!"  << std::endl;
         if (meshManager->HasMesh("unit_box"))
         {
-          igndbg << "Box Found..."  << std::endl;
           mesh = meshManager->MeshByName("unit_box");
           scale = _geom->Data().BoxShape()->Size();
           int i = worldMesh.AddMaterial(mat);
 
-          subm = worldMesh.AddSubMesh(
-            *mesh->SubMeshByIndex(0).lock().get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
-        }
-        else
-        {
-          igndbg << "Box NOT Found"  << std::endl;
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
       {
         if (meshManager->HasMesh("unit_cylinder"))
         {
-          igndbg << "Cylinder Found"  << std::endl;
           mesh = meshManager->MeshByName("unit_cylinder");
           scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
           scale.Y() = scale.X();
           scale.Z() = _geom->Data().CylinderShape()->Length();
 
-          igndbg << "Pose : x: " << localPose << std::endl;
-
           int i = worldMesh.AddMaterial(mat);
 
-          subm = worldMesh.AddSubMesh(
-            *mesh->SubMeshByIndex(0).lock().get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
-        }
-        else
-        {
-          igndbg << "Cylinder NOT Found"  << std::endl;
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
       {
-        igndbg << "It is a Plane!"  << std::endl;
         if (meshManager->HasMesh("unit_plane"))
         {
-          igndbg << "Plane Found"  << std::endl;
           // Create a rotation for the plane mesh to account
           // for the normal vector.
           mesh = meshManager->MeshByName("unit_plane");
@@ -174,30 +156,19 @@ class ignition::gazebo::systems::WorldExporterPrivate
           // // The rotation is the angle between the +z(0,0,1) vector and the
           // // normal, which are both expressed in the local (Visual) frame.
           math::Vector3d normal = _geom->Data().PlaneShape()->Normal();
-          localPose.Rot().From2Axes(
-            math::Vector3d::UnitZ, normal.Normalized());
+          worldPose.Rot().From2Axes(
+              math::Vector3d::UnitZ, normal.Normalized());
 
-          matrix = math::Matrix4d(localPose);
+          matrix = math::Matrix4d(worldPose);
 
           int i = worldMesh.AddMaterial(mat);
-
-          subm = worldMesh.AddSubMesh(
-            *mesh->SubMeshByIndex(0).lock().get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
-        }
-        else
-        {
-          igndbg << "Plane NOT Found"  << std::endl;
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
       {
-        igndbg << "It is a Sphere!"  << std::endl;
         if (meshManager->HasMesh("unit_sphere"))
         {
-          igndbg << "Sphere Found"  << std::endl;
           mesh = meshManager->MeshByName("unit_sphere");
 
           scale.X() = _geom->Data().SphereShape()->Radius() * 2;
@@ -206,94 +177,47 @@ class ignition::gazebo::systems::WorldExporterPrivate
 
           int i = worldMesh.AddMaterial(mat);
 
-          subm = worldMesh.AddSubMesh(
-            *mesh->SubMeshByIndex(0).lock().get());
-          subm.lock()->SetMaterialIndex(i);
-          subm.lock()->Scale(scale);
-          subMeshMatrix.push_back(matrix);
-        }
-        else
-        {
-          igndbg << "Sphere NOT Found"  << std::endl;
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::MESH)
       {
-          igndbg << "It is a mesh!"  << std::endl;
+        auto fullPath = asFullPath(_geom->Data().MeshShape()->Uri(),
+            _geom->Data().MeshShape()->FilePath());
 
-          auto fullPath = asFullPath(_geom->Data().MeshShape()->Uri(),
-                                   _geom->Data().MeshShape()->FilePath());
+        if (fullPath.empty())
+        {
+          ignerr << "Mesh geometry missing uri" << std::endl;
+          return true;
+        }
+        mesh = meshManager->Load(fullPath);
 
-          igndbg << "Uri : " << _geom->Data().MeshShape()->Uri() << std::endl;
-          igndbg << "Path : " << _geom->Data().MeshShape()->FilePath()
-            << std::endl;
-          igndbg << "fullPath : " << fullPath << std::endl;
+        if (!mesh) {
+          ignerr << "mesh not found!" << std::endl;
+          return true;
+        }
 
-          if (fullPath.empty())
+        for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
+        {
+          auto subMeshLock = mesh->SubMeshByIndex(k).lock();
+          int j = subMeshLock->MaterialIndex();
+
+          int i = 0;
+          if (j != -1)
           {
-            ignerr << "Mesh geometry missing uri" << std::endl;
-            return true;
+            i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(j).get());
+            if (i < 0)
+            {
+              i = worldMesh.AddMaterial(mesh->MaterialByIndex(j));
+            }
           }
-          mesh = meshManager->Load(fullPath);
-
-          igndbg << "Submesh count : " << mesh->SubMeshCount() << std::endl;
-
-          if (!mesh) {
-            ignerr << "MESH NOT FOUND!" << std::endl;
-            return true;
-          }
-
-          for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
+          else
           {
-            igndbg << ">>>>>>>>> SUBMESH : " << k << std::endl;
-            int j = mesh->SubMeshByIndex(k).lock()->MaterialIndex();
-
-            igndbg << "Query Material index : " << j << std::endl;
-
-            igndbg << "Material : " << mesh->MaterialByIndex(
-              mesh->SubMeshByIndex(k).lock()->MaterialIndex()) << std::endl;
-            igndbg << "Material Ptr: " << mesh->MaterialByIndex(
-              mesh->SubMeshByIndex(k).lock()->MaterialIndex()).get()
-              << std::endl;
-
-            igndbg << "Material index on worldmesh: " <<
-              worldMesh.IndexOfMaterial(mesh->MaterialByIndex(
-                mesh->SubMeshByIndex(k).lock()->MaterialIndex()).get())
-                << std::endl;
-
-            int i = 0;
-            if ( j != -1 )
-            {
-              i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(
-                mesh->SubMeshByIndex(k).lock()->MaterialIndex()).get());
-              if (i < 0)
-              {
-                i = worldMesh.AddMaterial(mesh->MaterialByIndex(
-                  mesh->SubMeshByIndex(k).lock()->MaterialIndex() ));
-              }
-            }
-            else
-            {
-              i = worldMesh.AddMaterial(mat);
-            }
-
-            igndbg << "Inserted Material index : " << i << std::endl;
-
-            igndbg << "Texture Image : "
-              << worldMesh.MaterialByIndex(i)->TextureImage()
-              << std::endl;
-
-            subm = worldMesh.AddSubMesh(
-              *mesh->SubMeshByIndex(k).lock().get());
-            subm.lock()->SetMaterialIndex(i);
-            igndbg << "Scale : " << _geom->Data().MeshShape()->Scale()
-              << std::endl;
-
-            subm.lock()->Scale(_geom->Data().MeshShape()->Scale());
-            subMeshMatrix.push_back(matrix);
-
-            igndbg << ">>>>>>>>>" << std::endl;
+            i = worldMesh.AddMaterial(mat);
           }
+
+          addSubmeshFunc(i);
+        }
       }
       else
       {
