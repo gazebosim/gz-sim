@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<!-- plugins.sdf without the plugins -->
+<sdf version="1.6">
+  <world name="default">
+    <model name="box">
+      <link name="link_1">
+        <sensor name="camera" type="camera">
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
+
