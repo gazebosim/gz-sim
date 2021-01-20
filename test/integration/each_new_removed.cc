@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
@@ -42,8 +43,8 @@ class EachNewRemovedFixture : public ::testing::Test
   protected: void SetUp() override
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 

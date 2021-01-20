@@ -71,7 +71,7 @@ namespace systems
   ///
   /// `<cmd_offset>` Command offset (feed-forward) of the PID. Optional
   /// parameter. The default value is 0.
-  class IGNITION_GAZEBO_VISIBLE JointPositionController
+  class JointPositionController
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

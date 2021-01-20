@@ -35,7 +35,7 @@ namespace systems
 
   /// \brief Linear and angular velocity controller
   /// which is directly set on a model.
-  class IGNITION_GAZEBO_VISIBLE VelocityControl
+  class VelocityControl
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

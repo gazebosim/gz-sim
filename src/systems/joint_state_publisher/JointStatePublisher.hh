@@ -45,7 +45,7 @@ namespace systems
   /// `<joint_name>`: Name of a joint to publish. This parameter can be
   /// specified multiple times, and is optional. All joints in a model will
   /// be published if joint names are not specified.
-  class IGNITION_GAZEBO_VISIBLE JointStatePublisher
+  class JointStatePublisher
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate
