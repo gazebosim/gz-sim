@@ -97,8 +97,20 @@ namespace ignition
       /// \param[in] _angle Angle to copy
       public: Angle(const Angle &_angle);
 
+      /// \brief Move constructor
+      /// \param[in] _angle Angle to move
+      public: Angle(Angle &&_angle) noexcept;
+
       /// \brief Destructor
       public: virtual ~Angle();
+
+      /// \brief Copy assignment operator
+      /// \param[in] _angle Angle to copy
+      public: Angle& operator=(const Angle &_angle);
+
+      /// \brief Move assignment operator
+      /// \param[in] _angle Angle to move
+      public: Angle& operator=(Angle &&_angle) noexcept;
 
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.

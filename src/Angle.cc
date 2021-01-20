@@ -37,15 +37,19 @@ Angle::Angle(const double _radian)
 }
 
 //////////////////////////////////////////////////
-Angle::Angle(const Angle &_angle)
-{
-  this->value = _angle.value;
-}
+Angle::Angle(const Angle &_angle) = default;
 
 //////////////////////////////////////////////////
-Angle::~Angle()
-{
-}
+Angle::Angle(Angle &&_angle) noexcept = default;
+
+//////////////////////////////////////////////////
+Angle::~Angle() = default;
+
+//////////////////////////////////////////////////
+Angle &Angle::operator=(const Angle &_angle) = default;
+
+//////////////////////////////////////////////////
+Angle &Angle::operator=(Angle &&_angle) noexcept = default;
 
 //////////////////////////////////////////////////
 void Angle::Radian(double _radian)
