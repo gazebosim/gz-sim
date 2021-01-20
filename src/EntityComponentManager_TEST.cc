@@ -2107,7 +2107,8 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
   // Expect a single component type to be marked as PeriodicChange
   ASSERT_EQ(1u, manager.ComponentTypesWithPeriodicChanges().size());
-  EXPECT_EQ(IntComponent().TypeId(), *manager.ComponentTypesWithPeriodicChanges().begin());
+  EXPECT_EQ(IntComponent().TypeId(),
+      *manager.ComponentTypesWithPeriodicChanges().begin());
   EXPECT_EQ(ComponentState::PeriodicChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
