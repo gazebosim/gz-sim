@@ -57,7 +57,7 @@ namespace systems
 
   /// \brief Class to limit velocity, acceleration and jerk.
   /// \ref https://github.com/ros-controls/ros_controllers/tree/melodic-devel/diff_drive_controller
-  class IGNITION_GAZEBO_VISIBLE SpeedLimiter
+  class SpeedLimiter
   {
     /// \brief Constructor.
     /// \param [in] _hasVelocityLimits     if true, applies velocity limits.
