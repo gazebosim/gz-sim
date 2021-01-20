@@ -20,7 +20,6 @@
 #include <memory>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -36,7 +35,7 @@ namespace systems
 
   /// \class LogRecord LogRecord.hh ignition/gazebo/systems/log/LogRecord.hh
   /// \brief Log state recorder
-  class IGNITION_GAZEBO_VISIBLE LogRecord:
+  class LogRecord:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate,

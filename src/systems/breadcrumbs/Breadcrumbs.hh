@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
+#include <optional>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -79,7 +80,7 @@ namespace systems
   /// Defaults to false.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
-  class IGNITION_GAZEBO_VISIBLE Breadcrumbs
+  class Breadcrumbs
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

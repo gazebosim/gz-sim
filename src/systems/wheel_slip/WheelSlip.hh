@@ -104,7 +104,7 @@ namespace systems
     </plugin>
    \endverbatim */
 
-  class IGNITION_GAZEBO_VISIBLE WheelSlip
+  class WheelSlip
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
