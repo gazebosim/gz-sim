@@ -108,7 +108,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
     }
     return;
   }
-  if (this->modelRoot.ModelCount() == 0)
+  if (nullptr == this->modelRoot.Model())
   {
     ignerr << "Model not found in <breadcrumb>" << std::endl;
     return;
@@ -133,7 +133,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
 
   // Subscribe to commands
   std::string topic{"/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
-                    this->modelRoot.ModelByIndex(0)->Name() + "/deploy"};
+                    this->modelRoot.Model()->Name() + "/deploy"};
 
   if (_sdf->HasElement("topic"))
     topic = _sdf->Get<std::string>("topic");
@@ -183,7 +183,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       if (this->maxDeployments < 0 ||
           this->numDeployments < this->maxDeployments)
       {
-        sdf::Model modelToSpawn = *this->modelRoot.ModelByIndex(0);
+        sdf::Model modelToSpawn = *this->modelRoot.Model();
         std::string desiredName =
             modelToSpawn.Name() + "_" + std::to_string(this->numDeployments);
 
@@ -257,7 +257,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
       else
       {
-        ignmsg << "Asked to deploy " << this->modelRoot.ModelByIndex(0)->Name()
+        ignmsg << "Asked to deploy " << this->modelRoot.Model()->Name()
                << " but the maximum number of deployments has reached the "
                << "limit of " << this->maxDeployments << std::endl;
       }
