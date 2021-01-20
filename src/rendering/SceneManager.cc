@@ -258,16 +258,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     /// In general, this can be used to store any local transforms between the
     /// parent Visual and geometry.
     rendering::VisualPtr geomVis;
-    if (localPose != math::Pose3d::Zero)
-    {
-      geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetUserData("gazebo-entity", static_cast<int>(_id));
-      geomVis->SetUserData("pause-update", static_cast<int>(0));
-      geomVis->SetLocalPose(_visual.RawPose() * localPose);
-      visualVis = geomVis;
-    }
+    geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
+    geomVis->AddGeometry(geom);
+    geomVis->SetLocalPose(localPose);
 
-    visualVis->AddGeometry(geom);
+    visualVis->AddChild(geomVis);
     visualVis->SetLocalScale(scale);
 
     // set material
