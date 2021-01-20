@@ -35,6 +35,7 @@ namespace systems
   /// \class AirPressure AirPressure.hh ignition/gazebo/systems/AirPressure.hh
   /// \brief An air pressure sensor that reports vertical position and velocity
   /// readings over ign transport
+  class AirPressure:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate
