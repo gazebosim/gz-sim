@@ -23,9 +23,6 @@
 #include <memory>
 #include <string>
 
-#include <ignition/transport/Node.hh>
-
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
 
 namespace ignition

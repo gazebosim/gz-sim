@@ -20,10 +20,12 @@
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/transport/Node.hh>
 
 // Include all components so they have first-class support
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 
