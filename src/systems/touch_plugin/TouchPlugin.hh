@@ -19,7 +19,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
 
 #include <memory>
-#include "ignition/gazebo/touchplugin-system/Export.hh"
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -58,7 +57,7 @@ namespace systems
   ///
   /// <enabled> Set this to true so the plugin works from the start and doesn't
   ///           need to be enabled.
-  class IGNITION_GAZEBO_TOUCHPLUGIN_SYSTEM_VISIBLE TouchPlugin
+  class TouchPlugin
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

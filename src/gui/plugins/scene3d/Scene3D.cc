@@ -702,7 +702,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
 
-  if (!_sdf.ModelCount())
+  if (nullptr == _sdf.Model())
   {
     ignwarn << "Only model entities can be spawned at the moment." << std::endl;
     this->TerminateSpawnPreview();
@@ -710,7 +710,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   }
 
   // Only preview first model
-  sdf::Model model = *(_sdf.ModelByIndex(0));
+  sdf::Model model = *(_sdf.Model());
   this->dataPtr->spawnPreviewPose = model.RawPose();
   model.SetName(ignition::common::Uuid().String());
   Entity modelId = this->UniqueId();

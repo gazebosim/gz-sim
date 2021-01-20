@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/imu-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -37,7 +36,7 @@ namespace systems
   /// \brief This system manages all IMU sensors in simulation.
   /// Each IMU sensor eports vertical position, angular velocity
   /// and lienar acceleration readings over Ignition Transport.
-  class IGNITION_GAZEBO_IMU_SYSTEM_VISIBLE Imu:
+  class Imu:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

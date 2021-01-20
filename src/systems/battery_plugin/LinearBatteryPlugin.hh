@@ -24,7 +24,6 @@
 
 #include <ignition/common/Battery.hh>
 
-#include <ignition/gazebo/linearbatteryplugin-system/Export.hh>
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -59,7 +58,7 @@ namespace systems
   ///                 (Required if <enable_recharge> is set to true)
   /// <fix_issue_225> True to change the battery behavior to fix some issues
   /// described in https://github.com/ignitionrobotics/ign-gazebo/issues/225.
-  class IGNITION_GAZEBO_LINEARBATTERYPLUGIN_SYSTEM_VISIBLE LinearBatteryPlugin
+  class LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

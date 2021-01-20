@@ -19,7 +19,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_OPTICAL_TACTILE_PLUGIN_HH_
 
 #include <memory>
-#include <ignition/gazebo/opticaltactileplugin-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 #include "Visualization.hh"
 
@@ -66,7 +65,7 @@ namespace systems
     /// <visualize_sensor> Whether to visualize the sensor or not. This element
     /// is optional, and the default value is false.
 
-    class IGNITION_GAZEBO_OPTICALTACTILEPLUGIN_SYSTEM_VISIBLE OpticalTactilePlugin :
+    class OpticalTactilePlugin :
       public System,
       public ISystemConfigure,
       public ISystemPreUpdate,

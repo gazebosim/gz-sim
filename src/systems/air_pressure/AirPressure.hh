@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/air-pressure-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -36,7 +35,6 @@ namespace systems
   /// \class AirPressure AirPressure.hh ignition/gazebo/systems/AirPressure.hh
   /// \brief An air pressure sensor that reports vertical position and velocity
   /// readings over ign transport
-  class IGNITION_GAZEBO_AIR_PRESSURE_SYSTEM_VISIBLE AirPressure:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

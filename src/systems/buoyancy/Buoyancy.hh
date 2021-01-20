@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_BUOYANCY_HH_
 #define IGNITION_GAZEBO_SYSTEMS_BUOYANCY_HH_
 
-#include <ignition/gazebo/buoyancy-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 #include <memory>
 
@@ -58,7 +57,7 @@ namespace systems
   /// ```
   /// ign gazebo -v 4 buoyancy.sdf
   /// ```
-  class IGNITION_GAZEBO_BUOYANCY_SYSTEM_VISIBLE Buoyancy
+  class Buoyancy
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

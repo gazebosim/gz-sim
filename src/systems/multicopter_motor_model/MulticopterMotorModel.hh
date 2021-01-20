@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
 #define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
 
-#include "ignition/gazebo/multicopter-motor-model-system/Export.hh"
 #include <ignition/gazebo/System.hh>
 #include <memory>
 
@@ -34,7 +33,7 @@ namespace systems
 
   /// \brief This system applies a thrust force to models with spinning
   /// propellers. See examples/worlds/quadcopter.sdf for a demonstration.
-  class IGNITION_GAZEBO_MULTICOPTER_MOTOR_MODEL_SYSTEM_VISIBLE MulticopterMotorModel
+  class MulticopterMotorModel
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

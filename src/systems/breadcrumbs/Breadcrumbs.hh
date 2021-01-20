@@ -17,8 +17,8 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
-#include <optional>
 #include <memory>
+#include <optional>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -30,7 +30,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/math/Pose3.hh>
 
-#include <ignition/gazebo/breadcrumbs-system/Export.hh>
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/System.hh"
@@ -81,7 +80,7 @@ namespace systems
   /// Defaults to false.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
-  class IGNITION_GAZEBO_BREADCRUMBS_SYSTEM_VISIBLE Breadcrumbs
+  class Breadcrumbs
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

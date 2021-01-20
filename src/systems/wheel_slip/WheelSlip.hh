@@ -18,7 +18,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_WHEELSLIP_HH_
 #define IGNITION_GAZEBO_SYSTEMS_WHEELSLIP_HH_
 
-#include <ignition/gazebo/wheel-slip-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 #include <memory>
 
@@ -105,7 +104,7 @@ namespace systems
     </plugin>
    \endverbatim */
 
-  class IGNITION_GAZEBO_WHEEL_SLIP_SYSTEM_VISIBLE WheelSlip
+  class WheelSlip
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

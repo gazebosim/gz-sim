@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/camera-video-recorder-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -41,7 +40,7 @@ namespace systems
   ///              not specified, the topic defaults to:
   ///              /world/<world_name/model/<model_name>/link/<link_name>/
   ///                  sensor/<sensor_name>/record_video
-  class IGNITION_GAZEBO_CAMERA_VIDEO_RECORDER_SYSTEM_VISIBLE CameraVideoRecorder:
+  class CameraVideoRecorder:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

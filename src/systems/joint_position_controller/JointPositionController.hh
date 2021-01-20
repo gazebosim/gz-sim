@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
 #include <memory>
-#include <ignition/gazebo/joint-position-controller-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -72,7 +71,7 @@ namespace systems
   ///
   /// `<cmd_offset>` Command offset (feed-forward) of the PID. Optional
   /// parameter. The default value is 0.
-  class IGNITION_GAZEBO_JOINT_POSITION_CONTROLLER_SYSTEM_VISIBLE JointPositionController
+  class JointPositionController
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
