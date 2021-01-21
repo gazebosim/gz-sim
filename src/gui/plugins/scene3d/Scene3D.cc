@@ -731,7 +731,7 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        std::vector<Entity> selectedEntities =
+        const std::vector<Entity> &selectedEntities =
           this->dataPtr->renderUtil.SelectedEntities();
 
         // Look at the origin if no entities are selected

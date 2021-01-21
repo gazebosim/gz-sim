@@ -1412,7 +1412,7 @@ rendering::NodePtr RenderUtil::SelectedEntity() const
 }
 
 /////////////////////////////////////////////////
-std::vector<Entity> RenderUtil::SelectedEntities() const
+const std::vector<Entity> &RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
 }
