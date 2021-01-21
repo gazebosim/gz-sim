@@ -24,6 +24,8 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
+* \subpage collada_world_exporter "Collada World Exporter": Export an entire
+world to a single Collada mesh.
 
 **Migration from Gazebo classic**
 

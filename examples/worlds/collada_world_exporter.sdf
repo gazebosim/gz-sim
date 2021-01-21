@@ -4,8 +4,7 @@
 This world will load the ColladaWorldExporter plugin, which is designed to
 convert a world to a single Collada file. When this world is run, a subdirectory
 named after the world is created. Within this subdirectory is the mesh and
-materials for the world. After a world with the SDF ColladaWorldExporter is run,
-just press CTRL-C to quit Ignition Gazebo.
+materials for the world. 
 
 This example just exports simple shapes into a Collada file. To run use:
 
