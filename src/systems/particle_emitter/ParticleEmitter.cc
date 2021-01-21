@@ -156,7 +156,7 @@ void ParticleEmitter::Configure(const Entity &/*_entity*/,
   igndbg << "Loading particle emitter:" << std::endl
          << this->dataPtr->emitter.DebugString() << std::endl;
 
-  // Create an audio source entity.
+  // Create a particle emitter entity.
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
   {
