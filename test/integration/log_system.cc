@@ -896,9 +896,6 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, LogControl)
 {
-  // Check ignLogDirectory is empty
-  EXPECT_TRUE(ignLogDirectory().empty());
-
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "rolling_shapes_log");
 
@@ -906,7 +903,6 @@ TEST_F(LogSystemTest, LogControl)
   config.SetLogPlaybackPath(logPath);
 
   Server server(config);
-  EXPECT_FALSE(server.Running());
 
   test::Relay testSystem;
   math::Pose3d spherePose;
