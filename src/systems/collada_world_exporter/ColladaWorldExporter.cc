@@ -156,8 +156,9 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           // // The rotation is the angle between the +z(0,0,1) vector and the
           // // normal, which are both expressed in the local (Visual) frame.
           math::Vector3d normal = _geom->Data().PlaneShape()->Normal();
-          worldPose.Rot().From2Axes(
-              math::Vector3d::UnitZ, normal.Normalized());
+          math::Quaterniond normalRot;
+          normalRot.From2Axes(math::Vector3d::UnitZ, normal.Normalized());
+          worldPose.Rot() = worldPose.Rot() * normalRot;
 
           matrix = math::Matrix4d(worldPose);
 
