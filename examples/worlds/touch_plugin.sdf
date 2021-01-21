@@ -55,6 +55,7 @@ The output of the plugin is via
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -136,4 +137,3 @@ The output of the plugin is via
     </model>
   </world>
 </sdf>
-
