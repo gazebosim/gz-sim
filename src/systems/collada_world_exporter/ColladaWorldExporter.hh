@@ -15,12 +15,11 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_WORLDEXPORTER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_WORLDEXPORTER_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_COLLADAWORLDEXPORTER_HH_
+#define IGNITION_GAZEBO_SYSTEMS_COLLADAWORLDEXPORTER_HH_
 
 #include <memory>
 #include <ignition/gazebo/System.hh>
-
 
 namespace ignition
 {
@@ -31,27 +30,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
-  class WorldExporterPrivate;
+  class ColladaWorldExporterPrivate;
 
   /// \brief A plugin that exports a world to a mesh.
   /// When loaded the plugin will dump a mesh containing all the models in
   /// the world to the current directory.
-  class IGNITION_GAZEBO_VISIBLE WorldExporter:
+  class IGNITION_GAZEBO_VISIBLE ColladaWorldExporter:
     public System,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: WorldExporter();
+    public: ColladaWorldExporter();
 
     /// \brief Destructor
-    public: ~WorldExporter() final;
+    public: ~ColladaWorldExporter() final;
 
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm);
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<WorldExporterPrivate> dataPtr;
+    private: std::unique_ptr<ColladaWorldExporterPrivate> dataPtr;
   };
 }
 }

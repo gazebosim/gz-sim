@@ -46,14 +46,14 @@
 
 #include <ignition/common/ColladaExporter.hh>
 
-#include "WorldExporter.hh"
+#include "ColladaWorldExporter.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
 
-class ignition::gazebo::systems::WorldExporterPrivate
+class ignition::gazebo::systems::ColladaWorldExporterPrivate
 {
   /// \brief Has the world already been exported?.
   private: bool exported{false};
@@ -235,24 +235,24 @@ class ignition::gazebo::systems::WorldExporterPrivate
 };
 
 /////////////////////////////////////////////////
-WorldExporter::WorldExporter() : System(),
-    dataPtr(std::make_unique<WorldExporterPrivate>())
+ColladaWorldExporter::ColladaWorldExporter() : System(),
+    dataPtr(std::make_unique<ColladaWorldExporterPrivate>())
 {
 }
 
 /////////////////////////////////////////////////
-WorldExporter::~WorldExporter() = default;
+ColladaWorldExporter::~ColladaWorldExporter() = default;
 
 /////////////////////////////////////////////////
-void WorldExporter::PostUpdate(const UpdateInfo & /*_info*/,
+void ColladaWorldExporter::PostUpdate(const UpdateInfo & /*_info*/,
     const EntityComponentManager &_ecm)
 {
   this->dataPtr->Export(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(WorldExporter,
+IGNITION_ADD_PLUGIN(ColladaWorldExporter,
                     System,
-                    WorldExporter::ISystemPostUpdate)
+                    ColladaWorldExporter::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(WorldExporter,
-                          "ignition::gazebo::systems::WorldExporter")
+IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
+                          "ignition::gazebo::systems::ColladaWorldExporter")

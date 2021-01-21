@@ -1,23 +1,23 @@
 <?xml version="1.0" ?>
 <!--
 
-This world will load the WorldExporter plugin, which is designed to convert
-a world to a single Collada file. When this world is run, a subdirectory
+This world will load the ColladaWorldExporter plugin, which is designed to
+convert a world to a single Collada file. When this world is run, a subdirectory
 named after the world is created. Within this subdirectory is the mesh and
-materials for the world. After a world with the SDF WorldExporter is run,
+materials for the world. After a world with the SDF ColladaWorldExporter is run,
 just press CTRL-C to quit Ignition Gazebo.
 
 This example just exports simple shapes into a Collada file. To run use:
 
-    ign gazebo -v 4 -s -r --iterations 1 world_exporter.sdf
+    ign gazebo -v 4 -s -r --iterations 1 collada_world_exporter.sdf
 
 -->
 <sdf version="1.6">
   <world name="shapes">
 
     <plugin
-      filename="ignition-gazebo-world-exporter-system"
-      name="ignition::gazebo::systems::WorldExporter">
+      filename="ignition-gazebo-collada-world-exporter-system"
+      name="ignition::gazebo::systems::ColladaWorldExporter">
     </plugin>
 
     <scene>
