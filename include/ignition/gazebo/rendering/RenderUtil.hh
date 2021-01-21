@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 
-#include <sdf/Collision.hh>
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>

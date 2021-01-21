@@ -365,6 +365,10 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   visual.SetGeom(*_collision.Geom());
   visual.SetMaterial(material);
   visual.SetCastShadows(false);
+
+  visual.SetRawPose(_collision.RawPose());
+  visual.SetName(_collision.Name());
+
   rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
   return collisionVis;
 }
