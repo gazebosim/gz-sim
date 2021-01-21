@@ -52,7 +52,6 @@ set (sources
   ServerConfig.cc
   ServerPrivate.cc
   SimulationRunner.cc
-  System.cc
   SystemLoader.cc
   Util.cc
   View.cc
