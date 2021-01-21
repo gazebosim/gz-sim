@@ -36,6 +36,7 @@
           <geometry>
             <!--plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane-->
             <box>
               <size>20 20 0.1</size>
