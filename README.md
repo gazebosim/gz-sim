@@ -26,10 +26,6 @@ classes and functions designed for robotic applications.
 
 [Usage](#usage)
 
-[Documentation](#documentation)
-
-[Testing](#testing)
-
 [Folder Structure](#folder-structure)
 
 [Code of Conduct](#code-of-conduct)
@@ -57,76 +53,6 @@ See the [installation tutorial](https://ignitionrobotics.org/api/math/6.6/instal
 # Usage
 
 Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/master/examples/).
-
-# Documentation
-
-API and tutorials can be found at [https://ignitionrobotics.org/libs/math](https://ignitionrobotics.org/libs/math).
-
-You can also generate the documentation from a clone of this repository by following these steps.
-
-1. You will need Doxygen. On Ubuntu Doxygen can be installed using
-
-    ```
-    sudo apt-get install doxygen
-    ```
-
-2. Clone the repository
-
-    ```
-    git clone https://github.com/ignitionrobotics/ign-math
-    ```
-
-3. Configure and build the documentation.
-
-    ```
-    cd ign-math; mkdir build; cd build; cmake ../; make doc
-    ```
-
-4. View the documentation by running the following command from the build directory.
-
-    ```
-    firefox doxygen/html/index.html
-    ```
-
-# Testing
-
-Follow these steps to run tests and static code analysis in your clone of this repository.
-
-1. Follow the [source install instruction](https://ignitionrobotics.org/libs/math#source-install).
-
-2. Run tests.
-
-    ```
-    make test
-    ```
-
-3. Static code checker.
-
-    ```
-    make codecheck
-    ```
-
-## Ruby Tests
-
-### Usage
-
-The C++ classes are available in Ruby code by interface files (`.i`) used by swig to build a C++ extension module.
-
-The interfaces and Ruby test codes are in the `src` folder. To use a C++ class in Ruby you need to:
-
-1. Create an interface file describing the class as in Swig and Ruby reference at [The Ruby-to-C/C++ Mapping](http://www.swig.org/Doc1.3/Ruby.html#Ruby_nn11)
-
-2. Include the interface file in `/src/ing_math.i`
-
-3. Create the Ruby file and import the class as in Swig and Ruby reference at [C++ Classes](http://www.swig.org/Doc1.3/Ruby.html#Ruby_nn18)
-
-### Tests
-
-`make test` already runs all tests, including the ones made in Ruby, but you can run a Ruby test individually using
-
-```
-ctest -R Ruby_TEST.rb
-```
 
 # Folder Structure
 
