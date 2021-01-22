@@ -61,53 +61,14 @@ std::string findFuelResourceSdf(const std::string &_path)
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
 {
-  /// \brief Get the default plugins as a string.
-  /// \return An SDF string that contains the default plugins.
-  public: static std::string &DefaultPlugins(const ServerConfig &_config)
-  {
-    std::vector<std::string> pluginsV = {
-      {
-        std::string("<plugin filename='ignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system' "
-        "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-      },
-      {
-        std::string("<plugin filename='ignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system' " +
-        "name='ignition::gazebo::systems::UserCommands'></plugin>"
-      }
-    };
-
-    // The set of default gazebo plugins.
-    if (_config.LogPlaybackPath().empty())
-    {
-      pluginsV.push_back(std::string("<plugin filename='ignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system' "
-        "name='ignition::gazebo::systems::Physics'></plugin>");
-    }
-
-    // Playback plugin
-    else
-    {
-      pluginsV.push_back(std::string("<plugin filename='ignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system' "
-        "name='ignition::gazebo::systems::LogPlayback'><path>" +
-        _config.LogPlaybackPath() + "</path></plugin>");
-    }
-
-    static std::string plugins = std::accumulate(pluginsV.begin(),
-      pluginsV.end(), std::string(""));
-    return plugins;
-  }
-
   /// \brief Get the default world as a string.
+  /// Plugins will be loaded from the server.config file.
   /// \return An SDF string that contains the default world.
-  public: static std::string &World(const ServerConfig &_config)
+  public: static std::string &World()
   {
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
         "<world name='default'>") +
-          DefaultPlugins(_config) +
         "</world>"
       "</sdf>";
 
@@ -213,7 +174,7 @@ Server::Server(const ServerConfig &_config)
     ignmsg << "Loading default world.\n";
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World(_config));
+    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
   }
 
   if (!errors.empty())

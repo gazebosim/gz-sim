@@ -33,6 +33,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/transport/TopicUtils.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -431,6 +432,27 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
     parentComp = _ecm.Component<components::ParentEntity>(entity);
   }
   return entity;
+}
+
+//////////////////////////////////////////////////
+std::string validTopic(const std::vector<std::string> &_topics)
+{
+  for (const auto &topic : _topics)
+  {
+    auto validTopic = transport::TopicUtils::AsValidTopic(topic);
+    if (validTopic.empty())
+    {
+      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      continue;
+    }
+    if (validTopic != topic)
+    {
+      igndbg << "Topic [" << topic << "] changed to valid topic ["
+             << validTopic << "]" << std::endl;
+    }
+    return validTopic;
+  }
+  return std::string();
 }
 }
 }

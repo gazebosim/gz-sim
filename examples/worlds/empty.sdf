@@ -50,6 +50,14 @@ ign service -s /world/empty/remove \
 --timeout 300 \
 --req 'name: "spawned_light" type: LIGHT'
 
+  Insert a light using a message and allow_renaming:
+
+ign service -s /world/empty/create \
+--reqtype ignition.msgs.EntityFactory \
+--reptype ignition.msgs.Boolean \
+--timeout 300 \
+--req 'allow_renaming: true, light: {name: "spawned_light", type: 2, diffuse: {r: 1}}'
+
 -->
 <sdf version="1.6">
   <world name="empty">
