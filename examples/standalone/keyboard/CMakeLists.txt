@@ -10,8 +10,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(ignition-msgs7 REQUIRED)
   set(IGN_MSGS_VER ${ignition-msgs7_VERSION_MAJOR})
 
-  find_package(ignition-common3 REQUIRED)
-  set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
+  find_package(ignition-common4 REQUIRED)
+  set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
 
   add_executable(keyboard keyboard.cc)
   target_link_libraries(keyboard
