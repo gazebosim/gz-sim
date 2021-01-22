@@ -74,6 +74,10 @@ class ignition::gazebo::SceneManagerPrivate
   /// \brief Map of light entity in Gazebo to light pointers.
   public: std::map<Entity, rendering::LightPtr> lights;
 
+  /// \brief Map of particle emitter entity in Gazebo to particle emitter
+  /// pointers.
+  public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
+
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::map<Entity, rendering::SensorPtr> sensors;
 
@@ -924,6 +928,89 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
+    const particles::Emitter &_emitter, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::ParticleEmitterPtr();
+
+  if (this->dataPtr->particleEmitters.find(_id) !=
+     this->dataPtr->particleEmitters.end())
+  {
+    ignerr << "Particle emitter with Id: [" << _id << "] already exists in the "
+           <<" scene" << std::endl;
+    return rendering::ParticleEmitterPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::ParticleEmitterPtr();
+    }
+    parent = it->second;
+  }
+
+  std::string name = _emitter.data.name().empty() ? std::to_string(_id) :
+    _emitter.data.name();
+  if (parent)
+    name = parent->Name() +  "::" + name;
+
+  rendering::ParticleEmitterPtr emitter;
+  // switch (_light.Type())
+  // {
+  //   case sdf::LightType::POINT:
+  //     light = this->dataPtr->scene->CreatePointLight(name);
+  //     break;
+  //   case sdf::LightType::SPOT:
+  //   {
+  //     light = this->dataPtr->scene->CreateSpotLight(name);
+  //     rendering::SpotLightPtr spotLight =
+  //         std::dynamic_pointer_cast<rendering::SpotLight>(light);
+  //     spotLight->SetInnerAngle(_light.SpotInnerAngle());
+  //     spotLight->SetOuterAngle(_light.SpotOuterAngle());
+  //     spotLight->SetFalloff(_light.SpotFalloff());
+  //     break;
+  //   }
+  //   case sdf::LightType::DIRECTIONAL:
+  //   {
+  //     light = this->dataPtr->scene->CreateDirectionalLight(name);
+  //     rendering::DirectionalLightPtr dirLight =
+  //         std::dynamic_pointer_cast<rendering::DirectionalLight>(light);
+
+  //     dirLight->SetDirection(_light.Direction());
+  //     break;
+  //   }
+  //   default:
+  //     ignerr << "Light type not supported" << std::endl;
+  //     return light;
+  // }
+
+  // // \todo(anyone) Set entity user data once rendering Node supports it
+  // light->SetLocalPose(_light.RawPose());
+  // light->SetDiffuseColor(_light.Diffuse());
+  // light->SetSpecularColor(_light.Specular());
+
+  // light->SetAttenuationConstant(_light.ConstantAttenuationFactor());
+  // light->SetAttenuationLinear(_light.LinearAttenuationFactor());
+  // light->SetAttenuationQuadratic(_light.QuadraticAttenuationFactor());
+  // light->SetAttenuationRange(_light.AttenuationRange());
+
+  // light->SetCastShadows(_light.CastShadows());
+
+  this->dataPtr->particleEmitters[_id] = emitter;
+
+  // if (parent)
+  //   parent->AddChild(emitter);
+
+  return emitter;
+}
+
+/////////////////////////////////////////////////
 bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     Entity _parentGazeboId)
 {
@@ -973,6 +1060,8 @@ bool SceneManager::HasEntity(Entity _id) const
   return this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end() ||
       this->dataPtr->actors.find(_id) != this->dataPtr->actors.end() ||
       this->dataPtr->lights.find(_id) != this->dataPtr->lights.end() ||
+      this->dataPtr->particleEmitters.find(_id) !=
+      this->dataPtr->particleEmitters.end() ||
       this->dataPtr->sensors.find(_id) != this->dataPtr->sensors.end();
 }
 
@@ -984,22 +1073,17 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
   {
     return vIt->second;
   }
-  else
+  auto lIt = this->dataPtr->lights.find(_id);
+  if (lIt != this->dataPtr->lights.end())
   {
-    auto lIt = this->dataPtr->lights.find(_id);
-    if (lIt != this->dataPtr->lights.end())
-    {
-      return lIt->second;
-    }
-    else
-    {
-      auto sIt = this->dataPtr->sensors.find(_id);
-      if (sIt != this->dataPtr->sensors.end())
-      {
-        return sIt->second;
-      }
-    }
+    return lIt->second;
   }
+  auto sIt = this->dataPtr->sensors.find(_id);
+  if (sIt != this->dataPtr->sensors.end())
+  {
+    return sIt->second;
+  }
+
   return rendering::NodePtr();
 }
 

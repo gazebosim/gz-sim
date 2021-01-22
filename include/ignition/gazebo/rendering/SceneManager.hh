@@ -36,6 +36,7 @@
 
 #include <ignition/rendering/RenderTypes.hh>
 
+#include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/Export.hh>
@@ -147,6 +148,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(Entity _id,
         const sdf::Light &_light, Entity _parentId);
+
+    /// \brief Create a particle emitter
+    /// \param[in] _id Unique light id
+    /// \param[in] _emitter Particle emitter data
+    /// \param[in] _parentId Parent id
+    /// \return Particle emitter object created
+    public: rendering::ParticleEmitterPtr CreateParticleEmitter(Entity _id,
+        const particles::Emitter &_emitter, Entity _parentId);
 
     /// \brief Ignition sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has

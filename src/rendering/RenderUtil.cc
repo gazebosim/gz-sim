@@ -55,6 +55,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -155,6 +156,11 @@ class ignition::gazebo::RenderUtilPrivate
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
+
+  /// \brief New particle emitter to be created. The elements in the tuple are:
+  /// [0] entity id, [1], particle emitter, [2] parent entity id
+  public: std::vector<std::tuple<Entity, particles::Emitter, Entity>>
+      newParticleEmitters;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
@@ -282,6 +288,7 @@ void RenderUtil::Update()
   auto newVisuals = std::move(this->dataPtr->newVisuals);
   auto newActors = std::move(this->dataPtr->newActors);
   auto newLights = std::move(this->dataPtr->newLights);
+  auto newParticleEmitters = std::move(this->dataPtr->newParticleEmitters);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
@@ -295,6 +302,7 @@ void RenderUtil::Update()
   this->dataPtr->newVisuals.clear();
   this->dataPtr->newActors.clear();
   this->dataPtr->newLights.clear();
+  this->dataPtr->newParticleEmitters.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
@@ -392,6 +400,12 @@ void RenderUtil::Update()
     {
       this->dataPtr->sceneManager.CreateLight(
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
+    }
+
+    for (const auto &emitter : newParticleEmitters)
+    {
+      this->dataPtr->sceneManager.CreateParticleEmitter(
+          std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
@@ -760,6 +774,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
+    // particle emitters
+    _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ParticleEmitter *_emitter,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newParticleEmitters.push_back(
+              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          return true;
+        });
+
     if (this->enableSensors)
     {
       // Create cameras
@@ -924,6 +949,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // particle emitters
+    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ParticleEmitter *_emitter,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newParticleEmitters.push_back(
+              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
           return true;
         });
 
