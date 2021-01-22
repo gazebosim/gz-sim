@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
-#include <optional>
 #include <memory>
 #include <optional>
 #include <set>
