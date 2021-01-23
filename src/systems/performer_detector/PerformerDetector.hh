@@ -77,7 +77,7 @@ namespace systems
   /// contents are interpreted as strings. Keys value pairs are stored in a
   /// map, which means the keys are unique.
 
-  class IGNITION_GAZEBO_VISIBLE PerformerDetector
+  class PerformerDetector
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate

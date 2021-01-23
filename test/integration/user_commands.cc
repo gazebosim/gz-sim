@@ -20,6 +20,7 @@
 #include <ignition/msgs/entity_factory.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -44,8 +45,8 @@ class UserCommandsTest : public ::testing::Test
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
@@ -219,6 +220,25 @@ TEST_F(UserCommandsTest, Create)
   entityCount = ecm->EntityCount();
 
   auto light = ecm->EntityByComponents(components::Name("spawned_light"));
+  EXPECT_NE(kNullEntity, light);
+
+  EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
+
+  // Request entity spawn
+  req.Clear();
+  req.mutable_light()->set_name("light_test");
+  req.mutable_light()->set_parent_id(1);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check it was created
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  light = ecm->EntityByComponents(components::Name("light_test"));
   EXPECT_NE(kNullEntity, light);
 
   EXPECT_NE(nullptr, ecm->Component<components::Light>(light));

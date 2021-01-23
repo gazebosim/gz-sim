@@ -44,21 +44,32 @@ namespace ignition
     /// will only operate on an Entity if it has all of the required
     /// Components.
     ///
-    /// Systems are executed in three phases:
+    /// Systems are executed in three phases, with each phase for a given step
+    /// corresponding to the entities at time UpdateInfo::simTime:
     ///  * PreUpdate
-    ///    * Has read-write access to world entities and components
-    ///    * Executed with simulation time at (t0)
+    ///    * Has read-write access to world entities and components.
+    ///    * This is where systems say what they'd like to happen at time
+    ///      UpdateInfo::simTime.
     ///    * Can be used to modify state before physics runs, for example for
     ///      applying control signals or performing network syncronization.
     ///  * Update
-    ///    * Has read-write access to world entities and components
-    ///    * Responsible for propagating time from (t0) to (t0 + dt)
-    ///    * Used for physics simulation step
+    ///    * Has read-write access to world entities and components.
+    ///    * Used for physics simulation step (i.e., simulates what happens at
+    ///      time UpdateInfo::simTime).
     ///  * PostUpdate
-    ///    * Has read-only access to world entities and components
-    ///    * Executed with simulation time at (t0 + dt)
+    ///    * Has read-only access to world entities and components.
+    ///    * Captures everything that happened at time UpdateInfo::simTime.
     ///    * Used to read out results at the end of a simulation step to be used
     ///      for sensor or controller updates.
+    ///
+    /// It's important to note that UpdateInfo::simTime does not refer to the
+    /// current time, but the time reached after the PreUpdate and Update calls
+    /// have finished. So, if any of the *Update functions are called with
+    /// simulation paused, time does not advance, which means the time reached
+    /// after PreUpdate and Update is the same as the starting time. This
+    /// explains why UpdateInfo::simTime is initially 0 if simulation is started
+    /// paused, while UpdateInfo::simTime is initially UpdateInfo::dt if
+    /// simulation is started un-paused.
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor

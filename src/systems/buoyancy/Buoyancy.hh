@@ -57,7 +57,7 @@ namespace systems
   /// ```
   /// ign gazebo -v 4 buoyancy.sdf
   /// ```
-  class IGNITION_GAZEBO_VISIBLE Buoyancy
+  class Buoyancy
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
