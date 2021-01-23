@@ -121,7 +121,14 @@
     </light>
 
     <atmosphere type="adiabatic">
-      <temperature>310</temperature>
+      <temperature>290</temperature>
+      <!--
+        This is a more exaggerated temperature gradient, which produces a
+        temperature range of ~11.5 kelvin for objects in the thermal camera
+        view. Typical temperature gradient is -0.0065 K/m which produces a
+        temperature range of 0.75 kelvin
+      -->
+      <temperature_gradient>0.1</temperature_gradient>
     </atmosphere>
 
     <model name="ground_plane">
@@ -334,5 +341,6 @@
       <name>phone</name>
       <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Samsung J8 Black Heat Signature</uri>
     </include>
+
   </world>
 </sdf>
