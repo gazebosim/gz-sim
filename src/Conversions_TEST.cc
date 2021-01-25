@@ -238,7 +238,7 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f),
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
-  EXPECT_DOUBLE_EQ(2.5, pbrMsg.render_order());
+  EXPECT_DOUBLE_EQ(2.5, materialMsg.render_order());
 
   // todo(anyone) double_sided is temporarily stored in header
   // Need to add double_sided field to msgs::Material
