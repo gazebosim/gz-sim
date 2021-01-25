@@ -19,7 +19,9 @@
 #include <map>
 
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
@@ -32,6 +34,8 @@
 #include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
 
+#include "ignition/rendering/Capsule.hh"
+#include <ignition/rendering/Ellipsoid.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/Material.hh>
@@ -370,12 +374,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateBox();
     scale = _geom.BoxShape()->Size();
   }
+  else if (_geom.Type() == sdf::GeometryType::CAPSULE)
+  {
+    geom = this->dataPtr->scene->CreateCapsule();
+    scale.X() = _geom.CapsuleShape()->Radius() * 2;
+    scale.Y() = scale.X();
+    scale.Z() = _geom.CapsuleShape()->Length();
+  }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
     geom = this->dataPtr->scene->CreateCylinder();
     scale.X() = _geom.CylinderShape()->Radius() * 2;
     scale.Y() = scale.X();
     scale.Z() = _geom.CylinderShape()->Length();
+  }
+  else if (_geom.Type() == sdf::GeometryType::ELLIPSOID)
+  {
+    geom = this->dataPtr->scene->CreateEllipsoid();
+    scale.X() = _geom.EllipsoidShape()->Radii().X();
+    scale.Y() = _geom.EllipsoidShape()->Radii().Y();
+    scale.Z() = _geom.EllipsoidShape()->Radii().Z();
   }
   else if (_geom.Type() == sdf::GeometryType::PLANE)
   {

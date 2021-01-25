@@ -190,13 +190,89 @@ void Shapes::OnMode(const QString &_mode)
                                    "</model>"
                                  "</sdf>");
   }
+  else if (modelSdfString == "capsule")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"capsule\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"capsule_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.146</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.146</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.125</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"capsule_collision\">"
+                                         "<geometry>"
+                                           "<capsule>"
+                                             "<radius>0.5</radius>"
+                                             "<length>1.0</length>"
+                                           "</capsule>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"capsule_visual\">"
+                                         "<geometry>"
+                                           "<capsule>"
+                                             "<radius>0.5</radius>"
+                                             "<length>1.0</length>"
+                                           "</capsule>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
+  else if (modelSdfString == "ellipsoid")
+  {
+    modelSdfString = std::string("<?xml version=\"1.0\"?>"
+                                 "<sdf version=\"1.6\">"
+                                   "<model name=\"ellipsoid\">"
+                                     "<pose>0 0 0.5 0 0 0</pose>"
+                                     "<link name=\"ellipsoid_link\">"
+                                       "<inertial>"
+                                         "<inertia>"
+                                           "<ixx>0.146</ixx>"
+                                           "<ixy>0</ixy>"
+                                           "<ixz>0</ixz>"
+                                           "<iyy>0.146</iyy>"
+                                           "<iyz>0</iyz>"
+                                           "<izz>0.125</izz>"
+                                         "</inertia>"
+                                         "<mass>1.0</mass>"
+                                       "</inertial>"
+                                       "<collision name=\"ellipsoid_collision\">"
+                                         "<geometry>"
+                                           "<ellipsoid>"
+                                             "<radii>0.5 1 0.5</radii>"
+                                           "</ellipsoid>"
+                                         "</geometry>"
+                                       "</collision>"
+                                       "<visual name=\"ellipsoid_visual\">"
+                                         "<geometry>"
+                                           "<ellipsoid>"
+                                             "<radii>0.5 1 0.5</radii>"
+                                           "</ellipsoid>"
+                                         "</geometry>"
+                                       "</visual>"
+                                     "</link>"
+                                   "</model>"
+                                 "</sdf>");
+  }
   else
   {
     ignwarn << "Invalid model string " << modelSdfString << "\n";
     ignwarn << "The valid options are:\n";
     ignwarn << " - box\n";
     ignwarn << " - sphere\n";
+    ignwarn << " - capsule\n";
     ignwarn << " - cylinder\n";
+    ignwarn << " - ellipsoid\n";
     return;
   }
 

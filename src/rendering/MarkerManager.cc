@@ -370,8 +370,12 @@ ignition::rendering::MarkerType MarkerManagerPrivate::MsgToType(
   {
     case ignition::msgs::Marker::BOX:
       return ignition::rendering::MarkerType::MT_BOX;
+    case ignition::msgs::Marker::CAPSULE:
+      return ignition::rendering::MarkerType::MT_CAPSULE;
     case ignition::msgs::Marker::CYLINDER:
       return ignition::rendering::MarkerType::MT_CYLINDER;
+    case ignition::msgs::Marker::ELLIPSOID:
+      return ignition::rendering::MarkerType::MT_ELLIPSOID;
     case ignition::msgs::Marker::LINE_STRIP:
       return ignition::rendering::MarkerType::MT_LINE_STRIP;
     case ignition::msgs::Marker::LINE_LIST:

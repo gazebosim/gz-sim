@@ -22,7 +22,9 @@
 #include <sdf/Altimeter.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
@@ -330,6 +332,30 @@ TEST(Conversions, GeometrySphere)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, GeometryCapsule)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::CAPSULE);
+
+  sdf::Capsule capsuleShape;
+  capsuleShape.SetRadius(1.23);
+  capsuleShape.SetLength(4.56);
+  geometry.SetCapsuleShape(capsuleShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::CAPSULE, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_capsule());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.capsule().radius());
+  EXPECT_DOUBLE_EQ(4.56, geometryMsg.capsule().length());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::CAPSULE, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.CapsuleShape());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.CapsuleShape()->Radius());
+  EXPECT_DOUBLE_EQ(4.56, newGeometry.CapsuleShape()->Length());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, GeometryCylinder)
 {
   sdf::Geometry geometry;
@@ -351,6 +377,29 @@ TEST(Conversions, GeometryCylinder)
   ASSERT_NE(nullptr, newGeometry.CylinderShape());
   EXPECT_DOUBLE_EQ(1.23, newGeometry.CylinderShape()->Radius());
   EXPECT_DOUBLE_EQ(4.56, newGeometry.CylinderShape()->Length());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryEllipsoid)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::ELLIPSOID);
+
+  sdf::Ellipsoid ellipsoidShape;
+  ellipsoidShape.SetRadii(ignition::math::Vector3d(1.2, 3.2, 2.4));
+  geometry.SetEllipsoidShape(ellipsoidShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::ELLIPSOID, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_ellipsoid());
+  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+    msgs::Convert(geometryMsg.ellipsoid().radii()));
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::ELLIPSOID, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.EllipsoidShape());
+  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+    newGeometry.EllipsoidShape()->Radii());
 }
 
 /////////////////////////////////////////////////

@@ -18,8 +18,10 @@
 #include <ignition/msgs/atmosphere.pb.h>
 #include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/msgs/boxgeom.pb.h>
+#include <ignition/msgs/capsulegeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/ellipsoidgeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
@@ -45,7 +47,9 @@
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
+#include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Imu.hh>
@@ -157,11 +161,23 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     out.set_type(msgs::Geometry::BOX);
     msgs::Set(out.mutable_box()->mutable_size(), _in.BoxShape()->Size());
   }
+  else if (_in.Type() == sdf::GeometryType::CAPSULE && _in.CapsuleShape())
+  {
+    out.set_type(msgs::Geometry::CAPSULE);
+    out.mutable_capsule()->set_radius(_in.CapsuleShape()->Radius());
+    out.mutable_capsule()->set_length(_in.CapsuleShape()->Length());
+  }
   else if (_in.Type() == sdf::GeometryType::CYLINDER && _in.CylinderShape())
   {
     out.set_type(msgs::Geometry::CYLINDER);
     out.mutable_cylinder()->set_radius(_in.CylinderShape()->Radius());
     out.mutable_cylinder()->set_length(_in.CylinderShape()->Length());
+  }
+  else if (_in.Type() == sdf::GeometryType::ELLIPSOID && _in.EllipsoidShape())
+  {
+    out.set_type(msgs::Geometry::ELLIPSOID);
+    msgs::Set(out.mutable_ellipsoid()->mutable_radii(),
+             _in.EllipsoidShape()->Radii());
   }
   else if (_in.Type() == sdf::GeometryType::PLANE && _in.PlaneShape())
   {
@@ -211,6 +227,16 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
     out.SetBoxShape(boxShape);
   }
+  else if (_in.type() == msgs::Geometry::CAPSULE && _in.has_capsule())
+  {
+    out.SetType(sdf::GeometryType::CAPSULE);
+
+    sdf::Capsule capsuleShape;
+    capsuleShape.SetRadius(_in.capsule().radius());
+    capsuleShape.SetLength(_in.capsule().length());
+
+    out.SetCapsuleShape(capsuleShape);
+  }
   else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
   {
     out.SetType(sdf::GeometryType::CYLINDER);
@@ -220,6 +246,15 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
     cylinderShape.SetLength(_in.cylinder().length());
 
     out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::ELLIPSOID && _in.has_ellipsoid())
+  {
+    out.SetType(sdf::GeometryType::ELLIPSOID);
+
+    sdf::Ellipsoid ellipsoidShape;
+    ellipsoidShape.SetRadii(msgs::Convert(_in.ellipsoid().radii()));
+
+    out.SetEllipsoidShape(ellipsoidShape);
   }
   else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
   {

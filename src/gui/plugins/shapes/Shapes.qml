@@ -84,5 +84,39 @@ ToolBar {
         Shapes.OnMode("cylinder")
       }
     }
+    ToolButton {
+      id: capsule
+      ToolTip.text: "Capsule"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "cylinder.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      onClicked: {
+        Shapes.OnMode("capsule")
+      }
+    }
+    ToolButton {
+      id: ellipsoid
+      ToolTip.text: "Ellipsoid"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "cylinder.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      onClicked: {
+        Shapes.OnMode("ellipsoid")
+      }
+    }
   }
 }
