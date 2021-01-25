@@ -20,7 +20,6 @@
 #include <memory>
 #include <vector>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -50,7 +49,7 @@ namespace systems
   /// When recording is finished. An `end` string will be published to the
   /// `/log_video_recorder/status` topic and the videos are saved to a
   /// timestamped directory
-  class IGNITION_GAZEBO_VISIBLE LogVideoRecorder:
+  class LogVideoRecorder:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

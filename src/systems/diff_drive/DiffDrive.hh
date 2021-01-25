@@ -61,7 +61,7 @@ namespace systems
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
-  class IGNITION_GAZEBO_VISIBLE DiffDrive
+  class DiffDrive
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

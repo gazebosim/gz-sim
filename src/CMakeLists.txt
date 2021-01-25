@@ -42,7 +42,6 @@ set (sources
   Barrier.cc
   Conversions.cc
   EntityComponentManager.cc
-  EventManager.cc
   LevelManager.cc
   Link.cc
   Model.cc
@@ -75,6 +74,7 @@ set (gtest_sources
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   Server_TEST.cc
+  ServerConfig_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
@@ -84,6 +84,15 @@ set (gtest_sources
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
 )
+
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+endif()
 
 # Create the library target
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
@@ -101,7 +110,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
-if (NOT APPLE)
+if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE stdc++fs)
 endif()
@@ -130,6 +139,36 @@ ign_build_tests(TYPE UNIT
     ${EXTRA_TEST_LIB_DEPS}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
+
+if(TARGET UNIT_ign_TEST)
+
+  # Running `ign gazebo` on macOS has problems when run with /usr/bin/ruby
+  # due to System Integrity Protection (SIP). Try to find ruby from
+  # homebrew as a workaround.
+  if (APPLE)
+    find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
+  endif()
+
+  add_dependencies(UNIT_ign_TEST
+    ${ign_lib_target}
+    TestModelSystem
+    TestSensorSystem
+    TestWorldSystem
+  )
+
+  target_compile_definitions(UNIT_ign_TEST PRIVATE
+      "BREW_RUBY=\"${BREW_RUBY} \"")
+
+  target_compile_definitions(UNIT_ign_TEST PRIVATE
+      "IGN_PATH=\"${IGNITION-TOOLS_BINARY_DIRS}\"")
+
+  set(_env_vars)
+  list(APPEND _env_vars "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+  list(APPEND _env_vars "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+
+  set_tests_properties(UNIT_ign_TEST PROPERTIES
+    ENVIRONMENT "${_env_vars}")
+endif()
 
 if(NOT WIN32)
   add_subdirectory(cmd)

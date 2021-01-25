@@ -14,13 +14,18 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/ServerConfig.hh"
+
+#include <tinyxml2.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/Result.hh>
 #include <ignition/math/Rand.hh>
-#include "ignition/gazebo/ServerConfig.hh"
+
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -230,7 +235,8 @@ class ignition::gazebo::ServerConfigPrivate
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
-            seed(_cfg->seed) { }
+            seed(_cfg->seed),
+            logRecordTopics(_cfg->logRecordTopics) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -551,6 +557,109 @@ void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 }
 
 /////////////////////////////////////////////////
+ServerConfig::PluginInfo
+ServerConfig::LogPlaybackPlugin() const
+{
+  auto entityName = "*";
+  auto entityType = "world";
+  auto pluginName = "ignition::gazebo::systems::LogPlayback";
+  auto pluginFilename = "ignition-gazebo-log-system";
+
+  sdf::ElementPtr playbackElem;
+  playbackElem = std::make_shared<sdf::Element>();
+  playbackElem->SetName("plugin");
+
+  if (!this->LogPlaybackPath().empty())
+  {
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("path");
+    playbackElem->AddElementDescription(pathElem);
+    pathElem = playbackElem->GetElement("path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(this->LogPlaybackPath());
+  }
+
+  return ServerConfig::PluginInfo(entityName,
+      entityType,
+      pluginFilename,
+      pluginName,
+      playbackElem);
+}
+
+/////////////////////////////////////////////////
+ServerConfig::PluginInfo
+ServerConfig::LogRecordPlugin() const
+{
+  auto entityName = "*";
+  auto entityType = "world";
+  auto pluginName = "ignition::gazebo::systems::LogRecord";
+  auto pluginFilename = "ignition-gazebo-log-system";
+
+  sdf::ElementPtr recordElem;
+
+  recordElem = std::make_shared<sdf::Element>();
+  recordElem->SetName("plugin");
+
+  igndbg << "Generating LogRecord SDF:" << std::endl;
+
+  if (!this->LogRecordPath().empty())
+  {
+    sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
+    pathElem->SetName("record_path");
+    recordElem->AddElementDescription(pathElem);
+    pathElem = recordElem->GetElement("record_path");
+    pathElem->AddValue("string", "", false, "");
+    pathElem->Set<std::string>(this->LogRecordPath());
+  }
+
+  // Set whether to record resources
+  sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
+  resourceElem->SetName("record_resources");
+  recordElem->AddElementDescription(resourceElem);
+  resourceElem = recordElem->GetElement("record_resources");
+  resourceElem->AddValue("bool", "false", false, "");
+  resourceElem->Set<bool>(this->LogRecordResources() ? true : false);
+
+  if (!this->LogRecordCompressPath().empty())
+  {
+    // Set whether to compress
+    sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
+    compressElem->SetName("compress");
+    recordElem->AddElementDescription(compressElem);
+    compressElem = recordElem->GetElement("compress");
+    compressElem->AddValue("bool", "false", false, "");
+    compressElem->Set<bool>(true);
+
+  // Set compress path
+    sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
+    cPathElem->SetName("compress_path");
+    recordElem->AddElementDescription(cPathElem);
+    cPathElem = recordElem->GetElement("compress_path");
+    cPathElem->AddValue("string", "", false, "");
+    cPathElem->Set<std::string>(this->LogRecordCompressPath());
+  }
+
+  // If record topics specified, add in SDF
+  for (const std::string &topic : this->LogRecordTopics())
+  {
+    sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
+    topicElem->SetName("record_topic");
+    recordElem->AddElementDescription(topicElem);
+    topicElem = recordElem->AddElement("record_topic");
+    topicElem->AddValue("string", "false", false, "");
+    topicElem->Set<std::string>(topic);
+  }
+
+  igndbg << recordElem->ToString("") << std::endl;
+
+  return ServerConfig::PluginInfo(entityName,
+      entityType,
+      pluginFilename,
+      pluginName,
+      recordElem);
+}
+
+/////////////////////////////////////////////////
 const std::list<ServerConfig::PluginInfo> &ServerConfig::Plugins() const
 {
   return this->dataPtr->plugins;
@@ -587,3 +696,230 @@ const std::vector<std::string> &ServerConfig::LogRecordTopics() const
 {
   return this->dataPtr->logRecordTopics;
 }
+
+/////////////////////////////////////////////////
+void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
+{
+  _sdf->SetName(_xml->Value());
+  if (_xml->GetText() != nullptr)
+    _sdf->AddValue("string", _xml->GetText(), "1");
+
+  for (const tinyxml2::XMLAttribute *attribute = _xml->FirstAttribute();
+       attribute; attribute = attribute->Next())
+  {
+    _sdf->AddAttribute(attribute->Name(), "string", "", 1, "");
+    _sdf->GetAttribute(attribute->Name())->SetFromString(
+        attribute->Value());
+  }
+
+  // Iterate over all the child elements
+  const tinyxml2::XMLElement *elemXml = nullptr;
+  for (elemXml = _xml->FirstChildElement(); elemXml;
+      elemXml = elemXml->NextSiblingElement())
+  {
+    sdf::ElementPtr element(new sdf::Element);
+    element->SetParent(_sdf);
+
+    copyElement(element, elemXml);
+    _sdf->InsertElement(element);
+  }
+}
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
+{
+  auto ret =  std::list<ServerConfig::PluginInfo>();
+  auto root = _doc.RootElement();
+  if (root == nullptr)
+  {
+    ignerr << "No <server_config> element found when parsing plugins\n";
+    return ret;
+  }
+
+  auto plugins = root->FirstChildElement("plugins");
+  if (plugins == nullptr)
+  {
+    ignerr << "No <plugins> element found when parsing plugins\n";
+    return ret;
+  }
+
+  const tinyxml2::XMLElement *elem{nullptr};
+
+  // Note, this was taken from ign-launch, where this type of parsing happens.
+  // Process all the plugins.
+  for (elem = plugins->FirstChildElement("plugin"); elem;
+       elem = elem->NextSiblingElement("plugin"))
+  {
+    // Get the plugin's name
+    const char *nameStr = elem->Attribute("name");
+    std::string name = nameStr == nullptr ? "" : nameStr;
+    if (name.empty())
+    {
+      ignerr << "Plugin is missing the name attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's filename
+    const char *fileStr = elem->Attribute("filename");
+    std::string file = fileStr == nullptr ? "" : fileStr;
+    if (file.empty())
+    {
+      ignerr << "A Plugin with name[" << name << "] is "
+        << "missing the filename attribute. Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's entity name attachment information.
+    const char *entityNameStr = elem->Attribute("entity_name");
+    std::string entityName = entityNameStr == nullptr ? "" : entityNameStr;
+    if (entityName.empty())
+    {
+      ignerr << "A Plugin with name[" << name << "] and "
+        << "filename[" << file << "] is missing the entity_name attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Get the plugin's entity type attachment information.
+    const char *entityTypeStr = elem->Attribute("entity_type");
+    std::string entityType = entityTypeStr == nullptr ? "" : entityTypeStr;
+    if (entityType.empty())
+    {
+      ignerr << "A Plugin with name[" << name << "] and "
+        << "filename[" << file << "] is missing the entity_type attribute. "
+        << "Skipping this plugin.\n";
+      continue;
+    }
+
+    // Create an SDF element of the plugin
+    sdf::ElementPtr sdf(new sdf::Element);
+    copyElement(sdf, elem);
+
+    // Add the plugin to the server config
+    ret.push_back({entityName, entityType, file, name, sdf});
+  }
+  return ret;
+}
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+ignition::gazebo::parsePluginsFromFile(const std::string &_fname)
+{
+  tinyxml2::XMLDocument doc;
+  doc.LoadFile(_fname.c_str());
+  return parsePluginsFromDoc(doc);
+}
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+ignition::gazebo::parsePluginsFromString(const std::string &_str)
+{
+  tinyxml2::XMLDocument doc;
+  doc.Parse(_str.c_str());
+  return parsePluginsFromDoc(doc);
+}
+
+
+/////////////////////////////////////////////////
+std::list<ServerConfig::PluginInfo>
+ignition::gazebo::loadPluginInfo(bool _isPlayback)
+{
+  std::list<ServerConfig::PluginInfo> ret;
+
+  // 1. Check contents of environment variable
+  std::string envConfig;
+  bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
+                                         envConfig);
+
+  if (configSet)
+  {
+    if (ignition::common::exists(envConfig))
+    {
+      // Parse configuration stored in environment variable
+      ret = ignition::gazebo::parsePluginsFromFile(envConfig);
+      if (ret.empty())
+      {
+        // This may be desired behavior, but warn just in case.
+        // Some users may want to defer all loading until later
+        // during runtime.
+        ignwarn << gazebo::kServerConfigPathEnv
+                << " set but no plugins found\n";
+      }
+      igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
+        "[" << envConfig << "]\n";
+
+      return ret;
+    }
+    else
+    {
+      // This may be desired behavior, but warn just in case.
+      // Some users may want to defer all loading until late
+      // during runtime.
+      ignwarn << gazebo::kServerConfigPathEnv
+              << " set but no file found,"
+              << " no plugins loaded\n";
+      return ret;
+    }
+  }
+
+  std::string configFilename;
+  if (_isPlayback)
+  {
+    configFilename = "playback_server.config";
+  }
+  else
+  {
+    configFilename = "server.config";
+  }
+
+  std::string defaultConfig;
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+    "gazebo", configFilename);
+
+  if (!ignition::common::exists(defaultConfig))
+  {
+    auto installedConfig = ignition::common::joinPaths(
+        IGNITION_GAZEBO_SERVER_CONFIG_PATH,
+        configFilename);
+
+    if (!ignition::common::exists(installedConfig))
+    {
+      ignerr << "Failed to copy installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << "(file " << installedConfig << " doesn't exist)"
+             << std::endl;
+      return ret;
+    }
+    else if (!ignition::common::copyFile(installedConfig, defaultConfig))
+    {
+      ignerr << "Failed to copy installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+      return ret;
+    }
+    else
+    {
+      ignmsg << "Copied installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+    }
+  }
+
+  ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
+
+  if (ret.empty())
+  {
+    // This may be desired behavior, but warn just in case.
+    ignwarn << "Loaded config: [" << defaultConfig
+      << "], but no plugins found\n";
+  }
+
+  igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
+    "[" << defaultConfig << "]\n";
+
+  return ret;
+}
+

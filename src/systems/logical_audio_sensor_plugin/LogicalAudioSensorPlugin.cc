@@ -403,14 +403,21 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
     };
 
   // create services for this source
-  const auto full_name = scopedName(entity, _ecm);
-  if (!this->node.Advertise(full_name + "/play", playSrvCb))
+  const auto fullName = scopedName(entity, _ecm);
+  auto validName = transport::TopicUtils::AsValidTopic(fullName);
+  if (validName.empty())
+  {
+    ignerr << "Failed to create valid topics with entity scoped name ["
+           << fullName << "]" << std::endl;
+    return;
+  }
+  if (!this->node.Advertise(validName + "/play", playSrvCb))
   {
     ignerr << "Error advertising the play source service for source "
       << id << " in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
-  if (!this->node.Advertise(full_name + "/stop", stopSrvCb))
+  if (!this->node.Advertise(validName + "/stop", stopSrvCb))
   {
     ignerr << "Error advertising the stop source service for source "
       << id << " in entity " << _parent << ". " << kSourceSkipMsg;

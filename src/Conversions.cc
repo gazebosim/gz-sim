@@ -61,12 +61,14 @@
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
 {
   msgs::Entity_Type out = msgs::Entity_Type_NONE;
@@ -104,6 +106,7 @@ msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
 {
   math::Pose3d out(_in.position().x(),
@@ -120,6 +123,7 @@ math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
@@ -132,6 +136,7 @@ msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 {
   sdf::Collision out;
@@ -143,6 +148,7 @@ sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
@@ -192,6 +198,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 {
   sdf::Geometry out;
@@ -255,6 +262,7 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 {
   msgs::Material out;
@@ -315,6 +323,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
 {
   sdf::Material out;
@@ -362,6 +371,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
@@ -401,6 +411,7 @@ msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
@@ -443,6 +454,7 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 {
   msgs::Light out;
@@ -470,6 +482,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
 {
   sdf::Light out;
@@ -497,6 +510,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
@@ -535,6 +549,7 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Time ignition::gazebo::convert(
     const std::chrono::steady_clock::duration &_in)
 {
@@ -550,6 +565,7 @@ msgs::Time ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 std::chrono::steady_clock::duration ignition::gazebo::convert(
     const msgs::Time &_in)
 {
@@ -558,6 +574,7 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
 {
   msgs::Inertial out;
@@ -574,6 +591,7 @@ msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
 {
   math::MassMatrix3d massMatrix;
@@ -593,6 +611,7 @@ math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
@@ -622,6 +641,7 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
@@ -641,6 +661,7 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
 {
   msgs::Scene out;
@@ -671,6 +692,7 @@ msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
 {
   sdf::Scene out;
@@ -700,6 +722,7 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
 {
   msgs::Atmosphere out;
@@ -717,6 +740,7 @@ msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Atmosphere ignition::gazebo::convert(const msgs::Atmosphere &_in)
 {
   sdf::Atmosphere out;
@@ -781,6 +805,7 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
 {
   sdf::Noise out;
@@ -813,6 +838,7 @@ sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 {
   msgs::Sensor out;
@@ -1029,6 +1055,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 {
   sdf::Sensor out;
@@ -1268,6 +1295,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
@@ -1277,6 +1305,7 @@ msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
 {
   gazebo::UpdateInfo out;
@@ -1290,6 +1319,7 @@ gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
 {
   msgs::AxisAlignedBox out;
@@ -1300,6 +1330,7 @@ msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
 {
   math::AxisAlignedBox out;
