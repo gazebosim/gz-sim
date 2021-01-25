@@ -36,7 +36,7 @@ namespace ignition
     /// Move API from here to their appropriate locations once that's known.
     ///
     /// This class should be removed before releasing!
-    class IGNITION_GAZEBO_VISIBLE TmpIface : public QObject
+    class TmpIface : public QObject
     {
       Q_OBJECT
 
