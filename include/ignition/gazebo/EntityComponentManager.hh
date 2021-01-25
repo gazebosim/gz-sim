@@ -487,6 +487,12 @@ namespace ignition
       /// \return True if there are any components with one-time changes.
       public: bool HasOneTimeComponentChanges() const;
 
+      /// \brief Get the components types that are marked as periodic changes.
+      /// \return All the components that at least one entity marked as
+      /// periodic changes.
+      public: std::unordered_set<ComponentTypeId>
+          ComponentTypesWithPeriodicChanges() const;
+
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
       /// one will be created.
