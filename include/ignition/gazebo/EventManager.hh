@@ -47,13 +47,13 @@ namespace ignition
     /// occur.
     ///
     /// See \ref ignition::gazebo::events for a complete list of events.
-    class IGNITION_GAZEBO_VISIBLE EventManager
+    class EventManager
     {
       /// \brief Constructor
-      public: EventManager();
+      public: EventManager() = default;
 
       /// \brief Destructor
-      public: ~EventManager();
+      public: ~EventManager() = default;
 
       /// \brief Add a connection to an event.
       /// \param[in] _subscriber A std::function callback function. The function

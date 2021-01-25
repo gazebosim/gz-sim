@@ -20,6 +20,7 @@
 #include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <sdf/Element.hh>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
