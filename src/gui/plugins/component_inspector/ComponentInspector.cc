@@ -830,6 +830,12 @@ void ComponentInspector::OnLight(
 
   auto lightConfigService = "/world/" + this->dataPtr->worldName +
     "/light_config";
+  lightConfigService = transport::TopicUtils::AsValidTopic(lightConfigService);
+  if (lightConfigService.empty())
+  {
+    ignerr << "Invalid light command service topic provided" << std::endl;
+    return;
+  }
   this->dataPtr->node.Request(lightConfigService, req, cb);
 }
 

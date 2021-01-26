@@ -24,8 +24,6 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
 
-#include <ignition/msgs/Utility.hh>
-
 #include <map>
 #include <string>
 #include <memory>

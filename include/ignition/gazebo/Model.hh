@@ -28,8 +28,6 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
-#include <sdf/Light.hh>
-
 namespace ignition
 {
   namespace gazebo

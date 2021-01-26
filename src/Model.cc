@@ -16,7 +16,6 @@
 */
 
 #include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"

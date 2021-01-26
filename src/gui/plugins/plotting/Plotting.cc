@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include <ignition/msgs/Utility.hh>
 
 namespace ignition::gazebo
 {
@@ -450,7 +451,8 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
     else if (typeId == components::Light::typeId)
     {
       auto comp = _ecm.Component<components::Light>(entity);
-      if (comp){
+      if (comp)
+      {
         msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
         this->SetData(component.first, lightMsgs);
       }
