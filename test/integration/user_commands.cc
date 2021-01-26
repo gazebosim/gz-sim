@@ -224,6 +224,25 @@ TEST_F(UserCommandsTest, Create)
 
   EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
 
+  // Request entity spawn
+  req.Clear();
+  req.mutable_light()->set_name("light_test");
+  req.mutable_light()->set_parent_id(1);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check it was created
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  light = ecm->EntityByComponents(components::Name("light_test"));
+  EXPECT_NE(kNullEntity, light);
+
+  EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
+
   // Queue commands and check they're all executed in the same iteration
   req.Clear();
   req.set_sdf(modelStr);
