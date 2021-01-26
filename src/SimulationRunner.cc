@@ -690,6 +690,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        processedIterations < _iterations))
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
+
+    // Update the step size and desired rtf
+    this->UpdatePhysicsParams();
+
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
     sleepTime = 0ns;
@@ -758,9 +762,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Publish info
   this->PublishStats();
-
-  // Update the step size and desired rtf
-  this->UpdatePhysicsParams();
 
   // Record when the update step starts.
   this->prevUpdateRealTime = std::chrono::steady_clock::now();
