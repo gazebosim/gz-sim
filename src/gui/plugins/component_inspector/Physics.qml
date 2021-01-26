@@ -24,7 +24,7 @@ import QtQuick.Controls.Styles 1.4
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
-// Item displaying light information.
+// Item displaying physics information.
 Rectangle {
   height: header.height + content.height
   width: componentInspector.width
@@ -51,7 +51,7 @@ Rectangle {
   // Loaded item for real time factor
   property var realTimeFactorItem: {}
 
-  // Send new light data to C++
+  // Send new physics data to C++
   function sendPhysics() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onPhysics(

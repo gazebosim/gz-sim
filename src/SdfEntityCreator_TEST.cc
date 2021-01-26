@@ -121,6 +121,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
     {
       EXPECT_NE(nullptr, _world);
       EXPECT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _physics);
 
       EXPECT_EQ("default", _name->Data());
       EXPECT_DOUBLE_EQ(0.001, _physics->Data().MaxStepSize());

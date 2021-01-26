@@ -77,6 +77,9 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const math::Vector3d &_data);
 
+  /// \brief Specialized to set Physics data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const sdf::Physics &_data);
 

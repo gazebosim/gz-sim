@@ -774,13 +774,8 @@ bool PhysicsCommand::Execute()
   if (!this->iface->ecm->EntityHasComponentType(worldEntity,
     components::PhysicsCmd().TypeId()))
   {
-    auto physics = convert<sdf::Physics>(*physicsMsg);
     this->iface->ecm->CreateComponent(worldEntity,
-        components::PhysicsCmd(physics));
-    // HACK, the component is meant to be updated in SimulationRunner
-    // auto physicsComponent =
-    //  this->iface->ecm->Component<components::Physics>(worldEntity);
-    // physicsComponent->Data() = components::Physics(physics).Data();
+        components::PhysicsCmd(*physicsMsg));
   }
 
   return true;

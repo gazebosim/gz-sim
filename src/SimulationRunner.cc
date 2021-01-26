@@ -348,8 +348,8 @@ void SimulationRunner::UpdatePhysicsParams()
 
   const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize =
-    std::chrono::duration<double>(physicsParams.MaxStepSize());
-  const double newRTF = physicsParams.RealTimeFactor();
+    std::chrono::duration<double>(physicsParams.max_step_size());
+  const double newRTF = physicsParams.real_time_factor();
 
   const double eps = 0.00001;
   if (newStepSize != this->stepSize ||
@@ -365,7 +365,7 @@ void SimulationRunner::UpdatePhysicsParams()
     this->simTimes.clear();
     this->realTimes.clear();
     // Update physics components
-    physicsComp->Data().SetMaxStepSize(physicsParams.MaxStepSize());
+    physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
     physicsComp->Data().SetRealTimeFactor(newRTF);
     this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
         ComponentState::OneTimeChange);
@@ -759,6 +759,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Publish info
   this->PublishStats();
 
+  // Update the step size and desired rtf
+  this->UpdatePhysicsParams();
+
   // Record when the update step starts.
   this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
@@ -769,9 +772,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Update all the systems.
   this->UpdateSystems();
-
-  // Update the step size and desired rtf
-  this->UpdatePhysicsParams();
 
   if (!this->Paused() && this->pendingSimIterations > 0)
   {

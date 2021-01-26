@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_PHYSICSCMD_HH_
 #define IGNITION_GAZEBO_COMPONENTS_PHYSICSCMD_HH_
 
-#include <sdf/Physics.hh>
+#include <ignition/msgs/physics.pb.h>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -35,7 +35,7 @@ namespace components
 {
   /// \brief A component type that contains the physics properties of
   /// the World entity.
-  using PhysicsCmd = Component<sdf::Physics, class PhysicsCmdTag>;
+  using PhysicsCmd = Component<msgs::Physics, class PhysicsCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PhysicsCmd",
       PhysicsCmd)
 }

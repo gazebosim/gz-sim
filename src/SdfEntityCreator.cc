@@ -210,7 +210,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   {
     physics = _world->PhysicsDefault();
   }
-  ignerr << "Creating physics component in SDF creator" << std::endl;
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Physics(*physics));
 
