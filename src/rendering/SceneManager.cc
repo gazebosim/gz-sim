@@ -257,12 +257,19 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     /// localPose is currently used to handle the normal vector in plane visuals
     /// In general, this can be used to store any local transforms between the
     /// parent Visual and geometry.
-    rendering::VisualPtr geomVis;
-    geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-    geomVis->AddGeometry(geom);
-    geomVis->SetLocalPose(localPose);
+    if (localPose != math::Pose3d::Zero)
+    {
+      rendering::VisualPtr geomVis =
+          this->dataPtr->scene->CreateVisual(name + "_geom");
+      geomVis->AddGeometry(geom);
+      geomVis->SetLocalPose(localPose);
+      visualVis->AddChild(geomVis);
+    }
+    else
+    {
+      visualVis->AddGeometry(geom);
+    }
 
-    visualVis->AddChild(geomVis);
     visualVis->SetLocalScale(scale);
 
     // set material
