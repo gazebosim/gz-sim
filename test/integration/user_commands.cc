@@ -726,8 +726,9 @@ TEST_F(UserCommandsTest, Physics)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration
-  server.Run(true, 1, false);
+  // Run two iterations, in the first one the PhysicsCmd component is created
+  // in the second one it is processed
+  server.Run(true, 2, false);
 
   // Check updated physics properties
   physicsComp = ecm->Component<components::Physics>(worldEntity);
