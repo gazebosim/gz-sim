@@ -170,7 +170,7 @@ void Shapes::OnMode(const QString &_mode)
                                          "</inertia>"
                                          "<mass>1.0</mass>"
                                        "</inertial>"
-                                       "<collision name=\"cylinder_collision\">"
+                                      "<collision name=\"cylinder_collision\">"
                                          "<geometry>"
                                            "<cylinder>"
                                              "<radius>0.5</radius>"
