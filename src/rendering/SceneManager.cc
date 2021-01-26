@@ -35,6 +35,7 @@
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/Material.hh>
+#include <ignition/rendering/ParticleEmitter.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
 
@@ -961,48 +962,9 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
     name = parent->Name() +  "::" + name;
 
   rendering::ParticleEmitterPtr emitter;
-  // switch (_light.Type())
-  // {
-  //   case sdf::LightType::POINT:
-  //     light = this->dataPtr->scene->CreatePointLight(name);
-  //     break;
-  //   case sdf::LightType::SPOT:
-  //   {
-  //     light = this->dataPtr->scene->CreateSpotLight(name);
-  //     rendering::SpotLightPtr spotLight =
-  //         std::dynamic_pointer_cast<rendering::SpotLight>(light);
-  //     spotLight->SetInnerAngle(_light.SpotInnerAngle());
-  //     spotLight->SetOuterAngle(_light.SpotOuterAngle());
-  //     spotLight->SetFalloff(_light.SpotFalloff());
-  //     break;
-  //   }
-  //   case sdf::LightType::DIRECTIONAL:
-  //   {
-  //     light = this->dataPtr->scene->CreateDirectionalLight(name);
-  //     rendering::DirectionalLightPtr dirLight =
-  //         std::dynamic_pointer_cast<rendering::DirectionalLight>(light);
+  // emitter->SetEmitting(true);
 
-  //     dirLight->SetDirection(_light.Direction());
-  //     break;
-  //   }
-  //   default:
-  //     ignerr << "Light type not supported" << std::endl;
-  //     return light;
-  // }
-
-  // // \todo(anyone) Set entity user data once rendering Node supports it
-  // light->SetLocalPose(_light.RawPose());
-  // light->SetDiffuseColor(_light.Diffuse());
-  // light->SetSpecularColor(_light.Specular());
-
-  // light->SetAttenuationConstant(_light.ConstantAttenuationFactor());
-  // light->SetAttenuationLinear(_light.LinearAttenuationFactor());
-  // light->SetAttenuationQuadratic(_light.QuadraticAttenuationFactor());
-  // light->SetAttenuationRange(_light.AttenuationRange());
-
-  // light->SetCastShadows(_light.CastShadows());
-
-  this->dataPtr->particleEmitters[_id] = emitter;
+  //this->dataPtr->particleEmitters[_id] = emitter;
 
   // if (parent)
   //   parent->AddChild(emitter);

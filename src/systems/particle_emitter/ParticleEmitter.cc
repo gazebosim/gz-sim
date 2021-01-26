@@ -28,6 +28,7 @@
 #include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/Conversions.hh>
+#include <ignition/gazebo/SdfEntityCreator.hh>
 #include "ParticleEmitter.hh"
 
 using namespace ignition;
@@ -48,10 +49,10 @@ ParticleEmitter::ParticleEmitter()
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter::Configure(const Entity &/*_entity*/,
+void ParticleEmitter::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
-    EventManager &/*_eventMgr*/)
+    EventManager &_eventMgr)
 {
   // Name.
   if (!_sdf->HasElement("emitter_name"))
@@ -156,6 +157,8 @@ void ParticleEmitter::Configure(const Entity &/*_entity*/,
   igndbg << "Loading particle emitter:" << std::endl
          << this->dataPtr->emitter.DebugString() << std::endl;
 
+  SdfEntityCreator sdfEntityCreator(_ecm, _eventMgr);
+
   // Create a particle emitter entity.
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
@@ -173,6 +176,8 @@ void ParticleEmitter::Configure(const Entity &/*_entity*/,
   _ecm.CreateComponent(entity, components::ParticleEmitter(emitterData));
 
   _ecm.CreateComponent(entity, components::Pose(pose));
+
+  _ecm.SetParentEntity(entity, _entity);
 }
 
 //////////////////////////////////////////////////
