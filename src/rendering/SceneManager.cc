@@ -32,6 +32,8 @@
 #include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
 
+#include <ignition/msgs/Utility.hh>
+
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/Material.hh>
@@ -962,12 +964,73 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
     name = parent->Name() +  "::" + name;
 
   rendering::ParticleEmitterPtr emitter;
-  // emitter->SetEmitting(true);
+  emitter = this->dataPtr->scene->CreateParticleEmitter(name);
 
-  //this->dataPtr->particleEmitters[_id] = emitter;
+  // Type.
+  switch (_emitter.data.type())
+  {
+    case ignition::msgs::ParticleEmitter_EmitterType_BOX:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_BOX);
+      break;
+    }
+    case ignition::msgs::ParticleEmitter_EmitterType_CYLINDER:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_CYLINDER);
+      break;
+    }
+    case ignition::msgs::ParticleEmitter_EmitterType_ELLIPSOID:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_ELLIPSOID);
+      break;
+    }
+    default:
+    {
+      emitter->SetType(ignition::rendering::EmitterType::EM_POINT);
+    }
+  }
 
-  // if (parent)
-  //   parent->AddChild(emitter);
+  // Emitter size.
+  emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.data.size()));
+
+  // Rate.
+  emitter->SetRate(_emitter.data.rate());
+
+  // Duration.
+  emitter->SetDuration(_emitter.data.duration());
+
+  // Emitting.
+  emitter->SetEmitting(_emitter.data.emitting());
+
+  // Particle size.
+  emitter->SetParticleSize(
+    ignition::msgs::Convert(_emitter.data.particle_size()));
+
+  // Lifetime.
+  emitter->SetLifetime(_emitter.data.lifetime());
+
+  // Material.
+  // emitter->SetMaterial();
+
+  // Velocity range.
+  emitter->SetVelocityRange(
+    _emitter.data.min_velocity(), _emitter.data.max_velocity());
+
+  // Color range.
+  emitter->SetColorRange(
+    ignition::msgs::Convert(_emitter.data.color_start()),
+    ignition::msgs::Convert(_emitter.data.color_end()));
+
+  // Scale rate.
+  emitter->SetScaleRate(_emitter.data.scale_rate());
+
+  // Color range image.
+  emitter->SetColorRangeImage(_emitter.data.color_range_image());
+
+  this->dataPtr->particleEmitters[_id] = emitter;
+
+  if (parent)
+    parent->AddChild(emitter);
 
   return emitter;
 }

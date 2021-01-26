@@ -168,6 +168,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
   }
 
   // Create components.
+  sdfEntityCreator.SetParent(entity, _entity);
+
   _ecm.CreateComponent(entity,
     components::Name("particle_emitter_" + this->dataPtr->emitter.name()));
 
@@ -176,8 +178,6 @@ void ParticleEmitter::Configure(const Entity &_entity,
   _ecm.CreateComponent(entity, components::ParticleEmitter(emitterData));
 
   _ecm.CreateComponent(entity, components::Pose(pose));
-
-  _ecm.SetParentEntity(entity, _entity);
 }
 
 //////////////////////////////////////////////////

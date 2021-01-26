@@ -955,7 +955,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
         });
 
     // particle emitters
-    //ignerr << "[CreateRenderingEntities] (New) Checking particle emitters" << std::endl;
     _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
         [&](const Entity &_entity,
             const components::ParticleEmitter *_emitter,
