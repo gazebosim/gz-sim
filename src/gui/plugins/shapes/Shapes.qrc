@@ -4,5 +4,7 @@
   <file>box.png</file>
   <file>sphere.png</file>
   <file>cylinder.png</file>
+  <file>capsule.png</file>
+  <file>ellipsoid.png</file>
 </qresource>
 </RCC>
