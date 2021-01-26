@@ -403,6 +403,7 @@ bool CreateCommand::Execute()
 
   // Load SDF
   sdf::Root root;
+  sdf::Light lightSdf;
   sdf::Errors errors;
   switch (createMsg->from_case())
   {
@@ -424,9 +425,8 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kLight:
     {
-      // TODO(louise) Support light msg
-      ignerr << "light field not yet supported." << std::endl;
-      return false;
+      lightSdf = convert<sdf::Light>(createMsg->light());
+      break;
     }
     case msgs::EntityFactory::kCloneName:
     {
@@ -451,17 +451,25 @@ bool CreateCommand::Execute()
   bool isModel{false};
   bool isLight{false};
   bool isActor{false};
+  bool isRoot{false};
   if (root.ModelCount() > 0)
   {
+    isRoot = true;
     isModel = true;
   }
   else if (root.LightCount() > 0)
   {
+    isRoot = true;
     isLight = true;
   }
   else if (root.ActorCount() > 0)
   {
+    isRoot = true;
     isActor = true;
+  }
+  else if (!lightSdf.Name().empty())
+  {
+    isLight = true;
   }
   else
   {
@@ -486,9 +494,13 @@ bool CreateCommand::Execute()
   {
     desiredName = root.ModelByIndex(0)->Name();
   }
-  else if (isLight)
+  else if (isLight && isRoot)
   {
     desiredName = root.LightByIndex(0)->Name();
+  }
+  else if (isLight)
+  {
+    desiredName = lightSdf.Name();
   }
   else if (isActor)
   {
@@ -528,11 +540,16 @@ bool CreateCommand::Execute()
     model.SetName(desiredName);
     entity = this->iface->creator->CreateEntities(&model);
   }
-  else if (isLight)
+  else if (isLight && isRoot)
   {
     auto light = root.LightByIndex(0);
     light->SetName(desiredName);
     entity = this->iface->creator->CreateEntities(light);
+  }
+  else if (isLight)
+  {
+    lightSdf.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&lightSdf);
   }
   else if (isActor)
   {
