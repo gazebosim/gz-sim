@@ -2,7 +2,16 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.8.0 (2020-12-17)
+## Ignition Math 6.8.0 (2021-01-26)
+
+1. Remove unnecessary copy constructor declaration from Box
+    * [Pull request 187](https://github.com/ignitionrobotics/ign-math/pull/187)
+
+1. Windows installation via conda-forge
+    * [Pull request 185](https://github.com/ignitionrobotics/ign-math/pull/185)
+
+1.  Add rule-of-five members for Angle
+    * [Pull request 186](https://github.com/ignitionrobotics/ign-math/pull/186)
 
 1. Ellipsoid: new shape class with inertia calculation method
     * [Pull request 182](https://github.com/ignitionrobotics/ign-math/pull/182)
