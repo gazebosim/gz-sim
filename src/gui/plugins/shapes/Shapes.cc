@@ -246,7 +246,7 @@ void Shapes::OnMode(const QString &_mode)
                                          "</inertia>"
                                          "<mass>1.0</mass>"
                                        "</inertial>"
-                                       "<collision name=\"ellipsoid_collision\">"
+                                     "<collision name=\"ellipsoid_collision\">"
                                          "<geometry>"
                                            "<ellipsoid>"
                                              "<radii>0.5 1 0.5</radii>"
