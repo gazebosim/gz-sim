@@ -223,27 +223,37 @@ void UserCommands::Configure(const Entity &_entity,
   const components::Name *constCmp = _ecm.Component<components::Name>(_entity);
   const std::string &worldName = constCmp->Data();
 
+  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
+  if (validWorldName.empty())
+  {
+    ignerr << "World name [" << worldName
+           << "] doesn't work well with transport, services not advertised."
+           << std::endl;
+    return;
+  }
+
   // Create service
-  std::string createService{"/world/" + worldName + "/create"};
+  std::string createService{"/world/" + validWorldName + "/create"};
   this->dataPtr->node.Advertise(createService,
       &UserCommandsPrivate::CreateService, this->dataPtr.get());
 
   // Create service for EntityFactory_V
-  std::string createServiceMultiple{"/world/" + worldName + "/create_multiple"};
+  std::string createServiceMultiple{"/world/" + validWorldName +
+      "/create_multiple"};
   this->dataPtr->node.Advertise(createServiceMultiple,
       &UserCommandsPrivate::CreateServiceMultiple, this->dataPtr.get());
 
   ignmsg << "Create service on [" << createService << "]" << std::endl;
 
   // Remove service
-  std::string removeService{"/world/" + worldName + "/remove"};
+  std::string removeService{"/world/" + validWorldName + "/remove"};
   this->dataPtr->node.Advertise(removeService,
       &UserCommandsPrivate::RemoveService, this->dataPtr.get());
 
   ignmsg << "Remove service on [" << removeService << "]" << std::endl;
 
   // Pose service
-  std::string poseService{"/world/" + worldName + "/set_pose"};
+  std::string poseService{"/world/" + validWorldName + "/set_pose"};
   this->dataPtr->node.Advertise(poseService,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
@@ -393,6 +403,7 @@ bool CreateCommand::Execute()
 
   // Load SDF
   sdf::Root root;
+  sdf::Light lightSdf;
   sdf::Errors errors;
   switch (createMsg->from_case())
   {
@@ -414,9 +425,8 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kLight:
     {
-      // TODO(louise) Support light msg
-      ignerr << "light field not yet supported." << std::endl;
-      return false;
+      lightSdf = convert<sdf::Light>(createMsg->light());
+      break;
     }
     case msgs::EntityFactory::kCloneName:
     {
@@ -441,17 +451,25 @@ bool CreateCommand::Execute()
   bool isModel{false};
   bool isLight{false};
   bool isActor{false};
+  bool isRoot{false};
   if (nullptr != root.Model())
   {
+    isRoot = true;
     isModel = true;
   }
   else if (nullptr != root.Light())
   {
+    isRoot = true;
     isLight = true;
   }
   else if (nullptr != root.Actor())
   {
+    isRoot = true;
     isActor = true;
+  }
+  else if (!lightSdf.Name().empty())
+  {
+    isLight = true;
   }
   else
   {
@@ -476,9 +494,13 @@ bool CreateCommand::Execute()
   {
     desiredName = root.Model()->Name();
   }
-  else if (isLight)
+  else if (isLight && isRoot)
   {
     desiredName = root.Light()->Name();
+  }
+  else if (isLight)
+  {
+    desiredName = lightSdf.Name();
   }
   else if (isActor)
   {
@@ -518,11 +540,16 @@ bool CreateCommand::Execute()
     model.SetName(desiredName);
     entity = this->iface->creator->CreateEntities(&model);
   }
-  else if (isLight)
+  else if (isLight && isRoot)
   {
     auto light = root.Light();
     light->SetName(desiredName);
     entity = this->iface->creator->CreateEntities(light);
+  }
+  else if (isLight)
+  {
+    lightSdf.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&lightSdf);
   }
   else if (isActor)
   {
