@@ -1236,9 +1236,9 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        // \todo(anyone) Note on merging forward:
-        // `has_one_time_component` field is available in Edifice so this
-        // workaround can be removed
+        // Note on merging forward:
+        // `has_one_time_component_changes` field is available in Edifice so
+        // this workaround can be removed
         auto flag = ComponentState::PeriodicChange;
         for (int i = 0; i < _stateMsg.header().data_size(); ++i)
         {
