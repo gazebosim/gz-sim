@@ -93,7 +93,7 @@ ToolBar {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "cylinder.png"
+        source: "capsule.png"
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
@@ -110,7 +110,7 @@ ToolBar {
         fillMode: Image.Pad
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: "cylinder.png"
+        source: "ellipsoid.png"
         sourceSize.width: 24;
         sourceSize.height: 24;
       }
