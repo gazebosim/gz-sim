@@ -35,7 +35,6 @@
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include <ignition/msgs/Utility.hh>
 
 namespace ignition::gazebo
 {
