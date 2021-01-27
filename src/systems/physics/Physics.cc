@@ -861,28 +861,30 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           collisionPtrPhys =
               linkCollisionFeature->ConstructCollision(collision);
         }
+
+        this->entityCollisionMap.AddEntity(_entity, collisionPtrPhys);
+
         // Check that the physics engine has a filter mask feature
         // Set the collide_bitmask if it does
-        // auto filterMaskFeature =
-        //     this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
-        //         _entity);
-        // if (filterMaskFeature)
-        // {
-        //   filterMaskFeature->SetCollisionFilterMask(collideBitmask);
-        // }
-        // else
-        // {
-        //   static bool informed{false};
-        //   if (!informed)
-        //   {
-        //     igndbg << "Attempting to set collision bitmasks, but the physics "
-        //            << "engine doesn't support feature [CollisionFilterMask]. "
-        //            << "Collision bitmasks will be ignored." << std::endl;
-        //     informed = true;
-        //   }
-        // }
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCollisionFilterMask(collideBitmask);
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set collision bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
 
-        this->entityCollisionMap.AddEntity( _entity, collisionPtrPhys);
         return true;
       });
 
