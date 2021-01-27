@@ -398,8 +398,22 @@ void RenderUtil::Update()
 
     for (const auto &light : newLights)
     {
-      this->dataPtr->sceneManager.CreateLight(
+      rendering::LightPtr lightObj = this->dataPtr->sceneManager.CreateLight(
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
+
+      // create a new id for the light visual
+      auto timeout = 100000u;
+      for (auto i = 0u; i < timeout; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::min() + i;
+        if (!this->dataPtr->sceneManager.HasEntity(id))
+        {
+          rendering::VisualPtr lightVisual =
+            this->dataPtr->sceneManager.CreateLightVisual(
+              id, std::get<1>(light), std::get<2>(light));
+          break;
+        }
+      }
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
@@ -1170,6 +1184,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
       {
+        std::cerr << "Remove " << _entity << '\n';
         this->removeEntities[_entity] = _info.iterations;
         return true;
       });

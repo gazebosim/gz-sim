@@ -34,6 +34,7 @@
 
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Light.hh>
+#include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
@@ -846,6 +847,75 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     this->dataPtr->scene->RootVisual()->AddChild(actorVisual);
 
   return actorVisual;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
+    const sdf::Light &_light, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  std::string name = _light.Name().empty() ? std::to_string(_id) :
+      _light.Name();
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding model visual with ID[" << _id
+             << "]  and name [" << name << "] to the rendering scene."
+             << std::endl;
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
+
+  if (parent)
+    name = parent->Name() +  "::" + name + "Visual";
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::LightVisualPtr lightVisual = this->dataPtr->scene->CreateLightVisual(name);
+  if (_light.Type() == sdf::LightType::POINT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LightVisual_POINT);
+  }
+  else if (_light.Type() == sdf::LightType::DIRECTIONAL)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LightVisual_DIRECTIONAL);
+  }
+  else if (_light.Type() == sdf::LightType::SPOT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LightVisual_SPOT);
+  }
+  rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
+    lightVisual);
+  lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  lightVis->SetUserData("pause-update", static_cast<int>(0));
+  lightVis->SetLocalPose(_light.RawPose());
+  this->dataPtr->visuals[_id] = lightVis;
+
+  if (parent)
+    parent->AddChild(lightVis);
+  else
+    this->dataPtr->scene->RootVisual()->AddChild(lightVis);
+
+  return lightVis;
 }
 
 /////////////////////////////////////////////////
