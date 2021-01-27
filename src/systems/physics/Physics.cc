@@ -252,41 +252,41 @@ class ignition::gazebo::systems::PhysicsPrivate
   // Slip Compliance
 
   /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
-  public: using FrictionPyramidSlipComplianceFeatureList = physics::FeatureList<
+  public: struct FrictionPyramidSlipComplianceFeatureList
+      : physics::FeatureList<
             MinimumFeatureList,
             ignition::physics::GetShapeFrictionPyramidSlipCompliance,
-            ignition::physics::SetShapeFrictionPyramidSlipCompliance>;
-
+            ignition::physics::SetShapeFrictionPyramidSlipCompliance>{};
   //////////////////////////////////////////////////
   // Joints
 
   /// \brief Feature list to handle joints.
-  public: using JointFeatureList = ignition::physics::FeatureList<
+  public: struct JointFeatureList : ignition::physics::FeatureList<
             MinimumFeatureList,
             ignition::physics::GetBasicJointProperties,
             ignition::physics::GetBasicJointState,
             ignition::physics::SetBasicJointState,
-            ignition::physics::sdf::ConstructSdfJoint>;
+            ignition::physics::sdf::ConstructSdfJoint>{};
 
 
   //////////////////////////////////////////////////
   // Detachable joints
 
   /// \brief Feature list to process `DetachableJoint` components.
-  public: using DetachableJointFeatureList = physics::FeatureList<
+  public: struct DetachableJointFeatureList : physics::FeatureList<
             JointFeatureList,
             physics::AttachFixedJointFeature,
             physics::DetachJointFeature,
-            physics::SetJointTransformFromParentFeature>;
+            physics::SetJointTransformFromParentFeature>{};
 
   //////////////////////////////////////////////////
   // Collisions
 
   /// \brief Feature list to handle collisions.
-  public: using CollisionFeatureList = ignition::physics::FeatureList<
+  public: struct CollisionFeatureList : ignition::physics::FeatureList<
             MinimumFeatureList,
             ignition::physics::GetContactsFromLastStepFeature,
-            ignition::physics::sdf::ConstructSdfCollision>;
+            ignition::physics::sdf::ConstructSdfCollision>{};
 
   /// \brief Collision type with collision features.
   public: using ShapePtrType = ignition::physics::ShapePtr<
@@ -300,36 +300,36 @@ class ignition::gazebo::systems::PhysicsPrivate
   // Collision filtering with bitmasks
 
   /// \brief Feature list to filter collisions with bitmasks.
-  public: using CollisionMaskFeatureList = ignition::physics::FeatureList<
+  public: struct CollisionMaskFeatureList : ignition::physics::FeatureList<
           CollisionFeatureList,
-          ignition::physics::CollisionFilterMaskFeature>;
+          ignition::physics::CollisionFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
   /// \brief Feature list for applying forces to links.
-  public: using LinkForceFeatureList = ignition::physics::FeatureList<
-            ignition::physics::AddLinkExternalForceTorque>;
+  public: struct LinkForceFeatureList : ignition::physics::FeatureList<
+            ignition::physics::AddLinkExternalForceTorque>{};
 
 
   //////////////////////////////////////////////////
   // Bounding box
   /// \brief Feature list for model bounding box.
-  public: using BoundingBoxFeatureList = ignition::physics::FeatureList<
+  public: struct BoundingBoxFeatureList : ignition::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::GetModelBoundingBox>;
+            ignition::physics::GetModelBoundingBox>{};
 
 
   //////////////////////////////////////////////////
   // Joint velocity command
   /// \brief Feature list for set joint velocity command.
-  public: using JointVelocityCommandFeatureList = physics::FeatureList<
-            physics::SetJointVelocityCommandFeature>;
+  public: struct JointVelocityCommandFeatureList : physics::FeatureList<
+            physics::SetJointVelocityCommandFeature>{};
 
   //////////////////////////////////////////////////
   // World velocity command
-  public: using WorldVelocityCommandFeatureList =
+  public: struct WorldVelocityCommandFeatureList :
             ignition::physics::FeatureList<
-              ignition::physics::SetFreeGroupWorldVelocity>;
+              ignition::physics::SetFreeGroupWorldVelocity>{};
 
 
   //////////////////////////////////////////////////
@@ -338,17 +338,17 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Feature list for meshes.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
-  public: using MeshFeatureList = physics::FeatureList<
+  public: struct MeshFeatureList : physics::FeatureList<
             CollisionFeatureList,
-            physics::mesh::AttachMeshShapeFeature>;
+            physics::mesh::AttachMeshShapeFeature>{};
 
   //////////////////////////////////////////////////
   // Nested Models
 
   /// \brief Feature list to construct nested models
-  public: using NestedModelFeatureList = ignition::physics::FeatureList<
+  public: struct NestedModelFeatureList : ignition::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::sdf::ConstructSdfNestedModel>;
+            ignition::physics::sdf::ConstructSdfNestedModel>{};
 
   //////////////////////////////////////////////////
   /// \brief A map between world entity ids in the ECM to World Entities in
