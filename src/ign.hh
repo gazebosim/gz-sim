@@ -21,18 +21,18 @@
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion();
+extern "C" char *ignitionGazeboVersion();
 
 /// \brief Get the Gazebo version header.
 /// \return C-string containing the Gazebo version information.
-extern "C" IGNITION_GAZEBO_VISIBLE char *gazeboVersionHeader();
+extern "C" char *gazeboVersionHeader();
 
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
-extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
+extern "C" void cmdVerbosity(
     const char *_verbosity);
 
-extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
+extern "C" const char *worldInstallDir();
 
 /// \brief External hook to run simulation server.
 /// \param[in] _sdfString SDF file to run, as a string.
@@ -55,7 +55,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// null to record the default topics.
 /// \return 0 if successful, 1 if not.
-extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
+extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
@@ -67,13 +67,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
 /// \return 0 if successful, 1 if not.
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
+extern "C" int runGui(const char *_guiConfig);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,
 /// https://staging-fuel.ignitionrobotics.org/1.0/gmas/worlds/ShapesClone
 /// \return C-string containing the path to the local world sdf file
-extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+extern "C" const char *findFuelResource(
     char *_pathToResource);
 
 #endif
