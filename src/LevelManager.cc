@@ -76,8 +76,14 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
   this->ReadLevelPerformerInfo();
   this->CreatePerformers();
 
-  std::string service = "/world/";
-  service += this->runner->sdfWorld->Name() + "/level/set_performer";
+  std::string service = transport::TopicUtils::AsValidTopic("/world/" +
+      this->runner->sdfWorld->Name() + "/level/set_performer");
+  if (service.empty())
+  {
+    ignerr << "Failed to generate set_performer topic for world ["
+           << this->runner->sdfWorld->Name() << "]" << std::endl;
+    return;
+  }
   this->node.Advertise(service, &LevelManager::OnSetPerformer, this);
 }
 

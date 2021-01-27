@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/user-commands-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -55,7 +54,7 @@ namespace systems
   /// * **Response type*: ignition.msgs.Boolean
   ///
   /// Try some examples described on examples/worlds/empty.sdf
-  class IGNITION_GAZEBO_USER_COMMANDS_SYSTEM_VISIBLE UserCommands:
+  class UserCommands:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate

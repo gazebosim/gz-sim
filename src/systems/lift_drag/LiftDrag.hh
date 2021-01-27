@@ -19,7 +19,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_LIFT_DRAG_HH_
 
 #include <memory>
-#include <ignition/gazebo/lift-drag-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -60,7 +59,7 @@ namespace systems
   ///               coefficient curve.
   /// cda_stall   : The ratio of coefficient of drag and alpha slope after
   ///               stall.
-  class IGNITION_GAZEBO_LIFT_DRAG_SYSTEM_VISIBLE LiftDrag
+  class LiftDrag
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

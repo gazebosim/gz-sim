@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <set>
-#include <ignition/gazebo/joint-state-publisher-system/Export.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/gazebo/System.hh>
@@ -46,7 +45,7 @@ namespace systems
   /// `<joint_name>`: Name of a joint to publish. This parameter can be
   /// specified multiple times, and is optional. All joints in a model will
   /// be published if joint names are not specified.
-  class IGNITION_GAZEBO_JOINT_STATE_PUBLISHER_SYSTEM_VISIBLE JointStatePublisher
+  class JointStatePublisher
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate

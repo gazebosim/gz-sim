@@ -46,7 +46,6 @@
 #include <ignition/physics/sdf/ConstructWorld.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/physics-system/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -62,7 +61,7 @@ namespace systems
 
   /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
   /// \brief Base class for a System.
-  class IGNITION_GAZEBO_PHYSICS_SYSTEM_VISIBLE Physics:
+  class Physics:
     public System,
     public ISystemConfigure,
     public ISystemUpdate

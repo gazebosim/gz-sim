@@ -127,6 +127,13 @@ void TapeMeasure::Measure()
   this->Reset();
   this->dataPtr->measure = true;
   QGuiApplication::setOverrideCursor(Qt::CrossCursor);
+
+  // Notify Scene3D to disable the right click menu while we use it to
+  // cancel our current measuring action
+  ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(false);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &dropdownMenuEnabledEvent);
 }
 
 /////////////////////////////////////////////////
@@ -149,6 +156,13 @@ void TapeMeasure::Reset()
   this->dataPtr->measure = false;
   this->newDistance();
   QGuiApplication::restoreOverrideCursor();
+
+  // Notify Scene3D that we are done using the right click, so it can
+  // re-enable the settings menu
+  ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(true);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &dropdownMenuEnabledEvent);
 }
 
 /////////////////////////////////////////////////
@@ -271,6 +285,15 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
           this->dataPtr->startPoint.Distance(this->dataPtr->endPoint);
         this->newDistance();
         QGuiApplication::restoreOverrideCursor();
+
+        // Notify Scene3D that we are done using the right click, so it can
+        // re-enable the settings menu
+        ignition::gui::events::DropdownMenuEnabled
+          dropdownMenuEnabledEvent(true);
+
+        ignition::gui::App()->sendEvent(
+            ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+            &dropdownMenuEnabledEvent);
       }
       this->dataPtr->currentId = this->dataPtr->kEndPointId;
     }
@@ -293,6 +316,15 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       this->Reset();
     }
   }
+  // Cancel the current action if a right click is detected
+  else if (_event->type() == ignition::gui::events::RightClickToScene::kType)
+  {
+    if (this->dataPtr->measure)
+    {
+      this->Reset();
+    }
+  }
+
   return QObject::eventFilter(_obj, _event);
 }
 

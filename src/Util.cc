@@ -18,7 +18,7 @@
 #ifndef __APPLE__
   #if (defined(_MSVC_LANG))
     #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
-      #include <filesystem> //C++17
+      #include <filesystem>  // c++17
     #else
       #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
       #include <experimental/filesystem>
@@ -33,6 +33,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/transport/TopicUtils.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -395,7 +396,8 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  ignition::common::setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
+  ignition::common::setenv(
+    systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
@@ -430,6 +432,27 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
     parentComp = _ecm.Component<components::ParentEntity>(entity);
   }
   return entity;
+}
+
+//////////////////////////////////////////////////
+std::string validTopic(const std::vector<std::string> &_topics)
+{
+  for (const auto &topic : _topics)
+  {
+    auto validTopic = transport::TopicUtils::AsValidTopic(topic);
+    if (validTopic.empty())
+    {
+      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      continue;
+    }
+    if (validTopic != topic)
+    {
+      igndbg << "Topic [" << topic << "] changed to valid topic ["
+             << validTopic << "]" << std::endl;
+    }
+    return validTopic;
+  }
+  return std::string();
 }
 }
 }
