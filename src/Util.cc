@@ -396,7 +396,8 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  ignition::common::setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
+  ignition::common::setenv(
+    systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
