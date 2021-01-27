@@ -21,7 +21,6 @@
 #include <cstdint>
 #include <functional>
 #include <utility>
-#include <ignition/common/Time.hh>
 
 namespace ignition
 {

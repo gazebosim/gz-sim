@@ -25,7 +25,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
 {
@@ -35,7 +35,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
+
+class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
 
@@ -53,11 +54,9 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   /// \brief Make a new state request to the server.
   public slots: void RequestState();
 
-  /// \brief Callback for the state service.
+  /// \brief Callback for the async state service.
   /// \param[in] _res Response containing new state.
-  /// \param[in] _result True if successful.
-  private: void OnStateService(const msgs::SerializedStepMap &_res,
-      const bool _result);
+  private: void OnStateAsyncService(const msgs::SerializedStepMap &_res);
 
   /// \brief Callback when a new state is received from the server.
   /// \param[in] _msg New state message.

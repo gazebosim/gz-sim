@@ -15,7 +15,10 @@
  *
  */
 
+#include "LiftDrag.hh"
+
 #include <algorithm>
+#include <string>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
@@ -36,8 +39,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
-
-#include "LiftDrag.hh"
 
 using namespace ignition;
 using namespace gazebo;

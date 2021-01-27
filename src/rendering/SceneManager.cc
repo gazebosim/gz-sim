@@ -124,6 +124,9 @@ Entity SceneManager::WorldId() const
 rendering::VisualPtr SceneManager::CreateModel(Entity _id,
     const sdf::Model &_model, Entity _parentId)
 {
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
     ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
@@ -176,6 +179,9 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
 rendering::VisualPtr SceneManager::CreateLink(Entity _id,
     const sdf::Link &_link, Entity _parentId)
 {
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
     ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
@@ -217,6 +223,9 @@ rendering::VisualPtr SceneManager::CreateLink(Entity _id,
 rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     const sdf::Visual &_visual, Entity _parentId)
 {
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
     ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
@@ -350,6 +359,9 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     math::Vector3d &_scale, math::Pose3d &_localPose)
 {
+  if (!this->dataPtr->scene)
+    return rendering::GeometryPtr();
+
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose = math::Pose3d::Zero;
   rendering::GeometryPtr geom{nullptr};
@@ -419,11 +431,15 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
 rendering::MaterialPtr SceneManager::LoadMaterial(
     const sdf::Material &_material)
 {
+  if (!this->dataPtr->scene)
+    return rendering::MaterialPtr();
+
   rendering::MaterialPtr material = this->dataPtr->scene->CreateMaterial();
   material->SetAmbient(_material.Ambient());
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
@@ -443,7 +459,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string roughnessMap = metal->RoughnessMap();
       if (!roughnessMap.empty())
       {
-        std::string fullPath = common::findFile(roughnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(roughnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetRoughnessMap(fullPath);
         else
@@ -454,7 +471,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string metalnessMap = metal->MetalnessMap();
       if (!metalnessMap.empty())
       {
-        std::string fullPath = common::findFile(metalnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(metalnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetMetalnessMap(fullPath);
         else
@@ -472,12 +490,13 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string albedoMap = workflow->AlbedoMap();
     if (!albedoMap.empty())
     {
-      std::string fullPath = common::findFile(albedoMap);
+      std::string fullPath = common::findFile(
+          asFullPath(albedoMap, _material.FilePath()));
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
         // Use alpha channel for transparency
-        material->SetAlphaFromTexture(true);
+        material->SetAlphaFromTexture(true, 0.5, _material.DoubleSided());
       }
       else
         ignerr << "Unable to find file [" << albedoMap << "]\n";
@@ -487,7 +506,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string normalMap = workflow->NormalMap();
     if (!normalMap.empty())
     {
-      std::string fullPath = common::findFile(normalMap);
+      std::string fullPath = common::findFile(
+          asFullPath(normalMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetNormalMap(fullPath);
       else
@@ -499,7 +519,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string environmentMap = workflow->EnvironmentMap();
     if (!environmentMap.empty())
     {
-      std::string fullPath = common::findFile(environmentMap);
+      std::string fullPath = common::findFile(
+          asFullPath(environmentMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEnvironmentMap(fullPath);
       else
@@ -510,7 +531,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string emissiveMap = workflow->EmissiveMap();
     if (!emissiveMap.empty())
     {
-      std::string fullPath = common::findFile(emissiveMap);
+      std::string fullPath = common::findFile(
+          asFullPath(emissiveMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEmissiveMap(fullPath);
       else
@@ -524,6 +546,9 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     const sdf::Actor &_actor, Entity _parentId)
 {
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
   // creating an actor needs to create the visual and the mesh
   // the visual is stored in: this->dataPtr->visuals
   // the mesh is stored in: this->dataPtr->actors
@@ -827,6 +852,9 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 rendering::LightPtr SceneManager::CreateLight(Entity _id,
     const sdf::Light &_light, Entity _parentId)
 {
+  if (!this->dataPtr->scene)
+    return rendering::LightPtr();
+
   if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
   {
     ignerr << "Light with Id: [" << _id << "] already exists in the scene"
@@ -906,6 +934,9 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     Entity _parentGazeboId)
 {
+  if (!this->dataPtr->scene)
+    return false;
+
   if (this->dataPtr->sensors.find(_gazeboId) != this->dataPtr->sensors.end())
   {
     ignerr << "Sensor for entity [" << _gazeboId
@@ -1174,6 +1205,9 @@ std::map<std::string, math::Matrix4d> SceneManager::ActorSkeletonTransformsAt(
 /////////////////////////////////////////////////
 void SceneManager::RemoveEntity(Entity _id)
 {
+  if (!this->dataPtr->scene)
+    return;
+
   {
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
@@ -1218,6 +1252,9 @@ rendering::VisualPtr SceneManager::TopLevelVisual(
 rendering::NodePtr SceneManager::TopLevelNode(
     const rendering::NodePtr &_node) const
 {
+  if (!this->dataPtr->scene)
+    return rendering::NodePtr();
+
   rendering::NodePtr rootNode =
       this->dataPtr->scene->RootVisual();
 

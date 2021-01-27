@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_GUI_SCENE3D_HH_
 
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/msgs/vector3d.pb.h>
 #include <ignition/msgs/video_record.pb.h>
@@ -146,6 +147,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnViewAngle(const msgs::Vector3d &_msg,
         msgs::Boolean &_res);
 
+    /// \brief Callback for a move to pose request.
+    /// \param[in] _msg GUICamera request message.
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnMoveToPose(const msgs::GUICamera &_msg,
+                 msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -191,12 +199,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath Sdf path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the dropdown menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
 
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
@@ -215,6 +240,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// (0, 0, 0) indicates to return the camera back to the home pose
     /// originally loaded in from the sdf
     public: void SetViewAngle(const math::Vector3d &_direction);
+
+    /// \brief Set the world pose of the camera
+    /// \param[in] _pose The world pose to set the camera to.
+    public: void SetMoveToPose(const math::Pose3d &_pose);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -339,6 +368,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Handle model placement requests
     private: void HandleModelPlacement();
 
+    /// \brief Broadcasts the currently hovered 3d scene location.
+    private: void BroadcastHoverPos();
+
+    /// \brief Broadcasts a left click within the scene
+    private: void BroadcastLeftClick();
+
+    /// \brief Broadcasts a right click within the scene
+    private: void BroadcastRightClick();
+
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
     private: Entity UniqueId();
@@ -365,11 +403,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d ScreenToScene(const math::Vector2i &_screenPos)
         const;
 
+    /// \brief Get the current camera pose.
+    /// \return Pose of the camera.
+    public: math::Pose3d CameraPose() const;
+
     /// \brief Callback when a move to animation is complete
     private: void OnMoveToComplete();
 
     /// \brief Callback when a view angle animation is complete
     private: void OnViewAngleComplete();
+
+    /// \brief Callback when a move to  pose animation is complete
+    private: void OnMoveToPoseComplete();
 
     /// \brief Process a node's selection
     /// \param[in] _node The node to be selected.
@@ -472,6 +517,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _pose Pose to set the camera to
     public: void SetCameraPose(const math::Pose3d &_pose);
 
+    /// \brief Get the user camera pose.
+    /// \return Pose of the user camera.
+    public: math::Pose3d CameraPose() const;
+
     /// \brief Set the initial user camera pose
     /// \param[in] _pose Pose to set the camera to
     public: void SetInitCameraPose(const math::Pose3d &_pose);
@@ -492,12 +541,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath File path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
 
     /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
@@ -516,6 +582,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// (0, 0, 0) indicates to return the camera back to the home pose
     /// originally loaded in from the sdf
     public: void SetViewAngle(const math::Vector3d &_direction);
+
+    /// \brief Set the pose of the camera
+    /// \param[in] _pose The new camera pose in the world frame.
+    public: void SetMoveToPose(const math::Pose3d &_pose);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -576,8 +646,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// the render window.
     public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
 
+    /// \brief Get whether the renderer is initialized. The renderer is
+    /// initialized when the context is created and the render thread is
+    /// started.
+    /// \return True if the renderer is initialized.
+    public: bool RendererInitialized() const;
+
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
+
+    /// \brief Handle key press event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyPress(QKeyEvent *_e);
+
+    /// \brief Handle key release event for snapping
+    /// \param[in] _e The key event to process.
+    public: void HandleKeyRelease(QKeyEvent *_e);
 
     // Documentation inherited
     protected: void mousePressEvent(QMouseEvent *_e) override;
@@ -590,12 +674,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view

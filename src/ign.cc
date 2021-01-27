@@ -14,7 +14,13 @@
  * limitations under the License.
  *
 */
+
+#include "ign.hh"
+
 #include <cstring>
+#include <string>
+#include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/fuel_tools/FuelClient.hh>
@@ -27,35 +33,34 @@
 #include "ignition/gazebo/ServerConfig.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
-#include "ign.hh"
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()
+extern "C" char *ignitionGazeboVersion()
 {
   return strdup(IGNITION_GAZEBO_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE char *gazeboVersionHeader()
+extern "C" char *gazeboVersionHeader()
 {
   return strdup(IGNITION_GAZEBO_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
+extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
   ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
+extern "C" const char *worldInstallDir()
 {
   return IGN_GAZEBO_WORLD_INSTALL_DIR;
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
+extern "C" const char *findFuelResource(
     char *_pathToResource)
 {
   std::string path;
@@ -68,6 +73,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     ignmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
+  // cppcheck-suppress syntaxError
   else if (ignition::fuel_tools::Result result =
     fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
     result)
@@ -109,12 +115,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
+extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
-    const char *_playback, const char *_physicsEngine, const char *_file,
-    const char *_recordTopics)
+    const char *_playback, const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file, const char *_recordTopics)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -327,6 +334,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
+  if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
+  {
+    serverConfig.SetRenderEngineServer(_renderEngineServer);
+  }
+
+  if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
+  {
+    serverConfig.SetRenderEngineGui(_renderEngineGui);
+  }
+
   // Create the Gazebo server
   ignition::gazebo::Server server(serverConfig);
 
@@ -338,7 +355,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
+extern "C" int runGui(const char *_guiConfig)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:

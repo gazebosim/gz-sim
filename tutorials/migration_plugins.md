@@ -1,8 +1,8 @@
 \page migrationplugins
 
-# Migration from Gazebo-classic: Plugins
+# Migration from Gazebo Classic: Plugins
 
-Classic Gazebo supports
+Gazebo Classic supports
 [6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),
 each providing access to different parts of the API, like physics, rendering,
 sensors, GUI, etc. Due to Ignition Gazebo's architecture based on an
@@ -15,7 +15,7 @@ while others are specific plugin types from other Ignition libraries.
 
 For example, plugins which get and set properties of simulation entities would be
 Ignition Gazebo systems. On the other hand, there are now plugin interfaces which didn't
-exist in Gazebo, such as integrating a new physics or rendering engine, and these can
+exist in Gazebo Classic, such as integrating a new physics or rendering engine, and these can
 be also used in projects outside of Ignition Gazebo.
 
 Take a look at the comparison below:
@@ -39,14 +39,14 @@ System | Access command line arguments | TBD | -
 ---
 
 Another key difference is that systems will be able to access all entity
-properties at once, despite the entity type. So while in Gazebo you may
+properties at once, despite the entity type. So while in Gazebo Classic you may
 need 3 different plugins to interact with physics, rendering and sensors, on
 Ignition you could, for example, set a camera's visual color, its velocity and
 frame rate, all from a single plugin.
 
 ## Plugin interfaces
 
-Let's take a look at a typical Gazebo plugin which accesses a property from an
+Let's take a look at a typical Gazebo Classic plugin which accesses a property from an
 entity and does something with it. In this case, it will print the current pose
 of a link.
 
@@ -103,6 +103,11 @@ On Ignition Gazebo, that would be implemented as follows:
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/Util.hh>
 #include <ignition/gazebo/System.hh>
+#include <ignition/plugin/Register.hh>
+
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
 
 // Inherit from System and 2 extra interfaces:
 // ISystemConfigure and ISystemPostUpdate
@@ -113,25 +118,25 @@ class MyPlugin
 {
   // Implement Configure callback, provided by ISystemConfigure
   // and called once at startup.
-  void MyPlugin::Configure(const Entity &_entity,
-      const std::shared_ptr<const sdf::Element> &_sdf,
-      EntityComponentManager &_ecm,
-      EventManager &/*_eventMgr*/)
+  virtual void Configure(const Entity &_entity,
+                         const std::shared_ptr<const sdf::Element> &_sdf,
+                         EntityComponentManager &_ecm,
+                         EventManager &/*_eventMgr*/) override
   {
     // Read property from SDF
     auto linkName = _sdf->Get<std::string>("link_name");
 
-    // Create model object, to access convenient functions
+    // Create model object to access convenient functions
     auto model = Model(_entity);
 
     // Get link entity
-    auto linkEntity = model->LinkByName(_ecm, linkName);
+    this->linkEntity = model.LinkByName(_ecm, linkName);
   }
 
   // Implement PostUpdate callback, provided by ISystemPostUpdate
   // and called at every iteration, after physics is done
-  void MyPlugin::PostUpdate(const UpdateInfo &/*_info*/,
-      const EntityComponentManager &_ecm)
+  virtual void PostUpdate(const UpdateInfo &/*_info*/,
+                          const EntityComponentManager &_ecm) override
   {
     // Get link pose and print it
     std::cout << worldPose(this->linkEntity, _ecm) << std::endl;
@@ -149,7 +154,7 @@ IGNITION_ADD_PLUGIN(MyPlugin,
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin,"ignition::gazebo::systems::MyPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "ignition::gazebo::systems::MyPlugin")
 ```
 
 The example above uses headers like `Model.hh` and `Util.hh`, which offer
@@ -161,6 +166,15 @@ the ECM's API:
 ```cpp
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/System.hh>
+#include <ignition/gazebo/components/Link.hh>
+#include <ignition/gazebo/components/Name.hh>
+#include <ignition/gazebo/components/ParentEntity.hh>
+#include <ignition/gazebo/components/Pose.hh>
+#include <ignition/plugin/Register.hh>
+
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
 
 // Inherit from System and 2 extra interfaces:
 // ISystemConfigure and ISystemPostUpdate
@@ -169,43 +183,43 @@ class MyPlugin
         public ISystemConfigure,
         public ISystemPostUpdate
 {
-  void MyPlugin::Configure(const Entity &_entity,
-      const std::shared_ptr<const sdf::Element> &_sdf,
-      EntityComponentManager &_ecm,
-      EventManager &/*_eventMgr*/)
+  virtual void Configure(const Entity &_entity,
+                         const std::shared_ptr<const sdf::Element> &_sdf,
+                         EntityComponentManager &_ecm,
+                         EventManager &/*_eventMgr*/) override
   {
+    // Read property from SDF
     auto linkName = _sdf->Get<std::string>("link_name");
 
-    // Create link entity by querying for an entity that has a specific set of
+    // Get link entity by querying for an entity that has a specific set of
     // components
     this->linkEntity = _ecm.EntityByComponents(
-        components::ParentEntity(this->dataPtr->id),
-        components::Name(_name),
-        components::Link());
+        components::ParentEntity(_entity),
+        components::Name(linkName), components::Link());
   }
 
-  void MyPlugin::PostUpdate(const UpdateInfo &/*_info*/,
-      const EntityComponentManager &_ecm)
+  virtual void PostUpdate(const UpdateInfo &/*_info*/,
+                          const EntityComponentManager &_ecm) override
   {
     // Get link's local pose
     auto pose = _ecm.Component<components::Pose>(this->linkEntity)->Data();
 
     // Get link's parent entity
-    auto p = _ecm.Component<components::ParentEntity>(this->linkEntity);
+    auto parent = _ecm.Component<components::ParentEntity>(this->linkEntity);
 
     // Iterate over parents until world is reached
-    while (p)
+    while (parent)
     {
       // Get parent entity's pose
-      auto parentPose = _ecm.Component<components::Pose>(p->Data());
+      auto parentPose = _ecm.Component<components::Pose>(parent->Data());
       if (!parentPose)
         break;
 
       // Add pose
-      pose = pose + parentPose->Data();
+      pose = parentPose->Data() * pose;
 
       // keep going up the tree
-      p = _ecm.Component<components::ParentEntity>(p->Data());
+      parent = _ecm.Component<components::ParentEntity>(parent->Data());
     }
 
     std::cout << pose << std::endl;
@@ -220,10 +234,10 @@ IGNITION_ADD_PLUGIN(MyPlugin,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin,"ignition::gazebo::systems::MyPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "ignition::gazebo::systems::MyPlugin")
 ```
 
-In summary, the key differences between classic and Igntion Gazebo are:
+In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
 
 * Plugins must inherit from the `ISystemConfigure` class to be able to override
   the `Configure` callback that gives access to many things, such as the SDF
@@ -234,7 +248,7 @@ In summary, the key differences between classic and Igntion Gazebo are:
 
 * Plugins don't have direct access to physics objects such as `physics::Model`.
   Instead, they can either deal directly with entities and their components by
-  calling functions in the ECM, or use convenient objects such as
+  calling functions of the ECM, or use convenient objects such as
   `ignition::gazebo::Model` which wrap the ECM interface.
 
 All these changes are meant to give plugin developers more flexibility to

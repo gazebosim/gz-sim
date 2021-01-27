@@ -14,10 +14,15 @@
  * limitations under the License.
  *
 */
+
+#include "TransformControl.hh"
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
 #include <iostream>
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -36,8 +41,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "TransformControl.hh"
 
 namespace ignition::gazebo
 {
@@ -93,6 +96,8 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild<ignition::gui::MainWindow *>
       ()->installEventFilter(this);
+  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+      ()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -105,12 +110,12 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
 
-  auto event = new gui::events::SnapIntervals(
+  gui::events::SnapIntervals event(
       this->dataPtr->xyzSnapVals,
       this->dataPtr->rpySnapVals,
       this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), event);
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
 
   this->newSnapValues();
 }
@@ -229,6 +234,27 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->snapToGrid = false;
     }
   }
+  else if (_event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent->key() == Qt::Key_T)
+    {
+      this->activateTranslate();
+    }
+    else if (keyEvent->key() == Qt::Key_R)
+    {
+      this->activateRotate();
+    }
+  }
+  else if (_event->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
+    if (keyEvent->key() == Qt::Key_Escape)
+    {
+      this->activateSelect();
+    }
+  }
+
   return QObject::eventFilter(_obj, _event);
 }
 

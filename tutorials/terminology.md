@@ -5,7 +5,7 @@ are important for downstream users, while some of them are only interesting
 to developers touching the source code.
 
 * **World**: The complete description of a simulation, including all robots,
-    movable and static objects, plugins, scene and GUIs. It corresponds to
+    movable and static objects, plugins, scenes and GUIs. It corresponds to
     an SDF `<world>` tag.
 
 * **Entity**: Every "object" in the world, such as models, links,
@@ -14,8 +14,8 @@ to developers touching the source code.
     and may have several components attached to it. Entity IDs are assigned
     at runtime.
 
-* **Component**: Adds a certain functionality or characteristic to an entity.
-    For example, pose, name, material, etc.
+* **Component**: Adds a certain functionality or characteristic (e.g., pose,
+    name, material, etc.) to an entity.
     Ignition Gazebo comes with various
     [components](namespaceignition_1_1gazebo_1_1components.html)
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
@@ -29,7 +29,7 @@ to developers touching the source code.
     Ignition Gazebo ships with various systems, and downstream develpers can
     [create their own systems](createsystemplugins.html).
 
-* **Entity-component manager**: **ECM** for short. Provides functions for
+* **Entity-component manager** (**ECM**): Provides functions for
     querying, creating, removing and updating entities and components.
     See the whole API
     [here](classignition_1_1gazebo_1_1EntityComponentManager.html).

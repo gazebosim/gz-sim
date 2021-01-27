@@ -58,15 +58,28 @@ Rectangle {
       id: typeHeader
     }
 
-    TextInput {
+    // TODO(anyone) Support write mode
+    Text {
       id: content
       text: textFromModel(model)
       Layout.fillWidth: true
       horizontalAlignment: Text.AlignRight
       color: Material.theme == Material.Light ? "black" : "white"
       font.pointSize: 12
-      selectByMouse: true // will only work when we enable it
-      enabled: false
+      elide: Text.ElideLeft
+
+      ToolTip {
+        visible: ma.containsMouse
+        delay: Qt.styleHints.mousePressAndHoldInterval
+        text: content.text
+        enter: null
+        exit: null
+      }
+      MouseArea {
+        id: ma
+        anchors.fill: content
+        hoverEnabled: true
+      }
     }
 
     Item {

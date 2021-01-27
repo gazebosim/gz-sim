@@ -16,15 +16,26 @@
 */
 
 #ifndef __APPLE__
-  #if __GNUC__ < 8
+  #if (defined(_MSVC_LANG))
+    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
+      #include <filesystem>  // c++17
+    #else
+      #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+      #include <experimental/filesystem>
+    #endif
+  #elif __GNUC__ < 8
     #include <experimental/filesystem>
   #else
     #include <filesystem>
   #endif
 #endif
+
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
+#include <ignition/common/Util.hh>
+#include <ignition/transport/TopicUtils.hh>
 
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -84,46 +95,13 @@ std::string scopedName(const Entity &_entity,
     auto name = nameComp->Data();
 
     // Get entity type
-    std::string prefix;
-    if (_ecm.Component<components::World>(entity))
-    {
-      prefix = "world";
-    }
-    else if (_ecm.Component<components::Model>(entity))
-    {
-      prefix = "model";
-    }
-    else if (_ecm.Component<components::Light>(entity))
-    {
-      prefix = "light";
-    }
-    else if (_ecm.Component<components::Link>(entity))
-    {
-      prefix = "link";
-    }
-    else if (_ecm.Component<components::Collision>(entity))
-    {
-      prefix = "collision";
-    }
-    else if (_ecm.Component<components::Visual>(entity))
-    {
-      prefix = "visual";
-    }
-    else if (_ecm.Component<components::Joint>(entity))
-    {
-      prefix = "joint";
-    }
-    else if (_ecm.Component<components::Sensor>(entity))
-    {
-      prefix = "sensor";
-    }
-    else
+    std::string prefix = entityTypeStr(entity, _ecm);
+    if (prefix.empty())
     {
       ignwarn << "Skipping entity [" << name
               << "] when generating scoped name, entity type not known."
               << std::endl;
     }
-
 
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);
     if (!prefix.empty())
@@ -146,6 +124,117 @@ std::string scopedName(const Entity &_entity,
   }
 
   return result;
+}
+
+//////////////////////////////////////////////////
+ComponentTypeId entityTypeId(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  ComponentTypeId type{kComponentTypeIdInvalid};
+
+  if (_ecm.Component<components::World>(_entity))
+  {
+    type = components::World::typeId;
+  }
+  else if (_ecm.Component<components::Model>(_entity))
+  {
+    type = components::Model::typeId;
+  }
+  else if (_ecm.Component<components::Light>(_entity))
+  {
+    type = components::Light::typeId;
+  }
+  else if (_ecm.Component<components::Link>(_entity))
+  {
+    type = components::Link::typeId;
+  }
+  else if (_ecm.Component<components::Collision>(_entity))
+  {
+    type = components::Collision::typeId;
+  }
+  else if (_ecm.Component<components::Visual>(_entity))
+  {
+    type = components::Visual::typeId;
+  }
+  else if (_ecm.Component<components::Joint>(_entity))
+  {
+    type = components::Joint::typeId;
+  }
+  else if (_ecm.Component<components::Sensor>(_entity))
+  {
+    type = components::Sensor::typeId;
+  }
+  else if (_ecm.Component<components::Actor>(_entity))
+  {
+    type = components::Actor::typeId;
+  }
+
+  return type;
+}
+
+//////////////////////////////////////////////////
+std::string entityTypeStr(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  std::string type;
+
+  if (_ecm.Component<components::World>(_entity))
+  {
+    type = "world";
+  }
+  else if (_ecm.Component<components::Model>(_entity))
+  {
+    type = "model";
+  }
+  else if (_ecm.Component<components::Light>(_entity))
+  {
+    type = "light";
+  }
+  else if (_ecm.Component<components::Link>(_entity))
+  {
+    type = "link";
+  }
+  else if (_ecm.Component<components::Collision>(_entity))
+  {
+    type = "collision";
+  }
+  else if (_ecm.Component<components::Visual>(_entity))
+  {
+    type = "visual";
+  }
+  else if (_ecm.Component<components::Joint>(_entity))
+  {
+    type = "joint";
+  }
+  else if (_ecm.Component<components::Sensor>(_entity))
+  {
+    type = "sensor";
+  }
+  else if (_ecm.Component<components::Actor>(_entity))
+  {
+    type = "actor";
+  }
+
+  return type;
+}
+
+//////////////////////////////////////////////////
+Entity worldEntity(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto entity = _entity;
+  while (nullptr == _ecm.Component<components::World>(entity))
+  {
+    // Keep going up the tree
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+    if (!parentComp)
+    {
+      entity = kNullEntity;
+      break;
+    }
+    entity = parentComp->Data();
+  }
+  return entity;
 }
 
 //////////////////////////////////////////////////
@@ -178,7 +267,13 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   }
 #else
   // Not a relative path, return unmodified
-  #if __GNUC__ < 8
+  #if (defined(_MSVC_LANG))
+    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
+      using namespace std::filesystem;
+    #else
+      using namespace std::experimental::filesystem;
+    #endif
+  #elif __GNUC__ < 8
     using namespace std::experimental::filesystem;
   #else
     using namespace std::filesystem;
@@ -224,7 +319,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 std::vector<std::string> resourcePaths()
 {
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -244,7 +339,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 {
   // SDF paths (for <include>s)
   std::vector<std::string> sdfPaths;
-  char *sdfPathCStr = getenv(kSdfPathEnv.c_str());
+  char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
     sdfPaths = common::Split(sdfPathCStr, ':');
@@ -253,7 +348,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   // Ignition file paths (for <uri>s)
   auto systemPaths = common::systemPaths();
   std::vector<std::string> ignPaths;
-  char *ignPathCStr = getenv(systemPaths->FilePathEnv().c_str());
+  char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
   if (ignPathCStr && *ignPathCStr != '\0')
   {
     ignPaths = common::Split(ignPathCStr, ':');
@@ -261,7 +356,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   // Gazebo resource paths
   std::vector<std::string> gzPaths;
-  char *gzPathCStr = getenv(kResourcePathEnv.c_str());
+  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
@@ -295,23 +390,69 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str(), 1);
+  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  setenv(systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str(), 1);
+  ignition::common::setenv(
+    systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str(), 1);
+  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
   systemPaths->SetFilePathEnv(systemPaths->FilePathEnv());
+}
+
+//////////////////////////////////////////////////
+ignition::gazebo::Entity topLevelModel(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto entity = _entity;
+
+  // check if parent is a model
+  auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+  while (parentComp)
+  {
+    // check if parent is a model
+    auto parentEntity = parentComp->Data();
+    auto modelComp = _ecm.Component<components::Model>(
+        parentEntity);
+    if (!modelComp)
+      break;
+
+    // set current model entity
+    entity = parentEntity;
+    parentComp = _ecm.Component<components::ParentEntity>(entity);
+  }
+  return entity;
+}
+
+//////////////////////////////////////////////////
+std::string validTopic(const std::vector<std::string> &_topics)
+{
+  for (const auto &topic : _topics)
+  {
+    auto validTopic = transport::TopicUtils::AsValidTopic(topic);
+    if (validTopic.empty())
+    {
+      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      continue;
+    }
+    if (validTopic != topic)
+    {
+      igndbg << "Topic [" << topic << "] changed to valid topic ["
+             << validTopic << "]" << std::endl;
+    }
+    return validTopic;
+  }
+  return std::string();
 }
 }
 }

@@ -77,14 +77,21 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  std::string defaultGuiConfigName = "gui.config";
 
   // Set default config file for Gazebo
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
   {
+    // The playback flag (and not the gui-config flag) was
+    // specified from the command line
+    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
+    {
+      defaultGuiConfigName = "playback_gui.config";
+    }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", "gui.config");
+        "gazebo", defaultGuiConfigName);
   }
   else
   {
@@ -156,14 +163,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
-  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
+  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
+      std::string(_guiConfig) != "_playback_")
   {
-    if (!app->LoadConfig(_guiConfig))
-    {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
-              << std::endl;
-    }
-
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
@@ -173,6 +175,13 @@ std::unique_ptr<ignition::gui::Application> createGui(
         &ignition::gazebo::GuiRunner::OnPluginAdded);
     ++runnerCount;
     runner->setParent(ignition::gui::App());
+
+    // Load plugins after runner is up
+    if (!app->LoadConfig(_guiConfig))
+    {
+      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+              << std::endl;
+    }
   }
   // GUI configuration from SDF (request to server)
   else
@@ -185,18 +194,31 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // Request GUI info for each world
       result = false;
-      service = std::string("/world/" + worldName + "/gui/info");
-
-      igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
-
-      // Request and block
       ignition::msgs::GUI res;
-      executed = node.Request(service, timeout, res, result);
+      service = transport::TopicUtils::AsValidTopic("/world/" + worldName +
+          "/gui/info");
+      if (service.empty())
+      {
+        ignerr << "Failed to generate valid service for world [" << worldName
+               << "]" << std::endl;
+      }
+      else
+      {
+        igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
-      if (!executed)
-        ignerr << "Service call timed out for [" << service << "]" << std::endl;
-      else if (!result)
-        ignerr << "Service call failed for [" << service << "]" << std::endl;
+        // Request and block
+        executed = node.Request(service, timeout, res, result);
+
+        if (!executed)
+        {
+          ignerr << "Service call timed out for [" << service << "]"
+                 << std::endl;
+        }
+        else if (!result)
+        {
+          ignerr << "Service call failed for [" << service << "]" << std::endl;
+        }
+      }
 
       // GUI runner
       auto runner = new ignition::gazebo::GuiRunner(worldName);
@@ -242,7 +264,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     if (!ignition::common::exists(defaultConfig))
     {
       auto installedConfig = ignition::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
       if (!ignition::common::copyFile(installedConfig, defaultConfig))
       {
         ignerr << "Failed to copy installed config [" << installedConfig

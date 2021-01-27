@@ -2,10 +2,16 @@
 <!--
   Log record resources demo.
 
-  Running this world will record log files to /tmp/log. It will overwrite that
-  directory if it already exists.
+  Running this world will record log files to ~/.ignition/gazebo/log/<timestamp>
+  by default.
 
-  You can playback running the log_playback.sdf file.
+  Running `ign gazebo` with `-v 3` or `-v 4` will output a message indicating where
+  your logfile is being stored to (e.g., [Msg] Recording to log file 
+  [/home/username/.ignition/gazebo/log/<timestamp>/state.tlog]).
+
+  You can playback the logs with:
+
+      ign gazebo --playback ~/.ignition/gazebo/log/<timestamp>
 -->
 <sdf version="1.6">
   <world name="default">
@@ -20,9 +26,6 @@
     <plugin
       filename="ignition-gazebo-log-system"
       name="ignition::gazebo::systems::LogRecord">
-      <!-- Deprecated: directories to write recorded files.
-           Use --record-path instead. -->
-      <!-- path>/tmp/log</path -->
       <record_resources>1</record_resources>
       <compress>0</compress>
     </plugin>

@@ -171,6 +171,15 @@ TEST(Conversions, Pose)
 
   auto pose = convert<math::Pose3d>(msg);
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3, 0.4), pose);
+
+  // Test empty orientation.
+  msgs::Pose msg2;
+  msg2.mutable_position()->set_x(1);
+  msg2.mutable_position()->set_y(2);
+  msg2.mutable_position()->set_z(3);
+
+  pose = convert<math::Pose3d>(msg2);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 1.0, 0, 0, 0), pose);
 }
 
 /////////////////////////////////////////////////
@@ -196,6 +205,10 @@ TEST(Conversions, Material)
   material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
+  material.SetRenderOrder(2.5);
+
+  // todo(anyone) add double_sided field to msgs::Material
+  material.SetDoubleSided(true);
 
   sdf::Pbr pbr;
   sdf::PbrWorkflow workflow;
@@ -225,6 +238,12 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f),
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
+  EXPECT_DOUBLE_EQ(2.5, materialMsg.render_order());
+
+  // todo(anyone) double_sided is temporarily stored in header
+  // Need to add double_sided field to msgs::Material
+  bool doubleSided = math::parseInt(materialMsg.header().data(0).value(0));
+  EXPECT_TRUE(doubleSided);
 
   EXPECT_TRUE(materialMsg.has_pbr());
   const auto &pbrMsg = materialMsg.pbr();
@@ -248,6 +267,8 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
   EXPECT_TRUE(newMaterial.Lighting());
+  EXPECT_TRUE(newMaterial.DoubleSided());
+  EXPECT_DOUBLE_EQ(2.5, newMaterial.RenderOrder());
 
   sdf::Pbr *newPbrMaterial = newMaterial.PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
@@ -482,6 +503,7 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(sceneMsg.shadows());
   EXPECT_TRUE(sceneMsg.grid());
   EXPECT_TRUE(sceneMsg.origin_visual());
+  EXPECT_FALSE(sceneMsg.has_sky());
 
   auto newScene = convert<sdf::Scene>(sceneMsg);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newScene.Ambient());
@@ -489,6 +511,42 @@ TEST(Conversions, Scene)
   EXPECT_TRUE(newScene.Shadows());
   EXPECT_TRUE(newScene.Grid());
   EXPECT_TRUE(newScene.OriginVisual());
+  EXPECT_EQ(nullptr, newScene.Sky());
+
+  // sky
+  sdf::Sky sky;
+  sky.SetTime(10);
+  sky.SetSunrise(4.0);
+  sky.SetSunset(15.0);
+  sky.SetCloudSpeed(5.0);
+  sky.SetCloudDirection(math::Angle(3.14));
+  sky.SetCloudHumidity(0.11);
+  sky.SetCloudMeanSize(0.88);
+  sky.SetCloudAmbient(math::Color::Red);
+  scene.SetSky(sky);
+
+  auto sceneSkyMsg = convert<msgs::Scene>(scene);
+  EXPECT_TRUE(sceneSkyMsg.has_sky());
+  EXPECT_DOUBLE_EQ(10.0, sceneSkyMsg.sky().time());
+  EXPECT_DOUBLE_EQ(4.0, sceneSkyMsg.sky().sunrise());
+  EXPECT_DOUBLE_EQ(15.0, sceneSkyMsg.sky().sunset());
+  EXPECT_DOUBLE_EQ(5.0, sceneSkyMsg.sky().wind_speed());
+  EXPECT_DOUBLE_EQ(3.14, sceneSkyMsg.sky().wind_direction());
+  EXPECT_DOUBLE_EQ(0.11, sceneSkyMsg.sky().humidity());
+  EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
+  EXPECT_EQ(math::Color::Red,
+      msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+
+  auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
+  ASSERT_NE(nullptr, newSceneSky.Sky());
+  EXPECT_DOUBLE_EQ(10.0, newSceneSky.Sky()->Time());
+  EXPECT_DOUBLE_EQ(4.0, newSceneSky.Sky()->Sunrise());
+  EXPECT_DOUBLE_EQ(15.0, newSceneSky.Sky()->Sunset());
+  EXPECT_DOUBLE_EQ(5.0, newSceneSky.Sky()->CloudSpeed());
+  EXPECT_EQ(math::Angle(3.14), newSceneSky.Sky()->CloudDirection());
+  EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
+  EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
+  EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
 }
 
 /////////////////////////////////////////////////

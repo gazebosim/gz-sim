@@ -36,22 +36,22 @@ Below is a step-by-step tutorial to generate 1000 box shapes in a simulation wor
 You can copy-and-paste the code block into an editor to try it out.
 
 First is to create a world using SDFormat syntax.
-You need to specify both the ``xml`` and ``sdf`` versions you are using.
+You need to specify both the `xml` and `sdf` versions you are using.
 And don't forget to give your simulation world a name.
 
 ```
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="shapes">
-    <!-- This is where you put ``<plugin>``, ``<model>`` and etc. tags -->
+    <!-- This is where you put `<plugin>`, `<model>` and etc. tags -->
   </world>
 </sdf>
 ```
 
-To create 1000 instances of simple box shapes, you can use a ``for`` loop in Ruby syntax in the ERB template.
-This code block can be inserted in between the "``<world>`` ... ``</world>``" tags.
-Note that the ``<model>`` tags are wrapped in between the ERB template.
-``<% end %>`` is to mark the end of loops or ``if`` statements.
+To create 1000 instances of simple box shapes, you can use a `for` loop in Ruby syntax in the ERB template.
+This code block can be inserted in between the `<world>` tags.
+Note that the `<model>` tags are wrapped in between the ERB template.
+`<% end %>` is to mark the end of loops or `if` statements.
 Each box model also has a different name and pose to ensure they show up as individuals in simulation.
 
 ```
@@ -102,7 +102,7 @@ Each box model also has a different name and pose to ensure they show up as indi
     %>
 ```
 
-[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo3/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
+[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
 
 Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
 
@@ -148,7 +148,7 @@ Instead of simple shapes, you can also use a nested loop to generate 100 actors 
  
 ## Generate SDF from ERB template
 
-Now that an ERB template file is ready and saved as ``my_first_erb.erb``, you can run the following terminal command to generate SDF file.
+Now that an ERB template file is ready and saved as `my_first_erb.erb`, you can run the following terminal command to generate the corresponding SDF file.
 
 ```{.sh}
 # generate SDF with the ERB template
@@ -157,11 +157,11 @@ erb my_first_erb.erb > my_first_erb.sdf
 
 ## Run simulation world
 
-To test if the ERB template works, run the SDF file with igniton command
+To test if the ERB template works, run the SDF file with the `ign gazebo` command
 
 ```{.sh}
 # run with Ignition Gazebo
 ign gazebo my_first_erb.sdf
 ```
 
-If there is any error or warning from running the SDF file, you would need to go back to the ERB file and see if any coding mistakes are made.
+If there are any errors or warnings from running the SDF file, you would need to go back to the ERB file and see if any coding mistakes were made.

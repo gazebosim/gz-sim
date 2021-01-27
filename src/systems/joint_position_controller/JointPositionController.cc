@@ -15,7 +15,12 @@
  *
  */
 
+#include "JointPositionController.hh"
+
 #include <ignition/msgs/double.pb.h>
+
+#include <string>
+
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/PID.hh>
 #include <ignition/plugin/Register.hh>
@@ -24,8 +29,6 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "JointPositionController.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -144,9 +147,15 @@ void JointPositionController::Configure(const Entity &_entity,
   this->dataPtr->posPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
-                    "/joint/" + this->dataPtr->jointName + "/" +
-                    std::to_string(this->dataPtr->jointIndex) + "/cmd_pos"};
+  std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
+      "/" + std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
+  if (topic.empty())
+  {
+    ignerr << "Failed to create topic for joint [" << this->dataPtr->jointName
+           << "]" << std::endl;
+    return;
+  }
   this->dataPtr->node.Subscribe(
       topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
 

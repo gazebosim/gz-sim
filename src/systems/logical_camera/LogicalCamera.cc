@@ -15,7 +15,14 @@
  *
  */
 
+#include "LogicalCamera.hh"
+
 #include <ignition/msgs/logical_camera_image.pb.h>
+
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/plugin/Register.hh>
@@ -37,8 +44,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-
-#include "LogicalCamera.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -109,7 +114,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
       // Update sensor
       auto time = math::durationToSecNsec(_info.simTime);
       dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          common::Time(time.first, time.second), false);
+          math::secNsecToDuration(time.first, time.second), false);
     }
   }
 
@@ -200,7 +205,9 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
         {
           const math::Pose3d &worldPose = _worldPose->Data();
           it->second->SetPose(worldPose);
-          it->second->SetModelPoses(std::move(modelPoses));
+          // Make a copy of modelPoses s.t. SetModelPoses can take ownership
+          auto modelPoses_ = modelPoses;
+          it->second->SetModelPoses(std::move(modelPoses_));
         }
         else
         {

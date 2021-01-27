@@ -22,6 +22,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
@@ -34,7 +35,7 @@ namespace gui
 /// \brief Class for handling paths and their environment variables.
 /// It queries the server for paths at startup, and keeps paths updated
 /// whenever they change in the server.
-class IGNITION_GAZEBO_VISIBLE PathManager : public QObject
+class PathManager : public QObject
 {
   Q_OBJECT
 

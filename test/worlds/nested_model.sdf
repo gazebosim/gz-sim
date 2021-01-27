@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="nested_model_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+      <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+    </scene>
+
+    <model name="model_00">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link_00">
+        <pose>0 0 0 0 0 0</pose>
+        <collision name="collision_00">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_00">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+
+      <model name="model_01">
+        <pose>1 0 0.0 0 0 0</pose>
+        <link name="link_01">
+          <pose>0.25 0 0.0 0 0 0</pose>
+          <collision name="collision_01">
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+          <visual name="visual_01">
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </visual>
+        </link>
+
+        <plugin
+           filename="ignition-gazebo-pose-publisher-system"
+           name="ignition::gazebo::systems::PosePublisher">
+          <publish_link_pose>true</publish_link_pose>
+          <publish_sensor_pose>false</publish_sensor_pose>
+          <publish_collision_pose>false</publish_collision_pose>
+          <publish_visual_pose>false</publish_visual_pose>
+          <publish_nested_model_pose>false</publish_nested_model_pose>
+          <update_frequency>100</update_frequency>
+        </plugin>
+      </model>
+    </model>
+
+  </world>
+</sdf>

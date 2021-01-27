@@ -14,10 +14,16 @@
  * limitations under the License.
  *
 */
+
+#include "Shapes.hh"
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
+#include <algorithm>
 #include <iostream>
+#include <string>
+
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -27,8 +33,6 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
-
-#include "Shapes.hh"
 
 namespace ignition::gazebo
 {
@@ -196,10 +200,10 @@ void Shapes::OnMode(const QString &_mode)
     return;
   }
 
-  auto event = new gui::events::SpawnPreviewModel(modelSdfString);
+  gui::events::SpawnPreviewModel event(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      event);
+      &event);
 }
 
 // Register this plugin

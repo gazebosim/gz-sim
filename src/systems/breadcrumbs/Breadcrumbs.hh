@@ -18,11 +18,14 @@
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
+#include <optional>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
 #include <sdf/Root.hh>
 
 #include <ignition/transport/Node.hh>
@@ -78,7 +81,10 @@ namespace systems
   /// Defaults to false.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
-  class IGNITION_GAZEBO_VISIBLE Breadcrumbs
+  /// `<topic_statistics>`: If true, then topic statistics are enabled on
+  /// `<topic>` and error messages will be generated when messages are
+  /// dropped. Default to false.
+  class Breadcrumbs
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
@@ -162,6 +168,12 @@ namespace systems
 
     /// \brief Publishes remaining deployments.
     public: transport::Node::Publisher remainingPub;
+
+    /// \brief True when topic statistics are enabled.
+    public: bool topicStatistics{false};
+
+    /// \brief Name of the deploy topic.
+    public: std::string topic;
   };
   }
 }

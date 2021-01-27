@@ -30,7 +30,7 @@ import QtQml.Models 2.2
 Rectangle {
   id: resourceSpawner
   color: Material.background
-  Layout.minimumWidth: 500
+  Layout.minimumWidth: 740
   Layout.minimumHeight: 500
   anchors.fill: parent
 
@@ -83,7 +83,7 @@ Rectangle {
     SplitView {
       orientation: Qt.Vertical
       Layout.minimumHeight: 400
-      Layout.minimumWidth: 300
+      Layout.minimumWidth: 315
       anchors.bottom: parent.bottom
       anchors.top: parent.top
       anchors.left: parent.left
@@ -92,12 +92,17 @@ Rectangle {
         id: localColumn
         Layout.minimumHeight: 100
         Layout.fillWidth: true
+        spacing: 0
         Rectangle {
           color: evenColor
+          border.color: "gray"
+          border.width: 1
           Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 20
+          Layout.preferredHeight: 25
           Layout.fillWidth: true
           Label {
+            topPadding: 2
+            leftPadding: 5
             text: "Local resources"
             anchors.fill: parent
             font.pointSize: 12
@@ -171,6 +176,7 @@ Rectangle {
                 hoverEnabled: true
                 onClicked: {
                   ResourceSpawner.OnPathClicked(model.path);
+                  ResourceSpawner.DisplayResources();
                   currentPath = model.path
                   gridView.currentIndex = -1
                   mouse.accepted = false
@@ -196,13 +202,17 @@ Rectangle {
       ColumnLayout {
         id: fuelColumn
         Layout.minimumHeight: 100
+        spacing: 0
         Rectangle {
           color: evenColor
+          border.color: "gray"
           Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 20
+          Layout.preferredHeight: 25
           Layout.fillWidth: true
           Label {
             text: "Fuel resources"
+            topPadding: 2
+            leftPadding: 5
             anchors.fill: parent
             font.pointSize: 12
           }
@@ -274,6 +284,7 @@ Rectangle {
                 hoverEnabled: true
                 onClicked: {
                   ResourceSpawner.OnOwnerClicked(model.path)
+                  ResourceSpawner.DisplayResources();
                   treeView2.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
                   treeView.selection.clearSelection()
                   currentPath = model.path
@@ -302,10 +313,73 @@ Rectangle {
       Layout.fillWidth: true
       spacing: 0
       Rectangle {
+        id: searchSortBar
+        color: evenColor
+        height: 50
+        Layout.minimumWidth: 290
+        Layout.minimumHeight: 50
+        Layout.fillWidth: true
+        RowLayout {
+          id: rowLayout
+          spacing: 7
+          Rectangle {
+            color: "transparent"
+            height: 25
+            width: 25
+            Layout.leftMargin: 15
+            Image {
+              id: searchIcon
+              source: "Search.svg"
+              anchors.verticalCenter: parent.verticalCenter
+            }
+          }
+          Rectangle {
+            color: oddColor
+            height: 35
+            Layout.minimumWidth: 100
+            Layout.minimumHeight: 30
+            Layout.preferredWidth: (searchSortBar.width - 80) / 2
+            TextInput {
+              id: searchField
+              anchors.fill: parent
+              topPadding: 8
+              leftPadding: 5
+              selectByMouse: true
+              color: Material.theme == Material.Light ? "black" : "white"
+              onTextEdited: {
+                ResourceSpawner.OnSearchEntered(searchField.text);
+                ResourceSpawner.DisplayResources();
+              }
+            }
+          }
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.minimumWidth: 140
+            Layout.preferredWidth: (searchSortBar.width - 80) / 2
+            ComboBox {
+              anchors.fill: parent
+              model: ListModel {
+                id: cbItems
+                ListElement { text: "Most Recent"}
+                ListElement { text: "A - Z"}
+                ListElement { text: "Z - A"}
+                ListElement { text: "Downloaded"}
+              }
+              onActivated: {
+                ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
+                ResourceSpawner.DisplayResources();
+              }
+            }
+          }
+        }
+      }
+
+      Rectangle {
         Layout.fillWidth: true
         Layout.minimumWidth: 300
         height: 40
-        color: evenColor
+        color: "transparent"
         Label {
           text: currentPath
           font.pointSize: 12
@@ -316,6 +390,7 @@ Rectangle {
           anchors.right: parent.right
         }
       }
+
       Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -362,9 +437,9 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.margins: 1
                 source: (model.isFuel && !model.isDownloaded) ?
-                        "DownloadToUse.png" :
-                        (model.thumbnail == "" ?
-                        "NoThumbnail.png" : "file:" + model.thumbnail)
+                "DownloadToUse.png" :
+                (model.thumbnail == "" ?
+                "NoThumbnail.png" : "file:" + model.thumbnail)
                 fillMode: Image.PreserveAspectFit
               }
             }
@@ -401,7 +476,7 @@ Rectangle {
                 Label {
                   width: downloadDialog.width - 50
                   height: downloadDialog.height
-                  text: "Please download the model first by clicking the cloud icon."
+                  text: "Please download the resource first by clicking the cloud icon."
                   wrapMode: Text.WordWrap
                 }
               }
@@ -434,7 +509,7 @@ Rectangle {
                 sourceSize.height: 35;
               }
               onClicked: {
-                ResourceSpawner.OnDownloadFuelResource(model.sdf, model.index)
+                ResourceSpawner.OnDownloadFuelResource(model.sdf, model.name, model.owner, model.index)
                 model.isDownloaded = true
               }
             }

@@ -15,13 +15,17 @@
  *
  */
 
+#include "LinearBatteryPlugin.hh"
+
 #include <ignition/msgs/battery_state.pb.h>
 #include <ignition/msgs/boolean.pb.h>
 
 #include <algorithm>
 #include <atomic>
+#include <deque>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include <ignition/common/Battery.hh>
 #include <ignition/common/Profiler.hh>
@@ -43,8 +47,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Model.hh"
-
-#include "LinearBatteryPlugin.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -295,16 +297,28 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
         "/battery/" + _sdf->Get<std::string>("battery_name") +
         "/recharge/stop";
 
-      this->dataPtr->node.Advertise(enableRechargeTopic,
+      auto validEnableRechargeTopic = transport::TopicUtils::AsValidTopic(
+          enableRechargeTopic);
+      auto validDisableRechargeTopic = transport::TopicUtils::AsValidTopic(
+          disableRechargeTopic);
+      if (validEnableRechargeTopic.empty() || validDisableRechargeTopic.empty())
+      {
+        ignerr << "Failed to create valid topics. Not valid: ["
+               << enableRechargeTopic << "] and [" << disableRechargeTopic
+               << "]" << std::endl;
+        return;
+      }
+
+      this->dataPtr->node.Advertise(validEnableRechargeTopic,
         &LinearBatteryPluginPrivate::OnEnableRecharge, this->dataPtr.get());
-      this->dataPtr->node.Advertise(disableRechargeTopic,
+      this->dataPtr->node.Advertise(validDisableRechargeTopic,
         &LinearBatteryPluginPrivate::OnDisableRecharge, this->dataPtr.get());
 
       if (_sdf->HasElement("recharge_by_topic"))
       {
-        this->dataPtr->node.Subscribe(enableRechargeTopic,
+        this->dataPtr->node.Subscribe(validEnableRechargeTopic,
           &LinearBatteryPluginPrivate::OnEnableRecharge, this->dataPtr.get());
-        this->dataPtr->node.Subscribe(disableRechargeTopic,
+        this->dataPtr->node.Subscribe(validDisableRechargeTopic,
           &LinearBatteryPluginPrivate::OnDisableRecharge, this->dataPtr.get());
       }
     }
@@ -336,10 +350,19 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   // Setup battery state topic
   std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/battery/" + this->dataPtr->battery->Name() + "/state"};
+
+  auto validStateTopic = transport::TopicUtils::AsValidTopic(stateTopic);
+  if (validStateTopic.empty())
+  {
+    ignerr << "Failed to create valid state topic ["
+           << stateTopic << "]" << std::endl;
+    return;
+  }
+
   transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(50);
   this->dataPtr->statePub = this->dataPtr->node.Advertise<msgs::BatteryState>(
-    stateTopic, opts);
+    validStateTopic, opts);
 }
 
 /////////////////////////////////////////////////

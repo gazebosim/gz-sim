@@ -17,6 +17,8 @@
 #include <ignition/msgs/wrench.pb.h>
 
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include <ignition/common/Mesh.hh>
 #include <ignition/common/MeshManager.hh>

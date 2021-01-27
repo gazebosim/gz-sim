@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2020 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+import QtQuick 2.0
+import QtQuick.Controls 1.4
+import QtQuick.Layouts 1.3
 
-using namespace ignition::gazebo;
+import "qrc:/qml"
 
-//////////////////////////////////////////////////
-System::System() = default;
-
-//////////////////////////////////////////////////
-System::~System() = default;
+PlottingInterface {
+  Layout.minimumWidth: 600
+  Layout.minimumHeight: 600
+}

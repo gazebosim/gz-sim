@@ -20,6 +20,7 @@
 #include <ignition/msgs/actor.pb.h>
 
 #include <chrono>
+#include <ratio>
 #include <string>
 
 #include <sdf/Actor.hh>
@@ -50,7 +51,7 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                 const std::chrono::steady_clock::duration &_time)
     {
-      _out << std::chrono::duration_cast<std::chrono::milliseconds>(
+      _out << std::chrono::duration_cast<std::chrono::nanoseconds>(
           _time).count();
       return _out;
     }
@@ -64,7 +65,7 @@ namespace serializers
     {
       int64_t time;
       _in >> time;
-      _time = std::chrono::duration<int64_t, std::milli>(time);
+      _time = std::chrono::duration<int64_t, std::nano>(time);
       return _in;
     }
   };

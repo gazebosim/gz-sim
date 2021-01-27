@@ -5,6 +5,19 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 4.x to 5.x
+
+* `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
+  `const std::vector<Entity> &` instead of forcing a copy. The calling code
+  should create a copy if it needs to modify the vector in some way.
+
+## Ignition Gazebo 4.0.0 to 4.X.X
+
+* Ignition Gazebo 4.0.0 enabled double sided material by default but this
+caused shadow artifacts to appear on some meshes. Double sided material is
+now disabled and made an opt-in feature. Users can configure this property
+in SDF by setting the `<visual><material><double_sided>` SDF element.
+
 ## Ignition Gazebo 3.x to 4.x
 
 * The `RenderUtil::SetEnabledSensors` callback in gazebo rendering has a new
@@ -48,6 +61,9 @@ Gazebo 2+ for playback. [BitBucket pull request
 #257](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/257)
 added an SDF message to the start of log files.
 
+* Log playback using `<path>` SDF parameter is deprecated. Use `--playback`
+  command line argument instead.
+
 ## Ignition Gazebo 1.0.2 to 1.1.0
 
 * All headers in `gazebo/network` are no longer installed.
@@ -57,4 +73,3 @@ ignition-gazebo. To use the gui component downstream, update the find package
 call in cmake to request for the component, e.g.
 `ign_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
 `libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`
-

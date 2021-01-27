@@ -19,6 +19,7 @@
 #include <mutex>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -45,8 +46,8 @@ class PosePublisherTest : public ::testing::TestWithParam<int>
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
@@ -141,7 +142,7 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
   std::list<math::Pose3d> sensorPoses;
-  std::list<common::Time> timestamps;
+  std::list<std::chrono::steady_clock::time_point> timestamps;
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
@@ -196,7 +197,9 @@ TEST_F(PosePublisherTest, PublishCmd)
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
-           common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+           math::secNsecToTimePoint(
+             simTimeSecNsec.first,
+             simTimeSecNsec.second));
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -243,8 +246,14 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
       const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
   {
-    common::Time lt(_l.header().stamp().sec(), _l.header().stamp().nsec());
-    common::Time rt(_r.header().stamp().sec(), _r.header().stamp().nsec());
+    std::chrono::steady_clock::time_point lt =
+      math::secNsecToTimePoint(
+        _l.header().stamp().sec(),
+        _l.header().stamp().nsec());
+    std::chrono::steady_clock::time_point rt =
+      math::secNsecToTimePoint(
+        _r.header().stamp().sec(),
+        _r.header().stamp().nsec());
     return lt < rt;
   });
 
@@ -273,7 +282,10 @@ TEST_F(PosePublisherTest, PublishCmd)
     EXPECT_EQ(childFrame, msg.name());
 
     // verify timestamp
-    common::Time time(msg.header().stamp().sec(), msg.header().stamp().nsec());
+    std::chrono::steady_clock::time_point time =
+      math::secNsecToTimePoint(
+        msg.header().stamp().sec(),
+        msg.header().stamp().nsec());
     EXPECT_EQ(timestamps.front(), time);
     // assume msgs arrive in order and there is a pose msg for every link
     // so we only remove a timestamp from list after checking against all links
@@ -423,8 +435,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
   std::list<math::Pose3d> sensorPoses;
-  std::list<common::Time> timestamps;
-  std::list<common::Time> staticPoseTimestamps;
+  std::list<std::chrono::steady_clock::time_point> timestamps;
+  std::list<std::chrono::steady_clock::time_point> staticPoseTimestamps;
 
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
@@ -480,9 +492,11 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       auto simTimeSecNsec =
           ignition::math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
-          common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+          math::secNsecToTimePoint(
+            simTimeSecNsec.first, simTimeSecNsec.second));
       staticPoseTimestamps.push_back(
-          common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+          math::secNsecToTimePoint(
+            simTimeSecNsec.first, simTimeSecNsec.second));
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -548,8 +562,9 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
-      common::Time time(msg.header().stamp().sec(),
-          msg.header().stamp().nsec());
+      std::chrono::steady_clock::time_point time =
+        math::secNsecToTimePoint(msg.header().stamp().sec(),
+        msg.header().stamp().nsec());
       EXPECT_EQ(timestamps.front(), time);
 
       // verify pose
@@ -602,7 +617,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
-      common::Time time(msg.header().stamp().sec(),
+      std::chrono::steady_clock::time_point time =
+        math::secNsecToTimePoint(msg.header().stamp().sec(),
           msg.header().stamp().nsec());
       EXPECT_EQ(staticPoseTimestamps.front(), time);
 
@@ -695,4 +711,37 @@ TEST_F(PosePublisherTest, StaticPoseUpdateFrequency)
     double freq = staticPoseMsgs.size()/diff;
     EXPECT_NEAR(100.0, freq, 10.0);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest, NestedModelLoadPlugin)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/nested_model.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  poseMsgs.clear();
+
+  // test that the pose publisher plugin can be loaded by a nested model
+  // by subscribe to the its topic
+  transport::Node node;
+  node.Subscribe(std::string("/model/model_00/model/model_01/pose"), &poseCb);
+
+  // Run server
+  unsigned int iters = 1000u;
+  server.Run(true, iters, false);
+
+  // Wait for messages to be received
+  int sleep = 0;
+  while (poseMsgs.empty() && sleep++ < 300)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  EXPECT_TRUE(!poseMsgs.empty());
 }

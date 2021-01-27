@@ -20,6 +20,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -113,6 +114,56 @@ namespace ignition
       /// components::ParentEntity component.
       public: std::optional<Model> ParentModel(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief Check if this is the canonical link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if it is the canonical link.
+      public: bool IsCanonical(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get whether this link has wind enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if wind mode is on.
+      public: bool WindMode(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the ID of a collision entity which is an immediate child of
+      /// this link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _name Collision name.
+      /// \return Collision entity.
+      public: gazebo::Entity CollisionByName(const EntityComponentManager &_ecm,
+          const std::string &_name) const;
+
+      /// \brief Get the ID of a visual entity which is an immediate child of
+      /// this link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _name Visual name.
+      /// \return Visual entity.
+      public: gazebo::Entity VisualByName(const EntityComponentManager &_ecm,
+          const std::string &_name) const;
+
+      /// \brief Get all collisions which are immediate children of this link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return All collisions in this link.
+      public: std::vector<gazebo::Entity> Collisions(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get all visuals which are immediate children of this link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return All visuals in this link.
+      public: std::vector<gazebo::Entity> Visuals(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the number of collisions which are immediate children of
+      /// this link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Number of collisions in this link.
+      public: uint64_t CollisionCount(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the number of visuals which are immediate children of this
+      /// link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Number of visuals in this link.
+      public: uint64_t VisualCount(const EntityComponentManager &_ecm) const;
 
       /// \brief Get the pose of the link frame in the world coordinate frame.
       /// \param[in] _ecm Entity-component manager.

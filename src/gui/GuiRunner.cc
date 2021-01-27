@@ -40,7 +40,14 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
 
-  this->stateTopic = "/world/" + _worldName + "/state";
+  this->stateTopic = transport::TopicUtils::AsValidTopic("/world/" +
+      _worldName + "/state");
+  if (this->stateTopic.empty())
+  {
+    ignerr << "Failed to generate valid topic for world [" << _worldName << "]"
+           << std::endl;
+    return;
+  }
 
   common::addFindFileURICallback([] (common::URI _uri)
   {
@@ -59,7 +66,25 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
-  this->node.Request(this->stateTopic, &GuiRunner::OnStateService, this);
+  // set up service for async state response callback
+  std::string id = std::to_string(gui::App()->applicationPid());
+  std::string reqSrv =
+      this->node.Options().NameSpace() + "/" + id + "/state_async";
+  auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
+  if (reqSrvValid.empty())
+  {
+    ignerr << "Failed to generate valid service [" << reqSrv << "]"
+           << std::endl;
+    return;
+  }
+  reqSrv = reqSrvValid;
+
+  this->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
+  ignition::msgs::StringMsg req;
+  req.set_data(reqSrv);
+
+  // send async state request
+  this->node.Request(this->stateTopic + "_async", req);
 }
 
 /////////////////////////////////////////////////
@@ -77,16 +102,16 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnStateService(const msgs::SerializedStepMap &_res,
-    const bool _result)
+void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 {
-  if (!_result)
-  {
-    ignerr << "Service call failed for [" << this->stateTopic << "]"
-           << std::endl;
-    return;
-  }
   this->OnState(_res);
+
+  // todo(anyone) store reqSrv string in a member variable and use it here
+  // and in RequestState()
+  std::string id = std::to_string(gui::App()->applicationPid());
+  std::string reqSrv =
+      this->node.Options().NameSpace() + "/" + id + "/state_async";
+  this->node.UnadvertiseSrv(reqSrv);
 
   // Only subscribe to periodic updates after receiving initial state
   if (this->node.SubscribedTopics().empty())

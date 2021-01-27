@@ -21,6 +21,7 @@
 #include <thread>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Server.hh"
@@ -35,8 +36,8 @@ class SceneBroadcasterTest : public ::testing::TestWithParam<int>
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
@@ -82,6 +83,8 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
 
   unsigned int sleep{0u};
   unsigned int maxSleep{10u};
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
 
@@ -397,6 +400,13 @@ TEST_P(SceneBroadcasterTest, State)
     checkMsg(_res, 3);
   };
 
+  // async state request with full state response
+  std::function<void(const msgs::SerializedStepMap &)> cbAsync =
+      [&](const msgs::SerializedStepMap &_res)
+  {
+    checkMsg(_res, 16);
+  };
+
   // The request is blocking even though it's meant to be async, so we spin a
   // thread
   auto request = [&]()
@@ -428,6 +438,26 @@ TEST_P(SceneBroadcasterTest, State)
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+
+  // test async state request
+  received = false;
+  std::string reqSrv = "/state_async_callback_test";
+  node.Advertise(reqSrv, cbAsync);
+
+  ignition::msgs::StringMsg req;
+  req.set_data(reqSrv);
+  node.Request("/world/default/state_async", req);
+
+  sleep = 0;
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+  {
+    // Run server
+    server.Run(true, 1, false);
+    IGN_SLEEP_MS(100);
+  }
   EXPECT_TRUE(received);
 }
 
@@ -535,5 +565,5 @@ TEST_P(SceneBroadcasterTest, StateStatic)
 }
 
 // Run multiple times
-INSTANTIATE_TEST_CASE_P(ServerRepeat, SceneBroadcasterTest,
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));

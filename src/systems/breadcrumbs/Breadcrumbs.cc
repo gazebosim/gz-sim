@@ -15,9 +15,14 @@
  *
  */
 
+#include "Breadcrumbs.hh"
+
 #include <ignition/msgs/empty.pb.h>
 
+#include <algorithm>
 #include <iterator>
+#include <string>
+#include <utility>
 
 #include <ignition/common/Profiler.hh>
 
@@ -37,8 +42,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
-
-#include "Breadcrumbs.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -71,6 +75,12 @@ void Breadcrumbs::Configure(const Entity &_entity,
       _sdf->Get<bool>("allow_renaming", this->allowRenaming).first;
 
   this->model = Model(_entity);
+  if (!this->model.Valid(_ecm))
+  {
+    ignerr << "The Breadcrumbs system should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
 
   if (!_sdf->HasElement("breadcrumb"))
   {
@@ -99,7 +109,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
     }
     return;
   }
-  if (this->modelRoot.ModelCount() == 0)
+  if (nullptr == this->modelRoot.Model())
   {
     ignerr << "Model not found in <breadcrumb>" << std::endl;
     return;
@@ -123,17 +133,36 @@ void Breadcrumbs::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->model.Name(_ecm) + "/breadcrumbs/" +
-                    this->modelRoot.ModelByIndex(0)->Name() + "/deploy"};
-
+  std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
-    topic = _sdf->Get<std::string>("topic");
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" +
+      this->model.Name(_ecm) + "/breadcrumbs/" +
+      this->modelRoot.Model()->Name() + "/deploy");
+  this->topic = validTopic(topics);
 
-  this->node.Subscribe(topic, &Breadcrumbs::OnDeploy, this);
-  this->remainingPub = this->node.Advertise<msgs::Int32>(topic + "/remaining");
+  this->topicStatistics = _sdf->Get<bool>("topic_statistics",
+      this->topicStatistics).first;
 
-  ignmsg << "Breadcrumbs subscribing to deploy messages on [" << topic << "]"
-         << std::endl;
+  // Enable topic statistics when requested.
+  if (this->topicStatistics)
+  {
+    if (!node.EnableStats(this->topic, true))
+    {
+      ignerr << "Unable to enable topic statistics on topic["
+        << this->topic << "]." << std::endl;
+      this->topicStatistics = false;
+    }
+  }
+
+  this->node.Subscribe(this->topic, &Breadcrumbs::OnDeploy, this);
+  this->remainingPub = this->node.Advertise<msgs::Int32>(
+      this->topic + "/remaining");
+
+  ignmsg << "Breadcrumbs subscribing to deploy messages on ["
+    << this->topic << "]" << std::endl;
 
   this->creator = std::make_unique<SdfEntityCreator>(_ecm, _eventMgr);
 
@@ -157,6 +186,15 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                 std::back_inserter(cmds));
       this->pendingCmds.clear();
     }
+    // Check that the model is valid before continuing. This check is needed
+    // because the model associated with the Breadcrumbs might have been
+    // unloaded by the level manager. Ideally, this system would have been
+    // unloaded along with the model, but that is not currently the case. See
+    // issue #113
+    if (!this->model.Valid(_ecm))
+    {
+      return;
+    }
 
     auto poseComp = _ecm.Component<components::Pose>(this->model.Entity());
 
@@ -165,7 +203,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       if (this->maxDeployments < 0 ||
           this->numDeployments < this->maxDeployments)
       {
-        sdf::Model modelToSpawn = *this->modelRoot.ModelByIndex(0);
+        sdf::Model modelToSpawn = *this->modelRoot.Model();
         std::string desiredName =
             modelToSpawn.Name() + "_" + std::to_string(this->numDeployments);
 
@@ -239,7 +277,7 @@ void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
       else
       {
-        ignmsg << "Asked to deploy " << this->modelRoot.ModelByIndex(0)->Name()
+        ignmsg << "Asked to deploy " << this->modelRoot.Model()->Name()
                << " but the maximum number of deployments has reached the "
                << "limit of " << this->maxDeployments << std::endl;
       }
@@ -367,7 +405,31 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
   IGN_PROFILE("Breadcrumbs::PreUpdate");
   {
     std::lock_guard<std::mutex> lock(this->pendingCmdsMutex);
+
     this->pendingCmds.push_back(true);
+  }
+
+  // Check topic statistics for dropped messages
+  if (this->topicStatistics)
+  {
+    ignmsg << "Received breadcrumb deployment for " <<
+      this->modelRoot.Model()->Name() << std::endl;
+    std::optional<transport::TopicStatistics> stats =
+      this->node.TopicStats(this->topic);
+    if (stats)
+    {
+      if (stats->DroppedMsgCount() > 0)
+      {
+        ignwarn << "Dropped message count of " << stats->DroppedMsgCount()
+          << " for breadcrumbs on model "
+          << this->modelRoot.Model()->Name() << std::endl;
+      }
+    }
+    else
+    {
+      ignerr << "Unable to get topic statistics for topic["
+        << this->topic << "]." << std::endl;
+    }
   }
 }
 
