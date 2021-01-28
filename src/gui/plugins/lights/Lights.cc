@@ -102,7 +102,8 @@ void Lights::OnMode(const QString &_mode)
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
                                  "<sdf version=\"1.6\">"
-                                 "<light type='directional' name='directionallight'>"
+                                 "<light type='directional'"
+                                  "name='directionallight'>"
                                    "<pose>0 0 5 0 0 0</pose>"
                                    "<cast_shadows>true</cast_shadows>"
                                    "<diffuse>0.8 0.8 0.8 1</diffuse>"

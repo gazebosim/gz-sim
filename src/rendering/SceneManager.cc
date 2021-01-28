@@ -907,7 +907,8 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     return rendering::VisualPtr();
   }
 
-  rendering::LightVisualPtr lightVisual = this->dataPtr->scene->CreateLightVisual(name);
+  rendering::LightVisualPtr lightVisual =
+    this->dataPtr->scene->CreateLightVisual(name);
   if (_light.Type() == sdf::LightType::POINT)
   {
     lightVisual->SetType(rendering::LightVisualType::LightVisual_POINT);
