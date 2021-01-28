@@ -15,6 +15,7 @@
  *
  */
 
+#include <map>
 #include <mutex>
 #include <string>
 
@@ -58,20 +59,6 @@ class ignition::gazebo::systems::VelocityControlPrivate
   public: void UpdateLinkVelocity(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm);
 
-  // /// \brief Update upper link velocity.
-  // /// \param[in] _info System update information.
-  // /// \param[in] _ecm The EntityComponentManager of the given simulation
-  // /// instance.
-  // public: void UpdateUpperLinkVelocity(const ignition::gazebo::UpdateInfo &_info,
-  //   const ignition::gazebo::EntityComponentManager &_ecm);
-
-  //   /// \brief Update lower link velocity.
-  // /// \param[in] _info System update information.
-  // /// \param[in] _ecm The EntityComponentManager of the given simulation
-  // /// instance.
-  // public: void UpdateLowerLinkVelocity(const ignition::gazebo::UpdateInfo &_info,
-  //   const ignition::gazebo::EntityComponentManager &_ecm);
-
   /// \brief Ignition communication node.
   public: transport::Node node;
 
@@ -104,36 +91,6 @@ class ignition::gazebo::systems::VelocityControlPrivate
 
   /// \brief all link velocites
   public: std::map<std::string, msgs::Twist> linkVels;
-
-  // /// \brief Upper link entity of pendulum
-  // public: Entity upperLink{kNullEntity};
-
-  // /// \brief Lower link entity of pendulum
-  // public: Entity lowerLink{kNullEntity};
-
-  // /// \brief Upper link name
-  // public: std::string upperLinkName;
-
-  // /// \brief Lower link name
-  // public: std::string lowerLinkName;
-
-  //   /// \brief Angular velocity of upper link
-  // public: math::Vector3d upperAngularVelocity{0, 0, 0};
-
-  // /// \brief Linear velocity of a upper link
-  // public: math::Vector3d upperLinearVelocity{0, 0, 0};
-
-  //   /// \brief Angular velocity of lower link
-  // public: math::Vector3d lowerAngularVelocity{0, 0, 0};
-
-  // /// \brief Linear velocity of a lower link
-  // public: math::Vector3d lowerLinearVelocity{0, 0, 0};
-
-  // /// \brief Last upper link velocity requested.
-  // public: msgs::Twist upperLinkVel;
-
-  // /// \brief Last lower link velocity requested.
-  // public: msgs::Twist lowerLinkVel;
 };
 
 //////////////////////////////////////////////////
@@ -181,13 +138,6 @@ void VelocityControl::Configure(const Entity &_entity,
     sdfElem = sdfElem->GetNextElement("link_name");
   }
 
-  // sdfElem = ptr->GetElement("link2_name");
-  // while (sdfElem)
-  // {
-  //   this->dataPtr->lowerLinkName = sdfElem->Get<std::string>();
-  //   sdfElem = sdfElem->GetNextElement("link2_name");
-  // }
-
   // Subscribe to link commands
   for (const auto &linkName : this->dataPtr->linkNames)
   {
@@ -199,14 +149,6 @@ void VelocityControl::Configure(const Entity &_entity,
            << linkTopic << "]"
            << std::endl;
   }
-
-  // std::string lowerLinkTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-  //                            "/link/" + this->dataPtr->lowerLinkName + "/cmd_vel"};
-  // this->dataPtr->node.Subscribe(
-  //   lowerLinkTopic, &VelocityControlPrivate::OnLinkCmdVel, this->dataPtr.get());
-  //   ignmsg << "VelocityControl subscribing to twist messages on ["
-  //          << lowerLinkTopic << "]"
-  //          << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -318,95 +260,6 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       ignwarn << "No linear velocity found for link [" << linkName << "]" << std:;endl;
     }
   }
-  // if (this->dataPtr->upperLinkName.empty() &&
-  //     this->dataPtr->lowerLinkName.empty())
-  //       return;
-  // if (this->dataPtr->upperLink == kNullEntity ||
-  //     this->dataPtr->lowerLink == kNullEntity)
-  // {
-  //   Entity link = this->dataPtr->model.LinkByName(
-  //                   _ecm, this->dataPtr->upperLinkName);
-  //   if (link != kNullEntity)
-  //     this->dataPtr->upperLink = link;
-  //   else
-  //   {
-  //     ignwarn << "Failed to find upper link [" << this->dataPtr->upperLinkName
-  //             << "] for model [" << modelName << "]" << std::endl;
-  //   }
-  //   link = this->dataPtr->model.LinkByName(_ecm, this->dataPtr->lowerLinkName);
-  //   if (link != kNullEntity)
-  //     this->dataPtr->lowerLink = link;
-  //   else
-  //   {
-  //     ignwarn << "Failed to find lower link [" << this->dataPtr->lowerLinkName
-  //             << "] for model [" << modelName << "]" << std::endl;
-  //   }
-  // }
-
-  // if (this->dataPtr->upperLink == kNullEntity || this->dataPtr->lowerLink == kNullEntity)
-  //   return;
-
-  // update upper link velocity
-  // auto upperAngularVel =
-  //   _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->upperLink);
-
-  // if (upperAngularVel == nullptr)
-  // {
-  //   _ecm.CreateComponent(
-  //     this->dataPtr->upperLink,
-  //     components::AngularVelocityCmd({this->dataPtr->upperAngularVelocity}));
-  // }
-  // else
-  // {
-  //   *upperAngularVel =
-  //     components::AngularVelocityCmd({this->dataPtr->upperAngularVelocity});
-  // }
-
-  // auto upperLinearVel =
-  //   _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->upperLink);
-
-  // if (upperLinearVel == nullptr)
-  // {
-  //   _ecm.CreateComponent(
-  //     this->dataPtr->upperLink,
-  //     components::LinearVelocityCmd({this->dataPtr->upperLinearVelocity}));
-  // }
-  // else
-  // {
-  //   *upperLinearVel =
-  //     components::LinearVelocityCmd({this->dataPtr->upperLinearVelocity});
-  // }
-
-  // // update lower link velocity
-  // auto lowerAngularVel =
-  //   _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->lowerLink);
-
-  // if (lowerAngularVel == nullptr)
-  // {
-  //   _ecm.CreateComponent(
-  //     this->dataPtr->lowerLink,
-  //     components::AngularVelocityCmd({this->dataPtr->lowerAngularVelocity}));
-  // }
-  // else
-  // {
-  //   *lowerAngularVel =
-  //     components::AngularVelocityCmd({this->dataPtr->lowerAngularVelocity});
-  // }
-
-  // auto lowerLinearVel =
-  //   _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->lowerLink);
-
-  // if (lowerLinearVel == nullptr)
-  // {
-  //   _ecm.CreateComponent(
-  //     this->dataPtr->lowerLink,
-  //     components::LinearVelocityCmd({this->dataPtr->lowerLinearVelocity}));
-  // }
-  // else
-  // {
-  //   *lowerLinearVel =
-  //     components::LinearVelocityCmd({this->dataPtr->lowerLinearVelocity});
-  // }
 }
 
 //////////////////////////////////////////////////
@@ -422,10 +275,7 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->UpdateVelocity(_info, _ecm);
   // update link velocities
   this->dataPtr->UpdateLinkVelocity(_info, _ecm);
-  // this->dataPtr->UpdateUpperLinkVelocity(_info, _ecm);
-  // this->dataPtr->UpdateLowerLinkVelocity(_info, _ecm);
 }
-
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateVelocity(
@@ -446,36 +296,6 @@ void VelocityControlPrivate::UpdateVelocity(
     linVel, this->targetVel.linear().y(), this->targetVel.linear().z());
   this->angularVelocity = math::Vector3d(
     this->targetVel.angular().x(), this->targetVel.angular().y(), angVel);
-}
-
-// //////////////////////////////////////////////////
-// void VelocityControlPrivate::UpdateUpperLinkVelocity(
-//     const ignition::gazebo::UpdateInfo &/*_info*/,
-//     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
-// {
-//   this->upperLinearVelocity = math::Vector3d(
-//     this->upperLinkVel.linear().x(),
-//     this->upperLinkVel.linear().y(),
-//     this->upperLinkVel.linear().z());
-//   this->upperAngularVelocity = math::Vector3d(
-//     this->upperLinkVel.angular().x(),
-//     this->upperLinkVel.angular().y(),
-//     this->upperLinkVel.angular().z());
-// }
-
-// //////////////////////////////////////////////////
-// void VelocityControlPrivate::UpdateLowerLinkVelocity(
-//     const ignition::gazebo::UpdateInfo &/*_info*/,
-//     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
-// {
-//   this->lowerLinearVelocity = math::Vector3d(
-//     this->lowerLinkVel.linear().x(),
-//     this->lowerLinkVel.linear().y(),
-//     this->lowerLinkVel.linear().z());
-//   this->lowerAngularVelocity = math::Vector3d(
-//     this->lowerLinkVel.angular().x(),
-//     this->lowerLinkVel.angular().y(),
-//     this->lowerLinkVel.angular().z());
 }
 
 //////////////////////////////////////////////////
@@ -512,15 +332,6 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
       this->linkVels.insert({linkName, _msg});
     }
   }
-
-  // if (_info.Topic().find(this->upperLinkName) != std::string::npos)
-  // {
-  //   this->upperLinkVel = _msg;
-  // }
-  // else if (_info.Topic().find(this->lowerLinkName) != std::string::npos)
-  // {
-  //   this->lowerLinkVel = _msg;
-  // }
 }
 
 IGNITION_ADD_PLUGIN(VelocityControl,
