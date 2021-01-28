@@ -231,6 +231,8 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
     common::ColladaExporter exporter;
     exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
                     subMeshMatrix);
+    ignmsg << "The world has been exported into the "
+           << "./" + worldMesh.Name() << " directory." << std::endl;
     this->exported = true;
   }
 };
