@@ -54,7 +54,7 @@ class ColladaWorldExporterFixture : public ::testing::Test
 TEST_F(ColladaWorldExporterFixture, ExportWorld)
 {
   this->LoadWorld(common::joinPaths("test", "worlds",
-        "collada_world_exporter.sdf");
+        "collada_world_exporter.sdf"));
 
   // Cleanup
   common::removeAll("./collada_world_exporter_box_test");
