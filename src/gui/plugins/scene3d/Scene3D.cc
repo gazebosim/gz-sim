@@ -878,7 +878,8 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
        this->dataPtr->previewIds.push_back(visualId);
       }
     }
-  } else if (_sdf.Light())
+  }
+  else if (_sdf.Light())
   {
     // Only preview first model
     sdf::Light light = *(_sdf.Light());
@@ -907,6 +908,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
           this->dataPtr->renderUtil.SceneManager().WorldId());
 
     this->dataPtr->previewIds.push_back(lightId);
+    this->dataPtr->previewIds.push_back(lightVisualId);
   }
   return true;
 }

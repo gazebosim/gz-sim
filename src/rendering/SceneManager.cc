@@ -866,11 +866,24 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
   std::string name = _light.Name().empty() ? std::to_string(_id) :
       _light.Name();
 
-  rendering::VisualPtr parent;
+  rendering::VisualPtr visualParent;
+  rendering::LightPtr lightParent;
   if (_parentId != this->dataPtr->worldId)
   {
     auto it = this->dataPtr->visuals.find(_parentId);
-    if (it == this->dataPtr->visuals.end())
+    if (it != this->dataPtr->visuals.end())
+    {
+      visualParent = it->second;
+    }
+    if (!visualParent)
+    {
+      auto it2 = this->dataPtr->lights.find(_parentId);
+      if (it2 != this->dataPtr->lights.end())
+      {
+        lightParent = it2->second;
+      }
+    }
+    if (!visualParent && !lightParent)
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
              << "Not adding model visual with ID[" << _id
@@ -878,11 +891,15 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
              << std::endl;
       return rendering::VisualPtr();
     }
-    parent = it->second;
   }
 
-  if (parent)
-    name = parent->Name() +  "::" + name + "Visual";
+  if (visualParent)
+    name = visualParent->Name() +  "::" + name + "Visual";
+
+  if (lightParent)
+    name = lightParent->Name() +  "::" + name + "Visual";
+
+  // std::cerr << "name: " << name << '\n';
 
   if (this->dataPtr->scene->HasVisualName(name))
   {
@@ -902,6 +919,8 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
   else if (_light.Type() == sdf::LightType::SPOT)
   {
     lightVisual->SetType(rendering::LightVisualType::LightVisual_SPOT);
+    lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
+    lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
@@ -910,10 +929,15 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
   lightVis->SetLocalPose(_light.RawPose());
   this->dataPtr->visuals[_id] = lightVis;
 
-  if (parent)
-    parent->AddChild(lightVis);
+  if (visualParent)
+  {
+    lightVis->RemoveParent();
+    visualParent->AddChild(lightVis);
+  }
   else
+  {
     this->dataPtr->scene->RootVisual()->AddChild(lightVis);
+  }
 
   return lightVis;
 }
