@@ -53,7 +53,11 @@ class ColladaWorldExporterFixture : public ::testing::Test
 /////////////////////////////////////////////////
 TEST_F(ColladaWorldExporterFixture, ExportWorld)
 {
-  this->LoadWorld("test/worlds/collada_world_exporter.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds",
+        "collada_world_exporter.sdf");
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_box_test");
 
   // The export directory shouldn't exist.
   EXPECT_FALSE(common::exists("./collada_world_exporter_box_test"));
