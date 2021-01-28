@@ -420,6 +420,18 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 }
 
 /////////////////////////////////////////////////
+std::unordered_set<ComponentTypeId>
+    EntityComponentManager::ComponentTypesWithPeriodicChanges() const
+{
+  std::unordered_set<ComponentTypeId> periodicComponents;
+  for (const auto& compPair : this->dataPtr->periodicChangedComponents)
+  {
+    periodicComponents.insert(compPair.first);
+  }
+  return periodicComponents;
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
   auto vertex = this->dataPtr->entities.VertexFromId(_entity);
@@ -1224,8 +1236,22 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        this->SetChanged(entity, compIter.first,
-            ComponentState::OneTimeChange);
+        // Note on merging forward:
+        // `has_one_time_component_changes` field is available in Edifice so
+        // this workaround can be removed
+        auto flag = ComponentState::PeriodicChange;
+        for (int i = 0; i < _stateMsg.header().data_size(); ++i)
+        {
+          if (_stateMsg.header().data(i).key() ==
+              "has_one_time_component_changes")
+          {
+            int v = stoi(_stateMsg.header().data(i).value(0));
+            if (v)
+              flag = ComponentState::OneTimeChange;
+            break;
+          }
+        }
+        this->SetChanged(entity, compIter.first, flag);
       }
     }
   }
