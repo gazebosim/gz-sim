@@ -28,9 +28,9 @@
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/common/KeyFrame.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
-#include <ignition/common/MeshManager.hh>
 
 #include <ignition/msgs/Utility.hh>
 
@@ -1011,9 +1011,12 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   emitter->SetLifetime(_emitter.data.lifetime());
 
   // Material.
-  ignition::rendering::MaterialPtr material =
-    this->LoadMaterial(convert<sdf::Material>(_emitter.data.material()));
-  emitter->SetMaterial(material);
+  if (_emitter.data.has_material())
+  {
+    ignition::rendering::MaterialPtr material =
+      this->LoadMaterial(convert<sdf::Material>(_emitter.data.material()));
+    emitter->SetMaterial(material);
+  }
 
   // Velocity range.
   emitter->SetVelocityRange(

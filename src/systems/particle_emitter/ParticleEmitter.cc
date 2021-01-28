@@ -27,8 +27,10 @@
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/SdfEntityCreator.hh>
+#include <ignition/gazebo/Util.hh>
 #include "ParticleEmitter.hh"
 
 using namespace ignition;
@@ -152,8 +154,18 @@ void ParticleEmitter::Configure(const Entity &_entity,
     _sdf->Get<double>("scale_rate", 1).first);
 
   // Color range image.
-  this->dataPtr->emitter.set_color_range_image(
-    _sdf->Get<std::string>("color_range_image", "").first);
+  if (_sdf->HasElement("color_range_image"))
+  {
+    auto modelPath = _ecm.ComponentData<components::SourceFilePath>(_entity);
+    auto colorRangeImagePath = _sdf->Get<std::string>("color_range_image");
+    auto path = asFullPath(colorRangeImagePath, modelPath.value());
+
+    common::SystemPaths systemPaths;
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+    auto absolutePath = systemPaths.FindFile(path);
+
+    this->dataPtr->emitter.set_color_range_image(absolutePath);
+  }
 
   igndbg << "Loading particle emitter:" << std::endl
          << this->dataPtr->emitter.DebugString() << std::endl;

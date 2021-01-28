@@ -404,7 +404,6 @@ void RenderUtil::Update()
 
     for (const auto &emitter : newParticleEmitters)
     {
-      ignerr << "[Update] new particle emitters" << std::endl;
       this->dataPtr->sceneManager.CreateParticleEmitter(
           std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
     }
@@ -781,7 +780,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::ParticleEmitter *_emitter,
             const components::ParentEntity *_parent) -> bool
         {
-          ignerr << "[CreateRenderingEntities] Adding a new particle emitter" << std::endl;
           this->newParticleEmitters.push_back(
               std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
           return true;
@@ -960,7 +958,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
             const components::ParticleEmitter *_emitter,
             const components::ParentEntity *_parent) -> bool
         {
-          ignerr << "[CreateRenderingEntities] (New) Adding a new particle emitter" << std::endl;
           this->newParticleEmitters.push_back(
               std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
           return true;

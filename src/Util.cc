@@ -24,6 +24,7 @@
 #endif
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
+#include <ignition/common/SystemPaths.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
