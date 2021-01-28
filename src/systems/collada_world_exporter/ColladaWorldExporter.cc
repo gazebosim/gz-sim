@@ -55,6 +55,9 @@ using namespace systems;
 
 class ignition::gazebo::systems::ColladaWorldExporterPrivate
 {
+  // Default constructor
+  public: ColladaWorldExporterPrivate() = default;
+
   /// \brief Has the world already been exported?.
   private: bool exported{false};
 
@@ -216,6 +219,8 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           {
             i = worldMesh.AddMaterial(mat);
           }
+
+          scale = _geom->Data().MeshShape()->Scale();
 
           addSubmeshFunc(i);
         }
