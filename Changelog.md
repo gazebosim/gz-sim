@@ -1,6 +1,24 @@
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X (20XX-XX-XX)
+### Ignition Gazebo 3.7.0 (2021-01-13)
+
+1. Fix examples in migration plugins tutorial.
+    * [Pull Request 543](https://github.com/ignitionrobotics/ign-gazebo/pull/543)
+
+1. Added missing namespace in `detail/EntityComponentManager.hh`.
+    * [Pull Request 541](https://github.com/ignitionrobotics/ign-gazebo/pull/541)
+
+1. Automatically load a subset of world plugins.
+    * [Pull Request 281](https://github.com/ignitionrobotics/ign-gazebo/pull/281)
+
+1. Update gtest to 1.10.0 for Windows compilation.
+    * [Pull Request 506](https://github.com/ignitionrobotics/ign-gazebo/pull/506)
+
+1. Updates to ardupilot migration tutorial.
+    * [Pull Request 525](https://github.com/ignitionrobotics/ign-gazebo/pull/525)
+
+1. Don't make docs on macOS.
+    * [Pull Request 528](https://github.com/ignitionrobotics/ign-gazebo/pull/528)
 
 ### Ignition Gazebo 3.6.0 (2020-12-30)
 
