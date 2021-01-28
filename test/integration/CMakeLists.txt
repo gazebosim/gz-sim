@@ -16,6 +16,7 @@ set(tests
   events.cc
   examples_build.cc
   follow_actor_system.cc
+  fuel_cached_server.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
@@ -30,6 +31,7 @@ set(tests
   magnetometer_system.cc
   model.cc
   multicopter.cc
+  multiple_servers.cc
   network_handshake.cc
   performer_detector.cc
   physics_system.cc
