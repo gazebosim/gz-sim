@@ -150,7 +150,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         const sdf::Light &_light, Entity _parentId);
 
     /// \brief Create a particle emitter
-    /// \param[in] _id Unique light id
+    /// \param[in] _id Unique particle emitter id
     /// \param[in] _emitter Particle emitter data
     /// \param[in] _parentId Parent id
     /// \return Particle emitter object created

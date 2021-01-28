@@ -959,6 +959,7 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
     parent = it->second;
   }
 
+  // Name.
   std::string name = _emitter.data.name().empty() ? std::to_string(_id) :
     _emitter.data.name();
   if (parent)
