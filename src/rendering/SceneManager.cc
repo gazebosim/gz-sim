@@ -41,6 +41,7 @@
 #include <ignition/rendering/Scene.hh>
 #include <ignition/rendering/Visual.hh>
 
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 
@@ -1010,7 +1011,9 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   emitter->SetLifetime(_emitter.data.lifetime());
 
   // Material.
-  // emitter->SetMaterial();
+  ignition::rendering::MaterialPtr material =
+    this->LoadMaterial(convert<sdf::Material>(_emitter.data.material()));
+  emitter->SetMaterial(material);
 
   // Velocity range.
   emitter->SetVelocityRange(
@@ -1025,7 +1028,8 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   emitter->SetScaleRate(_emitter.data.scale_rate());
 
   // Color range image.
-  emitter->SetColorRangeImage(_emitter.data.color_range_image());
+  if (!_emitter.data.color_range_image().empty())
+    emitter->SetColorRangeImage(_emitter.data.color_range_image());
 
   this->dataPtr->particleEmitters[_id] = emitter;
 

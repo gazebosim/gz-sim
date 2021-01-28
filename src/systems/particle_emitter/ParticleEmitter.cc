@@ -124,6 +124,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
     sdf::Material material;
     material.Load(materialElem);
     ignition::msgs::Material materialMsg = convert<msgs::Material>(material);
+    this->dataPtr->emitter.mutable_material()->CopyFrom(materialMsg);
   }
 
   // Min velocity.
