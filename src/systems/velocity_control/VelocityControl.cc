@@ -233,7 +233,7 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     // update angular velocity
     auto linkAngularVel = _ecm.Component<components::AngularVelocityCmd>(link);
     auto it = this->dataPtr->angularVelocities.find(linkName);
-    if (it != this->dataPtr->end())
+    if (it != this->dataPtr->angularVelocities.end())
     {
       if (linkAngularVel == nullptr)
         _ecm.CreateComponent(link, components::AngularVelocityCmd({it->second}));
@@ -242,13 +242,13 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "No angular velocity found for link [" << linkName << "]" << std:;endl;
+      ignwarn << "No angular velocity found for link [" << linkName << "]" << std::endl;
     }
 
     // update linear velocity
     auto linkLinearVel = _ecm.Component<components::LinearVelocityCmd>(link);
-    auto it = this->dataPtr->linearVelocities.find(linkName);
-    if (it != this->dataPtr->end())
+    it = this->dataPtr->linearVelocities.find(linkName);
+    if (it != this->dataPtr->linearVelocities.end())
     {
       if (linkLinearVel == nullptr)
         _ecm.CreateComponent(link, components::LinearVelocityCmd({it->second}));
@@ -257,7 +257,7 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "No linear velocity found for link [" << linkName << "]" << std:;endl;
+      ignwarn << "No linear velocity found for link [" << linkName << "]" << std::endl;
     }
   }
 }
@@ -309,8 +309,8 @@ void VelocityControlPrivate::UpdateLinkVelocity(
   {
     auto linearVel = math::Vector3d(msg.linear().x(), msg.linear().y(), msg.linear().z());
     auto angularVel = math::Vector3d(msg.angular().x(), msg.angular().y(), msg.angular().z());
-    this->dataPtr->linearVelocities.insert({linkName, linearVel});
-    this->dataPtr->angularVelocities.insert({linkName, angularVel});
+    this->linearVelocities.insert({linkName, linearVel});
+    this->angularVelocities.insert({linkName, angularVel});
   }
 }
 
@@ -325,7 +325,7 @@ void VelocityControlPrivate::OnCmdVel(const msgs::Twist &_msg)
 void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
                                       const transport::MessageInfo &_info)
 {
-  for (const auto &linkName : this->dataPtr->linkNames)
+  for (const auto &linkName : this->linkNames)
   {
     if (_info.Topic().find(linkName) != std::string::npos)
     {
