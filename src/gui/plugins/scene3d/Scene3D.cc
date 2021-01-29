@@ -1354,8 +1354,8 @@ void IgnRenderer::HandleMouseTransformControl()
         && this->dataPtr->transformControl.Node())
     {
       this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
-      // get the visual at mouse position
-      rendering::VisualPtr visual = this->dataPtr->camera->VisualAt(
+      rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
+            this->dataPtr->camera,
             this->dataPtr->mouseEvent.PressPos());
 
       if (visual)
