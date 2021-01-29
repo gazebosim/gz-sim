@@ -1056,7 +1056,7 @@ void SimulationRunner::ProcessWorldControl()
       this->requestedSeek = control.seek;
     }
 
-      this->SetRunToSimTime(control.runToSimTime);
+    this->SetRunToSimTime(control.runToSimTime);
   }
 
   this->worldControls.clear();
