@@ -84,11 +84,11 @@ TEST_F(ParticleEmitterTest, SDFLoad)
 
               EXPECT_EQ("particle_emitter_smoke_emitter", _name->Data());
               EXPECT_EQ(expectedPose, _pose->Data());
-              EXPECT_TRUE(_emitter->Data().data.emitting());
-              EXPECT_DOUBLE_EQ(2, _emitter->Data().data.lifetime());
-              EXPECT_DOUBLE_EQ(10, _emitter->Data().data.min_velocity());
-              EXPECT_DOUBLE_EQ(20, _emitter->Data().data.max_velocity());
-              EXPECT_DOUBLE_EQ(10, _emitter->Data().data.scale_rate());
+              EXPECT_TRUE(_emitter->Data().emitting());
+              EXPECT_DOUBLE_EQ(2, _emitter->Data().lifetime());
+              EXPECT_DOUBLE_EQ(10, _emitter->Data().min_velocity());
+              EXPECT_DOUBLE_EQ(20, _emitter->Data().max_velocity());
+              EXPECT_DOUBLE_EQ(10, _emitter->Data().scale_rate());
 
               return true;
             });
