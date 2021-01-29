@@ -711,7 +711,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
        this->currentInfo.simTime >= this->requestedRunToSimTime)
   {
     this->SetPaused(true);
-    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
   }
 
   if (!this->Paused() && this->pendingSimIterations > 0)
