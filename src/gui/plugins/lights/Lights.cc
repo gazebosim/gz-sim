@@ -86,7 +86,7 @@ void Lights::OnMode(const QString &_mode)
                                  "<sdf version=\"1.6\">"
                                  "<light type='point' name='pointlight'>"
                                    "<pose>0 0 2 0 0 0</pose>"
-                                   "<cast_shadows>true</cast_shadows>"
+                                   "<cast_shadows>false</cast_shadows>"
                                    "<diffuse>0.5 0.5 0.5 1</diffuse>"
                                    "<specular>0.5 0.5 0.5 1</specular>"
                                    "<attenuation>"
