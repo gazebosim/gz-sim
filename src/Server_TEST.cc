@@ -34,6 +34,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
@@ -48,8 +49,8 @@ class ServerFixture : public ::testing::TestWithParam<int>
   protected: void SetUp() override
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
     ignition::common::Console::SetVerbosity(4);
   }
@@ -219,8 +220,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/air_pressure.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "air_pressure.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
@@ -228,7 +229,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "ignition::gazebo::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
-  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor",
+  serverConfig.AddPlugin({
+      "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
       "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
       sdf});
 
@@ -237,6 +239,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(2u, *server.SystemCount());
 
   // Run the server
   igndbg << "Run server" << std::endl;
@@ -315,6 +318,7 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
     serverConfig.SetLogRecordPath(logPath);
 
     gazebo::Server server(serverConfig);
+
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
@@ -783,9 +787,9 @@ TEST_P(ServerFixture, Seed)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResourcePath)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str(), 1);
+          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -871,8 +875,8 @@ TEST_P(ServerFixture, ResourcePath)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -903,7 +907,7 @@ TEST_P(ServerFixture, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
+  ignition::common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =
@@ -927,10 +931,10 @@ TEST_P(ServerFixture, CachedFuelWorld)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
-  setenv("SDF_PATH", "", 1);
-  setenv("IGN_FILE_PATH", "", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -974,7 +978,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Check environment variables
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
-    char *pathCStr = getenv(env);
+    char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
     paths.erase(std::remove_if(paths.begin(), paths.end(),
@@ -995,4 +999,4 @@ TEST_P(ServerFixture, AddResourcePaths)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));

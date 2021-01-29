@@ -7,7 +7,7 @@ libignition-gui5-dev
 libignition-fuel-tools6-dev
 libignition-math6-eigen3-dev
 libignition-msgs7-dev
-libignition-physics3-dev
+libignition-physics4-dev
 libignition-plugin-dev
 libignition-rendering5-dev
 libignition-sensors5-dev
@@ -17,7 +17,7 @@ libogre-1.9-dev
 libogre-2.1-dev
 libprotobuf-dev
 libprotoc-dev
-libsdformat10-dev
+libsdformat11-dev
 libtinyxml2-dev
 libxi-dev
 libxmu-dev

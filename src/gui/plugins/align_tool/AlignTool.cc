@@ -24,6 +24,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/common/Console.hh>

@@ -131,8 +131,15 @@ void JointController::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
-                    this->dataPtr->jointName + "/cmd_vel"};
+  std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
+      "/cmd_vel");
+  if (topic.empty())
+  {
+    ignerr << "Failed to create topic for joint [" << this->dataPtr->jointName
+           << "]" << std::endl;
+    return;
+  }
   this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
                                 this->dataPtr.get());
 
