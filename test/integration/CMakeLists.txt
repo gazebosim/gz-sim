@@ -7,6 +7,7 @@ set(tests
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
+  collada_world_exporter.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
