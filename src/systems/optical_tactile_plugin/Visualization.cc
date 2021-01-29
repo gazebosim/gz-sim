@@ -49,11 +49,6 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
 }
 
 //////////////////////////////////////////////////
-OpticalTactilePluginVisualization::~OpticalTactilePluginVisualization()
-{
-}
-
-//////////////////////////////////////////////////
 void OpticalTactilePluginVisualization::InitializeSensorMarkerMsg(
   ignition::msgs::Marker &_sensorMarkerMsg)
 {
