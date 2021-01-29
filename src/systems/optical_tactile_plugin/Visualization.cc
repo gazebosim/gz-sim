@@ -15,6 +15,8 @@
  *
  */
 
+#include <ignition/msgs/marker.pb.h>
+#include <ignition/msgs/contact.pb.h>
 #include <ignition/transport/Node.hh>
 
 #include "Visualization.hh"
@@ -45,8 +47,10 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
 void OpticalTactilePluginVisualization::InitializeSensorMarkerMsg(
   ignition::msgs::Marker &_sensorMarkerMsg)
 {
-  // Initialize the marker for visualizing the sensor as a grey transparent box
+  // Reset all fields
+  _sensorMarkerMsg = ignition::msgs::Marker();
 
+  // Initialize the marker for visualizing the sensor as a grey transparent box
   _sensorMarkerMsg.set_ns("sensor_" + this->modelName);
   _sensorMarkerMsg.set_id(1);
   _sensorMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
@@ -82,6 +86,9 @@ void OpticalTactilePluginVisualization::RequestSensorMarkerMsg(
 void OpticalTactilePluginVisualization::InitializeContactsMarkerMsg(
   ignition::msgs::Marker &_contactsMarkerMsg)
 {
+  // Reset all fields
+  _contactsMarkerMsg = ignition::msgs::Marker();
+
   // Initialize the marker for visualizing the contacts as red lines
   _contactsMarkerMsg.set_ns("contacts_" + this->modelName);
   _contactsMarkerMsg.set_id(1);
@@ -101,9 +108,11 @@ void OpticalTactilePluginVisualization::AddContactToMarkerMsg(
   ignition::msgs::Contact const &_contact,
   ignition::msgs::Marker &_contactMarkerMsg)
 {
-  // todo(anyone) once available, use normal field in the message
+  // todo(anyone) once available, use normal field in the Contact message
   ignition::math::Vector3d contactNormal(0, 0, 0.03);
 
+  // For each contact, add a line marker starting from the contact position,
+  // ending at the endpoint of the normal.
   for (auto const &position : _contact.position())
   {
     ignition::math::Vector3d startPoint = ignition::msgs::Convert(position);
@@ -134,10 +143,10 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   ignition::msgs::Marker &_positionMarkerMsg,
   ignition::msgs::Marker &_forceMarkerMsg)
 {
-  // Initialize marker messages for position and force of the contacts
+  _positionMarkerMsg = ignition::msgs::Marker();
+  _forceMarkerMsg = ignition::msgs::Marker();
 
-  // Blue points for positions
-  // Green lines for forces
+  // Initialize marker messages for position and force of the contacts
 
   _positionMarkerMsg.set_ns("positions_" + this->modelName);
   _positionMarkerMsg.set_id(1);
@@ -154,6 +163,7 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   _forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
 
   // Set material properties and lifetime
+  // Blue points for positions
   ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
     mutable_ambient(), math::Color(0, 0, 1, 1));
   ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
@@ -161,6 +171,7 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   _positionMarkerMsg.mutable_lifetime()->set_nsec(
     this->cameraUpdateRate * 1000000000);
 
+  // Green lines for forces
   ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
     mutable_ambient(), math::Color(0, 1, 0, 1));
   ignition::msgs::Set(_forceMarkerMsg.mutable_material()->

@@ -24,6 +24,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
+#include <ignition/msgs/marker.pb.h>
+
 #include "ignition/gazebo/components/ContactSensorData.hh"
 
 namespace ignition
@@ -127,7 +129,7 @@ namespace optical_tactile_sensor
         ignition::msgs::Marker &_positionMarkerMsg,
         ignition::msgs::Marker &_forceMarkerMsg);
 
-    /// \brief Remove normal forces and contact markers currently in the scene
+    /// \brief Remove all normal forces and contact markers
     public: void RemoveNormalForcesAndContactsMarkers();
 
     /// \brief Transport node to request the /marker service
