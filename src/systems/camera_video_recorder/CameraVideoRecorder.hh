@@ -40,8 +40,7 @@ namespace systems
   ///              not specified, the topic defaults to:
   ///              /world/<world_name/model/<model_name>/link/<link_name>/
   ///                  sensor/<sensor_name>/record_video
-  class
-  CameraVideoRecorder:
+  class CameraVideoRecorder:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
