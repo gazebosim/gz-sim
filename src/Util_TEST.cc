@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <ignition/common/Console.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 
@@ -36,8 +37,18 @@
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Tests for Util.hh
+class UtilTest : public ::testing::Test
+{
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
 /////////////////////////////////////////////////
-TEST(UtilTest, ScopedName)
+TEST_F(UtilTest, ScopedName)
 {
   EntityComponentManager ecm;
 
@@ -219,7 +230,7 @@ TEST(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeId)
+TEST_F(UtilTest, EntityTypeId)
 {
   EntityComponentManager ecm;
 
@@ -264,7 +275,7 @@ TEST(UtilTest, EntityTypeId)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, EntityTypeStr)
+TEST_F(UtilTest, EntityTypeStr)
 {
   EntityComponentManager ecm;
 
@@ -309,7 +320,7 @@ TEST(UtilTest, EntityTypeStr)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, RemoveParentScopedName)
+TEST_F(UtilTest, RemoveParentScopedName)
 {
   EXPECT_EQ(removeParentScope("world/world_name", "/"), "world_name");
   EXPECT_EQ(removeParentScope("world::world_name::light::lightA_name", "::"),
@@ -324,7 +335,7 @@ TEST(UtilTest, RemoveParentScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, AsFullPath)
+TEST_F(UtilTest, AsFullPath)
 {
   const std::string relativeUriUnix{"meshes/collision.dae"};
   const std::string relativeUriWindows{"meshes\\collision.dae"};
@@ -408,7 +419,7 @@ TEST(UtilTest, AsFullPath)
 }
 
 /////////////////////////////////////////////////
-TEST(UtilTest, TopLevelModel)
+TEST_F(UtilTest, TopLevelModel)
 {
   EntityComponentManager ecm;
 
@@ -462,4 +473,28 @@ TEST(UtilTest, TopLevelModel)
 
   // model C should have itself as the top level entity
   EXPECT_EQ(modelCEntity, topLevelModel(modelCEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, ValidTopic)
+{
+  std::string good{"good"};
+  std::string fixable{"not bad~"};
+  std::string invalid{"@~@~@~"};
+
+  EXPECT_EQ("good", validTopic({good}));
+  EXPECT_EQ("not_bad", validTopic({fixable}));
+  EXPECT_EQ("", validTopic({invalid}));
+
+  EXPECT_EQ("good", validTopic({good, fixable}));
+  EXPECT_EQ("not_bad", validTopic({fixable, good}));
+
+  EXPECT_EQ("good", validTopic({good, invalid}));
+  EXPECT_EQ("good", validTopic({invalid, good}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid}));
+  EXPECT_EQ("not_bad", validTopic({invalid, fixable}));
+
+  EXPECT_EQ("not_bad", validTopic({fixable, invalid, good}));
+  EXPECT_EQ("good", validTopic({invalid, good, fixable}));
 }
