@@ -899,8 +899,6 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
   if (lightParent)
     name = lightParent->Name() +  "::" + name + "Visual";
 
-  // std::cerr << "name: " << name << '\n';
-
   if (this->dataPtr->scene->HasVisualName(name))
   {
     ignerr << "Visual: [" << name << "] already exists" << std::endl;
