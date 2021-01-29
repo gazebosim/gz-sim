@@ -19,17 +19,10 @@
 
 #include "Visualization.hh"
 
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-{
-namespace systems
-{
-namespace optical_tactile_sensor
-{
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
+using namespace optical_tactile_sensor;
 
 //////////////////////////////////////////////////
 OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
@@ -275,10 +268,4 @@ void OpticalTactilePluginVisualization::RemoveNormalForcesAndContactsMarkers()
   node.Request("/marker", positionMarkerMsg);
   node.Request("/marker", forceMarkerMsg);
   node.Request("/marker", contactMarkerMsg);
-}
-
-}
-}
-}
-}
 }
