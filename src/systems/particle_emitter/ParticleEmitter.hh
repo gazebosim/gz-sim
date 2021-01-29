@@ -35,9 +35,11 @@ namespace systems
   ///
   /// System parameters
   ///
-  /// `<emitter_name>`: Unique name for the particle emitter.
+  /// `<emitter_name>`: Unique name for the particle emitter. The name will be
+  ///                   automatically generated if this parameter is not set.
   /// `<type>`: The emitter type (point, box, cylinder, ellipsoid).
-  /// `<pose>`: The pose of the emitter.
+  ///           Default value is point.
+  /// `<pose>`: The pose of the emitter. Default value is {0, 0, 0, 0, 0, 0}.
   /// `<size>`: The size of the emitter where the particles are sampled.
   ///           Default value is (1, 1, 1).
   ///           Note that the interpretation of the emitter area varies
@@ -54,16 +56,21 @@ namespace systems
   ///                          describe the widest points along each of the
   ///                          axes.
   /// `<rate>`: How many particles per second should be emitted.
+  ///           Default value is 10.
   /// `<duration`>: The number of seconds the emitter is active. A value of 0
-  ///               means infinite duration.
+  ///               means infinite duration. Default value is 0.
   /// `<emitting>`: This is used to turn on or off particle emission.
+  ///               Default value is false.
   /// `<particle_size>`: Set the particle dimensions (width, height, depth).
+  ///                    Default value is {1, 1, 1}.
   /// `<lifetime>`: Set the number of seconds each particle will ’live’ for
-  ///               before being destroyed.
+  ///               before being destroyed. Default value is 5.
   /// `<material>`: Sets the material which all particles in the emitter will
   ///               use.
   /// `<min_velocity>`: Sets a minimum velocity for each particle (m/s).
+  ///                   Default value is 1.
   /// `<max_velocity>`: Sets a maximum velocity for each particle (m/s).
+  ///                   Default value is 1.
   /// `<color_start>`: Sets the starting color for all particle emitted.
   ///                  The actual color will be interpolated between this color
   ///                  and the one set under <color_end>.
@@ -79,7 +86,7 @@ namespace systems
   ///                Note that this function overrides the particle colors set
   ///                with <ColorRangeImage>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
-  ///                 and y direction per second.
+  ///                 and y direction per second. Default value is 1.
   /// `<color_range_image>`: Sets the path to the color image used as an
   ///                        affector. This affector modifies the color of
   ///                        particles in flight. The colors are taken from a
