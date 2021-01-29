@@ -79,7 +79,7 @@ class ignition::gazebo::SystemLoaderPrivate
     }
 
     std::string pluginName = "";
-    for (auto name : pluginNames)
+    for (const auto &name : pluginNames)
     {
       pluginName = name;
     }
