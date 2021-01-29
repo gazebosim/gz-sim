@@ -24,6 +24,9 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
           std::string(const gazebo::Entity &,
           const sdf::Sensor &, const std::string &)>)`
 
+* Log playback using `<path>` SDF parameter is removed. Use --playback command
+  line argument instead.
+
 ## Ignition Gazebo 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.
