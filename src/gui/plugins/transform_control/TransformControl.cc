@@ -25,17 +25,19 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
-#include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Grid.hh>
+#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderTypes.hh>
 #include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/Visual.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/transport/Publisher.hh>
+#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -110,12 +112,22 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
 
-  gui::events::SnapIntervals event(
+  ignition::gui::events::SnapIntervals event(
       this->dataPtr->xyzSnapVals,
       this->dataPtr->rpySnapVals,
       this->dataPtr->scaleSnapVals);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
+
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+  ignition::gui::events::SnapIntervals oldEvent(
+      this->dataPtr->xyzSnapVals,
+      this->dataPtr->rpySnapVals,
+      this->dataPtr->scaleSnapVals);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &oldEvent);
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   this->newSnapValues();
 }
@@ -224,7 +236,7 @@ void TransformControl::LoadGrid()
 /////////////////////////////////////////////////
 bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
