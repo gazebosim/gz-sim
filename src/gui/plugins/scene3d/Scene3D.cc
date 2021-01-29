@@ -836,10 +836,16 @@ void IgnRenderer::Render()
 
   if (ignition::gui::App())
   {
-    gui::events::Render event;
+    ignition::gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
+
+    // This will be deprecated on v5 and removed on v6
+    ignition::gazebo::gui::events::Render oldEvent;
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &oldEvent);
   }
 
   // only has an effect in video recording lockstep mode
