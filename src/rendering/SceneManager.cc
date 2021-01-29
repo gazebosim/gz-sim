@@ -466,7 +466,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string roughnessMap = metal->RoughnessMap();
       if (!roughnessMap.empty())
       {
-        std::string fullPath = common::findFile(roughnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(roughnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetRoughnessMap(fullPath);
         else
@@ -477,7 +478,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string metalnessMap = metal->MetalnessMap();
       if (!metalnessMap.empty())
       {
-        std::string fullPath = common::findFile(metalnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(metalnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetMetalnessMap(fullPath);
         else
@@ -495,7 +497,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string albedoMap = workflow->AlbedoMap();
     if (!albedoMap.empty())
     {
-      std::string fullPath = common::findFile(albedoMap);
+      std::string fullPath = common::findFile(
+          asFullPath(albedoMap, _material.FilePath()));
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
@@ -510,7 +513,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string normalMap = workflow->NormalMap();
     if (!normalMap.empty())
     {
-      std::string fullPath = common::findFile(normalMap);
+      std::string fullPath = common::findFile(
+          asFullPath(normalMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetNormalMap(fullPath);
       else
@@ -522,7 +526,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string environmentMap = workflow->EnvironmentMap();
     if (!environmentMap.empty())
     {
-      std::string fullPath = common::findFile(environmentMap);
+      std::string fullPath = common::findFile(
+          asFullPath(environmentMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEnvironmentMap(fullPath);
       else
@@ -533,7 +538,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string emissiveMap = workflow->EmissiveMap();
     if (!emissiveMap.empty())
     {
-      std::string fullPath = common::findFile(emissiveMap);
+      std::string fullPath = common::findFile(
+          asFullPath(emissiveMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEmissiveMap(fullPath);
       else
@@ -933,7 +939,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 
 /////////////////////////////////////////////////
 rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
-    const particles::Emitter &_emitter, Entity _parentId)
+    const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::ParticleEmitterPtr();
@@ -960,8 +966,8 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   }
 
   // Name.
-  std::string name = _emitter.data.name().empty() ? std::to_string(_id) :
-    _emitter.data.name();
+  std::string name = _emitter.name().empty() ? std::to_string(_id) :
+    _emitter.name();
   if (parent)
     name = parent->Name() +  "::" + name;
 
@@ -969,7 +975,7 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   emitter = this->dataPtr->scene->CreateParticleEmitter(name);
 
   // Type.
-  switch (_emitter.data.type())
+  switch (_emitter.type())
   {
     case ignition::msgs::ParticleEmitter_EmitterType_BOX:
     {
@@ -993,47 +999,46 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   }
 
   // Emitter size.
-  emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.data.size()));
+  emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
 
   // Rate.
-  emitter->SetRate(_emitter.data.rate());
+  emitter->SetRate(_emitter.rate());
 
   // Duration.
-  emitter->SetDuration(_emitter.data.duration());
+  emitter->SetDuration(_emitter.duration());
 
   // Emitting.
-  emitter->SetEmitting(_emitter.data.emitting());
+  emitter->SetEmitting(_emitter.emitting());
 
   // Particle size.
   emitter->SetParticleSize(
-    ignition::msgs::Convert(_emitter.data.particle_size()));
+    ignition::msgs::Convert(_emitter.particle_size()));
 
   // Lifetime.
-  emitter->SetLifetime(_emitter.data.lifetime());
+  emitter->SetLifetime(_emitter.lifetime());
 
   // Material.
-  if (_emitter.data.has_material())
+  if (_emitter.has_material())
   {
     ignition::rendering::MaterialPtr material =
-      this->LoadMaterial(convert<sdf::Material>(_emitter.data.material()));
+      this->LoadMaterial(convert<sdf::Material>(_emitter.material()));
     emitter->SetMaterial(material);
   }
 
   // Velocity range.
-  emitter->SetVelocityRange(
-    _emitter.data.min_velocity(), _emitter.data.max_velocity());
+  emitter->SetVelocityRange(_emitter.min_velocity(), _emitter.max_velocity());
 
   // Color range.
   emitter->SetColorRange(
-    ignition::msgs::Convert(_emitter.data.color_start()),
-    ignition::msgs::Convert(_emitter.data.color_end()));
+    ignition::msgs::Convert(_emitter.color_start()),
+    ignition::msgs::Convert(_emitter.color_end()));
 
   // Scale rate.
-  emitter->SetScaleRate(_emitter.data.scale_rate());
+  emitter->SetScaleRate(_emitter.scale_rate());
 
   // Color range image.
-  if (!_emitter.data.color_range_image().empty())
-    emitter->SetColorRangeImage(_emitter.data.color_range_image());
+  if (!_emitter.color_range_image().empty())
+    emitter->SetColorRangeImage(_emitter.color_range_image());
 
   this->dataPtr->particleEmitters[_id] = emitter;
 

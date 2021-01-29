@@ -163,7 +163,14 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     ignerr << "Missing required parameter <namespace>" << std::endl;
     return;
   }
-  this->ns = _sdf->Get<std::string>("namespace");
+  this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
+      "namespace"));
+  if (this->ns.empty())
+  {
+    ignerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
+           << "] is invalid." << std::endl;
+    return;
+  }
 
   // Target time
   if (!_sdf->HasElement("time"))

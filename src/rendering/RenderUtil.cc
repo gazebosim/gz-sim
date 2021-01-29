@@ -159,7 +159,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief New particle emitter to be created. The elements in the tuple are:
   /// [0] entity id, [1], particle emitter, [2] parent entity id
-  public: std::vector<std::tuple<Entity, particles::Emitter, Entity>>
+  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
       newParticleEmitters;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
@@ -1383,6 +1383,13 @@ SceneManager &RenderUtil::SceneManager()
 MarkerManager &RenderUtil::MarkerManager()
 {
   return this->dataPtr->markerManager;
+}
+
+//////////////////////////////////////////////////
+std::chrono::steady_clock::duration RenderUtil::SimTime() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  return this->dataPtr->simTime;
 }
 
 /////////////////////////////////////////////////

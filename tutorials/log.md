@@ -96,6 +96,11 @@ directory specified to record:
 
 `ign gazebo -r -v 4 --playback <path>`
 
+### From plugin in SDF
+
+Playing back via the SDF tag `<path>` has been removed.
+Please use the command line argument.
+
 ## Known issues
 
 * When using command-line playback there is currently a small caveat.

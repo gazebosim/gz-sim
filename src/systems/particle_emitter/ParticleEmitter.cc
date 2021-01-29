@@ -22,7 +22,6 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
-#include <sdf/Material.hh>
 
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
@@ -31,6 +30,7 @@
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/SdfEntityCreator.hh>
 #include <ignition/gazebo/Util.hh>
+#include <sdf/Material.hh>
 #include "ParticleEmitter.hh"
 
 using namespace ignition;
@@ -56,14 +56,19 @@ void ParticleEmitter::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
-  // Name.
-  if (!_sdf->HasElement("emitter_name"))
+  // Create a particle emitter entity.
+  auto entity = _ecm.CreateEntity();
+  if (entity == kNullEntity)
   {
-    ignerr << "Missing <emitter_name>. Ignoring particle emitter." << std::endl;
+    ignerr << "Failed to create a particle emitter entity" << std::endl;
     return;
   }
-  this->dataPtr->emitter.set_name(
-    _sdf->Get<std::string>("emitter_name"));
+
+  // Name.
+  std::string name = "particle_emitter_entity_" + std::to_string(entity);
+  if (_sdf->HasElement("emitter_name"))
+    name = _sdf->Get<std::string>("emitter_name");
+  this->dataPtr->emitter.set_name(name);
 
   // Type. The default type is point.
   this->dataPtr->emitter.set_type(
@@ -170,25 +175,15 @@ void ParticleEmitter::Configure(const Entity &_entity,
   igndbg << "Loading particle emitter:" << std::endl
          << this->dataPtr->emitter.DebugString() << std::endl;
 
-  SdfEntityCreator sdfEntityCreator(_ecm, _eventMgr);
-
-  // Create a particle emitter entity.
-  auto entity = _ecm.CreateEntity();
-  if (entity == kNullEntity)
-  {
-    ignerr << "Failed to create a particle emitter entity" << std::endl;
-    return;
-  }
-
   // Create components.
+  SdfEntityCreator sdfEntityCreator(_ecm, _eventMgr);
   sdfEntityCreator.SetParent(entity, _entity);
 
   _ecm.CreateComponent(entity,
     components::Name("particle_emitter_" + this->dataPtr->emitter.name()));
 
-  particles::Emitter emitterData;
-  emitterData.data.CopyFrom(this->dataPtr->emitter);
-  _ecm.CreateComponent(entity, components::ParticleEmitter(emitterData));
+  _ecm.CreateComponent(entity,
+    components::ParticleEmitter(this->dataPtr->emitter));
 
   _ecm.CreateComponent(entity, components::Pose(pose));
 }
