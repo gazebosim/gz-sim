@@ -383,7 +383,8 @@ TEST_P(DiffDriveTest, OdomFrameId)
 
   int sleep = 0;
   int maxSleep = 30;
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  // cppcheck-suppress knownConditionTrueFalse
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep) // NOLINT
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -620,6 +621,7 @@ TEST_P(DiffDriveTest, Pose_VCustomTfTopic)
 
   int sleep = 0;
   int maxSleep = 30;
+  // cppcheck-suppress knownConditionTrueFalse
   for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
