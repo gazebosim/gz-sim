@@ -1473,68 +1473,63 @@ TEST_F(ComponentsTest, Scene)
 //////////////////////////////////////////////////
 TEST_F(ComponentsTest, ParticleEmitter)
 {
-  particles::Emitter emitter1;
-  emitter1.data.set_name("emitter1");
-  emitter1.data.set_id(0);
-  emitter1.data.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
-  emitter1.data.mutable_size()->set_x(1);
-  emitter1.data.mutable_size()->set_y(2);
-  emitter1.data.mutable_size()->set_z(3);
-  emitter1.data.set_rate(4.0);
-  emitter1.data.set_duration(5.0);
-  emitter1.data.set_emitting(false);
-  emitter1.data.mutable_particle_size()->set_x(0.1);
-  emitter1.data.mutable_particle_size()->set_y(0.2);
-  emitter1.data.mutable_particle_size()->set_z(0.3);
-  emitter1.data.set_lifetime(6.0);
-  emitter1.data.set_min_velocity(7.0);
-  emitter1.data.set_max_velocity(8.0);
-  emitter1.data.mutable_color_start()->set_r(1.0);
-  emitter1.data.mutable_color_start()->set_g(0);
-  emitter1.data.mutable_color_start()->set_b(0);
-  emitter1.data.mutable_color_start()->set_a(0);
-  emitter1.data.mutable_color_end()->set_r(1.0);
-  emitter1.data.mutable_color_end()->set_g(1.0);
-  emitter1.data.mutable_color_end()->set_b(1.0);
-  emitter1.data.mutable_color_end()->set_a(0);
-  emitter1.data.set_scale_rate(9.0);
-  emitter1.data.set_color_range_image("path_to_texture");
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.set_id(0);
+  emitter1.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter1.mutable_size()->set_x(1);
+  emitter1.mutable_size()->set_y(2);
+  emitter1.mutable_size()->set_z(3);
+  emitter1.set_rate(4.0);
+  emitter1.set_duration(5.0);
+  emitter1.set_emitting(false);
+  emitter1.mutable_particle_size()->set_x(0.1);
+  emitter1.mutable_particle_size()->set_y(0.2);
+  emitter1.mutable_particle_size()->set_z(0.3);
+  emitter1.set_lifetime(6.0);
+  emitter1.set_min_velocity(7.0);
+  emitter1.set_max_velocity(8.0);
+  emitter1.mutable_color_start()->set_r(1.0);
+  emitter1.mutable_color_start()->set_g(0);
+  emitter1.mutable_color_start()->set_b(0);
+  emitter1.mutable_color_start()->set_a(0);
+  emitter1.mutable_color_end()->set_r(1.0);
+  emitter1.mutable_color_end()->set_g(1.0);
+  emitter1.mutable_color_end()->set_b(1.0);
+  emitter1.mutable_color_end()->set_a(0);
+  emitter1.set_scale_rate(9.0);
+  emitter1.set_color_range_image("path_to_texture");
 
-  particles::Emitter emitter2;
-  emitter2.data.set_name("emitter2");
-  emitter2.data.set_id(1);
-  emitter2.data.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
-  emitter2.data.mutable_size()->set_x(1);
-  emitter2.data.mutable_size()->set_y(2);
-  emitter2.data.mutable_size()->set_z(3);
-  emitter2.data.set_rate(4.0);
-  emitter2.data.set_duration(5.0);
-  emitter2.data.set_emitting(false);
-  emitter2.data.mutable_particle_size()->set_x(0.1);
-  emitter2.data.mutable_particle_size()->set_y(0.2);
-  emitter2.data.mutable_particle_size()->set_z(0.3);
-  emitter2.data.set_lifetime(6.0);
-  emitter2.data.set_min_velocity(7.0);
-  emitter2.data.set_max_velocity(8.0);
-  emitter2.data.mutable_color_start()->set_r(1.0);
-  emitter2.data.mutable_color_start()->set_g(0);
-  emitter2.data.mutable_color_start()->set_b(0);
-  emitter2.data.mutable_color_start()->set_a(0);
-  emitter2.data.mutable_color_end()->set_r(1.0);
-  emitter2.data.mutable_color_end()->set_g(1.0);
-  emitter2.data.mutable_color_end()->set_b(1.0);
-  emitter2.data.mutable_color_end()->set_a(0);
-  emitter2.data.set_scale_rate(9.0);
-  emitter2.data.set_color_range_image("path_to_texture");
+  msgs::ParticleEmitter emitter2;
+  emitter2.set_name("emitter2");
+  emitter2.set_id(1);
+  emitter2.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter2.mutable_size()->set_x(1);
+  emitter2.mutable_size()->set_y(2);
+  emitter2.mutable_size()->set_z(3);
+  emitter2.set_rate(4.0);
+  emitter2.set_duration(5.0);
+  emitter2.set_emitting(false);
+  emitter2.mutable_particle_size()->set_x(0.1);
+  emitter2.mutable_particle_size()->set_y(0.2);
+  emitter2.mutable_particle_size()->set_z(0.3);
+  emitter2.set_lifetime(6.0);
+  emitter2.set_min_velocity(7.0);
+  emitter2.set_max_velocity(8.0);
+  emitter2.mutable_color_start()->set_r(1.0);
+  emitter2.mutable_color_start()->set_g(0);
+  emitter2.mutable_color_start()->set_b(0);
+  emitter2.mutable_color_start()->set_a(0);
+  emitter2.mutable_color_end()->set_r(1.0);
+  emitter2.mutable_color_end()->set_g(1.0);
+  emitter2.mutable_color_end()->set_b(1.0);
+  emitter2.mutable_color_end()->set_a(0);
+  emitter2.set_scale_rate(9.0);
+  emitter2.set_color_range_image("path_to_texture");
 
   // Create components.
   auto comp1 = components::ParticleEmitter(emitter1);
   auto comp2 = components::ParticleEmitter(emitter2);
-
-  // Equality operators.
-  EXPECT_NE(comp1, comp2);
-  EXPECT_FALSE(comp1 == comp2);
-  EXPECT_TRUE(comp1 != comp2);
 
   // Stream operators.
   std::ostringstream ostr;
@@ -1543,5 +1538,5 @@ TEST_F(ComponentsTest, ParticleEmitter)
   std::istringstream istr(ostr.str());
   components::ParticleEmitter comp3;
   comp3.Deserialize(istr);
-  EXPECT_EQ(comp1, comp3);
+  EXPECT_EQ(comp1.Data().id(), comp3.Data().id());
 }
