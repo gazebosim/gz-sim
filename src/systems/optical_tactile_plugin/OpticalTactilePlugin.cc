@@ -56,7 +56,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
 
   /// \brief Actual function that enables the plugin.
   /// \param[in] _enable Whether to enable the plugin or disable it.
-  public: void Enable(const bool _enable);
+  public: void Enable(const ignition::msgs::Boolean &_req);
 
   /// \brief Callback for the depth camera
   /// \param[in] _msg Message from the subscribed topic
@@ -306,6 +306,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   // Get the size of the sensor from the SDF
   // If there's no <collision> specified inside <link>, a default one
   // is set
+  this->dataPtr->sensorSize = ignition::math::Vector3d(0.005, 0.02, 0.02);
   if (_sdf->GetParent() != nullptr)
   {
     if (_sdf->GetParent()->GetElement("link") != nullptr)
@@ -340,14 +341,9 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   }
 
   // Advertise enabling service
-  std::string enableService{"/" + this->dataPtr->ns + "/enable"};
-  std::function<void(const msgs::Boolean &)> enableCb =
-    [this](const msgs::Boolean &_req)
-    {
-      this->dataPtr->Enable(_req.data());
-    };
-
-  if (!this->dataPtr->node.Advertise(enableService, enableCb))
+  std::string enableService = "/" + this->dataPtr->ns + "/enable";
+  if (!this->dataPtr->node.Advertise(enableService,
+      &OpticalTactilePluginPrivate::Enable, this->dataPtr.get()))
   {
     ignerr << "Error advertising service [" << enableService << "]"
       << std::endl;
@@ -615,14 +611,14 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void OpticalTactilePluginPrivate::Enable(const bool _enable)
+void OpticalTactilePluginPrivate::Enable(const ignition::msgs::Boolean &_req)
 {
   {
     std::lock_guard<std::mutex> lock(this->serviceMutex);
-    this->enabled = _enable;
+    this->enabled = _req.data();
   }
 
-  if (!_enable)
+  if (!_req.data())
   {
     this->visualizePtr->RemoveNormalForcesAndContactsMarkers();
   }
