@@ -99,32 +99,6 @@ TEST_P(ServerFixture, TwoServersMixedBlocking)
   EXPECT_FALSE(*server2.Running(0));
 }
 
-/////////////////////////////////////////////////
-TEST_P(ServerFixture, CachedFuelWorld)
-{
-  auto cachedWorldPath =
-    common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
-
-  ServerConfig serverConfig;
-  auto fuelWorldURL =
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
-  EXPECT_TRUE(serverConfig.SetSdfFile(fuelWorldURL));
-
-  EXPECT_EQ(fuelWorldURL, serverConfig.SdfFile());
-  EXPECT_TRUE(serverConfig.SdfString().empty());
-
-  // Check that world was loaded
-  auto server = Server(serverConfig);
-  EXPECT_NE(std::nullopt, server.Running(0));
-  EXPECT_FALSE(*server.Running(0));
-
-  server.Run(true /*blocking*/, 1, false/*paused*/);
-
-  EXPECT_NE(std::nullopt, server.Running(0));
-  EXPECT_FALSE(*server.Running(0));
-}
-
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
