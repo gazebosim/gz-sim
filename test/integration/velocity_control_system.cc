@@ -146,5 +146,5 @@ TEST_P(VelocityControlTest, PublishCmd)
 }
 
 // Run multiple times
-INSTANTIATE_TEST_CASE_P(ServerRepeat, VelocityControlTest,
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, VelocityControlTest,
     ::testing::Range(1, 2));
