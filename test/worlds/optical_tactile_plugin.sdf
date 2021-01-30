@@ -80,8 +80,8 @@
         <enabled>false</enabled>
         <namespace>optical_tactile_sensor</namespace>
         <visualization_resolution>1</visualization_resolution>
-        <visualize_forces>true</visualize_forces>
-        <visualize_sensor>true</visualize_sensor>
+        <visualize_forces>false</visualize_forces>
+        <visualize_sensor>false</visualize_sensor>
         <force_length>0.01</force_length>
         <extended_sensing>0.05</extended_sensing>
       </plugin>

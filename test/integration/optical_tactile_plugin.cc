@@ -128,6 +128,7 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
 
   ignerr << "2222222222222222222222\n";
 
+  // TODO: Mac CI has ogre 2 error here.
   // Let the depth camera generate data
   server->Run(true, 1000, false);
   // Check that there are no forces before the plugin is enabled
