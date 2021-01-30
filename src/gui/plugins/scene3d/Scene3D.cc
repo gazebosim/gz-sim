@@ -2700,6 +2700,7 @@ void Scene3D::Update(const UpdateInfo &_info,
     msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
+  this->dataPtr->renderUtil->UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
 
   // check if video recording is enabled and if we need to lock step

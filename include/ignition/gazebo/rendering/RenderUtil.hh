@@ -66,6 +66,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to the scene
     public: rendering::ScenePtr Scene() const;
 
+    /// \brief Helper Update function for updating the scene
+    public: void UpdateECM(const UpdateInfo &_info,
+                               EntityComponentManager &_ecm);
+
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
