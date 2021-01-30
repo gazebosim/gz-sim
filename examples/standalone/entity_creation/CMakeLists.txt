@@ -6,7 +6,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 find_package(ignition-gazebo4 REQUIRED)
 set(IGN_GAZEBO_VER ${ignition-gazebo4_VERSION_MAJOR})
 
-add_executable(model_creation model_creation.cc)
-target_link_libraries(model_creation
+add_executable(entity_creation entity_creation.cc)
+target_link_libraries(entity_creation
   ignition-transport${IGN_TRANSPORT_VER}::core
   ignition-gazebo${IGN_GAZEBO_VER}::ignition-gazebo${IGN_GAZEBO_VER})

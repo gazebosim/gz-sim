@@ -20,5 +20,6 @@ ign gazebo empty.sdf
 Then run the create program to spawn entities into the world:
 
 ```
-
+cd build
+./entity_creation
 ```

@@ -15,15 +15,13 @@
  *
 */
 
-#include <chrono>
+#include <ignition/msgs/entity_factory.pb.h>
+
 #include <iostream>
 
 #include <ignition/gazebo/components/Light.hh>
 #include <ignition/gazebo/components/LightCmd.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
-
-using namespace std::chrono_literals;
+#include <ignition/transport/Node.hh>
 
 // Create a transport node.
 ignition::transport::Node node;
