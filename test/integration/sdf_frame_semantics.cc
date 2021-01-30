@@ -51,8 +51,8 @@ class SdfFrameSemanticsTest : public ::testing::Test
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 
   public: void StartServer()
@@ -87,9 +87,9 @@ class SdfFrameSemanticsTest : public ::testing::Test
     sdf::Root root;
     sdf::Errors errors = root.LoadSdfString(_sdfString);
     EXPECT_TRUE(errors.empty());
-    ASSERT_EQ(root.ModelCount(), 1u);
+    ASSERT_NE(nullptr, root.Model());
 
-    Entity modelEntity = this->creator->CreateEntities(root.ModelByIndex(0));
+    Entity modelEntity = this->creator->CreateEntities(root.Model());
     Entity worldEntity = this->ecm->EntityByComponents(components::World());
     this->creator->SetParent(modelEntity, worldEntity);
   }

@@ -62,12 +62,16 @@ function(gz_add_system system_name)
   # files, we also install an unversioned symlink into the same versioned folder.
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  if (WIN32)
-    # create_symlink requires cmake 3.13 on windows
-    cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+  if(WIN32)
+    # symlinks on Windows require admin priviledges, fallback to copy
+    ADD_CUSTOM_COMMAND(TARGET ${system_target} POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy
+        "$<TARGET_FILE:${system_target}>"
+        "$<TARGET_FILE_DIR:${system_target}>/${unversioned}")
+  else()
+    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
   endif()
-  EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
-  INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(air_pressure)
@@ -85,6 +89,7 @@ add_subdirectory(imu)
 add_subdirectory(joint_controller)
 add_subdirectory(joint_position_controller)
 add_subdirectory(joint_state_publisher)
+add_subdirectory(kinetic_energy_monitor)
 add_subdirectory(lift_drag)
 add_subdirectory(log)
 add_subdirectory(log_video_recorder)

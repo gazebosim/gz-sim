@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
 
 #include <memory>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -37,7 +36,7 @@ namespace systems
   **/
   /// \brief Contact sensor system which manages all contact sensors in
   /// simulation
-  class IGNITION_GAZEBO_VISIBLE Contact :
+  class Contact :
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

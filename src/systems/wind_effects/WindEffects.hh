@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -87,7 +86,7 @@ namespace systems
   /// <vertical><noise>
   /// Parameters for the noise that is added to the vertical wind velocity
   /// magnitude.
-  class IGNITION_GAZEBO_VISIBLE WindEffects:
+  class WindEffects:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate

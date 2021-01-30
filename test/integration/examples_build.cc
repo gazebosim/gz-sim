@@ -19,6 +19,7 @@
 #include <string>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 
 #include "ignition/gazebo/test_config.hh"
@@ -174,7 +175,7 @@ TEST_P(ExamplesBuild, Build)
 }
 
 //////////////////////////////////////////////////
-INSTANTIATE_TEST_CASE_P(Plugins, ExamplesBuild, ::testing::Values(
+INSTANTIATE_TEST_SUITE_P(Plugins, ExamplesBuild, ::testing::Values(
   "plugin",
   "standalone"
 ));

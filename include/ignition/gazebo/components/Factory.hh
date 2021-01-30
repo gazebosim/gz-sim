@@ -41,7 +41,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A base class for an object responsible for creating components.
-  class IGNITION_GAZEBO_VISIBLE ComponentDescriptorBase
+  class ComponentDescriptorBase
   {
     /// \brief Destructor
     public: virtual ~ComponentDescriptorBase() = default;
@@ -54,7 +54,7 @@ namespace components
   /// \brief A class for an object responsible for creating components.
   /// \tparam ComponentTypeT type of component to describe.
   template <typename ComponentTypeT>
-  class IGNITION_GAZEBO_VISIBLE ComponentDescriptor
+  class ComponentDescriptor
     : public ComponentDescriptorBase
   {
     /// \brief Create an instance of a ComponentTypeT Component.
@@ -66,7 +66,7 @@ namespace components
   };
 
   /// \brief A base class for an object responsible for creating storages.
-  class IGNITION_GAZEBO_VISIBLE StorageDescriptorBase
+  class StorageDescriptorBase
   {
     /// \brief Destructor
     public: virtual ~StorageDescriptorBase() = default;
@@ -79,7 +79,7 @@ namespace components
   /// \brief A class for an object responsible for creating storages.
   /// \tparam ComponentTypeT type of component that the storage will hold.
   template <typename ComponentTypeT>
-  class IGNITION_GAZEBO_VISIBLE StorageDescriptor
+  class StorageDescriptor
     : public StorageDescriptorBase
   {
     /// \brief Create an instance of a storage that holds ComponentTypeT
@@ -92,7 +92,7 @@ namespace components
   };
 
   /// \brief A factory that generates a component based on a string type.
-  class IGNITION_GAZEBO_VISIBLE Factory
+  class Factory
       : public ignition::common::SingletonT<Factory>
   {
     /// \brief Register a component so that the factory can create instances
@@ -329,7 +329,7 @@ namespace components
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
-  class IGNITION_GAZEBO_VISIBLE IgnGazeboComponents##_classname \
+  class IgnGazeboComponents##_classname \
   { \
     public: IgnGazeboComponents##_classname() \
     { \

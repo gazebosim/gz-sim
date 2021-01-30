@@ -38,7 +38,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/rendering/Export.hh>
 
 namespace ignition
 {
@@ -84,7 +84,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   };
 
   /// \brief Scene manager class for loading and managing objects in the scene
-  class IGNITION_GAZEBO_VISIBLE SceneManager
+  class IGNITION_GAZEBO_RENDERING_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();

@@ -17,6 +17,7 @@
 
 #include "TriggeredPublisher.hh"
 
+#include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
 
@@ -26,6 +27,11 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/plugin/Register.hh>
+
+// bug https://github.com/protocolbuffers/protobuf/issues/5051
+#ifdef _WIN32
+#undef GetMessage
+#endif
 
 using namespace ignition;
 using namespace gazebo;
@@ -486,10 +492,11 @@ void TriggeredPublisher::Configure(const Entity &,
       return;
     }
 
-    this->inputTopic = inputElem->Get<std::string>("topic");
+    auto inTopic = inputElem->Get<std::string>("topic");
+    this->inputTopic = transport::TopicUtils::AsValidTopic(inTopic);
     if (this->inputTopic.empty())
     {
-      ignerr << "Input topic cannot be empty\n";
+      ignerr << "Invalid input topic [" << inTopic << "]" << std::endl;
       return;
     }
 
@@ -538,10 +545,11 @@ void TriggeredPublisher::Configure(const Entity &,
         ignerr << "Output message type cannot be empty\n";
         continue;
       }
-      info.topic = outputElem->Get<std::string>("topic");
+      auto topic = outputElem->Get<std::string>("topic");
+      info.topic = transport::TopicUtils::AsValidTopic(topic);
       if (info.topic.empty())
       {
-        ignerr << "Output topic cannot be empty\n";
+        ignerr << "Invalid topic [" << topic << "]" << std::endl;
         continue;
       }
       const std::string msgStr = outputElem->Get<std::string>();
