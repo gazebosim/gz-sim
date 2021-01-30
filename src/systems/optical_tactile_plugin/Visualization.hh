@@ -40,7 +40,12 @@ namespace systems
 namespace optical_tactile_sensor
 {
   // This class handles the configuration and process of visualizing the
-  // different elements needed for the Optical Tactile Sensor plugin
+  // different elements needed for the Optical Tactile Sensor plugin.
+  // Terminology:
+  // "Contacts" refers to data from the contact sensor based on physics.
+  // "Normal forces" refers to post-processed data from the depth camera based
+  // purely on imagery.
+  // These two sets of data are currently disjoint and visualized separately.
   class OpticalTactilePluginVisualization
   {
     /// \brief Constructor
@@ -79,7 +84,7 @@ namespace optical_tactile_sensor
         ignition::msgs::Marker &_contactsMarkerMsg);
 
     /// \brief Add a contact to the marker message representing the contacts
-    /// from the contact sensor
+    /// from the contact sensor based on physics
     /// \param[in] _contact Contact to be added
     /// \param[out] _contactsMarkerMsg Message for visualizing the contacts
     public: void AddContactToMarkerMsg(
@@ -100,8 +105,8 @@ namespace optical_tactile_sensor
         ignition::msgs::Marker &_positionMarkerMsg,
         ignition::msgs::Marker &_forceMarkerMsg);
 
-    /// \brief Add a normal force to the marker messages representing the
-    /// normal forces computed
+    /// \brief Create a marker messages representing the normal force computed
+    /// from depth camera
     /// \param[out] _positionMarkerMsg Message for visualizing the contact
     /// positions
     /// \param[out] _forceMarkerMsg Message for visualizing the contact

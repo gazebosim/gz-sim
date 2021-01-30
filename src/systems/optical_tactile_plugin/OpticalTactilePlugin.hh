@@ -39,6 +39,11 @@ namespace systems
   ///
   /// It requires that contact sensor and depth camera be placed in at least
   /// one link on the model on which this plugin is attached.
+  /// TODO:
+  /// Currently, the contacts returned from the physics engine (which tends to
+  /// be sparse) and the normal forces separately computed from the depth
+  /// camera (which is dense, resolution adjustable) are disjoint. It is
+  /// left as future work to combine the two sets of data.
   ///
   /// Parameters:
   ///
@@ -63,10 +68,6 @@ namespace systems
   ///                            element must be positive and it is optional.
   ///                            The default value is 30.
   ///
-  /// <visualize_forces> Set this to true so the plugin visualizes the normal
-  ///                    forces in the 3D world. This element is optional,
-  ///                    and the default value is false.
-  ///
   /// <force_length> Length in meters of the forces visualized if
   ///                <visualize_forces> is set to true. This parameter is
   ///                optional, and the default value is 0.01.
@@ -80,8 +81,12 @@ namespace systems
   ///                    is optional, and the default value is false.
   ///
   /// <visualize_contacts> Whether to visualize the contacts from the contact
-  ///                      sensor or not. This element is optional, and the
-  ///                      default value is false.
+  ///                      sensor based on physics. This element is optional,
+  ///                      and the default value is false.
+  ///
+  /// <visualize_forces> Whether to visualize normal forces computed from the
+  ///                    depth camera. This element is optional, and the
+  ///                    default value is false.
 
   class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
     public System,

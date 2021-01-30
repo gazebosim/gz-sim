@@ -794,7 +794,8 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
       normalForcesBuffer.get()[bufferIndex] = normalForce.X();
       normalForcesBuffer.get()[bufferIndex + sizeof(float)] = normalForce.Y();
-      normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] = normalForce.Z();
+      normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] =
+        normalForce.Z();
 
       if (!_visualizeForces)
         continue;

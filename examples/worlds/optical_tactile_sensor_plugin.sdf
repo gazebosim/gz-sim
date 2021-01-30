@@ -202,12 +202,12 @@
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>true</enabled>
         <namespace>optical_tactile_plugin</namespace>
-        <visualization_resolution>15</visualization_resolution>
-        <visualize_forces>true</visualize_forces>
         <visualize_sensor>true</visualize_sensor>
+        <visualize_contacts>true</visualize_contacts>
+        <visualize_forces>true</visualize_forces>
+        <visualization_resolution>15</visualization_resolution>
         <force_length>0.01</force_length>
         <extended_sensing>0.001</extended_sensing>
-        <visualize_contacts>true</visualize_contacts>
       </plugin>
     </model>
 

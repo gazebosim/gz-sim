@@ -79,9 +79,10 @@
         name="ignition::gazebo::systems::OpticalTactilePlugin">
         <enabled>false</enabled>
         <namespace>optical_tactile_sensor</namespace>
-        <visualization_resolution>1</visualization_resolution>
-        <visualize_forces>false</visualize_forces>
         <visualize_sensor>false</visualize_sensor>
+        <visualize_contacts>false</visualize_contacts>
+        <visualize_forces>false</visualize_forces>
+        <visualization_resolution>1</visualization_resolution>
         <force_length>0.01</force_length>
         <extended_sensing>0.05</extended_sensing>
       </plugin>

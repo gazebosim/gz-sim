@@ -89,7 +89,7 @@ void OpticalTactilePluginVisualization::InitializeContactsMarkerMsg(
   // Reset all fields
   _contactsMarkerMsg = ignition::msgs::Marker();
 
-  // Initialize the marker for visualizing the contacts as red lines
+  // Initialize the marker for visualizing the physical contacts as red lines
   _contactsMarkerMsg.set_ns("contacts_" + this->modelName);
   _contactsMarkerMsg.set_id(1);
   _contactsMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
@@ -148,6 +148,7 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
 
   // Initialize marker messages for position and force of the contacts
 
+  // Positions computed from camera
   _positionMarkerMsg.set_ns("positions_" + this->modelName);
   _positionMarkerMsg.set_id(1);
   _positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
@@ -229,20 +230,18 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
     normalForcePoseFromWorld.Pos();
 
   // Check invalid points to avoid data transfer overhead
-  if (startPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0) ||
-      endPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0))
+  if (abs(startPointFromWorld.Distance(endPointFromWorld)) < 1e-6)
     return;
 
-  // Add points to the messages
-
+  // Position
   ignition::msgs::Set(_positionMarkerMsg.add_point(),
     ignition::math::Vector3d(startPointFromWorld.X(),
       startPointFromWorld.Y(), startPointFromWorld.Z()));
 
+  // Normal
   ignition::msgs::Set(_forceMarkerMsg.add_point(),
     ignition::math::Vector3d(startPointFromWorld.X(),
       startPointFromWorld.Y(), startPointFromWorld.Z()));
-
   ignition::msgs::Set(_forceMarkerMsg.add_point(),
     ignition::math::Vector3d(endPointFromWorld.X(),
       endPointFromWorld.Y(), endPointFromWorld.Z()));

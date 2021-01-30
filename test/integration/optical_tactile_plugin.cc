@@ -94,6 +94,7 @@ class OpticalTactilePluginTest : public ::testing::Test
 // The test checks the normal forces on the corners of the box-shaped sensor
 TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
 {
+  // TEMPORARY: Debugging Mac CI Ogre2 error
   ignerr << "1111111111111111111111\n";
 
   // World with moving entities
