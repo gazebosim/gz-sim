@@ -366,8 +366,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     workflow.SetEmissiveMap(pbrMsg.emissive_map());
-    workflow.SetLightMap(pbrMsg.light_map());
-    workflow.SetLightMapTexCoordSet(pbrMsg.light_map_texcoord_set());
+    workflow.SetLightMap(pbrMsg.light_map(), pbrMsg.light_map_texcoord_set());
 
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);

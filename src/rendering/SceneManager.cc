@@ -543,7 +543,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string lightMap = workflow->LightMap();
     if (!lightMap.empty())
     {
-      std::string fullPath = common::findFile(lightMap);
+      std::string fullPath = common::findFile(
+          asFullPath(lightMap, _material.FilePath()));
       if (!fullPath.empty())
       {
         unsigned int uvSet = workflow->LightMapTexCoordSet();
