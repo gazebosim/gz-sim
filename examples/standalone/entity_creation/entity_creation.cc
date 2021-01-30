@@ -19,8 +19,6 @@
 
 #include <iostream>
 
-#include <ignition/gazebo/components/Light.hh>
-#include <ignition/gazebo/components/LightCmd.hh>
 #include <ignition/transport/Node.hh>
 
 // Create a transport node.
