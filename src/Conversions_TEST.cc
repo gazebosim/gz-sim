@@ -206,8 +206,6 @@ TEST(Conversions, Material)
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
-
-  // todo(anyone) add double_sided field to msgs::Material
   material.SetDoubleSided(true);
 
   sdf::Pbr pbr;
@@ -239,11 +237,7 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
   EXPECT_DOUBLE_EQ(2.5, materialMsg.render_order());
-
-  // todo(anyone) double_sided is temporarily stored in header
-  // Need to add double_sided field to msgs::Material
-  bool doubleSided = math::parseInt(materialMsg.header().data(0).value(0));
-  EXPECT_TRUE(doubleSided);
+  EXPECT_TRUE(materialMsg.double_sided());
 
   EXPECT_TRUE(materialMsg.has_pbr());
   const auto &pbrMsg = materialMsg.pbr();

@@ -272,12 +272,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_render_order(_in.RenderOrder());
   out.set_lighting(_in.Lighting());
-
-  // todo(anyone) add double_sided field to msgs::Material
-  auto data = out.mutable_header()->add_data();
-  data->set_key("double_sided");
-  std::string *value = data->add_value();
-  *value = std::to_string(_in.DoubleSided());
+  out.set_double_sided(_in.DoubleSided());
 
   sdf::Pbr *pbr = _in.PbrMaterial();
   if (pbr)
@@ -333,14 +328,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetRenderOrder(_in.render_order());
   out.SetLighting(_in.lighting());
-
-  // todo(anyone) add double_sided field to msgs::Material
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    const auto &data = _in.header().data(i);
-    if (data.key() == "double_sided" && data.value_size() > 0)
-      out.SetDoubleSided(math::parseInt(data.value(0)));
-  }
+  out.SetDoubleSided(_in.double_sided());
 
   if (_in.has_pbr())
   {
