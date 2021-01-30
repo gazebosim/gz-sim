@@ -72,13 +72,12 @@ void createLight()
 
 void createEntityFromStr(const std::string modelStr)
 {
+//! [call service create sphere]
   bool result;
   ignition::msgs::EntityFactory req;
   ignition::msgs::Boolean res;
   req.set_sdf(modelStr);
-//! [create sphere]
 
-//! [call service create sphere]
   bool executed = node.Request("/world/empty/create",
             req, timeout, res, result);
   if (executed)

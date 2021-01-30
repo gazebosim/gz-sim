@@ -1,11 +1,11 @@
-\page model_creation Model creation
+\page entity_creation Entity creation
 
-This tutorial gives an introduction to the Ignition Gazebo's service `/world/<world name>/create`.
-This service will allow to create models in the scene such us spheres, lights, etc.
+This tutorial gives an introduction to Ignition Gazebo's service `/world/<world name>/create`.
+This service allows creating entities in the scene such us spheres, lights, etc.
 
-Ignition Gazebo creates many services which depends on the plugins that are specified in the SDF.
-In this case we need to load the `UserCommands` plugin, this will offer the `create` services.
-You can include the `UserCommands` system plugin including this lines in your SDF:
+Ignition Gazebo creates many services depending on the plugins that are specified in the SDF.
+In this case we need to load the `UserCommands` plugin, which will offer the `create` service.
+You can include the `UserCommands` system plugin including these lines in your SDF:
 
 ```xml
 <plugin
@@ -14,14 +14,16 @@ You can include the `UserCommands` system plugin including this lines in your SD
 </plugin>
 ```
 
-You can check this typing:
+You can check if this service is available typing:
 
 In one terminal
+
 ```bash
-ign gazebo -r -v 4 empty.world
+ign gazebo -r -v 4 <your_world>.sdf
 ```
 
-In other terminal:
+In another terminal, see if the create service is listed:
+
 ```bash
 ign service --list
 /gazebo/resource_paths/add
@@ -37,65 +39,72 @@ ign service --list
 /marker/list
 /marker_array
 /server_control
-/world/empty/control
-/world/empty/create
-/world/empty/create_multiple
-/world/empty/generate_world_sdf
-/world/empty/gui/info
-/world/empty/level/set_performer
-/world/empty/light_config
-/world/empty/playback/control
-/world/empty/remove
-/world/empty/scene/graph
-/world/empty/scene/info
-/world/empty/set_pose
-/world/empty/state
-/world/empty/state_async
+/world/world_name/control
+/world/world_name/create
+/world/world_name/create_multiple
+/world/world_name/generate_world_sdf
+/world/world_name/gui/info
+/world/world_name/level/set_performer
+/world/world_name/light_config
+/world/world_name/playback/control
+/world/world_name/remove
+/world/world_name/scene/graph
+/world/world_name/scene/info
+/world/world_name/set_pose
+/world/world_name/state
+/world/world_name/state_async
 ```
-# Including models and Lights
 
-To create new entities in the world we need to use the [ignition::msgs::EntityFactory](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html) message.
-This message allow us to create entities from string, files, [Models](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
+# Factory message
+
+To create new entities in the world we need to use the
+[ignition::msgs::EntityFactory](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html)
+message to send a request to the create service.
+This message allows us to create entities from strings, files,
+[Models](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
 [Lights](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html) or even clone models.
-This tutorial introduces how to create entities from strings and light msgs.
+This tutorial introduces how to create entities from SDF strings and light messages.
 
-## Include a model based on a string
+## Insert an entity based on a string
 
 We will open an empty Ignition Gazebo world, let's start creating a sphere in the world.
 In the next snippet you can see how to create models based on strings.
 
 \snippet examples/standalone/model_creation/model_creation.cc create sphere
 
-The variable `modelStr` contains the SDF of the model that we want to create in the world.
-In this case we are creating a sphere of 1 meter of radius in the position: `x: 0 y:0 z:0.5 roll: 0 pitch: 0 yaw: 0`.
+The variable `sphereStr` contains the SDF of the model that we want to create in the world.
+In this case we are creating a sphere of 1 meter of radius in the position: `x: 0 y: 0 z: 0.5 roll: 0 pitch: 0 yaw: 0`.
 
-**NOTE**: You can insert here all kinds of models that you can described using a SDF string.
+**NOTE**: You can insert here all kinds of models that can be described using an SDF string.
 
 Then we need to call the service `/world/<world_name>/create`:
 
 \snippet examples/standalone/model_creation/model_creation.cc call service create sphere
 
-**NOTE**: If the entity name does not exist then the entity will be created in the world or if the entity already
-exist then nothing will happen. You may see some traces in the console showing this information.
-There is the option to create a new entity every time that the message is sent by setting
+**NOTE**: By default, if the entity name does not exist then the entity will be created
+in the world. On the other hand, if that entity name already exists, then nothing will
+happen. You may see some traces in the console showing this information.
+There is an option to create a new entity every time that the message is sent by setting
 `allow_renaming` to true (you can use the method `set_allow_renaming()`).
 
-## Include a light
+## Insert a light
 
-To include a light in the world we have two options:
+To insert a light in the world we have two options:
 
- - Filled the string in the inside the `ignition::msgs::EntityFactory` message like in the section above.
- - Filled the field `light` inside the `ignition::msgs::EntityFactory` message.
+ - Fill the string inside the `ignition::msgs::EntityFactory` message like in the section above.
+ - Fill the field `light` inside the `ignition::msgs::EntityFactory` message.
 
 In the following snippet you can see how the light's field is filled.
 
 \snippet examples/standalone/model_creation/model_creation.cc create light
 
-Or we can create a SDF string:
+Or we can create an SDF string:
 
 \snippet examples/standalone/model_creation/model_creation.cc create light str
 
-Please check the API to know which fields are available in the [Light msgs](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html). There are three types of lights: Point, Directional and Spot.
+Please check the API to know which fields are available in the
+[Light message](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html).
+There are three types of lights: Point, Directional and Spot.
 
 Finally we should call the same service `/world/<world_name>/create`:
 
