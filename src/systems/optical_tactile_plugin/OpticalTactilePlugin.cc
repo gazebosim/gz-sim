@@ -755,7 +755,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   normalsMsg.set_pixel_format_type(ignition::msgs::PixelFormatType::R_FLOAT32);
 
   uint32_t bufferSize = 3 * sizeof(float) * _msg.width() * _msg.height();
-  auto *normalForcesBuffer = new char[bufferSize];
+  std::shared_ptr<char> normalForcesBuffer(new char[bufferSize]);
   uint32_t bufferIndex;
 
   // Marker messages representing the normal forces
@@ -792,9 +792,9 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       // Forces buffer is composed of XYZ coordinates, while _msg buffer is
       // made up of XYZRGB values
       bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
-      normalForcesBuffer[bufferIndex] = normalForce.X();
-      normalForcesBuffer[bufferIndex + sizeof(float)] = normalForce.Y();
-      normalForcesBuffer[bufferIndex + 2 * sizeof(float)] = normalForce.Z();
+      normalForcesBuffer.get()[bufferIndex] = normalForce.X();
+      normalForcesBuffer.get()[bufferIndex + sizeof(float)] = normalForce.Y();
+      normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] = normalForce.Z();
 
       if (!_visualizeForces)
         continue;
@@ -807,7 +807,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   }
 
   // Publish message
-  normalsMsg.set_data(normalForcesBuffer,
+  normalsMsg.set_data(normalForcesBuffer.get(),
     3 * sizeof(float) * _msg.width() * _msg.height());
   this->normalForcesPub.Publish(normalsMsg);
 

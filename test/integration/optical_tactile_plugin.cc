@@ -22,6 +22,7 @@
 #include <thread>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/msgs/Utility.hh>
 
@@ -48,7 +49,7 @@ class OpticalTactilePluginTest : public ::testing::Test
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
-    serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) + _sdfFile);
+    serverConfig.SetSdfFile(_sdfFile);
     server = std::make_unique<Server>(serverConfig);
     using namespace std::chrono_literals;
     server->SetUpdatePeriod(0ns);
@@ -93,7 +94,12 @@ class OpticalTactilePluginTest : public ::testing::Test
 // The test checks the normal forces on the corners of the box-shaped sensor
 TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
 {
-  this->StartServer("/test/worlds/optical_tactile_plugin.sdf");
+  ignerr << "1111111111111111111111\n";
+
+  // World with moving entities
+  const auto sdfPath = common::joinPaths(
+    PROJECT_SOURCE_PATH, "test", "worlds", "optical_tactile_plugin.sdf");
+  this->StartServer(sdfPath);
 
   math::Vector3f upperLeftNormalForce(0, 0, 0);
   math::Vector3f upperRightNormalForce(0, 0, 0);
@@ -120,6 +126,8 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerRightNormalForce);
 
+  ignerr << "2222222222222222222222\n";
+
   // Let the depth camera generate data
   server->Run(true, 1000, false);
   // Check that there are no forces before the plugin is enabled
@@ -128,15 +136,20 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerRightNormalForce);
 
+  ignerr << "3333333333333333333333\n";
+
   // Enable the plugin
   msgs::Boolean req;
   req.set_data(true);
   bool executed = node.Request("/optical_tactile_sensor/enable", req);
-
   EXPECT_TRUE(executed);
+
+  ignerr << "4444444444444444444444\n";
 
   // Let the plugin generate data again
   server->Run(true, 2000, false);
+
+  ignerr << "5555555555555555555555\n";
 
   // Check the values of the forces
   EXPECT_EQ(math::Vector3f(-1, 0, 0), upperRightNormalForce);
