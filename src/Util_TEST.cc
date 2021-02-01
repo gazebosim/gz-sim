@@ -428,6 +428,7 @@ TEST_F(UtilTest, TopLevelModel)
   //    - linkA
   //    - modelB
   //      - linkB
+  //        - visualB
   //  - modelC
 
   // World
@@ -459,20 +460,31 @@ TEST_F(UtilTest, TopLevelModel)
   ecm.CreateComponent(linkBEntity, components::Name("linkB_name"));
   ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
 
+  // Visual B - child of Link B
+  auto visualBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(visualBEntity, components::Visual());
+  ecm.CreateComponent(visualBEntity, components::Name("visualB_name"));
+  ecm.CreateComponent(visualBEntity, components::ParentEntity(linkBEntity));
+
   // Model C
   auto modelCEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelCEntity, components::Model());
   ecm.CreateComponent(modelCEntity, components::Name("modelC_name"));
   ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
 
-  // model A, link A, model B and link B should have model A as top level entity
+  // model A, link A, model B, link B and visual B should have
+  // model A as the top level model
   EXPECT_EQ(modelAEntity, topLevelModel(modelAEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(linkAEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(modelBEntity, ecm));
   EXPECT_EQ(modelAEntity, topLevelModel(linkBEntity, ecm));
+  EXPECT_EQ(modelAEntity, topLevelModel(visualBEntity, ecm));
 
-  // model C should have itself as the top level entity
+  // model C should have itself as the top level model
   EXPECT_EQ(modelCEntity, topLevelModel(modelCEntity, ecm));
+
+  // the world should have no top level model
+  EXPECT_EQ(kNullEntity, topLevelModel(worldEntity, ecm));
 }
 
 /////////////////////////////////////////////////
