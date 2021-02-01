@@ -336,6 +336,13 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Light service
   std::string lightService{"/world/" + worldName + "/light_config"};
+  lightService = transport::TopicUtils::AsValidTopic(lightService);
+  if (lightService.empty())
+  {
+    ignerr << "Invalid light config service topic provided" << std::endl;
+    return;
+  }
+
   this->dataPtr->node.Advertise(lightService,
       &UserCommandsPrivate::LightService, this->dataPtr.get());
 
@@ -779,13 +786,13 @@ bool LightCommand::Execute()
 
   Entity lightEntity{kNullEntity};
 
-  if (lightMsg->id() != 0)
+  if (lightMsg->id() != kNullEntity)
   {
     lightEntity = lightMsg->id();
   }
   else if (!lightMsg->name().empty())
   {
-    if (lightMsg->parent_id() != 0)
+    if (lightMsg->parent_id() != kNullEntity)
     {
       lightEntity = this->iface->ecm->EntityByComponents(
         components::Name(lightMsg->name()),
@@ -803,28 +810,6 @@ bool LightCommand::Execute()
            << "], ID [" << lightMsg->id() << "] and parent ID ["
            << lightMsg->parent_id() << "]." << std::endl;
     return false;
-  }
-
-  auto lightComp = this->iface->ecm->Component<components::Light>(lightEntity);
-  if (nullptr == lightComp)
-  {
-    lightEntity = kNullEntity;
-    // try to find the light inside a link
-    auto tempLightEnty = this->iface->ecm->EntityByComponents(
-      components::Name(lightMsg->name()));
-    if (tempLightEnty != kNullEntity)
-    {
-      // check if light parent is a link
-      auto parentComp = this->iface->ecm->Component<components::ParentEntity>(
-        tempLightEnty);
-      if (parentComp && this->iface->ecm->Component<components::Link>(
-        parentComp->Data()))
-      {
-        lightComp =
-          this->iface->ecm->Component<components::Light>(tempLightEnty);
-        lightEntity = tempLightEnty;
-      }
-    }
   }
 
   if (!lightEntity)

@@ -23,8 +23,6 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/Light.hh>
-#include <ignition/gazebo/components/LightCmd.hh>
 #include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
@@ -34,8 +32,6 @@
 #include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/components/Static.hh>
 #include <ignition/gazebo/components/WindMode.hh>
-
-#include <sdf/Light.hh>
 
 using namespace ignition;
 using namespace gazebo;

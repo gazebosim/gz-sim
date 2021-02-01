@@ -513,31 +513,37 @@ void RenderUtil::Update()
       auto l = std::dynamic_pointer_cast<rendering::Light>(node);
       if (l)
       {
-        if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
-          l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
-        if (l->SpecularColor() != msgs::Convert(light.second.specular()))
+        if (light.second.has_diffuse())
         {
-          l->SetSpecularColor(msgs::Convert(light.second.specular()));
+          if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
+            l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
         }
-        if (ignition::math::equal(
+        if (light.second.has_specular())
+        {
+          if (l->SpecularColor() != msgs::Convert(light.second.specular()))
+          {
+            l->SetSpecularColor(msgs::Convert(light.second.specular()));
+          }
+        }
+        if (!ignition::math::equal(
             l->AttenuationRange(),
             static_cast<double>(light.second.range())))
         {
           l->SetAttenuationRange(light.second.range());
         }
-        if (ignition::math::equal(
+        if (!ignition::math::equal(
             l->AttenuationLinear(),
             static_cast<double>(light.second.attenuation_linear())))
         {
           l->SetAttenuationLinear(light.second.attenuation_linear());
         }
-        if (ignition::math::equal(
+        if (!ignition::math::equal(
             l->AttenuationConstant(),
             static_cast<double>(light.second.attenuation_constant())))
         {
           l->SetAttenuationConstant(light.second.attenuation_constant());
         }
-        if (ignition::math::equal(
+        if (!ignition::math::equal(
             l->AttenuationQuadratic(),
             static_cast<double>(light.second.attenuation_quadratic())))
         {
@@ -549,28 +555,34 @@ void RenderUtil::Update()
           std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
         if (lDirectional)
         {
-          if (lDirectional->Direction() !=
-              msgs::Convert(light.second.direction()))
+          if (light.second.has_direction())
           {
-            lDirectional->SetDirection(
-              msgs::Convert(light.second.direction()));
+            if (lDirectional->Direction() !=
+                msgs::Convert(light.second.direction()))
+            {
+              lDirectional->SetDirection(
+                msgs::Convert(light.second.direction()));
+            }
           }
         }
         auto lSpotLight =
           std::dynamic_pointer_cast<rendering::SpotLight>(node);
         if (lSpotLight)
         {
-          if (lSpotLight->Direction() !=
-            msgs::Convert(light.second.direction()))
+          if (light.second.has_direction())
           {
-            lSpotLight->SetDirection(
-              msgs::Convert(light.second.direction()));
+            if (lSpotLight->Direction() !=
+              msgs::Convert(light.second.direction()))
+            {
+              lSpotLight->SetDirection(
+                msgs::Convert(light.second.direction()));
+            }
           }
           if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
             lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
           if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
             lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
-          if (ignition::math::equal(
+          if (!ignition::math::equal(
               lSpotLight->Falloff(),
               static_cast<double>(light.second.spot_falloff())))
           {

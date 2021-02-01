@@ -228,22 +228,28 @@ void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
 
 void Plotting::SetData(std::string _Id, const msgs::Light &_light)
 {
-  this->dataPtr->components[_Id]->SetAttributeValue("specularR",
-    _light.specular().r());
-  this->dataPtr->components[_Id]->SetAttributeValue("specularG",
-    _light.specular().g());
-  this->dataPtr->components[_Id]->SetAttributeValue("specularB",
-    _light.specular().b());
-  this->dataPtr->components[_Id]->SetAttributeValue("specularA",
-    _light.specular().a());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseR",
-    _light.diffuse().r());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseG",
-    _light.diffuse().g());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseB",
-    _light.diffuse().b());
-  this->dataPtr->components[_Id]->SetAttributeValue("diffuseA",
-    _light.diffuse().a());
+  if (_light.has_specular())
+  {
+    this->dataPtr->components[_Id]->SetAttributeValue("specularR",
+      _light.specular().r());
+    this->dataPtr->components[_Id]->SetAttributeValue("specularG",
+      _light.specular().g());
+    this->dataPtr->components[_Id]->SetAttributeValue("specularB",
+      _light.specular().b());
+    this->dataPtr->components[_Id]->SetAttributeValue("specularA",
+      _light.specular().a());
+  }
+  if (_light.has_diffuse())
+  {
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseR",
+      _light.diffuse().r());
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseG",
+      _light.diffuse().g());
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseB",
+      _light.diffuse().b());
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseA",
+      _light.diffuse().a());
+  }
   this->dataPtr->components[_Id]->SetAttributeValue("attRange",
     _light.range());
   this->dataPtr->components[_Id]->SetAttributeValue("attLinear",
@@ -254,12 +260,15 @@ void Plotting::SetData(std::string _Id, const msgs::Light &_light)
     _light.attenuation_quadratic());
   this->dataPtr->components[_Id]->SetAttributeValue("castshadows",
     _light.cast_shadows());
-  this->dataPtr->components[_Id]->SetAttributeValue("directionX",
-    _light.direction().x());
-  this->dataPtr->components[_Id]->SetAttributeValue("directionY",
-    _light.direction().y());
-  this->dataPtr->components[_Id]->SetAttributeValue("directionZ",
-    _light.direction().z());
+  if (_light.has_direction())
+  {
+    this->dataPtr->components[_Id]->SetAttributeValue("directionX",
+      _light.direction().x());
+    this->dataPtr->components[_Id]->SetAttributeValue("directionY",
+      _light.direction().y());
+    this->dataPtr->components[_Id]->SetAttributeValue("directionZ",
+      _light.direction().z());
+  }
   this->dataPtr->components[_Id]->SetAttributeValue("innerAngle",
     _light.spot_inner_angle());
   this->dataPtr->components[_Id]->SetAttributeValue("outerAngle",

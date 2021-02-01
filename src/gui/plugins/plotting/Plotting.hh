@@ -23,8 +23,7 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
-
-#include <ignition/msgs/Utility.hh>
+#include <ignition/msgs/light.pb.h>
 
 #include <map>
 #include <string>
