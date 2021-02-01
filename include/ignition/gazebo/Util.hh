@@ -134,7 +134,8 @@ namespace ignition
     /// \brief Get the top level model of an entity
     /// \param[in] _entity Input entity
     /// \param[in] _ecm Constant reference to ECM.
-    /// \return Entity of top level model
+    /// \return Entity of top level model. If _entity has no top level model,
+    /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity,
         const EntityComponentManager &_ecm);
