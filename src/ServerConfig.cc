@@ -922,4 +922,3 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
 
   return ret;
 }
-
