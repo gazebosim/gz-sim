@@ -316,6 +316,9 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
           asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
       pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
           asFullPath(workflow->EmissiveMap(), _in.FilePath()));
+      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" :
+          asFullPath(workflow->LightMap(), _in.FilePath()));
+      pbrMsg->set_light_map_texcoord_set(workflow->LightMapTexCoordSet());
     }
   }
   return out;
@@ -363,6 +366,8 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     workflow.SetEmissiveMap(pbrMsg.emissive_map());
+    workflow.SetLightMap(pbrMsg.light_map(), pbrMsg.light_map_texcoord_set());
+
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
   }
