@@ -216,6 +216,12 @@ namespace ignition
     template<>
     msgs::Light convert(const sdf::Light &_in);
 
+    /// \brief Generic conversion from a SDF light type to string.
+    /// \param[in] _in SDF light type.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    std::string IGNITION_GAZEBO_VISIBLE
+    convert(const sdf::LightType &_in);
 
     /// \brief Generic conversion from a light message to another type.
     /// \param[in] _in Light message.
@@ -233,6 +239,12 @@ namespace ignition
     /// \return Light SDF object.
     template<>
     sdf::Light convert(const msgs::Light &_in);
+
+    /// \brief Specialized conversion from a string to a sdf light type
+    /// \param[in] _in String with the light type.
+    /// \return Light type emun SDF object.
+    sdf::LightType IGNITION_GAZEBO_VISIBLE
+    convert(const std::string &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.

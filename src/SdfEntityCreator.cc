@@ -380,31 +380,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
   this->dataPtr->ecm->CreateComponent(lightEntity,
       components::Name(_light->Name()));
 
-  if (_light->Type() == sdf::LightType::POINT)
-  {
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::LightType(std::string("Point")));
-  }
-  else if (_light->Type() == sdf::LightType::DIRECTIONAL)
-  {
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::LightType(std::string("Directional")));
-  }
-  else if (_light->Type() == sdf::LightType::SPOT)
-  {
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::LightType(std::string("Spot")));
-  }
-
-  // Entity
-  Entity visualEntity = this->dataPtr->ecm->CreateEntity();
-
-  // Components
-  this->dataPtr->ecm->CreateComponent(visualEntity, components::Visual());
-  this->dataPtr->ecm->CreateComponent(visualEntity,
-      components::Name(std::string("light_visual")));
-
-  this->SetParent(visualEntity, lightEntity);
+  this->dataPtr->ecm->CreateComponent(lightEntity,
+    components::LightType(convert(_light->Type())));
 
   return lightEntity;
 }

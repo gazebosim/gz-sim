@@ -101,6 +101,16 @@ TEST(Conversions, Light)
   EXPECT_EQ(math::Angle(1.9), newLight.SpotInnerAngle());
   EXPECT_EQ(math::Angle(3.3), newLight.SpotOuterAngle());
   EXPECT_FLOAT_EQ(0.9, newLight.SpotFalloff());
+
+  EXPECT_EQ("", convert(sdf::LightType::INVALID));
+  EXPECT_EQ("Point", convert(sdf::LightType::POINT));
+  EXPECT_EQ("Directional", convert(sdf::LightType::DIRECTIONAL));
+  EXPECT_EQ("Spot", convert(sdf::LightType::SPOT));
+
+  EXPECT_EQ(sdf::LightType::POINT, convert("POINT"));
+  EXPECT_EQ(sdf::LightType::DIRECTIONAL, convert("DireCtiOnal"));
+  EXPECT_EQ(sdf::LightType::SPOT, convert("spot"));
+  EXPECT_EQ(sdf::LightType::INVALID, convert("gazebo"));
 }
 
 /////////////////////////////////////////////////

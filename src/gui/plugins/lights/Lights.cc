@@ -20,7 +20,6 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
-#include <algorithm>
 #include <iostream>
 #include <string>
 
@@ -38,14 +37,6 @@ namespace ignition::gazebo
 {
   class LightsPrivate
   {
-    /// \brief Ignition communication node.
-    public: transport::Node node;
-
-    /// \brief Mutex to protect mode
-    public: std::mutex mutex;
-
-    /// \brief Transform control service name
-    public: std::string service;
   };
 }
 
@@ -67,16 +58,12 @@ void Lights::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Lights";
-
-  // For shapes requests
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
-void Lights::OnMode(const QString &_mode)
+void Lights::OnNewLightClicked(const QString &_sdfString)
 {
-  std::string modelSdfString = _mode.toStdString();
+  std::string modelSdfString = _sdfString.toStdString();
   std::transform(modelSdfString.begin(), modelSdfString.end(),
                  modelSdfString.begin(), ::tolower);
 

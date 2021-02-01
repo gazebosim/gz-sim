@@ -44,8 +44,8 @@ namespace gazebo
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     /// \brief Callback in Qt thread when mode changes.
-    /// \param[in] _mode New transform mode
-    public slots: void OnMode(const QString &_mode);
+    /// \param[in] _sdfString type name of the light to be created
+    public slots: void OnNewLightClicked(const QString &_sdfString);
 
     /// \internal
     /// \brief Pointer to private data.

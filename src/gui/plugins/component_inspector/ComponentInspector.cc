@@ -506,9 +506,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::LightType>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
-
-      if (this->dataPtr->entity == this->dataPtr->worldEntity)
-        this->dataPtr->worldName = comp->Data();
     }
     else if (typeId == components::ParentEntity::typeId)
     {

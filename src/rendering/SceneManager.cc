@@ -886,7 +886,7 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     if (!visualParent && !lightParent)
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding model visual with ID[" << _id
+             << "Not adding light visual with ID[" << _id
              << "]  and name [" << name << "] to the rendering scene."
              << std::endl;
       return rendering::VisualPtr();

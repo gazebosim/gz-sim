@@ -47,7 +47,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Lights.OnMode("point")
+        Lights.OnNewLightClicked("point")
       }
     }
     ToolButton{
@@ -64,7 +64,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Lights.OnMode("directional")
+        Lights.OnNewLightClicked("directional")
       }
     }
     ToolButton {
@@ -81,7 +81,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Lights.OnMode("spot")
+        Lights.OnNewLightClicked("spot")
       }
     }
   }

@@ -33,8 +33,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds an entity's type. The component has no concept
-  /// of scoped types nor does it care about uniqueness.
+  /// \brief A component that contains the light type. This is a simple wrapper
+  /// around sdf::LightType
   using LightType = Component<std::string, class LightTypeTag,
       serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LightType", LightType)
