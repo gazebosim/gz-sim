@@ -909,15 +909,15 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     this->dataPtr->scene->CreateLightVisual(name);
   if (_light.Type() == sdf::LightType::POINT)
   {
-    lightVisual->SetType(rendering::LightVisualType::LightVisual_POINT);
+    lightVisual->SetType(rendering::LightVisualType::LVT_POINT);
   }
   else if (_light.Type() == sdf::LightType::DIRECTIONAL)
   {
-    lightVisual->SetType(rendering::LightVisualType::LightVisual_DIRECTIONAL);
+    lightVisual->SetType(rendering::LightVisualType::LVT_DIRECTIONAL);
   }
   else if (_light.Type() == sdf::LightType::SPOT)
   {
-    lightVisual->SetType(rendering::LightVisualType::LightVisual_SPOT);
+    lightVisual->SetType(rendering::LightVisualType::LVT_SPOT);
     lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
     lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
