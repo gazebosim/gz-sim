@@ -499,6 +499,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
@@ -596,6 +597,23 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
         material->SetEmissiveMap(fullPath);
       else
         ignerr << "Unable to find file [" << emissiveMap << "]\n";
+    }
+
+    // light map
+    std::string lightMap = workflow->LightMap();
+    if (!lightMap.empty())
+    {
+      std::string fullPath = common::findFile(
+          asFullPath(lightMap, _material.FilePath()));
+      if (!fullPath.empty())
+      {
+        unsigned int uvSet = workflow->LightMapTexCoordSet();
+        material->SetLightMap(fullPath, uvSet);
+      }
+      else
+      {
+        ignerr << "Unable to find file [" << lightMap << "]\n";
+      }
     }
   }
   return material;
