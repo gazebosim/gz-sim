@@ -95,14 +95,6 @@ class SdfFrameSemanticsTest : public ::testing::Test
     sdf::Errors errors = root.LoadSdfString(_sdfString);
     EXPECT_TRUE(errors.empty());
     ASSERT_NE(nullptr, root.Model());
-    if (!errors.empty())
-    {
-      for (const auto &error : errors)
-      {
-        std::cout << error << std::endl;
-      }
-    }
-    ASSERT_EQ(root.ModelCount(), 1u);
 
     Entity modelEntity = this->creator->CreateEntities(root.Model());
     Entity worldEntity = this->ecm->EntityByComponents(components::World());

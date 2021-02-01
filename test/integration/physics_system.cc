@@ -1084,7 +1084,7 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModel)
   // From include_nested, but with name overwritten by include_nested_models
   modelIt = postUpModelPoses.find("include_nested_new_name");
   ASSERT_NE(postUpModelPoses.end(), modelIt);
-  EXPECT_EQ(math::Pose3d(0, 0, 0, 1.0, 2.0, 3.0), modelIt->second);
+  EXPECT_EQ(math::Pose3d(1.0, 2.0, 3.0, 0, 0, 0), modelIt->second);
 
   // From nested_models, but with name overwritten by include_nested
   modelIt = postUpModelPoses.find("nested_models_new_name");

@@ -109,17 +109,17 @@ static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
 }
 
 static std::optional<sdf::JointAxis> ResolveJointAxis(
-    const sdf::JointAxis *_unresolvedAxis)
+    const sdf::JointAxis &_unresolvedAxis)
 {
   math::Vector3d axisXyz;
-  const sdf::Errors resolveAxisErrors = _unresolvedAxis->ResolveXyz(axisXyz);
+  const sdf::Errors resolveAxisErrors = _unresolvedAxis.ResolveXyz(axisXyz);
   if (!resolveAxisErrors.empty())
   {
     ignerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
-  sdf::JointAxis resolvedAxis = *_unresolvedAxis;
+  sdf::JointAxis resolvedAxis = _unresolvedAxis;
 
   const sdf::Errors setXyzErrors = resolvedAxis.SetXyz(axisXyz);
   if (!setXyzErrors.empty())
@@ -499,9 +499,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 
   if (_joint->Axis(0))
   {
-    auto resolvedAxis = ResolveJointAxis(_joint->Axis(0));
+    auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
     if (!resolvedAxis)
     {
+      ignerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
+             << "'" << std::endl;
       return kNullEntity;
     }
 
@@ -511,9 +513,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 
   if (_joint->Axis(1))
   {
-    auto resolvedAxis = ResolveJointAxis(_joint->Axis(1));
+    auto resolvedAxis = ResolveJointAxis(*_joint->Axis(1));
     if (!resolvedAxis)
     {
+      ignerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
+             << "'" << std::endl;
       return kNullEntity;
     }
 

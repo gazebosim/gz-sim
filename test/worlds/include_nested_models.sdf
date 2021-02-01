@@ -23,7 +23,7 @@
     <include>
       <uri>include_nested</uri>
       <name>include_nested_new_name</name>
-      <pose>0 0 0 1 2 3</pose>
+      <pose>1 2 3 0 0 0</pose>
     </include>
 
   </world>
