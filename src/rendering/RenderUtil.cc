@@ -280,7 +280,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &,
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
 
-  auto entityLightsCmdToDelete =
+  auto olderEntitiesLightsCmdToDelete =
     std::move(this->dataPtr->entityLightsCmdToDelete);
   this->dataPtr->entityLightsCmdToDelete.clear();
 
@@ -304,7 +304,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &,
         return true;
       });
 
-  for (const auto entity : entityLightsCmdToDelete)
+  for (const auto entity : olderEntitiesLightsCmdToDelete)
   {
     _ecm.RemoveComponent<components::LightCmd>(entity);
   }
