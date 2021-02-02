@@ -919,18 +919,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 {
   std::list<ServerConfig::PluginInfo> plugins;
 
-  if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+  if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
   {
     ignwarn <<
       "Both recording and playback are specified, defaulting to playback\n";
   }
 
-  if(!_config.LogPlaybackPath().empty())
+  if (!_config.LogPlaybackPath().empty())
   {
     auto playbackPlugin = _config.LogPlaybackPlugin();
     plugins.push_back(playbackPlugin);
   }
-  else if(_config.UseLogRecord())
+  else if (_config.UseLogRecord())
   {
     auto recordPlugin = _config.LogRecordPlugin();
     plugins.push_back(recordPlugin);
