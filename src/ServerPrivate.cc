@@ -349,7 +349,7 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this))
   {
-    ignmsg << "Resource path get service on [" << addPathService << "]."
+    ignmsg << "Resource path get service on [" << getPathService << "]."
            << std::endl;
   }
   else
