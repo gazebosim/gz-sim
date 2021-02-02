@@ -816,11 +816,12 @@ void IgnRenderer::Render()
     {
       rendering::NodePtr targetNode =
           scene->NodeByName(this->dataPtr->viewCollisionsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
 
-      if (targetNode)
+      if (targetVis)
       {
         Entity targetEntity =
-            this->dataPtr->renderUtil.SceneManager().EntityFromNode(targetNode);
+            std::get<int>(targetVis->UserData("gazebo-entity"));
         this->dataPtr->renderUtil.ViewCollisions(targetEntity);
       }
       else
