@@ -16,7 +16,10 @@
  */
 
 #include <map>
+#include <string>
+#include <tuple>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <sdf/Actor.hh>
@@ -58,7 +61,9 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
@@ -167,8 +172,19 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
-  /// \brief A map of entity ids and temperature
-  public: std::map<Entity, float> entityTemp;
+  /// \brief A map of entity ids and temperature data.
+  /// The value of this map (tuple) represents either a single (uniform)
+  /// temperature, or a heat signature with a min/max temperature. If the string
+  /// in the tuple is empty, then this entity has a uniform temperature across
+  /// its surface, and this uniform temperature is stored in the first float of
+  /// the tuple (the second float and string are unused for uniform temperature
+  /// entities). If the string in the tuple is not empty, then the string
+  /// represents the entity's heat signature (a path to a heat signature texture
+  /// file), and the floats represent the min/max temperatures of the heat
+  /// signature, respectively.
+  ///
+  /// All temperatures are in Kelvin.
+  public: std::map<Entity, std::tuple<float, float, std::string>> entityTemp;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -596,7 +612,7 @@ void RenderUtil::Update()
   }
 
   // set visual temperature
-  for (auto &temp : entityTemp)
+  for (const auto &temp : entityTemp)
   {
     auto node = this->dataPtr->sceneManager.NodeById(temp.first);
     if (!node)
@@ -607,7 +623,15 @@ void RenderUtil::Update()
     if (!visual)
       continue;
 
-    visual->SetUserData("temperature", temp.second);
+    const auto &heatSignature = std::get<2>(temp.second);
+    if (heatSignature.empty())
+      visual->SetUserData("temperature", std::get<0>(temp.second));
+    else
+    {
+      visual->SetUserData("minTemp", std::get<0>(temp.second));
+      visual->SetUserData("maxTemp", std::get<1>(temp.second));
+      visual->SetUserData("temperature", heatSignature);
+    }
   }
 }
 
@@ -724,13 +748,29 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
-          // todo(anyone) make visual updates more generic without using extra
-          // variables like entityTemp just for storing one specific visual
-          // param?
-          auto temp = _ecm.Component<components::Temperature>(_entity);
-          if (temp)
+          if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
-            this->entityTemp[_entity] = temp->Data().Kelvin();
+            // get the uniform temperature for the entity
+            this->entityTemp[_entity] =
+              std::make_tuple<float, float, std::string>(
+                  temp->Data().Kelvin(), 0.0, "");
+          }
+          else
+          {
+            // entity doesn't have a uniform temperature. Check if it has
+            // a heat signature with an associated temperature range
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            auto tempRange =
+               _ecm.Component<components::TemperatureRange>(_entity);
+            if (heatSignature && tempRange)
+            {
+              this->entityTemp[_entity] =
+                std::make_tuple<float, float, std::string>(
+                    tempRange->Data().min.Kelvin(),
+                    tempRange->Data().max.Kelvin(),
+                    std::string(heatSignature->Data()));
+            }
           }
 
           this->newVisuals.push_back(

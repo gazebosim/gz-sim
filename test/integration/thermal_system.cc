@@ -21,15 +21,15 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "../helpers/Relay.hh"
-
-#define tol 10e-4
 
 using namespace ignition;
 using namespace gazebo;
@@ -62,6 +62,9 @@ TEST_F(ThermalTest, TemperatureComponent)
   test::Relay testSystem;
 
   std::map<std::string, math::Temperature> entityTemp;
+  std::map<std::string, components::TemperatureRangeInfo>
+    entityTempRange;
+  std::map<std::string, std::string> heatSignatures;
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
     const gazebo::EntityComponentManager &_ecm)
     {
@@ -78,18 +81,91 @@ TEST_F(ThermalTest, TemperatureComponent)
 
             return true;
           });
+
+      _ecm.Each<components::TemperatureRange, components::SourceFilePath,
+        components::Name>(
+          [&](const ignition::gazebo::Entity &_id,
+              const components::TemperatureRange *_tempRange,
+              const components::SourceFilePath *_heatSigURI,
+              const components::Name *_name) -> bool
+          {
+            // store temperature range data
+            entityTempRange[_name->Data()] = _tempRange->Data();
+
+            // store heat signature URI data
+            heatSignatures[_name->Data()] = _heatSigURI->Data();
+
+            // verify temperature range data belongs to a visual
+            EXPECT_NE(nullptr, _ecm.Component<components::Visual>(_id));
+
+            return true;
+          });
     });
   server.AddSystem(testSystem.systemPtr);
 
-  // verify nothing in map at beginning
+  // verify nothing in the maps at beginning
   EXPECT_TRUE(entityTemp.empty());
+  EXPECT_TRUE(entityTempRange.empty());
+  EXPECT_TRUE(heatSignatures.empty());
 
   // Run server
   server.Run(true, 1, false);
 
+  const std::string sphereVisual = "sphere_visual";
+  const std::string cylinderVisual = "cylinder_visual";
+  const std::string visual = "visual";
+  const std::string heatSignatureCylinderVisual =
+    "heat_signature_cylinder_visual";
+  const std::string heatSignatureSphereVisual =
+    "heat_signature_sphere_visual";
+  const std::string heatSignatureSphereVisual2 =
+    "heat_signature_sphere_visual_2";
+  const std::string heatSignatureTestResource = "duck.png";
+
   // verify temperature components are created and the values are correct
-  EXPECT_EQ(3u, entityTemp.size());
-  EXPECT_DOUBLE_EQ(200.0, entityTemp["box_visual"].Kelvin());
-  EXPECT_DOUBLE_EQ(600.0, entityTemp["sphere_visual"].Kelvin());
-  EXPECT_DOUBLE_EQ(400.0, entityTemp["cylinder_visual"].Kelvin());
+  EXPECT_EQ(2u, entityTemp.size());
+  ASSERT_TRUE(entityTemp.find(sphereVisual) != entityTemp.end());
+  ASSERT_TRUE(entityTemp.find(cylinderVisual) != entityTemp.end());
+  EXPECT_DOUBLE_EQ(600.0, entityTemp[sphereVisual].Kelvin());
+  EXPECT_DOUBLE_EQ(400.0, entityTemp[cylinderVisual].Kelvin());
+
+  EXPECT_EQ(4u, entityTempRange.size());
+  ASSERT_TRUE(entityTempRange.find(visual) != entityTempRange.end());
+  ASSERT_TRUE(entityTempRange.find(
+        heatSignatureCylinderVisual) != entityTempRange.end());
+  ASSERT_TRUE(entityTempRange.find(
+        heatSignatureSphereVisual) != entityTempRange.end());
+  ASSERT_TRUE(entityTempRange.find(
+        heatSignatureSphereVisual2) != entityTempRange.end());
+  EXPECT_DOUBLE_EQ(310.0, entityTempRange[visual].min.Kelvin());
+  EXPECT_DOUBLE_EQ(310.0, entityTempRange[visual].max.Kelvin());
+  EXPECT_DOUBLE_EQ(310.0,
+      entityTempRange[heatSignatureCylinderVisual].min.Kelvin());
+  EXPECT_DOUBLE_EQ(310.0,
+      entityTempRange[heatSignatureCylinderVisual].max.Kelvin());
+  EXPECT_DOUBLE_EQ(310.0,
+      entityTempRange[heatSignatureSphereVisual].min.Kelvin());
+  EXPECT_DOUBLE_EQ(500.0,
+      entityTempRange[heatSignatureSphereVisual].max.Kelvin());
+  EXPECT_DOUBLE_EQ(310.0,
+      entityTempRange[heatSignatureSphereVisual2].min.Kelvin());
+  EXPECT_DOUBLE_EQ(400.0,
+      entityTempRange[heatSignatureSphereVisual2].max.Kelvin());
+
+  EXPECT_EQ(4u, heatSignatures.size());
+  ASSERT_TRUE(heatSignatures.find(visual) != heatSignatures.end());
+  ASSERT_TRUE(heatSignatures.find(
+        heatSignatureCylinderVisual) != heatSignatures.end());
+  ASSERT_TRUE(heatSignatures.find(
+        heatSignatureSphereVisual) != heatSignatures.end());
+  ASSERT_TRUE(heatSignatures.find(
+        heatSignatureSphereVisual2) != heatSignatures.end());
+  EXPECT_TRUE(heatSignatures[visual].find(
+        "RescueRandy_Thermal.png") != std::string::npos);
+  EXPECT_TRUE(heatSignatures[heatSignatureCylinderVisual].find(
+        heatSignatureTestResource) != std::string::npos);
+  EXPECT_TRUE(heatSignatures[heatSignatureSphereVisual].find(
+        heatSignatureTestResource) != std::string::npos);
+  EXPECT_TRUE(heatSignatures[heatSignatureSphereVisual2].find(
+        heatSignatureTestResource) != std::string::npos);
 }
