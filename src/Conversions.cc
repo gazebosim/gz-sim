@@ -277,8 +277,8 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   auto pbr = _in.PbrMaterial();
   if (pbr)
   {
-    msgs::Material::PBR *pbrMsg = out.mutable_pbr();
-    sdf::PbrWorkflow *workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    auto pbrMsg = out.mutable_pbr();
+    auto workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
     if (workflow)
       pbrMsg->set_type(msgs::Material_PBR_WorkflowType_METAL);
     else
