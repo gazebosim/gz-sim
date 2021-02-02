@@ -77,6 +77,7 @@ Rectangle {
       minimumValue: minPhysParam
       maximumValue: maxPhysParam
       decimals: 6
+      stepSize: 0.001
       onEditingFinished: {
         sendPhysics()
       }
