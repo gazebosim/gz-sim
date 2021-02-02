@@ -17,17 +17,21 @@
 
 #include <ignition/msgs/particle_emitter.pb.h>
 
+#include <mutex>
 #include <string>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
 
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
+#include <ignition/gazebo/components/ParticleEmitterCmd.hh>
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/Conversions.hh>
+#include "ignition/gazebo/Model.hh"
 #include <ignition/gazebo/SdfEntityCreator.hh>
 #include <ignition/gazebo/Util.hh>
 #include <sdf/Material.hh>
@@ -40,9 +44,32 @@ using namespace systems;
 // Private data class.
 class ignition::gazebo::systems::ParticleEmitterPrivate
 {
-  /// \brief The particle emitter.
+  /// \brief Callback for receoving particle emitter commands.
+  /// \param[in] _msg Particle emitter message.
+  public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg);
+
+  /// \brief The particle emitter parsed from SDF.
   public: ignition::msgs::ParticleEmitter emitter;
+
+  /// \brief The transport node.
+  public: ignition::transport::Node node;
+
+  /// \brief Model interface.
+  public: Model model{kNullEntity};
+
+  /// \brief The particle emitter command requested externally.
+  public: ignition::msgs::ParticleEmitter userCmd;
+
+  /// \brief A mutex to protect the user command.
+  public: std::mutex mutex;
 };
+
+//////////////////////////////////////////////////
+void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->userCmd = _msg;
+}
 
 //////////////////////////////////////////////////
 ParticleEmitter::ParticleEmitter()
@@ -56,6 +83,14 @@ void ParticleEmitter::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
+  this->dataPtr->model = Model(_entity);
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    ignerr << "ParticleEmitter plugin should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
+
   // Create a particle emitter entity.
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
@@ -186,13 +221,35 @@ void ParticleEmitter::Configure(const Entity &_entity,
     components::ParticleEmitter(this->dataPtr->emitter));
 
   _ecm.CreateComponent(entity, components::Pose(pose));
+
+  // Advertise the topic to receive particle emitter commands.
+  const std::string kDefaultTopic =
+    "/model/" + this->dataPtr->model.Name(_ecm) + "/particle_emitter/" + name;
+  std::string topic = _sdf->Get<std::string>("toopic", kDefaultTopic).first;
+  if (!this->dataPtr->node.Subscribe(
+         topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
+  {
+    ignerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+    return;
+  }
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ParticleEmitter::PreUpdate");
+
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
+  // Create component.
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  _ecm.CreateComponent(
+      this->dataPtr->model.Entity(),
+      components::ParticleEmitterCmd({this->dataPtr->userCmd}));
+
 }
 
 IGNITION_ADD_PLUGIN(ParticleEmitter,

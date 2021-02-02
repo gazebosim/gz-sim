@@ -65,6 +65,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParticleEmitter.hh"
+#include "ignition/gazebo/components/ParticleEmitterCmd.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
@@ -1539,4 +1540,24 @@ TEST_F(ComponentsTest, ParticleEmitter)
   components::ParticleEmitter comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().id(), comp3.Data().id());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitterCmd)
+{
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.set_emitting(true);
+
+  // Create components.
+  auto comp1 = components::ParticleEmitterCmd(emitter1);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1.Data().emitting(), comp3.Data().emitting());
 }
