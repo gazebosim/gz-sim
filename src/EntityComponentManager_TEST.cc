@@ -2082,6 +2082,7 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   auto c2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::OneTimeChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
@@ -2093,6 +2094,7 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   // updated
   manager.RunSetAllComponentsUnchanged();
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::NoChange,
@@ -2100,9 +2102,31 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
 
   // Mark as changed
   manager.SetChanged(e1, c1.first, ComponentState::PeriodicChange);
+
+  // check that only e1 c1 is serialized into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  {
+    ASSERT_EQ(1, stateMsg.entities_size());
+
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    EXPECT_EQ(e1, e1Msg.id());
+    ASSERT_EQ(1, e1Msg.components_size());
+
+    auto compIter = e1Msg.components().begin();
+    const auto &e1c1Msg = compIter->second;
+    EXPECT_EQ(IntComponent::typeId, e1c1Msg.type());
+    EXPECT_EQ(123, std::stoi(e1c1Msg.component()));
+  }
+
   manager.SetChanged(e2, c2.first, ComponentState::OneTimeChange);
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  // Expect a single component type to be marked as PeriodicChange
+  ASSERT_EQ(1u, manager.ComponentTypesWithPeriodicChanges().size());
+  EXPECT_EQ(IntComponent().TypeId(),
+      *manager.ComponentTypesWithPeriodicChanges().begin());
   EXPECT_EQ(ComponentState::PeriodicChange,
       manager.ComponentState(e1, c1.first));
   EXPECT_EQ(ComponentState::OneTimeChange,
@@ -2112,6 +2136,7 @@ TEST_P(EntityComponentManagerFixture, SetChanged)
   EXPECT_TRUE(manager.RemoveComponent(e1, c1.first));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1.first));
 
