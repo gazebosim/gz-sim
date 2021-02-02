@@ -60,7 +60,6 @@ void createLight()
     ignition::math::Pose3d(0.0, 0, 3.0, 0.0, 0.0, 0.0));
 //! [create light]
 
-//! [call service create]
   bool executedEntityFactory = node.Request("/world/empty/create",
         entityFactoryRequest, timeout, rep, result);
   if (executedEntityFactory)
@@ -75,12 +74,10 @@ void createLight()
   }
   else
     std::cerr << "Service call timed out" << std::endl;
-//! [call service create]
 }
 
 void createSphere()
 {
-//! [create sphere]
   auto modelStr = R"(
   <?xml version="1.0" ?>
   <sdf version='1.7'>
@@ -100,9 +97,7 @@ void createSphere()
   ignition::msgs::EntityFactory req;
   ignition::msgs::Boolean res;
   req.set_sdf(modelStr);
-//! [create sphere]
 
-//! [call service create sphere]
   bool executed = node.Request("/world/empty/create",
             req, timeout, res, result);
   if (executed)
@@ -117,7 +112,6 @@ void createSphere()
   }
   else
     std::cerr << "Service call timed out" << std::endl;
-//! [call service create sphere]
 }
 
 //////////////////////////////////////////////////
