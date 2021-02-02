@@ -15,6 +15,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -204,4 +205,3 @@
     </model>
   </world>
 </sdf>
-
