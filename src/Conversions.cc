@@ -274,7 +274,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   out.set_lighting(_in.Lighting());
   out.set_double_sided(_in.DoubleSided());
 
-  sdf::Pbr *pbr = _in.PbrMaterial();
+  auto pbr = _in.PbrMaterial();
   if (pbr)
   {
     msgs::Material::PBR *pbrMsg = out.mutable_pbr();
