@@ -41,8 +41,6 @@
 #include <ignition/common/Uuid.hh>
 #include <ignition/common/VideoEncoder.hh>
 
-#include <ignition/gui/GuiEvents.hh>
-
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/math/Vector2.hh>
