@@ -192,3 +192,4 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
         components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
   }
 }
+

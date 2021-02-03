@@ -232,3 +232,4 @@ TEST_F(ModelIntegrationTest, SetWorldPoseCmd)
   EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), worldPoseCmdComp->Data());
   EXPECT_TRUE(ecm.HasOneTimeComponentChanges());
 }
+
