@@ -274,11 +274,12 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   out.set_lighting(_in.Lighting());
   out.set_double_sided(_in.DoubleSided());
 
-  sdf::Pbr *pbr = _in.PbrMaterial();
+  const sdf::Pbr *pbr = _in.PbrMaterial();
   if (pbr)
   {
     msgs::Material::PBR *pbrMsg = out.mutable_pbr();
-    sdf::PbrWorkflow *workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    const sdf::PbrWorkflow *workflow =
+      pbr->Workflow(sdf::PbrWorkflowType::METAL);
     if (workflow)
       pbrMsg->set_type(msgs::Material_PBR_WorkflowType_METAL);
     else
