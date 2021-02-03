@@ -1099,8 +1099,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Pose *_pose)->bool
       {
         this->entityPoses[_entity] = _pose->Data();
-        auto childEntities = _ecm.ChildrenByComponents(_entity,
-            components::ParentEntity(_entity));
         return true;
       });
 
