@@ -27,6 +27,10 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 * Log playback using `<path>` SDF parameter is removed. Use --playback command
   line argument instead.
 
+* `rendering::SceneManager`
+    * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
+    * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
+
 ## Ignition Gazebo 2.x to 3.x
 
 * Use ign-rendering3, ign-sensors3 and ign-gui3.

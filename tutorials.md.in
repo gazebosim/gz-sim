@@ -12,6 +12,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.
+* \subpage entity_creation "Entity creation": Insert models or lights using services.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.
 * \subpage light_config "Light config": Configure lights in the scene.
@@ -31,6 +32,7 @@ world to a single Collada mesh.
 **Migration from Gazebo classic**
 
 * \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Ignition Gazebo
+* \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Ignition Gazebo
 * \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
 * \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
 * \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Ignition Gazebo when migrating from Gazebo classic

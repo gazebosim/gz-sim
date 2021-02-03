@@ -100,6 +100,13 @@ Rectangle {
                                _innerAngle, _outerAngle, _falloff, _type)
   }
 
+  /*
+   * Forward physics changes to C++
+   */
+  function onPhysics(_stepSize, _realTimeFactor) {
+    ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
+  }
+
   Rectangle {
     id: header
     height: lockButton.height

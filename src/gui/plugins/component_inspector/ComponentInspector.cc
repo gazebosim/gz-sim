@@ -47,6 +47,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
@@ -220,6 +221,18 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
   _item->setData(QString("Float"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(_data, ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+{
+  _item->setData(QString("Physics"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.MaxStepSize()),
+    QVariant(_data.RealTimeFactor())
+  }), ComponentsModel::RoleNames().key("data"));
 }
 
 //////////////////////////////////////////////////
@@ -572,6 +585,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, lightMsgs);
     }
+    else if (typeId == components::Physics::typeId)
+    {
+      auto comp = _ecm.Component<components::Physics>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
@@ -837,6 +856,30 @@ void ComponentInspector::OnLight(
     return;
   }
   this->dataPtr->node.Request(lightConfigService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+        ignerr << "Error setting physics parameters" << std::endl;
+  };
+
+  ignition::msgs::Physics req;
+  req.set_max_step_size(_stepSize);
+  req.set_real_time_factor(_realTimeFactor);
+  auto physicsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_physics";
+  physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
+  if (physicsCmdService.empty())
+  {
+    ignerr << "Invalid physics command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(physicsCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////
