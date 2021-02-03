@@ -645,7 +645,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string cameraSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
-  const std::string thermalCameraSuffix{""};
+  const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
 
   // Treat all pre-existent entities as new at startup
