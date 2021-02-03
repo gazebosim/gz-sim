@@ -136,9 +136,21 @@ class PoseCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 
-  public: const components::WorldPoseCmd *UpdateEntityPoseCommand(
+  /// \brief Transform an entity's pose command in the entity component manager
+  /// \param[in] _entity Component entity to update
+  /// \param[in] _pose Additional pose to transform entity by
+  /// \return The resulting pose for the entity's pose command
+  public: const math::Pose3d UpdateEntityPoseCommand(
       const Entity _entity, const math::Pose3d &_pose);
 
+  /// \brief Compute the pose between two nested entities
+  /// The lifetime of the returned reference is valid for the life of
+  /// _cachedPoses
+  /// \param[in] _child The leaf descendant that the pose transforms to
+  /// \param[in] _topLevelAncestor The top ancestor the pose transforms from
+  /// \param[in] _cachedPoses A map of cached poses to reduce the complexity
+  /// when iterating over all descendants in a model.
+  /// \return A reference to the pose stored in cachedPoses
   public: const math::Pose3d &ChildToTopLevelAncestorTransform(
       const Entity _child, const Entity _topLevelAncestor,
       std::unordered_map<Entity, math::Pose3d> * _cachedPoses) const;
@@ -703,7 +715,7 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  const auto *poseCmdComp =
+  const auto poseCmd =
     this->UpdateEntityPoseCommand(entity, msgs::Convert(*poseMsg));
 
   // Also need to update descendants of the entity
@@ -711,7 +723,7 @@ bool PoseCommand::Execute()
     this->iface->ecm->Component<components::WorldPose>(entity);
 
   const auto poseUpdateTransform = (currentPose) ?
-    currentPose->Data().Inverse() * poseCmdComp->Data() : poseCmdComp->Data();
+    currentPose->Data().Inverse() * poseCmd : poseCmd;
 
   std::unordered_map<Entity, math::Pose3d> cachedPoses;
   for (const auto child : this->iface->ecm->Descendants(entity))
@@ -757,7 +769,7 @@ const math::Pose3d &PoseCommand::ChildToTopLevelAncestorTransform(
   return inserted_it->second;
 }
 
-const components::WorldPoseCmd *PoseCommand::UpdateEntityPoseCommand(
+const math::Pose3d PoseCommand::UpdateEntityPoseCommand(
   const Entity _entity, const math::Pose3d &_pose)
 {
   auto poseCmdComp =
@@ -779,7 +791,7 @@ const components::WorldPoseCmd *PoseCommand::UpdateEntityPoseCommand(
     this->iface->ecm->SetChanged(_entity, components::WorldPoseCmd::typeId,
         state);
   }
-  return poseCmdComp;
+  return poseCmdComp->Data();
 }
 
 

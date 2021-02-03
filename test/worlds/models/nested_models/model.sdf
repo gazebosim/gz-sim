@@ -46,15 +46,6 @@
             </geometry>
           </visual>
         </link>
-
-        <joint name="joint_01" type="continuous">
-          <parent>frame_00</parent>
-          <child>frame_01</child>
-          <axis>
-            <pose>1 2 3 0 0 0</pose>
-            <xyz>1 0 0</xyz>
-          </axis>
-        </joint>
         <plugin
            filename="ignition-gazebo-pose-publisher-system"
            name="ignition::gazebo::systems::PosePublisher">
@@ -66,6 +57,15 @@
           <update_frequency>100</update_frequency>
         </plugin>
       </model>
+      <joint name="joint_01" type="revolute">
+        <parent>frame_00</parent>
+        <child>model_01::frame_01</child>
+        <axis>
+          <pose>1 2 3 0 0 0</pose>
+          <xyz>1 0 0</xyz>
+        </axis>
+      </joint>
+
     </model>
   </model>
 </sdf>

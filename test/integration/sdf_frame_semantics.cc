@@ -56,11 +56,11 @@ class SdfFrameSemanticsTest : public ::testing::Test
   }
 
   public: ::testing::AssertionResult StartServer(
-    ignition::gazebo::ServerConfig serverConfig =
+    const ignition::gazebo::ServerConfig &_serverConfig =
       ignition::gazebo::ServerConfig())
   {
     this->relay = std::make_unique<test::Relay>();
-    this->server = std::make_unique<Server>(serverConfig);
+    this->server = std::make_unique<Server>(_serverConfig);
     using namespace std::chrono_literals;
     this->server->SetUpdatePeriod(0ns);
 
@@ -489,8 +489,6 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
   Entity link2 = model2.LinkByName(*this->ecm, "L2");
   ASSERT_NE(link2, kNullEntity);
 
-  // Expect the pose of v1 and relative to L1 (their parent link) to be the same
-  // as the pose of F1 relative to L1
   const ignition::math::Pose3d link1ExpectedPose(1, 1, 1, 0, 0, 0);
   const ignition::math::Pose3d link2ExpectedPose(0, 1, 1, 0, 0, 0);
 
@@ -504,13 +502,77 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
   EXPECT_EQ(link2ExpectedPose, this->GetPose(link2));
 }
 
-TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeTo)
+TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToTPE)
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   setenv("IGN_GAZEBO_RESOURCE_PATH",
          path.c_str(), 1);
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
+  serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
+
+  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/include_nested_models.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  ASSERT_TRUE(this->StartServer(serverConfig));
+
+  auto includeNestedModel = this->GetModel("include_nested_new_name");
+  ASSERT_TRUE(includeNestedModel.Valid(*this->ecm));
+
+  auto model00 = this->GetModel("model_00");
+  ASSERT_TRUE(model00.Valid(*this->ecm));
+
+  auto nestedModel =
+    this->GetChildModel(includeNestedModel.Entity(), "nested_models_new_name");
+  ASSERT_TRUE(nestedModel.Valid(*this->ecm));
+
+  auto nestedModel00 = this->GetChildModel(nestedModel.Entity(), "model_00");
+  ASSERT_TRUE(nestedModel00.Valid(*this->ecm));
+
+  auto nestedModel01 = this->GetChildModel(nestedModel00.Entity(), "model_01");
+  ASSERT_TRUE(nestedModel01.Valid(*this->ecm));
+
+  Entity link00 = includeNestedModel.LinkByName(*this->ecm, "link_00");
+  ASSERT_NE(link00, kNullEntity);
+
+  ignition::math::Pose3d link00ExpectedPose(30, 32, 34, 0, 0, 0);
+  EXPECT_EQ(link00ExpectedPose, this->GetPose(link00));
+
+  auto link01 = includeNestedModel.LinkByName(*this->ecm, "link_01");
+  ASSERT_NE(link01, kNullEntity);
+
+  ignition::math::Pose3d link01ExpectedPose(20, 21, 22, 0, 0, 0);
+  EXPECT_EQ(link01ExpectedPose, this->GetPose(link01));
+
+  Entity nestedModelsLink00 = nestedModel00.LinkByName(*this->ecm, "link_00");
+  ASSERT_NE(nestedModelsLink00, kNullEntity);
+
+  ignition::math::Pose3d nestedModelsLink00ExpectedPose(20, 21, 22, 0, 0, 0);
+  EXPECT_EQ(nestedModelsLink00ExpectedPose, this->GetPose(nestedModelsLink00));
+
+  auto nestedModelsLink01 = nestedModel01.LinkByName(*this->ecm, "link_01");
+  ASSERT_NE(nestedModelsLink01, kNullEntity);
+
+  ignition::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
+  EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
+
+  this->server->Run(true, 1, false);
+
+  EXPECT_EQ(link01ExpectedPose, this->GetPose(link01));
+  EXPECT_EQ(link00ExpectedPose, this->GetPose(link00));
+  EXPECT_EQ(nestedModelsLink00ExpectedPose, this->GetPose(nestedModelsLink00));
+  EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
+}
+
+TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToDartsim)
+{
+  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  setenv("IGN_GAZEBO_RESOURCE_PATH",
+         path.c_str(), 1);
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetResourceCache(path);
+  serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_nested_models.sdf";

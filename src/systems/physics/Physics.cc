@@ -1459,6 +1459,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // world pose cmd currently not supported for nested models
+
         // The canonical link as specified by sdformat is different from the
         // canonical link of the FreeGroup object
 

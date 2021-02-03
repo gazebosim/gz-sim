@@ -304,8 +304,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
   // Links
   bool canonicalLinkCreated = false;
-  const auto[canonicalLink, canonicalLinkName] =
-    _model->CanonicalLinkAndRelativeName();
+  const auto *canonicalLink = _model->CanonicalLink();
 
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
@@ -554,6 +553,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
     ignerr << "Failed to resolve child link for joint '" << _joint->Name()
            << "' with child name '" << _joint->ChildLinkName() << "'"
            << std::endl;
+    for (const auto &error : resolveChildErrors)
+    {
+      ignerr << error << std::endl;
+    }
 
     return kNullEntity;
   }

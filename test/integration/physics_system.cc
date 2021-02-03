@@ -988,21 +988,20 @@ TEST_F(PhysicsSystemFixture, NestedModel)
   EXPECT_EQ("model_01", parentIt->second);
 }
 
-
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IncludeNestedModel)
+TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   setenv("IGN_GAZEBO_RESOURCE_PATH",
          path.c_str(), 1);
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
+  serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_nested_models.sdf";
   serverConfig.SetSdfFile(sdfFile);
   gazebo::Server server(serverConfig);
-
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -1047,7 +1046,7 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModel)
         {
           auto parentName = _ecm.Component<components::Name>(_parent->Data());
           const std::string qualifiedLinkName =
-            parentName->Data() + "//" + _name->Data();
+            parentName->Data() + "::" + _name->Data();
           // store link pose
           postUpLinkPoses[qualifiedLinkName] = _pose->Data();
 
@@ -1091,15 +1090,15 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModel)
   ASSERT_NE(postUpModelPoses.end(), modelIt);
   EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), modelIt->second);
 
-  auto linkIt = postUpLinkPoses.find("model_00//link_00");
+  auto linkIt = postUpLinkPoses.find("model_00::link_00");
   ASSERT_NE(postUpLinkPoses.end(), linkIt);
   EXPECT_EQ(math::Pose3d(20, 21, 22, 0, 0, 0), linkIt->second);
 
-  linkIt = postUpLinkPoses.find("include_nested_new_name//link_00");
+  linkIt = postUpLinkPoses.find("include_nested_new_name::link_00");
   ASSERT_NE(postUpLinkPoses.end(), linkIt);
   EXPECT_EQ(math::Pose3d(30, 32, 34, 0, 0, 0), linkIt->second);
 
-  linkIt = postUpLinkPoses.find("model_01//link_01");
+  linkIt = postUpLinkPoses.find("model_01::link_01");
   ASSERT_NE(postUpLinkPoses.end(), linkIt);
   EXPECT_EQ(math::Pose3d(20, 21, 22.0, 0, 0, 0), linkIt->second);
 
@@ -1119,15 +1118,158 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModel)
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("include_nested_models_world", parentIt->second);
 
-  parentIt = parents.find("model_00//link_00");
+  parentIt = parents.find("model_00::link_00");
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_00", parentIt->second);
 
-  parentIt = parents.find("include_nested_new_name//link_00");
+  parentIt = parents.find("include_nested_new_name::link_00");
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("include_nested_new_name", parentIt->second);
 
-  parentIt = parents.find("model_01//link_01");
+  parentIt = parents.find("model_01::link_01");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_01", parentIt->second);
+}
+
+// This tests whether nested models can be loaded correctly
+TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
+{
+  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  setenv("IGN_GAZEBO_RESOURCE_PATH",
+         path.c_str(), 1);
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetResourceCache(path);
+  serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
+
+  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/include_nested_models.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+  gazebo::Server server(serverConfig);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, std::string> parents;
+  testSystem.OnPostUpdate(
+    [&postUpModelPoses, &postUpLinkPoses, &parents](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          // store model pose
+          postUpModelPoses[_name->Data()] = _pose->Data();
+
+          // store parent model name, if any
+          auto parentId = _ecm.Component<components::ParentEntity>(_entity);
+          if (parentId)
+          {
+            auto parentName =
+                _ecm.Component<components::Name>(parentId->Data());
+            parents[_name->Data()] = parentName->Data();
+          }
+          return true;
+        });
+
+      _ecm.Each<components::Link, components::Name, components::Pose,
+                components::ParentEntity>(
+        [&](const ignition::gazebo::Entity &, const components::Link *,
+        const components::Name *_name, const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+        {
+          auto parentName = _ecm.Component<components::Name>(_parent->Data());
+          const std::string qualifiedLinkName =
+            parentName->Data() + "::" + _name->Data();
+          // store link pose
+          postUpLinkPoses[qualifiedLinkName] = _pose->Data();
+
+          // store parent model name
+          parents[qualifiedLinkName] = parentName->Data();
+          return true;
+        });
+
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  // 2 in include_nested model, 3 in nested_models model
+  EXPECT_EQ(4u, postUpModelPoses.size());
+
+  // 0 in world, 2 in include_nested model, 2 in nested_models model
+  EXPECT_EQ(4u, postUpLinkPoses.size());
+
+  // 1 in world, 2 in include_nested, 4 in nested_models
+  EXPECT_EQ(8u, parents.size());
+
+  // From nested_models
+  auto modelIt = postUpModelPoses.find("model_00");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), modelIt->second);
+
+  // From nested_models
+  modelIt = postUpModelPoses.find("model_01");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0.0, 0, 0, 0), modelIt->second);
+
+  // From include_nested, but with name overwritten by include_nested_models
+  modelIt = postUpModelPoses.find("include_nested_new_name");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(1.0, 2.0, 3.0, 0, 0, 0), modelIt->second);
+
+  // From nested_models, but with name overwritten by include_nested
+  modelIt = postUpModelPoses.find("nested_models_new_name");
+  ASSERT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), modelIt->second);
+
+  auto linkIt = postUpLinkPoses.find("model_00::link_00");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(20, 21, 22, 0, 0, 0), linkIt->second);
+
+  linkIt = postUpLinkPoses.find("include_nested_new_name::link_00");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(30, 32, 34, 0, 0, 0), linkIt->second);
+
+  linkIt = postUpLinkPoses.find("model_01::link_01");
+  ASSERT_NE(postUpLinkPoses.end(), linkIt);
+  EXPECT_EQ(math::Pose3d(20, 21, 22.0, 0, 0, 0), linkIt->second);
+
+  auto parentIt = parents.find("model_00");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("nested_models_new_name", parentIt->second);
+
+  parentIt = parents.find("model_01");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_00", parentIt->second);
+
+  parentIt = parents.find("nested_models_new_name");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("include_nested_new_name", parentIt->second);
+
+  parentIt = parents.find("include_nested_new_name");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("include_nested_models_world", parentIt->second);
+
+  parentIt = parents.find("model_00::link_00");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("model_00", parentIt->second);
+
+  parentIt = parents.find("include_nested_new_name::link_00");
+  ASSERT_NE(parents.end(), parentIt);
+  EXPECT_EQ("include_nested_new_name", parentIt->second);
+
+  parentIt = parents.find("model_01::link_01");
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
 }

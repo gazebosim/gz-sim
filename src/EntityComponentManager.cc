@@ -772,10 +772,9 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
   // Find the entity in the message
   auto entIter = _msg.mutable_entities()->find(_entity);
-  if (entIter == _msg.mutable_entities()->end()) {
+  if (entIter == _msg.mutable_entities()->end())
     return;
-  }
-
+  
   auto it = this->removedComponents.find(_entity);
   for (uint64_t i = 0; i < nEntityKeys; ++i)
   {

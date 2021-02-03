@@ -42,8 +42,6 @@
     </link>
   </model>
 
-
-
   <!-- As the second model in an included file, this should be ignored or
   eventually cause an error. For now, the duplicate is to ensure that the model
   of the same name in 'nested_models' is added and not this one -->
