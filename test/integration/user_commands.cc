@@ -725,7 +725,6 @@ TEST_F(UserCommandsTest, Light)
 
   msgs::Light req;
   req.set_name("point");
-  req.set_parent_id(1);
 
   msgs::Boolean res;
   bool result;
@@ -761,7 +760,6 @@ TEST_F(UserCommandsTest, Light)
     ignition::math::Color(0.2, 0.2, 0.2, 0.2));
   req.set_range(2.6);
   req.set_name("point");
-  req.set_parent_id(1);
   req.set_type(ignition::msgs::Light::POINT);
   req.set_attenuation_linear(0.7);
   req.set_attenuation_constant(0.6);
@@ -771,7 +769,7 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  server.Run(true, 1, false);
+  server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
@@ -834,7 +832,7 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  server.Run(true, 1, false);
+  server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
@@ -904,7 +902,7 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  server.Run(true, 1, false);
+  server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
