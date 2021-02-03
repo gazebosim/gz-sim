@@ -33,7 +33,8 @@ class ignition::gazebo::ModelPrivate
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition::gazebo;
+using namespace ignition;
+using namespace gazebo;
 
 //////////////////////////////////////////////////
 Model::Model(gazebo::Entity _entity)

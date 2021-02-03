@@ -268,10 +268,9 @@ TEST(Conversions, Material)
   EXPECT_TRUE(newMaterial.DoubleSided());
   EXPECT_DOUBLE_EQ(2.5, newMaterial.RenderOrder());
 
-  sdf::Pbr *newPbrMaterial = newMaterial.PbrMaterial();
+  auto newPbrMaterial = newMaterial.PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
-  sdf::PbrWorkflow *newWorkflow =
-      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  auto newWorkflow = newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
   ASSERT_NE(nullptr, newWorkflow);
   EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
   EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
