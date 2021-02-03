@@ -73,8 +73,8 @@ GuiRunner::GuiRunner(const std::string &_worldName)
     return fuel_tools::fetchResource(_uri.Str());
   });
 
-  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic << "]..."
-         << std::endl;
+  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic
+         << "]..." << std::endl;
 
   this->RequestState();
 }
