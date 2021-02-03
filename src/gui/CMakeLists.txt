@@ -1,5 +1,6 @@
 set (gui_sources
   Gui.cc
+  AboutDialogHandler.cc
   GuiFileHandler.cc
   GuiRunner.cc
   PathManager.cc
