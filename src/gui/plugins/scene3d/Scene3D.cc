@@ -283,7 +283,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
     /// \brief The visual generated from the spawnSdfString / spawnSdfPath
-    // public: rendering::VisualPtr spawnPreview = nullptr;
     public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
