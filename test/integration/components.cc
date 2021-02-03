@@ -1054,10 +1054,9 @@ TEST_F(ComponentsTest, Material)
   EXPECT_EQ(math::Color(1, 1, 1, 1), comp3.Data().Emissive());
   EXPECT_FALSE(comp3.Data().Lighting());
 
-  sdf::Pbr *newPbrMaterial = comp3.Data().PbrMaterial();
+  auto newPbrMaterial = comp3.Data().PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
-  sdf::PbrWorkflow *newWorkflow =
-      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  auto newWorkflow = newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
   ASSERT_NE(nullptr, newWorkflow);
   EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
   EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
