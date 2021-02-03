@@ -154,8 +154,6 @@ class ignition::gazebo::RenderUtilPrivate
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
 
-  public: std::map<Entity, Entity> matchLightWithVisuals;
-
   /// \brief New sensors to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
@@ -410,19 +408,9 @@ void RenderUtil::Update()
         Entity id = std::numeric_limits<uint64_t>::min() + i;
         if (!this->dataPtr->sceneManager.HasEntity(id))
         {
-          if (this->dataPtr->sceneManager.WorldId() == std::get<2>(light))
-          {
-            rendering::VisualPtr lightVisual =
-              this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<0>(light));
-          }
-          else
-          {
-            rendering::VisualPtr lightVisual =
-              this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<2>(light));
-          }
-          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
+          rendering::VisualPtr lightVisual =
+            this->dataPtr->sceneManager.CreateLightVisual(
+              id, std::get<1>(light), std::get<0>(light));
           break;
         }
       }
@@ -1113,7 +1101,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         auto childEntities = _ecm.ChildrenByComponents(_entity,
             components::ParentEntity(_entity));
-        this->entityPoses[matchLightWithVisuals[_entity]] = _pose->Data();
         return true;
       });
 
@@ -1200,7 +1187,6 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Light *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
-        this->removeEntities[matchLightWithVisuals[_entity]] =
           _info.iterations;
         return true;
       });
