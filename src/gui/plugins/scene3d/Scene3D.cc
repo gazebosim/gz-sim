@@ -283,10 +283,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
     /// \brief The visual generated from the spawnSdfString / spawnSdfPath
-    public: rendering::VisualPtr spawnPreview = nullptr;
-
-    /// \brief The visual generated from the spawnSdfString / spawnSdfPath
-    public: rendering::LightPtr spawnLightPreview = nullptr;
+    public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
     /// for easy deletion of visuals later
@@ -898,14 +895,13 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
       return false;
     }
     this->dataPtr->spawnPreview =
-      this->dataPtr->renderUtil.SceneManager().CreateLightVisual(
-          lightVisualId, light,
-          this->dataPtr->renderUtil.SceneManager().WorldId());
-
-    this->dataPtr->spawnLightPreview =
       this->dataPtr->renderUtil.SceneManager().CreateLight(
           lightId, light,
           this->dataPtr->renderUtil.SceneManager().WorldId());
+    this->dataPtr->renderUtil.SceneManager().CreateLightVisual(
+        lightVisualId, light, lightId);
+
+
 
     this->dataPtr->previewIds.push_back(lightId);
     this->dataPtr->previewIds.push_back(lightVisualId);
@@ -1168,10 +1164,6 @@ void IgnRenderer::HandleModelPlacement()
     math::Vector3d pos = this->ScreenToPlane(this->dataPtr->mouseHoverPos);
     pos.Z(this->dataPtr->spawnPreview->WorldPosition().Z());
     this->dataPtr->spawnPreview->SetWorldPosition(pos);
-    if (this->dataPtr->spawnLightPreview)
-    {
-      this->dataPtr->spawnLightPreview->SetWorldPosition(pos);
-    }
     this->dataPtr->hoverDirty = false;
   }
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
@@ -1225,7 +1217,6 @@ void IgnRenderer::HandleModelPlacement()
     this->dataPtr->mouseDirty = false;
     this->dataPtr->spawnSdfString.clear();
     this->dataPtr->spawnSdfPath.clear();
-    this->dataPtr->spawnLightPreview.reset();
   }
 }
 
