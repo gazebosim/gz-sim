@@ -492,10 +492,11 @@ void TriggeredPublisher::Configure(const Entity &,
       return;
     }
 
-    this->inputTopic = inputElem->Get<std::string>("topic");
+    auto inTopic = inputElem->Get<std::string>("topic");
+    this->inputTopic = transport::TopicUtils::AsValidTopic(inTopic);
     if (this->inputTopic.empty())
     {
-      ignerr << "Input topic cannot be empty\n";
+      ignerr << "Invalid input topic [" << inTopic << "]" << std::endl;
       return;
     }
 
@@ -544,10 +545,11 @@ void TriggeredPublisher::Configure(const Entity &,
         ignerr << "Output message type cannot be empty\n";
         continue;
       }
-      info.topic = outputElem->Get<std::string>("topic");
+      auto topic = outputElem->Get<std::string>("topic");
+      info.topic = transport::TopicUtils::AsValidTopic(topic);
       if (info.topic.empty())
       {
-        ignerr << "Output topic cannot be empty\n";
+        ignerr << "Invalid topic [" << topic << "]" << std::endl;
         continue;
       }
       const std::string msgStr = outputElem->Get<std::string>();

@@ -34,6 +34,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 class GuiRunnerPrivate;
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
+
 class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT

@@ -439,6 +439,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
@@ -458,7 +459,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string roughnessMap = metal->RoughnessMap();
       if (!roughnessMap.empty())
       {
-        std::string fullPath = common::findFile(roughnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(roughnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetRoughnessMap(fullPath);
         else
@@ -469,7 +471,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
       std::string metalnessMap = metal->MetalnessMap();
       if (!metalnessMap.empty())
       {
-        std::string fullPath = common::findFile(metalnessMap);
+        std::string fullPath = common::findFile(
+            asFullPath(metalnessMap, _material.FilePath()));
         if (!fullPath.empty())
           material->SetMetalnessMap(fullPath);
         else
@@ -487,7 +490,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string albedoMap = workflow->AlbedoMap();
     if (!albedoMap.empty())
     {
-      std::string fullPath = common::findFile(albedoMap);
+      std::string fullPath = common::findFile(
+          asFullPath(albedoMap, _material.FilePath()));
       if (!fullPath.empty())
       {
         material->SetTexture(fullPath);
@@ -502,7 +506,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string normalMap = workflow->NormalMap();
     if (!normalMap.empty())
     {
-      std::string fullPath = common::findFile(normalMap);
+      std::string fullPath = common::findFile(
+          asFullPath(normalMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetNormalMap(fullPath);
       else
@@ -514,7 +519,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string environmentMap = workflow->EnvironmentMap();
     if (!environmentMap.empty())
     {
-      std::string fullPath = common::findFile(environmentMap);
+      std::string fullPath = common::findFile(
+          asFullPath(environmentMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEnvironmentMap(fullPath);
       else
@@ -525,11 +531,29 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
     std::string emissiveMap = workflow->EmissiveMap();
     if (!emissiveMap.empty())
     {
-      std::string fullPath = common::findFile(emissiveMap);
+      std::string fullPath = common::findFile(
+          asFullPath(emissiveMap, _material.FilePath()));
       if (!fullPath.empty())
         material->SetEmissiveMap(fullPath);
       else
         ignerr << "Unable to find file [" << emissiveMap << "]\n";
+    }
+
+    // light map
+    std::string lightMap = workflow->LightMap();
+    if (!lightMap.empty())
+    {
+      std::string fullPath = common::findFile(
+          asFullPath(lightMap, _material.FilePath()));
+      if (!fullPath.empty())
+      {
+        unsigned int uvSet = workflow->LightMapTexCoordSet();
+        material->SetLightMap(fullPath, uvSet);
+      }
+      else
+      {
+        ignerr << "Unable to find file [" << lightMap << "]\n";
+      }
     }
   }
   return material;

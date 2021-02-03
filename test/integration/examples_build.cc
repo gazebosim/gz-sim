@@ -78,7 +78,6 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #include <windows.h>  // NOLINT(build/include_order)
 #include <winnt.h>  // NOLINT(build/include_order)
 #include <cstdint>
-#include <ignition/common/PrintWindowsSystemWarning.hh>
 
 /////////////////////////////////////////////////
 bool createAndSwitchToTempDir(std::string &_newTempPath)
@@ -175,7 +174,7 @@ TEST_P(ExamplesBuild, Build)
 }
 
 //////////////////////////////////////////////////
-INSTANTIATE_TEST_CASE_P(Plugins, ExamplesBuild, ::testing::Values(
+INSTANTIATE_TEST_SUITE_P(Plugins, ExamplesBuild, ::testing::Values(
   "plugin",
   "standalone"
 ));

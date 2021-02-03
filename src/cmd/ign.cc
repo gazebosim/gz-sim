@@ -32,32 +32,32 @@
 #include "ign.hh"
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()
+extern "C" char *ignitionGazeboVersion()
 {
   return strdup(IGNITION_GAZEBO_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE char *gazeboVersionHeader()
+extern "C" char *gazeboVersionHeader()
 {
   return strdup(IGNITION_GAZEBO_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
+extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
   ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
+extern "C" const char *worldInstallDir()
 {
   return IGN_GAZEBO_WORLD_INSTALL_DIR;
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
+extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _logOverwrite, const char *_playback, const char *_file)
@@ -206,7 +206,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
+extern "C" int runGui(const char *_guiConfig)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;

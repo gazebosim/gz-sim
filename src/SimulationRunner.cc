@@ -19,8 +19,9 @@
 
 #include <algorithm>
 
-#include "ignition/common/Profiler.hh"
+#include <sdf/Root.hh>
 
+#include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Sensor.hh"
@@ -29,6 +30,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
+
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
@@ -155,17 +157,37 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
+  // Load any additional plugins from the Server Configuration
+  this->LoadServerPlugins(this->serverConfig.Plugins());
+
+  // If we have reached this point and no systems have been loaded, then load
+  // a default set of systems.
+  if (this->systems.empty() && this->pendingSystems.empty())
+  {
+    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    this->LoadServerPlugins(plugins);
+  }
+
+  this->LoadLoggingPlugins(this->serverConfig);
+
   // World control
   transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
   if (this->networkMgr)
   {
-    opts.SetNameSpace(this->networkMgr->Namespace() +
-                      "/world/" + this->worldName);
+    ns = this->networkMgr->Namespace() + ns;
   }
-  else
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
   {
-    opts.SetNameSpace("/world/" + this->worldName);
+    ignerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
   }
+  opts.SetNameSpace(validNs);
 
   this->node = std::make_unique<transport::Node>(opts);
 
@@ -705,6 +727,15 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
+  if (!this->Paused() &&
+       this->requestedRunToSimTime >
+       std::chrono::steady_clock::duration::zero() &&
+       this->currentInfo.simTime >= this->requestedRunToSimTime)
+  {
+    this->SetPaused(true);
+    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
+  }
+
   if (!this->Paused() && this->pendingSimIterations > 0)
   {
     // Decrement the pending sim iterations, if there are any.
@@ -735,50 +766,46 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+void SimulationRunner::LoadPlugin(const Entity _entity,
+                                  const std::string &_fname,
+                                  const std::string &_name,
+                                  const sdf::ElementPtr &_sdf)
 {
-  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
-  while (pluginElem)
+  std::optional<SystemPluginPtr> system;
   {
-    // No error message for the 'else' case of the following 'if' statement
-    // because SDF create a default <plugin> element even if it's not
-    // specified. An error message would result in spamming
-    // the console. \todo(nkoenig) Fix SDF should so that elements are not
-    // automatically added.
-    if (pluginElem->Get<std::string>("filename") != "__default__" &&
-        pluginElem->Get<std::string>("name") != "__default__")
-    {
-      std::optional<SystemPluginPtr> system;
-      {
-        std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-        system = this->systemLoader->LoadPlugin(pluginElem);
-      }
-      if (system)
-      {
-        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-        if (systemConfig != nullptr)
-        {
-          systemConfig->Configure(_entity, pluginElem,
-              this->entityCompMgr,
-              this->eventMgr);
-        }
-        this->AddSystem(system.value());
-        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
-               << "] for entity [" << _entity << "]" << std::endl;
-      }
-    }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
+    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
   }
 
+  // System correctly loaded from library, try to configure
+  if (system)
+  {
+    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+    if (systemConfig != nullptr)
+    {
+      systemConfig->Configure(_entity, _sdf,
+          this->entityCompMgr,
+          this->eventMgr);
+    }
+
+    this->AddSystem(system.value());
+    igndbg << "Loaded system [" << _name
+           << "] for entity [" << _entity << "]" << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadServerPlugins(
+    const std::list<ServerConfig::PluginInfo> &_plugins)
+{
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
   // the same plugin to multiple entities, for example via a regex
   // expression.
   //
   // Check plugins from the ServerConfig for matching entities.
-  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
+
+  for (const ServerConfig::PluginInfo &plugin : _plugins)
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
@@ -792,8 +819,16 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     }
     else if ("world" == plugin.EntityType())
     {
-      entity = this->entityCompMgr.EntityByComponents(
-          components::Name(plugin.EntityName()), components::World());
+      // Allow wildcard for world name
+      if (plugin.EntityName() == "*")
+      {
+        entity = this->entityCompMgr.EntityByComponents(components::World());
+      }
+      else
+      {
+        entity = this->entityCompMgr.EntityByComponents(
+            components::Name(plugin.EntityName()), components::World());
+      }
     }
     else if ("sensor" == plugin.EntityType())
     {
@@ -833,29 +868,59 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
               << plugin.EntityType() << "]" << std::endl;
     }
 
-    // Skip plugins that do not match the provided entity
-    if (entity != _entity)
-      continue;
 
-    std::optional<SystemPluginPtr> system;
+    if (kNullEntity != entity)
     {
-      std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-      system = this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(),
-                                              nullptr);
+      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
+{
+  std::list<ServerConfig::PluginInfo> plugins;
+
+  if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+  {
+    ignwarn <<
+      "Both recording and playback are specified, defaulting to playback\n";
+  }
+
+  if(!_config.LogPlaybackPath().empty())
+  {
+    auto playbackPlugin = _config.LogPlaybackPlugin();
+    plugins.push_back(playbackPlugin);
+  }
+  else if(_config.UseLogRecord())
+  {
+    auto recordPlugin = _config.LogRecordPlugin();
+    plugins.push_back(recordPlugin);
+  }
+
+  this->LoadServerPlugins(plugins);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::ElementPtr &_sdf)
+{
+  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  while (pluginElem)
+  {
+    auto filename = pluginElem->Get<std::string>("filename");
+    auto name = pluginElem->Get<std::string>("name");
+    // No error message for the 'else' case of the following 'if' statement
+    // because SDF create a default <plugin> element even if it's not
+    // specified. An error message would result in spamming
+    // the console. \todo(nkoenig) Fix SDF should so that elements are not
+    // automatically added.
+    if (filename != "__default__" && name != "__default__")
+    {
+      this->LoadPlugin(_entity, filename, name, pluginElem);
     }
 
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(_entity, plugin.Sdf(), this->entityCompMgr,
-                                this->eventMgr);
-      }
-      this->AddSystem(system.value());
-      igndbg << "Loaded system [" << plugin.Name()
-             << "] for entity [" << _entity << "]" << std::endl;
-    }
+    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 
@@ -930,6 +995,21 @@ void SimulationRunner::SetPaused(const bool _paused)
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::SetRunToSimTime(
+    const std::chrono::steady_clock::duration &_time)
+{
+  if (_time >= std::chrono::steady_clock::duration::zero() &&
+      _time > this->currentInfo.simTime)
+  {
+    this->requestedRunToSimTime = _time;
+  }
+  else
+  {
+    this->requestedRunToSimTime = std::chrono::seconds(-1);
+  }
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
     msgs::Boolean &_res)
 {
@@ -956,6 +1036,12 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
   if (_req.seed() != 0)
   {
     ignwarn << "Changing seed is not supported." << std::endl;
+  }
+
+  if (_req.has_run_to_sim_time())
+  {
+    control.runToSimTime = std::chrono::seconds(_req.run_to_sim_time().sec()) +
+                   std::chrono::nanoseconds(_req.run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
@@ -1025,6 +1111,8 @@ void SimulationRunner::ProcessWorldControl()
     {
       this->requestedSeek = control.seek;
     }
+
+    this->SetRunToSimTime(control.runToSimTime);
   }
 
   this->worldControls.clear();

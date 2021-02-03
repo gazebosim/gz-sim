@@ -1,15 +1,13 @@
 \page ardupilot
 
-[TOC]
+# Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Ignition Gazebo
 
-# Case study: migrating the ArduPilot ModelPlugin from Classic Gazebo to Ignition Gazebo
-
-A variety of changes are required when migrating a plugin from Gazebo Classic
-("Gazebo") to Ignition Gazebo ("Ignition"). In this tutorial we offer as a case
+A variety of changes are required when migrating a plugin from Gazebo classic
+to Ignition Gazebo. In this tutorial we offer as a case
 study the migration of one particular `ModelPlugin`,
 [ardupilot_gazebo](https://github.com/khancyr/ardupilot_gazebo). We hope that
 this example provides useful tips to others who are migrating their existing
-plugins from Gazebo to Ignition.
+plugins from classic to Ignition.
 
 The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial
 can be found in [this fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition).
@@ -24,7 +22,7 @@ documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.h
 As context to understand what we're migrating, here's a system diagram for how
 the ArduPilot Gazebo plugin works is used:
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/master/tutorials/files/ardupilot_diagram.png"/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/ign-gazebo4/tutorials/files/ardupilot_diagram.png"/>
 
 *UAV icon credit: By Julian Herzog, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=60965475*
 
@@ -47,9 +45,9 @@ preserving the rest of the setup.
 Migration of this plugin involves modifications to multiple parts of the associated code:
 
 1. The plugin header file, `ArduPilotPlugin.hh`
-1. The plugin source file, `ArduPilotPlugin.cc`
-1. The plugin's CMake build recipe, `CMakeLists.txt`
-1. The custom model in which the plugin is used
+2. The plugin source file, `ArduPilotPlugin.cc`
+3. The plugin's CMake build recipe, `CMakeLists.txt`
+4. The custom model in which the plugin is used
 
 We'll take them each in turn in the following sections.
 
@@ -57,7 +55,7 @@ We'll take them each in turn in the following sections.
 
 ### Headers
 
-The old code includes these Gazebo-related headers:
+The old code includes these Gazebo classic headers:
 
 ```cpp
 // OLD
@@ -67,7 +65,7 @@ The old code includes these Gazebo-related headers:
 ```
 
 In the new code, we still need `<sdf/sdf.hh>`, because the underlying [SDFormat
-library](http://sdformat.org/) is used by both Gazebo and Ignition. But in place of the `<gazebo/...>` headers, we'll pull in one from Ignition:
+library](http://sdformat.org/) is used by both classic and Ignition. But in place of the `<gazebo/...>` headers, we'll pull in one from Ignition:
 
 ```cpp
 // NEW
@@ -226,10 +224,10 @@ To better understand the ECS pattern as it is used in Ignition, it's helpful to
 learn about the EntityComponentManager (ECM), which is responsible for managing
 the ECS graph. A great resource to understand the logic under the hood of the
 ECM is the `SdfEntityCreator` class
-([header](https://github.com/ignitionrobotics/ign-gazebo/blob/master/include/ignition/gazebo/SdfEntityCreator.hh),
-[source](https://github.com/ignitionrobotics/ign-gazebo/blob/master/src/SdfEntityCreator.cc)).
+([header](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/include/ignition/gazebo/SdfEntityCreator.hh),
+[source](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/src/SdfEntityCreator.cc)).
 This class is responsible for mapping the content of an SDF file to the
-entities and components that form the graph handled by the ECM. For example, If
+entities and components that form the graph handled by the ECM. For example, if
 you wonder which components can be accessed by default from the plugin, this
 class is the best entry point.
 
@@ -406,9 +404,6 @@ ignwarn << ... ;
 ignerr << ... ;
 ```
 
-**Suggestion**: Perhaps the old versions could stick around and be deprecated
-instead of removed?
-
 ### Plugin interface: Configure()
 
 Recall that `Configure()` replaces `Load()`.
@@ -434,7 +429,7 @@ Also in the new code we need to make sure of the existence of the specific
 *components* that we need. In our case, we're going to access the `WorldPose`
 and `WorldLinearVelocity` components of the *entity* representing one of the
 UAV model's links. The data in those components will be periodically updated by
-the physics *system* (I think). But the physics system will not necessarily
+the physics *system*. But the physics system will not necessarily
 create the components, so before accessing them later in our code, we need to
 ensure that the components exist:
 
@@ -452,13 +447,6 @@ if(!_ecm.EntityHasComponentType(this->dataPtr->modelLink, components::WorldLinea
 
 We'll see this pattern elsewhere in the new code: check for a component's
 existence, create it if necessary, then proceed with using it.
-
-**Suggestion**: Perhaps we could add syntactic sugar to encapsulate the
-check-and-create-if-necessary step? Or alternatively could we guarantee at
-startup that systems create all of the components they can use?  Either way it
-would also be helpful to document which *components* a given *system* will read
-from and write to, as they represent the system's API. As present it's easy for
-a user to create and interact with a component that no system actually uses.
 
 We also clone the `const sdf::Element` that we've passed so that we can call
 non-`const` methods on it:
@@ -499,10 +487,6 @@ param = controlSDF->Get("vel_p_gain", control.pid.PGain()).first;
 param = controlSDF->Get("vel_i_gain", control.pid.IGain()).first;
 param = controlSDF->Get("vel_d_gain", control.pid.DGain()).first;
 ```
-
-**Suggestion**: Perhaps the old methods could stick around and be deprecated
-instead of removed?
-
 
 The old code does a bunch of lookups to get a pointer to the IMU sensor. In the
 new code, we just store the name of the sensors from the user-supplied SDF
@@ -585,9 +569,6 @@ Though it's not part of the regular update loop, we subscribe to the IMU sensor
 data in `PreUpdate()` because the information that we need for that
 subscription isn't available when we're in `Configure()`.
 
-**Suggestion**: Perhaps it should be possible to compute topics names for
-subscription inside `Configure()`?
-
 That one-time subscription logic looks like this, starting with determination
 of the right topic name and ending with registering our previously defined
 `imuCb()` method as the callback to receive new IMU data:
@@ -598,34 +579,12 @@ if(!this->dataPtr->imuInitialized)
 {
   // Set unconditionally because we're only going to try this once.
   this->dataPtr->imuInitialized = true;
-  std::string imuTopicName;
-  _ecm.Each<ignition::gazebo::components::Imu, ignition::gazebo::components::Name>(
-          [&](const ignition::gazebo::Entity &_imu_entity,
-              const ignition::gazebo::components::Imu * /*_imu*/,
-              const ignition::gazebo::components::Name *_name)->bool
-      {
-        if(_name->Data() == this->dataPtr->imuName)
-        {
-          // The parent of the imu is imu_link
-          ignition::gazebo::Entity parent = _ecm.ParentEntity(_imu_entity);
-          this->dataPtr->modelLink = parent;
-          if(parent != ignition::gazebo::kNullEntity)
-          {
-            // The grandparent of the imu is the quad itself, which is where this plugin is attached
-            ignition::gazebo::Entity gparent = _ecm.ParentEntity(parent);
-            if(gparent != ignition::gazebo::kNullEntity)
-            {
-              ignition::gazebo::Model gparent_model(gparent);
-              if(gparent_model.Name(_ecm) == this->dataPtr->modelName)
-              {
-                imuTopicName = ignition::gazebo::scopedName(_imu_entity, _ecm) + "/imu";
-                igndbg << "Computed IMU topic to be: " << imuTopicName << std::endl;
-              }
-            }
-          }
-        }
-        return true;
-      });
+
+  auto imuEntity = _ecm.EntityByComponents(
+      components::Name(this->dataPtr->imuName),
+      components::Imu(),
+      components::ParentEntity(this->dataPtr->modelLink));
+  auto imuTopicName = _ecm.ComponentData<components::SensorTopic>(imuEntity);
 
   if(imuTopicName.empty())
   {
@@ -638,9 +597,6 @@ if(!this->dataPtr->imuInitialized)
   this->dataPtr->node.Subscribe(imuTopicName, &ignition::gazebo::systems::ArduPilotPluginPrivate::imuCb, this->dataPtr.get());
 }
 ```
-
-**Suggestion**: There should be an easier way to compute the name of the topic
-on which a given sensor's data will be published.
 
 ### Writing to simulation
 
@@ -663,19 +619,11 @@ exist):
 
 ```cpp
 // NEW
-ignition::gazebo::components::JointForceCmd* jfcComp =
-  _ecm.Component<ignition::gazebo::components::JointForceCmd>(this->dataPtr->controls[i].joint);
-if (jfcComp == nullptr)
-{
-  jfcComp = _ecm.Component<ignition::gazebo::components::JointForceCmd>(
-    _ecm.CreateComponent(this->dataPtr->controls[i].joint,
-    ignition::gazebo::components::JointForceCmd({0})));
-}
-ignition::gazebo::components::JointVelocity* vComp =
-  _ecm.Component<ignition::gazebo::components::JointVelocity>(this->dataPtr->controls[i].joint);
-const double vel = vComp->Data()[0];
+const double vel = _ecm.ComponentData<ignition::gazebo::components::JointVelocity>(
+    this->dataPtr->controls[i].joint);
 // ...do some feedback control math to compute force from vel...
-jfcComp->Data()[0] = force;
+_ecm.SetComponentData(this->dataPtr->controls[i].joint,
+    ignition::gazebo::components::JointForceCmd({force}));
 ```
 
 A similar pattern is used for the case of setting a velocity on a joint;
@@ -803,7 +751,7 @@ In the new code we explicitly reference each Ignition package that we use:
 
 ```
 # NEW
-find_package(sdformat9 REQUIRED)
+find_package(sdformat11 REQUIRED)
 find_package(ignition-common3-all REQUIRED)
 find_package(ignition-gazebo5-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
@@ -837,8 +785,6 @@ include_directories(
         ${IGNITION-GAZEBO_INCLUDE_DIRS}
         ${IGNITION-MATH_INCLUDE_DIRS}
         ${IGNITION-MSGS_INCLUDE_DIRS}
-        ${IGNITION-PHYSICS_INCLUDE_DIRS}
-        ${IGNITION-SENSORS_INCLUDE_DIRS}
         ${IGNITION-TRANSPORT_INCLUDE_DIRS}
         )
 
@@ -848,8 +794,6 @@ link_libraries(
         ${IGNITION-GAZEBO_LIBRARIES}
         ${IGNITION-MATH_LIBRARIES}
         ${IGNITION-MSGS_LIBRARIES}
-        ${IGNITION-PHYSICS_LIBRARIES}
-        ${IGNITION-SENSORS_LIBRARIES}
         ${IGNITION-TRANSPORT_LIBRARIES}
         )
 ```

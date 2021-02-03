@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>

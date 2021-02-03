@@ -26,6 +26,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -81,6 +82,10 @@ namespace ignition
       /// real time and iterations.
       // cppcheck-suppress unusedStructMember
       bool rewind{false};  // NOLINT
+
+      /// \brief A simulation time in the future to run to and then pause.
+      /// A negative number indicates that this variable it not being used.
+      std::chrono::steady_clock::duration runToSimTime{-1};  // NOLINT
 
       /// \brief Sim time to jump to. A negative value means don't seek.
       /// Seeking changes sim time but doesn't affect real time.
@@ -170,11 +175,31 @@ namespace ignition
       /// \brief Publish current world statistics.
       public: void PublishStats();
 
+      /// \brief Load system plugin for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _fname Filename of the plugin library
+      /// \param[in] _name Name of the plugin
+      /// \param[in] _sdf SDF element (content of plugin tag)
+      public: void LoadPlugin(const Entity _entity,
+          const std::string &_fname,
+          const std::string &_name,
+          const sdf::ElementPtr &_sdf);
+
       /// \brief Load system plugins for a given entity.
       /// \param[in] _entity Entity
       /// \param[in] _sdf SDF element
       public: void LoadPlugins(const Entity _entity,
           const sdf::ElementPtr &_sdf);
+
+      /// \brief Load server plugins for a given entity.
+      /// \param[in] _config Configuration to load plugins from.
+      ///     plugins based on the _config contents
+      public: void LoadServerPlugins(
+          const std::list<ServerConfig::PluginInfo> &_plugins);
+
+      /// \brief Load logging/playback plugins
+      /// \param[in] _config Configuration to load plugins from.
+      public: void LoadLoggingPlugins(const ServerConfig &_config);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -219,6 +244,13 @@ namespace ignition
       /// \brief Get the pause state.
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
+
+      /// \brief Set the run to simulation time.
+      /// \param[in] _time A simulation time in the future to run to and then
+      /// pause. A negative number or a time less than the current simulation
+      /// time disables the run-to feature.
+      public: void SetRunToSimTime(
+                  const std::chrono::steady_clock::duration &_time);
 
       /// \brief Get the EntityComponentManager
       /// \return Reference to the entity component manager.
@@ -468,6 +500,10 @@ namespace ignition
       /// \brief If user asks to seek to a specific sim time, this holds the
       /// time.s A negative value means there's no request from the user.
       private: std::chrono::steady_clock::duration requestedSeek{-1};
+
+      /// \brief A simulation time in the future to run to and then pause.
+      /// A negative number indicates that this variable it not being used.
+      private: std::chrono::steady_clock::duration requestedRunToSimTime{-1};
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
