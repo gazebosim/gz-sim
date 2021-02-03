@@ -129,6 +129,11 @@ ign_find_package(ignition-tools
                  PKGCONFIG "ignition-tools")
 
 #--------------------------------------
+# Find ignition-utils
+ign_find_package(ignition-utils1 REQUIRED)
+set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
+
+#--------------------------------------
 # Find protobuf
 # Module is needed to use the PROTOBUF_GENERATE_CPP
 set(protobuf_MODULE_COMPATIBLE TRUE)

@@ -216,8 +216,6 @@ TEST(Conversions, Material)
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
-
-  // todo(anyone) add double_sided field to msgs::Material
   material.SetDoubleSided(true);
 
   sdf::Pbr pbr;
@@ -232,6 +230,7 @@ TEST(Conversions, Material)
   workflow.SetEmissiveMap("emissive_map.png");
   workflow.SetGlossinessMap("dummy_glossiness_map.png");
   workflow.SetSpecularMap("dummy_specular_map.png");
+  workflow.SetLightMap("light_map.png", 1u);
   workflow.SetMetalness(0.3);
   workflow.SetRoughness(0.9);
   workflow.SetGlossiness(0.1);
@@ -249,11 +248,7 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
   EXPECT_DOUBLE_EQ(2.5, materialMsg.render_order());
-
-  // todo(anyone) double_sided is temporarily stored in header
-  // Need to add double_sided field to msgs::Material
-  bool doubleSided = math::parseInt(materialMsg.header().data(0).value(0));
-  EXPECT_TRUE(doubleSided);
+  EXPECT_TRUE(materialMsg.double_sided());
 
   EXPECT_TRUE(materialMsg.has_pbr());
   const auto &pbrMsg = materialMsg.pbr();
@@ -267,6 +262,9 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", pbrMsg.ambient_occlusion_map());
   EXPECT_EQ("dummy_glossiness_map.png", pbrMsg.glossiness_map());
   EXPECT_EQ("dummy_specular_map.png", pbrMsg.specular_map());
+  EXPECT_EQ("light_map.png", pbrMsg.light_map());
+  EXPECT_EQ(1u, pbrMsg.light_map_texcoord_set());
+
   EXPECT_DOUBLE_EQ(0.3, pbrMsg.metalness());
   EXPECT_DOUBLE_EQ(0.9, pbrMsg.roughness());
   EXPECT_DOUBLE_EQ(0.1, pbrMsg.glossiness());
@@ -294,6 +292,8 @@ TEST(Conversions, Material)
   EXPECT_EQ("ambient_occlusion_map.png", newWorkflow->AmbientOcclusionMap());
   EXPECT_EQ("dummy_glossiness_map.png", newWorkflow->GlossinessMap());
   EXPECT_EQ("dummy_specular_map.png", newWorkflow->SpecularMap());
+  EXPECT_EQ("light_map.png", newWorkflow->LightMap());
+  EXPECT_EQ(1u, newWorkflow->LightMapTexCoordSet());
   EXPECT_DOUBLE_EQ(0.3, newWorkflow->Metalness());
   EXPECT_DOUBLE_EQ(0.9, newWorkflow->Roughness());
   EXPECT_DOUBLE_EQ(0.1, newWorkflow->Glossiness());
