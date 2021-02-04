@@ -56,6 +56,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParticleEmitter.hh"
+#include "ignition/gazebo/components/ParticleEmitterCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -404,8 +405,10 @@ void RenderUtil::Update()
 
     for (const auto &emitter : newParticleEmitters)
     {
-      this->dataPtr->sceneManager.CreateParticleEmitter(
+      this->dataPtr->sceneManager.CreateEmptyParticleEmitter(
           std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
+      this->dataPtr->sceneManager.UpdateParticleEmitter(
+          std::get<0>(emitter), std::get<1>(emitter));
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
@@ -960,6 +963,25 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newParticleEmitters.push_back(
               std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          return true;
+        });
+
+    // particle emitters commands
+    _ecm.EachNew<components::ParticleEmitterCmd>(
+        [&](const Entity &_entityCmd,
+            const components::ParticleEmitterCmd *_emitterCmd) -> bool
+        {
+          ignerr << "Received particle emitter command" << std::endl;
+
+          _ecm.Each<components::ParticleEmitter>(
+              [this, &_entityCmd, &_emitterCmd](const Entity &_entity,
+                  const components::ParticleEmitter *_emitter) -> bool
+              {
+                if (_emitterCmd->Data().name() == _emitter->Data().name())
+                  this->sceneManager.UpdateParticleEmitter(
+                    _entity, _emitterCmd->Data());
+                return true;
+              });
           return true;
         });
 

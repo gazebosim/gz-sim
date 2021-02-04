@@ -938,8 +938,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
-    const msgs::ParticleEmitter &_emitter, Entity _parentId)
+rendering::ParticleEmitterPtr SceneManager::CreateEmptyParticleEmitter(
+    Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::ParticleEmitterPtr();
@@ -973,6 +973,31 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
 
   rendering::ParticleEmitterPtr emitter;
   emitter = this->dataPtr->scene->CreateParticleEmitter(name);
+
+  this->dataPtr->particleEmitters[_id] = emitter;
+
+  if (parent)
+    parent->AddChild(emitter);
+
+  return emitter;
+}
+
+/////////////////////////////////////////////////
+rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
+    const msgs::ParticleEmitter &_emitter)
+{
+  if (!this->dataPtr->scene)
+    return rendering::ParticleEmitterPtr();
+
+  // Sanity check: Make sure that the id exists.
+  auto emitterIt = this->dataPtr->particleEmitters.find(_id);
+  if (emitterIt == this->dataPtr->particleEmitters.end())
+  {
+    ignerr << "Particle emitter with Id: [" << _id << "] not found in the "
+           <<" scene" << std::endl;
+    return rendering::ParticleEmitterPtr();
+  }
+  auto emitter = emitterIt->second;
 
   // Type.
   switch (_emitter.type())
@@ -1039,11 +1064,6 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   // Color range image.
   if (!_emitter.color_range_image().empty())
     emitter->SetColorRangeImage(_emitter.color_range_image());
-
-  this->dataPtr->particleEmitters[_id] = emitter;
-
-  if (parent)
-    parent->AddChild(emitter);
 
   return emitter;
 }

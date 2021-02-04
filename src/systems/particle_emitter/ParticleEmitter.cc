@@ -60,6 +60,8 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
   /// \brief The particle emitter command requested externally.
   public: ignition::msgs::ParticleEmitter userCmd;
 
+  public: bool newDataReceived = false;
+
   /// \brief A mutex to protect the user command.
   public: std::mutex mutex;
 };
@@ -67,8 +69,10 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
 //////////////////////////////////////////////////
 void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg)
 {
+  ignerr << "OnCmd" << std::endl;
   std::lock_guard<std::mutex> lock(this->mutex);
   this->userCmd = _msg;
+  this->newDataReceived = true;
 }
 
 //////////////////////////////////////////////////
@@ -225,13 +229,14 @@ void ParticleEmitter::Configure(const Entity &_entity,
   // Advertise the topic to receive particle emitter commands.
   const std::string kDefaultTopic =
     "/model/" + this->dataPtr->model.Name(_ecm) + "/particle_emitter/" + name;
-  std::string topic = _sdf->Get<std::string>("toopic", kDefaultTopic).first;
+  std::string topic = _sdf->Get<std::string>("topic", kDefaultTopic).first;
   if (!this->dataPtr->node.Subscribe(
          topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
   {
     ignerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return;
   }
+  ignerr << "Subscribed to " << topic << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -240,15 +245,31 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   IGN_PROFILE("ParticleEmitter::PreUpdate");
 
+  if (!this->dataPtr->newDataReceived)
+    return;
+
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
   // Create component.
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
+  this->dataPtr->newDataReceived = false;
+
+  // Create an entity.
+  auto entity = _ecm.CreateEntity();
+  if (entity == kNullEntity)
+  {
+    ignerr << "Failed to create a particle emitter entity command" << std::endl;
+    return;
+  }
+
   _ecm.CreateComponent(
-      this->dataPtr->model.Entity(),
+      entity,
       components::ParticleEmitterCmd({this->dataPtr->userCmd}));
+
+  igndbg << "New ParticleEmitterCmd component created" << std::endl;
 
 }
 

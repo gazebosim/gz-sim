@@ -154,8 +154,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _emitter Particle emitter data
     /// \param[in] _parentId Parent id
     /// \return Particle emitter object created
-    public: rendering::ParticleEmitterPtr CreateParticleEmitter(Entity _id,
+    public: rendering::ParticleEmitterPtr CreateEmptyParticleEmitter(Entity _id,
         const msgs::ParticleEmitter &_emitter, Entity _parentId);
+
+    /// \brief ToDo.
+    public: rendering::ParticleEmitterPtr UpdateParticleEmitter(Entity _id,
+        const msgs::ParticleEmitter &_emitter);
 
     /// \brief Ignition sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
