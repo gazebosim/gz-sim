@@ -700,7 +700,7 @@ TEST_F(UserCommandsTest, Light)
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = ignition::common::joinPaths(
-    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights.sdf");
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights_render.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
