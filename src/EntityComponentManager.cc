@@ -748,12 +748,8 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
     const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
-  uint64_t nEntityKeys = this->removedComponents.count(_entity);
-  if (nEntityKeys == 0)
-    return;
-
-  auto it = this->removedComponents.find(_entity);
-  for (uint64_t i = 0; i < nEntityKeys; ++i)
+  auto entRemovedComps = this->removedComponents.equal_range(_entity);
+  for (auto it = entRemovedComps.first; it != entRemovedComps.second; ++it)
   {
     auto removedComponent = it->second;
 
@@ -768,8 +764,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
     compMsg->set_component(" ");
     compMsg->set_type(removedComponent.first);
     compMsg->set_remove(true);
-
-    it++;
   }
 }
 
@@ -797,8 +791,8 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
       .first;
   }
 
-  auto it = this->removedComponents.find(_entity);
-  for (uint64_t i = 0; i < nEntityKeys; ++i)
+  auto entRemovedComps = this->removedComponents.equal_range(_entity);
+  for (auto it = entRemovedComps.first; it != entRemovedComps.second; ++it)
   {
     auto removedComponent = it->second;
 
@@ -816,8 +810,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
     (*(entIter->second.mutable_components()))[
       static_cast<int64_t>(removedComponent.first)] = compMsg;
-
-    it++;
   }
 }
 

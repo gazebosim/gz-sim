@@ -2290,16 +2290,16 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgCompsRemovedOnly)
     auto compIter = e1Msg.components().begin();
 
     // Check number of components
-    EXPECT_EQ(e1Msg.components().size(), 2u);
+    ASSERT_EQ(e1Msg.components().size(), 2u);
 
     // First component
     const auto &c0 = compIter->second;
     compIter++;
-    EXPECT_EQ(c0.remove(), true);
+    ASSERT_EQ(c0.remove(), true);
 
     // Second component
     const auto &c2 = compIter->second;
-    EXPECT_EQ(c2.remove(), true);
+    ASSERT_EQ(c2.remove(), true);
   }
 }
 
@@ -2318,13 +2318,13 @@ TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
     manager.CreateComponent<StringComponent>(e1, StringComponent("foo"));
 
   manager.RunSetAllComponentsUnchanged();
-  manager.RemoveComponent(e1, e1c1);
+  manager.RemoveComponent(e1, e1c0);
   manager.RemoveComponent(e1, e1c2);
 
   // Serialize into a message, providing a list of types to be included
   msgs::SerializedStateMap stateMsg;
   std::unordered_set<Entity> entitySet{e1};
-  std::unordered_set<ComponentTypeId> types{e1c0.first, e1c2.first};
+  std::unordered_set<ComponentTypeId> types{e1c0.first, e1c1.first};
   manager.State(stateMsg, entitySet, types, false);
 
   // Check message
@@ -2334,12 +2334,12 @@ TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
     auto compIter = e1Msg.components().begin();
 
     // Check number of components
-    EXPECT_EQ(e1Msg.components().size(), 1u);
+    ASSERT_EQ(e1Msg.components().size(), 1u);
 
     // Only component in message should be e1c2
     const auto &c0 = compIter->second;
     EXPECT_EQ(c0.remove(), true);
-    EXPECT_EQ(c0.type(), e1c2.first);
+    EXPECT_EQ(c0.type(), e1c0.first);
   }
 }
 
