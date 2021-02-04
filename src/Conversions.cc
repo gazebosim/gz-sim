@@ -459,6 +459,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_attenuation_linear(_in.LinearAttenuationFactor());
   out.set_attenuation_quadratic(_in.QuadraticAttenuationFactor());
   out.set_range(_in.AttenuationRange());
+  out.set_intensity(_in.Intensity());
   msgs::Set(out.mutable_direction(), _in.Direction());
   out.set_cast_shadows(_in.CastShadows());
   out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
@@ -488,6 +489,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetQuadraticAttenuationFactor(_in.attenuation_quadratic());
   out.SetAttenuationRange(_in.range());
   out.SetDirection(msgs::Convert(_in.direction()));
+  out.SetIntensity(_in.intensity());
   out.SetCastShadows(_in.cast_shadows());
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));

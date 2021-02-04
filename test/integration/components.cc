@@ -752,6 +752,7 @@ TEST_F(ComponentsTest, Light)
   data1.SetSpotInnerAngle(math::Angle(0.3));
   data1.SetSpotOuterAngle(math::Angle(2.3));
   data1.SetSpotFalloff(5.15);
+  data1.SetIntensity(1.55);
 
   auto data2 = sdf::Light();
 
@@ -782,6 +783,7 @@ TEST_F(ComponentsTest, Light)
   EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
   EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
   EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
+  EXPECT_DOUBLE_EQ(1.55, comp3.Data().Intensity());
 }
 
 /////////////////////////////////////////////////

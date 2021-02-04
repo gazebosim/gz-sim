@@ -938,6 +938,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   light->SetAttenuationRange(_light.AttenuationRange());
 
   light->SetCastShadows(_light.CastShadows());
+  light->SetIntensity(_light.Intensity());
 
   this->dataPtr->lights[_id] = light;
 
