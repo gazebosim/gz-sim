@@ -296,8 +296,8 @@
           <plugin
             filename="ignition-gazebo-thermal-sensor-system"
             name="ignition::gazebo::systems::ThermalSensor">
- <!--           <min_temp>253.15</min_temp>
-            <max_temp>673.15</max_temp>-->
+            <min_temp>253.15</min_temp>
+            <max_temp>673.15</max_temp>
             <resolution>3.0</resolution>
           </plugin>
 

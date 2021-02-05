@@ -801,9 +801,6 @@ void RenderUtil::Update()
       double maxTemp = std::get<1>(thermal.second).max.Kelvin();
       camera->SetMinTemperature(minTemp);
       camera->SetMaxTemperature(maxTemp);
-
-      std::cerr << "setting thermal camera data " << resolution << " " << minTemp
-                 << " " << maxTemp << std::endl;
     }
   }
 }
