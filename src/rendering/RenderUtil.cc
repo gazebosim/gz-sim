@@ -1249,7 +1249,6 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::ParticleEmitter>(
       [&](const Entity &_entity, const components::ParticleEmitter *)->bool
       {
-        ignerr << "Removing particle emitter" << std::endl;
         this->removeEntities[_entity] = _info.iterations;
         return true;
       });
