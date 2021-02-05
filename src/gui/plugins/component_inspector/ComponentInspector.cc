@@ -581,9 +581,11 @@ void ComponentInspector::Update(const UpdateInfo &,
     {
       this->SetType("light");
       auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
-      msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
       if (comp)
+      {
+        msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
         setData(item, lightMsgs);
+      }
     }
     else if (typeId == components::Physics::typeId)
     {
