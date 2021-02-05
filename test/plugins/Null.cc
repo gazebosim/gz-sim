@@ -18,6 +18,7 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/plugin/Register.hh>
 
+using namespace ignition::gazebo;
 using namespace ignition::gazebo::systems;
 
 //////////////////////////////////////////////////
