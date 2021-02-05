@@ -802,15 +802,15 @@ std::string ignition::gazebo::convert(const sdf::LightType &_in)
 {
   if (_in == sdf::LightType::POINT)
   {
-    return std::string("Point");
+    return std::string("point");
   }
   else if (_in == sdf::LightType::DIRECTIONAL)
   {
-    return std::string("Directional");
+    return std::string("directional");
   }
   else if (_in == sdf::LightType::SPOT)
   {
-    return std::string("Spot");
+    return std::string("spot");
   }
   return std::string("");
 }

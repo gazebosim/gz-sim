@@ -103,9 +103,9 @@ TEST(Conversions, Light)
   EXPECT_FLOAT_EQ(0.9, newLight.SpotFalloff());
 
   EXPECT_EQ("", convert(sdf::LightType::INVALID));
-  EXPECT_EQ("Point", convert(sdf::LightType::POINT));
-  EXPECT_EQ("Directional", convert(sdf::LightType::DIRECTIONAL));
-  EXPECT_EQ("Spot", convert(sdf::LightType::SPOT));
+  EXPECT_EQ("point", convert(sdf::LightType::POINT));
+  EXPECT_EQ("directional", convert(sdf::LightType::DIRECTIONAL));
+  EXPECT_EQ("spot", convert(sdf::LightType::SPOT));
 
   EXPECT_EQ(sdf::LightType::POINT, convert("POINT"));
   EXPECT_EQ(sdf::LightType::DIRECTIONAL, convert("DireCtiOnal"));
