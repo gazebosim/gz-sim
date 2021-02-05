@@ -262,6 +262,11 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of created collision entities and if they are currently
   /// visible
   public: std::map<Entity, bool> viewingCollisions;
+
+  /// \brief A map of entity id to thermal camera sensor configuration
+  /// properties
+  public:std::unordered_map<Entity,
+      std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 };
 
 //////////////////////////////////////////////////
@@ -276,6 +281,49 @@ RenderUtil::~RenderUtil() = default;
 rendering::ScenePtr RenderUtil::Scene() const
 {
   return this->dataPtr->scene;
+}
+
+//////////////////////////////////////////////////
+void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
+                           EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  // Update thermal cameras
+  _ecm.Each<components::ThermalCamera>(
+      [&](const Entity &_entity,
+        const components::ThermalCamera *)->bool
+      {
+        // set properties from thermal sensor plugin
+        double resolution = 0.0;
+        components::TemperatureRangeInfo range;
+        range.min = 0;
+        range.max = std::numeric_limits<double>::max();
+
+        // resolution
+        auto resolutionComp =
+          _ecm.Component<components::TemperatureLinearResolution>(_entity);
+        if (resolutionComp != nullptr)
+        {
+          resolution = resolutionComp->Data();
+          _ecm.RemoveComponent<components::TemperatureLinearResolution>(_entity);
+        }
+
+        // min / max temp
+        auto tempRangeComp =
+          _ecm.Component<components::TemperatureRange>(_entity);
+        if (tempRangeComp != nullptr)
+        {
+          range = tempRangeComp->Data();
+          _ecm.RemoveComponent<components::TemperatureRange>(_entity);
+        }
+
+        if (resolutionComp || tempRangeComp)
+        {
+          this->dataPtr->thermalCameraData[_entity] =
+              std::make_tuple(resolution, range);
+        }
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -367,6 +415,7 @@ void RenderUtil::Update()
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
+  auto thermalCameraData = std::move(this->dataPtr->thermalCameraData);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -381,6 +430,7 @@ void RenderUtil::Update()
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
   this->dataPtr->newCollisionLinks.clear();
+  this->dataPtr->thermalCameraData.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -732,6 +782,28 @@ void RenderUtil::Update()
           }
         }
       }
+    }
+  }
+
+  // update thermal camera
+  for (const auto &thermal : this->dataPtr->thermalCameraData)
+  {
+    Entity id = thermal.first;
+    rendering::ThermalCameraPtr camera =
+        std::dynamic_pointer_cast<rendering::ThermalCamera>(
+        this->dataPtr->sceneManager.NodeById(id));
+    if (camera)
+    {
+      double resolution = std::get<0>(thermal.second);
+      if (resolution > 0.0)
+        camera->SetLinearResolution(resolution);
+      double minTemp = std::get<1>(thermal.second).min.Kelvin();
+      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
+      camera->SetMinTemperature(minTemp);
+      camera->SetMaxTemperature(maxTemp);
+
+      std::cerr << "setting thermal camera data " << resolution << " " << minTemp
+                 << " " << maxTemp << std::endl;
     }
   }
 }
