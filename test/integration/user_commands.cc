@@ -724,23 +724,17 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_NE(nullptr, ecm);
 
   msgs::Light req;
-  req.set_name("point");
-
   msgs::Boolean res;
+  transport::Node node;
   bool result;
   unsigned int timeout = 1000;
-  std::string service{"/world/lights/light_config"};
-
-  transport::Node node;
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  std::string service{"/world/lights_command/light_config"};
 
   // Point light
   auto pointLightEntity = ecm->EntityByComponents(components::Name("point"));
   EXPECT_NE(kNullEntity, pointLightEntity);
 
-  // Check entity has not been edited yet
+  // Check point light entity has not been edited yet - Initial values
   auto pointLightComp = ecm->Component<components::Light>(pointLightEntity);
   ASSERT_NE(nullptr, pointLightComp);
   EXPECT_EQ(
@@ -773,6 +767,7 @@ TEST_F(UserCommandsTest, Light)
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
+  // Check point light entity has been edited using the service
   pointLightComp = ecm->Component<components::Light>(pointLightEntity);
   ASSERT_NE(nullptr, pointLightComp);
 
@@ -786,12 +781,11 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_TRUE(pointLightComp->Data().CastShadows());
   EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
-  // directional light
+  // Check directional light entity has not been edited yet - Initial values
   auto directionalLightEntity = ecm->EntityByComponents(
       components::Name("directional"));
   EXPECT_NE(kNullEntity, directionalLightEntity);
 
-  // Check entity has not been moved yet
   auto directionalLightComp =
     ecm->Component<components::Light>(directionalLightEntity);
   ASSERT_NE(nullptr, directionalLightComp);
@@ -836,6 +830,7 @@ TEST_F(UserCommandsTest, Light)
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
+  // Check directional light entity has been edited using the service
   directionalLightComp =
     ecm->Component<components::Light>(directionalLightEntity);
   ASSERT_NE(nullptr, directionalLightComp);
@@ -860,7 +855,7 @@ TEST_F(UserCommandsTest, Light)
       components::Name("spot"));
   EXPECT_NE(kNullEntity, spotLightEntity);
 
-  // Check entity has not been moved yet
+  // Check spot light entity has not been edited yet - Initial values
   auto spotLightComp =
     ecm->Component<components::Light>(spotLightEntity);
   ASSERT_NE(nullptr, spotLightComp);
@@ -906,6 +901,7 @@ TEST_F(UserCommandsTest, Light)
   // Sleep for a small duration to allow Run thread to start
   IGN_SLEEP_MS(10);
 
+  // Check spot light entity has been edited using the service
   spotLightComp = ecm->Component<components::Light>(spotLightEntity);
   ASSERT_NE(nullptr, spotLightComp);
 

@@ -1,14 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="lights">
+  <world name="lights_command">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
-    <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
-    </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
