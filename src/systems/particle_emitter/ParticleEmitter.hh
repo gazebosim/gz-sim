@@ -96,7 +96,10 @@ namespace systems
   ///                        therefore only the horizontal dimension of the
   ///                        image is used.
   ///                        Note that this function overrides the particle
-  /// colors set with <color_start> and <color_end>.
+  ///                        colors set with <color_start> and <color_end>.
+  /// `<topic>`: Topic used to update particle emitter properties at runtime.
+  ///            The default topic is
+  ///            /model/<model_name>/particle_emitter/<emitter_name>
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter
       : public System,
         public ISystemConfigure,

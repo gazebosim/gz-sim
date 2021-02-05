@@ -31,7 +31,7 @@
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/Conversions.hh>
-#include "ignition/gazebo/Model.hh"
+#include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/SdfEntityCreator.hh>
 #include <ignition/gazebo/Util.hh>
 #include <sdf/Material.hh>
@@ -69,7 +69,6 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
 //////////////////////////////////////////////////
 void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg)
 {
-  ignerr << "OnCmd" << std::endl;
   std::lock_guard<std::mutex> lock(this->mutex);
   this->userCmd = _msg;
   this->newDataReceived = true;
@@ -236,7 +235,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
     ignerr << "Error subscribing to topic [" << topic << "]" << std::endl;
     return;
   }
-  ignerr << "Subscribed to " << topic << std::endl;
+  igndbg << "Subscribed to " << topic << " for receiving particle emitter "
+         << "updates" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -270,7 +270,6 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       components::ParticleEmitterCmd({this->dataPtr->userCmd}));
 
   igndbg << "New ParticleEmitterCmd component created" << std::endl;
-
 }
 
 IGNITION_ADD_PLUGIN(ParticleEmitter,

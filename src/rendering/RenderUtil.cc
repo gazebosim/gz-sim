@@ -163,6 +163,12 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
       newParticleEmitters;
 
+  /// \brief New particle emitter commands to be requested.
+  /// The elements in the tuple are: [0] entity id of the particle emitter to
+  /// update, [1] particle emitter, [2] entity id of the particle emitter cmd.
+  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
+      newParticleEmittersCmd;
+
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
   public: std::unordered_map<Entity, uint64_t> removeEntities;
@@ -290,6 +296,8 @@ void RenderUtil::Update()
   auto newActors = std::move(this->dataPtr->newActors);
   auto newLights = std::move(this->dataPtr->newLights);
   auto newParticleEmitters = std::move(this->dataPtr->newParticleEmitters);
+  auto newParticleEmittersCmd =
+    std::move(this->dataPtr->newParticleEmittersCmd);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
@@ -304,6 +312,7 @@ void RenderUtil::Update()
   this->dataPtr->newActors.clear();
   this->dataPtr->newLights.clear();
   this->dataPtr->newParticleEmitters.clear();
+  this->dataPtr->newParticleEmittersCmd.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
@@ -405,10 +414,16 @@ void RenderUtil::Update()
 
     for (const auto &emitter : newParticleEmitters)
     {
-      this->dataPtr->sceneManager.CreateEmptyParticleEmitter(
+      this->dataPtr->sceneManager.CreateDefaultParticleEmitter(
           std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
       this->dataPtr->sceneManager.UpdateParticleEmitter(
           std::get<0>(emitter), std::get<1>(emitter));
+    }
+
+    for (const auto &emitterCmd : newParticleEmittersCmd)
+    {
+      this->dataPtr->sceneManager.UpdateParticleEmitter(
+          std::get<0>(emitterCmd), std::get<1>(emitterCmd));
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
@@ -971,17 +986,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
         [&](const Entity &_entityCmd,
             const components::ParticleEmitterCmd *_emitterCmd) -> bool
         {
-          ignerr << "Received particle emitter command" << std::endl;
-
+          // Find the particle emitter requested to be updated.
           _ecm.Each<components::ParticleEmitter>(
               [this, &_entityCmd, &_emitterCmd](const Entity &_entity,
                   const components::ParticleEmitter *_emitter) -> bool
               {
                 if (_emitterCmd->Data().name() == _emitter->Data().name())
-                  this->sceneManager.UpdateParticleEmitter(
-                    _entity, _emitterCmd->Data());
+                {
+                  this->newParticleEmittersCmd.push_back(
+                    std::make_tuple(_entity, _emitterCmd->Data(), _entityCmd));
+                }
                 return true;
               });
+
+          // ToDo: Remove the ParticleEmitterCmd component.
+          // Do it when https://github.com/ignitionrobotics/ign-gazebo/pull/482
+          // is merged, as it has an UpdateECM() function where we can do it.
+
           return true;
         });
 
@@ -1220,6 +1241,15 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
       {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // particle emitters
+  _ecm.EachRemoved<components::ParticleEmitter>(
+      [&](const Entity &_entity, const components::ParticleEmitter *)->bool
+      {
+        ignerr << "Removing particle emitter" << std::endl;
         this->removeEntities[_entity] = _info.iterations;
         return true;
       });

@@ -938,7 +938,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::ParticleEmitterPtr SceneManager::CreateEmptyParticleEmitter(
+rendering::ParticleEmitterPtr SceneManager::CreateDefaultParticleEmitter(
     Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {
   if (!this->dataPtr->scene)
@@ -1359,6 +1359,16 @@ void SceneManager::RemoveEntity(Entity _id)
     {
       this->dataPtr->scene->DestroyLight(it->second);
       this->dataPtr->lights.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->particleEmitters.find(_id);
+    if (it != this->dataPtr->particleEmitters.end())
+    {
+      // ToDo: Destroy the particle emitter.
+      this->dataPtr->particleEmitters.erase(it);
       return;
     }
   }

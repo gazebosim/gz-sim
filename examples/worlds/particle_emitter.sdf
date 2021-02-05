@@ -1,4 +1,25 @@
 <?xml version="1.0" ?>
+
+<!--
+  Launch this example with:
+
+      ign gazebo -r particle_emitter.sdf
+
+  Try modifying some parameters of the emitter:
+
+    To disable the particle emitter:
+
+      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 10 emitting: false particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+
+    Enable back the particle emitter:
+
+      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 10 emitting: true particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+
+    Then, change the particle rate:
+
+      ign topic -t /model/smoke_generator/particle_emitter/smoke_generator -m ignition.msgs.ParticleEmitter -p 'name: "smoke_generator" pose { position { } orientation { w: 1 } } size { x: 1 y: 1 z: 1 } rate: 100 emitting: true particle_size { x: 1 y: 1 z: 1 } lifetime: 2 material { header { data { key: "double_sided" value: "0" } } ambient { a: 1 } diffuse { r: 0.7 g: 0.7 b: 0.7 a: 1 } specular { a: 1 } emissive { a: 1 } lighting: true pbr { type: METAL albedo_map: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smoke.png" metalness: 0.5 roughness: 0.5 } } min_velocity: 10 max_velocity: 20 color_start { r: 1 g: 1 b: 1 a: 1 } color_end { r: 1 g: 1 b: 1 a: 1 } scale_rate: 10 color_range_image: "/home/caguero/.ignition/fuel/fuel.ignitionrobotics.org/caguero/models/smoke_generator/2/materials/textures/smokecolors.png"'
+-->
+
 <sdf version="1.6">
   <world name="particle_emitters">
 
