@@ -112,7 +112,7 @@
           <property type="double" key="height">315</property>
           <property type="double" key="x">500</property>
         </ignition-gui>
-        <topic>thermal_camera_8bit</topic>
+        <topic>thermal_camera_8bit/image</topic>
         <topic_picker>false</topic_picker>
       </plugin>
 
