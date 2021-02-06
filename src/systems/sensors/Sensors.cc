@@ -24,11 +24,13 @@
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
+
+// This plugin loads another plugin, so it shouldn't include Register.hh
+#include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>

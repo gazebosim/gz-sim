@@ -21,11 +21,12 @@
 #include <utility>
 #include <string>
 
-#include <ignition/plugin/Register.hh>
-
 #include <sdf/Element.hh>
 
 #include <ignition/common/Profiler.hh>
+
+// This plugin loads another plugin, so it shouldn't include Register.hh
+#include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/transport/Node.hh>
 

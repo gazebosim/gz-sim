@@ -25,7 +25,9 @@
 #include <utility>
 
 #include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+
+// This plugin loads another plugin, so it shouldn't include Register.hh
+#include <ignition/plugin/RegisterMore.hh>
 
 #include <sdf/Sensor.hh>
 

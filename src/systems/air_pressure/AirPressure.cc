@@ -23,13 +23,14 @@
 #include <unordered_map>
 #include <utility>
 
-#include <ignition/plugin/Register.hh>
-
 #include <ignition/common/Profiler.hh>
 
 #include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
+
+// This plugin loads another plugin, so it shouldn't include Register.hh
+#include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/AirPressureSensor.hh>

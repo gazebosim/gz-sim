@@ -21,16 +21,17 @@
 #include <unordered_map>
 #include <utility>
 
-#include <ignition/plugin/Register.hh>
-
 #include <sdf/Sensor.hh>
 
 #include <ignition/common/Profiler.hh>
 
-#include <ignition/transport/Node.hh>
+// This plugin loads another plugin, so it shouldn't include Register.hh
+#include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/MagnetometerSensor.hh>
+
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
