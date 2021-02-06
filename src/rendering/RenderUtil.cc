@@ -264,7 +264,8 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, bool> viewingCollisions;
 
   /// \brief A map of entity id to thermal camera sensor configuration
-  /// properties
+  /// properties. The elements in the tuple are:
+  /// <resolution, temperature range (min, max)>
   public:std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 };
@@ -294,10 +295,13 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
         const components::ThermalCamera *)->bool
       {
         // set properties from thermal sensor plugin
+        // Set defaults to invaid values so we know they have not been set.
+        // set UpdateECM(). We check for valid values first before setting
+        // these thermal camera properties..
         double resolution = 0.0;
         components::TemperatureRangeInfo range;
-        range.min = 0;
-        range.max = std::numeric_limits<double>::max();
+        range.min = std::numeric_limits<double>::max();
+        range.max = 0;
 
         // resolution
         auto resolutionComp =
@@ -305,7 +309,8 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
         if (resolutionComp != nullptr)
         {
           resolution = resolutionComp->Data();
-          _ecm.RemoveComponent<components::TemperatureLinearResolution>(_entity);
+          _ecm.RemoveComponent<components::TemperatureLinearResolution>(
+              _entity);
         }
 
         // min / max temp
@@ -796,11 +801,30 @@ void RenderUtil::Update()
     {
       double resolution = std::get<0>(thermal.second);
       if (resolution > 0.0)
+      {
         camera->SetLinearResolution(resolution);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature linear resolution."
+                << " Value must be greater than 0." << std::endl;
+      }
+
       double minTemp = std::get<1>(thermal.second).min.Kelvin();
       double maxTemp = std::get<1>(thermal.second).max.Kelvin();
-      camera->SetMinTemperature(minTemp);
-      camera->SetMaxTemperature(maxTemp);
+
+      if (maxTemp >= minTemp)
+      {
+        camera->SetMinTemperature(minTemp);
+        camera->SetMaxTemperature(maxTemp);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature range."
+                << "Max temperature must be greater or equal to min"
+                << std::endl;
+
+      }
     }
   }
 }

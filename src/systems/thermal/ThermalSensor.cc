@@ -85,9 +85,9 @@ void ThermalSensor::Configure(const Entity &_entity,
   }
 }
 
-
 IGNITION_ADD_PLUGIN(ThermalSensor, System,
   ThermalSensor::ISystemConfigure
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor, "ignition::gazebo::systems::ThermalSensor")
+IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
+    "ignition::gazebo::systems::ThermalSensor")

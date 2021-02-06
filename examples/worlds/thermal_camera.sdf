@@ -292,7 +292,7 @@
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>
-          <topic>thermal_camera_8bit</topic>
+          <topic>thermal_camera_8bit/image</topic>
           <plugin
             filename="ignition-gazebo-thermal-sensor-system"
             name="ignition::gazebo::systems::ThermalSensor">
