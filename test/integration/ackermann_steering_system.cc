@@ -152,14 +152,11 @@ class AckermannSteeringTest : public ::testing::TestWithParam<int>
     ASSERT_NE(maxSleep, sleep);
 
     // Odometry calculates the pose of a point that is located half way between
-    // the two wheels, not the origin of the model. For example, if the
-    // vehicle is commanded to rotate in place, the vehicle will rotate about
-    // the point half way between the two wheels, thus, the odometry position
-    // will remain zero.
-    // However, since the model origin is offset, the model position will
-    // change. To find the final pose of the model, we have to do the
-    // following similarity transformation
-    math::Pose3d tOdomModel(0.554283, 0, -0.325, 0, 0, 0);
+    // the four wheels, not the origin of the model.
+    // Since the model origin is offset, the model position will
+    // change based on orientation. To find the final pose of the model,
+    // we have to do the following similarity transformation
+    math::Pose3d tOdomModel(-0.1, 0, -0.325, 0, 0, 0);
     auto finalModelFramePose =
         tOdomModel * odomPoses.back() * tOdomModel.Inverse();
 
