@@ -200,17 +200,16 @@ class AckermannSteeringTest : public ::testing::TestWithParam<int>
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest, PublishCmd)
 {
-  TestPublishCmd(
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/ackermann_steering.sdf",
+  TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+                                   "/test/worlds/ackermann_steering.sdf"),
       "/model/vehicle/cmd_vel", "/model/vehicle/odometry");
 }
 
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest, PublishCmdCustomTopics)
 {
-  TestPublishCmd(
-      std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/ackermann_steering_custom_topics.sdf",
+  TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/ackermann_steering_custom_topics.sdf"),
       "/model/foo/cmdvel", "/model/bar/odom");
 }
 
@@ -219,8 +218,8 @@ TEST_P(AckermannSteeringTest, SkidPublishCmd)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/ackermann_steering_slow_odom.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/ackermann_steering_slow_odom.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -317,8 +316,8 @@ TEST_P(AckermannSteeringTest, OdomFrameId)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/ackermann_steering.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/ackermann_steering.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -375,8 +374,8 @@ TEST_P(AckermannSteeringTest, OdomCustomFrameId)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/ackermann_steering_custom_frame_id.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+             "/test/worlds/ackermann_steering_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

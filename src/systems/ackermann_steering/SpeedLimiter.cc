@@ -49,6 +49,15 @@ using namespace systems;
 class ignition::gazebo::systems::SpeedLimiterPrivate
 {
   /// \brief Class constructor.
+  /// \param [in] _hasVelocityLimits     if true, applies velocity limits.
+  /// \param [in] _hasAccelerationLimits if true, applies acceleration limits.
+  /// \param [in] _hasJerkLimits         if true, applies jerk limits.
+  /// \param [in] _minVelocity Minimum velocity [m/s], usually <= 0.
+  /// \param [in] _maxVelocity Maximum velocity [m/s], usually >= 0.
+  /// \param [in] _minAcceleration Minimum acceleration [m/s^2], usually <= 0.
+  /// \param [in] _maxAcceleration Maximum acceleration [m/s^2], usually >= 0.
+  /// \param [in] _minJerk Minimum jerk [m/s^3], usually <= 0.
+  /// \param [in] _maxJerk Maximum jerk [m/s^3], usually >= 0.
   public: SpeedLimiterPrivate(bool _hasVelocityLimits,
                               bool _hasAccelerationLimits,
                               bool _hasJerkLimits,

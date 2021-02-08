@@ -93,7 +93,6 @@ namespace systems
   /// https://github.com/froohoo/ackermansteer/blob/master/ackermansteer/
 
 
-
   class IGNITION_GAZEBO_VISIBLE AckermannSteering
       : public System,
         public ISystemConfigure,

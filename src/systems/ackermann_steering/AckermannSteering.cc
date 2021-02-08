@@ -316,7 +316,6 @@ void AckermannSteering::Configure(const Entity &_entity,
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
   }
 
-
   // Subscribe to commands
   std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
@@ -325,6 +324,11 @@ void AckermannSteering::Configure(const Entity &_entity,
   }
   topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
+  if (topic.empty()) {
+    ignerr << "AckermannSteering plugin received invalid model name "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
 
   this->dataPtr->node.Subscribe(topic, &AckermannSteeringPrivate::OnCmdVel,
       this->dataPtr.get());
@@ -337,6 +341,11 @@ void AckermannSteering::Configure(const Entity &_entity,
   odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
       "/odometry");
   auto odomTopic = validTopic(odomTopics);
+  if (topic.empty()) {
+    ignerr << "AckermannSteering plugin received invalid model name "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
 
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
@@ -670,7 +679,6 @@ void AckermannSteeringPrivate::UpdateOdometry(
     childFrame->add_value(this->sdfChildFrameId);
   }
 
-
   // Publish the message
   this->odomPub.Publish(msg);
 }
@@ -729,7 +737,6 @@ void AckermannSteeringPrivate::UpdateVelocity(
       (linVel * (1.0 - (this->wheelSeparation * tan(phi)) /
                  (2.0 * this->wheelBase))) / this->wheelRadius;
 
-
   auto leftSteeringPos = _ecm.Component<components::JointPosition>(
       this->leftSteeringJoints[0]);
   auto rightSteeringPos = _ecm.Component<components::JointPosition>(
@@ -742,7 +749,6 @@ void AckermannSteeringPrivate::UpdateVelocity(
   {
     return;
   }
-
 
   double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
   double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
