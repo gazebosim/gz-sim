@@ -62,6 +62,7 @@
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
+using namespace ignition::gazebo;
 using namespace ignition::gazebo::systems;
 
 // Private data class.
