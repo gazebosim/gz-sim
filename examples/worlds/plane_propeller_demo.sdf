@@ -109,6 +109,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100000 100</size>
             </plane>
           </geometry>
         </collision>
