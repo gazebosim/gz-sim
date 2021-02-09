@@ -395,7 +395,7 @@ TEST_F(ThermalTest, ThermalSensorSystemInvalidConfig)
     unsigned int defaultResolution = 3u;
     unsigned int cylinderTemp = g_image[leftIdx] * defaultResolution;
     unsigned int sphereTemp = g_image[rightIdx] * defaultResolution;
-    // default resolution, min, max valuse used so we should get correct
+    // default resolution, min, max values used so we should get correct
     // temperature value
     EXPECT_EQ(600u, sphereTemp);
     // 8 bit 3 degree resolution camera - this value should be clamped

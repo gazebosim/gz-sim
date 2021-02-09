@@ -811,10 +811,8 @@ void RenderUtil::Update()
                 << " Value must be greater than 0. Using the default value: "
                 << camera->LinearResolution() << ". " << std::endl;
       }
-
       double minTemp = std::get<1>(thermal.second).min.Kelvin();
       double maxTemp = std::get<1>(thermal.second).max.Kelvin();
-
       if (maxTemp >= minTemp)
       {
         camera->SetMinTemperature(minTemp);
