@@ -504,7 +504,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   this->dataPtr->ecm->CreateComponent(visualEntity,
       components::Transparency(_visual->Transparency()));
 
-  if (_visual->HasLaserRetro()){
+  if (_visual->HasLaserRetro())
+  {
     this->dataPtr->ecm->CreateComponent(visualEntity,
         components::LaserRetro(_visual->LaserRetro()));
   }
