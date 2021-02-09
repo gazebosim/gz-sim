@@ -98,6 +98,7 @@
 #include "ignition/gazebo/components/World.hh"
 
 using namespace ignition;
+using namespace ignition::gazebo;
 using namespace ignition::gazebo::systems;
 namespace components = ignition::gazebo::components;
 

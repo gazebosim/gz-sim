@@ -20,6 +20,7 @@
 
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
@@ -27,12 +28,16 @@
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
 #include <ignition/common/MeshManager.hh>
 
 #include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Heightmap.hh>
+#include <ignition/rendering/HeightmapDescriptor.hh>
 #include <ignition/rendering/Light.hh>
 #include <ignition/rendering/Material.hh>
 #include <ignition/rendering/Scene.hh>
@@ -283,7 +288,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
     // set material
     rendering::MaterialPtr material{nullptr};
-    if (_visual.Material())
+    if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+    {
+      // Heightmap's material is loaded together with it.
+    }
+    else if (_visual.Material())
     {
       material = this->LoadMaterial(*_visual.Material());
     }
@@ -417,6 +426,57 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
+  }
+  else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath());
+    if (fullPath.empty())
+    {
+      ignerr << "Heightmap geometry missing URI" << std::endl;
+      return geom;
+    }
+
+    auto data = std::make_shared<common::ImageHeightmap>();
+    if (data->Load(fullPath) < 0)
+    {
+      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
+             << std::endl;
+      return geom;
+    }
+
+    rendering::HeightmapDescriptor descriptor;
+    descriptor.SetData(data);
+    descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
+    {
+      auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
+      rendering::HeightmapTexture textureDesc;
+      textureDesc.SetSize(textureSdf->Size());
+      textureDesc.SetDiffuse(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath()));
+      textureDesc.SetNormal(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath()));
+      descriptor.AddTexture(textureDesc);
+    }
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->BlendCount(); ++i)
+    {
+      auto blendSdf = _geom.HeightmapShape()->BlendByIndex(i);
+      rendering::HeightmapBlend blendDesc;
+      blendDesc.SetMinHeight(blendSdf->MinHeight());
+      blendDesc.SetFadeDistance(blendSdf->FadeDistance());
+      descriptor.AddBlend(blendDesc);
+    }
+
+    geom = this->dataPtr->scene->CreateHeightmap(descriptor);
+    if (nullptr == geom)
+    {
+      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+    }
+    scale = _geom.HeightmapShape()->Size();
   }
   else
   {
