@@ -800,6 +800,7 @@ void RenderUtil::Update()
     if (camera)
     {
       double resolution = std::get<0>(thermal.second);
+
       if (resolution > 0.0)
       {
         camera->SetLinearResolution(resolution);
@@ -807,7 +808,8 @@ void RenderUtil::Update()
       else
       {
         ignwarn << "Unable to set thermal camera temperature linear resolution."
-                << " Value must be greater than 0." << std::endl;
+                << " Value must be greater than 0. Using the default value: "
+                << camera->LinearResolution() << ". " << std::endl;
       }
 
       double minTemp = std::get<1>(thermal.second).min.Kelvin();
@@ -821,9 +823,9 @@ void RenderUtil::Update()
       else
       {
         ignwarn << "Unable to set thermal camera temperature range."
-                << "Max temperature must be greater or equal to min"
-                << std::endl;
-
+                << "Max temperature must be greater or equal to min. "
+                << "Using the default values : [" << camera->MinTemperature()
+                << ", " << camera->MaxTemperature() << "]." << std::endl;
       }
     }
   }
