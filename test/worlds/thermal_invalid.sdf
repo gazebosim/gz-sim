@@ -144,7 +144,6 @@
             <max_temp>-590</max_temp>
             <resolution>0.0</resolution>
           </plugin>
-
         </sensor>
       </link>
       <static>true</static>

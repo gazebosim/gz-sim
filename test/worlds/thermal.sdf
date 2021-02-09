@@ -351,7 +351,6 @@
             <max_temp>673.15</max_temp>
             <resolution>3.0</resolution>
           </plugin>
-
         </sensor>
       </link>
       <static>true</static>
