@@ -154,6 +154,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
 
+  /// \brief A map of entity light ids and light visuals
+  public: std::map<Entity, Entity> matchLightWithVisuals;
+
   /// \brief New sensors to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
@@ -402,8 +405,8 @@ void RenderUtil::Update()
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
 
       // create a new id for the light visual
-      auto timeout = 100000u;
-      for (auto i = 0u; i < timeout; ++i)
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
       {
         Entity id = std::numeric_limits<uint64_t>::min() + i;
         if (!this->dataPtr->sceneManager.HasEntity(id))
@@ -411,6 +414,7 @@ void RenderUtil::Update()
           rendering::VisualPtr lightVisual =
             this->dataPtr->sceneManager.CreateLightVisual(
               id, std::get<1>(light), std::get<0>(light));
+          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
           break;
         }
       }
@@ -1185,6 +1189,9 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Light *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->removeEntities[matchLightWithVisuals[_entity]] =
+          _info.iterations;
+        matchLightWithVisuals.erase(_entity);
         return true;
       });
 

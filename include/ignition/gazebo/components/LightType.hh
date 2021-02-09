@@ -34,7 +34,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that contains the light type. This is a simple wrapper
-  /// around sdf::LightType
+  /// around std::string
   using LightType = Component<std::string, class LightTypeTag,
       serializers::StringSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LightType", LightType)
