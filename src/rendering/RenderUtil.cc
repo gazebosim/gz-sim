@@ -1155,6 +1155,31 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          if (auto temp = _ecm.Component<components::Temperature>(_entity))
+          {
+            // get the uniform temperature for the entity
+            this->entityTemp[_entity] =
+              std::make_tuple<float, float, std::string>(
+                  temp->Data().Kelvin(), 0.0, "");
+          }
+          else
+          {
+            // entity doesn't have a uniform temperature. Check if it has
+            // a heat signature with an associated temperature range
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            auto tempRange =
+               _ecm.Component<components::TemperatureRange>(_entity);
+            if (heatSignature && tempRange)
+            {
+              this->entityTemp[_entity] =
+                std::make_tuple<float, float, std::string>(
+                    tempRange->Data().min.Kelvin(),
+                    tempRange->Data().max.Kelvin(),
+                    std::string(heatSignature->Data()));
+            }
+          }
+
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
           return true;
