@@ -56,6 +56,8 @@
 
 #include <ignition/transport/Node.hh>
 
+#include <ignition/utils/SuppressWarning.hh>
+
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
@@ -805,10 +807,17 @@ void IgnRenderer::Render()
 
   if (ignition::gui::App())
   {
-    gui::events::Render event;
+    ignition::gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
+
+    IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+    ignition::gazebo::gui::events::Render oldEvent;
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &oldEvent);
+    IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   }
 
   // only has an effect in video recording lockstep mode
@@ -1253,7 +1262,7 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   if (_sendEvent)
   {
-    gui::events::DeselectAllEntities deselectEvent;
+    ignition::gazebo::gui::events::DeselectAllEntities deselectEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &deselectEvent);
@@ -1850,7 +1859,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    gui::events::EntitiesSelected selectEvent(
+    ignition::gazebo::gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -2929,7 +2938,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        _event);
     if (selectedEvent)
     {
       for (const auto &entity : selectedEvent->Data())
@@ -2962,7 +2972,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
            ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
-        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::DeselectAllEntities *>(
+        _event);
 
     // If the event is from the user, update render util state
     if (deselectEvent && deselectEvent->FromUser())
@@ -2972,33 +2983,33 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SnapIntervals::kType)
+      ignition::gui::events::SnapIntervals::kType)
   {
-    auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
+    auto snapEvent = reinterpret_cast<ignition::gui::events::SnapIntervals *>(
+        _event);
     if (snapEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetXYZSnap(snapEvent->XYZ());
-      renderWindow->SetRPYSnap(snapEvent->RPY());
+      renderWindow->SetXYZSnap(snapEvent->Position());
+      renderWindow->SetRPYSnap(snapEvent->Rotation());
       renderWindow->SetScaleSnap(snapEvent->Scale());
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewModel::kType)
+      ignition::gui::events::SpawnFromDescription::kType)
   {
-    auto spawnPreviewEvent =
-      reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
+    auto spawnPreviewEvent = reinterpret_cast<
+        ignition::gui::events::SpawnFromDescription *>(_event);
     if (spawnPreviewEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetModel(spawnPreviewEvent->ModelSdfString());
+      renderWindow->SetModel(spawnPreviewEvent->Description());
     }
   }
-  else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewPath::kType)
+  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<gui::events::SpawnPreviewPath *>(_event);
+      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
     if (spawnPreviewPathEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
