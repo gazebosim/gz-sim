@@ -1185,7 +1185,6 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Light *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
-          _info.iterations;
         return true;
       });
 
