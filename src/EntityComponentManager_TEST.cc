@@ -2289,6 +2289,86 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
 }
 
 //////////////////////////////////////////////////
+// Verify SerializedStateMap message with no changed components,
+// but some removed components
+TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgCompsRemovedOnly)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  manager.RunSetAllComponentsUnchanged();
+  manager.RemoveComponent(e1, e1c0);
+  manager.RemoveComponent(e1, e1c2);
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // Check number of components
+    ASSERT_EQ(e1Msg.components().size(), 2u);
+
+    // First component
+    const auto &c0 = compIter->second;
+    compIter++;
+    ASSERT_EQ(c0.remove(), true);
+
+    // Second component
+    const auto &c2 = compIter->second;
+    ASSERT_EQ(c2.remove(), true);
+  }
+}
+
+//////////////////////////////////////////////////
+// Verify that removed components are correctly filtered when creating a
+// SerializedStateMap message
+TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("foo"));
+
+  manager.RunSetAllComponentsUnchanged();
+  manager.RemoveComponent(e1, e1c0);
+  manager.RemoveComponent(e1, e1c2);
+
+  // Serialize into a message, providing a list of types to be included
+  msgs::SerializedStateMap stateMsg;
+  std::unordered_set<Entity> entitySet{e1};
+  std::unordered_set<ComponentTypeId> types{e1c0.first, e1c1.first};
+  manager.State(stateMsg, entitySet, types, false);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // Check number of components
+    ASSERT_EQ(e1Msg.components().size(), 1u);
+
+    // Only component in message should be e1c2
+    const auto &c0 = compIter->second;
+    EXPECT_EQ(c0.remove(), true);
+    EXPECT_EQ(c0.type(), e1c0.first);
+  }
+}
+
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, RemovedComponentsSyncBetweenServerAndGUI)
 {
   // Simulate the GUI's ECM
