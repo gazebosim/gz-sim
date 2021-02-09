@@ -26,6 +26,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -140,10 +141,10 @@ void Lights::OnNewLightClicked(const QString &_sdfString)
     return;
   }
 
-  gui::events::SpawnPreviewModel event(modelSdfString);
+  ignition::gui::events::SpawnFromDescription event(modelSdfString);
   ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &event);
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &event);
 }
 
 // Register this plugin
