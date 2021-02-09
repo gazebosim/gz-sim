@@ -17,13 +17,13 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/math/Color.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/rendering.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
 #include "GridConfig.hh"
 
 namespace ignition::gazebo
@@ -87,7 +87,7 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 bool GridConfig::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == ignition::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here

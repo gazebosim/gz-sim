@@ -31,10 +31,12 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+#include <ignition/utils/SuppressWarning.hh>
 #include <ignition/fuel_tools/FuelClient.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 
@@ -626,10 +628,18 @@ void ResourceSpawner::OnSortChosen(const QString &_sortType)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
-  gui::events::SpawnPreviewPath event(_sdfPath.toStdString());
+  ignition::gui::events::SpawnFromPath event(_sdfPath.toStdString());
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &event);
+
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+  ignition::gazebo::gui::events::SpawnPreviewPath oldEvent(
+      _sdfPath.toStdString());
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &oldEvent);
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 // Register this plugin
