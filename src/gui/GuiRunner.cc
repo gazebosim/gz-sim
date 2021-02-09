@@ -33,7 +33,7 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-class ignition::gazebo::GuiRunnerPrivate
+class ignition::gazebo::GuiRunner::Implementation
 {
   /// \brief Entity-component manager.
   public: gazebo::EntityComponentManager ecm;
@@ -50,7 +50,7 @@ class ignition::gazebo::GuiRunnerPrivate
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
-  : dataPtr(std::make_unique<GuiRunnerPrivate>())
+  : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
@@ -78,9 +78,6 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->RequestState();
 }
-
-/////////////////////////////////////////////////
-GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()

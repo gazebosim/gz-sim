@@ -23,6 +23,9 @@
 #include <memory>
 #include <string>
 
+#include <ignition/utils/ImplPtr.hh>
+
+#include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -31,7 +34,6 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-class GuiRunnerPrivate;
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
 
@@ -44,9 +46,6 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \todo Move to src/gui on v6.
   public: explicit IGN_DEPRECATED(5.0) GuiRunner(
       const std::string &_worldName);
-
-  /// \brief Destructor
-  public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
@@ -63,9 +62,8 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
 
-
   /// \brief Pointer to private data.
-  private: std::unique_ptr<GuiRunnerPrivate> dataPtr;
+  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }
