@@ -751,8 +751,11 @@ const math::Pose3d &PoseCommand::ChildToTopLevelAncestorTransform(
   if (cached_it != _cachedPoses->end())
     return cached_it->second;
 
-  const auto childLocalPose =
+  const auto childLocalPoseComp =
     this->iface->ecm->Component<components::Pose>(_child);
+  const math::Pose3d &childLocalPose =
+    (nullptr == childLocalPoseComp) ?
+    math::Pose3d::Zero : childLocalPoseComp->Data();
 
   // Recur upwards
   const Entity directParent = this->iface->ecm->ParentEntity(_child);
@@ -761,7 +764,7 @@ const math::Pose3d &PoseCommand::ChildToTopLevelAncestorTransform(
       directParent, _topLevelAncestor, _cachedPoses);
 
   const auto childToTopLevelPoseTransform =
-    parentToTopLevelPoseTransform * childLocalPose->Data();
+    parentToTopLevelPoseTransform * childLocalPose;
 
   // Place into cache and return
   const auto[inserted_it, was_inserted] =
