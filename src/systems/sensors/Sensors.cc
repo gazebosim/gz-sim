@@ -34,7 +34,9 @@
 
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/DepthCameraSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
+#include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
@@ -566,6 +568,18 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   if (nullptr != thermalSensor)
   {
     thermalSensor->SetAmbientTemperature(this->dataPtr->ambientTemperature);
+  }
+
+  // Use all supported sensor types to make sure we load their symbols
+  auto depthCamera = dynamic_cast<sensors::DepthCameraSensor *>(sensor);
+  if (nullptr != depthCamera)
+  {
+    igndbg << "Loaded a depth camera" << std::endl;
+  }
+  auto rgbdCamera = dynamic_cast<sensors::RgbdCameraSensor *>(sensor);
+  if (nullptr != rgbdCamera)
+  {
+    igndbg << "Loaded an RGBD camera" << std::endl;
   }
 
   return sensor->Name();
