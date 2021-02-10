@@ -182,7 +182,7 @@ Rectangle {
     modal: true
     focus: true
     parent: ApplicationWindow.overlay
-    width: parent.width / 4
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
