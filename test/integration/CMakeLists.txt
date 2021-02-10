@@ -43,6 +43,7 @@ set(tests
   sdf_frame_semantics.cc
   sdf_include.cc
   thermal_system.cc
+  thermal_sensor_system.cc
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
