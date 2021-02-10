@@ -37,6 +37,40 @@ Item {
       text: "Remove"
       onTriggered: context.OnRemove(context.entity, context.type)
     }
+    //   // cascading submenu only works in Qt 5.10+ on focal
+    //   Menu {
+    //     id: viewSubmenu
+    //     title: "View"
+    //     MenuItem {
+    //       id: viewCollisionsMenu
+    //       text: "Collisions"
+    //       onTriggered: context.OnRequest("view_collisions", context.entity)
+    //     }
+    //   }
+    // workaround for getting submenu's to work on bionic (< Qt 5.10)
+    MenuItem {
+      id: viewSubmenu
+      text: "View >"
+      MouseArea {
+        id: viewSubMouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: secondMenu.open()
+      }
+    }
+  }
+  Menu {
+    id: secondMenu
+    x: menu.x + menu.width
+    y: menu.y + viewSubmenu.y
+    MenuItem {
+      id: viewCollisionsMenu
+      text: "Collisions"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_collisions", context.entity)
+      }
+    }
   }
 
   function open(_entity, _type, _x, _y) {
@@ -47,6 +81,7 @@ Item {
     moveToMenu.enabled = false
     followMenu.enabled = false
     removeMenu.enabled = false
+    viewCollisionsMenu.enabled = false;
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -62,6 +97,11 @@ Item {
       removeMenu.enabled = true
     }
 
+    if (context.type == "model" || context.type == "link")
+    {
+      viewCollisionsMenu.enabled = true;
+    }
+
     menu.open()
   }
 
@@ -71,5 +111,3 @@ Item {
     property string type
   }
 }
-
-

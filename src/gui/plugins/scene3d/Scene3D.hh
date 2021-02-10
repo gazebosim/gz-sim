@@ -154,6 +154,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: bool OnMoveToPose(const msgs::GUICamera &_msg,
                  msgs::Boolean &_res);
 
+    /// \brief Callback for view collisions request
+    /// \param[in] _msg Request message to set the target to view collisions
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    private: bool OnViewCollisions(const msgs::StringMsg &_msg,
+        msgs::Boolean &_res);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
@@ -199,12 +206,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath Sdf path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the dropdown menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
 
     /// \brief Move the user camera to move to the speficied target
     /// \param[in] _target Target to move the camera to
@@ -227,6 +251,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the world pose of the camera
     /// \param[in] _pose The world pose to set the camera to.
     public: void SetMoveToPose(const math::Pose3d &_pose);
+
+    /// \brief View collisions of the specified target
+    /// \param[in] _target Target to view collisions
+    public: void SetViewCollisionsTarget(const std::string &_target);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -356,6 +384,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Broadcasts a left click within the scene
     private: void BroadcastLeftClick();
+
+    /// \brief Broadcasts a right click within the scene
+    private: void BroadcastRightClick();
 
     /// \brief Generate a unique entity id.
     /// \return The unique entity id
@@ -521,12 +552,29 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _filePath File path of the model to load in for the user.
     public: void SetModelPath(const std::string &_filePath);
 
+    /// \brief Set if the dropdown menu is enabled or disabled.
+    /// \param[in] _enableDropdownMenu The boolean to enable or disable
+    /// the menu
+    public: void SetDropdownMenuEnabled(bool _enableDropdownMenu);
+
     /// \brief Set whether to record video
     /// \param[in] _record True to start video recording, false to stop.
     /// \param[in] _format Video encoding format: "mp4", "ogv"
     /// \param[in] _savePath Path to save the recorded video.
     public: void SetRecordVideo(bool _record, const std::string &_format,
         const std::string &_savePath);
+
+    /// \brief Set whether to record video using sim time as timestamp
+    /// \param[in] _true True record video using sim time
+    public: void SetRecordVideoUseSimTime(bool _useSimTime);
+
+    /// \brief Set whether to record video in lockstep mode
+    /// \param[in] _true True to record video in lockstep mode
+    public: void SetRecordVideoLockstep(bool _lockstep);
+
+    /// \brief Set video recorder bitrate in bps
+    /// \param[in] _bitrate Bit rate to set to
+    public: void SetRecordVideoBitrate(unsigned int _bitrate);
 
     /// \brief Move the user camera to move to the specified target
     /// \param[in] _target Target to move the camera to
@@ -549,6 +597,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the pose of the camera
     /// \param[in] _pose The new camera pose in the world frame.
     public: void SetMoveToPose(const math::Pose3d &_pose);
+
+    /// \brief View collisions of the specified target
+    /// \param[in] _target Target to view collisions
+    public: void SetViewCollisionsTarget(const std::string &_target);
 
     /// \brief Set the p gain for the camera follow movement
     /// \param[in] _gain Camera follow p gain.
@@ -608,6 +660,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _hoverPos 2D coordinates of the hovered mouse position on
     /// the render window.
     public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
+
+    /// \brief Get whether the renderer is initialized. The renderer is
+    /// initialized when the context is created and the render thread is
+    /// started.
+    /// \return True if the renderer is initialized.
+    public: bool RendererInitialized() const;
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();

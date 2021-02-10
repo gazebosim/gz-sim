@@ -134,10 +134,26 @@ namespace ignition
     /// \brief Get the top level model of an entity
     /// \param[in] _entity Input entity
     /// \param[in] _ecm Constant reference to ECM.
-    /// \return Entity of top level model
+    /// \return Entity of top level model. If _entity has no top level model,
+    /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity,
         const EntityComponentManager &_ecm);
+
+    /// \brief Helper function to generate a valid transport topic, given
+    /// a list of topics ordered by preference. The generated topic will be,
+    /// in this order:
+    ///
+    /// 1. The first topic unchanged, if valid.
+    /// 2. A valid version of the first topic, if possible.
+    /// 3. The second topic unchanged, if valid.
+    /// 4. A valid version of the second topic, if possible.
+    /// 5. ...
+    /// 6. If no valid topics could be generated, return an empty string.
+    ///
+    /// \param[in] _topics Topics ordered by preference.
+    std::string IGNITION_GAZEBO_VISIBLE validTopic(
+        const std::vector<std::string> &_topics);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
@@ -145,6 +161,9 @@ namespace ignition
     /// \brief Environment variable used by SDFormat to find URIs inside
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
+
+    /// \breif Environment variable holding server config paths.
+    const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
