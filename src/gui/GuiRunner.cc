@@ -39,7 +39,7 @@ class ignition::gazebo::GuiRunner::Implementation
   public: gazebo::EntityComponentManager ecm;
 
   /// \brief Transport node.
-  public: transport::Node node;
+  public: transport::Node node{};
 
   /// \brief Topic to request state
   public: std::string stateTopic;
