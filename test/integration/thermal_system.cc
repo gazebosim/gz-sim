@@ -24,6 +24,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
@@ -53,7 +54,7 @@ class ThermalTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, TemperatureComponent)
+TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 {
   // Start server
   ServerConfig serverConfig;
@@ -177,7 +178,7 @@ TEST_F(ThermalTest, TemperatureComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, ThermalSensorSystem)
+TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
 {
   // Start server
   ServerConfig serverConfig;

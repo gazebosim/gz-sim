@@ -42,8 +42,6 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
-  thermal_system.cc
-  thermal_sensor_system.cc
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
@@ -61,6 +59,8 @@ set(tests_needing_display
   gpu_lidar.cc
   rgbd_camera.cc
   sensors_system.cc
+  thermal_system.cc
+  thermal_sensor_system.cc
 )
 
 # Add systems that need a valid display here.

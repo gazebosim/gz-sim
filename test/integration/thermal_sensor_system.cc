@@ -23,6 +23,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Temperature.hh"
@@ -72,7 +73,8 @@ void thermalCb(const msgs::Image &_msg)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThermalSensorTest, ThermalSensorSystemInvalidConfig)
+TEST_F(ThermalSensorTest,
+    IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystemInvalidConfig))
 {
   // Start server
   ServerConfig serverConfig;
