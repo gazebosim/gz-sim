@@ -21,6 +21,7 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -180,8 +181,8 @@ TEST_F(ThermalTest, ThermalSensorSystem)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/thermal.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+        "test/worlds/thermal.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

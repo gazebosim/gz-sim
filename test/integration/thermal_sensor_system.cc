@@ -21,6 +21,7 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Name.hh"
@@ -75,8 +76,8 @@ TEST_F(ThermalSensorTest, ThermalSensorSystemInvalidConfig)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/thermal_invalid.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+        "test/worlds/thermal_invalid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
