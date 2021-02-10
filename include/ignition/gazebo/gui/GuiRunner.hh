@@ -17,14 +17,15 @@
 #ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
 #define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
 
-#include <ignition/msgs/serialized.pb.h>
+#include <ignition/msgs/serialized_map.pb.h>
 
 #include <QtCore>
+#include <memory>
 #include <string>
 
-#include <ignition/transport/Node.hh>
+#include <ignition/utils/ImplPtr.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -42,10 +43,9 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 
   /// \brief Constructor
   /// \param[in] _worldName World name.
-  public: explicit GuiRunner(const std::string &_worldName);
-
-  /// \brief Destructor
-  public: ~GuiRunner() override;
+  /// \todo Move to src/gui on v6.
+  public: explicit IGN_DEPRECATED(5.0) GuiRunner(
+      const std::string &_worldName);
 
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
@@ -62,17 +62,8 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
 
-  /// \brief Entity-component manager.
-  private: gazebo::EntityComponentManager ecm;
-
-  /// \brief Transport node.
-  private: transport::Node node;
-
-  /// \brief Topic to request state
-  private: std::string stateTopic;
-
-  /// \brief Latest update info
-  private: UpdateInfo updateInfo;
+  /// \brief Pointer to private data.
+  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }
