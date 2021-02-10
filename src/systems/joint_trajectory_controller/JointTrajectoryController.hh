@@ -19,6 +19,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 
 #include <ignition/gazebo/System.hh>
+#include <memory>
 
 namespace ignition
 {
@@ -35,8 +36,8 @@ namespace systems
   /// reference to one or more 1-axis joints in order to follow a trajectory.
   ///
   /// Joint trajectories can be sent to this plugin via Ignition Transport.
-  /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory".
-  /// This topic name can be configured with the `<topic>` system parameter.
+  /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory" that
+  /// can be configured with the `<topic>` system parameter.
   ///
   /// This topic accepts ignition::msgs::JointTrajectory messages that represent
   /// a full trajectory, defined as temporal `points` with their fields ordered
@@ -54,7 +55,7 @@ namespace systems
   /// Input trajectory can be produced by a motion planning framework such as
   /// MoveIt2. For smooth execution of the trajectory, its points should to be
   /// interpolated before sending them via Ignition Transport (interpolation
-  /// might already be implemented and in the motion planning framework of your
+  /// might already be implemented in the motion planning framework of your
   /// choice).
   ///
   /// The progress of the current trajectory can be tracked on topic whose name
@@ -155,9 +156,9 @@ namespace systems
     /// \brief Private data pointer
     private: std::unique_ptr<JointTrajectoryControllerPrivate> dataPtr;
   };
-} // namespace systems
-} // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-} // namespace gazebo
-} // namespace ignition
+}  // namespace systems
+}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace gazebo
+}  // namespace ignition
 
 #endif

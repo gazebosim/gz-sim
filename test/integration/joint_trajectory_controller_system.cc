@@ -53,8 +53,10 @@ protected:
 };
 
 /////////////////////////////////////////////////
-// Tests that JointTrajectoryController accepts position-controlled joint trajectory
-TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionControl)
+// Tests that JointTrajectoryController accepts position-controlled joint
+// trajectory
+TEST_F(JointTrajectoryControllerTestFixture,
+       JointTrajectoryControllerPositionControl)
 {
   using namespace std::chrono_literals;
 
@@ -62,21 +64,23 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
                        "/test/worlds/joint_trajectory_controller.sdf";
 
   // Define joints of the model to investigate
-  const size_t numberOfJoints = 2;
-  const std::string jointNames[numberOfJoints] = {"RR_position_control_joint1",
+  const size_t kNumberOfJoints = 2;
+  const std::string jointNames[kNumberOfJoints] = {"RR_position_control_joint1",
                                                   "RR_position_control_joint2"};
 
   // Define names of Ignition Transport topics
-  const std::string trajectoryTopic = "/model/RR_position_control/joint_trajectory";
-  const std::string feedbackTopic = "/model/RR_position_control/joint_trajectory_feedback";
+  const std::string trajectoryTopic =
+      "/model/RR_position_control/joint_trajectory";
+  const std::string feedbackTopic =
+      "/model/RR_position_control/joint_trajectory_feedback";
 
   // Define initial joint positions
-  const std::array<double, numberOfJoints> initialPositions = {0.0, 0.0};
+  const std::array<double, kNumberOfJoints> initialPositions = {0.0, 0.0};
 
   // Define a trajectory to follow
   msgs::Duration timeFromStart;
   std::vector<msgs::Duration> trajectoryTimes;
-  std::vector<std::array<double, numberOfJoints>> trajectoryPositions;
+  std::vector<std::array<double, kNumberOfJoints>> trajectoryPositions;
   // Point1
   timeFromStart.set_sec(0);
   timeFromStart.set_nsec(666000000);
@@ -105,7 +109,7 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
 
   // Setup test system
   test::Relay testSystem;
-  double currentPositions[numberOfJoints];
+  double currentPositions[kNumberOfJoints];
   testSystem.OnPreUpdate(
       [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
       {
@@ -113,7 +117,8 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
         for (const auto &jointName : jointNames)
         {
           const auto joint = _ecm.EntityByComponents(components::Joint(),
-                                                     components::Name(jointName));
+                                                     components::Name(
+                                                         jointName));
           if (nullptr == _ecm.Component<components::JointPosition>(joint))
           {
             _ecm.CreateComponent(joint, components::JointPosition());
@@ -124,11 +129,13 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
                               const gazebo::EntityComponentManager &_ecm)
       {
         // Get the current position of each joint
-        for (std::size_t i = 0; i < numberOfJoints; ++i)
+        for (std::size_t i = 0; i < kNumberOfJoints; ++i)
         {
           const auto joint = _ecm.EntityByComponents(components::Joint(),
-                                                     components::Name(jointNames[i]));
-          const auto jointPositionComponent = _ecm.Component<components::JointPosition>(joint);
+                                                     components::Name(
+                                                         jointNames[i]));
+          const auto jointPositionComponent =
+              _ecm.Component<components::JointPosition>(joint);
           if (nullptr != jointPositionComponent)
           {
             currentPositions[i] = jointPositionComponent->Data()[0];
@@ -140,7 +147,7 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
   // Step few iterations and assert that the initial position is kept
   const std::size_t initIters = 10;
   server.Run(true, initIters, false);
-  for (size_t i = 0; i < numberOfJoints; ++i)
+  for (size_t i = 0; i < kNumberOfJoints; ++i)
   {
     EXPECT_NEAR(currentPositions[i], initialPositions[i], TOL);
   }
@@ -161,7 +168,7 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
     time->set_nsec(trajectoryTimes[i].nsec());
 
     // Add target positions to the point
-    for (size_t j = 0; j < numberOfJoints; ++j)
+    for (size_t j = 0; j < kNumberOfJoints; ++j)
     {
       point.add_positions(trajectoryPositions[i][j]);
     }
@@ -182,7 +189,8 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
         }
         else
         {
-          EXPECT_FLOAT_EQ(_msg.data(), float(count) / float(trajectoryPositions.size()));
+          EXPECT_FLOAT_EQ(_msg.data(), static_cast<float>(count) /
+                              static_cast<float>(trajectoryPositions.size()));
         }
       };
   transport::Node node;
@@ -195,19 +203,22 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
   // Wait for message to be published
   std::this_thread::sleep_for(100ms);
 
-  // Run the simulation while asserting the target position of all joints at each trajectory point
+  // Run the simulation while asserting the target position of all joints at
+  // each trajectory point
   auto previousIterFromStart = 0;
   for (size_t i = 0; i < trajectoryPositions.size(); ++i)
   {
-    // Number of iters required to reach time_from_start of the current point (1ms step size)
-    auto iterFromStart = trajectoryTimes[i].sec() * 1000 + trajectoryTimes[i].nsec() / 1000000;
+    // Number of iters required to reach time_from_start of the current
+    // point (1ms step size)
+    auto iterFromStart = trajectoryTimes[i].sec() * 1000 +
+                         trajectoryTimes[i].nsec() / 1000000;
     auto neededIters = iterFromStart - previousIterFromStart;
 
     // Run the simulation
     server.Run(true, neededIters, false);
 
     // Assert that each joint reached its target position
-    for (size_t j = 0; j < numberOfJoints; ++j)
+    for (size_t j = 0; j < kNumberOfJoints; ++j)
     {
       EXPECT_NEAR(currentPositions[j], trajectoryPositions[i][j], TOL);
     }
@@ -218,8 +229,10 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerPositionCo
 }
 
 /////////////////////////////////////////////////
-// Tests that JointTrajectoryController accepts velocity-controlled joint trajectory
-TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityControl)
+// Tests that JointTrajectoryController accepts velocity-controlled joint
+// trajectory
+TEST_F(JointTrajectoryControllerTestFixture,
+       JointTrajectoryControllerVelocityControl)
 {
   using namespace std::chrono_literals;
 
@@ -227,21 +240,22 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
                        "/test/worlds/joint_trajectory_controller.sdf";
 
   // Define joints of the model to investigate
-  const size_t numberOfJoints = 2;
-  const std::string jointNames[numberOfJoints] = {"RR_velocity_control_joint1",
+  const size_t kNumberOfJoints = 2;
+  const std::string jointNames[kNumberOfJoints] = {"RR_velocity_control_joint1",
                                                   "RR_velocity_control_joint2"};
 
   // Define names of Ignition Transport topics
   const std::string trajectoryTopic = "/test_custom_topic/velocity_control";
-  const std::string feedbackTopic = "/test_custom_topic/velocity_control_feedback";
+  const std::string feedbackTopic =
+      "/test_custom_topic/velocity_control_feedback";
 
   // Define initial joint velocities
-  const std::array<double, numberOfJoints> initialVelocities = {0.0, 0.0};
+  const std::array<double, kNumberOfJoints> initialVelocities = {0.0, 0.0};
 
   // Define a trajectory to follow
   msgs::Duration timeFromStart;
   std::vector<msgs::Duration> trajectoryTimes;
-  std::vector<std::array<double, numberOfJoints>> trajectoryVelocities;
+  std::vector<std::array<double, kNumberOfJoints>> trajectoryVelocities;
   // Point1
   timeFromStart.set_sec(0);
   timeFromStart.set_nsec(500000000);
@@ -265,7 +279,7 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
 
   // Setup test system
   test::Relay testSystem;
-  double currentVelocities[numberOfJoints];
+  double currentVelocities[kNumberOfJoints];
   testSystem.OnPreUpdate(
       [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
       {
@@ -273,7 +287,8 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
         for (const auto &jointName : jointNames)
         {
           const auto joint = _ecm.EntityByComponents(components::Joint(),
-                                                     components::Name(jointName));
+                                                     components::Name(
+                                                         jointName));
           if (nullptr == _ecm.Component<components::JointVelocity>(joint))
           {
             _ecm.CreateComponent(joint, components::JointVelocity());
@@ -284,11 +299,13 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
                               const gazebo::EntityComponentManager &_ecm)
       {
         // Get the current velocity of each joint
-        for (std::size_t i = 0; i < numberOfJoints; ++i)
+        for (std::size_t i = 0; i < kNumberOfJoints; ++i)
         {
           const auto joint = _ecm.EntityByComponents(components::Joint(),
-                                                     components::Name(jointNames[i]));
-          const auto jointVelocityComponent = _ecm.Component<components::JointVelocity>(joint);
+                                                     components::Name(
+                                                         jointNames[i]));
+          const auto jointVelocityComponent =
+              _ecm.Component<components::JointVelocity>(joint);
           if (nullptr != jointVelocityComponent)
           {
             currentVelocities[i] = jointVelocityComponent->Data()[0];
@@ -300,7 +317,7 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
   // Step few iterations and assert that the initial velocity is kept
   const std::size_t initIters = 10;
   server.Run(true, initIters, false);
-  for (size_t i = 0; i < numberOfJoints; ++i)
+  for (size_t i = 0; i < kNumberOfJoints; ++i)
   {
     EXPECT_NEAR(currentVelocities[i], initialVelocities[i], TOL);
   }
@@ -321,7 +338,7 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
     time->set_nsec(trajectoryTimes[i].nsec());
 
     // Add target velocities to the point
-    for (size_t j = 0; j < numberOfJoints; ++j)
+    for (size_t j = 0; j < kNumberOfJoints; ++j)
     {
       point.add_velocities(trajectoryVelocities[i][j]);
     }
@@ -342,7 +359,8 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
         }
         else
         {
-          EXPECT_FLOAT_EQ(_msg.data(), float(count) / float(trajectoryVelocities.size()));
+          EXPECT_FLOAT_EQ(_msg.data(), static_cast<float>(count) /
+                              static_cast<float>(trajectoryVelocities.size()));
         }
       };
   transport::Node node;
@@ -355,19 +373,22 @@ TEST_F(JointTrajectoryControllerTestFixture, JointTrajectoryControllerVelocityCo
   // Wait for message to be published
   std::this_thread::sleep_for(100ms);
 
-  // Run the simulation while asserting the target velocity of all joints at each trajectory point
+  // Run the simulation while asserting the target velocity of all joints at
+  // each trajectory point
   auto previousIterFromStart = 0;
   for (size_t i = 0; i < trajectoryVelocities.size(); ++i)
   {
-    // Number of iters required to reach time_from_start of the current point (1ms step size)
-    auto iterFromStart = trajectoryTimes[i].sec() * 1000 + trajectoryTimes[i].nsec() / 1000000;
+    // Number of iters required to reach time_from_start of the current
+    // point (1ms step size)
+    auto iterFromStart = trajectoryTimes[i].sec() * 1000 +
+                         trajectoryTimes[i].nsec() / 1000000;
     auto neededIters = iterFromStart - previousIterFromStart;
 
     // Run the simulation
     server.Run(true, neededIters, false);
 
     // Assert that each joint reached its target velocity
-    for (size_t j = 0; j < numberOfJoints; ++j)
+    for (size_t j = 0; j < kNumberOfJoints; ++j)
     {
       EXPECT_NEAR(currentVelocities[j], trajectoryVelocities[i][j], TOL);
     }
