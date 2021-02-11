@@ -168,6 +168,8 @@ void ParticleEmitter::Configure(const Entity &/*_entity*/,
     components::ParticleEmitter(this->dataPtr->emitter));
 
   _ecm.CreateComponent(entity, components::Pose(pose));
+
+  igndbg << "Particle emitter has been loaded." << std::endl;
 }
 
 //////////////////////////////////////////////////

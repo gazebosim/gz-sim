@@ -77,14 +77,14 @@ namespace systems
   ///                  Color::White is the default color for the particles
   ///                  unless a specific function is used.
   ///                  Note that this function overrides the particle colors set
-  ///                  with <ColorRangeImage>.
+  ///                  with <color_range_image>.
   /// `<color_end>`: Sets the end color for all particle emitted.
   ///                The actual color will be interpolated between this color
   ///                and the one set under <color_start>.
   ///                Color::White is the default color for the particles
   ///                unless a specific function is used.
   ///                Note that this function overrides the particle colors set
-  ///                with <ColorRangeImage>.
+  ///                with <color_range_image>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
   ///                 and y direction per second. Default value is 1.
   /// `<color_range_image>`: Sets the path to the color image used as an
@@ -96,7 +96,7 @@ namespace systems
   ///                        therefore only the horizontal dimension of the
   ///                        image is used.
   ///                        Note that this function overrides the particle
-  /// colors set with <color_start> and <color_end>.
+  ///                        colors set with <color_start> and <color_end>.
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter
       : public System,
         public ISystemConfigure,
