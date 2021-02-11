@@ -1,5 +1,22 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.4.0 (2020-02-10)
+
+1. Added issue and PR templates
+    * [Pull Request 613](https://github.com/ignitionrobotics/ign-gazebo/pull/613)
+
+1. Fix segfault in SetRemovedComponentsMsgs method
+    * [Pull Request 495](https://github.com/ignitionrobotics/ign-gazebo/pull/495)
+
+1. Make topics configurable for joint controllers
+    * [Pull Request 584](https://github.com/ignitionrobotics/ign-gazebo/pull/584)
+
+1. Add about dialog
+    * [Pull Request 609](https://github.com/ignitionrobotics/ign-gazebo/pull/609)
+
+1. Add thermal sensor syste for configuring thermal camera properties
+    * [Pull Request 614](https://github.com/ignitionrobotics/ign-gazebo/pull/614)
+
 ### Ignition Gazebo 4.3.0 (2020-02-02)
 
 1. Non-blocking paths request.
