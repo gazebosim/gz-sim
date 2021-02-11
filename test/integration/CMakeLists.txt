@@ -7,6 +7,7 @@ set(tests
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
+  collada_world_exporter.cc
   components.cc
   contact_system.cc
   detachable_joint.cc
@@ -16,10 +17,12 @@ set(tests
   events.cc
   examples_build.cc
   follow_actor_system.cc
+  fuel_cached_server.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
+  joint_trajectory_controller_system.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
@@ -30,6 +33,7 @@ set(tests
   magnetometer_system.cc
   model.cc
   multicopter.cc
+  multiple_servers.cc
   network_handshake.cc
   performer_detector.cc
   physics_system.cc
@@ -39,7 +43,6 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
-  thermal_system.cc
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
@@ -57,6 +60,8 @@ set(tests_needing_display
   gpu_lidar.cc
   rgbd_camera.cc
   sensors_system.cc
+  thermal_system.cc
+  thermal_sensor_system.cc
 )
 
 # Add systems that need a valid display here.

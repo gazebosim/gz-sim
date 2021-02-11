@@ -44,21 +44,30 @@ void onAddResourcePaths(const msgs::StringMsg_V &_msg)
   addResourcePaths(paths);
 }
 
+//////////////////////////////////////////////////
+void onAddResourcePaths(const msgs::StringMsg_V &_res, const bool _result)
+{
+  if (!_result)
+  {
+    ignerr << "Failed to get resource paths through service" << std::endl;
+    return;
+  }
+  igndbg << "Received resource paths." << std::endl;
+
+  onAddResourcePaths(_res);
+}
+
 /////////////////////////////////////////////////
 PathManager::PathManager()
 {
-  // Get resource paths
+  // Trigger an initial request to get all paths from server
   std::string service{"/gazebo/resource_paths/get"};
-  msgs::StringMsg_V res;
-  bool result{false};
-  auto executed = this->node.Request(service, 5000, res, result);
 
-  if (!executed)
-    ignerr << "Service call timed out for [" << service << "]" << std::endl;
-  else if (!result)
-    ignerr << "Service call failed for [" << service << "]" << std::endl;
+  igndbg << "Requesting resource paths through [" << service << "]"
+         << std::endl;
+  this->node.Request(service, onAddResourcePaths);
 
-  onAddResourcePaths(res);
-
+  // Get path updates through this topic
   this->node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
 }
+

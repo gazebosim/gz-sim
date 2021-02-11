@@ -21,6 +21,7 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <string>
 #include <utility>
@@ -28,6 +29,7 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
@@ -42,7 +44,9 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
@@ -146,6 +150,19 @@ class PoseCommand : public UserCommandBase
                          math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
                      }};
 };
+
+/// \brief Command to modify the physics parameters of a simulation.
+class PhysicsCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the new physics parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: PhysicsCommand(msgs::Physics *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
 }
 }
 }
@@ -184,6 +201,13 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for physics service
+  /// \param[in] _req Request containing updates to the physics parameters.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the physics parameters will be successfully updated.
+  /// \return True if successful.
+  public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -258,6 +282,13 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
+
+  // Physics service
+  std::string physicsService{"/world/" + validWorldName + "/set_physics"};
+  this->dataPtr->node.Advertise(physicsService,
+      &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
+
+  ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -370,6 +401,24 @@ bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
 }
 
 //////////////////////////////////////////////////
+bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<PhysicsCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
 UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
@@ -403,6 +452,7 @@ bool CreateCommand::Execute()
 
   // Load SDF
   sdf::Root root;
+  sdf::Light lightSdf;
   sdf::Errors errors;
   switch (createMsg->from_case())
   {
@@ -424,9 +474,8 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kLight:
     {
-      // TODO(louise) Support light msg
-      ignerr << "light field not yet supported." << std::endl;
-      return false;
+      lightSdf = convert<sdf::Light>(createMsg->light());
+      break;
     }
     case msgs::EntityFactory::kCloneName:
     {
@@ -451,17 +500,25 @@ bool CreateCommand::Execute()
   bool isModel{false};
   bool isLight{false};
   bool isActor{false};
+  bool isRoot{false};
   if (root.ModelCount() > 0)
   {
+    isRoot = true;
     isModel = true;
   }
   else if (root.LightCount() > 0)
   {
+    isRoot = true;
     isLight = true;
   }
   else if (root.ActorCount() > 0)
   {
+    isRoot = true;
     isActor = true;
+  }
+  else if (!lightSdf.Name().empty())
+  {
+    isLight = true;
   }
   else
   {
@@ -486,9 +543,13 @@ bool CreateCommand::Execute()
   {
     desiredName = root.ModelByIndex(0)->Name();
   }
-  else if (isLight)
+  else if (isLight && isRoot)
   {
     desiredName = root.LightByIndex(0)->Name();
+  }
+  else if (isLight)
+  {
+    desiredName = lightSdf.Name();
   }
   else if (isActor)
   {
@@ -528,11 +589,16 @@ bool CreateCommand::Execute()
     model.SetName(desiredName);
     entity = this->iface->creator->CreateEntities(&model);
   }
-  else if (isLight)
+  else if (isLight && isRoot)
   {
     auto light = root.LightByIndex(0);
     light->SetName(desiredName);
     entity = this->iface->creator->CreateEntities(light);
+  }
+  else if (isLight)
+  {
+    lightSdf.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&lightSdf);
   }
   else if (isActor)
   {
@@ -698,6 +764,39 @@ bool PoseCommand::Execute()
   return true;
 }
 
+//////////////////////////////////////////////////
+PhysicsCommand::PhysicsCommand(msgs::Physics *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool PhysicsCommand::Execute()
+{
+  auto physicsMsg = dynamic_cast<const msgs::Physics *>(this->msg);
+  if (nullptr == physicsMsg)
+  {
+    ignerr << "Internal error, null physics message" << std::endl;
+    return false;
+  }
+
+  auto worldEntity = this->iface->ecm->EntityByComponents(components::World());
+  if (worldEntity == kNullEntity)
+  {
+    ignmsg << "Failed to find world entity" << std::endl;
+    return false;
+  }
+
+  if (!this->iface->ecm->EntityHasComponentType(worldEntity,
+    components::PhysicsCmd().TypeId()))
+  {
+    this->iface->ecm->CreateComponent(worldEntity,
+        components::PhysicsCmd(*physicsMsg));
+  }
+
+  return true;
+}
 
 IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,

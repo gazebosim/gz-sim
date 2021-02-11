@@ -572,9 +572,9 @@ ServerConfig::LogPlaybackPlugin() const
   if (!this->LogPlaybackPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
-    pathElem->SetName("path");
+    pathElem->SetName("playback_path");
     playbackElem->AddElementDescription(pathElem);
-    pathElem = playbackElem->GetElement("path");
+    pathElem = playbackElem->GetElement("playback_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogPlaybackPath());
   }
