@@ -30,6 +30,7 @@ set(tests
   magnetometer_system.cc
   model.cc
   multicopter.cc
+  nested_model_physics.cc
   network_handshake.cc
   performer_detector.cc
   physics_system.cc
