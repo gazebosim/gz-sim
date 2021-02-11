@@ -98,7 +98,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
     return;
   }
 
-  plugin->Update(this->updateInfo, this->ecm);
+  RequestState();
 }
 
 /////////////////////////////////////////////////
