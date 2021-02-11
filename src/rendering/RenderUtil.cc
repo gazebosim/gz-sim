@@ -301,6 +301,12 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of created collision entities and if they are currently
   /// visible
   public: std::map<Entity, bool> viewingCollisions;
+
+  /// \brief A map of entity id to thermal camera sensor configuration
+  /// properties. The elements in the tuple are:
+  /// <resolution, temperature range (min, max)>
+  public:std::unordered_map<Entity,
+      std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 };
 
 //////////////////////////////////////////////////
@@ -350,6 +356,53 @@ void RenderUtil::UpdateECM(const UpdateInfo &,
   {
     _ecm.RemoveComponent<components::LightCmd>(entity);
   }
+}
+
+//////////////////////////////////////////////////
+void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
+                           EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  // Update thermal cameras
+  _ecm.Each<components::ThermalCamera>(
+      [&](const Entity &_entity,
+        const components::ThermalCamera *)->bool
+      {
+        // set properties from thermal sensor plugin
+        // Set defaults to invaid values so we know they have not been set.
+        // set UpdateECM(). We check for valid values first before setting
+        // these thermal camera properties..
+        double resolution = 0.0;
+        components::TemperatureRangeInfo range;
+        range.min = std::numeric_limits<double>::max();
+        range.max = 0;
+
+        // resolution
+        auto resolutionComp =
+          _ecm.Component<components::TemperatureLinearResolution>(_entity);
+        if (resolutionComp != nullptr)
+        {
+          resolution = resolutionComp->Data();
+          _ecm.RemoveComponent<components::TemperatureLinearResolution>(
+              _entity);
+        }
+
+        // min / max temp
+        auto tempRangeComp =
+          _ecm.Component<components::TemperatureRange>(_entity);
+        if (tempRangeComp != nullptr)
+        {
+          range = tempRangeComp->Data();
+          _ecm.RemoveComponent<components::TemperatureRange>(_entity);
+        }
+
+        if (resolutionComp || tempRangeComp)
+        {
+          this->dataPtr->thermalCameraData[_entity] =
+              std::make_tuple(resolution, range);
+        }
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -442,6 +495,7 @@ void RenderUtil::Update()
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
+  auto thermalCameraData = std::move(this->dataPtr->thermalCameraData);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -457,6 +511,7 @@ void RenderUtil::Update()
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
   this->dataPtr->newCollisionLinks.clear();
+  this->dataPtr->thermalCameraData.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -899,6 +954,44 @@ void RenderUtil::Update()
       }
     }
   }
+
+  // update thermal camera
+  for (const auto &thermal : this->dataPtr->thermalCameraData)
+  {
+    Entity id = thermal.first;
+    rendering::ThermalCameraPtr camera =
+        std::dynamic_pointer_cast<rendering::ThermalCamera>(
+        this->dataPtr->sceneManager.NodeById(id));
+    if (camera)
+    {
+      double resolution = std::get<0>(thermal.second);
+
+      if (resolution > 0.0)
+      {
+        camera->SetLinearResolution(resolution);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature linear resolution."
+                << " Value must be greater than 0. Using the default value: "
+                << camera->LinearResolution() << ". " << std::endl;
+      }
+      double minTemp = std::get<1>(thermal.second).min.Kelvin();
+      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
+      if (maxTemp >= minTemp)
+      {
+        camera->SetMinTemperature(minTemp);
+        camera->SetMaxTemperature(maxTemp);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature range."
+                << "Max temperature must be greater or equal to min. "
+                << "Using the default values : [" << camera->MinTemperature()
+                << ", " << camera->MaxTemperature() << "]." << std::endl;
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1225,6 +1318,31 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (material != nullptr)
           {
             visual.SetMaterial(material->Data());
+          }
+
+          if (auto temp = _ecm.Component<components::Temperature>(_entity))
+          {
+            // get the uniform temperature for the entity
+            this->entityTemp[_entity] =
+              std::make_tuple<float, float, std::string>(
+                  temp->Data().Kelvin(), 0.0, "");
+          }
+          else
+          {
+            // entity doesn't have a uniform temperature. Check if it has
+            // a heat signature with an associated temperature range
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            auto tempRange =
+               _ecm.Component<components::TemperatureRange>(_entity);
+            if (heatSignature && tempRange)
+            {
+              this->entityTemp[_entity] =
+                std::make_tuple<float, float, std::string>(
+                    tempRange->Data().min.Kelvin(),
+                    tempRange->Data().max.Kelvin(),
+                    std::string(heatSignature->Data()));
+            }
           }
 
           this->newVisuals.push_back(

@@ -67,8 +67,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::ScenePtr Scene() const;
 
     /// \brief Helper Update function for updating the scene
+    /// \param[in] _info Sim update info
+    /// \param[in] _ecm Mutable reference to the entity component manager
     public: void UpdateECM(const UpdateInfo &_info,
-                               EntityComponentManager &_ecm);
+                           EntityComponentManager &_ecm);
 
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,

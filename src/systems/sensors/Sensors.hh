@@ -43,6 +43,7 @@ namespace systems
     public System,
     public ISystemUpdate,
     public ISystemConfigure,
+    public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -60,6 +61,10 @@ namespace systems
    // Documentation inherited
    public: void Update(const UpdateInfo &_info,
                        EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
