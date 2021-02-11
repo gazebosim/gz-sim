@@ -41,7 +41,6 @@ namespace systems
   /// sensor / sensor type?
   class IGNITION_GAZEBO_VISIBLE Sensors:
     public System,
-    public ISystemUpdate,
     public ISystemConfigure,
     public ISystemUpdate,
     public ISystemPostUpdate
@@ -61,10 +60,6 @@ namespace systems
    // Documentation inherited
    public: void Update(const UpdateInfo &_info,
                        EntityComponentManager &_ecm) final;
-
-    // Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,

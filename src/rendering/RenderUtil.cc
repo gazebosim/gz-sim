@@ -322,12 +322,14 @@ rendering::ScenePtr RenderUtil::Scene() const
 {
   return this->dataPtr->scene;
 }
+
 //////////////////////////////////////////////////
-void RenderUtil::UpdateECM(const UpdateInfo &,
+void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
                            EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
 
+  // Update lights
   auto olderEntitiesLightsCmdToDelete =
     std::move(this->dataPtr->entityLightsCmdToDelete);
   this->dataPtr->entityLightsCmdToDelete.clear();
@@ -356,13 +358,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &,
   {
     _ecm.RemoveComponent<components::LightCmd>(entity);
   }
-}
 
-//////////////////////////////////////////////////
-void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
-                           EntityComponentManager &_ecm)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera>(
       [&](const Entity &_entity,
