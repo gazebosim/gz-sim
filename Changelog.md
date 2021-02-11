@@ -14,7 +14,7 @@
 1. Add about dialog
     * [Pull Request 609](https://github.com/ignitionrobotics/ign-gazebo/pull/609)
 
-1. Add thermal sensor syste for configuring thermal camera properties
+1. Add thermal sensor system for configuring thermal camera properties
     * [Pull Request 614](https://github.com/ignitionrobotics/ign-gazebo/pull/614)
 
 ### Ignition Gazebo 4.3.0 (2020-02-02)
