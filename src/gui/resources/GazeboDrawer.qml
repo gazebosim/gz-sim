@@ -60,6 +60,9 @@ Rectangle {
       case "loadWorld":
         loadWorldDialog.open();
         break
+      case "aboutDialog":
+        aboutDialog.open();
+        break
       // Forward others to default drawer
       default:
         parent.onAction(_action);
@@ -109,6 +112,10 @@ Rectangle {
     ListElement {
       title: "Style settings"
       actionElement: "styleSettings"
+    }
+    ListElement {
+      title: "About"
+      actionElement: "aboutDialog"
     }
     ListElement {
       title: "Quit"
@@ -162,6 +169,34 @@ Rectangle {
     selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
+    }
+  }
+
+  /**
+   * About dialog
+   */
+  Dialog {
+    id: aboutDialog
+    title: "Ignition Gazebo"
+
+    modal: true
+    focus: true
+    parent: ApplicationWindow.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    standardButtons: StandardButton.Ok
+
+    Text {
+      anchors.fill: parent
+      id: aboutMessage
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignVCenter
+      color: Material.theme == Material.Light ? "black" : "white"
+      textFormat: Text.RichText
+      text: AboutDialogHandler.getVersionInformation()
+      onLinkActivated: AboutDialogHandler.openURL(link)
     }
   }
 
