@@ -35,7 +35,7 @@ class RenderingGuiPlugin : public ignition::gui::Plugin
   /// \brief Callback when user clicks button.
   public slots: void RandomColor();
 
-  /// \brief Callback for all installed event filders.
+  /// \brief Callback for all installed event filters.
   /// \param[in] _obj Object that received the event
   /// \param[in] _event Event
   private: bool eventFilter(QObject *_obj, QEvent *_event) override;

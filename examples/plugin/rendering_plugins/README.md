@@ -7,7 +7,7 @@ Demo of 2 plugins that use Ignition Rendering, one for the server and one for th
 From the root of the `ign-gazebo` repository, do the following to build the example:
 
 ~~~
-cd ign-gazebo/examples/plugins/rendering_plugins
+cd examples/plugin/rendering_plugins
 mkdir build
 cd build
 cmake ..
@@ -21,7 +21,7 @@ This will generate the `RenderingGuiPlugin` and `RenderingServerPlugin` librarie
 Add the libraries to the correct paths:
 
 ~~~
-cd ign-gazebo/examples/plugins/rendering_plugins
+cd examples/plugin/rendering_plugins
 export IGN_GUI_PLUGIN_PATH=`pwd`/build
 export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
@@ -29,8 +29,8 @@ export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 Run the example world
 
 ~~~
-cd ign-gazebo/examples/plugins/rendering_plugins
-ign gazebo -v 4 rendering_plugins.sdf
+cd examples/plugin/rendering_plugins
+ign gazebo -v 4 -r rendering_plugins.sdf
 ~~~
 
 The ambient light on the server scene, visible from the camera sensor, will change every 2 seconds.

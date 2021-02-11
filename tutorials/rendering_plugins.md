@@ -23,12 +23,17 @@ The client-side scene will only be created when using the
 `ignition::gazebo::Scene3D` GUI system plugin on the client. This is the
 scene that shows what the user sees.
 
+For the user to see what the sensors see, they need to use other GUI plugins
+that display sensor data, such as `ignition::gui::plugins::ImageDisplay` for
+camera images or `ignition::gazebo::VisualizeLidar` for lidar point clouds.
+
 Ignition Gazebo keeps these scenes in sync by sending periodic state messages
 from the server to the client that contain entity and component data with
 the `ignition::gazebo::systems::SceneBroadcaster` plugin. Any
 changes done to these scenes using Ignition Rendering APIs directly, as
 described in this tutorial, will only affect one of the scenes and will not be
-synchronized.
+synchronized. The examples below will show how to change the ambient light for
+each scene separately.
 
 ## Plugin types
 
@@ -36,7 +41,7 @@ Depending on the scene that you want to affect, you'll need to write a
 different plugin.
 
 To interact with the server-side scene, you'll need to write an
-`ignition::gazebo::System`
+`ignition::gazebo::System`.
 See [Create System Plugins](createsystemplugins.html).
 
 To interact with the client-side scene, you'll need to write an
@@ -58,10 +63,11 @@ for your use case.
 
 ## Render thread
 
-It's important to keep in mind that all rendering operations should happen in the
-render thread. In order to access that thread from a custom plugin, it's necessary
-to listen to events that the 3D scene is emitting. These are different for each
-plugin type.
+Rendering operations aren't thread-safe. To make sure there are no race
+conditions, all rendering operations should happen in the same thread, the
+"render thread". In order to access that thread from a custom plugin, it's
+necessary to listen to events that the 3D scene is emitting. These are
+different for each plugin type.
 
 ### Render events on the GUI
 
