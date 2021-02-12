@@ -1062,13 +1062,13 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
   server.Run(true, 1, false);
 
   // 2 in include_nested model, 3 in nested_models model
-  EXPECT_EQ(4u, postUpModelPoses.size());
+  EXPECT_EQ(5u, postUpModelPoses.size());
 
-  // 0 in world, 2 in include_nested model, 2 in nested_models model
-  EXPECT_EQ(4u, postUpLinkPoses.size());
+  // 0 in world, 3 in include_nested model, 2 in nested_models model
+  EXPECT_EQ(5u, postUpLinkPoses.size());
 
   // 1 in world, 2 in include_nested, 4 in nested_models
-  EXPECT_EQ(8u, parents.size());
+  EXPECT_EQ(10u, parents.size());
 
   // From nested_models
   auto modelIt = postUpModelPoses.find("model_00");
@@ -1205,13 +1205,13 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
   server.Run(true, 1, false);
 
   // 2 in include_nested model, 3 in nested_models model
-  EXPECT_EQ(4u, postUpModelPoses.size());
+  EXPECT_EQ(5u, postUpModelPoses.size());
 
-  // 0 in world, 2 in include_nested model, 2 in nested_models model
-  EXPECT_EQ(4u, postUpLinkPoses.size());
+  // 0 in world, 3 in include_nested model, 2 in nested_models model
+  EXPECT_EQ(5u, postUpLinkPoses.size());
 
   // 1 in world, 2 in include_nested, 4 in nested_models
-  EXPECT_EQ(8u, parents.size());
+  EXPECT_EQ(10u, parents.size());
 
   // From nested_models
   auto modelIt = postUpModelPoses.find("model_00");
