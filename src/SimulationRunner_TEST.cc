@@ -630,6 +630,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
+      EXPECT_DOUBLE_EQ(1.0, _light->Data().Intensity());
       EXPECT_EQ(ignition::math::Vector3d(-0.5, 0.1, -0.9),
           _light->Data().Direction());
       return true;
