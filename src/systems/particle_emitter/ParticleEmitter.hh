@@ -74,15 +74,25 @@ namespace systems
   /// `<color_start>`: Sets the starting color for all particle emitted.
   ///                  The actual color will be interpolated between this color
   ///                  and the one set under <color_end>.
-  ///                  Color::White is the default color for the particles
-  ///                  unless a specific function is used.
+  ///                  Input is specified as a string (should be lower-case),
+  ///                  which could be one of the following:
+  ///                   * black
+  ///                   * red
+  ///                   * green
+  ///                   * blue
+  ///                   * yellow
+  ///                   * magenta
+  ///                   * cyan
+  ///                   * white
+  ///                  Default color is white.
   ///                  Note that this function overrides the particle colors set
   ///                  with <color_range_image>.
   /// `<color_end>`: Sets the end color for all particle emitted.
   ///                The actual color will be interpolated between this color
   ///                and the one set under <color_start>.
-  ///                Color::White is the default color for the particles
-  ///                unless a specific function is used.
+  ///                The input for <color_end> follows the same rules as input
+  ///                for <color_start>.
+  ///                Default color is white.
   ///                Note that this function overrides the particle colors set
   ///                with <color_range_image>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
