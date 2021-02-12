@@ -47,13 +47,17 @@ namespace ignition
     /// occur.
     ///
     /// See \ref ignition::gazebo::events for a complete list of events.
-    class IGNITION_GAZEBO_VISIBLE EventManager
+
+    /// TODO: if visibility is added here the MSVC is unable to compile it.
+    /// The use of smart pointer inside the unordered_map (events method) is
+    /// the cause of it. Maybe a compiler bug?
+    class EventManager
     {
       /// \brief Constructor
-      public: EventManager();
+      public: EventManager() = default;
 
       /// \brief Destructor
-      public: ~EventManager();
+      public: ~EventManager() = default;
 
       /// \brief Add a connection to an event.
       /// \param[in] _subscriber A std::function callback function. The function

@@ -26,10 +26,12 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
+#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -276,10 +278,17 @@ void Shapes::OnMode(const QString &_mode)
     return;
   }
 
-  gui::events::SpawnPreviewModel event(modelSdfString);
+  ignition::gui::events::SpawnFromDescription event(modelSdfString);
   ignition::gui::App()->sendEvent(
       ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
       &event);
+
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+  ignition::gazebo::gui::events::SpawnPreviewModel oldEvent(modelSdfString);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &oldEvent);
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 // Register this plugin

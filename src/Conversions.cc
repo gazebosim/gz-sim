@@ -24,6 +24,7 @@
 #include <ignition/msgs/ellipsoidgeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/heightmapgeom.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/actor.pb.h>
@@ -52,6 +53,7 @@
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
@@ -204,6 +206,39 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
+  else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
+  {
+    auto heightmapSdf = _in.HeightmapShape();
+
+    out.set_type(msgs::Geometry::HEIGHTMAP);
+    auto heightmapMsg = out.mutable_heightmap();
+
+    heightmapMsg->set_filename(asFullPath(heightmapSdf->Uri(),
+        heightmapSdf->FilePath()));
+    msgs::Set(heightmapMsg->mutable_size(), heightmapSdf->Size());
+    msgs::Set(heightmapMsg->mutable_origin(), heightmapSdf->Position());
+    heightmapMsg->set_use_terrain_paging(heightmapSdf->UseTerrainPaging());
+    heightmapMsg->set_sampling(heightmapSdf->Sampling());
+
+    for (auto i = 0u; i < heightmapSdf->TextureCount(); ++i)
+    {
+      auto textureSdf = heightmapSdf->TextureByIndex(i);
+      auto textureMsg = heightmapMsg->add_texture();
+      textureMsg->set_size(textureSdf->Size());
+      textureMsg->set_diffuse(asFullPath(textureSdf->Diffuse(),
+          heightmapSdf->FilePath()));
+      textureMsg->set_normal(asFullPath(textureSdf->Normal(),
+          heightmapSdf->FilePath()));
+    }
+
+    for (auto i = 0u; i < heightmapSdf->BlendCount(); ++i)
+    {
+      auto blendSdf = heightmapSdf->BlendByIndex(i);
+      auto blendMsg = heightmapMsg->add_blend();
+      blendMsg->set_min_height(blendSdf->MinHeight());
+      blendMsg->set_fade_dist(blendSdf->FadeDistance());
+    }
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -287,6 +322,38 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
     out.SetMeshShape(meshShape);
   }
+  else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
+  {
+    out.SetType(sdf::GeometryType::HEIGHTMAP);
+    sdf::Heightmap heightmapShape;
+
+    heightmapShape.SetUri(_in.heightmap().filename());
+    heightmapShape.SetSize(msgs::Convert(_in.heightmap().size()));
+    heightmapShape.SetPosition(msgs::Convert(_in.heightmap().origin()));
+    heightmapShape.SetUseTerrainPaging(_in.heightmap().use_terrain_paging());
+    heightmapShape.SetSampling(_in.heightmap().sampling());
+
+    for (int i = 0; i < _in.heightmap().texture_size(); ++i)
+    {
+      auto textureMsg = _in.heightmap().texture(i);
+      sdf::HeightmapTexture textureSdf;
+      textureSdf.SetSize(textureMsg.size());
+      textureSdf.SetDiffuse(textureMsg.diffuse());
+      textureSdf.SetNormal(textureMsg.normal());
+      heightmapShape.AddTexture(textureSdf);
+    }
+
+    for (int i = 0; i < _in.heightmap().blend_size(); ++i)
+    {
+      auto blendMsg = _in.heightmap().blend(i);
+      sdf::HeightmapBlend blendSdf;
+      blendSdf.SetMinHeight(blendMsg.min_height());
+      blendSdf.SetFadeDistance(blendMsg.fade_dist());
+      heightmapShape.AddBlend(blendSdf);
+    }
+
+    out.SetHeightmapShape(heightmapShape);
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.type())
@@ -305,19 +372,15 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
   msgs::Set(out.mutable_emissive(), _in.Emissive());
+  out.set_render_order(_in.RenderOrder());
   out.set_lighting(_in.Lighting());
+  out.set_double_sided(_in.DoubleSided());
 
-  // todo(anyone) add double_sided field to msgs::Material
-  auto data = out.mutable_header()->add_data();
-  data->set_key("double_sided");
-  std::string *value = data->add_value();
-  *value = std::to_string(_in.DoubleSided());
-
-  sdf::Pbr *pbr = _in.PbrMaterial();
+  auto pbr = _in.PbrMaterial();
   if (pbr)
   {
-    msgs::Material::PBR *pbrMsg = out.mutable_pbr();
-    sdf::PbrWorkflow *workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    auto pbrMsg = out.mutable_pbr();
+    auto workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
     if (workflow)
       pbrMsg->set_type(msgs::Material_PBR_WorkflowType_METAL);
     else
@@ -350,6 +413,9 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
           asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
       pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
           asFullPath(workflow->EmissiveMap(), _in.FilePath()));
+      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" :
+          asFullPath(workflow->LightMap(), _in.FilePath()));
+      pbrMsg->set_light_map_texcoord_set(workflow->LightMapTexCoordSet());
     }
   }
   return out;
@@ -365,15 +431,9 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetDiffuse(msgs::Convert(_in.diffuse()));
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
+  out.SetRenderOrder(_in.render_order());
   out.SetLighting(_in.lighting());
-
-  // todo(anyone) add double_sided field to msgs::Material
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    const auto &data = _in.header().data(i);
-    if (data.key() == "double_sided" && data.value_size() > 0)
-      out.SetDoubleSided(math::parseInt(data.value(0)));
-  }
+  out.SetDoubleSided(_in.double_sided());
 
   if (_in.has_pbr())
   {
@@ -396,6 +456,8 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     workflow.SetEmissiveMap(pbrMsg.emissive_map());
+    workflow.SetLightMap(pbrMsg.light_map(), pbrMsg.light_map_texcoord_set());
+
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
   }
