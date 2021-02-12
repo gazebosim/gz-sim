@@ -421,7 +421,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::ELLIPSOID)
   {
-    geom = this->dataPtr->scene->CreateEllipsoid();
+    geom = this->dataPtr->scene->CreateSphere();
     scale.X() = _geom.EllipsoidShape()->Radii().X();
     scale.Y() = _geom.EllipsoidShape()->Radii().Y();
     scale.Z() = _geom.EllipsoidShape()->Radii().Z();
