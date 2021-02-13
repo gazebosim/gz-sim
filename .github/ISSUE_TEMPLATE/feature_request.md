@@ -5,7 +5,7 @@ labels: enhancement
 ---
 
 <!-- If you're not sure on the specifics of the feature or would like a broader
-discussion, please ask consider posting a proposal to
+discussion, please consider posting a proposal to
 http://community.gazebosim.org/ instead.-->
 
 ## Desired behavior
