@@ -110,5 +110,5 @@ generated video. The default bitrate is 2Mbps.
 
 Since Ignition Common 3.10.2, there is support for utilizing the power of GPUs
 to speed up the video encoding process. See the
-[Hardware-accelerated Video Encoding tutorial](https://github.com/ignitionrobotics/ign-common/blob/ign-common3/tutorials/install.md)
+[Hardware-accelerated Video Encoding tutorial](https://ignitionrobotics.org/api/common/3.10/hw-encoding.html)
 for more details.
