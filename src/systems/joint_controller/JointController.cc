@@ -142,7 +142,16 @@ void JointController::Configure(const Entity &_entity,
   }
   if (_sdf->HasElement("topic"))
   {
-    topic = _sdf->Get<std::string>("topic");
+    topic = transport::TopicUtils::AsValidTopic(
+        _sdf->Get<std::string>("topic"));
+
+    if (topic.empty())
+    {
+      ignerr << "Failed to create topic for joint ["
+             << _sdf->Get<std::string>("topic")
+             << "]" << std::endl;
+      return;
+    }
   }
   this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
                                 this->dataPtr.get());
