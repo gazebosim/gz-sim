@@ -147,8 +147,8 @@ void JointController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic for joint ["
-             << _sdf->Get<std::string>("topic")
+      ignerr << "Failed to create topic [" << this->dataPtr->jointName
+             << "]" << " for joint [" << _sdf->Get<std::string>("topic")
              << "]" << std::endl;
       return;
     }
