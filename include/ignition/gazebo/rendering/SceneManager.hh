@@ -34,9 +34,10 @@
 #include <ignition/common/Animation.hh>
 #include <ignition/common/graphics/Types.hh>
 
+#include <ignition/msgs/particle_emitter.pb.h>
+
 #include <ignition/rendering/RenderTypes.hh>
 
-#include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/Export.hh>

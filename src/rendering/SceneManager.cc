@@ -974,6 +974,12 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   rendering::ParticleEmitterPtr emitter;
   emitter = this->dataPtr->scene->CreateParticleEmitter(name);
 
+  if (emitter == nullptr)
+  {
+    ignerr << "Failed to create particle emitter with name[" << name << "]\n";
+    return rendering::ParticleEmitterPtr();
+  }
+
   // Type.
   switch (_emitter.type())
   {
