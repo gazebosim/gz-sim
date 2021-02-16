@@ -79,7 +79,7 @@ class ignition::gazebo::SceneManagerPrivate
   public: std::map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of particle emitter entity in Gazebo to particle emitter
-  /// pointers.
+  /// rendering pointers.
   public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
