@@ -37,6 +37,8 @@ namespace systems
   ///
   /// `<emitter_name>`: Unique name for the particle emitter. The name will be
   ///                   automatically generated if this parameter is not set.
+  /// `<allow_renaming>`: Rename the particle emitter if one with the same name
+  ///                     already exists
   /// `<type>`: The emitter type (point, box, cylinder, ellipsoid).
   ///           Default value is point.
   /// `<pose>`: The pose of the emitter. Default value is {0, 0, 0, 0, 0, 0}.
@@ -74,17 +76,27 @@ namespace systems
   /// `<color_start>`: Sets the starting color for all particle emitted.
   ///                  The actual color will be interpolated between this color
   ///                  and the one set under <color_end>.
-  ///                  Color::White is the default color for the particles
-  ///                  unless a specific function is used.
+  ///                  Input is specified as a string (should be lower-case),
+  ///                  which could be one of the following:
+  ///                   * black
+  ///                   * red
+  ///                   * green
+  ///                   * blue
+  ///                   * yellow
+  ///                   * magenta
+  ///                   * cyan
+  ///                   * white
+  ///                  Default color is white.
   ///                  Note that this function overrides the particle colors set
-  ///                  with <ColorRangeImage>.
+  ///                  with <color_range_image>.
   /// `<color_end>`: Sets the end color for all particle emitted.
   ///                The actual color will be interpolated between this color
   ///                and the one set under <color_start>.
-  ///                Color::White is the default color for the particles
-  ///                unless a specific function is used.
+  ///                The input for <color_end> follows the same rules as input
+  ///                for <color_start>.
+  ///                Default color is white.
   ///                Note that this function overrides the particle colors set
-  ///                with <ColorRangeImage>.
+  ///                with <color_range_image>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
   ///                 and y direction per second. Default value is 1.
   /// `<color_range_image>`: Sets the path to the color image used as an
@@ -96,7 +108,7 @@ namespace systems
   ///                        therefore only the horizontal dimension of the
   ///                        image is used.
   ///                        Note that this function overrides the particle
-  /// colors set with <color_start> and <color_end>.
+  ///                        colors set with <color_start> and <color_end>.
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter
       : public System,
         public ISystemConfigure,

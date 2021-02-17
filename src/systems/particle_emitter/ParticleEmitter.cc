@@ -20,6 +20,8 @@
 #include <string>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/Color.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -42,6 +44,14 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
 {
   /// \brief The particle emitter.
   public: ignition::msgs::ParticleEmitter emitter;
+
+  /// \brief Get a RGBA color representation based on a color's
+  /// string representation.
+  /// \param[in] _colorStr The string representation of a color (ex: "black"),
+  /// which is case sensitive (the string representation should be lowercase).
+  /// \return The Color, represented in RGBA format. If _colorStr is invalid,
+  /// ignition::math::Color::White is returned
+  public: ignition::math::Color GetColor(const std::string &_colorStr) const;
 };
 
 //////////////////////////////////////////////////
@@ -64,10 +74,47 @@ void ParticleEmitter::Configure(const Entity &_entity,
     return;
   }
 
+  // allow_renaming
+  bool allowRenaming = false;
+  if (_sdf->HasElement("allow_renaming"))
+    allowRenaming = _sdf->Get<bool>("allow_renaming");
+
   // Name.
   std::string name = "particle_emitter_entity_" + std::to_string(entity);
   if (_sdf->HasElement("emitter_name"))
-    name = _sdf->Get<std::string>("emitter_name");
+  {
+    std::set<std::string> emitterNames;
+    std::string emitterName = _sdf->Get<std::string>("emitter_name");
+
+    // check to see if name is already taken
+    _ecm.Each<components::Name, components::ParticleEmitter>(
+        [&emitterNames](const Entity &, const components::Name *_name,
+                      const components::ParticleEmitter *)
+        {
+          emitterNames.insert(_name->Data());
+          return true;
+        });
+
+    name = emitterName;
+
+    // rename emitter if needed
+    if (emitterNames.find(emitterName) != emitterNames.end())
+    {
+      if (!allowRenaming)
+      {
+        ignwarn << "Entity named [" << name
+                << "] already exists and "
+                << "[allow_renaming] is false. Entity not spawned."
+                << std::endl;
+        return;
+      }
+      int counter = 0;
+      while (emitterNames.find(name) != emitterNames.end())
+      {
+        name = emitterName + "_" + std::to_string(++counter);
+      }
+    }
+  }
   this->dataPtr->emitter.set_name(name);
 
   // Type. The default type is point.
@@ -143,16 +190,12 @@ void ParticleEmitter::Configure(const Entity &_entity,
     _sdf->Get<double>("max_velocity", 1).first);
 
   // Color start.
-  ignition::math::Color color = ignition::math::Color::White;
-  if (_sdf->HasElement("color_start"))
-    color = _sdf->Get<ignition::math::Color>("color_start");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(), color);
+  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(),
+      this->dataPtr->GetColor(_sdf->Get<std::string>("color_start")));
 
   // Color end.
-  color = ignition::math::Color::White;
-  if (_sdf->HasElement("color_end"))
-    color = _sdf->Get<ignition::math::Color>("color_end");
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_end(), color);
+  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_end(),
+      this->dataPtr->GetColor(_sdf->Get<std::string>("color_end")));
 
   // Scale rate.
   this->dataPtr->emitter.set_scale_rate(
@@ -186,6 +229,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
     components::ParticleEmitter(this->dataPtr->emitter));
 
   _ecm.CreateComponent(entity, components::Pose(pose));
+
+  igndbg << "Particle emitter has been loaded." << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -193,6 +238,37 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
     ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("ParticleEmitter::PreUpdate");
+}
+
+//////////////////////////////////////////////////
+ignition::math::Color ParticleEmitterPrivate::GetColor(
+    const std::string &_colorStr) const
+{
+  if (_colorStr == "black")
+    return  ignition::math::Color::Black;
+  if (_colorStr == "red")
+    return ignition::math::Color::Red;
+  if (_colorStr == "green")
+    return ignition::math::Color::Green;
+  if (_colorStr == "blue")
+    return ignition::math::Color::Blue;
+  if (_colorStr == "yellow")
+    return ignition::math::Color::Yellow;
+  if (_colorStr == "magenta")
+    return ignition::math::Color::Magenta;
+  if (_colorStr == "cyan")
+    return ignition::math::Color::Cyan;
+
+  // let users know an invalid string was given
+  // (_colorStr.empty() means that an empty string was parsed from SDF,
+  // which probably means that users never specified a color and are
+  // relying on the defaults)
+  if (!_colorStr.empty() && (_colorStr != "white"))
+  {
+    ignwarn << "Invalid color given (" << _colorStr
+      << "). Defaulting to white." << std::endl;
+  }
+  return ignition::math::Color::White;
 }
 
 IGNITION_ADD_PLUGIN(ParticleEmitter,
