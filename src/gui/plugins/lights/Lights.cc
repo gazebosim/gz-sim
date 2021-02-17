@@ -93,7 +93,7 @@ void Lights::OnNewLightClicked(const QString &_sdfString)
                                  "<sdf version=\"1.6\">"
                                  "<light type='directional'"
                                   "name='directionallight'>"
-                                   "<pose>0 0 5 0 0 0</pose>"
+                                   "<pose>0 0 2 0 0 0</pose>"
                                    "<cast_shadows>true</cast_shadows>"
                                    "<diffuse>0.8 0.8 0.8 1</diffuse>"
                                    "<specular>0.2 0.2 0.2 1</specular>"
