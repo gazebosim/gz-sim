@@ -248,6 +248,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
+  if (_visual.HasLaserRetro())
+  {
+    visualVis->SetUserData("laser_retro", _visual.LaserRetro());
+  }
+
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
   rendering::GeometryPtr geom =
@@ -258,17 +263,19 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     /// localPose is currently used to handle the normal vector in plane visuals
     /// In general, this can be used to store any local transforms between the
     /// parent Visual and geometry.
-    rendering::VisualPtr geomVis;
     if (localPose != math::Pose3d::Zero)
     {
-      geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetUserData("gazebo-entity", static_cast<int>(_id));
-      geomVis->SetUserData("pause-update", static_cast<int>(0));
-      geomVis->SetLocalPose(_visual.RawPose() * localPose);
-      visualVis = geomVis;
+      rendering::VisualPtr geomVis =
+          this->dataPtr->scene->CreateVisual(name + "_geom");
+      geomVis->AddGeometry(geom);
+      geomVis->SetLocalPose(localPose);
+      visualVis->AddChild(geomVis);
+    }
+    else
+    {
+      visualVis->AddGeometry(geom);
     }
 
-    visualVis->AddGeometry(geom);
     visualVis->SetLocalScale(scale);
 
     // set material
