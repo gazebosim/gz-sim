@@ -42,6 +42,8 @@
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/msgs/Utility.hh>
+
 #include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -307,8 +309,17 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
       [&](const Entity &_entity,
           const components::ParticleEmitterCmd *_emitterCmd) -> bool
       {
+        // store emitter properties and update them in rendering thread
         this->dataPtr->newParticleEmittersCmds.push_back(
           std::make_tuple(_entity, _emitterCmd->Data()));
+
+        // update pose comp here
+        if (_emitterCmd->Data().has_pose())
+        {
+          auto poseComp = _ecm.Component<components::Pose>(_entity);
+          if (poseComp)
+            poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
+        }
         return true;
       });
 

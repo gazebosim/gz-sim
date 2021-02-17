@@ -1057,7 +1057,8 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   }
 
   // Emitter size.
-  emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
+  if (_emitter.has_size())
+    emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
 
   // Rate.
   emitter->SetRate(_emitter.rate());
@@ -1087,9 +1088,12 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   emitter->SetVelocityRange(_emitter.min_velocity(), _emitter.max_velocity());
 
   // Color range.
-  emitter->SetColorRange(
-    ignition::msgs::Convert(_emitter.color_start()),
-    ignition::msgs::Convert(_emitter.color_end()));
+  if (_emitter.has_color_start() && _emitter.has_color_end())
+  {
+    emitter->SetColorRange(
+      ignition::msgs::Convert(_emitter.color_start()),
+      ignition::msgs::Convert(_emitter.color_end()));
+  }
 
   // Scale rate.
   emitter->SetScaleRate(_emitter.scale_rate());
@@ -1097,6 +1101,10 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   // Color range image.
   if (!_emitter.color_range_image().empty())
     emitter->SetColorRangeImage(_emitter.color_range_image());
+
+  // pose
+  if (_emitter.has_pose())
+    emitter->SetLocalPose(msgs::Convert(_emitter.pose()));
 
   return emitter;
 }
