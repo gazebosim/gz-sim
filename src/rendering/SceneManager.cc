@@ -1127,6 +1127,11 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
   {
     return sIt->second;
   }
+  auto pIt = this->dataPtr->particleEmitters.find(_id);
+  if (pIt != this->dataPtr->particleEmitters.end())
+  {
+    return pIt->second;
+  }
 
   return rendering::NodePtr();
 }
