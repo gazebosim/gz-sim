@@ -938,7 +938,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::ParticleEmitterPtr SceneManager::CreateDefaultParticleEmitter(
+rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(
     Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {
   if (!this->dataPtr->scene)
@@ -971,13 +971,18 @@ rendering::ParticleEmitterPtr SceneManager::CreateDefaultParticleEmitter(
   if (parent)
     name = parent->Name() +  "::" + name;
 
+  std::cerr << "creating particle emitter " << _emitter.name() << " vs " << name << std::endl;
+
   rendering::ParticleEmitterPtr emitter;
   emitter = this->dataPtr->scene->CreateParticleEmitter(name);
 
   this->dataPtr->particleEmitters[_id] = emitter;
+  std::cerr << "adding partivle emitter " << _id << std::endl;
 
   if (parent)
     parent->AddChild(emitter);
+
+  this->UpdateParticleEmitter(_id, _emitter);
 
   return emitter;
 }
@@ -994,7 +999,7 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   if (emitterIt == this->dataPtr->particleEmitters.end())
   {
     ignerr << "Particle emitter with Id: [" << _id << "] not found in the "
-           <<" scene" << std::endl;
+           << "scene" << std::endl;
     return rendering::ParticleEmitterPtr();
   }
   auto emitter = emitterIt->second;
@@ -1372,7 +1377,7 @@ void SceneManager::RemoveEntity(Entity _id)
     auto it = this->dataPtr->particleEmitters.find(_id);
     if (it != this->dataPtr->particleEmitters.end())
     {
-      // ToDo: Destroy the particle emitter.
+      this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->particleEmitters.erase(it);
       return;
     }

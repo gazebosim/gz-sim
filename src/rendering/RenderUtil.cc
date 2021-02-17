@@ -56,7 +56,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/ParticleEmitterCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -167,7 +166,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// The elements in the tuple are: [0] entity id of the particle emitter to
   /// update, [1] particle emitter, [2] entity id of the particle emitter cmd.
   public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
-      newParticleEmittersCmd;
+      newParticleEmittersCmds;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
@@ -296,8 +295,8 @@ void RenderUtil::Update()
   auto newActors = std::move(this->dataPtr->newActors);
   auto newLights = std::move(this->dataPtr->newLights);
   auto newParticleEmitters = std::move(this->dataPtr->newParticleEmitters);
-  auto newParticleEmittersCmd =
-    std::move(this->dataPtr->newParticleEmittersCmd);
+  auto newParticleEmittersCmds =
+    std::move(this->dataPtr->newParticleEmittersCmds);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
@@ -312,7 +311,7 @@ void RenderUtil::Update()
   this->dataPtr->newActors.clear();
   this->dataPtr->newLights.clear();
   this->dataPtr->newParticleEmitters.clear();
-  this->dataPtr->newParticleEmittersCmd.clear();
+  this->dataPtr->newParticleEmittersCmds.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
@@ -414,13 +413,11 @@ void RenderUtil::Update()
 
     for (const auto &emitter : newParticleEmitters)
     {
-      this->dataPtr->sceneManager.CreateDefaultParticleEmitter(
+      this->dataPtr->sceneManager.CreateParticleEmitter(
           std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
-      this->dataPtr->sceneManager.UpdateParticleEmitter(
-          std::get<0>(emitter), std::get<1>(emitter));
     }
 
-    for (const auto &emitterCmd : newParticleEmittersCmd)
+    for (const auto &emitterCmd : newParticleEmittersCmds)
     {
       this->dataPtr->sceneManager.UpdateParticleEmitter(
           std::get<0>(emitterCmd), std::get<1>(emitterCmd));
@@ -993,8 +990,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
               {
                 if (_emitterCmd->Data().name() == _emitter->Data().name())
                 {
-                  this->newParticleEmittersCmd.push_back(
+                  this->newParticleEmittersCmds.push_back(
                     std::make_tuple(_entity, _emitterCmd->Data(), _entityCmd));
+                  return false;
                 }
                 return true;
               });

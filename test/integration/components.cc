@@ -1560,4 +1560,5 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   components::ParticleEmitter comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().emitting(), comp3.Data().emitting());
+  EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
 }

@@ -31,12 +31,6 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that contains a particle emitter command.
-  using ParticleEmitterCmd = Component<msgs::ParticleEmitter,
-        class ParticleEmitterCmdTag,
-        serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ParticleEmitterCmd",
-      ParticleEmitterCmd)
 }
 }
 }

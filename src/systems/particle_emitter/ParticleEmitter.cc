@@ -29,7 +29,6 @@
 
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
-#include <ignition/gazebo/components/ParticleEmitterCmd.hh>
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/Conversions.hh>
@@ -46,7 +45,7 @@ using namespace systems;
 // Private data class.
 class ignition::gazebo::systems::ParticleEmitterPrivate
 {
-  /// \brief Callback for receoving particle emitter commands.
+  /// \brief Callback for receiving particle emitter commands.
   /// \param[in] _msg Particle emitter message.
   public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg);
 
@@ -55,9 +54,6 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
 
   /// \brief The transport node.
   public: ignition::transport::Node node;
-
-  /// \brief Model interface.
-  public: Model model{kNullEntity};
 
   /// \brief The particle emitter command requested externally.
   public: ignition::msgs::ParticleEmitter userCmd;
@@ -88,8 +84,9 @@ void ParticleEmitter::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
-  this->dataPtr->model = Model(_entity);
-  if (!this->dataPtr->model.Valid(_ecm))
+  Model model = Model(_entity);
+
+  if (!model.Valid(_ecm))
   {
     ignerr << "ParticleEmitter plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
@@ -145,6 +142,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
       }
     }
   }
+  std::cerr << "============ setting particle emitter name " << name << std::endl;
   this->dataPtr->emitter.set_name(name);
 
   // Type. The default type is point.
@@ -224,6 +222,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
   if (_sdf->HasElement("color_start"))
     color = _sdf->Get<ignition::math::Color>("color_start");
   ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(), color);
+  std::cerr << " ========== setting color start " << color << std::endl;
 
   // Color end.
   color = ignition::math::Color::White;
@@ -257,7 +256,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
   sdfEntityCreator.SetParent(entity, _entity);
 
   _ecm.CreateComponent(entity,
-    components::Name("particle_emitter_" + this->dataPtr->emitter.name()));
+    components::Name(this->dataPtr->emitter.name()));
 
   _ecm.CreateComponent(entity,
     components::ParticleEmitter(this->dataPtr->emitter));
@@ -266,12 +265,13 @@ void ParticleEmitter::Configure(const Entity &_entity,
 
   // Advertise the topic to receive particle emitter commands.
   const std::string kDefaultTopic =
-    "/model/" + this->dataPtr->model.Name(_ecm) + "/particle_emitter/" + name;
+    "/model/" + model.Name(_ecm) + "/particle_emitter/" + name;
   std::string topic = _sdf->Get<std::string>("topic", kDefaultTopic).first;
   if (!this->dataPtr->node.Subscribe(
          topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
   {
-    ignerr << "Error subscribing to topic [" << topic << "]" << std::endl;
+    ignerr << "Error subscribing to topic [" << topic << "]. "
+        << "Particle emitter will not receive updates." << std::endl;
     return;
   }
   igndbg << "Subscribed to " << topic << " for receiving particle emitter "
