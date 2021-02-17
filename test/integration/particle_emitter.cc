@@ -31,7 +31,6 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "helpers/Relay.hh"
-#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -47,7 +46,6 @@ class ParticleEmitterTest : public ::testing::Test
   }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
-    this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
     this->serverConfig.SetSdfFile(
         common::joinPaths(PROJECT_SOURCE_PATH, _path));
     this->serverConfig.SetUseLevels(_useLevels);
@@ -165,7 +163,5 @@ TEST_F(ParticleEmitterTest, SDFLoad)
 int main(int _argc, char **_argv)
 {
   ::testing::InitGoogleTest(&_argc, _argv);
-  ::testing::AddGlobalTestEnvironment(
-      new test::UniqueTestDirectoryEnv("particle_emitter_test_cache"));
   return RUN_ALL_TESTS();
 }
