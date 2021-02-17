@@ -42,6 +42,8 @@
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/msgs/Utility.hh>
+
 #include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -55,6 +57,7 @@
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -170,6 +173,12 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and pose updates.
   public: std::unordered_map<Entity, math::Pose3d> entityPoses;
 
+  /// \brief A map of entity ids and light updates.
+  public: std::unordered_map<Entity, msgs::Light> entityLights;
+
+  /// \brief A map of entity ids and light updates.
+  public: std::vector<Entity> entityLightsCmdToDelete;
+
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
@@ -217,6 +226,36 @@ class ignition::gazebo::RenderUtilPrivate
   /// The function returns the id of the rendering sensor created.
   public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
           const std::string &)> createSensorCb;
+
+  /// \brief Light equality comparison function.
+  public: std::function<bool(const sdf::Light &, const sdf::Light &)>
+          lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
+            {
+             return
+                _a.Type() == _b.Type() &&
+                _a.Name() == _b.Name() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                math::equal(
+                  _a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
+               math::equal(
+                 _a.LinearAttenuationFactor(),
+                 _b.LinearAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.ConstantAttenuationFactor(),
+                 _b.ConstantAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.QuadraticAttenuationFactor(),
+                 _b.QuadraticAttenuationFactor(),
+                 1e-6) &&
+               _a.CastShadows() == _b.CastShadows() &&
+               _a.Direction() == _b.Direction() &&
+               _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
+               _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
+               math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
+            }};
 
   /// \brief Callback function for removing sensors.
   /// The function arg is the entity id
@@ -289,6 +328,37 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
                            EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+
+  // Update lights
+  auto olderEntitiesLightsCmdToDelete =
+    std::move(this->dataPtr->entityLightsCmdToDelete);
+  this->dataPtr->entityLightsCmdToDelete.clear();
+
+  _ecm.Each<components::LightCmd>(
+      [&](const Entity &_entity,
+          const components::LightCmd * _lightCmd) -> bool
+      {
+        this->dataPtr->entityLights[_entity] = _lightCmd->Data();
+        this->dataPtr->entityLightsCmdToDelete.push_back(_entity);
+
+        auto lightComp = _ecm.Component<components::Light>(_entity);
+        if (lightComp)
+        {
+          sdf::Light sdfLight = convert<sdf::Light>(_lightCmd->Data());
+          auto state = lightComp->SetData(sdfLight,
+              this->dataPtr->lightEql) ?
+              ComponentState::OneTimeChange :
+              ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Light::typeId, state);
+        }
+        return true;
+      });
+
+  for (const auto entity : olderEntitiesLightsCmdToDelete)
+  {
+    _ecm.RemoveComponent<components::LightCmd>(entity);
+  }
+
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera>(
       [&](const Entity &_entity,
@@ -415,6 +485,7 @@ void RenderUtil::Update()
   auto newLights = std::move(this->dataPtr->newLights);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto entityLights = std::move(this->dataPtr->entityLights);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
@@ -430,6 +501,7 @@ void RenderUtil::Update()
   this->dataPtr->newLights.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->entityLights.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
@@ -562,6 +634,95 @@ void RenderUtil::Update()
     }
   }
 
+  // update lights
+  {
+    IGN_PROFILE("RenderUtil::Update Lights");
+    for (const auto &light : entityLights) {
+      auto node = this->dataPtr->sceneManager.NodeById(light.first);
+      if (!node)
+        continue;
+      auto l = std::dynamic_pointer_cast<rendering::Light>(node);
+      if (l)
+      {
+        if (light.second.has_diffuse())
+        {
+          if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
+            l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
+        }
+        if (light.second.has_specular())
+        {
+          if (l->SpecularColor() != msgs::Convert(light.second.specular()))
+          {
+            l->SetSpecularColor(msgs::Convert(light.second.specular()));
+          }
+        }
+        if (!ignition::math::equal(
+            l->AttenuationRange(),
+            static_cast<double>(light.second.range())))
+        {
+          l->SetAttenuationRange(light.second.range());
+        }
+        if (!ignition::math::equal(
+            l->AttenuationLinear(),
+            static_cast<double>(light.second.attenuation_linear())))
+        {
+          l->SetAttenuationLinear(light.second.attenuation_linear());
+        }
+        if (!ignition::math::equal(
+            l->AttenuationConstant(),
+            static_cast<double>(light.second.attenuation_constant())))
+        {
+          l->SetAttenuationConstant(light.second.attenuation_constant());
+        }
+        if (!ignition::math::equal(
+            l->AttenuationQuadratic(),
+            static_cast<double>(light.second.attenuation_quadratic())))
+        {
+          l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
+        }
+        if (l->CastShadows() != light.second.cast_shadows())
+          l->SetCastShadows(light.second.cast_shadows());
+        auto lDirectional =
+          std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
+        if (lDirectional)
+        {
+          if (light.second.has_direction())
+          {
+            if (lDirectional->Direction() !=
+                msgs::Convert(light.second.direction()))
+            {
+              lDirectional->SetDirection(
+                msgs::Convert(light.second.direction()));
+            }
+          }
+        }
+        auto lSpotLight =
+          std::dynamic_pointer_cast<rendering::SpotLight>(node);
+        if (lSpotLight)
+        {
+          if (light.second.has_direction())
+          {
+            if (lSpotLight->Direction() !=
+              msgs::Convert(light.second.direction()))
+            {
+              lSpotLight->SetDirection(
+                msgs::Convert(light.second.direction()));
+            }
+          }
+          if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
+            lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
+          if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
+            lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
+          if (!ignition::math::equal(
+              lSpotLight->Falloff(),
+              static_cast<double>(light.second.spot_falloff())))
+          {
+            lSpotLight->SetFalloff(light.second.spot_falloff());
+          }
+        }
+      }
+    }
+  }
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
@@ -1367,7 +1528,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
-  // lights
+  // update lights
   _ecm.Each<components::Light, components::Pose>(
       [&](const Entity &_entity,
         const components::Light *,
