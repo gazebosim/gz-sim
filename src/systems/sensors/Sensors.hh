@@ -42,6 +42,7 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE Sensors:
     public System,
     public ISystemConfigure,
+    public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -55,6 +56,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,

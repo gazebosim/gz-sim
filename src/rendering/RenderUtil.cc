@@ -16,10 +16,14 @@
  */
 
 #include <map>
+#include <string>
+#include <tuple>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <sdf/Actor.hh>
+#include <sdf/Collision.hh>
 #include <sdf/Element.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
@@ -46,6 +50,7 @@
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -58,7 +63,9 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
@@ -167,8 +174,19 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
                           actorTransforms;
 
-  /// \brief A map of entity ids and temperature
-  public: std::map<Entity, float> entityTemp;
+  /// \brief A map of entity ids and temperature data.
+  /// The value of this map (tuple) represents either a single (uniform)
+  /// temperature, or a heat signature with a min/max temperature. If the string
+  /// in the tuple is empty, then this entity has a uniform temperature across
+  /// its surface, and this uniform temperature is stored in the first float of
+  /// the tuple (the second float and string are unused for uniform temperature
+  /// entities). If the string in the tuple is not empty, then the string
+  /// represents the entity's heat signature (a path to a heat signature texture
+  /// file), and the floats represent the min/max temperatures of the heat
+  /// signature, respectively.
+  ///
+  /// All temperatures are in Kelvin.
+  public: std::map<Entity, std::tuple<float, float, std::string>> entityTemp;
 
   /// \brief A map of entity ids and wire boxes
   public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
@@ -220,6 +238,36 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Restore a highlighted node to normal.
   /// \param[in] _node Node to be restored.
   public: void LowlightNode(const rendering::NodePtr &_node);
+
+  /// \brief New collisions to be created
+  public: std::vector<Entity> newCollisions;
+
+  /// \brief Finds the links (collision parent) that are used to create child
+  /// collision visuals in RenderUtil::Update
+  /// \param[in] _ecm The entity-component manager
+  public: void FindCollisionLinks(const EntityComponentManager &_ecm);
+
+  /// \brief A list of links used to create new collision visuals
+  public: std::vector<Entity> newCollisionLinks;
+
+  /// \brief A map of collision entity ids and their SDF DOM
+  public: std::map<Entity, sdf::Collision> entityCollisions;
+
+  /// \brief A map of model entities and their corresponding children links
+  public: std::map<Entity, std::vector<Entity>> modelToLinkEntities;
+
+  /// \brief A map of link entities and their corresponding children collisions
+  public: std::map<Entity, std::vector<Entity>> linkToCollisionEntities;
+
+  /// \brief A map of created collision entities and if they are currently
+  /// visible
+  public: std::map<Entity, bool> viewingCollisions;
+
+  /// \brief A map of entity id to thermal camera sensor configuration
+  /// properties. The elements in the tuple are:
+  /// <resolution, temperature range (min, max)>
+  public:std::unordered_map<Entity,
+      std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 };
 
 //////////////////////////////////////////////////
@@ -237,6 +285,53 @@ rendering::ScenePtr RenderUtil::Scene() const
 }
 
 //////////////////////////////////////////////////
+void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
+                           EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  // Update thermal cameras
+  _ecm.Each<components::ThermalCamera>(
+      [&](const Entity &_entity,
+        const components::ThermalCamera *)->bool
+      {
+        // set properties from thermal sensor plugin
+        // Set defaults to invaid values so we know they have not been set.
+        // set UpdateECM(). We check for valid values first before setting
+        // these thermal camera properties..
+        double resolution = 0.0;
+        components::TemperatureRangeInfo range;
+        range.min = std::numeric_limits<double>::max();
+        range.max = 0;
+
+        // resolution
+        auto resolutionComp =
+          _ecm.Component<components::TemperatureLinearResolution>(_entity);
+        if (resolutionComp != nullptr)
+        {
+          resolution = resolutionComp->Data();
+          _ecm.RemoveComponent<components::TemperatureLinearResolution>(
+              _entity);
+        }
+
+        // min / max temp
+        auto tempRangeComp =
+          _ecm.Component<components::TemperatureRange>(_entity);
+        if (tempRangeComp != nullptr)
+        {
+          range = tempRangeComp->Data();
+          _ecm.RemoveComponent<components::TemperatureRange>(_entity);
+        }
+
+        if (resolutionComp || tempRangeComp)
+        {
+          this->dataPtr->thermalCameraData[_entity] =
+              std::make_tuple(resolution, range);
+        }
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
@@ -248,6 +343,42 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm, _info);
   this->dataPtr->markerManager.SetSimTime(_info.simTime);
+  this->dataPtr->FindCollisionLinks(_ecm);
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
+{
+  if (this->newCollisions.empty())
+    return;
+
+  for (const auto &entity : this->newCollisions)
+  {
+    std::vector<Entity> links;
+    if (_ecm.EntityMatches(entity,
+          std::set<ComponentTypeId>{components::Model::typeId}))
+    {
+      links = _ecm.EntitiesByComponents(components::ParentEntity(entity),
+                                        components::Link());
+    }
+    else if (_ecm.EntityMatches(entity,
+                std::set<ComponentTypeId>{components::Link::typeId}))
+    {
+      links.push_back(entity);
+    }
+    else
+    {
+      ignerr << "Entity [" << entity
+             << "] for viewing collision must be a model or link"
+             << std::endl;
+      continue;
+    }
+
+    this->newCollisionLinks.insert(this->newCollisionLinks.end(),
+        links.begin(),
+        links.end());
+  }
+  this->newCollisions.clear();
 }
 
 //////////////////////////////////////////////////
@@ -288,6 +419,8 @@ void RenderUtil::Update()
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
+  auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
+  auto thermalCameraData = std::move(this->dataPtr->thermalCameraData);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -301,6 +434,8 @@ void RenderUtil::Update()
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
+  this->dataPtr->newCollisionLinks.clear();
+  this->dataPtr->thermalCameraData.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -596,7 +731,7 @@ void RenderUtil::Update()
   }
 
   // set visual temperature
-  for (auto &temp : entityTemp)
+  for (const auto &temp : entityTemp)
   {
     auto node = this->dataPtr->sceneManager.NodeById(temp.first);
     if (!node)
@@ -607,7 +742,90 @@ void RenderUtil::Update()
     if (!visual)
       continue;
 
-    visual->SetUserData("temperature", temp.second);
+    const auto &heatSignature = std::get<2>(temp.second);
+    if (heatSignature.empty())
+      visual->SetUserData("temperature", std::get<0>(temp.second));
+    else
+    {
+      visual->SetUserData("minTemp", std::get<0>(temp.second));
+      visual->SetUserData("maxTemp", std::get<1>(temp.second));
+      visual->SetUserData("temperature", heatSignature);
+    }
+  }
+
+  // create new collision visuals
+  {
+    for (const auto &link : newCollisionLinks)
+    {
+      std::vector<Entity> colEntities =
+          this->dataPtr->linkToCollisionEntities[link];
+
+      for (const auto &colEntity : colEntities)
+      {
+        if (!this->dataPtr->sceneManager.HasEntity(colEntity))
+        {
+          auto vis = this->dataPtr->sceneManager.CreateCollision(colEntity,
+              this->dataPtr->entityCollisions[colEntity], link);
+          this->dataPtr->viewingCollisions[colEntity] = true;
+
+          // add geometry material to originalEmissive map
+          for (auto g = 0u; g < vis->GeometryCount(); ++g)
+          {
+            auto geom = vis->GeometryByIndex(g);
+
+            // Geometry material
+            auto geomMat = geom->Material();
+            if (nullptr == geomMat)
+              continue;
+
+            if (this->dataPtr->originalEmissive.find(geom->Name()) ==
+                this->dataPtr->originalEmissive.end())
+            {
+              this->dataPtr->originalEmissive[geom->Name()] =
+                  geomMat->Emissive();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // update thermal camera
+  for (const auto &thermal : this->dataPtr->thermalCameraData)
+  {
+    Entity id = thermal.first;
+    rendering::ThermalCameraPtr camera =
+        std::dynamic_pointer_cast<rendering::ThermalCamera>(
+        this->dataPtr->sceneManager.NodeById(id));
+    if (camera)
+    {
+      double resolution = std::get<0>(thermal.second);
+
+      if (resolution > 0.0)
+      {
+        camera->SetLinearResolution(resolution);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature linear resolution."
+                << " Value must be greater than 0. Using the default value: "
+                << camera->LinearResolution() << ". " << std::endl;
+      }
+      double minTemp = std::get<1>(thermal.second).min.Kelvin();
+      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
+      if (maxTemp >= minTemp)
+      {
+        camera->SetMinTemperature(minTemp);
+        camera->SetMaxTemperature(maxTemp);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature range."
+                << "Max temperature must be greater or equal to min. "
+                << "Using the default values : [" << camera->MinTemperature()
+                << ", " << camera->MaxTemperature() << "]." << std::endl;
+      }
+    }
   }
 }
 
@@ -689,6 +907,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
+          // used for collsions
+          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -724,13 +944,29 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
-          // todo(anyone) make visual updates more generic without using extra
-          // variables like entityTemp just for storing one specific visual
-          // param?
-          auto temp = _ecm.Component<components::Temperature>(_entity);
-          if (temp)
+          if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
-            this->entityTemp[_entity] = temp->Data().Kelvin();
+            // get the uniform temperature for the entity
+            this->entityTemp[_entity] =
+              std::make_tuple<float, float, std::string>(
+                  temp->Data().Kelvin(), 0.0, "");
+          }
+          else
+          {
+            // entity doesn't have a uniform temperature. Check if it has
+            // a heat signature with an associated temperature range
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            auto tempRange =
+               _ecm.Component<components::TemperatureRange>(_entity);
+            if (heatSignature && tempRange)
+            {
+              this->entityTemp[_entity] =
+                std::make_tuple<float, float, std::string>(
+                    tempRange->Data().min.Kelvin(),
+                    tempRange->Data().max.Kelvin(),
+                    std::string(heatSignature->Data()));
+            }
           }
 
           this->newVisuals.push_back(
@@ -757,6 +993,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // collisions
+    _ecm.Each<components::Collision, components::Name, components::Pose,
+              components::Geometry, components::CollisionElement,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Collision *,
+            const components::Name *,
+            const components::Pose *,
+            const components::Geometry *,
+            const components::CollisionElement *_collElement,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->entityCollisions[_entity] = _collElement->Data();
+          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -865,6 +1118,8 @@ void RenderUtilPrivate::CreateRenderingEntities(
           link.SetRawPose(_pose->Data());
           this->newLinks.push_back(
               std::make_tuple(_entity, link, _parent->Data()));
+          // used for collsions
+          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -900,6 +1155,31 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          if (auto temp = _ecm.Component<components::Temperature>(_entity))
+          {
+            // get the uniform temperature for the entity
+            this->entityTemp[_entity] =
+              std::make_tuple<float, float, std::string>(
+                  temp->Data().Kelvin(), 0.0, "");
+          }
+          else
+          {
+            // entity doesn't have a uniform temperature. Check if it has
+            // a heat signature with an associated temperature range
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            auto tempRange =
+               _ecm.Component<components::TemperatureRange>(_entity);
+            if (heatSignature && tempRange)
+            {
+              this->entityTemp[_entity] =
+                std::make_tuple<float, float, std::string>(
+                    tempRange->Data().min.Kelvin(),
+                    tempRange->Data().max.Kelvin(),
+                    std::string(heatSignature->Data()));
+            }
+          }
+
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
           return true;
@@ -924,6 +1204,23 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newLights.push_back(
               std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    // collisions
+    _ecm.EachNew<components::Collision, components::Name, components::Pose,
+              components::Geometry, components::CollisionElement,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Collision *,
+            const components::Name *,
+            const components::Pose *,
+            const components::Geometry *,
+            const components::CollisionElement *_collElement,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->entityCollisions[_entity] = _collElement->Data();
+          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
           return true;
         });
 
@@ -1140,6 +1437,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Model *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->modelToLinkEntities.erase(_entity);
         return true;
       });
 
@@ -1147,6 +1445,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Link *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->linkToCollisionEntities.erase(_entity);
         return true;
       });
 
@@ -1203,6 +1502,16 @@ void RenderUtilPrivate::RemoveRenderingEntities(
     [&](const Entity &_entity, const components::ThermalCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // collisions
+  _ecm.EachRemoved<components::Collision>(
+    [&](const Entity &_entity, const components::Collision *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->viewingCollisions.erase(_entity);
+        this->entityCollisions.erase(_entity);
         return true;
       });
 }
@@ -1473,5 +1782,67 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::ViewCollisions(const Entity &_entity)
+{
+  std::vector<Entity> colEntities;
+  if (this->dataPtr->linkToCollisionEntities.find(_entity) !=
+      this->dataPtr->linkToCollisionEntities.end())
+  {
+    colEntities = this->dataPtr->linkToCollisionEntities[_entity];
+  }
+  else if (this->dataPtr->modelToLinkEntities.find(_entity) !=
+           this->dataPtr->modelToLinkEntities.end())
+  {
+    std::vector<Entity> links = this->dataPtr->modelToLinkEntities[_entity];
+    for (const auto &link : links)
+      colEntities.insert(colEntities.end(),
+          this->dataPtr->linkToCollisionEntities[link].begin(),
+          this->dataPtr->linkToCollisionEntities[link].end());
+  }
+
+  // create and/or toggle collision visuals
+
+  bool showCol, showColInit = false;
+  // first loop looks for new collisions
+  for (const auto &colEntity : colEntities)
+  {
+    if (this->dataPtr->viewingCollisions.find(colEntity) ==
+        this->dataPtr->viewingCollisions.end())
+    {
+      this->dataPtr->newCollisions.push_back(_entity);
+      showColInit = showCol = true;
+    }
+  }
+
+  // second loop toggles already created collisions
+  for (const auto &colEntity : colEntities)
+  {
+    if (this->dataPtr->viewingCollisions.find(colEntity) ==
+        this->dataPtr->viewingCollisions.end())
+      continue;
+
+    // when viewing multiple collisions (e.g. _entity is a model),
+    // boolean for view collisions is based on first colEntity in list
+    if (!showColInit)
+    {
+      showCol = !this->dataPtr->viewingCollisions[colEntity];
+      showColInit = true;
+    }
+
+    rendering::VisualPtr colVisual =
+        this->dataPtr->sceneManager.VisualById(colEntity);
+    if (colVisual == nullptr)
+    {
+      ignerr << "Could not find collision visual for entity [" << colEntity
+             << "]" << std::endl;
+      continue;
+    }
+
+    this->dataPtr->viewingCollisions[colEntity] = showCol;
+    colVisual->SetVisible(showCol);
   }
 }
