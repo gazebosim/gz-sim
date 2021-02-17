@@ -50,6 +50,10 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \return True if created successfully.
   public: bool CreateComponentStorage(const ComponentTypeId _typeId);
 
+  /// \brief Allots the work for multiple threads prior to running
+  /// `AddEntityToMessage`.
+  public: void CalculateStateThreadLoad();
+
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
   public: std::unordered_map<ComponentTypeId,
@@ -74,9 +78,25 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
 
-  /// \brief The set of components that each entity has
+  /// \brief True if the entityComponents map was changed.  Primarily used
+  /// by the multithreading functionality in `State()` to allocate work to
+  /// each thread.
+  public: bool entityComponentsDirty{true};
+
+  /// \brief The set of components that each entity has.
+  /// NOTE: Any modification of this data structure must be followed
+  /// by setting `entityComponentsDirty` to true.
   public: std::unordered_map<Entity,
           std::unordered_map<ComponentTypeId, ComponentKey>> entityComponents;
+
+  /// \brief A vector of iterators to evenly distributed spots in the
+  /// `entityComponents` map.  Threads in the `State` function use this
+  /// vector for easy access of their pre-allocated work.  This vector
+  /// is recalculated if `entityComponents` is changed (when
+  /// `entityComponentsDirty` == true).
+  public: std::vector<std::unordered_map<Entity,
+          std::unordered_map<ComponentTypeId, ComponentKey>>::iterator>
+            entityComponentIterators;
 
   /// \brief A mutex to protect newly created entityes.
   public: std::mutex entityCreatedMutex;
@@ -222,6 +242,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->entityComponents.clear();
     this->dataPtr->toRemoveEntities.clear();
+    this->dataPtr->entityComponentsDirty = true;
 
     for (std::pair<const ComponentTypeId,
         std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
@@ -257,6 +278,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
 
         // Remove the entry in the entityComponent map
         this->dataPtr->entityComponents.erase(entity);
+        this->dataPtr->entityComponentsDirty = true;
       }
 
       // Remove the entity from views.
@@ -295,6 +317,7 @@ bool EntityComponentManager::RemoveComponent(
   this->dataPtr->entityComponents[_entity].erase(_key.first);
   this->dataPtr->oneTimeChangedComponents.erase(_key);
   this->dataPtr->periodicChangedComponents.erase(_key);
+  this->dataPtr->entityComponentsDirty = true;
 
   this->UpdateViews(_entity);
   return true;
@@ -397,6 +420,18 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 }
 
 /////////////////////////////////////////////////
+std::unordered_set<ComponentTypeId>
+    EntityComponentManager::ComponentTypesWithPeriodicChanges() const
+{
+  std::unordered_set<ComponentTypeId> periodicComponents;
+  for (const auto& compPair : this->dataPtr->periodicChangedComponents)
+  {
+    periodicComponents.insert(compPair.first);
+  }
+  return periodicComponents;
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
   auto vertex = this->dataPtr->entities.VertexFromId(_entity);
@@ -463,6 +498,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   this->dataPtr->entityComponents[_entity].insert(
       {_componentTypeId, componentKey});
   this->dataPtr->oneTimeChangedComponents.insert(componentKey);
+  this->dataPtr->entityComponentsDirty = true;
 
   if (componentIdPair.second)
     this->RebuildViews();
@@ -894,6 +930,51 @@ void EntityComponentManager::ChangedState(
   // TODO(anyone) New / removed / changed components
 }
 
+//////////////////////////////////////////////////
+void EntityComponentManagerPrivate::CalculateStateThreadLoad()
+{
+  // If the entity component vector is dirty, we need to recalculate the
+  // threads and each threads work load
+  if (!this->entityComponentsDirty)
+    return;
+
+  this->entityComponentsDirty = false;
+  this->entityComponentIterators.clear();
+  auto startIt = this->entityComponents.begin();
+  int numComponents = this->entityComponents.size();
+
+  // Set the number of threads to spawn to the min of the calculated thread
+  // count or max threads that the hardware supports
+  int maxThreads = std::thread::hardware_concurrency();
+  uint64_t numThreads = std::min(numComponents, maxThreads);
+
+  int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
+    numThreads);
+
+  igndbg << "Updated state thread iterators: " << numThreads
+         << " threads processing around " << componentsPerThread
+         << " components each." << std::endl;
+
+  // Push back the starting iterator
+  this->entityComponentIterators.push_back(startIt);
+  for (uint64_t i = 0; i < numThreads; ++i)
+  {
+    // If we have added all of the components to the iterator vector, we are
+    // done so push back the end iterator
+    numComponents -= componentsPerThread;
+    if (numComponents <= 0)
+    {
+      this->entityComponentIterators.push_back(
+          this->entityComponents.end());
+      break;
+    }
+
+    // Get the iterator to the next starting group of components
+    auto nextIt = std::next(startIt, componentsPerThread);
+    this->entityComponentIterators.push_back(nextIt);
+    startIt = nextIt;
+  }
+}
 
 //////////////////////////////////////////////////
 ignition::msgs::SerializedState EntityComponentManager::State(
@@ -922,11 +1003,46 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  for (const auto &it : this->dataPtr->entityComponents)
+  std::mutex stateMapMutex;
+  std::vector<std::thread> workers;
+
+  this->dataPtr->CalculateStateThreadLoad();
+
+  auto functor = [&](auto itStart, auto itEnd)
   {
-    if (_entities.empty() || _entities.find(it.first) != _entities.end())
-      this->AddEntityToMessage(_state, it.first, _types, _full);
+    msgs::SerializedStateMap threadMap;
+    while (itStart != itEnd)
+    {
+      auto entity = (*itStart).first;
+      if (_entities.empty() || _entities.find(entity) != _entities.end())
+      {
+        this->AddEntityToMessage(threadMap, entity, _types, _full);
+      }
+      itStart++;
+    }
+    std::lock_guard<std::mutex> lock(stateMapMutex);
+
+    for (const auto &entity : threadMap.entities())
+    {
+      (*_state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
+          entity.second;
+    }
+  };
+
+  // Spawn workers
+  uint64_t numThreads = this->dataPtr->entityComponentIterators.size() - 1;
+  for (uint64_t i = 0; i < numThreads; i++)
+  {
+    workers.push_back(std::thread(functor,
+        this->dataPtr->entityComponentIterators[i],
+        this->dataPtr->entityComponentIterators[i+1]));
   }
+
+  // Wait for each thread to finish processing its components
+  std::for_each(workers.begin(), workers.end(), [](std::thread &_t)
+  {
+    _t.join();
+  });
 }
 
 //////////////////////////////////////////////////
@@ -1120,8 +1236,22 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        this->SetChanged(entity, compIter.first,
-            ComponentState::OneTimeChange);
+        // Note on merging forward:
+        // `has_one_time_component_changes` field is available in Edifice so
+        // this workaround can be removed
+        auto flag = ComponentState::PeriodicChange;
+        for (int i = 0; i < _stateMsg.header().data_size(); ++i)
+        {
+          if (_stateMsg.header().data(i).key() ==
+              "has_one_time_component_changes")
+          {
+            int v = stoi(_stateMsg.header().data(i).value(0));
+            if (v)
+              flag = ComponentState::OneTimeChange;
+            break;
+          }
+        }
+        this->SetChanged(entity, compIter.first, flag);
       }
     }
   }

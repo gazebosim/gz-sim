@@ -418,5 +418,5 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
 }
 
 // Run multiple times
-INSTANTIATE_TEST_CASE_P(ServerRepeat, DiffDriveTest,
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, DiffDriveTest,
     ::testing::Range(1, 2));
