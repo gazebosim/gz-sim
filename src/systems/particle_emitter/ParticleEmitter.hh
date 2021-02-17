@@ -37,6 +37,8 @@ namespace systems
   ///
   /// `<emitter_name>`: Unique name for the particle emitter. The name will be
   ///                   automatically generated if this parameter is not set.
+  /// `<allow_renaming>`: Rename the particle emitter if one with the same name
+  ///                     already exists
   /// `<type>`: The emitter type (point, box, cylinder, ellipsoid).
   ///           Default value is point.
   /// `<pose>`: The pose of the emitter. Default value is {0, 0, 0, 0, 0, 0}.
