@@ -172,9 +172,9 @@ class ignition::gazebo::RenderUtilPrivate
       newParticleEmitters;
 
   /// \brief New particle emitter commands to be requested.
-  /// The elements in the tuple are: [0] entity id of the particle emitter to
-  /// update, [1] particle emitter
-  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter>>
+  /// The map key and value are: entity id of the particle emitter to
+  /// update, and particle emitter msg
+  public: std::unordered_map<Entity, msgs::ParticleEmitter>
       newParticleEmittersCmds;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
@@ -310,8 +310,8 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
           const components::ParticleEmitterCmd *_emitterCmd) -> bool
       {
         // store emitter properties and update them in rendering thread
-        this->dataPtr->newParticleEmittersCmds.push_back(
-          std::make_tuple(_entity, _emitterCmd->Data()));
+        this->dataPtr->newParticleEmittersCmds[_entity] =
+            _emitterCmd->Data();
 
         // update pose comp here
         if (_emitterCmd->Data().has_pose())
@@ -579,7 +579,7 @@ void RenderUtil::Update()
     for (const auto &emitterCmd : newParticleEmittersCmds)
     {
       this->dataPtr->sceneManager.UpdateParticleEmitter(
-          std::get<0>(emitterCmd), std::get<1>(emitterCmd));
+          emitterCmd.first, emitterCmd.second);
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)

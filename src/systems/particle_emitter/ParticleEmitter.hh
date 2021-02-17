@@ -107,6 +107,9 @@ namespace systems
   /// `<topic>`: Topic used to update particle emitter properties at runtime.
   ///            The default topic is
   ///            /model/<model_name>/particle_emitter/<emitter_name>
+  ///            Note that the emitter id and name may not be changed.
+  ///            See the examples/worlds/particle_emitter.sdf example world for
+  ///            example usage.
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter
       : public System,
         public ISystemConfigure,
