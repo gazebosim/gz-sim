@@ -295,7 +295,7 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-   this->dataPtr->newDataReceived = false;
+  this->dataPtr->newDataReceived = false;
 
   // Create component.
   auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(

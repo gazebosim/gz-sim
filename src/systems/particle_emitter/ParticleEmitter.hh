@@ -78,13 +78,18 @@ namespace systems
   ///                  and the one set under <color_end>.
   ///                  Color::White is the default color for the particles
   ///                  unless a specific function is used.
+  ///                  To specify a color, RGB values should be passed in.
+  ///                  For example, to specify red, a user should enter:
+  ///                  <color_start>1 0 0</color_start>
   ///                  Note that this function overrides the particle colors set
   ///                  with <color_range_image>.
   /// `<color_end>`: Sets the end color for all particle emitted.
   ///                The actual color will be interpolated between this color
   ///                and the one set under <color_start>.
   ///                Color::White is the default color for the particles
-  ///                unless a specific function is used.
+  ///                unless a specific function is used (see color_start for
+  ///                more information about defining custom colors with RGB
+  ///                values).
   ///                Note that this function overrides the particle colors set
   ///                with <color_range_image>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
