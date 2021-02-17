@@ -110,6 +110,8 @@ void ParticleEmitter::Configure(const Entity &/*_entity*/,
       {
         name = emitterName + "_" + std::to_string(++counter);
       }
+      ignmsg << "Entity named [" << emitterName
+             << "] already exists. Renaming it to " << name << std::endl;
     }
   }
   this->dataPtr->emitter.set_name(name);
