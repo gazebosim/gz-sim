@@ -28,6 +28,7 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
@@ -155,6 +156,28 @@ TEST(Conversions, Entity)
   std::string empty = "";
   auto entityType2 = convert<msgs::Entity_Type>(empty);
   EXPECT_EQ(msgs::Entity_Type_NONE, entityType2);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Physics)
+{
+  // Test conversion from msg to sdf
+  msgs::Physics msg;
+  msg.set_real_time_factor(1.23);
+  msg.set_max_step_size(0.12);
+
+  auto physics = convert<sdf::Physics>(msg);
+  EXPECT_DOUBLE_EQ(1.23, physics.RealTimeFactor());
+  EXPECT_DOUBLE_EQ(0.12, physics.MaxStepSize());
+
+  // Test conversion from sdf to msg
+  sdf::Physics physSdf;
+  physSdf.SetMaxStepSize(0.34);
+  physSdf.SetRealTimeFactor(2.34);
+
+  auto physMsg = convert<msgs::Physics>(physSdf);
+  EXPECT_DOUBLE_EQ(2.34, physMsg.real_time_factor());
+  EXPECT_DOUBLE_EQ(0.34, physMsg.max_step_size());
 }
 
 /////////////////////////////////////////////////

@@ -78,6 +78,10 @@ class ignition::gazebo::systems::SensorsPrivate
   /// sea level
   public: double ambientTemperature = 288.15;
 
+  /// \brief Temperature gradient with respect to increasing altitude at sea
+  /// level in units of K/m.
+  public: double ambientTemperatureGradient = -0.0065;
+
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
@@ -386,6 +390,8 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       auto atmosphereSdf = atmosphere->Data();
       this->dataPtr->ambientTemperature = atmosphereSdf.Temperature().Kelvin();
+      this->dataPtr->ambientTemperatureGradient =
+          atmosphereSdf.TemperatureGradient();
     }
 
     // Set render engine if specified from command line
@@ -404,6 +410,17 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   // Kick off worker thread
   this->dataPtr->Run();
+}
+
+//////////////////////////////////////////////////
+void Sensors::Update(const UpdateInfo &_info,
+                     EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("Sensors::Update");
+  if (this->dataPtr->running && this->dataPtr->initialized)
+  {
+    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -564,6 +581,21 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   if (nullptr != thermalSensor)
   {
     thermalSensor->SetAmbientTemperature(this->dataPtr->ambientTemperature);
+
+    // temperature gradient is in kelvin per meter - typically change in
+    // temperature over change in altitude. However the implementation of
+    // thermal sensor in ign-sensors varies temperature for all objects in its
+    // view. So we will do an approximation based on camera view's vertical
+    // distance.
+    auto camSdf = _sdf.CameraSensor();
+    double farClip = camSdf->FarClip();
+    double angle = camSdf->HorizontalFov().Radian();
+    double aspect = camSdf->ImageWidth() / camSdf->ImageHeight();
+    double vfov = 2.0 * atan(tan(angle / 2.0) / aspect);
+    double height = tan(vfov / 2.0) * farClip * 2.0;
+    double tempRange =
+        std::fabs(this->dataPtr->ambientTemperatureGradient * height);
+    thermalSensor->SetAmbientTemperatureRange(tempRange);
   }
 
   return sensor->Name();
@@ -571,6 +603,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
 
