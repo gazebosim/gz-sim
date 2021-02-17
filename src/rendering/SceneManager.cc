@@ -79,7 +79,7 @@ class ignition::gazebo::SceneManagerPrivate
   public: std::map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of particle emitter entity in Gazebo to particle emitter
-  /// pointers.
+  /// rendering pointers.
   public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
@@ -1140,6 +1140,11 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
   if (sIt != this->dataPtr->sensors.end())
   {
     return sIt->second;
+  }
+  auto pIt = this->dataPtr->particleEmitters.find(_id);
+  if (pIt != this->dataPtr->particleEmitters.end())
+  {
+    return pIt->second;
   }
 
   return rendering::NodePtr();

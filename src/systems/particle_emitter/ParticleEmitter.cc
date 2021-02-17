@@ -21,6 +21,8 @@
 #include <string>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/Color.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -102,10 +104,47 @@ void ParticleEmitter::Configure(const Entity &_entity,
     return;
   }
 
+  // allow_renaming
+  bool allowRenaming = false;
+  if (_sdf->HasElement("allow_renaming"))
+    allowRenaming = _sdf->Get<bool>("allow_renaming");
+
   // Name.
   std::string name = "particle_emitter_entity_" + std::to_string(entity);
   if (_sdf->HasElement("emitter_name"))
-    name = _sdf->Get<std::string>("emitter_name");
+  {
+    std::set<std::string> emitterNames;
+    std::string emitterName = _sdf->Get<std::string>("emitter_name");
+
+    // check to see if name is already taken
+    _ecm.Each<components::Name, components::ParticleEmitter>(
+        [&emitterNames](const Entity &, const components::Name *_name,
+                      const components::ParticleEmitter *)
+        {
+          emitterNames.insert(_name->Data());
+          return true;
+        });
+
+    name = emitterName;
+
+    // rename emitter if needed
+    if (emitterNames.find(emitterName) != emitterNames.end())
+    {
+      if (!allowRenaming)
+      {
+        ignwarn << "Entity named [" << name
+                << "] already exists and "
+                << "[allow_renaming] is false. Entity not spawned."
+                << std::endl;
+        return;
+      }
+      int counter = 0;
+      while (emitterNames.find(name) != emitterNames.end())
+      {
+        name = emitterName + "_" + std::to_string(++counter);
+      }
+    }
+  }
   this->dataPtr->emitter.set_name(name);
 
   // Type. The default type is point.

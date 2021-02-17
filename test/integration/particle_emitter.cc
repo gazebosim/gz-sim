@@ -17,6 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
+#include <ignition/math/Color.hh>
+#include <ignition/msgs/Utility.hh>
+
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -26,7 +31,6 @@
 #include "ignition/gazebo/test_config.hh"
 
 #include "helpers/Relay.hh"
-#include "helpers/UniqueTestDirectoryEnv.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -42,7 +46,6 @@ class ParticleEmitterTest : public ::testing::Test
   }
   public: void LoadWorld(const std::string &_path, bool _useLevels = false)
   {
-    this->serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
     this->serverConfig.SetSdfFile(
         common::joinPaths(PROJECT_SOURCE_PATH, _path));
     this->serverConfig.SetUseLevels(_useLevels);
@@ -62,8 +65,8 @@ class ParticleEmitterTest : public ::testing::Test
 // Load an SDF with a particle emitter and verify its properties.
 TEST_F(ParticleEmitterTest, SDFLoad)
 {
-  const ignition::math::Pose3d expectedPose(0, 0, 0, 0, 0, 0);
-  bool updateChecked{false};
+  bool updateCustomChecked{false};
+  bool updateDefaultChecked{false};
 
   this->LoadWorld("test/worlds/particle_emitter.sdf");
 
@@ -75,20 +78,74 @@ TEST_F(ParticleEmitterTest, SDFLoad)
         _ecm.Each<components::ParticleEmitter,
                   components::Name,
                   components::Pose>(
-            [&](const ignition::gazebo::Entity &/*_entity*/,
+            [&](const ignition::gazebo::Entity &_entity,
                 const components::ParticleEmitter *_emitter,
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool
             {
-              updateChecked = true;
 
-              EXPECT_EQ("particle_emitter_smoke_emitter", _name->Data());
-              EXPECT_EQ(expectedPose, _pose->Data());
-              EXPECT_TRUE(_emitter->Data().emitting());
-              EXPECT_DOUBLE_EQ(2, _emitter->Data().lifetime());
-              EXPECT_DOUBLE_EQ(10, _emitter->Data().min_velocity());
-              EXPECT_DOUBLE_EQ(20, _emitter->Data().max_velocity());
-              EXPECT_DOUBLE_EQ(10, _emitter->Data().scale_rate());
+              if (_name->Data() == "smoke_emitter")
+              {
+                updateCustomChecked = true;
+
+                EXPECT_EQ("smoke_emitter", _name->Data());
+                EXPECT_EQ(_name->Data(), _emitter->Data().name());
+                EXPECT_EQ(msgs::ParticleEmitter_EmitterType_BOX,
+                    _emitter->Data().type());
+                EXPECT_EQ(math::Pose3d(0, 1, 0, 0, 0, 0), _pose->Data());
+                EXPECT_EQ(_pose->Data(),
+                    msgs::Convert(_emitter->Data().pose()));
+                EXPECT_EQ(math::Vector3d(2, 2, 2),
+                    msgs::Convert(_emitter->Data().size()));
+                EXPECT_DOUBLE_EQ(5.0, _emitter->Data().rate());
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().duration());
+                EXPECT_TRUE(_emitter->Data().emitting());
+                EXPECT_EQ(math::Vector3d(3, 3, 3),
+                    msgs::Convert(_emitter->Data().particle_size()));
+                EXPECT_DOUBLE_EQ(2.0, _emitter->Data().lifetime());
+                // TODO(anyone) add material check once other particle PRs
+                // have been merged
+                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().min_velocity());
+                EXPECT_DOUBLE_EQ(20.0, _emitter->Data().max_velocity());
+                EXPECT_EQ(math::Color::Blue,
+                    msgs::Convert(_emitter->Data().color_start()));
+                EXPECT_EQ(math::Color::Green,
+                    msgs::Convert(_emitter->Data().color_end()));
+                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().scale_rate());
+                EXPECT_EQ("/path/to/dummy_image.png",
+                    _emitter->Data().color_range_image());
+              }
+              else
+              {
+                updateDefaultChecked = true;
+
+                EXPECT_TRUE(_name->Data().find(std::to_string(_entity))
+                    != std::string::npos);
+                EXPECT_EQ(_name->Data(), _emitter->Data().name());
+                EXPECT_EQ(msgs::ParticleEmitter_EmitterType_POINT,
+                    _emitter->Data().type());
+                EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), _pose->Data());
+                EXPECT_EQ(_pose->Data(),
+                    msgs::Convert(_emitter->Data().pose()));
+                EXPECT_EQ(math::Vector3d(1, 1, 1),
+                    msgs::Convert(_emitter->Data().size()));
+                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().rate());
+                EXPECT_DOUBLE_EQ(0.0, _emitter->Data().duration());
+                EXPECT_FALSE(_emitter->Data().emitting());
+                EXPECT_EQ(math::Vector3d(1, 1, 1),
+                    msgs::Convert(_emitter->Data().particle_size()));
+                EXPECT_DOUBLE_EQ(5.0, _emitter->Data().lifetime());
+                // TODO(anyone) add material check once other particle PRs
+                // have been merged
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().min_velocity());
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().max_velocity());
+                EXPECT_EQ(math::Color::White,
+                    msgs::Convert(_emitter->Data().color_start()));
+                EXPECT_EQ(math::Color::White,
+                    msgs::Convert(_emitter->Data().color_end()));
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().scale_rate());
+                EXPECT_EQ("", _emitter->Data().color_range_image());
+              }
 
               return true;
             });
@@ -97,7 +154,8 @@ TEST_F(ParticleEmitterTest, SDFLoad)
   this->server->AddSystem(testSystem.systemPtr);
   this->server->Run(true, 1, false);
 
-  EXPECT_TRUE(updateChecked);
+  EXPECT_TRUE(updateCustomChecked);
+  EXPECT_TRUE(updateDefaultChecked);
 }
 
 /////////////////////////////////////////////////
@@ -105,7 +163,5 @@ TEST_F(ParticleEmitterTest, SDFLoad)
 int main(int _argc, char **_argv)
 {
   ::testing::InitGoogleTest(&_argc, _argv);
-  ::testing::AddGlobalTestEnvironment(
-      new test::UniqueTestDirectoryEnv("particle_emitter_test_cache"));
   return RUN_ALL_TESTS();
 }

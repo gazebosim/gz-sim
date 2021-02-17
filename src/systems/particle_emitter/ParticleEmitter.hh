@@ -37,6 +37,8 @@ namespace systems
   ///
   /// `<emitter_name>`: Unique name for the particle emitter. The name will be
   ///                   automatically generated if this parameter is not set.
+  /// `<allow_renaming>`: Rename the particle emitter if one with the same name
+  ///                     already exists
   /// `<type>`: The emitter type (point, box, cylinder, ellipsoid).
   ///           Default value is point.
   /// `<pose>`: The pose of the emitter. Default value is {0, 0, 0, 0, 0, 0}.
@@ -77,14 +79,14 @@ namespace systems
   ///                  Color::White is the default color for the particles
   ///                  unless a specific function is used.
   ///                  Note that this function overrides the particle colors set
-  ///                  with <ColorRangeImage>.
+  ///                  with <color_range_image>.
   /// `<color_end>`: Sets the end color for all particle emitted.
   ///                The actual color will be interpolated between this color
   ///                and the one set under <color_start>.
   ///                Color::White is the default color for the particles
   ///                unless a specific function is used.
   ///                Note that this function overrides the particle colors set
-  ///                with <ColorRangeImage>.
+  ///                with <color_range_image>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
   ///                 and y direction per second. Default value is 1.
   /// `<color_range_image>`: Sets the path to the color image used as an

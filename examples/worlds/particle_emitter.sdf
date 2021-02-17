@@ -81,7 +81,7 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/caguero/models/smoke_generator/2</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/caguero/models/smoke_generator</uri>
     </include>
 
   </world>
