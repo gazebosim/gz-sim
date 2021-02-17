@@ -55,6 +55,9 @@ class ignition::gazebo::systems::ParticleEmitterPrivate
   /// \brief The transport node.
   public: ignition::transport::Node node;
 
+  /// \brief Particle emitter entity.
+  public: Entity emitterEntity{kNullEntity};
+
   /// \brief The particle emitter command requested externally.
   public: ignition::msgs::ParticleEmitter userCmd;
 
@@ -94,8 +97,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
   }
 
   // Create a particle emitter entity.
-  auto entity = _ecm.CreateEntity();
-  if (entity == kNullEntity)
+  this->dataPtr->emitterEntity = _ecm.CreateEntity();
+  if (this->dataPtr->emitterEntity == kNullEntity)
   {
     ignerr << "Failed to create a particle emitter entity" << std::endl;
     return;
@@ -107,7 +110,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
     allowRenaming = _sdf->Get<bool>("allow_renaming");
 
   // Name.
-  std::string name = "particle_emitter_entity_" + std::to_string(entity);
+  std::string name = "particle_emitter_entity_" +
+      std::to_string(this->dataPtr->emitterEntity);
   if (_sdf->HasElement("emitter_name"))
   {
     std::set<std::string> emitterNames;
@@ -142,7 +146,6 @@ void ParticleEmitter::Configure(const Entity &_entity,
       }
     }
   }
-  std::cerr << "============ setting particle emitter name " << name << std::endl;
   this->dataPtr->emitter.set_name(name);
 
   // Type. The default type is point.
@@ -222,7 +225,6 @@ void ParticleEmitter::Configure(const Entity &_entity,
   if (_sdf->HasElement("color_start"))
     color = _sdf->Get<ignition::math::Color>("color_start");
   ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(), color);
-  std::cerr << " ========== setting color start " << color << std::endl;
 
   // Color end.
   color = ignition::math::Color::White;
@@ -253,15 +255,15 @@ void ParticleEmitter::Configure(const Entity &_entity,
 
   // Create components.
   SdfEntityCreator sdfEntityCreator(_ecm, _eventMgr);
-  sdfEntityCreator.SetParent(entity, _entity);
+  sdfEntityCreator.SetParent(this->dataPtr->emitterEntity, _entity);
 
-  _ecm.CreateComponent(entity,
+  _ecm.CreateComponent(this->dataPtr->emitterEntity,
     components::Name(this->dataPtr->emitter.name()));
 
-  _ecm.CreateComponent(entity,
+  _ecm.CreateComponent(this->dataPtr->emitterEntity,
     components::ParticleEmitter(this->dataPtr->emitter));
 
-  _ecm.CreateComponent(entity, components::Pose(pose));
+  _ecm.CreateComponent(this->dataPtr->emitterEntity, components::Pose(pose));
 
   // Advertise the topic to receive particle emitter commands.
   const std::string kDefaultTopic =
@@ -284,6 +286,8 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   IGN_PROFILE("ParticleEmitter::PreUpdate");
 
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
   if (!this->dataPtr->newDataReceived)
     return;
 
@@ -291,22 +295,21 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
+   this->dataPtr->newDataReceived = false;
+
   // Create component.
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  this->dataPtr->newDataReceived = false;
-
-  // Create an entity.
-  auto entity = _ecm.CreateEntity();
-  if (entity == kNullEntity)
+  auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(
+      this->dataPtr->emitterEntity);
+  if (!emitterComp)
   {
-    ignerr << "Failed to create a particle emitter entity command" << std::endl;
-    return;
+    _ecm.CreateComponent(
+        this->dataPtr->emitterEntity,
+        components::ParticleEmitterCmd(this->dataPtr->userCmd));
   }
-
-  _ecm.CreateComponent(
-      entity,
-      components::ParticleEmitterCmd({this->dataPtr->userCmd}));
+  else
+  {
+    emitterComp->Data() = this->dataPtr->userCmd;
+  }
 
   igndbg << "New ParticleEmitterCmd component created" << std::endl;
 }

@@ -171,8 +171,8 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief New particle emitter commands to be requested.
   /// The elements in the tuple are: [0] entity id of the particle emitter to
-  /// update, [1] particle emitter, [2] entity id of the particle emitter cmd.
-  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
+  /// update, [1] particle emitter
+  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter>>
       newParticleEmittersCmds;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
@@ -301,6 +301,24 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
                            EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+
+  // particle emitters commands
+  _ecm.Each<components::ParticleEmitterCmd>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitterCmd *_emitterCmd) -> bool
+      {
+        this->dataPtr->newParticleEmittersCmds.push_back(
+          std::make_tuple(_entity, _emitterCmd->Data()));
+        return true;
+      });
+
+  for (auto &emitterCmd : this->dataPtr->newParticleEmittersCmds)
+  {
+    if (!_ecm.RemoveComponent<components::ParticleEmitterCmd>(
+        std::get<0>(emitterCmd)))
+      ignwarn << "Unable to remove ParticleEmitterCmd component" << std::endl;
+  }
+
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera>(
       [&](const Entity &_entity,
@@ -1272,32 +1290,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->newParticleEmitters.push_back(
               std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
-          return true;
-        });
-
-    // particle emitters commands
-    _ecm.EachNew<components::ParticleEmitterCmd>(
-        [&](const Entity &_entityCmd,
-            const components::ParticleEmitterCmd *_emitterCmd) -> bool
-        {
-          // Find the particle emitter requested to be updated.
-          _ecm.Each<components::ParticleEmitter>(
-              [this, &_entityCmd, &_emitterCmd](const Entity &_entity,
-                  const components::ParticleEmitter *_emitter) -> bool
-              {
-                if (_emitterCmd->Data().name() == _emitter->Data().name())
-                {
-                  this->newParticleEmittersCmds.push_back(
-                    std::make_tuple(_entity, _emitterCmd->Data(), _entityCmd));
-                  return false;
-                }
-                return true;
-              });
-
-          // ToDo: Remove the ParticleEmitterCmd component.
-          // Do it when https://github.com/ignitionrobotics/ign-gazebo/pull/482
-          // is merged, as it has an UpdateECM() function where we can do it.
-
           return true;
         });
 

@@ -1002,13 +1002,10 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(
   if (parent)
     name = parent->Name() +  "::" + name;
 
-  std::cerr << "creating particle emitter " << _emitter.name() << " vs " << name << std::endl;
-
   rendering::ParticleEmitterPtr emitter;
   emitter = this->dataPtr->scene->CreateParticleEmitter(name);
 
   this->dataPtr->particleEmitters[_id] = emitter;
-  std::cerr << "adding partivle emitter " << _id << std::endl;
 
   if (parent)
     parent->AddChild(emitter);
