@@ -320,15 +320,10 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
           if (poseComp)
             poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
         }
+        _ecm.RemoveComponent<components::ParticleEmitterCmd>(_entity);
+
         return true;
       });
-
-  for (auto &emitterCmd : this->dataPtr->newParticleEmittersCmds)
-  {
-    if (!_ecm.RemoveComponent<components::ParticleEmitterCmd>(
-        std::get<0>(emitterCmd)))
-      ignwarn << "Unable to remove ParticleEmitterCmd component" << std::endl;
-  }
 
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera>(

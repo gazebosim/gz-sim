@@ -309,6 +309,10 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   else
   {
     emitterComp->Data() = this->dataPtr->userCmd;
+
+    _ecm.SetChanged(this->dataPtr->emitterEntity,
+        components::ParticleEmitterCmd::typeId,
+        ComponentState::OneTimeChange);
   }
 
   igndbg << "New ParticleEmitterCmd component created" << std::endl;
