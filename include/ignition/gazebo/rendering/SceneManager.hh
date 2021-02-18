@@ -148,6 +148,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::LightPtr CreateLight(Entity _id,
         const sdf::Light &_light, Entity _parentId);
 
+    /// \brief Create a light
+    /// \param[in] _id Unique light id
+    /// \param[in] _light Light sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Light object created from the sdf dom
+    public: rendering::VisualPtr CreateLightVisual(Entity _id,
+        const sdf::Light &_light, Entity _parentId);
+
     /// \brief Ignition sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.

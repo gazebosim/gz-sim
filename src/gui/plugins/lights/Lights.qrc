@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="Lights/">
+    <file>Lights.qml</file>
+    <file>directionallight.png</file>
+    <file>pointlight.png</file>
+    <file>spotlight.png</file>
+  </qresource>
+</RCC>

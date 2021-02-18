@@ -60,6 +60,7 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
+#include <algorithm>
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
@@ -863,6 +864,44 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
   _msg->set_precision(_sdf.Precision());
   _msg->set_dynamic_bias_stddev(_sdf.DynamicBiasStdDev());
   _msg->set_dynamic_bias_correlation_time(_sdf.DynamicBiasCorrelationTime());
+}
+
+//////////////////////////////////////////////////
+std::string ignition::gazebo::convert(const sdf::LightType &_in)
+{
+  if (_in == sdf::LightType::POINT)
+  {
+    return std::string("point");
+  }
+  else if (_in == sdf::LightType::DIRECTIONAL)
+  {
+    return std::string("directional");
+  }
+  else if (_in == sdf::LightType::SPOT)
+  {
+    return std::string("spot");
+  }
+  return std::string("");
+}
+
+//////////////////////////////////////////////////
+sdf::LightType ignition::gazebo::convert(const std::string &_in)
+{
+  std::string inLowerCase = _in;
+  std::transform(_in.begin(), _in.end(), inLowerCase.begin(), ::tolower);
+  if (inLowerCase == "point")
+  {
+    return sdf::LightType::POINT;
+  }
+  else if (inLowerCase == "directional")
+  {
+    return sdf::LightType::DIRECTIONAL;
+  }
+  else if (inLowerCase == "spot")
+  {
+    return sdf::LightType::SPOT;
+  }
+  return sdf::LightType::INVALID;
 }
 
 //////////////////////////////////////////////////
