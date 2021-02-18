@@ -2,5 +2,8 @@ gz_add_system(particle-emitter
   SOURCES
     ParticleEmitter.cc
   PUBLIC_LINK_LIBS
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
+    ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+    ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
 )

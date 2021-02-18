@@ -969,8 +969,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 }
 
 /////////////////////////////////////////////////
-rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
-    const msgs::ParticleEmitter &_emitter, Entity _parentId)
+rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(
+    Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId)
 {
   if (!this->dataPtr->scene)
     return rendering::ParticleEmitterPtr();
@@ -1005,11 +1005,32 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   rendering::ParticleEmitterPtr emitter;
   emitter = this->dataPtr->scene->CreateParticleEmitter(name);
 
-  if (emitter == nullptr)
+  this->dataPtr->particleEmitters[_id] = emitter;
+
+  if (parent)
+    parent->AddChild(emitter);
+
+  this->UpdateParticleEmitter(_id, _emitter);
+
+  return emitter;
+}
+
+/////////////////////////////////////////////////
+rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
+    const msgs::ParticleEmitter &_emitter)
+{
+  if (!this->dataPtr->scene)
+    return rendering::ParticleEmitterPtr();
+
+  // Sanity check: Make sure that the id exists.
+  auto emitterIt = this->dataPtr->particleEmitters.find(_id);
+  if (emitterIt == this->dataPtr->particleEmitters.end())
   {
-    ignerr << "Failed to create particle emitter with name[" << name << "]\n";
+    ignerr << "Particle emitter with Id: [" << _id << "] not found in the "
+           << "scene" << std::endl;
     return rendering::ParticleEmitterPtr();
   }
+  auto emitter = emitterIt->second;
 
   // Type.
   switch (_emitter.type())
@@ -1036,7 +1057,8 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   }
 
   // Emitter size.
-  emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
+  if (_emitter.has_size())
+    emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
 
   // Rate.
   emitter->SetRate(_emitter.rate());
@@ -1065,22 +1087,25 @@ rendering::ParticleEmitterPtr SceneManager::CreateParticleEmitter(Entity _id,
   // Velocity range.
   emitter->SetVelocityRange(_emitter.min_velocity(), _emitter.max_velocity());
 
+  // Color range image.
+  if (!_emitter.color_range_image().empty())
+  {
+    emitter->SetColorRangeImage(_emitter.color_range_image());
+  }
   // Color range.
-  emitter->SetColorRange(
-    ignition::msgs::Convert(_emitter.color_start()),
-    ignition::msgs::Convert(_emitter.color_end()));
+  else if (_emitter.has_color_start() && _emitter.has_color_end())
+  {
+    emitter->SetColorRange(
+      ignition::msgs::Convert(_emitter.color_start()),
+      ignition::msgs::Convert(_emitter.color_end()));
+  }
 
   // Scale rate.
   emitter->SetScaleRate(_emitter.scale_rate());
 
-  // Color range image.
-  if (!_emitter.color_range_image().empty())
-    emitter->SetColorRangeImage(_emitter.color_range_image());
-
-  this->dataPtr->particleEmitters[_id] = emitter;
-
-  if (parent)
-    parent->AddChild(emitter);
+  // pose
+  if (_emitter.has_pose())
+    emitter->SetLocalPose(msgs::Convert(_emitter.pose()));
 
   return emitter;
 }
@@ -1381,6 +1406,16 @@ void SceneManager::RemoveEntity(Entity _id)
     {
       this->dataPtr->scene->DestroyLight(it->second);
       this->dataPtr->lights.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->particleEmitters.find(_id);
+    if (it != this->dataPtr->particleEmitters.end())
+    {
+      this->dataPtr->scene->DestroyVisual(it->second);
+      this->dataPtr->particleEmitters.erase(it);
       return;
     }
   }

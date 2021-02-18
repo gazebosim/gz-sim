@@ -17,6 +17,7 @@
 
 #include <ignition/msgs/particle_emitter.pb.h>
 
+#include <mutex>
 #include <string>
 
 #include <ignition/common/Profiler.hh>
@@ -24,12 +25,14 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
 
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/Conversions.hh>
+#include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/SdfEntityCreator.hh>
 #include <ignition/gazebo/Util.hh>
 #include <sdf/Material.hh>
@@ -42,17 +45,35 @@ using namespace systems;
 // Private data class.
 class ignition::gazebo::systems::ParticleEmitterPrivate
 {
-  /// \brief The particle emitter.
+  /// \brief Callback for receiving particle emitter commands.
+  /// \param[in] _msg Particle emitter message.
+  public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg);
+
+  /// \brief The particle emitter parsed from SDF.
   public: ignition::msgs::ParticleEmitter emitter;
 
-  /// \brief Get a RGBA color representation based on a color's
-  /// string representation.
-  /// \param[in] _colorStr The string representation of a color (ex: "black"),
-  /// which is case sensitive (the string representation should be lowercase).
-  /// \return The Color, represented in RGBA format. If _colorStr is invalid,
-  /// ignition::math::Color::White is returned
-  public: ignition::math::Color GetColor(const std::string &_colorStr) const;
+  /// \brief The transport node.
+  public: ignition::transport::Node node;
+
+  /// \brief Particle emitter entity.
+  public: Entity emitterEntity{kNullEntity};
+
+  /// \brief The particle emitter command requested externally.
+  public: ignition::msgs::ParticleEmitter userCmd;
+
+  public: bool newDataReceived = false;
+
+  /// \brief A mutex to protect the user command.
+  public: std::mutex mutex;
 };
+
+//////////////////////////////////////////////////
+void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->userCmd = _msg;
+  this->newDataReceived = true;
+}
 
 //////////////////////////////////////////////////
 ParticleEmitter::ParticleEmitter()
@@ -66,9 +87,18 @@ void ParticleEmitter::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
+  Model model = Model(_entity);
+
+  if (!model.Valid(_ecm))
+  {
+    ignerr << "ParticleEmitter plugin should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
+
   // Create a particle emitter entity.
-  auto entity = _ecm.CreateEntity();
-  if (entity == kNullEntity)
+  this->dataPtr->emitterEntity = _ecm.CreateEntity();
+  if (this->dataPtr->emitterEntity == kNullEntity)
   {
     ignerr << "Failed to create a particle emitter entity" << std::endl;
     return;
@@ -80,7 +110,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
     allowRenaming = _sdf->Get<bool>("allow_renaming");
 
   // Name.
-  std::string name = "particle_emitter_entity_" + std::to_string(entity);
+  std::string name = "particle_emitter_entity_" +
+      std::to_string(this->dataPtr->emitterEntity);
   if (_sdf->HasElement("emitter_name"))
   {
     std::set<std::string> emitterNames;
@@ -190,12 +221,16 @@ void ParticleEmitter::Configure(const Entity &_entity,
     _sdf->Get<double>("max_velocity", 1).first);
 
   // Color start.
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(),
-      this->dataPtr->GetColor(_sdf->Get<std::string>("color_start")));
+  ignition::math::Color color = ignition::math::Color::White;
+  if (_sdf->HasElement("color_start"))
+    color = _sdf->Get<ignition::math::Color>("color_start");
+  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_start(), color);
 
   // Color end.
-  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_end(),
-      this->dataPtr->GetColor(_sdf->Get<std::string>("color_end")));
+  color = ignition::math::Color::White;
+  if (_sdf->HasElement("color_end"))
+    color = _sdf->Get<ignition::math::Color>("color_end");
+  ignition::msgs::Set(this->dataPtr->emitter.mutable_color_end(), color);
 
   // Scale rate.
   this->dataPtr->emitter.set_scale_rate(
@@ -220,55 +255,73 @@ void ParticleEmitter::Configure(const Entity &_entity,
 
   // Create components.
   SdfEntityCreator sdfEntityCreator(_ecm, _eventMgr);
-  sdfEntityCreator.SetParent(entity, _entity);
+  sdfEntityCreator.SetParent(this->dataPtr->emitterEntity, _entity);
 
-  _ecm.CreateComponent(entity,
-    components::Name("particle_emitter_" + this->dataPtr->emitter.name()));
+  _ecm.CreateComponent(this->dataPtr->emitterEntity,
+    components::Name(this->dataPtr->emitter.name()));
 
-  _ecm.CreateComponent(entity,
+  _ecm.CreateComponent(this->dataPtr->emitterEntity,
     components::ParticleEmitter(this->dataPtr->emitter));
 
-  _ecm.CreateComponent(entity, components::Pose(pose));
+  _ecm.CreateComponent(this->dataPtr->emitterEntity, components::Pose(pose));
 
-  igndbg << "Particle emitter has been loaded." << std::endl;
+  // Advertise the topic to receive particle emitter commands.
+  const std::string kDefaultTopic =
+    "/model/" + model.Name(_ecm) + "/particle_emitter/" + name;
+  std::string topic = _sdf->Get<std::string>("topic", kDefaultTopic).first;
+  if (!this->dataPtr->node.Subscribe(
+         topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
+  {
+    ignerr << "Error subscribing to topic [" << topic << "]. "
+        << "Particle emitter will not receive updates." << std::endl;
+    return;
+  }
+  igndbg << "Subscribed to " << topic << " for receiving particle emitter "
+         << "updates" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &/*_info*/,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ParticleEmitter::PreUpdate");
-}
 
-//////////////////////////////////////////////////
-ignition::math::Color ParticleEmitterPrivate::GetColor(
-    const std::string &_colorStr) const
-{
-  if (_colorStr == "black")
-    return  ignition::math::Color::Black;
-  if (_colorStr == "red")
-    return ignition::math::Color::Red;
-  if (_colorStr == "green")
-    return ignition::math::Color::Green;
-  if (_colorStr == "blue")
-    return ignition::math::Color::Blue;
-  if (_colorStr == "yellow")
-    return ignition::math::Color::Yellow;
-  if (_colorStr == "magenta")
-    return ignition::math::Color::Magenta;
-  if (_colorStr == "cyan")
-    return ignition::math::Color::Cyan;
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  // let users know an invalid string was given
-  // (_colorStr.empty() means that an empty string was parsed from SDF,
-  // which probably means that users never specified a color and are
-  // relying on the defaults)
-  if (!_colorStr.empty() && (_colorStr != "white"))
+  if (!this->dataPtr->newDataReceived)
+    return;
+
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
+  this->dataPtr->newDataReceived = false;
+
+  // Create component.
+  auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(
+      this->dataPtr->emitterEntity);
+  if (!emitterComp)
   {
-    ignwarn << "Invalid color given (" << _colorStr
-      << "). Defaulting to white." << std::endl;
+    _ecm.CreateComponent(
+        this->dataPtr->emitterEntity,
+        components::ParticleEmitterCmd(this->dataPtr->userCmd));
   }
-  return ignition::math::Color::White;
+  else
+  {
+    emitterComp->Data() = this->dataPtr->userCmd;
+
+    // Note: we process the cmd component in RenderUtil but if there is only
+    // rendering on the gui side, it will not be able to remove the cmd
+    // component from the ECM. It seems like adding OneTimeChange here will make
+    // sure the cmd component is found again in Each call on GUI side.
+    // todo(anyone) find a better way to process this cmd component in
+    // RenderUtil.cc
+    _ecm.SetChanged(this->dataPtr->emitterEntity,
+        components::ParticleEmitterCmd::typeId,
+        ComponentState::OneTimeChange);
+  }
+
+  igndbg << "New ParticleEmitterCmd component created" << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(ParticleEmitter,
