@@ -310,13 +310,11 @@ namespace components
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
 
     /// \brief A list of IDs and their equivalent names.
-    /// \detail Make it non-static on version 2.0.
-    public: inline static std::map<ComponentTypeId, std::string> namesById;
+    public: inline std::map<ComponentTypeId, std::string> namesById;
 
     /// \brief Keep track of the runtime names for types and warn the user if
     /// they try to register different types with the same typeName.
-    /// \detail Make it non-static on version 2.0.
-    public: inline static std::map<ComponentTypeId, std::string>
+    public: inline std::map<ComponentTypeId, std::string>
         runtimeNamesById;
   };
 
