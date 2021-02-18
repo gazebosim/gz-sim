@@ -103,8 +103,7 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                 EXPECT_EQ(math::Vector3d(3, 3, 3),
                     msgs::Convert(_emitter->Data().particle_size()));
                 EXPECT_DOUBLE_EQ(2.0, _emitter->Data().lifetime());
-                // TODO(anyone) add material check once other particle PRs
-                // have been merged
+                // TODO(anyone) add material check here
                 EXPECT_DOUBLE_EQ(10.0, _emitter->Data().min_velocity());
                 EXPECT_DOUBLE_EQ(20.0, _emitter->Data().max_velocity());
                 EXPECT_EQ(math::Color::Blue,
@@ -140,8 +139,7 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                 EXPECT_EQ(math::Vector3d(1, 1, 1),
                     msgs::Convert(_emitter->Data().particle_size()));
                 EXPECT_DOUBLE_EQ(5.0, _emitter->Data().lifetime());
-                // TODO(anyone) add material check once other particle PRs
-                // have been merged
+                // TODO(anyone) add material check here
                 EXPECT_DOUBLE_EQ(1.0, _emitter->Data().min_velocity());
                 EXPECT_DOUBLE_EQ(1.0, _emitter->Data().max_velocity());
                 EXPECT_EQ(math::Color::White,
