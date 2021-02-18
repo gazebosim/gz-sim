@@ -310,6 +310,12 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     emitterComp->Data() = this->dataPtr->userCmd;
 
+    // Note: we process the cmd component in RenderUtil but if there is only
+    // rendering on the gui side, it will not be able to remove the cmd
+    // component from the ECM. It seems like adding OneTimeChange here will make
+    // sure the cmd component is found again in Each call on GUI side.
+    // todo(anyone) find a better way to process this cmd component in
+    // RenderUtil.cc
     _ecm.SetChanged(this->dataPtr->emitterEntity,
         components::ParticleEmitterCmd::typeId,
         ComponentState::OneTimeChange);
