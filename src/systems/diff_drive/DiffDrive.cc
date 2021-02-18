@@ -274,8 +274,12 @@ void DiffDrive::Configure(const Entity &_entity,
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
+  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+    "/tf"};
+  if (_sdf->HasElement("tf_topic"))
+    tfTopic = _sdf->Get<std::string>("tf_topic");
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-      "tf");
+      tfTopic);
 
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
@@ -472,17 +476,16 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   }
 
   // Construct the Pose_V/tf message and publish it.
-  msgs::Pose_V tf_msg;
-  ignition::msgs::Pose *tf_msg_pose = nullptr;
-  tf_msg_pose = tf_msg.add_pose();
-  tf_msg_pose->mutable_header()->CopyFrom(*msg.mutable_header());
-  tf_msg_pose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
-  tf_msg_pose->mutable_orientation()->
-      CopyFrom(msg.mutable_pose()->orientation());
+  msgs::Pose_V tfMsg;
+  ignition::msgs::Pose *tfMsgPose = nullptr;
+  tfMsgPose = tfMsg.add_pose();
+  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
+  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
+  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
 
   // Publish the messages
   this->odomPub.Publish(msg);
-  this->tfPub.Publish(tf_msg);
+  this->tfPub.Publish(tfMsg);
 }
 
 //////////////////////////////////////////////////
