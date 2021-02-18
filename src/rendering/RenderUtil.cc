@@ -42,6 +42,8 @@
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/msgs/Utility.hh>
+
 #include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -60,6 +62,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -162,6 +165,17 @@ class ignition::gazebo::RenderUtilPrivate
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
+
+  /// \brief New particle emitter to be created. The elements in the tuple are:
+  /// [0] entity id, [1], particle emitter, [2] parent entity id
+  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
+      newParticleEmitters;
+
+  /// \brief New particle emitter commands to be requested.
+  /// The map key and value are: entity id of the particle emitter to
+  /// update, and particle emitter msg
+  public: std::unordered_map<Entity, msgs::ParticleEmitter>
+      newParticleEmittersCmds;
 
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
@@ -289,6 +303,28 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
                            EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+
+  // particle emitters commands
+  _ecm.Each<components::ParticleEmitterCmd>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitterCmd *_emitterCmd) -> bool
+      {
+        // store emitter properties and update them in rendering thread
+        this->dataPtr->newParticleEmittersCmds[_entity] =
+            _emitterCmd->Data();
+
+        // update pose comp here
+        if (_emitterCmd->Data().has_pose())
+        {
+          auto poseComp = _ecm.Component<components::Pose>(_entity);
+          if (poseComp)
+            poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
+        }
+        _ecm.RemoveComponent<components::ParticleEmitterCmd>(_entity);
+
+        return true;
+      });
+
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera>(
       [&](const Entity &_entity,
@@ -413,6 +449,9 @@ void RenderUtil::Update()
   auto newVisuals = std::move(this->dataPtr->newVisuals);
   auto newActors = std::move(this->dataPtr->newActors);
   auto newLights = std::move(this->dataPtr->newLights);
+  auto newParticleEmitters = std::move(this->dataPtr->newParticleEmitters);
+  auto newParticleEmittersCmds =
+    std::move(this->dataPtr->newParticleEmittersCmds);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
@@ -428,6 +467,8 @@ void RenderUtil::Update()
   this->dataPtr->newVisuals.clear();
   this->dataPtr->newActors.clear();
   this->dataPtr->newLights.clear();
+  this->dataPtr->newParticleEmitters.clear();
+  this->dataPtr->newParticleEmittersCmds.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
@@ -527,6 +568,18 @@ void RenderUtil::Update()
     {
       this->dataPtr->sceneManager.CreateLight(
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
+    }
+
+    for (const auto &emitter : newParticleEmitters)
+    {
+      this->dataPtr->sceneManager.CreateParticleEmitter(
+          std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
+    }
+
+    for (const auto &emitterCmd : newParticleEmittersCmds)
+    {
+      this->dataPtr->sceneManager.UpdateParticleEmitter(
+          emitterCmd.first, emitterCmd.second);
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
@@ -1013,6 +1066,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
+    // particle emitters
+    _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ParticleEmitter *_emitter,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newParticleEmitters.push_back(
+              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+          return true;
+        });
+
     if (this->enableSensors)
     {
       // Create cameras
@@ -1221,6 +1285,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->entityCollisions[_entity] = _collElement->Data();
           this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+          return true;
+        });
+
+    // particle emitters
+    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ParticleEmitter *_emitter,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newParticleEmitters.push_back(
+              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
           return true;
         });
 
@@ -1460,6 +1535,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // lights
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // particle emitters
+  _ecm.EachRemoved<components::ParticleEmitter>(
+      [&](const Entity &_entity, const components::ParticleEmitter *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

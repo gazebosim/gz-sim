@@ -117,9 +117,8 @@
         <!-- TODO(anyone) add <material> once other PRs are merged -->
         <min_velocity>10</min_velocity>
         <max_velocity>20</max_velocity>
-        <!--<color_start>math::Color::Blue</color_start>-->
-        <color_start>blue</color_start>
-        <color_end>green</color_end>
+        <color_start>0 0 1</color_start>
+        <color_end>0 1 0</color_end>
         <scale_rate>10</scale_rate>
         <color_range_image>/path/to/dummy_image.png</color_range_image>
       </plugin>

@@ -76,25 +76,20 @@ namespace systems
   /// `<color_start>`: Sets the starting color for all particle emitted.
   ///                  The actual color will be interpolated between this color
   ///                  and the one set under <color_end>.
-  ///                  Input is specified as a string (should be lower-case),
-  ///                  which could be one of the following:
-  ///                   * black
-  ///                   * red
-  ///                   * green
-  ///                   * blue
-  ///                   * yellow
-  ///                   * magenta
-  ///                   * cyan
-  ///                   * white
-  ///                  Default color is white.
+  ///                  Color::White is the default color for the particles
+  ///                  unless a specific function is used.
+  ///                  To specify a color, RGB values should be passed in.
+  ///                  For example, to specify red, a user should enter:
+  ///                  <color_start>1 0 0</color_start>
   ///                  Note that this function overrides the particle colors set
   ///                  with <color_range_image>.
   /// `<color_end>`: Sets the end color for all particle emitted.
   ///                The actual color will be interpolated between this color
   ///                and the one set under <color_start>.
-  ///                The input for <color_end> follows the same rules as input
-  ///                for <color_start>.
-  ///                Default color is white.
+  ///                Color::White is the default color for the particles
+  ///                unless a specific function is used (see color_start for
+  ///                more information about defining custom colors with RGB
+  ///                values).
   ///                Note that this function overrides the particle colors set
   ///                with <color_range_image>.
   /// `<scale_rate>`: Sets the amount by which to scale the particles in both x
@@ -109,6 +104,12 @@ namespace systems
   ///                        image is used.
   ///                        Note that this function overrides the particle
   ///                        colors set with <color_start> and <color_end>.
+  /// `<topic>`: Topic used to update particle emitter properties at runtime.
+  ///            The default topic is
+  ///            /model/<model_name>/particle_emitter/<emitter_name>
+  ///            Note that the emitter id and name may not be changed.
+  ///            See the examples/worlds/particle_emitter.sdf example world for
+  ///            example usage.
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter
       : public System,
         public ISystemConfigure,
