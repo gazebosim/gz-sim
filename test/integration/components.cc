@@ -1580,3 +1580,24 @@ TEST_F(ComponentsTest, ParticleEmitter)
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().id(), comp3.Data().id());
 }
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitterCmd)
+{
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.set_emitting(true);
+
+  // Create components.
+  auto comp1 = components::ParticleEmitterCmd(emitter1);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1.Data().emitting(), comp3.Data().emitting());
+  EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
