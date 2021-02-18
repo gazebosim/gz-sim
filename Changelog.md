@@ -1,5 +1,25 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.5.0 (2020-02-17)
+
+1. Added particle system.
+    * [Pull Request 516](https://github.com/ignitionrobotics/ign-gazebo/pull/516)
+
+1. Add Light Usercommand and include Light parameters in the componentInspector
+    * [Pull Request 482](https://github.com/ignitionrobotics/ign-gazebo/pull/482)
+
+1. Added link to HW-accelerated video recording.
+    * [Pull Request 627](https://github.com/ignitionrobotics/ign-gazebo/pull/627)
+
+1. Fix EntityComponentManager race condition.
+    * [Pull Request 601](https://github.com/ignitionrobotics/ign-gazebo/pull/601)
+
+1. Add SDF topic validity check.
+    * [Pull Request 632](https://github.com/ignitionrobotics/ign-gazebo/pull/632)
+
+1. Add JointTrajectoryController system plugin.
+    * [Pull Request 473](https://github.com/ignitionrobotics/ign-gazebo/pull/473)
+
 ### Ignition Gazebo 4.4.0 (2020-02-10)
 
 1. Added issue and PR templates
