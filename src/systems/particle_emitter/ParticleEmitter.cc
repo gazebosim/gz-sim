@@ -18,6 +18,7 @@
 #include <ignition/msgs/particle_emitter.pb.h>
 
 #include <mutex>
+#include <set>
 #include <string>
 
 #include <ignition/common/Profiler.hh>
