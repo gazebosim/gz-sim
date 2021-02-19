@@ -13,11 +13,19 @@ set (test_plugins
   EventTriggerSystem
   TestModelSystem
   TestSensorSystem
-  TestSystem
   TestWorldSystem
   MockSystem
   Null
 )
+
+# TODO: someone with knowledge of ign-plugin please resolve:
+# TestSystem.obj : error LNK2001: unresolved external symbol IgnitionPluginHook
+if(NOT WIN32)
+  set (test_plugins
+    ${test_plugins}
+    TestSystem
+  )
+endif()
 
 # Plugin shared libraries
 if(BUILD_TESTING)

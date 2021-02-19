@@ -33,6 +33,17 @@ function(gz_add_system system_name)
 
   set(system_name ${system_name}-system)
 
+
+  if(MSVC)
+    # Warning #4251 is the "dll-interface" warning that tells you when types
+    # used by a class are not being exported. These generated source files have
+    # private members that don't get exported, so they trigger this warning.
+    # However, the warning is not important since those members do not need to
+    # be interfaced with.
+    set_source_files_properties(${sources} COMPILE_FLAGS "/wd4251")
+  endif()
+
+
   ign_add_component(${system_name}
     SOURCES ${sources}
     GET_TARGET_NAME system_target
@@ -62,12 +73,16 @@ function(gz_add_system system_name)
   # files, we also install an unversioned symlink into the same versioned folder.
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  if (WIN32)
-    # create_symlink requires cmake 3.13 on windows
-    cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+  if(WIN32)
+    # symlinks on Windows require admin priviledges, fallback to copy
+    ADD_CUSTOM_COMMAND(TARGET ${system_target} POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy
+        "$<TARGET_FILE:${system_target}>"
+        "$<TARGET_FILE_DIR:${system_target}>/${unversioned}")
+  else()
+    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
   endif()
-  EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned})
-  INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(air_pressure)

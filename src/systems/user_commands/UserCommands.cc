@@ -542,9 +542,9 @@ bool CreateCommand::Execute()
   }
   else if (isLight && isRoot)
   {
-    auto light = root.Light();
-    light->SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(light);
+    auto light = *root.Light();
+    light.SetName(desiredName);
+    entity = this->iface->creator->CreateEntities(&light);
   }
   else if (isLight)
   {

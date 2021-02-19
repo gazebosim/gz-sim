@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,21 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+import QtQuick 2.9
+import QtQuick.Controls 2.2
+import QtQuick.Layouts 1.3
 
-using namespace ignition::gazebo;
-
-//////////////////////////////////////////////////
-System::System() = default;
-
-//////////////////////////////////////////////////
-System::~System() = default;
+Rectangle {
+  color: "transparent"
+  anchors.fill: parent
+  Layout.minimumWidth: 250
+  Layout.minimumHeight: 100
+  Button {
+    text: qsTr("Random GUI color!")
+    onClicked: {
+      RenderingGuiPlugin.RandomColor();
+    }
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.verticalCenter: parent.verticalCenter
+  }
+}

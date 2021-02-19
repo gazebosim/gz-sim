@@ -752,6 +752,7 @@ TEST_F(ComponentsTest, Light)
   data1.SetSpotInnerAngle(math::Angle(0.3));
   data1.SetSpotOuterAngle(math::Angle(2.3));
   data1.SetSpotFalloff(5.15);
+  data1.SetIntensity(1.55);
 
   auto data2 = sdf::Light();
 
@@ -782,6 +783,7 @@ TEST_F(ComponentsTest, Light)
   EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
   EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
   EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
+  EXPECT_FLOAT_EQ(1.55, comp3.Data().Intensity());
 }
 
 /////////////////////////////////////////////////
@@ -1054,10 +1056,9 @@ TEST_F(ComponentsTest, Material)
   EXPECT_EQ(math::Color(1, 1, 1, 1), comp3.Data().Emissive());
   EXPECT_FALSE(comp3.Data().Lighting());
 
-  sdf::Pbr *newPbrMaterial = comp3.Data().PbrMaterial();
+  auto newPbrMaterial = comp3.Data().PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);
-  sdf::PbrWorkflow *newWorkflow =
-      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  auto newWorkflow = newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
   ASSERT_NE(nullptr, newWorkflow);
   EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
   EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
