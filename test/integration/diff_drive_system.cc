@@ -404,6 +404,12 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
   node.Subscribe("/model/vehicle/odometry", odomCb);
 
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
   server.Run(true, 100, false);
 
   int sleep = 0;
@@ -515,6 +521,12 @@ TEST_P(DiffDriveTest, Pose_VCustomFrameId)
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
   node.Subscribe("/model/vehicle/tf", Pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
 
   server.Run(true, 100, false);
 
