@@ -310,10 +310,8 @@ void VelocityControlPrivate::UpdateVelocity(
     angVel = this->targetVel.angular().z();
   }
 
-  this->linearVelocity = math::Vector3d(
-    linVel, this->targetVel.linear().y(), this->targetVel.linear().z());
-  this->angularVelocity = math::Vector3d(
-    this->targetVel.angular().x(), this->targetVel.angular().y(), angVel);
+  this->linearVelocity = msgs::Convert(this->targetVel.linear());
+  this->angularVelocity = msgs::Convert(this->targetVel.angular());
 }
 
 //////////////////////////////////////////////////
@@ -330,7 +328,6 @@ void VelocityControlPrivate::UpdateLinkVelocity(
     auto angularVel = msgs::Convert(msg.angular());
     this->linearVelocities[linkName] = linearVel;
     this->angularVelocities[linkName] = angularVel;
-    std::cerr << "got new link vel " << linkName << "  " << linearVel << " | " << angularVel << std::endl;
   }
   this->linkVels.clear();
 }
