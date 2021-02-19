@@ -56,6 +56,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -1155,6 +1156,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
+          }
+
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
@@ -1375,6 +1382,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
           if (material != nullptr)
           {
             visual.SetMaterial(material->Data());
+          }
+
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
           }
 
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
