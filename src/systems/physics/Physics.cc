@@ -1641,7 +1641,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
-    // Update link angular velocity
+  // Update link angular velocity
   _ecm.Each<components::Link, components::AngularVelocityCmd>(
       [&](const Entity &_entity, const components::Link *,
           const components::AngularVelocityCmd *_angularVelocityCmd)
@@ -1652,10 +1652,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto freeGroup = linkIt->second->FindFreeGroup();
         if (!freeGroup)
           return true;
-        const components::Pose *poseComp =
-            _ecm.Component<components::Pose>(_entity);
-        math::Vector3d worldAngularVel = poseComp->Data().Rot() *
-            _angularVelocityCmd->Data();
+
         auto worldAngularVelFeature = entityCast(_entity, freeGroup,
             this->entityWorldVelocityCommandMap);
         if (!worldAngularVelFeature)
@@ -1671,7 +1668,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
           return true;
         }
-
+        // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
+        Entity modelEntity = topLevelModel(_entity, _ecm);
+        const components::Pose *modelEntityPoseComp =
+            _ecm.Component<components::Pose>(modelEntity);
+        math::Pose3d modelToLinkTransform = this->RelativePose(
+            modelEntity, _entity, _ecm);
+        math::Vector3d worldAngularVel = modelEntityPoseComp->Data().Rot()
+            * modelToLinkTransform.Rot() * _angularVelocityCmd->Data();
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
 
@@ -1691,11 +1695,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (!freeGroup)
           return true;
 
-        const components::Pose *poseComp =
-            _ecm.Component<components::Pose>(_entity);
-        math::Vector3d worldLinearVel = poseComp->Data().Rot() *
-            _linearVelocityCmd->Data();
-
         auto worldLinearVelFeature = entityCast(_entity, freeGroup,
               this->entityWorldVelocityCommandMap);
         if (!worldLinearVelFeature)
@@ -1712,6 +1711,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
+        // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
+        Entity modelEntity = topLevelModel(_entity, _ecm);
+        const components::Pose *modelEntityPoseComp =
+            _ecm.Component<components::Pose>(modelEntity);
+        math::Pose3d modelToLinkTransform = this->RelativePose(
+            modelEntity, _entity, _ecm);
+        math::Vector3d worldLinearVel = modelEntityPoseComp->Data().Rot()
+            * modelToLinkTransform.Rot() * _linearVelocityCmd->Data();
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
 

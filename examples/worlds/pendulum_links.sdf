@@ -341,6 +341,7 @@
             <plugin
                 filename="ignition-gazebo-velocity-control-system"
                 name="ignition::gazebo::systems::VelocityControl">
+                <link_name>base</link_name>
                 <link_name>upper_link</link_name>
                 <link_name>lower_link</link_name>
             </plugin>
