@@ -96,31 +96,21 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
     // and max velocity (0.5 m/s).
     // See <max_velocity< and <max_aceleration> parameters
     // in "/test/worlds/velocity_control.sdf".
-    test::Relay velocityRamp;
     const double desiredLinVel = 10.5;
     const double desiredAngVel = 0.2;
-    velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            const gazebo::EntityComponentManager &)
-        {
-          msgs::Set(msg.mutable_linear(),
-                    math::Vector3d(desiredLinVel, 0, 0));
-          msgs::Set(msg.mutable_angular(),
-                    math::Vector3d(0.0, 0, desiredAngVel));
-          pub.Publish(msg);
-        });
+    msgs::Set(msg.mutable_linear(),
+              math::Vector3d(desiredLinVel, 0, 0));
+    msgs::Set(msg.mutable_angular(),
+              math::Vector3d(0.0, 0, desiredAngVel));
+    pub.Publish(msg);
 
-    server.AddSystem(velocityRamp.systemPtr);
+    // Give some time for message to be received
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     server.Run(true, 3000, false);
 
     // Poses for 4s
     ASSERT_EQ(4000u, poses.size());
-
-    int sleep = 0;
-    int maxSleep = 30;
-
-    ASSERT_NE(maxSleep, sleep);
 
     // verify that the vehicle is moving in +x and rotating towards +y
     for (unsigned int i = 1001; i < poses.size(); ++i)
