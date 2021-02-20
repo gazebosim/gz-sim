@@ -566,11 +566,14 @@ TEST_P(DiffDriveTest, Pose_VCustomTfTopic)
 
       EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
       EXPECT_STREQ(
-            _msg.pose(0).header().data(0).value().Get(0).c_str(), "vehicle/odom");
+            _msg.pose(0).header().data(0).value().Get(0).c_str(),
+            "vehicle/odom");
 
-      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
       EXPECT_STREQ(
-            _msg.pose(0).header().data(1).value().Get(0).c_str(), "vehicle/chassis");
+            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).value().Get(0).c_str(),
+            "vehicle/chassis");
 
       odomPosesCount++;
     };
