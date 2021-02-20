@@ -596,6 +596,12 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     double tempRange =
         std::fabs(this->dataPtr->ambientTemperatureGradient * height);
     thermalSensor->SetAmbientTemperatureRange(tempRange);
+
+    ignmsg << "Setting ambient temperature to "
+           << this->dataPtr->ambientTemperature << " Kelvin and gradient to "
+           << this->dataPtr->ambientTemperatureGradient << " K/m. "
+           << "The resulting temperature range is: " << tempRange
+           << " Kelvin." << std::endl;
   }
 
   return sensor->Name();
