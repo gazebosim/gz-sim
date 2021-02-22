@@ -77,7 +77,7 @@ class ignition::gazebo::systems::VelocityControlPrivate
   /// \brief A mutex to protect the model velocity command.
   public: std::mutex mutex;
 
-  /// \brief link names
+  /// \brief Link names
   public: std::vector<std::string> linkNames;
 
   /// \brief Link entities in a model
@@ -89,7 +89,7 @@ class ignition::gazebo::systems::VelocityControlPrivate
   /// \brief Linear velocities of links
   public: std::unordered_map<std::string, math::Vector3d> linearVelocities;
 
-  /// \brief all link velocites
+  /// \brief All link velocites
   public: std::unordered_map<std::string, msgs::Twist> linkVels;
 };
 
@@ -118,6 +118,7 @@ void VelocityControl::Configure(const Entity &_entity,
   std::string modelTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
   if (_sdf->HasElement("topic"))
     modelTopic = _sdf->Get<std::string>("topic");
+  modelTopic = transport::TopicUtils::AsValidTopic(modelTopic);
   this->dataPtr->node.Subscribe(
     modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
   ignmsg << "VelocityControl subscribing to twist messages on ["
@@ -143,6 +144,7 @@ void VelocityControl::Configure(const Entity &_entity,
   {
     std::string linkTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
                              "/link/" + linkName + "/cmd_vel"};
+    linkTopic = transport::TopicUtils::AsValidTopic(linkTopic);
     this->dataPtr->node.Subscribe(
         linkTopic, &VelocityControlPrivate::OnLinkCmdVel, this->dataPtr.get());
     ignmsg << "VelocityControl subscribing to twist messages on ["
@@ -209,7 +211,6 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   if (this->dataPtr->linkNames.empty())
     return;
-
 
   // find all the link entity ids
   if (this->dataPtr->links.size() != this->dataPtr->linkNames.size())
@@ -302,14 +303,7 @@ void VelocityControlPrivate::UpdateVelocity(
 {
   IGN_PROFILE("VeocityControl::UpdateVelocity");
 
-  double linVel;
-  double angVel;
-  {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    linVel = this->targetVel.linear().x();
-    angVel = this->targetVel.angular().z();
-  }
-
+  std::lock_guard<std::mutex> lock(this->mutex);
   this->linearVelocity = msgs::Convert(this->targetVel.linear());
   this->angularVelocity = msgs::Convert(this->targetVel.angular());
 }
@@ -319,7 +313,7 @@ void VelocityControlPrivate::UpdateLinkVelocity(
     const ignition::gazebo::UpdateInfo &/*_info*/,
     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("VeocityControl::UpdateLinkVelocity");
+  IGN_PROFILE("VelocityControl::UpdateLinkVelocity");
 
   std::lock_guard<std::mutex> lock(this->mutex);
   for (const auto& [linkName, msg] : this->linkVels)
