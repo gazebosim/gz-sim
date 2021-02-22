@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name ="us_police_car">
+      <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      </physics>
+
+      <plugin
+          filename="libignition-gazebo-physics-system.so"
+          name="ignition::gazebo::systems::Physics">
+      </plugin>
+      <plugin
+          filename="libignition-gazebo-user-commands-system.so"
+          name="ignition::gazebo::systems::UserCommands">
+      </plugin>
+      <plugin
+          filename="libignition-gazebo-scene-broadcaster-system.so"
+          name="ignition::gazebo::systems::SceneBroadcaster">
+      </plugin>
+
+      <light type="directional" name="sun">
+        <cast_shadows>true</cast_shadows>
+        <pose>0 0 10 0 0 0</pose>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.2 0.2 0.2 1</specular>
+        <attenuation>
+          <range>1000</range>
+          <constant>0.9</constant>
+          <linear>0.01</linear>
+          <quadratic>0.001</quadratic>
+        </attenuation>
+        <direction>-0.5 0.1 -0.9</direction>
+      </light>
+
+      <model name="ground_plane">
+        <static>true</static>
+        <link name="link">
+          <collision name="collision">
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+              </plane>
+            </geometry>
+          </collision>
+          <visual name="visual">
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>100 100</size>
+              </plane>
+            </geometry>
+            <material>
+              <ambient>0.8 0.8 0.8 1</ambient>
+              <diffuse>0.8 0.8 0.8 1</diffuse>
+              <specular>0.8 0.8 0.8 1</specular>
+            </material>
+          </visual>
+        </link>
+      </model>
+
+      <model name="us_police_car">
+        <pose>0.5 3.15 3.15 0 0 0</pose>
+        <static>true</static>
+        <link name="link">
+          <visual name="visual">
+            <geometry>
+              <mesh>
+                <uri>meshes/us_police_car.dae</uri>
+              </mesh>
+            </geometry>
+          </visual>
+          <collision name="collision">
+            <geometry>
+              <mesh>
+                <uri>meshes/us_police_car.dae</uri>
+              </mesh>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+    </world>
+</sdf>
