@@ -67,7 +67,7 @@
         <start_paused>true</start_paused>
         <service>/world/velocity_control/control</service>
         <stats_topic>/world/velocity_control/stats</stats_topic>
-      </ugin>
+      </plugin>
 
       <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
