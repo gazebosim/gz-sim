@@ -129,6 +129,20 @@ ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
+ComponentTypeT *EntityComponentManager::ComponentDefault(Entity _entity,
+    const typename ComponentTypeT::Type &_default)
+{
+  auto comp = this->Component<ComponentTypeT>(_entity);
+  if (!comp)
+  {
+    this->CreateComponent(_entity, ComponentTypeT(_default));
+    comp = this->Component<ComponentTypeT>(_entity);
+  }
+  return comp;
+}
+
+//////////////////////////////////////////////////
+template<typename ComponentTypeT>
 std::optional<typename ComponentTypeT::Type>
     EntityComponentManager::ComponentData(const Entity _entity) const
 {
