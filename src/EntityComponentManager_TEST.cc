@@ -437,6 +437,31 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_FALSE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(entity2, IntComponent::typeId));
 
+  // Query non-existing component, the default value is default-constructed
+  BoolComponent *boolComp = manager.ComponentDefault<BoolComponent>(entity);
+  ASSERT_NE(nullptr, boolComp);
+  EXPECT_TRUE(manager.HasComponentType(BoolComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, BoolComponent::typeId));
+  EXPECT_EQ(false, boolComp->Data());
+
+  // Query non-existing component, the default value is used
+  DoubleComponent *doubleComp =
+    manager.ComponentDefault<DoubleComponent>(entity, 1.0);
+  ASSERT_NE(nullptr, doubleComp);
+  EXPECT_TRUE(manager.HasComponentType(DoubleComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
+  EXPECT_FALSE(
+    manager.EntityHasComponentType(entity2, DoubleComponent::typeId));
+  EXPECT_FLOAT_EQ(1.0, doubleComp->Data());
+
+  // Query existing component, the default value is not used
+  IntComponent *intComp = manager.ComponentDefault<IntComponent>(entity, 124);
+  ASSERT_NE(nullptr, intComp);
+  EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
+  EXPECT_EQ(123, intComp->Data());
+
   // Remove all entities
   manager.RequestRemoveEntities();
   EXPECT_EQ(3u, manager.EntityCount());
