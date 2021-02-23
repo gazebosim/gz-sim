@@ -91,25 +91,19 @@ ToolBar {
     onNewSnapValues: updateSnapValues();
   }
 
-  // TODO(anyone) enable scale button when support is added in ign-physics
-  // Shortcut {
-  //   sequence: "S"
-  //   onActivated: activateScale()
-  // }
-
-  Shortcut {
-    sequence: "T"
-    onActivated: activateTranslate()
+  Connections {
+    target: TransformControl
+    onActivateSelect: activateSelect();
   }
 
-  Shortcut {
-    sequence: "R"
-    onActivated: activateRotate()
+  Connections {
+    target: TransformControl
+    onActivateTranslate: activateTranslate();
   }
 
-  Shortcut {
-    sequence: "Esc"
-    onActivated: activateSelect()
+  Connections {
+    target: TransformControl
+    onActivateRotate: activateRotate();
   }
 
   RowLayout {

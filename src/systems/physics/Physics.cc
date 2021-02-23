@@ -702,7 +702,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
                   << std::endl;
           return true;
         }
-
         // TODO(anyone) Don't load models unless they have collisions
 
         // Check if parent world / model exists

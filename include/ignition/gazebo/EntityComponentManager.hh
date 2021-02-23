@@ -214,6 +214,19 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const ComponentKey &_key);
 
+      /// \brief Get a mutable component assigned to an entity based on a
+      /// component type. If the component doesn't exist, create it and
+      /// initialize with the given default value.
+      /// \param[in] _entity The entity.
+      /// \param[in] _default The value that should be used to construct
+      /// the component in case the component doesn't exist.
+      /// \return The component of the specified type assigned to the specified
+      /// entity.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentDefault(Entity _entity,
+              const typename ComponentTypeT::Type &_default =
+                  typename ComponentTypeT::Type());
+
       /// \brief Get the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, it will return nullopt.
@@ -225,6 +238,20 @@ namespace ignition
       public: template<typename ComponentTypeT>
               std::optional<typename ComponentTypeT::Type> ComponentData(
               const Entity _entity) const;
+
+      /// \brief Set the data from a component.
+      /// * If the component type doesn't hold any data, this won't compile.
+      /// * If the entity doesn't have that component, the component will be
+      ///   created.
+      /// * If the entity has the component, its data will be updated.
+      /// \param[in] _entity The entity.
+      /// \param[in] _data New component data
+      /// \tparam ComponentTypeT Component type
+      /// \return True if data has changed. It will always be true if the data
+      /// type doesn't have an equality operator.
+      public: template<typename ComponentTypeT>
+              bool SetComponentData(const Entity _entity,
+              const typename ComponentTypeT::Type &_data);
 
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.
@@ -472,6 +499,12 @@ namespace ignition
       /// do not happen frequently and should be processed immediately.
       /// \return True if there are any components with one-time changes.
       public: bool HasOneTimeComponentChanges() const;
+
+      /// \brief Get the components types that are marked as periodic changes.
+      /// \return All the components that at least one entity marked as
+      /// periodic changes.
+      public: std::unordered_set<ComponentTypeId>
+          ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old

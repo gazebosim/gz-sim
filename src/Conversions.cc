@@ -264,6 +264,12 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_lighting(_in.Lighting());
 
+  // todo(anyone) add double_sided field to msgs::Material
+  auto data = out.mutable_header()->add_data();
+  data->set_key("double_sided");
+  std::string *value = data->add_value();
+  *value = std::to_string(_in.DoubleSided());
+
   sdf::Pbr *pbr = _in.PbrMaterial();
   if (pbr)
   {
@@ -316,6 +322,14 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetLighting(_in.lighting());
+
+  // todo(anyone) add double_sided field to msgs::Material
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    const auto &data = _in.header().data(i);
+    if (data.key() == "double_sided" && data.value_size() > 0)
+      out.SetDoubleSided(math::parseInt(data.value(0)));
+  }
 
   if (_in.has_pbr())
   {
@@ -705,6 +719,26 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
   set(_msg->mutable_step_size(), _in.dt);
   _msg->set_iterations(_in.iterations);
   _msg->set_paused(_in.paused);
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
+{
+  msgs::Physics out;
+  out.set_max_step_size(_in.MaxStepSize());
+  out.set_real_time_factor(_in.RealTimeFactor());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
+{
+  sdf::Physics out;
+  out.SetRealTimeFactor(_in.real_time_factor());
+  out.SetMaxStepSize(_in.max_step_size());
+  return out;
 }
 
 //////////////////////////////////////////////////

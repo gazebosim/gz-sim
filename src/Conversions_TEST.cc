@@ -28,6 +28,7 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
@@ -158,6 +159,28 @@ TEST(Conversions, Entity)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, Physics)
+{
+  // Test conversion from msg to sdf
+  msgs::Physics msg;
+  msg.set_real_time_factor(1.23);
+  msg.set_max_step_size(0.12);
+
+  auto physics = convert<sdf::Physics>(msg);
+  EXPECT_DOUBLE_EQ(1.23, physics.RealTimeFactor());
+  EXPECT_DOUBLE_EQ(0.12, physics.MaxStepSize());
+
+  // Test conversion from sdf to msg
+  sdf::Physics physSdf;
+  physSdf.SetMaxStepSize(0.34);
+  physSdf.SetRealTimeFactor(2.34);
+
+  auto physMsg = convert<msgs::Physics>(physSdf);
+  EXPECT_DOUBLE_EQ(2.34, physMsg.real_time_factor());
+  EXPECT_DOUBLE_EQ(0.34, physMsg.max_step_size());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Pose)
 {
   msgs::Pose msg;
@@ -206,6 +229,9 @@ TEST(Conversions, Material)
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
 
+  // todo(anyone) add double_sided field to msgs::Material
+  material.SetDoubleSided(true);
+
   sdf::Pbr pbr;
   sdf::PbrWorkflow workflow;
   workflow.SetType(sdf::PbrWorkflowType::METAL);
@@ -235,6 +261,11 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
 
+  // todo(anyone) double_sided is temporarily stored in header
+  // Need to add double_sided field to msgs::Material
+  bool doubleSided = math::parseInt(materialMsg.header().data(0).value(0));
+  EXPECT_TRUE(doubleSided);
+
   EXPECT_TRUE(materialMsg.has_pbr());
   const auto &pbrMsg = materialMsg.pbr();
   EXPECT_EQ(msgs::Material_PBR_WorkflowType_METAL, pbrMsg.type());
@@ -257,6 +288,7 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
   EXPECT_TRUE(newMaterial.Lighting());
+  EXPECT_TRUE(newMaterial.DoubleSided());
 
   sdf::Pbr *newPbrMaterial = newMaterial.PbrMaterial();
   ASSERT_NE(nullptr, newPbrMaterial);

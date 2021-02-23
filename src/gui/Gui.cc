@@ -28,6 +28,7 @@
 #include "ignition/gazebo/gui/TmpIface.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
+#include "AboutDialogHandler.hh"
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
@@ -69,6 +70,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   auto tmp = new ignition::gazebo::TmpIface();
   tmp->setParent(app->Engine());
 
+  auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
+  aboutDialogHandler->setParent(app->Engine());
+
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
 
@@ -108,6 +112,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Let QML files use TmpIface' functions and properties
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp);
+  context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
@@ -194,18 +199,31 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
       // Request GUI info for each world
       result = false;
-      service = std::string("/world/" + worldName + "/gui/info");
-
-      igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
-
-      // Request and block
       ignition::msgs::GUI res;
-      executed = node.Request(service, timeout, res, result);
+      service = transport::TopicUtils::AsValidTopic("/world/" + worldName +
+          "/gui/info");
+      if (service.empty())
+      {
+        ignerr << "Failed to generate valid service for world [" << worldName
+               << "]" << std::endl;
+      }
+      else
+      {
+        igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
-      if (!executed)
-        ignerr << "Service call timed out for [" << service << "]" << std::endl;
-      else if (!result)
-        ignerr << "Service call failed for [" << service << "]" << std::endl;
+        // Request and block
+        executed = node.Request(service, timeout, res, result);
+
+        if (!executed)
+        {
+          ignerr << "Service call timed out for [" << service << "]"
+                 << std::endl;
+        }
+        else if (!result)
+        {
+          ignerr << "Service call failed for [" << service << "]" << std::endl;
+        }
+      }
 
       // GUI runner
       auto runner = new ignition::gazebo::GuiRunner(worldName);

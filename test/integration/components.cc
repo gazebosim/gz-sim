@@ -17,6 +17,10 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/msgs/particle_emitter.pb.h>
+
+#include <chrono>
+
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
 #include <sdf/AirPressure.hh>
@@ -53,12 +57,14 @@
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalAudio.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
@@ -68,6 +74,7 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/TemperatureRange.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -857,6 +864,112 @@ TEST_F(ComponentsTest, Link)
   comp3.Deserialize(istr);
 }
 
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, LogicalAudioSource)
+{
+  logical_audio::Source source1;
+  source1.id = 0;
+  source1.attFunc = logical_audio::AttenuationFunction::LINEAR;
+  source1.attShape = logical_audio::AttenuationShape::UNDEFINED;
+  source1.innerRadius = 0.25;
+  source1.falloffDistance = 5.0;
+  source1.emissionVolume = 1.0;
+
+  logical_audio::Source source2;
+  source2.id = 1;
+  source2.attFunc = source1.attFunc;
+  source2.attShape = source1.attShape;
+  source2.innerRadius = source1.innerRadius;
+  source2.falloffDistance = source1.falloffDistance;
+  source2.emissionVolume = source1.emissionVolume;
+
+  // create components
+  auto comp1 = components::LogicalAudioSource(source1);
+  auto comp2 = components::LogicalAudioSource(source2);
+
+  // equality operators
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0 0 1 0.25 5 1", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::LogicalAudioSource comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, LogicalAudioSourcePlayInfo)
+{
+  auto start = std::chrono::steady_clock::now();
+  auto end = start + std::chrono::seconds(1);
+
+  logical_audio::SourcePlayInfo playInfo1;
+  playInfo1.playing = true;
+  playInfo1.playDuration = std::chrono::seconds(1);
+  playInfo1.startTime = end - start;
+
+  logical_audio::SourcePlayInfo playInfo2;
+  playInfo2.playing = false;
+  playInfo2.playDuration = std::chrono::seconds(5);
+  playInfo2.startTime = end - start;
+
+  // create components
+  auto comp1 = components::LogicalAudioSourcePlayInfo(playInfo1);
+  auto comp2 = components::LogicalAudioSourcePlayInfo(playInfo2);
+
+  // equality operators
+  EXPECT_NE(comp1, comp2);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("1 1 1000000000", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::LogicalAudioSourcePlayInfo comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, LogicalMicrophone)
+{
+  logical_audio::Microphone mic1;
+  mic1.id = 0;
+  mic1.volumeDetectionThreshold = 0.5;
+
+  logical_audio::Microphone mic2;
+  mic2.id = 1;
+  mic2.volumeDetectionThreshold = mic1.volumeDetectionThreshold;
+
+  // create components
+  auto comp1 = components::LogicalMicrophone(mic1);
+  auto comp2 = components::LogicalMicrophone(mic2);
+
+  // equality operators
+  EXPECT_NE(mic1, mic2);
+  EXPECT_FALSE(mic1 == mic2);
+  EXPECT_TRUE(mic1 != mic2);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("0 0.5", ostr.str());
+
+  std::istringstream istr;
+  components::LogicalMicrophone comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1, comp3);
+}
+
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Magnetometer)
 {
@@ -1268,6 +1381,45 @@ TEST_F(ComponentsTest, Static)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, TemperatureRange)
+{
+  // TODO(adlarkin) make sure min can't be >= max?
+  components::TemperatureRangeInfo range1;
+  range1.min = math::Temperature(125.0);
+  range1.max = math::Temperature(300.0);
+
+  components::TemperatureRangeInfo range2;
+  range2.min = math::Temperature(140.0);
+  range2.max = math::Temperature(200.0);
+
+  components::TemperatureRangeInfo range3;
+  range3.min = math::Temperature(125.0);
+  range3.max = math::Temperature(300.0);
+
+  // Create components
+  auto comp1 = components::TemperatureRange(range1);
+  auto comp2 = components::TemperatureRange(range2);
+  auto comp3 = components::TemperatureRange(range3);
+
+  // Equality operators
+  EXPECT_EQ(comp1, comp3);
+  EXPECT_NE(comp1, comp2);
+  EXPECT_NE(comp2, comp3);
+  EXPECT_FALSE(comp1 == comp2);
+  EXPECT_TRUE(comp1 != comp2);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("125 300", ostr.str());
+
+  std::istringstream istr(ostr.str());
+  components::TemperatureRange comp4;
+  comp4.Deserialize(istr);
+  EXPECT_EQ(comp1, comp4);
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, ThreadPitch)
 {
   // Create components
@@ -1356,4 +1508,96 @@ TEST_F(ComponentsTest, Scene)
   EXPECT_TRUE(comp3.Data().Shadows());
   EXPECT_FALSE(comp3.Data().Grid());
   EXPECT_TRUE(comp3.Data().OriginVisual());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitter)
+{
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.set_id(0);
+  emitter1.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter1.mutable_size()->set_x(1);
+  emitter1.mutable_size()->set_y(2);
+  emitter1.mutable_size()->set_z(3);
+  emitter1.set_rate(4.0);
+  emitter1.set_duration(5.0);
+  emitter1.set_emitting(false);
+  emitter1.mutable_particle_size()->set_x(0.1);
+  emitter1.mutable_particle_size()->set_y(0.2);
+  emitter1.mutable_particle_size()->set_z(0.3);
+  emitter1.set_lifetime(6.0);
+  emitter1.set_min_velocity(7.0);
+  emitter1.set_max_velocity(8.0);
+  emitter1.mutable_color_start()->set_r(1.0);
+  emitter1.mutable_color_start()->set_g(0);
+  emitter1.mutable_color_start()->set_b(0);
+  emitter1.mutable_color_start()->set_a(0);
+  emitter1.mutable_color_end()->set_r(1.0);
+  emitter1.mutable_color_end()->set_g(1.0);
+  emitter1.mutable_color_end()->set_b(1.0);
+  emitter1.mutable_color_end()->set_a(0);
+  emitter1.set_scale_rate(9.0);
+  emitter1.set_color_range_image("path_to_texture");
+
+  msgs::ParticleEmitter emitter2;
+  emitter2.set_name("emitter2");
+  emitter2.set_id(1);
+  emitter2.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter2.mutable_size()->set_x(1);
+  emitter2.mutable_size()->set_y(2);
+  emitter2.mutable_size()->set_z(3);
+  emitter2.set_rate(4.0);
+  emitter2.set_duration(5.0);
+  emitter2.set_emitting(false);
+  emitter2.mutable_particle_size()->set_x(0.1);
+  emitter2.mutable_particle_size()->set_y(0.2);
+  emitter2.mutable_particle_size()->set_z(0.3);
+  emitter2.set_lifetime(6.0);
+  emitter2.set_min_velocity(7.0);
+  emitter2.set_max_velocity(8.0);
+  emitter2.mutable_color_start()->set_r(1.0);
+  emitter2.mutable_color_start()->set_g(0);
+  emitter2.mutable_color_start()->set_b(0);
+  emitter2.mutable_color_start()->set_a(0);
+  emitter2.mutable_color_end()->set_r(1.0);
+  emitter2.mutable_color_end()->set_g(1.0);
+  emitter2.mutable_color_end()->set_b(1.0);
+  emitter2.mutable_color_end()->set_a(0);
+  emitter2.set_scale_rate(9.0);
+  emitter2.set_color_range_image("path_to_texture");
+
+  // Create components.
+  auto comp1 = components::ParticleEmitter(emitter1);
+  auto comp2 = components::ParticleEmitter(emitter2);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1.Data().id(), comp3.Data().id());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, ParticleEmitterCmd)
+{
+  msgs::ParticleEmitter emitter1;
+  emitter1.set_name("emitter1");
+  emitter1.set_emitting(true);
+
+  // Create components.
+  auto comp1 = components::ParticleEmitterCmd(emitter1);
+
+  // Stream operators.
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::ParticleEmitter comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp1.Data().emitting(), comp3.Data().emitting());
+  EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
 }

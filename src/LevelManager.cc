@@ -46,6 +46,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
@@ -76,8 +77,14 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
   this->ReadLevelPerformerInfo();
   this->CreatePerformers();
 
-  std::string service = "/world/";
-  service += this->runner->sdfWorld->Name() + "/level/set_performer";
+  std::string service = transport::TopicUtils::AsValidTopic("/world/" +
+      this->runner->sdfWorld->Name() + "/level/set_performer");
+  if (service.empty())
+  {
+    ignerr << "Failed to generate set_performer topic for world ["
+           << this->runner->sdfWorld->Name() << "]" << std::endl;
+    return;
+  }
   this->node.Advertise(service, &LevelManager::OnSetPerformer, this);
 }
 
@@ -95,6 +102,14 @@ void LevelManager::ReadLevelPerformerInfo()
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::Gravity(this->runner->sdfWorld->Gravity()));
+
+  auto physics = this->runner->sdfWorld->PhysicsByIndex(0);
+  if (!physics)
+  {
+    physics = this->runner->sdfWorld->PhysicsDefault();
+  }
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::Physics(*physics));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::MagneticField(this->runner->sdfWorld->MagneticField()));
