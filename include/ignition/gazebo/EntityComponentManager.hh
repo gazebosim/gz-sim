@@ -214,6 +214,19 @@ namespace ignition
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const ComponentKey &_key);
 
+      /// \brief Get a mutable component assigned to an entity based on a
+      /// component type. If the component doesn't exist, create it and
+      /// initialize with the given default value.
+      /// \param[in] _entity The entity.
+      /// \param[in] _default The value that should be used to construct
+      /// the component in case the component doesn't exist.
+      /// \return The component of the specified type assigned to the specified
+      /// entity.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentDefault(Entity _entity,
+              const typename ComponentTypeT::Type &_default =
+                  typename ComponentTypeT::Type());
+
       /// \brief Get the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, it will return nullopt.
