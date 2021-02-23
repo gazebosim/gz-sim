@@ -236,7 +236,7 @@ qt_cc_binary(
     ],
     data = ["IgnGazebo/qmldir"],
     includes = ["."],
-    linkopts = ["-ltinyxml2"],
+    linkopts = [],
     linkshared = True,
     deps = [
         "//ign_common",

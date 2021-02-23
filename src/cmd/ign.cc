@@ -227,9 +227,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
   // Initialize Qt app
   ignition::gui::Application app(argc, argv);
   app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app.AddPluginPath("./ign_gazebo/src/gui");
 
   // add import path so we can load custom modules
   app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app.Engine()->addImportPath("./ign_gazebo/src/gui");
 
   // Set default config file for Gazebo
   std::string defaultConfig;

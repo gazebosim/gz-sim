@@ -16,8 +16,8 @@ def ign_gazebo_gui_plugin(name, dirname, srcs, hdrs, resources, deps):
         name = "lib%s.so" % name,
         srcs = srcs + ["qrc_%s.cpp" % name],
         hdrs = hdrs,
-        linkopts = ["-ltinyxml2"],
         linkshared = True,
+        linkopts = [],
         includes = ["."],
         data = ["IgnGazebo/qmldir"],
         deps = deps + [
@@ -43,5 +43,6 @@ def ign_gazebo_gui_plugin(name, dirname, srcs, hdrs, resources, deps):
             "@qt//:qt_qml",
             "@qt//:qt_gui",
             "@qt//:qt_opengl",
+            "@tinyxml2",
         ],
     )

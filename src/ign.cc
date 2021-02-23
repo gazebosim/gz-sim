@@ -357,6 +357,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
 {
+  Q_INIT_RESOURCE(gazebo);
+
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
   //  "Warning: The data referred to by argc and argv must stay valid for the

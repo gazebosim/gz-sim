@@ -65,6 +65,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->AddPluginPath("./ign_gazebo/src/gui");
+  app->AddPluginPath("./ign_gazebo/src/gui/plugins");
 
   // Temporary transport interface
   auto tmp = new ignition::gazebo::TmpIface();
@@ -81,7 +83,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app->Engine()->addImportPath("./ign_gazebo/src/gui");
+  app->Engine()->addImportPath("./ign_gazebo/src/gui/plugins");
   std::string defaultGuiConfigName = "gui.config";
+
+  QDirIterator it("qrc:", QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+      igndbg << it.next().toStdString() << "\n";
+  }
 
   // Set default config file for Gazebo
   std::string defaultConfig;
@@ -114,6 +123,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   context->setContextProperty("TmpIface", tmp);
   context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
+
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
