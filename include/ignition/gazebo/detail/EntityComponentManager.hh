@@ -130,7 +130,7 @@ ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::ComponentDefault(Entity _entity,
-    const typename ComponentTypeT::Type& _default)
+    const typename ComponentTypeT::Type &_default)
 {
   auto comp = this->Component<ComponentTypeT>(_entity);
   if (!comp)

@@ -224,7 +224,7 @@ namespace ignition
       /// entity.
       public: template<typename ComponentTypeT>
               ComponentTypeT *ComponentDefault(Entity _entity,
-              const typename ComponentTypeT::Type& _default =
+              const typename ComponentTypeT::Type &_default =
                   typename ComponentTypeT::Type());
 
       /// \brief Get the data from a component.
