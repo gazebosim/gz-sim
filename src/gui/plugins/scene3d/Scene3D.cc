@@ -285,7 +285,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
     /// \brief The visual generated from the spawnSdfString / spawnSdfPath
-    public: rendering::VisualPtr spawnPreview = nullptr;
+    public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
     /// for easy deletion of visuals later
@@ -831,56 +831,89 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
 
-  if (nullptr == _sdf.Model())
+  if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
     ignwarn << "Only model entities can be spawned at the moment." << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
 
-  // Only preview first model
-  sdf::Model model = *(_sdf.Model());
-  this->dataPtr->spawnPreviewPose = model.RawPose();
-  model.SetName(ignition::common::Uuid().String());
-  Entity modelId = this->UniqueId();
-  if (!modelId)
+  if (_sdf.Model())
   {
-    this->TerminateSpawnPreview();
-    return false;
-  }
-  this->dataPtr->spawnPreview =
-    this->dataPtr->renderUtil.SceneManager().CreateModel(
-        modelId, model,
-        this->dataPtr->renderUtil.SceneManager().WorldId());
-
-  this->dataPtr->previewIds.push_back(modelId);
-  for (auto j = 0u; j < model.LinkCount(); j++)
-  {
-    sdf::Link link = *(model.LinkByIndex(j));
-    link.SetName(ignition::common::Uuid().String());
-    Entity linkId = this->UniqueId();
-    if (!linkId)
+    // Only preview first model
+    sdf::Model model = *(_sdf.Model());
+    this->dataPtr->spawnPreviewPose = model.RawPose();
+    model.SetName(ignition::common::Uuid().String());
+    Entity modelId = this->UniqueId();
+    if (!modelId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    this->dataPtr->renderUtil.SceneManager().CreateLink(
-        linkId, link, modelId);
-    this->dataPtr->previewIds.push_back(linkId);
-    for (auto k = 0u; k < link.VisualCount(); k++)
+    this->dataPtr->spawnPreview =
+      this->dataPtr->renderUtil.SceneManager().CreateModel(
+          modelId, model,
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+
+    this->dataPtr->previewIds.push_back(modelId);
+    for (auto j = 0u; j < model.LinkCount(); j++)
     {
-     sdf::Visual visual = *(link.VisualByIndex(k));
-     visual.SetName(ignition::common::Uuid().String());
-     Entity visualId = this->UniqueId();
-     if (!visualId)
-     {
-       this->TerminateSpawnPreview();
-       return false;
-     }
-     this->dataPtr->renderUtil.SceneManager().CreateVisual(
-         visualId, visual, linkId);
-     this->dataPtr->previewIds.push_back(visualId);
+      sdf::Link link = *(model.LinkByIndex(j));
+      link.SetName(ignition::common::Uuid().String());
+      Entity linkId = this->UniqueId();
+      if (!linkId)
+      {
+        this->TerminateSpawnPreview();
+        return false;
+      }
+      this->dataPtr->renderUtil.SceneManager().CreateLink(
+          linkId, link, modelId);
+      this->dataPtr->previewIds.push_back(linkId);
+      for (auto k = 0u; k < link.VisualCount(); k++)
+      {
+       sdf::Visual visual = *(link.VisualByIndex(k));
+       visual.SetName(ignition::common::Uuid().String());
+       Entity visualId = this->UniqueId();
+       if (!visualId)
+       {
+         this->TerminateSpawnPreview();
+         return false;
+       }
+       this->dataPtr->renderUtil.SceneManager().CreateVisual(
+           visualId, visual, linkId);
+       this->dataPtr->previewIds.push_back(visualId);
+      }
     }
+  }
+  else if (_sdf.Light())
+  {
+    // Only preview first model
+    sdf::Light light = *(_sdf.Light());
+    this->dataPtr->spawnPreviewPose = light.RawPose();
+    light.SetName(ignition::common::Uuid().String());
+    Entity lightVisualId = this->UniqueId();
+    if (!lightVisualId)
+    {
+      this->TerminateSpawnPreview();
+      return false;
+    }
+    Entity lightId = this->UniqueId();
+    if (!lightId)
+    {
+      this->TerminateSpawnPreview();
+      return false;
+    }
+    this->dataPtr->spawnPreview =
+      this->dataPtr->renderUtil.SceneManager().CreateLight(
+          lightId, light,
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+    this->dataPtr->renderUtil.SceneManager().CreateLightVisual(
+        lightVisualId, light, lightId);
+
+
+
+    this->dataPtr->previewIds.push_back(lightId);
+    this->dataPtr->previewIds.push_back(lightVisualId);
   }
   return true;
 }
