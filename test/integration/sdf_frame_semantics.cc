@@ -505,8 +505,7 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
 TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToTPE)
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-         path.c_str(), 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
@@ -568,8 +567,7 @@ TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToTPE)
 TEST_F(SdfFrameSemanticsTest, IncludeNestedModelsRelativeToDartsim)
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-         path.c_str(), 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");

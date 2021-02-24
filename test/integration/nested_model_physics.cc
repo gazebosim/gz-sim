@@ -54,8 +54,7 @@ TEST_F(NestedModelPhysicsTest, Movement)
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_connected_nested_models.sdf";
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-         path.c_str(), 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
   serverConfig.SetSdfFile(sdfFile);

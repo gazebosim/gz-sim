@@ -992,8 +992,7 @@ TEST_F(PhysicsSystemFixture, NestedModel)
 TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-         path.c_str(), 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
@@ -1135,8 +1134,7 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
 TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-         path.c_str(), 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
