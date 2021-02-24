@@ -61,6 +61,22 @@ namespace systems
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
+  ///
+  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// transform from `frame_id` to `child_frame_id`. This element if optional,
+  ///  and the default value is `/model/{name_of_model}/tf`.
+  ///
+  /// `<frame_id>`: Custom `frame_id` field that this system will use as the
+  /// origin of the odometry transform in both the `<tf_topic>`
+  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  /// `ignition.msgs.Odometry` message. This element if optional, and the
+  /// default value is `{name_of_model}/odom`.
+  ///
+  /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
+  /// the target of the odometry trasnform in both the `<tf_topic>`
+  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  /// `ignition.msgs.Odometry` message. This element if optional,
+  ///  and the default value is `{name_of_model}/{name_of_link}`.
   class IGNITION_GAZEBO_VISIBLE DiffDrive
       : public System,
         public ISystemConfigure,
