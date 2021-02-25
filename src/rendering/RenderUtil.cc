@@ -350,6 +350,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
   // systems have a chance to process them first before they are removed.
   for (const auto &entity : this->dataPtr->particleCmdsToRemove)
     _ecm.RemoveComponent<components::ParticleEmitterCmd>(entity);
+  this->dataPtr->particleCmdsToRemove.clear();
 
   // particle emitters commands
   _ecm.Each<components::ParticleEmitterCmd>(
