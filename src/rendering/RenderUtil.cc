@@ -342,6 +342,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
 
+  std::vector<Entity> particleCmdsToRemove;
   // particle emitters commands
   _ecm.Each<components::ParticleEmitterCmd>(
       [&](const Entity &_entity,
@@ -349,7 +350,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
       {
         // store emitter properties and update them in rendering thread
         this->dataPtr->newParticleEmittersCmds[_entity] =
-            _emitterCmd->Data();
+        _emitterCmd->Data();
 
         // update pose comp here
         if (_emitterCmd->Data().has_pose())
@@ -358,10 +359,14 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
           if (poseComp)
             poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
         }
-        _ecm.RemoveComponent<components::ParticleEmitterCmd>(_entity);
+        // Store the entity ids to clear outside of the `Each` loop.
+        particleCmdsToRemove.push_back(_entity);
 
         return true;
       });
+  // Remove the commands from the entity
+  for (const auto &entity :  particleCmdsToRemove)
+    _ecm.RemoveComponent<components::ParticleEmitterCmd>(entity);
 
   // Update lights
   auto olderEntitiesLightsCmdToDelete =
