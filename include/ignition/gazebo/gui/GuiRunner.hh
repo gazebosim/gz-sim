@@ -64,7 +64,7 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   private: void OnState(const msgs::SerializedStepMap &_msg);
 
   /// \brief Update the plugins.
-  /// \todo(anyone) Move to GuiRunnerPrivate when porting to v5
+  /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
   private: void UpdatePlugins();
 
   /// \brief Entity-component manager.
