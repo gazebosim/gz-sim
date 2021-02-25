@@ -179,6 +179,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::unordered_map<Entity, msgs::ParticleEmitter>
       newParticleEmittersCmds;
 
+  /// \brief A list of entities with particle emitter cmds to remove
+  public: std::vector<Entity> particleCmdsToRemove;
+
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
   public: std::unordered_map<Entity, uint64_t> removeEntities;
@@ -342,7 +345,12 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
 
-  std::vector<Entity> particleCmdsToRemove;
+  // Remove the commands from the entity
+  // these are commands from the last iteration. We want to make sure all
+  // systems have a chance to process them first before they are removed.
+  for (const auto &entity : this->dataPtr->particleCmdsToRemove)
+    _ecm.RemoveComponent<components::ParticleEmitterCmd>(entity);
+
   // particle emitters commands
   _ecm.Each<components::ParticleEmitterCmd>(
       [&](const Entity &_entity,
@@ -360,13 +368,10 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
             poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
         }
         // Store the entity ids to clear outside of the `Each` loop.
-        particleCmdsToRemove.push_back(_entity);
+        this->dataPtr->particleCmdsToRemove.push_back(_entity);
 
         return true;
       });
-  // Remove the commands from the entity
-  for (const auto &entity :  particleCmdsToRemove)
-    _ecm.RemoveComponent<components::ParticleEmitterCmd>(entity);
 
   // Update lights
   auto olderEntitiesLightsCmdToDelete =
