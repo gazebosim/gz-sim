@@ -27,6 +27,7 @@
 #include <deque>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/common/MeshManager.hh>
@@ -199,6 +200,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between model entity ids in the ECM to whether its battery
   /// has drained.
   public: std::unordered_map<Entity, bool> entityOffMap;
+
+  /// \brief Entities whose pose commands have been processed and should be
+  /// deleted the following iteration.
+  public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -1450,10 +1455,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       });
 
   // Update model pose
+  auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
+  this->worldPoseCmdsToRemove.clear();
+
   _ecm.Each<components::Model, components::WorldPoseCmd>(
       [&](const Entity &_entity, const components::Model *,
           const components::WorldPoseCmd *_poseCmd)
       {
+        this->worldPoseCmdsToRemove.insert(_entity);
+
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt == this->entityModelMap.end())
           return true;
@@ -1508,6 +1518,13 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
+
+  // Remove world commands from previous iteration. We let them rotate one
+  // iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderWorldPoseCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
+  }
 
   // Slip compliance on Collisions
   _ecm.Each<components::SlipComplianceCmd>(
@@ -1640,23 +1657,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-
-  // Clear pending commands
-  // Note: Removing components from inside an Each call can be dangerous.
-  // Instead, we collect all the entities that have the desired components and
-  // remove the component from them afterward.
-  std::vector<Entity> entitiesWorldCmd;
-  _ecm.Each<components::WorldPoseCmd>(
-      [&](const Entity &_entity, components::WorldPoseCmd*) -> bool
-      {
-        entitiesWorldCmd.push_back(_entity);
-        return true;
-      });
-
-  for (const Entity &entity : entitiesWorldCmd)
-  {
-    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
-  }
 
   // Populate bounding box info
   // Only compute bounding box if component exists to avoid unnecessary

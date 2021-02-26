@@ -272,12 +272,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
-  auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-        jumpBackInTime;
-  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod;
+    _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
+    jumpBackInTime;
+  auto now = std::chrono::system_clock::now();
+  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 
