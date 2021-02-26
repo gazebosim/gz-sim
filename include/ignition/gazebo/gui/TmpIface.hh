@@ -41,7 +41,7 @@ namespace ignition
       Q_OBJECT
 
       /// \brief Constructor: advertize services and topics
-      public: TmpIface();
+      public: IGN_DEPRECATED(5.0) TmpIface();
 
       /// \brief Destructor
       public: ~TmpIface() override = default;
@@ -74,9 +74,6 @@ namespace ignition
 
       /// \brief Communication node
       private: transport::Node node;
-
-      /// \brief Publisher
-      private: transport::Node::Publisher worldStatsPub;
     };
   }
 }

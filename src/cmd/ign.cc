@@ -26,7 +26,6 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
-#include "ignition/gazebo/gui/TmpIface.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 #include "ign.hh"
@@ -218,9 +217,6 @@ extern "C" int runGui(const char *_guiConfig)
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
-  // Temporary transport interface
-  auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
-
   int argc = 0;
   char **argv = nullptr;
 
@@ -242,10 +238,6 @@ extern "C" int runGui(const char *_guiConfig)
   auto mainWin = app.findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
-
-  // Let QML files use TmpIface' functions and properties
-  auto context = new QQmlContext(app.Engine()->rootContext());
-  context->setContextProperty("TmpIface", tmp.get());
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
