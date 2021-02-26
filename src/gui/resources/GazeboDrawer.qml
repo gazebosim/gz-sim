@@ -45,9 +45,6 @@ Rectangle {
   function onAction(_action) {
     switch(_action) {
       // Handle custom actions
-      case "newWorld":
-        TmpIface.OnNewWorld();
-        break
       case "saveWorld":
         if (lastSaveSuccess)
           GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
@@ -56,9 +53,6 @@ Rectangle {
         break
       case "saveWorldAs":
         sdfGenConfigDialog.open();
-        break
-      case "loadWorld":
-        loadWorldDialog.open();
         break
       // Forward others to default drawer
       default:
@@ -71,16 +65,6 @@ Rectangle {
     id: drawerModel
 
     // Custom action which calls custom C++ code
-    /*ListElement {
-      title: "New world"
-      actionElement: "newWorld"
-      type: "world"
-    }
-    ListElement {
-      title: "Load world"
-      actionElement: "loadWorld"
-      type: "world"
-    }*/
     ListElement {
       title: "Save world"
       actionElement: "saveWorld"
@@ -133,21 +117,6 @@ Rectangle {
     model: drawerModel
 
     ScrollIndicator.vertical: ScrollIndicator { }
-  }
-
-  /**
-   * Load world dialog
-   */
-  FileDialog {
-    id: loadWorldDialog
-    title: "Load world"
-    folder: shortcuts.home
-    nameFilters: [ "World files (*.world, *.sdf)" ]
-    selectMultiple: false
-    selectExisting: true
-    onAccepted: {
-      TmpIface.OnLoadWorld(fileUrl)
-    }
   }
 
   /**
