@@ -27,6 +27,7 @@
 #include <deque>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <ignition/common/MeshManager.hh>
