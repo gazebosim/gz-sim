@@ -351,16 +351,18 @@ class ignition::gazebo::systems::PhysicsPrivate
             ignition::physics::sdf::ConstructSdfNestedModel>{};
 
   //////////////////////////////////////////////////
-  /// \brief A map between world entity ids in the ECM to World Entities in
-  /// ign-physics.
+  /// \brief World EntityFeatureMap
   public: using WorldEntityMap = EntityFeatureMap3d<
           physics::World,
           MinimumFeatureList,
           CollisionFeatureList,
           NestedModelFeatureList>;
 
+  /// \brief A map between world entity ids in the ECM to World Entities in
+  /// ign-physics.
   public: WorldEntityMap entityWorldMap;
 
+  /// \brief Model EntityFeatureMap
   public: using ModelEntityMap = EntityFeatureMap3d<
             physics::Model,
             MinimumFeatureList,
@@ -368,8 +370,11 @@ class ignition::gazebo::systems::PhysicsPrivate
             BoundingBoxFeatureList,
             NestedModelFeatureList>;
 
+  /// \brief A map between model entity ids in the ECM to Model Entities in
+  /// ign-physics.
   public: ModelEntityMap entityModelMap;
 
+  /// \brief Link EntityFeatureMap
   public: using EntityLinkMap = EntityFeatureMap3d<
             physics::Link,
             MinimumFeatureList,
@@ -378,8 +383,11 @@ class ignition::gazebo::systems::PhysicsPrivate
             LinkForceFeatureList,
             MeshFeatureList>;
 
+  /// \brief A map between link entity ids in the ECM to Link Entities in
+  /// ign-physics.
   public: EntityLinkMap entityLinkMap;
 
+  /// \brief Joint EntityFeatureMap
   public: using EntityJointMap = EntityFeatureMap3d<
             physics::Joint,
             JointFeatureList,
@@ -391,6 +399,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics
   public: EntityJointMap entityJointMap;
 
+  /// \brief Collision EntityFeatureMap
   public: using EntityCollisionMap = EntityFeatureMap3d<
             physics::Shape,
             CollisionFeatureList,
@@ -402,6 +411,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: EntityCollisionMap entityCollisionMap;
 
+  /// \brief FreeGroup EntityFeatureMap
   public: using EntityFreeGroupMap = EntityFeatureMap3d<
             physics::FreeGroup,
             MinimumFeatureList,
@@ -1606,7 +1616,7 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
-  for (auto &world : this->entityWorldMap.Map())
+  for (const auto &world : this->entityWorldMap.Map())
   {
     world.second->Step(output, state, input);
   }
