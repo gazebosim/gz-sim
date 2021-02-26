@@ -30,6 +30,7 @@
 using namespace ignition;
 using namespace gazebo;
 
+/// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
 /// \brief Flag used to end the gUpdateThread.
 static bool gRunning = false;
 
@@ -62,8 +63,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   this->RequestState();
 
   // Periodically update the plugins
-  // \todo(anyone) Pimplize GuiRunner and move these global variables to the
-  // private class.
+  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
   gRunning = true;
   gUpdateThread = std::thread([&]()
   {
