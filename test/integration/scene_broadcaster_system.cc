@@ -438,6 +438,7 @@ TEST_P(SceneBroadcasterTest, State)
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
   EXPECT_TRUE(received);
+  EXPECT_TRUE(node.Unsubscribe("/world/default/state"));
 
   // test async state request
   received = false;

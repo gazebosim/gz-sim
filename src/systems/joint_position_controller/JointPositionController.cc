@@ -150,6 +150,10 @@ void JointPositionController::Configure(const Entity &_entity,
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) +
                     "/joint/" + this->dataPtr->jointName + "/" +
                     std::to_string(this->dataPtr->jointIndex) + "/cmd_pos"};
+  if (_sdf->HasElement("topic"))
+  {
+    topic = _sdf->Get<std::string>("topic");
+  }
   this->dataPtr->node.Subscribe(
       topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
 
