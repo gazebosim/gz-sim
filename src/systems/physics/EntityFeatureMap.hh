@@ -43,6 +43,16 @@ namespace systems::physics_system
   // This ensures that reference counts are properly zeroed out in the
   // underlying physics engines and the memory associated with the physics
   // entities can be freed.
+  //
+  // DEV WARNING: There is an implicit conversion between physics EntityPtr and
+  // std::size_t in ign-physics. This seems also implicitly convert between
+  // EntityPtr and gazebo Entity. Therefore, any member function that takes a
+  // gazebo Entity can accidentally take an EntityPtr. To prevent this, for
+  // every function that takes a gazebo Entity, we should always have an
+  // overload that also takes an EntityPtr with required features. We can do
+  // this because there's a 1:1 mapping between the two in maps contained in
+  // this class.
+  //
   // \tparam PhysicsEntityT Type of entity, such as World, Model, or Link
   // \tparam PolicyT Policy of the physics engine (2D, 3D)
   // \tparam RequiredFeatureList Required features of the physics entity
@@ -84,7 +94,8 @@ namespace systems::physics_system
     /// entity can't be found or the physics engine doesn't support the
     /// requested feature.
     public: template <typename ToFeatureList>
-            PhysicsEntityPtr<ToFeatureList> EntityCast(Entity _entity)
+            PhysicsEntityPtr<ToFeatureList>
+            EntityCast(gazebo::Entity _entity) const
     {
       // Using constexpr to limit compiler error message to the static_assert
       // cppcheck-suppress syntaxError
@@ -127,6 +138,25 @@ namespace systems::physics_system
         return castEntity;
       }
     }
+    /// \brief Helper function to cast from an entity type with minimum features
+    /// to an entity with a different set of features. This overload takes a
+    /// physics entity as input
+    /// \tparam ToFeatureList The list of features of the resulting entity.
+    /// \param[in] _entity Physics entity with required features.
+    /// \return Physics entity with features in ToFeatureList. nullptr if the
+    /// entity can't be found or the physics engine doesn't support the
+    /// requested feature.
+    public: template <typename ToFeatureList>
+            PhysicsEntityPtr<ToFeatureList>
+            EntityCast(const RequiredEntityPtr &_physicsEntity) const
+    {
+      auto gzEntity = this->Get(_physicsEntity);
+      if (kNullEntity == gzEntity)
+      {
+        return nullptr;
+      }
+      return this->EntityCast<ToFeatureList>(gzEntity);
+    }
 
     /// \brief Get the physics entity with required features that corresponds to
     /// the input Gazebo entity
@@ -168,11 +198,21 @@ namespace systems::physics_system
       return this->entityMap.find(_entity) != this->entityMap.end();
     }
 
+    /// \brief Check whether there is a gazebo entity associated with the given
+    /// physics entity
+    /// \param[in] _physicsEntity physics entity with required features.
+    /// \return True if the there is a gazebo entity associated with the given
+    /// physics entity
+    public: bool HasEntity(const RequiredEntityPtr &_physicsEntity) const
+    {
+      return this->reverseMap.find(_physicsEntity) != this->reverseMap.end();
+    }
+
     /// \brief Add a mapping between gazebo and physics entities
     /// \param[in] _entity Gazebo entity.
     /// \param[in] _physicsEntity Physics entity with required feature
     public: void AddEntity(const Entity &_entity,
-                           RequiredEntityPtr _physicsEntity)
+                           const RequiredEntityPtr &_physicsEntity)
     {
       this->entityMap[_entity] = _physicsEntity;
       this->reverseMap[_physicsEntity] = _entity;
@@ -194,12 +234,37 @@ namespace systems::physics_system
       return false;
     }
 
+    /// \brief Remove physics entity from all associated maps
+    /// \param[in] _entity Gazebo entity.
+    /// \return True if the entity was found and removed.
+    public: bool Remove(const RequiredEntityPtr &_physicsEntity)
+    {
+      auto it = this->reverseMap.find(_physicsEntity);
+      if (it != this->reverseMap.end())
+      {
+        this->entityMap.erase(it->second);
+        this->reverseMap.erase(it);
+        this->castCache.erase(it->second);
+        return true;
+      }
+      return false;
+    }
+
     /// \brief Get the map from Gazebo entity to physics entities with required
     /// features
     /// \return Immumtable entity map
     public: const std::unordered_map<Entity, RequiredEntityPtr> &Map() const
     {
       return this->entityMap;
+    }
+
+    /// \brief Get the total number of entries in the three maps. Only used for
+    /// testing.
+    /// \return Number of entries in all the maps.
+    public: std::size_t TotalMapEntryCount() const
+    {
+      return this->entityMap.size() + this->reverseMap.size() +
+             this->castCache.size();
     }
 
     /// \brief Map from Gazebo entity to physics entities with required features
@@ -210,7 +275,7 @@ namespace systems::physics_system
 
     /// \brief Cache map from Gazebo entity to physics entities with optional
     /// features
-    private: std::unordered_map<Entity, ValueType> castCache;
+    private: mutable std::unordered_map<Entity, ValueType> castCache;
   };
 
   /// \brief Convenience template that presets EntityFeatureMap with
