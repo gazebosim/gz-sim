@@ -54,10 +54,10 @@ TEST(EntityComponentManagerPerfrormance, Each)
   // Initial allocation of resources can throw off calculations.
   warmstart();
 
-  for (int matchingEntityCount = 1; matchingEntityCount < maxEntityCount;
+  for (int matchingEntityCount = 10; matchingEntityCount < maxEntityCount;
        matchingEntityCount += step)
   {
-    for (int nonmatchingEntityCount = 1;
+    for (int nonmatchingEntityCount = 10;
          nonmatchingEntityCount < maxEntityCount;
          nonmatchingEntityCount += step)
     {

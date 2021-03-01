@@ -227,15 +227,15 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   bool sdfUseLogRecord = (recordPluginElem != nullptr);
 
   bool hasRecordResources {false};
-  bool hasCompress {false};
   bool hasRecordTopics {false};
 
   bool sdfRecordResources;
-  bool sdfCompress;
   std::vector<std::string> sdfRecordTopics;
 
   if (sdfUseLogRecord)
   {
+    bool hasCompress {false};
+    bool sdfCompress;
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
     std::tie(sdfCompress, hasCompress) =
@@ -349,7 +349,7 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this))
   {
-    ignmsg << "Resource path get service on [" << addPathService << "]."
+    ignmsg << "Resource path get service on [" << getPathService << "]."
            << std::endl;
   }
   else

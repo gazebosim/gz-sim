@@ -34,6 +34,8 @@
 #include <ignition/common/Animation.hh>
 #include <ignition/common/graphics/Types.hh>
 
+#include <ignition/msgs/particle_emitter.pb.h>
+
 #include <ignition/rendering/RenderTypes.hh>
 
 #include <ignition/gazebo/config.hh>
@@ -132,6 +134,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a collision visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _collision Collision sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Visual (collision) object created from the sdf dom
+    public: rendering::VisualPtr CreateCollision(Entity _id,
+        const sdf::Collision &_collision, Entity _parentId = 0);
+
+    /// \brief Retrieve visual
+    /// \param[in] _id Unique visual (entity) id
+    /// \return Pointer to requested visual
+    public: rendering::VisualPtr VisualById(Entity _id);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _visual Actor sdf dom
@@ -155,6 +170,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Light object created from the sdf dom
     public: rendering::VisualPtr CreateLightVisual(Entity _id,
         const sdf::Light &_light, Entity _parentId);
+
+    /// \brief Create a particle emitter.
+    /// \param[in] _id Unique particle emitter id
+    /// \param[in] _emitter Particle emitter data
+    /// \param[in] _parentId Parent id
+    /// \return Default particle emitter object created
+    public: rendering::ParticleEmitterPtr CreateParticleEmitter(
+        Entity _id, const msgs::ParticleEmitter &_emitter, Entity _parentId);
+
+    /// \brief Update an existing particle emitter
+    /// \brief _id Emitter id to update
+    /// \brief _emitter Data to update the particle emitter
+    /// \return Particle emitter updated
+    public: rendering::ParticleEmitterPtr UpdateParticleEmitter(Entity _id,
+        const msgs::ParticleEmitter &_emitter);
 
     /// \brief Ignition sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
