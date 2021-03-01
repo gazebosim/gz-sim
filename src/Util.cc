@@ -416,22 +416,23 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
 {
   auto entity = _entity;
 
-  // check if parent is a model
-  auto parentComp = _ecm.Component<components::ParentEntity>(entity);
-  while (parentComp)
+  // search up the entity tree and find the model with no parent models
+  // (there is the possibility of nested models)
+  Entity modelEntity = kNullEntity;
+  while (entity)
   {
-    // check if parent is a model
-    auto parentEntity = parentComp->Data();
-    auto modelComp = _ecm.Component<components::Model>(
-        parentEntity);
-    if (!modelComp)
+    if (_ecm.Component<components::Model>(entity))
+      modelEntity = entity;
+
+    // stop searching if we are at the root of the tree
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+    if (!parentComp)
       break;
 
-    // set current model entity
-    entity = parentEntity;
-    parentComp = _ecm.Component<components::ParentEntity>(entity);
+    entity = parentComp->Data();
   }
-  return entity;
+
+  return modelEntity;
 }
 
 //////////////////////////////////////////////////

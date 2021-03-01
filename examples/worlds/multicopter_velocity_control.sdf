@@ -67,6 +67,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
           <geometry>
             <plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane>
           </geometry>
         </collision>
@@ -402,4 +403,3 @@ You can use the velocity controller and command linear velocity and yaw angular 
     </include>
   </world>
 </sdf>
-

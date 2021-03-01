@@ -23,11 +23,13 @@
 #include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -94,8 +96,35 @@ PlotComponent::PlotComponent(const std::string &_type,
     this->dataPtr->data["pitch"] = std::make_shared<PlotData>();
     this->dataPtr->data["yaw"] = std::make_shared<PlotData>();
   }
+  else if (_type == "Light")
+  {
+    this->dataPtr->data["diffuseR"] = std::make_shared<PlotData>();
+    this->dataPtr->data["diffuseG"] = std::make_shared<PlotData>();
+    this->dataPtr->data["diffuseB"] = std::make_shared<PlotData>();
+    this->dataPtr->data["diffuseA"] = std::make_shared<PlotData>();
+    this->dataPtr->data["specularR"] = std::make_shared<PlotData>();
+    this->dataPtr->data["specularG"] = std::make_shared<PlotData>();
+    this->dataPtr->data["specularB"] = std::make_shared<PlotData>();
+    this->dataPtr->data["specularA"] = std::make_shared<PlotData>();
+    this->dataPtr->data["attRange"] = std::make_shared<PlotData>();
+    this->dataPtr->data["attConstant"] = std::make_shared<PlotData>();
+    this->dataPtr->data["attLinear"] = std::make_shared<PlotData>();
+    this->dataPtr->data["attQuadratic"] = std::make_shared<PlotData>();
+    this->dataPtr->data["castshadows"] = std::make_shared<PlotData>();
+    this->dataPtr->data["directionX"] = std::make_shared<PlotData>();
+    this->dataPtr->data["directionY"] = std::make_shared<PlotData>();
+    this->dataPtr->data["directionZ"] = std::make_shared<PlotData>();
+    this->dataPtr->data["innerAngle"] = std::make_shared<PlotData>();
+    this->dataPtr->data["outerAngle"] = std::make_shared<PlotData>();
+    this->dataPtr->data["falloff"] = std::make_shared<PlotData>();
+  }
   else if (_type == "double")
     this->dataPtr->data["value"] = std::make_shared<PlotData>();
+  else if (_type == "Physics")
+  {
+    this->dataPtr->data["stepSize"] = std::make_shared<PlotData>();
+    this->dataPtr->data["realTimeFactor"] = std::make_shared<PlotData>();
+  }
   else
     ignwarn << "Invalid Plot Component Type:" << _type << std::endl;
 }
@@ -203,6 +232,57 @@ void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
   this->dataPtr->components[_Id]->SetAttributeValue("z", _vector.Z());
 }
 
+void Plotting::SetData(std::string _Id, const msgs::Light &_light)
+{
+  if (_light.has_specular())
+  {
+    this->dataPtr->components[_Id]->SetAttributeValue("specularR",
+      _light.specular().r());
+    this->dataPtr->components[_Id]->SetAttributeValue("specularG",
+      _light.specular().g());
+    this->dataPtr->components[_Id]->SetAttributeValue("specularB",
+      _light.specular().b());
+    this->dataPtr->components[_Id]->SetAttributeValue("specularA",
+      _light.specular().a());
+  }
+  if (_light.has_diffuse())
+  {
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseR",
+      _light.diffuse().r());
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseG",
+      _light.diffuse().g());
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseB",
+      _light.diffuse().b());
+    this->dataPtr->components[_Id]->SetAttributeValue("diffuseA",
+      _light.diffuse().a());
+  }
+  this->dataPtr->components[_Id]->SetAttributeValue("attRange",
+    _light.range());
+  this->dataPtr->components[_Id]->SetAttributeValue("attLinear",
+    _light.attenuation_linear());
+  this->dataPtr->components[_Id]->SetAttributeValue("attConstant",
+    _light.attenuation_constant());
+  this->dataPtr->components[_Id]->SetAttributeValue("attQuadratic",
+    _light.attenuation_quadratic());
+  this->dataPtr->components[_Id]->SetAttributeValue("castshadows",
+    _light.cast_shadows());
+  if (_light.has_direction())
+  {
+    this->dataPtr->components[_Id]->SetAttributeValue("directionX",
+      _light.direction().x());
+    this->dataPtr->components[_Id]->SetAttributeValue("directionY",
+      _light.direction().y());
+    this->dataPtr->components[_Id]->SetAttributeValue("directionZ",
+      _light.direction().z());
+  }
+  this->dataPtr->components[_Id]->SetAttributeValue("innerAngle",
+    _light.spot_inner_angle());
+  this->dataPtr->components[_Id]->SetAttributeValue("outerAngle",
+    _light.spot_outer_angle());
+  this->dataPtr->components[_Id]->SetAttributeValue("falloff",
+    _light.spot_falloff());
+}
+
 //////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
 {
@@ -213,6 +293,15 @@ void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
   this->dataPtr->components[_Id]->SetAttributeValue("pitch",
                                                     _pose.Rot().Pitch());
   this->dataPtr->components[_Id]->SetAttributeValue("yaw", _pose.Rot().Yaw());
+}
+
+//////////////////////////////////////////////////
+void Plotting::SetData(std::string _Id, const sdf::Physics &_physics)
+{
+  this->dataPtr->components[_Id]->SetAttributeValue("stepSize",
+      _physics.MaxStepSize());
+  this->dataPtr->components[_Id]->SetAttributeValue("realTimeFactor",
+      _physics.RealTimeFactor());
 }
 
 //////////////////////////////////////////////////
@@ -325,6 +414,12 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
       if (comp)
         this->SetData(component.first, comp->Data());
     }
+    else if (typeId == components::Physics::typeId)
+    {
+      auto comp = _ecm.Component<components::Physics>(entity);
+      if (comp)
+        this->SetData(component.first, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(entity);
@@ -381,6 +476,15 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
       auto comp = _ecm.Component<components::WorldPoseCmd>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
+    }
+    else if (typeId == components::Light::typeId)
+    {
+      auto comp = _ecm.Component<components::Light>(entity);
+      if (comp)
+      {
+        msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
+        this->SetData(component.first, lightMsgs);
+      }
     }
 
     for (auto attribute : component.second->Data())

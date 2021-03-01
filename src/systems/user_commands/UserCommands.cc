@@ -20,7 +20,9 @@
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <string>
 #include <utility>
@@ -28,8 +30,10 @@
 
 #include <ignition/msgs/Utility.hh>
 
+#include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
+#include <sdf/Light.hh>
 
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -37,12 +41,16 @@
 #include "ignition/common/Profiler.hh"
 
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
@@ -123,6 +131,70 @@ class RemoveCommand : public UserCommandBase
   public: bool Execute() final;
 };
 
+/// \brief Command to modify a light entity from simulation.
+class LightCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the entity to be edited.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: LightCommand(msgs::Light *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+
+  /// \brief Light equality comparison function.
+  public: std::function<bool(const msgs::Light &, const msgs::Light &)>
+          lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
+            {
+             return
+                _a.type() == _b.type() &&
+                _a.name() == _b.name() &&
+                math::equal(
+                   _a.diffuse().a(), _b.diffuse().a(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().r(), _b.diffuse().r(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().g(), _b.diffuse().g(), 1e-6f) &&
+                math::equal(
+                  _a.diffuse().b(), _b.diffuse().b(), 1e-6f) &&
+                math::equal(
+                  _a.specular().a(), _b.specular().a(), 1e-6f) &&
+                math::equal(
+                  _a.specular().r(), _b.specular().r(), 1e-6f) &&
+                math::equal(
+                  _a.specular().g(), _b.specular().g(), 1e-6f) &&
+                math::equal(
+                  _a.specular().b(), _b.specular().b(), 1e-6f) &&
+                math::equal(
+                  _a.range(), _b.range(), 1e-6f) &&
+               math::equal(
+                 _a.attenuation_linear(),
+                 _b.attenuation_linear(),
+                 1e-6f) &&
+               math::equal(
+                 _a.attenuation_constant(),
+                 _b.attenuation_constant(),
+                 1e-6f) &&
+               math::equal(
+                 _a.attenuation_quadratic(),
+                 _b.attenuation_quadratic(),
+                 1e-6f) &&
+               _a.cast_shadows() == _b.cast_shadows() &&
+               math::equal(
+                 _a.direction().x(), _b.direction().x(), 1e-6) &&
+               math::equal(
+                 _a.direction().y(), _b.direction().y(), 1e-6) &&
+               math::equal(
+                 _a.direction().z(), _b.direction().z(), 1e-6) &&
+               math::equal(
+                 _a.spot_inner_angle(), _b.spot_inner_angle(), 1e-6f) &&
+               math::equal(
+                 _a.spot_outer_angle(), _b.spot_outer_angle(), 1e-6f) &&
+               math::equal(_a.spot_falloff(), _b.spot_falloff(), 1e-6f);
+            }};
+};
+
 /// \brief Command to update an entity's pose transform.
 class PoseCommand : public UserCommandBase
 {
@@ -145,6 +217,19 @@ class PoseCommand : public UserCommandBase
                          math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
                          math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
                      }};
+};
+
+/// \brief Command to modify the physics parameters of a simulation.
+class PhysicsCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the new physics parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: PhysicsCommand(msgs::Physics *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
 };
 }
 }
@@ -178,12 +263,26 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: bool RemoveService(const msgs::Entity &_req,
       msgs::Boolean &_res);
 
+  /// \brief Callback for light service
+  /// \param[in] _req Request containing light update of an entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the light will be successfully updated.
+  /// \return True if successful.
+  public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
+
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
   public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
+
+  /// \brief Callback for physics service
+  /// \param[in] _req Request containing updates to the physics parameters.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the physics parameters will be successfully updated.
+  /// \return True if successful.
+  public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -258,6 +357,21 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
   ignmsg << "Pose service on [" << poseService << "]" << std::endl;
+
+  // Light service
+  std::string lightService{"/world/" + validWorldName + "/light_config"};
+  this->dataPtr->node.Advertise(lightService,
+      &UserCommandsPrivate::LightService, this->dataPtr.get());
+
+  ignmsg << "Light configuration service on [" << lightService << "]"
+    << std::endl;
+
+  // Physics service
+  std::string physicsService{"/world/" + validWorldName + "/set_physics"};
+  this->dataPtr->node.Advertise(physicsService,
+      &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
+
+  ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -351,6 +465,25 @@ bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
 }
 
 //////////////////////////////////////////////////
+bool UserCommandsPrivate::LightService(const msgs::Light &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
 bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
     msgs::Boolean &_res)
 {
@@ -359,6 +492,24 @@ bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<PoseCommand>(msg, this->iface);
 
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<PhysicsCommand>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -657,6 +808,93 @@ bool RemoveCommand::Execute()
   return true;
 }
 
+
+//////////////////////////////////////////////////
+LightCommand::LightCommand(msgs::Light *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool LightCommand::Execute()
+{
+  auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
+  if (nullptr == lightMsg)
+  {
+    ignerr << "Internal error, null light message" << std::endl;
+    return false;
+  }
+
+  Entity lightEntity{kNullEntity};
+
+  if (lightMsg->id() != kNullEntity)
+  {
+    lightEntity = lightMsg->id();
+  }
+  else if (!lightMsg->name().empty())
+  {
+    if (lightMsg->parent_id() != kNullEntity)
+    {
+      lightEntity = this->iface->ecm->EntityByComponents(
+        components::Name(lightMsg->name()),
+        components::ParentEntity(lightMsg->parent_id()));
+    }
+    else
+    {
+      lightEntity = this->iface->ecm->EntityByComponents(
+        components::Name(lightMsg->name()));
+    }
+  }
+  if (kNullEntity == lightEntity)
+  {
+    ignerr << "Failed to find light with name [" << lightMsg->name()
+           << "], ID [" << lightMsg->id() << "] and parent ID ["
+           << lightMsg->parent_id() << "]." << std::endl;
+    return false;
+  }
+
+  if (!lightEntity)
+  {
+    ignmsg << "Failed to find light entity named [" << lightMsg->name()
+      << "]." << std::endl;
+    return false;
+  }
+
+  auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
+  if (nullptr == lightPose)
+    lightEntity = kNullEntity;
+
+  if (!lightEntity)
+  {
+    ignmsg << "Pose component not available" << std::endl;
+    return false;
+  }
+
+  if (lightMsg->has_pose())
+  {
+    lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
+  }
+
+  auto lightCmdComp =
+    this->iface->ecm->Component<components::LightCmd>(lightEntity);
+  if (!lightCmdComp)
+  {
+    this->iface->ecm->CreateComponent(
+        lightEntity, components::LightCmd(*lightMsg));
+  }
+  else
+  {
+    auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
+    this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
+      state);
+  }
+
+  return true;
+}
+
 //////////////////////////////////////////////////
 PoseCommand::PoseCommand(msgs::Pose *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
@@ -715,6 +953,39 @@ bool PoseCommand::Execute()
   return true;
 }
 
+//////////////////////////////////////////////////
+PhysicsCommand::PhysicsCommand(msgs::Physics *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool PhysicsCommand::Execute()
+{
+  auto physicsMsg = dynamic_cast<const msgs::Physics *>(this->msg);
+  if (nullptr == physicsMsg)
+  {
+    ignerr << "Internal error, null physics message" << std::endl;
+    return false;
+  }
+
+  auto worldEntity = this->iface->ecm->EntityByComponents(components::World());
+  if (worldEntity == kNullEntity)
+  {
+    ignmsg << "Failed to find world entity" << std::endl;
+    return false;
+  }
+
+  if (!this->iface->ecm->EntityHasComponentType(worldEntity,
+    components::PhysicsCmd().TypeId()))
+  {
+    this->iface->ecm->CreateComponent(worldEntity,
+        components::PhysicsCmd(*physicsMsg));
+  }
+
+  return true;
+}
 
 IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,

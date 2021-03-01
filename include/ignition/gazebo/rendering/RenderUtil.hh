@@ -66,6 +66,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to the scene
     public: rendering::ScenePtr Scene() const;
 
+    /// \brief Helper Update function for updating the scene
+    /// \param[in] _info Sim update info
+    /// \param[in] _ecm Mutable reference to the entity component manager
+    public: void UpdateECM(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm);
+
     /// \brief Helper PostUpdate function for updating the scene
     public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
@@ -119,6 +125,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// The callback function arg is the sensor entity to remove
     public : void SetRemoveSensorCb(
         std::function<void(const gazebo::Entity &)> _removeSensorCb);
+
+    /// \brief View collisions of specified entity which are shown in orange
+    /// \param[in] _entity Entity to view collisions
+    public: void ViewCollisions(const Entity &_entity);
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.

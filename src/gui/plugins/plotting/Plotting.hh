@@ -23,6 +23,9 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/msgs/light.pb.h>
+
+#include "sdf/Physics.hh"
 
 #include <map>
 #include <string>
@@ -113,11 +116,23 @@ class Plotting : public ignition::gazebo::GuiSystem
   public: void SetData(std::string _Id,
                        const ignition::math::Vector3d &_vector);
 
+   /// \brief Set the Component data of giving id to the giving light
+   /// \param [in] _Id Component Key of the components map
+   /// \param [in] _light Vector Data to be set to the component
+   public: void SetData(std::string _Id,
+                        const msgs::Light &_light);
+
   /// \brief Set the Component data of giving id to the giving pose
   /// \param [in] _Id Component Key of the components map
   /// \param [in] _pose Position Data to be set to the component
   public: void SetData(std::string _Id,
                        const ignition::math::Pose3d &_pose);
+
+  /// \brief Set the Component data of giving id to the giving
+  /// physics properties
+  /// \param [in] _Id Component Key of the components map
+  /// \param [in] _value physics Data to be set to the component
+  public: void SetData(std::string _Id, const sdf::Physics &_physics);
 
   /// \brief Set the Component data of giving id to the giving number
   /// \param [in] _Id Component Key of the components map

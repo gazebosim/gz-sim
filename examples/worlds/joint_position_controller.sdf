@@ -4,9 +4,9 @@
 
   Try sending joint position commands:
 
-    ign topic -t "/model/joint_position_controller_demo/joint/j1/0/cmd_pos" -m ignition.msgs.Double -p "data: -1.0"
+    ign topic -t "/rotor_cmd" -m ignition.msgs.Double -p "data: -1.0"
 
-    ign topic -t "/model/joint_position_controller_demo/joint/j1/0/cmd_pos" -m ignition.msgs.Double -p "data: 1.0"
+    ign topic -t "/rotor_cmd" -m ignition.msgs.Double -p "data: 1.0"
 -->
 <sdf version="1.6">
   <world name="default">
@@ -45,7 +45,7 @@
           <property type="double" key="height">72</property>
           <property type="double" key="width">121</property>
           <property type="double" key="z">1</property>
-          
+
           <property type="string" key="state">floating</property>
           <anchors target="3D View">
             <line own="left" target="left"/>
@@ -156,6 +156,7 @@
         filename="ignition-gazebo-joint-position-controller-system"
         name="ignition::gazebo::systems::JointPositionController">
         <joint_name>j1</joint_name>
+        <topic>rotor_cmd</topic>
         <p_gain>1</p_gain>
         <i_gain>0.1</i_gain>
         <d_gain>0.01</d_gain>

@@ -95,7 +95,17 @@ void GuiRunner::RequestState()
   }
   reqSrv = reqSrvValid;
 
-  this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
+  auto advertised = this->dataPtr->node.AdvertisedServices();
+  if (std::find(advertised.begin(), advertised.end(), reqSrv) ==
+      advertised.end())
+  {
+    if (!this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService,
+        this))
+    {
+      ignerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
+    }
+  }
+
   ignition::msgs::StringMsg req;
   req.set_data(reqSrv);
 
@@ -114,7 +124,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
     return;
   }
 
-  plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+  this->RequestState();
 }
 
 /////////////////////////////////////////////////
