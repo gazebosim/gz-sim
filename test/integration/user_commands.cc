@@ -19,6 +19,7 @@
 
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/light.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>

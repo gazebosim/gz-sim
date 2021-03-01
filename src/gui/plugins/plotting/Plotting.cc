@@ -18,6 +18,7 @@
 #include "Plotting.hh"
 
 #include <ignition/plugin/Register.hh>
+
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
@@ -232,7 +233,7 @@ void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
   this->dataPtr->components[_Id]->SetAttributeValue("z", _vector.Z());
 }
 
-void Plotting::SetData(std::string _Id, const msgs::Light &_light)
+void Plotting::SetData(std::string _Id, const ignition::msgs::Light &_light)
 {
   if (_light.has_specular())
   {
@@ -482,7 +483,8 @@ void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
       auto comp = _ecm.Component<components::Light>(entity);
       if (comp)
       {
-        msgs::Light lightMsgs = convert<msgs::Light>(comp->Data());
+        ignition::msgs::Light lightMsgs =
+          convert<ignition::msgs::Light>(comp->Data());
         this->SetData(component.first, lightMsgs);
       }
     }
