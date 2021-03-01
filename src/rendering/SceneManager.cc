@@ -1059,7 +1059,7 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
     }
     default:
     {
-      emitter->SetType(ignition::rendering::EmitterType::EM_POINT);
+      // Do nothing if type is not set.
     }
   }
 
@@ -1068,20 +1068,28 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
     emitter->SetEmitterSize(ignition::msgs::Convert(_emitter.size()));
 
   // Rate.
-  emitter->SetRate(_emitter.rate());
+  if (_emitter.has_rate())
+    emitter->SetRate(_emitter.rate().data());
 
   // Duration.
-  emitter->SetDuration(_emitter.duration());
+  if (_emitter.has_duration())
+    emitter->SetDuration(_emitter.duration().data());
 
   // Emitting.
-  emitter->SetEmitting(_emitter.emitting());
+  if (_emitter.has_emitting()) {
+    emitter->SetEmitting(_emitter.emitting().data());
+  }
 
   // Particle size.
-  emitter->SetParticleSize(
-    ignition::msgs::Convert(_emitter.particle_size()));
+  if (_emitter.has_particle_size())
+  {
+    emitter->SetParticleSize(
+        ignition::msgs::Convert(_emitter.particle_size()));
+  }
 
   // Lifetime.
-  emitter->SetLifetime(_emitter.lifetime());
+  if (_emitter.has_lifetime())
+    emitter->SetLifetime(_emitter.lifetime().data());
 
   // Material.
   if (_emitter.has_material())
@@ -1092,12 +1100,17 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   }
 
   // Velocity range.
-  emitter->SetVelocityRange(_emitter.min_velocity(), _emitter.max_velocity());
+  if (_emitter.has_min_velocity() && _emitter.has_max_velocity())
+  {
+    emitter->SetVelocityRange(_emitter.min_velocity().data(),
+        _emitter.max_velocity().data());
+  }
 
   // Color range image.
-  if (!_emitter.color_range_image().empty())
+  if (_emitter.has_color_range_image() &&
+      !_emitter.color_range_image().data().empty())
   {
-    emitter->SetColorRangeImage(_emitter.color_range_image());
+    emitter->SetColorRangeImage(_emitter.color_range_image().data());
   }
   // Color range.
   else if (_emitter.has_color_start() && _emitter.has_color_end())
@@ -1108,7 +1121,8 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
   }
 
   // Scale rate.
-  emitter->SetScaleRate(_emitter.scale_rate());
+  if (_emitter.has_scale_rate())
+    emitter->SetScaleRate(_emitter.scale_rate().data());
 
   // pose
   if (_emitter.has_pose())
