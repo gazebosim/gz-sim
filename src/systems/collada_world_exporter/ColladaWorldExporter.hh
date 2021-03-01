@@ -35,7 +35,7 @@ namespace systems
   /// \brief A plugin that exports a world to a mesh.
   /// When loaded the plugin will dump a mesh containing all the models in
   /// the world to the current directory.
-  class IGNITION_GAZEBO_VISIBLE ColladaWorldExporter:
+  class ColladaWorldExporter:
     public System,
     public ISystemPostUpdate
   {

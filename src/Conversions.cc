@@ -841,6 +841,7 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 {
   msgs::Physics out;
@@ -851,6 +852,7 @@ msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
 {
   sdf::Physics out;
