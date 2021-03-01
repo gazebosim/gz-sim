@@ -37,12 +37,11 @@ namespace systems::physics_system
   // \brief Helper class that associates Gazebo entities with Physics entities
   // with required and optional features. It can be used to cast a physics
   // entity with the required features to another physics entity with one of
-  // the optional features. This class was created to keep all
-  // physics entities are kept in one place so that when a gazebo entity is
-  // removed, all the mapped physics entitities can be removed at the same time.
-  // This ensures that reference counts are properly zeroed out in the
-  // underlying physics engines and the memory associated with the physics
-  // entities can be freed.
+  // the optional features. This class was created to keep all physics entities
+  // in one place so that when a gazebo entity is removed, all the mapped
+  // physics entitities can be removed at the same time. This ensures that
+  // reference counts are properly zeroed out in the underlying physics engines
+  // and the memory associated with the physics entities can be freed.
   //
   // DEV WARNING: There is an implicit conversion between physics EntityPtr and
   // std::size_t in ign-physics. This seems also implicitly convert between
