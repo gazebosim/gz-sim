@@ -698,7 +698,7 @@ const std::vector<std::string> &ServerConfig::LogRecordTopics() const
 }
 
 /////////////////////////////////////////////////
-void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
+static void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 {
   _sdf->SetName(_xml->Value());
   if (_xml->GetText() != nullptr)
