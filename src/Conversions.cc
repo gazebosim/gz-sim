@@ -60,6 +60,7 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
+#include <algorithm>
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
@@ -526,6 +527,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_attenuation_linear(_in.LinearAttenuationFactor());
   out.set_attenuation_quadratic(_in.QuadraticAttenuationFactor());
   out.set_range(_in.AttenuationRange());
+  out.set_intensity(_in.Intensity());
   msgs::Set(out.mutable_direction(), _in.Direction());
   out.set_cast_shadows(_in.CastShadows());
   out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
@@ -555,6 +557,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetQuadraticAttenuationFactor(_in.attenuation_quadratic());
   out.SetAttenuationRange(_in.range());
   out.SetDirection(msgs::Convert(_in.direction()));
+  out.SetIntensity(_in.intensity());
   out.SetCastShadows(_in.cast_shadows());
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
@@ -861,6 +864,44 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
   _msg->set_precision(_sdf.Precision());
   _msg->set_dynamic_bias_stddev(_sdf.DynamicBiasStdDev());
   _msg->set_dynamic_bias_correlation_time(_sdf.DynamicBiasCorrelationTime());
+}
+
+//////////////////////////////////////////////////
+std::string ignition::gazebo::convert(const sdf::LightType &_in)
+{
+  if (_in == sdf::LightType::POINT)
+  {
+    return std::string("point");
+  }
+  else if (_in == sdf::LightType::DIRECTIONAL)
+  {
+    return std::string("directional");
+  }
+  else if (_in == sdf::LightType::SPOT)
+  {
+    return std::string("spot");
+  }
+  return std::string("");
+}
+
+//////////////////////////////////////////////////
+sdf::LightType ignition::gazebo::convert(const std::string &_in)
+{
+  std::string inLowerCase = _in;
+  std::transform(_in.begin(), _in.end(), inLowerCase.begin(), ::tolower);
+  if (inLowerCase == "point")
+  {
+    return sdf::LightType::POINT;
+  }
+  else if (inLowerCase == "directional")
+  {
+    return sdf::LightType::DIRECTIONAL;
+  }
+  else if (inLowerCase == "spot")
+  {
+    return sdf::LightType::SPOT;
+  }
+  return sdf::LightType::INVALID;
 }
 
 //////////////////////////////////////////////////

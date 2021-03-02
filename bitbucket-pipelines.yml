@@ -27,7 +27,7 @@ pipelines:
               libsdformat9-dev
               libignition-fuel-tools4-dev
               libignition-physics4-dev
-          #    libignition-common3-dev
+          #    libignition-common4-dev
           #    libignition-gui3-dev
           #    libignition-sensors3-dev
           #    libignition-rendering3-dev
@@ -35,7 +35,7 @@ pipelines:
           # Build dependencies from source using a given branch
           # - docker/scripts/build_ign.sh ignitionrobotics ign-physics default
           # - docker/scripts/build_ign.sh ignitionrobotics ign-fuel-tools default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-common ign-common3
+          - docker/scripts/build_ign.sh ignitionrobotics ign-common ign-common4
           - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
           - docker/scripts/build_ign.sh ignitionrobotics ign-gui default
           - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
@@ -72,7 +72,7 @@ pipelines:
             # METHOD 1: Install the following debians
             - apt-get install -y
                 libignition-cmake2-dev
-                libignition-common3-dev
+                libignition-common4-dev
                 libignition-math6-eigen3-dev
                 libignition-plugin-dev
                 libignition-tools-dev

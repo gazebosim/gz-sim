@@ -26,7 +26,6 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
-#include "ignition/gazebo/gui/TmpIface.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 #include "ign.hh"
@@ -218,9 +217,6 @@ extern "C" int runGui(const char *_guiConfig)
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
-  // Temporary transport interface
-  auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
-
   int argc = 0;
   char **argv = nullptr;
 
@@ -242,10 +238,6 @@ extern "C" int runGui(const char *_guiConfig)
   auto mainWin = app.findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
-
-  // Let QML files use TmpIface' functions and properties
-  auto context = new QQmlContext(app.Engine()->rootContext());
-  context->setContextProperty("TmpIface", tmp.get());
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
@@ -298,7 +290,20 @@ extern "C" int runGui(const char *_guiConfig)
   if (!executed || !result || worldsMsg.data().empty())
     return false;
 
+  // Remove warning suppression in v6
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else
+# pragma warning(push)
+# pragma warning(disable: 4996)
+#endif
   std::vector<ignition::gazebo::GuiRunner *> runners;
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#else
+# pragma warning(pop)
+#endif
 
   // Configuration file from command line
   if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0)
@@ -313,7 +318,21 @@ extern "C" int runGui(const char *_guiConfig)
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
+
+    // Remove warning suppression in v6
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else
+# pragma warning(push)
+# pragma warning(disable: 4996)
+#endif
     auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#else
+# pragma warning(pop)
+#endif
     runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
         &ignition::gazebo::GuiRunner::OnPluginAdded);
     runners.push_back(runner);

@@ -22,7 +22,7 @@ qt5_wrap_cpp(gui_sources
   ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/GuiSystem.hh
   # TODO (anyone) Remove when GuiRunner.hh is moved to `src`
   ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/GuiRunner.hh
-  # TODO (anyone) Remove when TmpIface.hh is moved to `src`
+  # TODO (anyone) Remove in v6
   ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/TmpIface.hh
 )
 
@@ -37,6 +37,7 @@ target_link_libraries(${gui_target}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
     ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+    ignition-utils${IGN_UTILS_VER}::ignition-utils${IGN_UTILS_VER}
     ${Qt5Core_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
 )

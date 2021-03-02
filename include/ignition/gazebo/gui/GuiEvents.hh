@@ -37,7 +37,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace events
 {
   /// \brief The class for sending and receiving custom snap value events.
-  class SnapIntervals : public QEvent
+  class IGN_DEPRECATED(5) SnapIntervals : public QEvent
   {
     /// \brief Constructor
     /// \param[in] _xyz XYZ snapping values.
@@ -151,7 +151,7 @@ namespace events
 
   /// \brief Event called in the render thread of a 3D scene.
   /// It's safe to make rendering calls in this event's callback.
-  class Render : public QEvent
+  class IGN_DEPRECATED(5) Render : public QEvent
   {
     public: Render()
         : QEvent(kType)
@@ -163,11 +163,11 @@ namespace events
 
   /// \brief Event called to spawn a preview model.
   /// Used by plugins that spawn models.
-  class SpawnPreviewModel : public QEvent
+  class IGN_DEPRECATED(5) SpawnPreviewModel : public QEvent
   {
     /// \brief Constructor
     /// \param[in] _modelSdfString The model's SDF file as a string.
-    public: explicit SpawnPreviewModel(std::string &_modelSdfString)
+    public: explicit SpawnPreviewModel(const std::string &_modelSdfString)
         : QEvent(kType), modelSdfString(_modelSdfString)
     {
     }
@@ -188,7 +188,7 @@ namespace events
 
   /// \brief Event called to spawn a preview resource, which takes the path
   /// to the SDF file. Used by plugins that spawn resources.
-  class SpawnPreviewPath : public QEvent
+  class IGN_DEPRECATED(5) SpawnPreviewPath : public QEvent
   {
     /// \brief Constructor
     /// \param[in] _filePath The path to an SDF file.

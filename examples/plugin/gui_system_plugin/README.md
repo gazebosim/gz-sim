@@ -14,7 +14,7 @@ See `GuiSystemPluginPlugin.hh` for more information.
 From the root of the `ign-gazebo` repository, do the following to build the example:
 
 ~~~
-cd ign-gazebo/examples/plugins/gui_system_plugin
+cd examples/plugin/gui_system_plugin
 mkdir build
 cd build
 cmake ..
@@ -28,7 +28,7 @@ This will generate the `GuiSystemPlugin` library under `build`.
 Add the library to the path:
 
 ~~~
-cd ign-gazebo/examples/plugins/gui_system_plugin
+cd examples/plugin/gui_system_plugin
 export IGN_GUI_PLUGIN_PATH=`pwd`/build
 ~~~
 
