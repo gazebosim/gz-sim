@@ -15,13 +15,6 @@
  *
 */
 
-#ifndef __APPLE__
-  #if __GNUC__ < 8
-    #include <experimental/filesystem>
-  #else
-    #include <filesystem>
-  #endif
-#endif
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/transport/TopicUtils.hh>
@@ -248,27 +241,18 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
     return _uri;
   }
 
-#ifdef __APPLE__
-  const std::string absPrefix = "/";
   // Not a relative path, return unmodified
-  if (_uri.find("://") != std::string::npos ||
-      _uri.compare(0, absPrefix.size(), absPrefix) == 0)
+  if (_uri.find("://") != std::string::npos)
   {
     return _uri;
   }
-#else
-  // Not a relative path, return unmodified
-  #if __GNUC__ < 8
-    using namespace std::experimental::filesystem;
-  #else
-    using namespace std::filesystem;
-  #endif
-  if (_uri.find("://") != std::string::npos ||
-      !path(_uri).is_relative())
+
+  // Already an absolute path, return unmodified
+  auto absUri = ignition::common::absPath(_uri);
+  if (absUri == _uri)
   {
     return _uri;
   }
-#endif
 
   // When SDF is loaded from a string instead of a file
   if ("data-string" == _filePath)
