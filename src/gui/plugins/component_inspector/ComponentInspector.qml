@@ -86,6 +86,21 @@ Rectangle {
   }
 
   /**
+   * Forward light changes to C++
+   */
+  function onLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                   _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                   _attRange, _attLinear, _attConstant, _attQuadratic,
+                   _castShadows, _directionX, _directionY, _directionZ,
+                   _innerAngle, _outerAngle, _falloff, _type) {
+    ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+                               _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
+                               _attRange, _attLinear, _attConstant, _attQuadratic,
+                               _castShadows, _directionX, _directionY, _directionZ,
+                               _innerAngle, _outerAngle, _falloff, _type)
+  }
+
+  /*
    * Forward physics changes to C++
    */
   function onPhysics(_stepSize, _realTimeFactor) {

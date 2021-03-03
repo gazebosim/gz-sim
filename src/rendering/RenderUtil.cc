@@ -42,6 +42,8 @@
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Pose3.hh>
 
+#include <ignition/msgs/Utility.hh>
+
 #include <ignition/rendering.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -54,12 +56,15 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
@@ -163,12 +168,32 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
+  /// \brief New particle emitter to be created. The elements in the tuple are:
+  /// [0] entity id, [1], particle emitter, [2] parent entity id
+  public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
+      newParticleEmitters;
+
+  /// \brief New particle emitter commands to be requested.
+  /// The map key and value are: entity id of the particle emitter to
+  /// update, and particle emitter msg
+  public: std::unordered_map<Entity, msgs::ParticleEmitter>
+      newParticleEmittersCmds;
+
+  /// \brief A list of entities with particle emitter cmds to remove
+  public: std::vector<Entity> particleCmdsToRemove;
+
   /// \brief Map of ids of entites to be removed and sim iteration when the
   /// remove request is received
   public: std::unordered_map<Entity, uint64_t> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
   public: std::unordered_map<Entity, math::Pose3d> entityPoses;
+
+  /// \brief A map of entity ids and light updates.
+  public: std::unordered_map<Entity, msgs::Light> entityLights;
+
+  /// \brief A map of entity ids and light updates.
+  public: std::vector<Entity> entityLightsCmdToDelete;
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
@@ -218,6 +243,36 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
           const std::string &)> createSensorCb;
 
+  /// \brief Light equality comparison function.
+  public: std::function<bool(const sdf::Light &, const sdf::Light &)>
+          lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
+            {
+             return
+                _a.Type() == _b.Type() &&
+                _a.Name() == _b.Name() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                math::equal(
+                  _a.AttenuationRange(), _b.AttenuationRange(), 1e-6) &&
+               math::equal(
+                 _a.LinearAttenuationFactor(),
+                 _b.LinearAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.ConstantAttenuationFactor(),
+                 _b.ConstantAttenuationFactor(),
+                 1e-6) &&
+               math::equal(
+                 _a.QuadraticAttenuationFactor(),
+                 _b.QuadraticAttenuationFactor(),
+                 1e-6) &&
+               _a.CastShadows() == _b.CastShadows() &&
+               _a.Direction() == _b.Direction() &&
+               _a.SpotInnerAngle() == _b.SpotInnerAngle() &&
+               _a.SpotOuterAngle() == _b.SpotOuterAngle() &&
+               math::equal(_a.SpotFalloff(), _b.SpotFalloff(), 1e-6);
+            }};
+
   /// \brief Callback function for removing sensors.
   /// The function arg is the entity id
   public: std::function<void(const gazebo::Entity &)> removeSensorCb;
@@ -262,6 +317,12 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of created collision entities and if they are currently
   /// visible
   public: std::map<Entity, bool> viewingCollisions;
+
+  /// \brief A map of entity id to thermal camera sensor configuration
+  /// properties. The elements in the tuple are:
+  /// <resolution, temperature range (min, max)>
+  public:std::unordered_map<Entity,
+      std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
 };
 
 //////////////////////////////////////////////////
@@ -276,6 +337,113 @@ RenderUtil::~RenderUtil() = default;
 rendering::ScenePtr RenderUtil::Scene() const
 {
   return this->dataPtr->scene;
+}
+
+//////////////////////////////////////////////////
+void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
+                           EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+
+  // Remove the commands from the entity
+  // these are commands from the last iteration. We want to make sure all
+  // systems have a chance to process them first before they are removed.
+  for (const auto &entity : this->dataPtr->particleCmdsToRemove)
+    _ecm.RemoveComponent<components::ParticleEmitterCmd>(entity);
+  this->dataPtr->particleCmdsToRemove.clear();
+
+  // particle emitters commands
+  _ecm.Each<components::ParticleEmitterCmd>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitterCmd *_emitterCmd) -> bool
+      {
+        // store emitter properties and update them in rendering thread
+        this->dataPtr->newParticleEmittersCmds[_entity] =
+        _emitterCmd->Data();
+
+        // update pose comp here
+        if (_emitterCmd->Data().has_pose())
+        {
+          auto poseComp = _ecm.Component<components::Pose>(_entity);
+          if (poseComp)
+            poseComp->Data() = msgs::Convert(_emitterCmd->Data().pose());
+        }
+        // Store the entity ids to clear outside of the `Each` loop.
+        this->dataPtr->particleCmdsToRemove.push_back(_entity);
+
+        return true;
+      });
+
+  // Update lights
+  auto olderEntitiesLightsCmdToDelete =
+    std::move(this->dataPtr->entityLightsCmdToDelete);
+  this->dataPtr->entityLightsCmdToDelete.clear();
+
+  _ecm.Each<components::LightCmd>(
+      [&](const Entity &_entity,
+          const components::LightCmd * _lightCmd) -> bool
+      {
+        this->dataPtr->entityLights[_entity] = _lightCmd->Data();
+        this->dataPtr->entityLightsCmdToDelete.push_back(_entity);
+
+        auto lightComp = _ecm.Component<components::Light>(_entity);
+        if (lightComp)
+        {
+          sdf::Light sdfLight = convert<sdf::Light>(_lightCmd->Data());
+          auto state = lightComp->SetData(sdfLight,
+              this->dataPtr->lightEql) ?
+              ComponentState::OneTimeChange :
+              ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Light::typeId, state);
+        }
+        return true;
+      });
+
+  for (const auto entity : olderEntitiesLightsCmdToDelete)
+  {
+    _ecm.RemoveComponent<components::LightCmd>(entity);
+  }
+
+  // Update thermal cameras
+  _ecm.Each<components::ThermalCamera>(
+      [&](const Entity &_entity,
+        const components::ThermalCamera *)->bool
+      {
+        // set properties from thermal sensor plugin
+        // Set defaults to invaid values so we know they have not been set.
+        // set UpdateECM(). We check for valid values first before setting
+        // these thermal camera properties..
+        double resolution = 0.0;
+        components::TemperatureRangeInfo range;
+        range.min = std::numeric_limits<double>::max();
+        range.max = 0;
+
+        // resolution
+        auto resolutionComp =
+          _ecm.Component<components::TemperatureLinearResolution>(_entity);
+        if (resolutionComp != nullptr)
+        {
+          resolution = resolutionComp->Data();
+          _ecm.RemoveComponent<components::TemperatureLinearResolution>(
+              _entity);
+        }
+
+        // min / max temp
+        auto tempRangeComp =
+          _ecm.Component<components::TemperatureRange>(_entity);
+        if (tempRangeComp != nullptr)
+        {
+          range = tempRangeComp->Data();
+          _ecm.RemoveComponent<components::TemperatureRange>(_entity);
+        }
+
+        if (resolutionComp || tempRangeComp)
+        {
+          this->dataPtr->thermalCameraData[_entity] =
+              std::make_tuple(resolution, range);
+        }
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -360,13 +528,18 @@ void RenderUtil::Update()
   auto newVisuals = std::move(this->dataPtr->newVisuals);
   auto newActors = std::move(this->dataPtr->newActors);
   auto newLights = std::move(this->dataPtr->newLights);
+  auto newParticleEmitters = std::move(this->dataPtr->newParticleEmitters);
+  auto newParticleEmittersCmds =
+    std::move(this->dataPtr->newParticleEmittersCmds);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
+  auto entityLights = std::move(this->dataPtr->entityLights);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
   auto actorTransforms = std::move(this->dataPtr->actorTransforms);
   auto actorAnimationData = std::move(this->dataPtr->actorAnimationData);
   auto entityTemp = std::move(this->dataPtr->entityTemp);
   auto newCollisionLinks = std::move(this->dataPtr->newCollisionLinks);
+  auto thermalCameraData = std::move(this->dataPtr->thermalCameraData);
 
   this->dataPtr->newScenes.clear();
   this->dataPtr->newModels.clear();
@@ -374,13 +547,17 @@ void RenderUtil::Update()
   this->dataPtr->newVisuals.clear();
   this->dataPtr->newActors.clear();
   this->dataPtr->newLights.clear();
+  this->dataPtr->newParticleEmitters.clear();
+  this->dataPtr->newParticleEmittersCmds.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
+  this->dataPtr->entityLights.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
   this->dataPtr->actorAnimationData.clear();
   this->dataPtr->entityTemp.clear();
   this->dataPtr->newCollisionLinks.clear();
+  this->dataPtr->thermalCameraData.clear();
 
   this->dataPtr->markerManager.Update();
 
@@ -474,6 +651,18 @@ void RenderUtil::Update()
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
     }
 
+    for (const auto &emitter : newParticleEmitters)
+    {
+      this->dataPtr->sceneManager.CreateParticleEmitter(
+          std::get<0>(emitter), std::get<1>(emitter), std::get<2>(emitter));
+    }
+
+    for (const auto &emitterCmd : newParticleEmittersCmds)
+    {
+      this->dataPtr->sceneManager.UpdateParticleEmitter(
+          emitterCmd.first, emitterCmd.second);
+    }
+
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
     {
       for (const auto &sensor : newSensors)
@@ -507,6 +696,95 @@ void RenderUtil::Update()
     }
   }
 
+  // update lights
+  {
+    IGN_PROFILE("RenderUtil::Update Lights");
+    for (const auto &light : entityLights) {
+      auto node = this->dataPtr->sceneManager.NodeById(light.first);
+      if (!node)
+        continue;
+      auto l = std::dynamic_pointer_cast<rendering::Light>(node);
+      if (l)
+      {
+        if (light.second.has_diffuse())
+        {
+          if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
+            l->SetDiffuseColor(msgs::Convert(light.second.diffuse()));
+        }
+        if (light.second.has_specular())
+        {
+          if (l->SpecularColor() != msgs::Convert(light.second.specular()))
+          {
+            l->SetSpecularColor(msgs::Convert(light.second.specular()));
+          }
+        }
+        if (!ignition::math::equal(
+            l->AttenuationRange(),
+            static_cast<double>(light.second.range())))
+        {
+          l->SetAttenuationRange(light.second.range());
+        }
+        if (!ignition::math::equal(
+            l->AttenuationLinear(),
+            static_cast<double>(light.second.attenuation_linear())))
+        {
+          l->SetAttenuationLinear(light.second.attenuation_linear());
+        }
+        if (!ignition::math::equal(
+            l->AttenuationConstant(),
+            static_cast<double>(light.second.attenuation_constant())))
+        {
+          l->SetAttenuationConstant(light.second.attenuation_constant());
+        }
+        if (!ignition::math::equal(
+            l->AttenuationQuadratic(),
+            static_cast<double>(light.second.attenuation_quadratic())))
+        {
+          l->SetAttenuationQuadratic(light.second.attenuation_quadratic());
+        }
+        if (l->CastShadows() != light.second.cast_shadows())
+          l->SetCastShadows(light.second.cast_shadows());
+        auto lDirectional =
+          std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
+        if (lDirectional)
+        {
+          if (light.second.has_direction())
+          {
+            if (lDirectional->Direction() !=
+                msgs::Convert(light.second.direction()))
+            {
+              lDirectional->SetDirection(
+                msgs::Convert(light.second.direction()));
+            }
+          }
+        }
+        auto lSpotLight =
+          std::dynamic_pointer_cast<rendering::SpotLight>(node);
+        if (lSpotLight)
+        {
+          if (light.second.has_direction())
+          {
+            if (lSpotLight->Direction() !=
+              msgs::Convert(light.second.direction()))
+            {
+              lSpotLight->SetDirection(
+                msgs::Convert(light.second.direction()));
+            }
+          }
+          if (lSpotLight->InnerAngle() != light.second.spot_inner_angle())
+            lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
+          if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
+            lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
+          if (!ignition::math::equal(
+              lSpotLight->Falloff(),
+              static_cast<double>(light.second.spot_falloff())))
+          {
+            lSpotLight->SetFalloff(light.second.spot_falloff());
+          }
+        }
+      }
+    }
+  }
   // update entities' pose
   {
     IGN_PROFILE("RenderUtil::Update Poses");
@@ -734,6 +1012,44 @@ void RenderUtil::Update()
       }
     }
   }
+
+  // update thermal camera
+  for (const auto &thermal : this->dataPtr->thermalCameraData)
+  {
+    Entity id = thermal.first;
+    rendering::ThermalCameraPtr camera =
+        std::dynamic_pointer_cast<rendering::ThermalCamera>(
+        this->dataPtr->sceneManager.NodeById(id));
+    if (camera)
+    {
+      double resolution = std::get<0>(thermal.second);
+
+      if (resolution > 0.0)
+      {
+        camera->SetLinearResolution(resolution);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature linear resolution."
+                << " Value must be greater than 0. Using the default value: "
+                << camera->LinearResolution() << ". " << std::endl;
+      }
+      double minTemp = std::get<1>(thermal.second).min.Kelvin();
+      double maxTemp = std::get<1>(thermal.second).max.Kelvin();
+      if (maxTemp >= minTemp)
+      {
+        camera->SetMinTemperature(minTemp);
+        camera->SetMaxTemperature(maxTemp);
+      }
+      else
+      {
+        ignwarn << "Unable to set thermal camera temperature range."
+                << "Max temperature must be greater or equal to min. "
+                << "Using the default values : [" << camera->MinTemperature()
+                << ", " << camera->MaxTemperature() << "]." << std::endl;
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -851,6 +1167,12 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
+          }
+
           if (auto temp = _ecm.Component<components::Temperature>(_entity))
           {
             // get the uniform temperature for the entity
@@ -917,6 +1239,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->entityCollisions[_entity] = _collElement->Data();
           this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+          return true;
+        });
+
+    // particle emitters
+    _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ParticleEmitter *_emitter,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newParticleEmitters.push_back(
+              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
           return true;
         });
 
@@ -1062,6 +1395,37 @@ void RenderUtilPrivate::CreateRenderingEntities(
             visual.SetMaterial(material->Data());
           }
 
+          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+          if (laserRetro != nullptr)
+          {
+            visual.SetLaserRetro(laserRetro->Data());
+          }
+
+          if (auto temp = _ecm.Component<components::Temperature>(_entity))
+          {
+            // get the uniform temperature for the entity
+            this->entityTemp[_entity] =
+              std::make_tuple<float, float, std::string>(
+                  temp->Data().Kelvin(), 0.0, "");
+          }
+          else
+          {
+            // entity doesn't have a uniform temperature. Check if it has
+            // a heat signature with an associated temperature range
+            auto heatSignature =
+              _ecm.Component<components::SourceFilePath>(_entity);
+            auto tempRange =
+               _ecm.Component<components::TemperatureRange>(_entity);
+            if (heatSignature && tempRange)
+            {
+              this->entityTemp[_entity] =
+                std::make_tuple<float, float, std::string>(
+                    tempRange->Data().min.Kelvin(),
+                    tempRange->Data().max.Kelvin(),
+                    std::string(heatSignature->Data()));
+            }
+          }
+
           this->newVisuals.push_back(
               std::make_tuple(_entity, visual, _parent->Data()));
           return true;
@@ -1103,6 +1467,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
         {
           this->entityCollisions[_entity] = _collElement->Data();
           this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+          return true;
+        });
+
+    // particle emitters
+    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::ParticleEmitter *_emitter,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newParticleEmitters.push_back(
+              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
           return true;
         });
 
@@ -1249,7 +1624,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
-  // lights
+  // update lights
   _ecm.Each<components::Light, components::Pose>(
       [&](const Entity &_entity,
         const components::Light *,
@@ -1342,6 +1717,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // lights
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // particle emitters
+  _ecm.EachRemoved<components::ParticleEmitter>(
+      [&](const Entity &_entity, const components::ParticleEmitter *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

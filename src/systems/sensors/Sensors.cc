@@ -413,6 +413,17 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
+void Sensors::Update(const UpdateInfo &_info,
+                     EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("Sensors::Update");
+  if (this->dataPtr->running && this->dataPtr->initialized)
+  {
+    this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+  }
+}
+
+//////////////////////////////////////////////////
 void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
@@ -585,6 +596,12 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     double tempRange =
         std::fabs(this->dataPtr->ambientTemperatureGradient * height);
     thermalSensor->SetAmbientTemperatureRange(tempRange);
+
+    ignmsg << "Setting ambient temperature to "
+           << this->dataPtr->ambientTemperature << " Kelvin and gradient to "
+           << this->dataPtr->ambientTemperatureGradient << " K/m. "
+           << "The resulting temperature range is: " << tempRange
+           << " Kelvin." << std::endl;
   }
 
   return sensor->Name();
@@ -592,6 +609,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
 
