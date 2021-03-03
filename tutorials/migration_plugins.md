@@ -75,7 +75,7 @@ class MyPlugin : public ModelPlugin
     this->link = _model->GetLink(linkName);
 
     // Register callback to be called at every iteration
-    this->connection = event::Events::ConnectWorldUpdateBegin(
+    this->updateConnection = event::Events::ConnectWorldUpdateBegin(
             std::bind(&MyPlugin::OnUpdate, this));
   }
 

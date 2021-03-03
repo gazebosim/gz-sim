@@ -7,8 +7,6 @@
     <plugin
       filename='ignition-gazebo-log-system'
       name='ignition::gazebo::systems::LogPlayback'>
-      <!-- Will be automatically changed in integration test. -->
-      <path>/tmp/log</path>
     </plugin>
   </world>
 </sdf>

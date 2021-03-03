@@ -45,9 +45,6 @@ Rectangle {
   function onAction(_action) {
     switch(_action) {
       // Handle custom actions
-      case "newWorld":
-        TmpIface.OnNewWorld();
-        break
       case "saveWorld":
         if (lastSaveSuccess)
           GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
@@ -57,8 +54,8 @@ Rectangle {
       case "saveWorldAs":
         sdfGenConfigDialog.open();
         break
-      case "loadWorld":
-        loadWorldDialog.open();
+      case "aboutDialog":
+        aboutDialog.open();
         break
       // Forward others to default drawer
       default:
@@ -71,16 +68,6 @@ Rectangle {
     id: drawerModel
 
     // Custom action which calls custom C++ code
-    /*ListElement {
-      title: "New world"
-      actionElement: "newWorld"
-      type: "world"
-    }
-    ListElement {
-      title: "Load world"
-      actionElement: "loadWorld"
-      type: "world"
-    }*/
     ListElement {
       title: "Save world"
       actionElement: "saveWorld"
@@ -111,6 +98,10 @@ Rectangle {
       actionElement: "styleSettings"
     }
     ListElement {
+      title: "About"
+      actionElement: "aboutDialog"
+    }
+    ListElement {
       title: "Quit"
       actionElement: "close"
     }
@@ -136,21 +127,6 @@ Rectangle {
   }
 
   /**
-   * Load world dialog
-   */
-  FileDialog {
-    id: loadWorldDialog
-    title: "Load world"
-    folder: shortcuts.home
-    nameFilters: [ "World files (*.world, *.sdf)" ]
-    selectMultiple: false
-    selectExisting: true
-    onAccepted: {
-      TmpIface.OnLoadWorld(fileUrl)
-    }
-  }
-
-  /**
    * Save world dialog
    */
   FileDialog {
@@ -162,6 +138,34 @@ Rectangle {
     selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
+    }
+  }
+
+  /**
+   * About dialog
+   */
+  Dialog {
+    id: aboutDialog
+    title: "Ignition Gazebo"
+
+    modal: true
+    focus: true
+    parent: ApplicationWindow.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    closePolicy: Popup.CloseOnEscape
+    standardButtons: StandardButton.Ok
+
+    Text {
+      anchors.fill: parent
+      id: aboutMessage
+      wrapMode: Text.Wrap
+      verticalAlignment: Text.AlignVCenter
+      color: Material.theme == Material.Light ? "black" : "white"
+      textFormat: Text.RichText
+      text: AboutDialogHandler.getVersionInformation()
+      onLinkActivated: AboutDialogHandler.openURL(link)
     }
   }
 

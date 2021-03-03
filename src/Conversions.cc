@@ -840,6 +840,28 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
 }
 
 //////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
+{
+  msgs::Physics out;
+  out.set_max_step_size(_in.MaxStepSize());
+  out.set_real_time_factor(_in.RealTimeFactor());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
+{
+  sdf::Physics out;
+  out.SetRealTimeFactor(_in.real_time_factor());
+  out.SetMaxStepSize(_in.max_step_size());
+  return out;
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 {
   switch (_sdf.Type())
