@@ -34,7 +34,7 @@ namespace systems
   class ThermalPrivate;
 
   /// \brief A thermal plugin that sets the temperature for the parent entity
-  class IGNITION_GAZEBO_VISIBLE Thermal:
+  class Thermal:
     public System,
     public ISystemConfigure
   {

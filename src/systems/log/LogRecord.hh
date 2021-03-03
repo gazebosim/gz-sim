@@ -36,7 +36,7 @@ namespace systems
 
   /// \class LogRecord LogRecord.hh ignition/gazebo/systems/log/LogRecord.hh
   /// \brief Log state recorder
-  class IGNITION_GAZEBO_VISIBLE LogRecord:
+  class LogRecord:
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate,

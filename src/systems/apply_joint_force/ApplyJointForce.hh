@@ -32,7 +32,7 @@ namespace systems
   class ApplyJointForcePrivate;
 
   /// \brief This system applies a force to the first axis of a specified joint.
-  class IGNITION_GAZEBO_VISIBLE ApplyJointForce
+  class ApplyJointForce
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
