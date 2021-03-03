@@ -293,12 +293,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Otherwise publish just selected components
+    // Otherwise publish just periodic change components
     else
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, {components::Pose::typeId});
+          {}, periodicComponents);
     }
 
     // Full state on demand
