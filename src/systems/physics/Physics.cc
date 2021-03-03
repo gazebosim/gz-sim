@@ -29,6 +29,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/SystemPaths.hh>
@@ -38,6 +40,7 @@
 #include <ignition/physics/config.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
+#include <ignition/physics/heightmap/HeightmapShape.hh>
 #include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
 #include <ignition/plugin/Loader.hh>
@@ -46,6 +49,7 @@
 
 // SDF
 #include <sdf/Collision.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Mesh.hh>
@@ -475,6 +479,27 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// that here they've been casted for `MeshFeatureList`.
   public: std::unordered_map<Entity, LinkMeshPtrType>
       entityLinkMeshMap;
+
+  //////////////////////////////////////////////////
+  // Heightmap
+
+  /// \brief Feature list for heightmaps.
+  /// Include MinimumFeatureList so created collision can be automatically
+  /// up-cast.
+  public: using HeightmapFeatureList = physics::FeatureList<
+            CollisionFeatureList,
+            physics::heightmap::AttachHeightmapShapeFeature>;
+
+  /// \brief Link type with heightmapes.
+  public: using LinkHeightmapPtrType = physics::LinkPtr<
+            physics::FeaturePolicy3d, HeightmapFeatureList>;
+
+  /// \brief A map between link entity ids in the ECM to Link Entities in
+  /// ign-physics, with heightmap feature.
+  /// All links on this map are also in `entityLinkMap`. The difference is
+  /// that here they've been casted for `HeightmapFeatureList`.
+  public: std::unordered_map<Entity, LinkHeightmapPtrType>
+      entityLinkHeightmapMap;
 
   //////////////////////////////////////////////////
   // Nested Models
@@ -939,6 +964,53 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
               *mesh,
               math::eigen3::convert(_pose->Data()),
               math::eigen3::convert(meshSdf->Scale()));
+        }
+        else if (_geom->Data().Type() == sdf::GeometryType::HEIGHTMAP)
+        {
+          auto linkHeightmapFeature = entityCast(_parent->Data(), linkPtrPhys,
+              this->entityLinkHeightmapMap);
+          if (!linkHeightmapFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to process heightmap geometries, but the physics"
+                     << " engine doesn't support feature "
+                     << "[AttachHeightmapShapeFeature]. Heightmapes will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return true;
+          }
+
+          auto heightmapSdf = _geom->Data().HeightmapShape();
+          if (nullptr == heightmapSdf)
+          {
+            ignwarn << "Heightmap geometry for collision [" << _name->Data()
+                    << "] missing heightmap shape." << std::endl;
+            return true;
+          }
+
+          auto fullPath = asFullPath(heightmapSdf->Uri(), heightmapSdf->FilePath());
+          if (fullPath.empty())
+          {
+            ignerr << "Heightmap geometry missing URI" << std::endl;
+            return true;
+          }
+
+          common::ImageHeightmap data;
+          if (data.Load(fullPath) < 0)
+          {
+            ignerr << "Failed to load heightmap image data from [" << fullPath
+                   << "]" << std::endl;
+            return true;
+          }
+
+          collisionPtrPhys = linkHeightmapFeature->AttachHeightmapShape(_name->Data(),
+              data,
+              math::eigen3::convert(_pose->Data()),
+              math::eigen3::convert(heightmapSdf->Size()),
+              heightmapSdf->Sampling());
         }
         else
         {
