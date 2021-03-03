@@ -191,5 +191,4 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
   ignition::math::Pose3d boxPoseCamera2Frame = boxPose - sensor2Pose;
   EXPECT_EQ(boxPoseCamera2Frame, ignition::msgs::Convert(img2.model(0).pose()));
   mutex.unlock();
-
 }
