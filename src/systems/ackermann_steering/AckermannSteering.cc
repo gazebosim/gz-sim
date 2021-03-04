@@ -27,6 +27,7 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/Quaternion.hh>
+#include <ignition/math/Angle.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -201,18 +202,18 @@ void AckermannSteering::Configure(const Entity &_entity,
 {
   this->dataPtr->model = Model(_entity);
 
-  // Get the canonical link
-  std::vector<Entity> links = _ecm.ChildrenByComponents(
-      this->dataPtr->model.Entity(), components::CanonicalLink());
-  if (!links.empty())
-    this->dataPtr->canonicalLink = Link(links[0]);
-
   if (!this->dataPtr->model.Valid(_ecm))
   {
     ignerr << "AckermannSteering plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
+
+  // Get the canonical link
+  std::vector<Entity> links = _ecm.ChildrenByComponents(
+      this->dataPtr->model.Entity(), components::CanonicalLink());
+  if (!links.empty())
+    this->dataPtr->canonicalLink = Link(links[0]);
 
   // Ugly, but needed because the sdf::Element::GetElement is not a const
   // function and _sdf is a const shared pointer to a const sdf::Element.
@@ -342,7 +343,8 @@ void AckermannSteering::Configure(const Entity &_entity,
   odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
       "/odometry");
   auto odomTopic = validTopic(odomTopics);
-  if (topic.empty()) {
+  if (topic.empty())
+  {
     ignerr << "AckermannSteering plugin received invalid model name "
            << "Failed to initialize." << std::endl;
     return;
@@ -611,12 +613,7 @@ void AckermannSteeringPrivate::UpdateOdometry(
        (rightPos->Data()[0] - this->odomOldRight));
   double deltaAngle = dist / radius;
   this->odomYaw += deltaAngle;
-  if (this->odomYaw > IGN_PI) {
-      this->odomYaw -= 2.0 * IGN_PI;
-  }
-  if (this->odomYaw < -IGN_PI) {
-      this->odomYaw += 2.0 * IGN_PI;
-  }
+  this->odomYaw = math::Angle(this->odomYaw).Normalized().Radian();
   this->odomX += dist * cos(this->odomYaw);
   this->odomY += dist * sin(this->odomYaw);
   auto odomTimeDiff = _info.simTime - this->lastOdomTime;
@@ -713,15 +710,18 @@ void AckermannSteeringPrivate::UpdateVelocity(
   // Convert the target velocities to joint velocities and angles
   double turningRadius = linVel / angVel;
   double minimumTurningRadius = this->wheelBase / sin(this->steeringLimit);
-  if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius)) {
-      turningRadius = minimumTurningRadius;
+  if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+  {
+    turningRadius = minimumTurningRadius;
   }
-  if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius)) {
-      turningRadius = -minimumTurningRadius;
+  if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+  {
+    turningRadius = -minimumTurningRadius;
   }
   // special case for angVel of zero
-  if (fabs(angVel) < 0.001) {
-      turningRadius = 1000000000.0;
+  if (fabs(angVel) < 0.001)
+  {
+    turningRadius = 1000000000.0;
   }
 
   double leftSteeringJointAngle =

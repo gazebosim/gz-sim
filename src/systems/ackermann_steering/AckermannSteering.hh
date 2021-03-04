@@ -75,6 +75,13 @@ namespace systems
   /// `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
+  /// '<min_velocity>': Minimum velocity [m/s], usually <= 0.
+  /// '<max_velocity>': Maximum velocity [m/s], usually >= 0.
+  /// '<min_acceleration>': Minimum acceleration [m/s^2], usually <= 0.
+  /// '<max_acceleration>': Maximum acceleration [m/s^2], usually >= 0.
+  /// '<min_jerk Minimum>': jerk [m/s^3], usually <= 0.
+  /// '<max_jerk Maximum>': jerk [m/s^3], usually >= 0.
+  ///
   /// `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command velocity messages. This element if optional, and the
   /// default value is `/model/{name_of_model}/cmd_vel`.
