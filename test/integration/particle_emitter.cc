@@ -99,27 +99,29 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                     msgs::Convert(_emitter->Data().pose()));
                 EXPECT_EQ(math::Vector3d(2, 2, 2),
                     msgs::Convert(_emitter->Data().size()));
-                EXPECT_DOUBLE_EQ(5.0, _emitter->Data().rate());
-                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().duration());
-                EXPECT_TRUE(_emitter->Data().emitting());
+                EXPECT_DOUBLE_EQ(5.0, _emitter->Data().rate().data());
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().duration().data());
+                EXPECT_TRUE(_emitter->Data().emitting().data());
                 EXPECT_EQ(math::Vector3d(3, 3, 3),
                     msgs::Convert(_emitter->Data().particle_size()));
-                EXPECT_DOUBLE_EQ(2.0, _emitter->Data().lifetime());
+                EXPECT_DOUBLE_EQ(2.0, _emitter->Data().lifetime().data());
                 // TODO(anyone) add material check here
-                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().min_velocity());
-                EXPECT_DOUBLE_EQ(20.0, _emitter->Data().max_velocity());
+                EXPECT_DOUBLE_EQ(10.0,
+                    _emitter->Data().min_velocity().data());
+                EXPECT_DOUBLE_EQ(20.0,
+                    _emitter->Data().max_velocity().data());
                 EXPECT_EQ(math::Color::Blue,
                     msgs::Convert(_emitter->Data().color_start()));
                 EXPECT_EQ(math::Color::Green,
                     msgs::Convert(_emitter->Data().color_end()));
-                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().scale_rate());
+                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().scale_rate().data());
 
                 // color range image is empty because the emitter system
                 // will not be able to find a file that does not exist
                 // TODO(anyone) this should return  "/path/to/dummy_image.png"
                 // and let rendering do the findFile instead
                 EXPECT_EQ(std::string(),
-                    _emitter->Data().color_range_image());
+                    _emitter->Data().color_range_image().data());
               }
               else
               {
@@ -135,21 +137,21 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                     msgs::Convert(_emitter->Data().pose()));
                 EXPECT_EQ(math::Vector3d(1, 1, 1),
                     msgs::Convert(_emitter->Data().size()));
-                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().rate());
-                EXPECT_DOUBLE_EQ(0.0, _emitter->Data().duration());
-                EXPECT_FALSE(_emitter->Data().emitting());
+                EXPECT_DOUBLE_EQ(10.0, _emitter->Data().rate().data());
+                EXPECT_DOUBLE_EQ(0.0, _emitter->Data().duration().data());
+                EXPECT_FALSE(_emitter->Data().emitting().data());
                 EXPECT_EQ(math::Vector3d(1, 1, 1),
                     msgs::Convert(_emitter->Data().particle_size()));
-                EXPECT_DOUBLE_EQ(5.0, _emitter->Data().lifetime());
+                EXPECT_DOUBLE_EQ(5.0, _emitter->Data().lifetime().data());
                 // TODO(anyone) add material check here
-                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().min_velocity());
-                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().max_velocity());
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().min_velocity().data());
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().max_velocity().data());
                 EXPECT_EQ(math::Color::White,
                     msgs::Convert(_emitter->Data().color_start()));
                 EXPECT_EQ(math::Color::White,
                     msgs::Convert(_emitter->Data().color_end()));
-                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().scale_rate());
-                EXPECT_EQ("", _emitter->Data().color_range_image());
+                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().scale_rate().data());
+                EXPECT_EQ("", _emitter->Data().color_range_image().data());
               }
 
               return true;
