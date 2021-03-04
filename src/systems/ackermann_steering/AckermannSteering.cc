@@ -324,7 +324,8 @@ void AckermannSteering::Configure(const Entity &_entity,
   }
   topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
-  if (topic.empty()) {
+  if (topic.empty())
+  {
     ignerr << "AckermannSteering plugin received invalid model name "
            << "Failed to initialize." << std::endl;
     return;
