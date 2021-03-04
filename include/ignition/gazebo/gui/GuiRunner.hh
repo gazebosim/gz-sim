@@ -47,6 +47,9 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   public: explicit IGN_DEPRECATED(5.0) GuiRunner(
       const std::string &_worldName);
 
+  /// \brief Destructor
+  public: ~GuiRunner() override;
+
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
   public slots: void OnPluginAdded(const QString &_objectName);
