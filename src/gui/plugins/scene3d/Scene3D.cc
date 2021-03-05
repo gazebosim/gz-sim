@@ -2721,21 +2721,20 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
+    Entity worldEntity;
     _ecm.Each<components::World, components::Name>(
-        [&](const Entity &/*_entity*/,
+        [&](const Entity &_entity,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
+          worldEntity = _entity;
           return true;
         });
 
     if (!this->dataPtr->worldName.empty())
     {
       renderWindow->SetWorldName(this->dataPtr->worldName);
-      auto worldEntity =
-        _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
-          components::World());
       auto renderEngineGuiComp =
         _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
       if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
