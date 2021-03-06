@@ -158,6 +158,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.spot_inner_angle()),
     QVariant(_data.spot_outer_angle()),
     QVariant(_data.spot_falloff()),
+    QVariant(_data.intensity()),
     QVariant(lightType)
   }), ComponentsModel::RoleNames().key("data"));
 }
@@ -814,7 +815,7 @@ void ComponentInspector::OnLight(
   double _attRange, double _attLinear, double _attConstant,
   double _attQuadratic, bool _castShadows, double _directionX,
   double _directionY, double _directionZ, double _innerAngle,
-  double _outerAngle, double _falloff, int _type)
+  double _outerAngle, double _falloff, double _intensity, int _type)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -835,6 +836,7 @@ void ComponentInspector::OnLight(
   req.set_attenuation_constant(_attConstant);
   req.set_attenuation_quadratic(_attQuadratic);
   req.set_cast_shadows(_castShadows);
+  req.set_intensity(_intensity);
   if (_type == 0)
     req.set_type(ignition::msgs::Light::POINT);
   else if (_type == 1)
