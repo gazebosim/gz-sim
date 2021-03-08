@@ -20,6 +20,7 @@
 #include <ignition/msgs/entity_factory.pb.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -59,8 +60,8 @@ class WheelSlipTest : public ::testing::Test
   protected: void SetUp() override
              {
                common::Console::SetVerbosity(4);
-               setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-                   (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+               ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+                   (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
              }
   /// \brief Class to hold parameters for tire tests.
   public: class WheelSlipState
