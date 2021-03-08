@@ -20,7 +20,6 @@
 #include <memory>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -37,7 +36,7 @@ namespace systems
   /// \class LogPlayback LogPlayback.hh
   ///   ignition/gazebo/systems/log/LogPlayback.hh
   /// \brief Log state playback
-  class IGNITION_GAZEBO_VISIBLE LogPlayback:
+  class LogPlayback:
     public System,
     public ISystemConfigure,
     public ISystemUpdate

@@ -21,6 +21,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
@@ -28,6 +29,8 @@
 
 #include <ignition/common/Animation.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/common/HeightmapData.hh>
+#include <ignition/common/ImageHeightmap.hh>
 #include <ignition/common/KeyFrame.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Skeleton.hh>
@@ -36,7 +39,10 @@
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Heightmap.hh>
+#include <ignition/rendering/HeightmapDescriptor.hh>
 #include <ignition/rendering/Light.hh>
+#include <ignition/rendering/LightVisual.hh>
 #include <ignition/rendering/Material.hh>
 #include <ignition/rendering/ParticleEmitter.hh>
 #include <ignition/rendering/Scene.hh>
@@ -299,7 +305,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
 
     // set material
     rendering::MaterialPtr material{nullptr};
-    if (_visual.Material())
+    if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+    {
+      // Heightmap's material is loaded together with it.
+    }
+    else if (_visual.Material())
     {
       material = this->LoadMaterial(*_visual.Material());
     }
@@ -464,6 +474,57 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }
+  else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath());
+    if (fullPath.empty())
+    {
+      ignerr << "Heightmap geometry missing URI" << std::endl;
+      return geom;
+    }
+
+    auto data = std::make_shared<common::ImageHeightmap>();
+    if (data->Load(fullPath) < 0)
+    {
+      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
+             << std::endl;
+      return geom;
+    }
+
+    rendering::HeightmapDescriptor descriptor;
+    descriptor.SetData(data);
+    descriptor.SetSize(_geom.HeightmapShape()->Size());
+    descriptor.SetSampling(_geom.HeightmapShape()->Sampling());
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->TextureCount(); ++i)
+    {
+      auto textureSdf = _geom.HeightmapShape()->TextureByIndex(i);
+      rendering::HeightmapTexture textureDesc;
+      textureDesc.SetSize(textureSdf->Size());
+      textureDesc.SetDiffuse(asFullPath(textureSdf->Diffuse(),
+          _geom.HeightmapShape()->FilePath()));
+      textureDesc.SetNormal(asFullPath(textureSdf->Normal(),
+          _geom.HeightmapShape()->FilePath()));
+      descriptor.AddTexture(textureDesc);
+    }
+
+    for (uint64_t i = 0; i < _geom.HeightmapShape()->BlendCount(); ++i)
+    {
+      auto blendSdf = _geom.HeightmapShape()->BlendByIndex(i);
+      rendering::HeightmapBlend blendDesc;
+      blendDesc.SetMinHeight(blendSdf->MinHeight());
+      blendDesc.SetFadeDistance(blendSdf->FadeDistance());
+      descriptor.AddBlend(blendDesc);
+    }
+
+    geom = this->dataPtr->scene->CreateHeightmap(descriptor);
+    if (nullptr == geom)
+    {
+      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+    }
+    scale = _geom.HeightmapShape()->Size();
+  }
   else
   {
     ignerr << "Unsupported geometry type" << std::endl;
@@ -485,6 +546,7 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+  material->SetRenderOrder(_material.RenderOrder());
 
   // parse PBR params
   const sdf::Pbr *pbr = _material.PbrMaterial();
@@ -582,6 +644,23 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
         material->SetEmissiveMap(fullPath);
       else
         ignerr << "Unable to find file [" << emissiveMap << "]\n";
+    }
+
+    // light map
+    std::string lightMap = workflow->LightMap();
+    if (!lightMap.empty())
+    {
+      std::string fullPath = common::findFile(
+          asFullPath(lightMap, _material.FilePath()));
+      if (!fullPath.empty())
+      {
+        unsigned int uvSet = workflow->LightMapTexCoordSet();
+        material->SetLightMap(fullPath, uvSet);
+      }
+      else
+      {
+        ignerr << "Unable to find file [" << lightMap << "]\n";
+      }
     }
   }
   return material;
@@ -894,6 +973,76 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
+    const sdf::Light &_light, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::VisualPtr();
+
+  if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  std::string name = _light.Name().empty() ? std::to_string(_id) :
+      _light.Name();
+
+  rendering::LightPtr lightParent;
+  auto it = this->dataPtr->lights.find(_parentId);
+  if (it != this->dataPtr->lights.end())
+  {
+    lightParent = it->second;
+  }
+  else
+  {
+    ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+           << "Not adding light visual with ID[" << _id
+           << "]  and name [" << name << "] to the rendering scene."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  name = lightParent->Name() +  "::" + name + "Visual";
+
+  if (this->dataPtr->scene->HasVisualName(name))
+  {
+    ignerr << "Visual: [" << name << "] already exists" << std::endl;
+    return rendering::VisualPtr();
+  }
+
+  rendering::LightVisualPtr lightVisual =
+    this->dataPtr->scene->CreateLightVisual(name);
+  if (_light.Type() == sdf::LightType::POINT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_POINT);
+  }
+  else if (_light.Type() == sdf::LightType::DIRECTIONAL)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_DIRECTIONAL);
+  }
+  else if (_light.Type() == sdf::LightType::SPOT)
+  {
+    lightVisual->SetType(rendering::LightVisualType::LVT_SPOT);
+    lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
+    lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
+  }
+  rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
+    lightVisual);
+  lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  lightVis->SetUserData("pause-update", static_cast<int>(0));
+  this->dataPtr->visuals[_id] = lightVis;
+
+  if (lightParent)
+  {
+    lightVis->RemoveParent();
+    lightParent->AddChild(lightVis);
+  }
+  return lightVis;
+}
+
+/////////////////////////////////////////////////
 rendering::LightPtr SceneManager::CreateLight(Entity _id,
     const sdf::Light &_light, Entity _parentId)
 {
@@ -966,11 +1115,14 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   light->SetAttenuationRange(_light.AttenuationRange());
 
   light->SetCastShadows(_light.CastShadows());
+  light->SetIntensity(_light.Intensity());
 
   this->dataPtr->lights[_id] = light;
 
   if (parent)
     parent->AddChild(light);
+  else
+    this->dataPtr->scene->RootVisual()->AddChild(light);
 
   return light;
 }

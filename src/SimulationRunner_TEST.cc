@@ -19,6 +19,7 @@
 #include <tinyxml2.h>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -85,7 +86,7 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
   {
     common::Console::SetVerbosity(4);
 
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
       common::joinPaths(PROJECT_BINARY_PATH, "lib"));
   }
 };
@@ -515,6 +516,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
+      EXPECT_DOUBLE_EQ(1.0, _light->Data().Intensity());
       EXPECT_EQ(ignition::math::Vector3d(-0.5, 0.1, -0.9),
           _light->Data().Direction());
       return true;
@@ -1054,6 +1056,16 @@ TEST_P(SimulationRunnerTest, Time)
     EXPECT_EQ(clockMsgs[i].mutable_sim()->nsec(),
         rootClockMsgs[i].mutable_sim()->nsec());
   }
+
+  // Test the run to simulation time feature.
+  runner.SetPaused(true);
+  auto currentSimTime = runner.CurrentInfo().simTime;
+  runner.SetRunToSimTime(currentSimTime + std::chrono::seconds(4));
+  runner.SetPaused(false);
+  runner.Run((std::chrono::seconds(4) / runner.CurrentInfo().dt));
+  EXPECT_TRUE(runner.Paused());
+  EXPECT_EQ((currentSimTime + std::chrono::seconds(4)).count(),
+      runner.CurrentInfo().simTime.count());
 }
 
 /////////////////////////////////////////////////

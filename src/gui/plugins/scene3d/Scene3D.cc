@@ -56,6 +56,8 @@
 
 #include <ignition/transport/Node.hh>
 
+#include <ignition/utils/SuppressWarning.hh>
+
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/Application.hh>
@@ -286,7 +288,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
 
     /// \brief The visual generated from the spawnSdfString / spawnSdfPath
-    public: rendering::VisualPtr spawnPreview = nullptr;
+    public: rendering::NodePtr spawnPreview = nullptr;
 
     /// \brief A record of the ids currently used by the entity spawner
     /// for easy deletion of visuals later
@@ -737,7 +739,7 @@ void IgnRenderer::Render()
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
-        std::vector<Entity> selectedEntities =
+        const std::vector<Entity> &selectedEntities =
           this->dataPtr->renderUtil.SelectedEntities();
 
         // Look at the origin if no entities are selected
@@ -842,11 +844,12 @@ void IgnRenderer::Render()
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
 
-    // This will be deprecated on v5 and removed on v6
+    IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
     ignition::gazebo::gui::events::Render oldEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &oldEvent);
+    IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   }
 
   // only has an effect in video recording lockstep mode
@@ -860,56 +863,89 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
 
-  if (!_sdf.ModelCount())
+  if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
     ignwarn << "Only model entities can be spawned at the moment." << std::endl;
     this->TerminateSpawnPreview();
     return false;
   }
 
-  // Only preview first model
-  sdf::Model model = *(_sdf.ModelByIndex(0));
-  this->dataPtr->spawnPreviewPose = model.RawPose();
-  model.SetName(ignition::common::Uuid().String());
-  Entity modelId = this->UniqueId();
-  if (!modelId)
+  if (_sdf.Model())
   {
-    this->TerminateSpawnPreview();
-    return false;
-  }
-  this->dataPtr->spawnPreview =
-    this->dataPtr->renderUtil.SceneManager().CreateModel(
-        modelId, model,
-        this->dataPtr->renderUtil.SceneManager().WorldId());
-
-  this->dataPtr->previewIds.push_back(modelId);
-  for (auto j = 0u; j < model.LinkCount(); j++)
-  {
-    sdf::Link link = *(model.LinkByIndex(j));
-    link.SetName(ignition::common::Uuid().String());
-    Entity linkId = this->UniqueId();
-    if (!linkId)
+    // Only preview first model
+    sdf::Model model = *(_sdf.Model());
+    this->dataPtr->spawnPreviewPose = model.RawPose();
+    model.SetName(ignition::common::Uuid().String());
+    Entity modelId = this->UniqueId();
+    if (!modelId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    this->dataPtr->renderUtil.SceneManager().CreateLink(
-        linkId, link, modelId);
-    this->dataPtr->previewIds.push_back(linkId);
-    for (auto k = 0u; k < link.VisualCount(); k++)
+    this->dataPtr->spawnPreview =
+      this->dataPtr->renderUtil.SceneManager().CreateModel(
+          modelId, model,
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+
+    this->dataPtr->previewIds.push_back(modelId);
+    for (auto j = 0u; j < model.LinkCount(); j++)
     {
-     sdf::Visual visual = *(link.VisualByIndex(k));
-     visual.SetName(ignition::common::Uuid().String());
-     Entity visualId = this->UniqueId();
-     if (!visualId)
-     {
-       this->TerminateSpawnPreview();
-       return false;
-     }
-     this->dataPtr->renderUtil.SceneManager().CreateVisual(
-         visualId, visual, linkId);
-     this->dataPtr->previewIds.push_back(visualId);
+      sdf::Link link = *(model.LinkByIndex(j));
+      link.SetName(ignition::common::Uuid().String());
+      Entity linkId = this->UniqueId();
+      if (!linkId)
+      {
+        this->TerminateSpawnPreview();
+        return false;
+      }
+      this->dataPtr->renderUtil.SceneManager().CreateLink(
+          linkId, link, modelId);
+      this->dataPtr->previewIds.push_back(linkId);
+      for (auto k = 0u; k < link.VisualCount(); k++)
+      {
+       sdf::Visual visual = *(link.VisualByIndex(k));
+       visual.SetName(ignition::common::Uuid().String());
+       Entity visualId = this->UniqueId();
+       if (!visualId)
+       {
+         this->TerminateSpawnPreview();
+         return false;
+       }
+       this->dataPtr->renderUtil.SceneManager().CreateVisual(
+           visualId, visual, linkId);
+       this->dataPtr->previewIds.push_back(visualId);
+      }
     }
+  }
+  else if (_sdf.Light())
+  {
+    // Only preview first model
+    sdf::Light light = *(_sdf.Light());
+    this->dataPtr->spawnPreviewPose = light.RawPose();
+    light.SetName(ignition::common::Uuid().String());
+    Entity lightVisualId = this->UniqueId();
+    if (!lightVisualId)
+    {
+      this->TerminateSpawnPreview();
+      return false;
+    }
+    Entity lightId = this->UniqueId();
+    if (!lightId)
+    {
+      this->TerminateSpawnPreview();
+      return false;
+    }
+    this->dataPtr->spawnPreview =
+      this->dataPtr->renderUtil.SceneManager().CreateLight(
+          lightId, light,
+          this->dataPtr->renderUtil.SceneManager().WorldId());
+    this->dataPtr->renderUtil.SceneManager().CreateLightVisual(
+        lightVisualId, light, lightId);
+
+
+
+    this->dataPtr->previewIds.push_back(lightId);
+    this->dataPtr->previewIds.push_back(lightVisualId);
   }
   return true;
 }
@@ -1258,7 +1294,7 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 
   if (_sendEvent)
   {
-    gui::events::DeselectAllEntities deselectEvent;
+    ignition::gazebo::gui::events::DeselectAllEntities deselectEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &deselectEvent);
@@ -1855,7 +1891,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   // Notify other widgets of the currently selected entities
   if (_sendEvent || deselectedAll)
   {
-    gui::events::EntitiesSelected selectEvent(
+    ignition::gazebo::gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -2515,6 +2551,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       this->dataPtr->renderUtil->SetBackgroundColor(bgColor);
     }
 
+    if (auto elem = _pluginElem->FirstChildElement("sky"))
+    {
+      this->dataPtr->renderUtil->SetSkyEnabled(true);
+      if (!elem->NoChildren())
+        ignwarn << "Child elements of <sky> are not supported yet" << std::endl;
+    }
+
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
     {
       math::Pose3d pose;
@@ -2954,7 +2997,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
       ignition::gazebo::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gui::events::EntitiesSelected *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        _event);
     if (selectedEvent)
     {
       for (const auto &entity : selectedEvent->Data())
@@ -2987,7 +3031,8 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
            ignition::gazebo::gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
-        reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
+        reinterpret_cast<ignition::gazebo::gui::events::DeselectAllEntities *>(
+        _event);
 
     // If the event is from the user, update render util state
     if (deselectEvent && deselectEvent->FromUser())
@@ -2997,33 +3042,33 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SnapIntervals::kType)
+      ignition::gui::events::SnapIntervals::kType)
   {
-    auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
+    auto snapEvent = reinterpret_cast<ignition::gui::events::SnapIntervals *>(
+        _event);
     if (snapEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetXYZSnap(snapEvent->XYZ());
-      renderWindow->SetRPYSnap(snapEvent->RPY());
+      renderWindow->SetXYZSnap(snapEvent->Position());
+      renderWindow->SetRPYSnap(snapEvent->Rotation());
       renderWindow->SetScaleSnap(snapEvent->Scale());
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewModel::kType)
+      ignition::gui::events::SpawnFromDescription::kType)
   {
-    auto spawnPreviewEvent =
-      reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
+    auto spawnPreviewEvent = reinterpret_cast<
+        ignition::gui::events::SpawnFromDescription *>(_event);
     if (spawnPreviewEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
-      renderWindow->SetModel(spawnPreviewEvent->ModelSdfString());
+      renderWindow->SetModel(spawnPreviewEvent->Description());
     }
   }
-  else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewPath::kType)
+  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<gui::events::SpawnPreviewPath *>(_event);
+      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
     if (spawnPreviewPathEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();

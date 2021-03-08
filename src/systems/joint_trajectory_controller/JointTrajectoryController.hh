@@ -30,7 +30,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class IGNITION_GAZEBO_HIDDEN JointTrajectoryControllerPrivate;
+  class JointTrajectoryControllerPrivate;
 
   /// \brief Joint trajectory controller, which can be attached to a model with
   /// reference to one or more 1-axis joints in order to follow a trajectory.
@@ -131,7 +131,7 @@ namespace systems
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is 0 (no offset).
-  class IGNITION_GAZEBO_VISIBLE JointTrajectoryController
+  class JointTrajectoryController
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

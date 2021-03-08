@@ -1351,22 +1351,10 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        // Note on merging forward:
-        // `has_one_time_component_changes` field is available in Edifice so
-        // this workaround can be removed
-        auto flag = ComponentState::PeriodicChange;
-        for (int i = 0; i < _stateMsg.header().data_size(); ++i)
-        {
-          if (_stateMsg.header().data(i).key() ==
-              "has_one_time_component_changes")
-          {
-            int v = stoi(_stateMsg.header().data(i).value(0));
-            if (v)
-              flag = ComponentState::OneTimeChange;
-            break;
-          }
-        }
-        this->SetChanged(entity, compIter.first, flag);
+        this->SetChanged(entity, compIter.first,
+            _stateMsg.has_one_time_component_changes() ?
+            ComponentState::OneTimeChange :
+            ComponentState::PeriodicChange);
       }
     }
   }

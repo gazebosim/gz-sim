@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -83,7 +84,7 @@ namespace systems
   /// `<topic_statistics>`: If true, then topic statistics are enabled on
   /// `<topic>` and error messages will be generated when messages are
   /// dropped. Default to false.
-  class IGNITION_GAZEBO_VISIBLE Breadcrumbs
+  class Breadcrumbs
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

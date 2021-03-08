@@ -40,7 +40,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/rendering/Export.hh>
 
 namespace ignition
 {
@@ -86,7 +86,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   };
 
   /// \brief Scene manager class for loading and managing objects in the scene
-  class IGNITION_GAZEBO_VISIBLE SceneManager
+  class IGNITION_GAZEBO_RENDERING_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();
@@ -161,6 +161,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(Entity _id,
+        const sdf::Light &_light, Entity _parentId);
+
+    /// \brief Create a light
+    /// \param[in] _id Unique light id
+    /// \param[in] _light Light sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Light object created from the sdf dom
+    public: rendering::VisualPtr CreateLightVisual(Entity _id,
         const sdf::Light &_light, Entity _parentId);
 
     /// \brief Create a particle emitter.

@@ -9,6 +9,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 * \subpage terminology "Terminology": List of terms used across the documentation.
 * \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage rendering_plugins "Rendering plugins": Write plugins that use Ignition Rendering on the server and client.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 * \subpage resources "Finding resources": The different ways in which Ignition looks for files.

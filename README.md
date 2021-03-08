@@ -122,8 +122,10 @@ installing Ignition Gazebo from source.
 2. Install Ignition Gazebo
 
     ```
-    sudo apt-get install libignition-gazebo4-dev
+    sudo apt-get install libignition-gazebo<#>-dev
     ```
+
+    Where `<#>` is the desired version number, like 3 or 4.
 
 ## Source Install
 
@@ -158,7 +160,7 @@ for dependency installation instructions for each supported operating system.
 2. Install package dependencies:
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo4
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b main
     ```
 
     ```
@@ -186,7 +188,7 @@ for dependency installation instructions for each supported operating system.
 3. Clone the repository if you haven't already.
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo4
+    git clone https://github.com/ignitionrobotics/ign-gazebo -b main
     ```
 
 4. Configure and build.
@@ -233,9 +235,9 @@ line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.ignition/tools/configs -p
 cd ~/.ignition/tools/configs/
-ln -s /usr/local/share/ignition/fuel4.yaml .
-ln -s /usr/local/share/ignition/transport9.yaml .
-ln -s /usr/local/share/ignition/transportlog9.yaml .
+ln -s /usr/local/share/ignition/fuel6.yaml .
+ln -s /usr/local/share/ignition/transport10.yaml .
+ln -s /usr/local/share/ignition/transportlog10.yaml .
 ...
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```

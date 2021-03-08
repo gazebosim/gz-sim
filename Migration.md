@@ -5,6 +5,30 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 4.x to 5.x
+
+* `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
+  `const std::vector<Entity> &` instead of forcing a copy. The calling code
+  should create a copy if it needs to modify the vector in some way.
+
+* Default generated topic name for thermal cameras now includes the `/image`
+  suffix. The `camera_info` topic has also been fixed to include the sensor
+  name in the generated topic string. The naming scheme should be consistent
+  with a normal camera sensor. Topic changes:
+    * `/<prefix>/<sensor_name>` -> `/<prefix>/<sensor_name>/image`
+    * `/<prefix>/camera_info` -> `/<prefix>/<sensor_name>/camera_info`
+
+* Various `GuiEvent`s were deprecated in favor of their Ignition GUI
+  equivalents.
+  * **Deprecated** `ignition::gazebo::gui::SnapIntervals`
+  * **Replacement** `ignition::gui::SnapIntervals`
+  * **Deprecated** `ignition::gazebo::gui::Render`
+  * **Replacement** `ignition::gui::Render`
+  * **Deprecated** `ignition::gazebo::gui::SpawnPreviewModel`
+  * **Replacement** `ignition::gui::SpawnFromDescription`
+  * **Deprecated** `ignition::gazebo::gui::SnapPreviewPath`
+  * **Replacement** `ignition::gui::SnapFromPath`
+
 ## Ignition Gazebo 4.0.0 to 4.X.X
 
 * Ignition Gazebo 4.0.0 enabled double sided material by default but this
@@ -74,4 +98,3 @@ ignition-gazebo. To use the gui component downstream, update the find package
 call in cmake to request for the component, e.g.
 `ign_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
 `libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`
-

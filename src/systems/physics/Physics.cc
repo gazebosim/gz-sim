@@ -122,6 +122,7 @@
 #include "EntityFeatureMap.hh"
 
 using namespace ignition;
+using namespace ignition::gazebo;
 using namespace ignition::gazebo::systems;
 using namespace ignition::gazebo::systems::physics_system;
 namespace components = ignition::gazebo::components;

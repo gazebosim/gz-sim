@@ -20,28 +20,49 @@
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/transport/Node.hh>
 
 // Include all components so they have first-class support
 #include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-/// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
-/// \brief Flag used to end the gUpdateThread.
-static bool gRunning = false;
+/////////////////////////////////////////////////
+class ignition::gazebo::GuiRunner::Implementation
+{
+  /// \brief Update the plugins.
+  public: void UpdatePlugins();
 
-/// \brief Mutex to protect the plugin update.
-static std::mutex gUpdateMutex;
+  /// \brief Entity-component manager.
+  public: gazebo::EntityComponentManager ecm;
 
-/// \brief The plugin update thread..
-static std::thread gUpdateThread;
+  /// \brief Transport node.
+  public: transport::Node node{};
+
+  /// \brief Topic to request state
+  public: std::string stateTopic;
+
+  /// \brief Latest update info
+  public: UpdateInfo updateInfo;
+
+  /// \brief Flag used to end the updateThread.
+  public: bool running{false};
+
+  /// \brief Mutex to protect the plugin update.
+  public: std::mutex updateMutex;
+
+  /// \brief The plugin update thread..
+  public: std::thread updateThread;
+};
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
+  : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
@@ -50,9 +71,9 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
 
-  this->stateTopic = transport::TopicUtils::AsValidTopic("/world/" +
+  this->dataPtr->stateTopic = transport::TopicUtils::AsValidTopic("/world/" +
       _worldName + "/state");
-  if (this->stateTopic.empty())
+  if (this->dataPtr->stateTopic.empty())
   {
     ignerr << "Failed to generate valid topic for world [" << _worldName << "]"
            << std::endl;
@@ -64,21 +85,21 @@ GuiRunner::GuiRunner(const std::string &_worldName)
     return fuel_tools::fetchResource(_uri.Str());
   });
 
-  igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
-         << std::endl;
+  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic
+         << "]..." << std::endl;
 
   this->RequestState();
 
   // Periodically update the plugins
   // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
-  gRunning = true;
-  gUpdateThread = std::thread([&]()
+  this->dataPtr->running = true;
+  this->dataPtr->updateThread = std::thread([&]()
   {
-    while (gRunning)
+    while (this->dataPtr->running)
     {
       {
-        std::lock_guard<std::mutex> lock(gUpdateMutex);
-        this->UpdatePlugins();
+        std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+        this->dataPtr->UpdatePlugins();
       }
       // This is roughly a 30Hz update rate.
       std::this_thread::sleep_for(std::chrono::milliseconds(33));
@@ -89,9 +110,9 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 /////////////////////////////////////////////////
 GuiRunner::~GuiRunner()
 {
-  gRunning = false;
-  if (gUpdateThread.joinable())
-    gUpdateThread.join();
+  this->dataPtr->running = false;
+  if (this->dataPtr->updateThread.joinable())
+    this->dataPtr->updateThread.join();
 }
 
 /////////////////////////////////////////////////
@@ -100,7 +121,7 @@ void GuiRunner::RequestState()
   // set up service for async state response callback
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =
-      this->node.Options().NameSpace() + "/" + id + "/state_async";
+      this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
   if (reqSrvValid.empty())
   {
@@ -110,11 +131,12 @@ void GuiRunner::RequestState()
   }
   reqSrv = reqSrvValid;
 
-  auto advertised = this->node.AdvertisedServices();
+  auto advertised = this->dataPtr->node.AdvertisedServices();
   if (std::find(advertised.begin(), advertised.end(), reqSrv) ==
       advertised.end())
   {
-    if (!this->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this))
+    if (!this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService,
+        this))
     {
       ignerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
     }
@@ -124,7 +146,7 @@ void GuiRunner::RequestState()
   req.set_data(reqSrv);
 
   // send async state request
-  this->node.Request(this->stateTopic + "_async", req);
+  this->dataPtr->node.Request(this->dataPtr->stateTopic + "_async", req);
 }
 
 /////////////////////////////////////////////////
@@ -150,12 +172,15 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // and in RequestState()
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =
-      this->node.Options().NameSpace() + "/" + id + "/state_async";
-  this->node.UnadvertiseSrv(reqSrv);
+      this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
+  this->dataPtr->node.UnadvertiseSrv(reqSrv);
 
   // Only subscribe to periodic updates after receiving initial state
-  if (this->node.SubscribedTopics().empty())
-    this->node.Subscribe(this->stateTopic, &GuiRunner::OnState, this);
+  if (this->dataPtr->node.SubscribedTopics().empty())
+  {
+    this->dataPtr->node.Subscribe(this->dataPtr->stateTopic,
+        &GuiRunner::OnState, this);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -164,18 +189,18 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
 
-  std::lock_guard<std::mutex> lock(gUpdateMutex);
-  this->ecm.SetState(_msg.state());
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
-  this->updateInfo = convert<UpdateInfo>(_msg.stats());
-  this->UpdatePlugins();
-  this->ecm.ClearNewlyCreatedEntities();
-  this->ecm.ProcessRemoveEntityRequests();
+  this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
+  this->dataPtr->UpdatePlugins();
+  this->dataPtr->ecm.ClearNewlyCreatedEntities();
+  this->dataPtr->ecm.ProcessRemoveEntityRequests();
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::UpdatePlugins()
+void GuiRunner::Implementation::UpdatePlugins()
 {
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)

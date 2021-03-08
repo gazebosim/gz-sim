@@ -151,7 +151,7 @@ TEST_F(ThermalSensorTest,
   // Run server
   server.Run(true, 1, false);
 
- // verify camera properties from sdf
+  // verify camera properties from sdf
   unsigned int width = 320u;
   unsigned int height = 240u;
   EXPECT_EQ("thermal_camera_invalid", name);
@@ -180,7 +180,7 @@ TEST_F(ThermalSensorTest,
   EXPECT_DOUBLE_EQ(800.0, entityTemp[cylinderVisual].Kelvin());
 
   // Run server
-  server.Run(true, 10, false);
+  server.Run(true, 35, false);
 
   // wait for image
   bool received = false;
@@ -195,6 +195,7 @@ TEST_F(ThermalSensorTest,
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_TRUE(received);
+  ASSERT_NE(nullptr, g_image);
 
   // check temperature in actual image output
   {

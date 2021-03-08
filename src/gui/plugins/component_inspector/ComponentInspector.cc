@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
+#include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
@@ -555,6 +556,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (this->dataPtr->entity == this->dataPtr->worldEntity)
         this->dataPtr->worldName = comp->Data();
       this->dataPtr->entityName = comp->Data();
+    }
+    else if (typeId == components::LightType::typeId)
+    {
+      auto comp = _ecm.Component<components::LightType>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::ParentEntity::typeId)
     {

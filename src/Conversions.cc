@@ -22,6 +22,7 @@
 #include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/heightmapgeom.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/actor.pb.h>
@@ -48,6 +49,7 @@
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Heightmap.hh>
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
@@ -58,15 +60,18 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
+#include <algorithm>
 #include <string>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
 {
   msgs::Entity_Type out = msgs::Entity_Type_NONE;
@@ -104,6 +109,7 @@ msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
 {
   math::Pose3d out(_in.position().x(),
@@ -120,6 +126,7 @@ math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
@@ -132,6 +139,7 @@ msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 {
   sdf::Collision out;
@@ -143,6 +151,7 @@ sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
@@ -182,6 +191,39 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
   }
+  else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
+  {
+    auto heightmapSdf = _in.HeightmapShape();
+
+    out.set_type(msgs::Geometry::HEIGHTMAP);
+    auto heightmapMsg = out.mutable_heightmap();
+
+    heightmapMsg->set_filename(asFullPath(heightmapSdf->Uri(),
+        heightmapSdf->FilePath()));
+    msgs::Set(heightmapMsg->mutable_size(), heightmapSdf->Size());
+    msgs::Set(heightmapMsg->mutable_origin(), heightmapSdf->Position());
+    heightmapMsg->set_use_terrain_paging(heightmapSdf->UseTerrainPaging());
+    heightmapMsg->set_sampling(heightmapSdf->Sampling());
+
+    for (auto i = 0u; i < heightmapSdf->TextureCount(); ++i)
+    {
+      auto textureSdf = heightmapSdf->TextureByIndex(i);
+      auto textureMsg = heightmapMsg->add_texture();
+      textureMsg->set_size(textureSdf->Size());
+      textureMsg->set_diffuse(asFullPath(textureSdf->Diffuse(),
+          heightmapSdf->FilePath()));
+      textureMsg->set_normal(asFullPath(textureSdf->Normal(),
+          heightmapSdf->FilePath()));
+    }
+
+    for (auto i = 0u; i < heightmapSdf->BlendCount(); ++i)
+    {
+      auto blendSdf = heightmapSdf->BlendByIndex(i);
+      auto blendMsg = heightmapMsg->add_blend();
+      blendMsg->set_min_height(blendSdf->MinHeight());
+      blendMsg->set_fade_dist(blendSdf->FadeDistance());
+    }
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -192,6 +234,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 {
   sdf::Geometry out;
@@ -245,6 +288,38 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
     out.SetMeshShape(meshShape);
   }
+  else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
+  {
+    out.SetType(sdf::GeometryType::HEIGHTMAP);
+    sdf::Heightmap heightmapShape;
+
+    heightmapShape.SetUri(_in.heightmap().filename());
+    heightmapShape.SetSize(msgs::Convert(_in.heightmap().size()));
+    heightmapShape.SetPosition(msgs::Convert(_in.heightmap().origin()));
+    heightmapShape.SetUseTerrainPaging(_in.heightmap().use_terrain_paging());
+    heightmapShape.SetSampling(_in.heightmap().sampling());
+
+    for (int i = 0; i < _in.heightmap().texture_size(); ++i)
+    {
+      auto textureMsg = _in.heightmap().texture(i);
+      sdf::HeightmapTexture textureSdf;
+      textureSdf.SetSize(textureMsg.size());
+      textureSdf.SetDiffuse(textureMsg.diffuse());
+      textureSdf.SetNormal(textureMsg.normal());
+      heightmapShape.AddTexture(textureSdf);
+    }
+
+    for (int i = 0; i < _in.heightmap().blend_size(); ++i)
+    {
+      auto blendMsg = _in.heightmap().blend(i);
+      sdf::HeightmapBlend blendSdf;
+      blendSdf.SetMinHeight(blendMsg.min_height());
+      blendSdf.SetFadeDistance(blendMsg.fade_dist());
+      heightmapShape.AddBlend(blendSdf);
+    }
+
+    out.SetHeightmapShape(heightmapShape);
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.type())
@@ -255,6 +330,7 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 {
   msgs::Material out;
@@ -262,19 +338,15 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
   msgs::Set(out.mutable_emissive(), _in.Emissive());
+  out.set_render_order(_in.RenderOrder());
   out.set_lighting(_in.Lighting());
+  out.set_double_sided(_in.DoubleSided());
 
-  // todo(anyone) add double_sided field to msgs::Material
-  auto data = out.mutable_header()->add_data();
-  data->set_key("double_sided");
-  std::string *value = data->add_value();
-  *value = std::to_string(_in.DoubleSided());
-
-  sdf::Pbr *pbr = _in.PbrMaterial();
+  auto pbr = _in.PbrMaterial();
   if (pbr)
   {
-    msgs::Material::PBR *pbrMsg = out.mutable_pbr();
-    sdf::PbrWorkflow *workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    auto pbrMsg = out.mutable_pbr();
+    auto workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
     if (workflow)
       pbrMsg->set_type(msgs::Material_PBR_WorkflowType_METAL);
     else
@@ -307,6 +379,9 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
           asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
       pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
           asFullPath(workflow->EmissiveMap(), _in.FilePath()));
+      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" :
+          asFullPath(workflow->LightMap(), _in.FilePath()));
+      pbrMsg->set_light_map_texcoord_set(workflow->LightMapTexCoordSet());
     }
   }
   return out;
@@ -314,6 +389,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
 {
   sdf::Material out;
@@ -321,15 +397,9 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetDiffuse(msgs::Convert(_in.diffuse()));
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
+  out.SetRenderOrder(_in.render_order());
   out.SetLighting(_in.lighting());
-
-  // todo(anyone) add double_sided field to msgs::Material
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    const auto &data = _in.header().data(i);
-    if (data.key() == "double_sided" && data.value_size() > 0)
-      out.SetDoubleSided(math::parseInt(data.value(0)));
-  }
+  out.SetDoubleSided(_in.double_sided());
 
   if (_in.has_pbr())
   {
@@ -352,6 +422,8 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
     workflow.SetEnvironmentMap(pbrMsg.environment_map());
     workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
     workflow.SetEmissiveMap(pbrMsg.emissive_map());
+    workflow.SetLightMap(pbrMsg.light_map(), pbrMsg.light_map_texcoord_set());
+
     pbr.SetWorkflow(workflow.Type(), workflow);
     out.SetPbrMaterial(pbr);
   }
@@ -360,6 +432,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
@@ -399,6 +472,7 @@ msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
@@ -441,6 +515,7 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 {
   msgs::Light out;
@@ -452,6 +527,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_attenuation_linear(_in.LinearAttenuationFactor());
   out.set_attenuation_quadratic(_in.QuadraticAttenuationFactor());
   out.set_range(_in.AttenuationRange());
+  out.set_intensity(_in.Intensity());
   msgs::Set(out.mutable_direction(), _in.Direction());
   out.set_cast_shadows(_in.CastShadows());
   out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
@@ -468,6 +544,7 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
 {
   sdf::Light out;
@@ -480,6 +557,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetQuadraticAttenuationFactor(_in.attenuation_quadratic());
   out.SetAttenuationRange(_in.range());
   out.SetDirection(msgs::Convert(_in.direction()));
+  out.SetIntensity(_in.intensity());
   out.SetCastShadows(_in.cast_shadows());
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
@@ -495,6 +573,7 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
@@ -533,6 +612,7 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Time ignition::gazebo::convert(
     const std::chrono::steady_clock::duration &_in)
 {
@@ -548,6 +628,7 @@ msgs::Time ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 std::chrono::steady_clock::duration ignition::gazebo::convert(
     const msgs::Time &_in)
 {
@@ -556,6 +637,7 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
 {
   msgs::Inertial out;
@@ -572,6 +654,7 @@ msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
 {
   math::MassMatrix3d massMatrix;
@@ -591,6 +674,7 @@ math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
@@ -620,6 +704,7 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
@@ -639,6 +724,7 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
 {
   msgs::Scene out;
@@ -649,11 +735,27 @@ msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
   out.set_shadows(_in.Shadows());
   out.set_grid(_in.Grid());
   out.set_origin_visual(_in.OriginVisual());
+
+  if (_in.Sky())
+  {
+    msgs::Sky *skyMsg = out.mutable_sky();
+    skyMsg->set_time(_in.Sky()->Time());
+    skyMsg->set_sunrise(_in.Sky()->Sunrise());
+    skyMsg->set_sunset(_in.Sky()->Sunset());
+    skyMsg->set_wind_speed(_in.Sky()->CloudSpeed());
+    skyMsg->set_wind_direction(_in.Sky()->CloudDirection().Radian());
+    skyMsg->set_humidity(_in.Sky()->CloudHumidity());
+    skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
+    msgs::Set(skyMsg->mutable_cloud_ambient(),
+        _in.Sky()->CloudAmbient());
+  }
+
   return out;
 }
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
 {
   sdf::Scene out;
@@ -664,11 +766,26 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
   out.SetShadows(_in.shadows());
   out.SetGrid(_in.grid());
   out.SetOriginVisual(_in.origin_visual());
+
+  if (_in.has_sky())
+  {
+    sdf::Sky sky;
+    sky.SetTime(_in.sky().time());
+    sky.SetSunrise(_in.sky().sunrise());
+    sky.SetSunset(_in.sky().sunset());
+    sky.SetCloudSpeed(_in.sky().wind_speed());
+    sky.SetCloudDirection(math::Angle(_in.sky().wind_direction()));
+    sky.SetCloudHumidity(_in.sky().humidity());
+    sky.SetCloudMeanSize(_in.sky().mean_cloud_size());
+    sky.SetCloudAmbient(msgs::Convert(_in.sky().cloud_ambient()));
+    out.SetSky(sky);
+  }
   return out;
 }
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
 {
   msgs::Atmosphere out;
@@ -686,6 +803,7 @@ msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Atmosphere ignition::gazebo::convert(const msgs::Atmosphere &_in)
 {
   sdf::Atmosphere out;
@@ -723,6 +841,7 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 {
   msgs::Physics out;
@@ -733,6 +852,7 @@ msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
 {
   sdf::Physics out;
@@ -769,7 +889,46 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 }
 
 //////////////////////////////////////////////////
+std::string ignition::gazebo::convert(const sdf::LightType &_in)
+{
+  if (_in == sdf::LightType::POINT)
+  {
+    return std::string("point");
+  }
+  else if (_in == sdf::LightType::DIRECTIONAL)
+  {
+    return std::string("directional");
+  }
+  else if (_in == sdf::LightType::SPOT)
+  {
+    return std::string("spot");
+  }
+  return std::string("");
+}
+
+//////////////////////////////////////////////////
+sdf::LightType ignition::gazebo::convert(const std::string &_in)
+{
+  std::string inLowerCase = _in;
+  std::transform(_in.begin(), _in.end(), inLowerCase.begin(), ::tolower);
+  if (inLowerCase == "point")
+  {
+    return sdf::LightType::POINT;
+  }
+  else if (inLowerCase == "directional")
+  {
+    return sdf::LightType::DIRECTIONAL;
+  }
+  else if (inLowerCase == "spot")
+  {
+    return sdf::LightType::SPOT;
+  }
+  return sdf::LightType::INVALID;
+}
+
+//////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
 {
   sdf::Noise out;
@@ -802,6 +961,7 @@ sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 {
   msgs::Sensor out;
@@ -1018,6 +1178,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 {
   sdf::Sensor out;
@@ -1257,6 +1418,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
@@ -1266,6 +1428,7 @@ msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
 {
   gazebo::UpdateInfo out;
@@ -1279,6 +1442,7 @@ gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
 {
   msgs::AxisAlignedBox out;
@@ -1289,6 +1453,7 @@ msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
 
 //////////////////////////////////////////////////
 template<>
+IGNITION_GAZEBO_VISIBLE
 math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
 {
   math::AxisAlignedBox out;

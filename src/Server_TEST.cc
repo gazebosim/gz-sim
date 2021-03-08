@@ -702,9 +702,9 @@ TEST_P(ServerFixture, Seed)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResourcePath)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str(), 1);
+          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -790,8 +790,8 @@ TEST_P(ServerFixture, ResourcePath)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -820,10 +820,10 @@ TEST_P(ServerFixture, GetResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
-  setenv("SDF_PATH", "", 1);
-  setenv("IGN_FILE_PATH", "", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -867,7 +867,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Check environment variables
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
-    char *pathCStr = getenv(env);
+    char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
     paths.erase(std::remove_if(paths.begin(), paths.end(),

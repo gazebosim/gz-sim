@@ -34,7 +34,7 @@ namespace systems
   class ThermalSensorPrivate;
 
   /// \brief A thermal sensor plugin for configuring thermal sensor properties
-  class IGNITION_GAZEBO_VISIBLE ThermalSensor:
+  class ThermalSensor:
     public System,
     public ISystemConfigure
   {

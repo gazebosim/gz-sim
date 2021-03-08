@@ -117,6 +117,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
+  //// \brief True to enable sky in the scene
+  public: bool skyEnabled = false;
+
   /// \brief Scene background color
   public: math::Color backgroundColor = math::Color::Black;
 
@@ -162,6 +165,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief New lights to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
+
+  /// \brief A map of entity light ids and light visuals
+  public: std::map<Entity, Entity> matchLightWithVisuals;
 
   /// \brief New sensors to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
@@ -577,6 +583,11 @@ void RenderUtil::Update()
     this->dataPtr->scene->SetBackgroundColor(scene.Background());
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
+    if (scene.Sky())
+    {
+      this->dataPtr->scene->SetSkyEnabled(true);
+    }
+
     // only one scene so break
     break;
   }
@@ -649,6 +660,21 @@ void RenderUtil::Update()
     {
       this->dataPtr->sceneManager.CreateLight(
           std::get<0>(light), std::get<1>(light), std::get<2>(light));
+
+      // create a new id for the light visual
+      auto attempts = 100000u;
+      for (auto i = 0u; i < attempts; ++i)
+      {
+        Entity id = std::numeric_limits<uint64_t>::min() + i;
+        if (!this->dataPtr->sceneManager.HasEntity(id))
+        {
+          rendering::VisualPtr lightVisual =
+            this->dataPtr->sceneManager.CreateLightVisual(
+              id, std::get<1>(light), std::get<0>(light));
+          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
+          break;
+        }
+      }
     }
 
     for (const auto &emitter : newParticleEmitters)
@@ -1078,7 +1104,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string cameraSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
-  const std::string thermalCameraSuffix{""};
+  const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
 
   // Treat all pre-existent entities as new at startup
@@ -1719,6 +1745,9 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Light *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
+        this->removeEntities[matchLightWithVisuals[_entity]] =
+          _info.iterations;
+        matchLightWithVisuals.erase(_entity);
         return true;
       });
 
@@ -1811,6 +1840,7 @@ void RenderUtil::Init()
     {
       this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
       this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+      this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
@@ -1887,6 +1917,12 @@ void RenderUtil::SetSceneName(const std::string &_name)
 std::string RenderUtil::SceneName() const
 {
   return this->dataPtr->sceneName;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetSkyEnabled(bool _enabled)
+{
+  this->dataPtr->skyEnabled = _enabled;
 }
 
 /////////////////////////////////////////////////
@@ -1971,7 +2007,7 @@ rendering::NodePtr RenderUtil::SelectedEntity() const
 }
 
 /////////////////////////////////////////////////
-std::vector<Entity> RenderUtil::SelectedEntities() const
+const std::vector<Entity> &RenderUtil::SelectedEntities() const
 {
   return this->dataPtr->selectedEntities;
 }

@@ -24,7 +24,7 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/rendering/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 #include "ignition/gazebo/rendering/SceneManager.hh"
@@ -41,7 +41,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class RenderUtilPrivate;
 
   /// \class RenderUtil RenderUtil.hh ignition/gazebo/gui/plugins/RenderUtil.hh
-  class IGNITION_GAZEBO_VISIBLE RenderUtil
+  class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
     public: explicit RenderUtil();
@@ -100,6 +100,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
+    /// \brief Set whether to enable sky in the scene
+    /// \param[in] _enabled True to enable sky, false to disable sky
+    public: void SetSkyEnabled(bool _enabled);
+
     /// \brief Show grid view in the scene
     public: void ShowGrid();
 
@@ -149,7 +153,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Get the entities currently selected, in order of selection.
     /// \return Vector of currently selected entities
-    public: std::vector<Entity> SelectedEntities() const;
+    public: const std::vector<Entity> &SelectedEntities() const;
 
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();

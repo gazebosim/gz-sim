@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -390,6 +391,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
       components::Pose(ResolveSdfPose(_light->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(lightEntity,
       components::Name(_light->Name()));
+
+  this->dataPtr->ecm->CreateComponent(lightEntity,
+    components::LightType(convert(_light->Type())));
 
   return lightEntity;
 }
