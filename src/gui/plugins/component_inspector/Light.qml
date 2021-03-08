@@ -286,15 +286,32 @@ Rectangle {
         width: parent.width
 
         RowLayout {
-          Text {
-            Layout.columnSpan: 6
-            text: "      Intensity"
-            color: "dimgrey"
-            width: margin + indentation
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: intensityText.width + indentation*3
+            Loader {
+              id: loaderIntensity
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderIntensity.item.componentInfo = "intensity"
+
+            Text {
+              id : intensityText
+              text: ' Intensity:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
           Item {
             Layout.fillWidth: true
             height: 40
+            Layout.columnSpan: 4
             Loader {
               id: intensityLoader
               anchors.fill: parent
