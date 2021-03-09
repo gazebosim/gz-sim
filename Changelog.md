@@ -1,5 +1,53 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.6.0 (2021-03-01)
+
+1. Use a custom data structure to manage entity feature maps.
+    * [Pull Request 586](https://github.com/ignitionrobotics/ign-gazebo/pull/586)
+
+1. Limit scene broadcast publications when paused.
+    * [Pull Request 497](https://github.com/ignitionrobotics/ign-gazebo/pull/497)
+
+1. Report performer count in PerformerDetector plugin.
+    * [Pull Request 652](https://github.com/ignitionrobotics/ign-gazebo/pull/652)
+
+1. Cache top level and static to speed up physics system.
+    * [Pull Request 656](https://github.com/ignitionrobotics/ign-gazebo/pull/656)
+
+1. Support particle emitter modification using partial message.
+    * [Pull Request 651](https://github.com/ignitionrobotics/ign-gazebo/pull/651)
+
+1. Set LD_LIBRARY_PATH on Actions CI.
+    * [Pull Request 650](https://github.com/ignitionrobotics/ign-gazebo/pull/650)
+
+1. Fix flaky SceneBroadcaster test.
+    * [Pull Request 641](https://github.com/ignitionrobotics/ign-gazebo/pull/641)
+
+1. Add a convenience function for getting possibly non-existing components.
+    * [Pull Request 629](https://github.com/ignitionrobotics/ign-gazebo/pull/629)
+
+1. Add msg to show the computed temperature range computed from temperature
+   gradient.
+    * [Pull Request 643](https://github.com/ignitionrobotics/ign-gazebo/pull/643)
+
+1. Add TF/Pose_V pub in DiffDrive.
+    * [Pull Request 548](https://github.com/ignitionrobotics/ign-gazebo/pull/548)
+
+1. Relax flaky performance test.
+    * [Pull Request 640](https://github.com/ignitionrobotics/ign-gazebo/pull/640)
+
+1. Improve velocity control test.
+    * [Pull Request 642](https://github.com/ignitionrobotics/ign-gazebo/pull/642)
+
+1. Validity check for user defined topics in JointPositionController.
+    * [Pull Request 639](https://github.com/ignitionrobotics/ign-gazebo/pull/639)
+
+1. Add laser_retro support.
+    * [Pull Request 603](https://github.com/ignitionrobotics/ign-gazebo/pull/603)
+
+1. Fix pose of plane visual with non-default normal vector.
+    * [Pull Request 574](https://github.com/ignitionrobotics/ign-gazebo/pull/574)
+
 ### Ignition Gazebo 4.5.0 (2020-02-17)
 
 1. Added particle system.
