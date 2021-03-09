@@ -258,6 +258,15 @@ void ParticleEmitter::Configure(const Entity &_entity,
         absolutePath);
   }
 
+  // particle scatter ratio
+  if (_sdf->HasElement("particle_scatter_ratio"))
+  {
+    auto data = this->dataPtr->emitter.mutable_header()->add_data();
+    data->set_key("particle_scatter_ratio");
+    std::string *value = data->add_value();
+    *value = _sdf->Get<std::string>("particle_scatter_ratio");
+  }
+
   igndbg << "Loading particle emitter:" << std::endl
          << this->dataPtr->emitter.DebugString() << std::endl;
 

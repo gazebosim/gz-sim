@@ -120,6 +120,10 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                 // and let rendering do the findFile instead
                 EXPECT_EQ(std::string(),
                     _emitter->Data().color_range_image().data());
+
+                // particle scatter ratio is temporarily stored in header
+                EXPECT_DOUBLE_EQ(0.01,
+                  math::parseFloat(_emitter->Data().header().data(0).value(0)));
               }
               else
               {
