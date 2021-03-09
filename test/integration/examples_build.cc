@@ -25,7 +25,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 // File copied from
-// https://github.com/ignitionrobotics/ign-gui/raw/master/test/integration/ExamplesBuild_TEST.cc
+// https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
 using namespace ignition;
 
