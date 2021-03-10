@@ -558,7 +558,7 @@ namespace ignition
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
       {
         // The following was borrowed heavily from:
-        // https://github.com/RobotLocomotion/drake/blob/master/multibody/multibody_tree/rotational_inertia.h
+        // https://github.com/RobotLocomotion/drake/blob/v0.27.0/multibody/tree/rotational_inertia.h
 
         // Compute the maximum possible moment of inertia, which will be
         // used to compute whether the moments are valid.
