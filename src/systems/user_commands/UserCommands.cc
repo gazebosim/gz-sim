@@ -182,6 +182,10 @@ class LightCommand : public UserCommandBase
                  1e-6f) &&
                _a.cast_shadows() == _b.cast_shadows() &&
                math::equal(
+                 _a.intensity(),
+                 _b.intensity(),
+                 1e-6f) &&
+               math::equal(
                  _a.direction().x(), _b.direction().x(), 1e-6) &&
                math::equal(
                  _a.direction().y(), _b.direction().y(), 1e-6) &&
