@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-bionic-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-master-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-master-windows7-amd64)
+Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/ign-math6/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math6-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math6-windows7-amd64)
 
 Ignition Math, a component of [Ignition
 Robotics](https://ignitionrobotics.org), provides general purpose math
@@ -52,7 +52,7 @@ See the [installation tutorial](https://ignitionrobotics.org/api/math/6.6/instal
 
 # Usage
 
-Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/master/examples/).
+Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/ign-math6/examples/).
 
 # Folder Structure
 
@@ -76,12 +76,12 @@ ign-math
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/master/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -89,4 +89,4 @@ This library uses [Semantic Versioning](https://semver.org/). Additionally, this
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-math/blob/master/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-math/blob/main/LICENSE) file.
