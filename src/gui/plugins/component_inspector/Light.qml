@@ -96,6 +96,9 @@ Rectangle {
   // Loaded item for falloff (spotlight)
   property var falloffItem: {}
 
+  // Loaded item for intensity
+  property var intensityItem: {}
+
   // Send new light data to C++
   function sendLight() {
     // TODO(anyone) There's a loss of precision when these values get to C++
@@ -119,7 +122,8 @@ Rectangle {
       innerAngleItem.value,
       outerAngleItem.value,
       falloffItem.value,
-      model.data[19]
+      intensityItem.value,
+      model.data[20]
     );
   }
 
@@ -281,6 +285,44 @@ Rectangle {
         id: grid
         width: parent.width
 
+        RowLayout {
+          Rectangle {
+            color: "transparent"
+            height: 40
+            Layout.preferredWidth: intensityText.width + indentation*3
+            Loader {
+              id: loaderIntensity
+              width: iconWidth
+              height: iconHeight
+              y:10
+              sourceComponent: plotIcon
+            }
+            Component.onCompleted: loaderIntensity.item.componentInfo = "intensity"
+
+            Text {
+              id : intensityText
+              text: ' Intensity:'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+          Item {
+            Layout.fillWidth: true
+            height: 40
+            Layout.columnSpan: 4
+            Loader {
+              id: intensityLoader
+              anchors.fill: parent
+              property double numberValue: model.data[19]
+              sourceComponent: spinZeroMax
+              onLoaded: {
+                intensityItem = intensityLoader.item
+              }
+            }
+          }
+        }
         RowLayout {
           Layout.alignment : Qt.AlignLeft
           Text {
