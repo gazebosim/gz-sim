@@ -132,6 +132,28 @@ TEST(QuaternionTest, ConstructAxisAngle)
 }
 
 /////////////////////////////////////////////////
+TEST(QuaternionTest, Equal)
+{
+  // doubles
+  math::Quaterniond q(1, 2, 3, 4);
+  math::Quaterniond q2(1.01, 2.015, 3.002, 4.007);
+  EXPECT_TRUE(q.Equal(q2, 0.02));
+  EXPECT_FALSE(q.Equal(q2, 0.01));
+
+  // floats
+  math::Quaternionf q3(1, 2, 3, 4);
+  math::Quaternionf q4(1.05f, 2.1f, 3.03f, 4.04f);
+  EXPECT_TRUE(q3.Equal(q4, 0.2f));
+  EXPECT_FALSE(q3.Equal(q4, 0.04f));
+
+  // ints
+  math::Quaternioni q5(3, 5, -1, 9);
+  math::Quaternioni q6(3, 6, 1, 12);
+  EXPECT_TRUE(q5.Equal(q6, 3));
+  EXPECT_FALSE(q5.Equal(q6, 2));
+}
+
+/////////////////////////////////////////////////
 TEST(QuaternionTest, Identity)
 {
   math::Quaterniond q = math::Quaterniond::Identity;

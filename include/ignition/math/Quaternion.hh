@@ -689,15 +689,25 @@ namespace ignition
         return _v + uv + uuv;
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _qt Quaternion<T> for comparison
+      /// \param[in] _tol equality tolerance
+      /// \return true if the elements of the quaternions are equal
+      /// within the tolerance specified by _tol, false otherwise
+      public: bool Equal(const Quaternion<T> &_qt, const T &_tol) const
+      {
+        return equal(this->qx, _qt.qx, _tol) &&
+               equal(this->qy, _qt.qy, _tol) &&
+               equal(this->qz, _qt.qz, _tol) &&
+               equal(this->qw, _qt.qw, _tol);
+      }
+
       /// \brief Equal to operator
       /// \param[in] _qt Quaternion<T> for comparison
       /// \return True if equal
       public: bool operator==(const Quaternion<T> &_qt) const
       {
-        return equal(this->qx, _qt.qx, static_cast<T>(0.001)) &&
-               equal(this->qy, _qt.qy, static_cast<T>(0.001)) &&
-               equal(this->qz, _qt.qz, static_cast<T>(0.001)) &&
-               equal(this->qw, _qt.qw, static_cast<T>(0.001));
+        return this->Equal(_qt, static_cast<T>(0.001));
       }
 
       /// \brief Not equal to operator
@@ -705,10 +715,7 @@ namespace ignition
       /// \return True if not equal
       public: bool operator!=(const Quaternion<T> &_qt) const
       {
-        return !equal(this->qx, _qt.qx, static_cast<T>(0.001)) ||
-               !equal(this->qy, _qt.qy, static_cast<T>(0.001)) ||
-               !equal(this->qz, _qt.qz, static_cast<T>(0.001)) ||
-               !equal(this->qw, _qt.qw, static_cast<T>(0.001));
+        return !(*this == _qt);
       }
 
       /// \brief Unary minus operator
