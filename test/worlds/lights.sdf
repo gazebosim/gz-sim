@@ -13,7 +13,6 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
     <light type="directional" name="directional">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -63,7 +62,7 @@
     <model name="sphere">
       <pose>0 0.0 0.0 0 0 0</pose>
       <link name="sphere_link">
-          <visual name="sphere_visual">
+        <visual name="sphere_visual">
           <geometry>
             <sphere>
               <radius>0.5</radius>
@@ -75,7 +74,6 @@
             <specular>0.3 0.3 0.3 1</specular>
           </material>
         </visual>
-
         <light type="point" name="link_light_point">
           <pose>0 0 1.0 0 0 0</pose>
           <diffuse>0 0 1 1</diffuse>
@@ -88,9 +86,7 @@
           </attenuation>
           <cast_shadows>false</cast_shadows>
         </light>
-
       </link>
     </model>
-
   </world>
 </sdf>

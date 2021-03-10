@@ -97,43 +97,33 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
     // and max velocity (0.5 m/s).
     // See <max_velocity< and <max_aceleration> parameters
     // in "/test/worlds/velocity_control.sdf".
-    test::Relay velocityRamp;
     const double desiredLinVel = 10.5;
     const double desiredAngVel = 0.2;
-    velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            const gazebo::EntityComponentManager &)
-        {
-          msgs::Set(msg.mutable_linear(),
-                    math::Vector3d(desiredLinVel, 0, 0));
-          msgs::Set(msg.mutable_angular(),
-                    math::Vector3d(0.0, 0, desiredAngVel));
-          pub.Publish(msg);
-        });
+    msgs::Set(msg.mutable_linear(),
+              math::Vector3d(desiredLinVel, 0, 0));
+    msgs::Set(msg.mutable_angular(),
+              math::Vector3d(0.0, 0, desiredAngVel));
+    pub.Publish(msg);
 
-    server.AddSystem(velocityRamp.systemPtr);
+    // Give some time for message to be received
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     server.Run(true, 3000, false);
 
     // Poses for 4s
     ASSERT_EQ(4000u, poses.size());
 
-    int sleep = 0;
-    int maxSleep = 30;
-
-    ASSERT_NE(maxSleep, sleep);
-
     // verify that the vehicle is moving in +x and rotating towards +y
     for (unsigned int i = 1001; i < poses.size(); ++i)
     {
-      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X());
-      EXPECT_GT(poses[i].Pos().Y(), poses[i-1].Pos().Y());
+      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X()) << i;
+      EXPECT_GT(poses[i].Pos().Y(), poses[i-1].Pos().Y()) << i;
       EXPECT_NEAR(poses[i].Pos().Z(), poses[i-1].Pos().Z(), 1e-5);
       EXPECT_NEAR(poses[i].Rot().Euler().X(),
-          poses[i-1].Rot().Euler().X(), 1e-5);
+          poses[i-1].Rot().Euler().X(), 1e-5) << i;
       EXPECT_NEAR(poses[i].Rot().Euler().Y(),
-          poses[i-1].Rot().Euler().Y(), 1e-5);
-      EXPECT_GT(poses[i].Rot().Euler().Z(), poses[i-1].Rot().Euler().Z());
+          poses[i-1].Rot().Euler().Y(), 1e-5) << i;
+      EXPECT_GT(poses[i].Rot().Euler().Z(), poses[i-1].Rot().Euler().Z()) << i;
     }
   }
 };

@@ -35,6 +35,9 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class ignition::gazebo::GuiRunner::Implementation
 {
+  /// \brief Update the plugins.
+  public: void UpdatePlugins();
+
   /// \brief Entity-component manager.
   public: gazebo::EntityComponentManager ecm;
 
@@ -46,6 +49,15 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief Latest update info
   public: UpdateInfo updateInfo;
+
+  /// \brief Flag used to end the updateThread.
+  public: bool running{false};
+
+  /// \brief Mutex to protect the plugin update.
+  public: std::mutex updateMutex;
+
+  /// \brief The plugin update thread..
+  public: std::thread updateThread;
 };
 
 /////////////////////////////////////////////////
@@ -77,6 +89,30 @@ GuiRunner::GuiRunner(const std::string &_worldName)
          << "]..." << std::endl;
 
   this->RequestState();
+
+  // Periodically update the plugins
+  // \todo(anyone) Move the global variables to GuiRunner::Implementation on v5
+  this->dataPtr->running = true;
+  this->dataPtr->updateThread = std::thread([&]()
+  {
+    while (this->dataPtr->running)
+    {
+      {
+        std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+        this->dataPtr->UpdatePlugins();
+      }
+      // This is roughly a 30Hz update rate.
+      std::this_thread::sleep_for(std::chrono::milliseconds(33));
+    }
+  });
+}
+
+/////////////////////////////////////////////////
+GuiRunner::~GuiRunner()
+{
+  this->dataPtr->running = false;
+  if (this->dataPtr->updateThread.joinable())
+    this->dataPtr->updateThread.join();
 }
 
 /////////////////////////////////////////////////
@@ -95,7 +131,17 @@ void GuiRunner::RequestState()
   }
   reqSrv = reqSrvValid;
 
-  this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
+  auto advertised = this->dataPtr->node.AdvertisedServices();
+  if (std::find(advertised.begin(), advertised.end(), reqSrv) ==
+      advertised.end())
+  {
+    if (!this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService,
+        this))
+    {
+      ignerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
+    }
+  }
+
   ignition::msgs::StringMsg req;
   req.set_data(reqSrv);
 
@@ -114,7 +160,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
     return;
   }
 
-  plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+  this->RequestState();
 }
 
 /////////////////////////////////////////////////
@@ -143,17 +189,23 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
   IGN_PROFILE("GuiRunner::Update");
 
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
   this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
+  this->dataPtr->UpdatePlugins();
+  this->dataPtr->ecm.ClearNewlyCreatedEntities();
+  this->dataPtr->ecm.ProcessRemoveEntityRequests();
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::Implementation::UpdatePlugins()
+{
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
-    plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    plugin->Update(this->updateInfo, this->ecm);
   }
-  this->dataPtr->ecm.ClearNewlyCreatedEntities();
-  this->dataPtr->ecm.ProcessRemoveEntityRequests();
-  this->dataPtr->ecm.ClearRemovedComponents();
+  this->ecm.ClearRemovedComponents();
 }
-

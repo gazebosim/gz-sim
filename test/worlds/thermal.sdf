@@ -49,6 +49,7 @@
           <geometry>
             <!--plane>
               <normal>0 0 1</normal>
+              <size>100 100</size>
             </plane-->
             <box>
               <size>20 20 0.1</size>
@@ -70,48 +71,6 @@
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
           </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="box">
-      <pose>0 0 0.5 0 0 0</pose>
-      <link name="box_link">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
-          </material>
-          <plugin
-            filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
-            <temperature>200.0</temperature>
-          </plugin>
         </visual>
       </link>
     </model>
@@ -200,6 +159,201 @@
           </plugin>
         </visual>
       </link>
+    </model>
+
+    <!--
+      - make sure that heat signature is used if both heat signature and temperature are listed in the thermal plugin
+      - also test default valuees for min/max temperature range of heat signature
+      - also test non-fuel URI
+    -->
+    <model name="heat_signature_cylinder">
+      <pose>-2 -1.5 0.5 0 0 0</pose>
+      <link name="heat_signature_cylinder_link">
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="heat_signature_cylinder_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="heat_signature_cylinder_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+          <plugin
+            filename="ignition-gazebo-thermal-system"
+            name="ignition::gazebo::systems::Thermal">
+            <heat_signature>../media/duck.png</heat_signature>
+            <temperature>400.0</temperature>
+          </plugin>
+        </visual>
+      </link>
+    </model>
+
+    <!-- test only specifying a max in the temperature range -->
+    <model name="heat_signature_sphere">
+      <pose>0 1.5 0.5 0 0 0</pose>
+      <link name="heat_signature_sphere_link">
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="sheat_signature_phere_collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="heat_signature_sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+          <plugin
+            filename="ignition-gazebo-thermal-system"
+            name="ignition::gazebo::systems::Thermal">
+            <heat_signature>../media/duck.png</heat_signature>
+            <max_temp>500.0</max_temp>
+          </plugin>
+        </visual>
+      </link>
+    </model>
+
+    <!--
+      test only specifying a min in the temperature range
+      also test setting a min that's greater than atmospheric temperature
+    -->
+    <model name="heat_signature_sphere_2">
+      <pose>0 1.5 0.5 0 0 0</pose>
+      <link name="heat_signature_sphere_link_2">
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="sheat_signature_phere_collision_2">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="heat_signature_sphere_visual_2">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+          <plugin
+            filename="ignition-gazebo-thermal-system"
+            name="ignition::gazebo::systems::Thermal">
+            <heat_signature>../media/duck.png</heat_signature>
+            <min_temp>400.0</min_temp>
+          </plugin>
+        </visual>
+      </link>
+    </model>
+
+    <!-- test a fuel model heat signature URI -->
+    <include>
+      <pose>0 0 0 0 0 1.570796</pose>
+      <name>rescue_randy</name>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
+    </include>
+
+    <model name="thermal_camera_8bit">
+      <pose>4.5 0 0.5 0.0 0.0 3.14</pose>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="thermal_camera_8bit" type="thermal">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+              <format>L8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>thermal_camera_8bit/image</topic>
+          <plugin
+            filename="ignition-gazebo-thermal-sensor-system"
+            name="ignition::gazebo::systems::ThermalSensor">
+            <min_temp>253.15</min_temp>
+            <max_temp>673.15</max_temp>
+            <resolution>3.0</resolution>
+          </plugin>
+        </sensor>
+      </link>
+      <static>true</static>
     </model>
   </world>
 </sdf>
