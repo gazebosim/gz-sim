@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
 #include <atomic>
+#include <future>
 #include <map>
 #include <memory>
 #include <string>
@@ -117,6 +118,9 @@ namespace ignition
 
       /// \brief Keep track of states received from secondaries.
       private: std::vector<msgs::SerializedStateMap> secondaryStates;
+
+      /// \brief Promise used to notify when all secondaryStates where received.
+      private: std::promise<void> secondaryStatesPromise;
     };
     }
   }  // namespace gazebo

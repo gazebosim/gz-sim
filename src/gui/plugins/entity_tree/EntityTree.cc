@@ -328,7 +328,9 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
-    this->dataPtr->initialized = true;
+
+    if (this->dataPtr->worldEntity != kNullEntity)
+      this->dataPtr->initialized = true;
   }
   else
   {
