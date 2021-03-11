@@ -13,6 +13,7 @@ libignition-rendering5-dev
 libignition-sensors5-dev
 libignition-tools-dev
 libignition-transport10-dev
+libignition-utils1-cli-dev
 libogre-1.9-dev
 libogre-2.1-dev
 libprotobuf-dev
