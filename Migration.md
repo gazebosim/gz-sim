@@ -7,6 +7,8 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 4.x to 5.x
 
+* Use `cli` component of `ignition-utils1`.
+
 * `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code
   should create a copy if it needs to modify the vector in some way.
