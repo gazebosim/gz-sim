@@ -122,8 +122,22 @@ TEST_F(ParticleEmitterTest, SDFLoad)
                     _emitter->Data().color_range_image().data());
 
                 // particle scatter ratio is temporarily stored in header
-                EXPECT_DOUBLE_EQ(0.01,
-                  math::parseFloat(_emitter->Data().header().data(0).value(0)));
+                bool hasParticleScatterRatio = false;
+                for (int i = 0; i < _emitter->Data().header().data_size(); ++i)
+                {
+                  for (int j = 0;
+                      j < _emitter->Data().header().data(i).value_size(); ++j)
+                  {
+                    if (_emitter->Data().header().data(i).key() ==
+                        "particle_scatter_ratio")
+                    {
+                      EXPECT_DOUBLE_EQ(0.01, math::parseFloat(
+                          _emitter->Data().header().data(i).value(0)));
+                      hasParticleScatterRatio = true;
+                    }
+                  }
+                }
+                EXPECT_TRUE(hasParticleScatterRatio);
               }
               else
               {

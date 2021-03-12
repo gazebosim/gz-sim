@@ -1134,10 +1134,10 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
     for (int i = 0; i < _emitter.header().data_size(); ++i)
     {
       const auto &data = _emitter.header().data(i);
+      const std::string key = "particle_scatter_ratio";
       if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
       {
-        emitter->SetUserData("particle_scatter_ratio",
-            math::parseFloat(data.value(0)));
+        emitter->SetUserData(key, math::parseFloat(data.value(0)));
         break;
       }
     }
