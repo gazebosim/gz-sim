@@ -40,7 +40,7 @@ Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.ignition/gazebo/plugins`
-3. [Systems that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/src/systems/)
+3. [Systems that are installed with Ignition Gazebo](https://ignitionrobotics.org/api/gazebo/4.6/namespaceignition_1_1gazebo_1_1systems.html)
 
 ### Ignition GUI plugins
 
