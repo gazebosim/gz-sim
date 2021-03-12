@@ -134,7 +134,7 @@ Rectangle {
           sourceSize.height: indentation
           sourceSize.width: indentation
           fillMode: Image.Pad
-          anchors.verticalCenter: parent.verticalCenter
+          Layout.alignment : Qt.AlignVCenter
           source: content.show ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
@@ -300,7 +300,7 @@ Rectangle {
         }
 
         Text {
-          text: 'Yaw (m)'
+          text: 'Yaw (rad)'
           leftPadding: 5
           color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
           font.pointSize: 12

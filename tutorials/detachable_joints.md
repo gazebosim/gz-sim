@@ -1,7 +1,7 @@
 \page detachablejoints Detachable Joints
 
 The `DetachableJoint` system allows two models to start off rigidly attached
-and then get detached during simulation by publishing to a topic. The system
+and then detach during simulation by publishing to a topic. The system
 internally uses a fixed joint between two links, each belonging to two separate
 models. Because the system uses joints to connect models, the resulting
 kinematic topology has to be a tree, i.e., kinematic loops are not currently
@@ -39,13 +39,13 @@ or child models be in collision in their initial (attached) state.
 
 The system has the following parameters:
 
-* parent_link: Name of the link in the model containing this system that will be
+* `<parent_link>`: Name of the link in the model containing this system that will be
 used as the parent link in the detachable joint.
 
-* child_model: The name of the model containing the child link in the detachable
+* `<child_model>`: The name of the model containing the child link in the detachable
 joint.
 
-* child_model_link:  Name of the link in the child_model that will be used
+* `<child_model_link>`:  Name of the link in the `<child_model>` that will be used
 as the child link in the detachable joint.
 
 * topic (optional): Topic name to be used for detaching connections. If empty,
