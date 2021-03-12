@@ -42,8 +42,8 @@ class ThrusterPrivateData
 };
 
 ThrusterPlugin::ThrusterPlugin()
+  : _data(std::make_unique<ThrusterPrivateData>())
 {
-    _data = std::make_unique<ThrusterPrivateData>();
 }
 
 ThrusterPlugin::~ThrusterPlugin()
