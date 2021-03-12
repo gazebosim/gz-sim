@@ -83,7 +83,7 @@
 
       </plugin>
 
-     <!-- Entity tree -->
+      <!-- Entity tree -->
       <plugin filename="EntityTree" name="Entity tree">
         <ignition-gui>
           <property type="bool" key="showTitleBar">false</property>
@@ -134,6 +134,7 @@
     </model>
 
 
+    <!--
     <include>
       <name>demo_actor_0_0</name>
       <pose>-5 -5 0 0 0 0</pose>
@@ -859,7 +860,7 @@
       <pose>5 5 0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
     </include>
-
+    -->
 
   </world>
 </sdf>

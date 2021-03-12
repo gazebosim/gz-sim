@@ -302,63 +302,63 @@
       </link>
     </model>
 
-    <include>
-      <name>walker_slow_red</name>
-      <!-- Root node pose (torso) -->
-      <pose>0 -2 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
-        <target>red_box</target>
-        <min_distance>1.0</min_distance>
-        <max_distance>8.0</max_distance>
-        <velocity>1</velocity>
-        <animation_x_vel>4.58837</animation_x_vel>
-      </plugin>
-    </include>
+    <!--<include>-->
+      <!--<name>walker_slow_red</name>-->
+      <!--[> Root node pose (torso) <]-->
+      <!--<pose>0 -2 1.0 0 0 0</pose>-->
+      <!--<uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>-->
+      <!--<plugin filename="ignition-gazebo-follow-actor-system"-->
+              <!--name="ignition::gazebo::systems::FollowActor">-->
+        <!--<target>red_box</target>-->
+        <!--<min_distance>1.0</min_distance>-->
+        <!--<max_distance>8.0</max_distance>-->
+        <!--<velocity>1</velocity>-->
+        <!--<animation_x_vel>4.58837</animation_x_vel>-->
+      <!--</plugin>-->
+    <!--</include>-->
 
-    <include>
-      <name>walker_fast_green</name>
-      <pose>0 0 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
-        <target>green_box</target>
-        <min_distance>1.0</min_distance>
-        <max_distance>8.0</max_distance>
-        <velocity>4</velocity>
-        <animation_x_vel>4.58837</animation_x_vel>
-      </plugin>
-    </include>
+    <!--<include>-->
+      <!--<name>walker_fast_green</name>-->
+      <!--<pose>0 0 1.0 0 0 0</pose>-->
+      <!--<uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>-->
+      <!--<plugin filename="ignition-gazebo-follow-actor-system"-->
+              <!--name="ignition::gazebo::systems::FollowActor">-->
+        <!--<target>green_box</target>-->
+        <!--<min_distance>1.0</min_distance>-->
+        <!--<max_distance>8.0</max_distance>-->
+        <!--<velocity>4</velocity>-->
+        <!--<animation_x_vel>4.58837</animation_x_vel>-->
+      <!--</plugin>-->
+    <!--</include>-->
 
-    <include>
-      <name>runner_slow_blue</name>
-      <pose>0 2 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
-        <target>blue_box</target>
-        <min_distance>1.0</min_distance>
-        <max_distance>8.0</max_distance>
-        <velocity>1</velocity>
-        <animation>run</animation>
-        <animation_x_vel>1.5</animation_x_vel>
-      </plugin>
-    </include>
+    <!--<include>-->
+      <!--<name>runner_slow_blue</name>-->
+      <!--<pose>0 2 1.0 0 0 0</pose>-->
+      <!--<uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>-->
+      <!--<plugin filename="ignition-gazebo-follow-actor-system"-->
+              <!--name="ignition::gazebo::systems::FollowActor">-->
+        <!--<target>blue_box</target>-->
+        <!--<min_distance>1.0</min_distance>-->
+        <!--<max_distance>8.0</max_distance>-->
+        <!--<velocity>1</velocity>-->
+        <!--<animation>run</animation>-->
+        <!--<animation_x_vel>1.5</animation_x_vel>-->
+      <!--</plugin>-->
+    <!--</include>-->
 
-    <include>
-      <name>runner_fast_yellow</name>
-      <pose>0 4 1.0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
-        <target>yellow_box</target>
-        <min_distance>1.0</min_distance>
-        <max_distance>8.0</max_distance>
-        <velocity>4</velocity>
-        <animation>run</animation>
-        <animation_x_vel>1.5</animation_x_vel>
-      </plugin>
-    </include>
+    <!--<include>-->
+      <!--<name>runner_fast_yellow</name>-->
+      <!--<pose>0 4 1.0 0 0 0</pose>-->
+      <!--<uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>-->
+      <!--<plugin filename="ignition-gazebo-follow-actor-system"-->
+              <!--name="ignition::gazebo::systems::FollowActor">-->
+        <!--<target>yellow_box</target>-->
+        <!--<min_distance>1.0</min_distance>-->
+        <!--<max_distance>8.0</max_distance>-->
+        <!--<velocity>4</velocity>-->
+        <!--<animation>run</animation>-->
+        <!--<animation_x_vel>1.5</animation_x_vel>-->
+      <!--</plugin>-->
+    <!--</include>-->
   </world>
 </sdf>
