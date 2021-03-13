@@ -14,6 +14,9 @@
  * limitations under the License.
  *
  */
+
+#include <ignition/math/Helpers.hh>
+
 #include "ThrusterPlugin.hh"
 
 namespace tethys_thrusters
@@ -150,7 +153,7 @@ void ThrusterPlugin::Configure(
 void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
-  thrust = _msg.data();
+  thrust = ignition::math::fixnan(_msg.data());
 }
 
 void ThrusterPlugin::PreUpdate(
