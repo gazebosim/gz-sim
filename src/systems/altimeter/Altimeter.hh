@@ -36,7 +36,7 @@ namespace systems
   /// \class Altimeter Altimeter.hh ignition/gazebo/systems/Altimeter.hh
   /// \brief An altimeter sensor that reports vertical position and velocity
   /// readings over ign transport
-  class IGNITION_GAZEBO_VISIBLE Altimeter:
+  class Altimeter:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

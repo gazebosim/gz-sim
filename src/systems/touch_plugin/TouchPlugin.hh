@@ -57,7 +57,7 @@ namespace systems
   ///
   /// <enabled> Set this to true so the plugin works from the start and doesn't
   ///           need to be enabled.
-  class IGNITION_GAZEBO_VISIBLE TouchPlugin
+  class TouchPlugin
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,

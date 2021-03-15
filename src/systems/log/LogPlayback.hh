@@ -37,7 +37,7 @@ namespace systems
   /// \class LogPlayback LogPlayback.hh
   ///   ignition/gazebo/systems/log/LogPlayback.hh
   /// \brief Log state playback
-  class IGNITION_GAZEBO_VISIBLE LogPlayback:
+  class LogPlayback:
     public System,
     public ISystemConfigure,
     public ISystemUpdate
