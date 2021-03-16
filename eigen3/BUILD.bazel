@@ -1,0 +1,40 @@
+load(
+    "//ign_bazel:build_defs.bzl",
+    "IGNITION_ROOT",
+    "IGNITION_VISIBILITY",
+)
+
+package(
+    default_visibility = IGNITION_VISIBILITY,
+)
+
+licenses(["notice"])
+
+public_headers = [
+    "include/ignition/math/eigen3/Conversions.hh",
+]
+
+cc_library(
+    name = "eigen3",
+    srcs = public_headers,
+    hdrs = public_headers,
+    includes = ["include"],
+    deps = [
+        "@eigen3",
+        IGNITION_ROOT + "ign_math",
+    ],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    deps = [
+        ":eigen3",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in glob(
+    [
+        "src/*_TEST.cc",
+    ],
+)]

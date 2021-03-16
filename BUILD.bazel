@@ -1,0 +1,103 @@
+load(
+    "//ign_bazel:build_defs.bzl",
+    "IGNITION_FEATURES",
+    "IGNITION_VISIBILITY",
+    "cmake_configure_file",
+    "generate_include_header",
+    "ign_config_header",
+    "ign_export_header",
+)
+
+package(
+    default_visibility = IGNITION_VISIBILITY,
+    features = IGNITION_FEATURES,
+)
+
+licenses(["notice"])
+
+exports_files(["LICENSE"])
+
+PROJECT_NAME = "ignition-math"
+
+PROJECT_MAJOR = 6
+
+PROJECT_MINOR = 8
+
+PROJECT_PATCH = 0
+
+# Generates config.hh based on the version numbers in CMake code.
+ign_config_header(
+    name = "config",
+    src = "include/ignition/math/config.hh.in",
+    cmakelists = ["CMakeLists.txt"],
+    project_name = "ignition-math",
+    project_version = (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
+)
+
+ign_export_header(
+    name = "include/ignition/math/Export.hh",
+    export_base = "IGNITION_MATH",
+    lib_name = "ignition-math",
+    visibility = ["//visibility:private"],
+)
+
+public_headers_no_gen = glob([
+    "include/ignition/math/*.hh",
+    "include/ignition/math/detail/*.hh",
+    "include/ignition/math/graph/*.hh",
+])
+
+private_headers = glob(["src/*.hh"])
+
+sources = glob(
+    ["src/*.cc"],
+    exclude = ["src/*_TEST.cc"],
+)
+
+generate_include_header(
+    name = "mathhh_genrule",
+    out = "include/ignition/math.hh",
+    hdrs = public_headers_no_gen + [
+        "include/ignition/math/config.hh",
+        "include/ignition/math/Export.hh",
+    ],
+)
+
+public_headers = public_headers_no_gen + [
+    "include/ignition/math/config.hh",
+    "include/ignition/math/Export.hh",
+    "include/ignition/math.hh",
+]
+
+cc_library(
+    name = "ign_math",
+    srcs = sources + private_headers,
+    hdrs = public_headers,
+    includes = ["include"],
+)
+
+# use shared library only when absolutely needd
+cc_binary(
+    name = "libignition-math6.so",
+    includes = ["include"],
+    linkopts = ["-Wl,-soname,libignition-math6.so"],
+    linkshared = True,
+    deps = [
+        ":ign_math",
+    ],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    deps = [
+        ":ign_math",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in glob(
+    [
+        "src/*_TEST.cc",
+        "src/graph/*_TEST.cc",
+    ],
+)]
