@@ -79,7 +79,7 @@ namespace systems
   /// Defaults to false.
   /// `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
-  class IGNITION_GAZEBO_VISIBLE Breadcrumbs
+  class Breadcrumbs
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

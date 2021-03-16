@@ -37,7 +37,7 @@ namespace systems
   **/
   /// \brief Contact sensor system which manages all contact sensors in
   /// simulation
-  class IGNITION_GAZEBO_VISIBLE Contact :
+  class Contact :
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

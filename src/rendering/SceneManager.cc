@@ -19,6 +19,7 @@
 #include <map>
 
 #include <sdf/Box.hh>
+#include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
@@ -247,6 +248,11 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
+  if (_visual.HasLaserRetro())
+  {
+    visualVis->SetUserData("laser_retro", _visual.LaserRetro());
+  }
+
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
   rendering::GeometryPtr geom =
@@ -257,17 +263,19 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     /// localPose is currently used to handle the normal vector in plane visuals
     /// In general, this can be used to store any local transforms between the
     /// parent Visual and geometry.
-    rendering::VisualPtr geomVis;
     if (localPose != math::Pose3d::Zero)
     {
-      geomVis = this->dataPtr->scene->CreateVisual(name + "_geom");
-      geomVis->SetUserData("gazebo-entity", static_cast<int>(_id));
-      geomVis->SetUserData("pause-update", static_cast<int>(0));
-      geomVis->SetLocalPose(_visual.RawPose() * localPose);
-      visualVis = geomVis;
+      rendering::VisualPtr geomVis =
+          this->dataPtr->scene->CreateVisual(name + "_geom");
+      geomVis->AddGeometry(geom);
+      geomVis->SetLocalPose(localPose);
+      visualVis->AddChild(geomVis);
+    }
+    else
+    {
+      visualVis->AddGeometry(geom);
     }
 
-    visualVis->AddGeometry(geom);
     visualVis->SetLocalScale(scale);
 
     // set material
@@ -341,6 +349,36 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
   return visualVis;
 }
 
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::VisualById(Entity _id)
+{
+  if (this->dataPtr->visuals.find(_id) == this->dataPtr->visuals.end())
+  {
+    ignerr << "Could not find visual for entity: " << _id << std::endl;
+    return nullptr;
+  }
+  return this->dataPtr->visuals[_id];
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
+    const sdf::Collision &_collision, Entity _parentId)
+{
+  sdf::Material material;
+  material.SetAmbient(math::Color(1, 0.5088, 0.0468, 0.7));
+  material.SetDiffuse(math::Color(1, 0.5088, 0.0468, 0.7));
+
+  sdf::Visual visual;
+  visual.SetGeom(*_collision.Geom());
+  visual.SetMaterial(material);
+  visual.SetCastShadows(false);
+
+  visual.SetRawPose(_collision.RawPose());
+  visual.SetName(_collision.Name());
+
+  rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parentId);
+  return collisionVis;
+}
 /////////////////////////////////////////////////
 rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     math::Vector3d &_scale, math::Pose3d &_localPose)

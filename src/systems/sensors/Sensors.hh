@@ -39,7 +39,7 @@ namespace systems
   /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
   /// \brief TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?
-  class IGNITION_GAZEBO_VISIBLE Sensors:
+  class Sensors:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

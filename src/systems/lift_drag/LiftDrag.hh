@@ -59,7 +59,7 @@ namespace systems
   ///               coefficient curve.
   /// cda_stall   : The ratio of coefficient of drag and alpha slope after
   ///               stall.
-  class IGNITION_GAZEBO_VISIBLE LiftDrag
+  class LiftDrag
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate

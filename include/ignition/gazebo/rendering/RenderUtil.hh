@@ -95,7 +95,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetAmbientLight(const math::Color &_ambient);
 
     /// \brief Show grid view in the scene
-    /// \param[in] _scene Pointer to the scene object
     public: void ShowGrid();
 
     /// \brief Set whether to use the current GL context
@@ -110,6 +109,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetEnableSensors(bool _enable, std::function<
         std::string(const sdf::Sensor &, const std::string &)>
         _createSensorCb = {});
+
+    /// \brief View collisions of specified entity which are shown in orange
+    /// \param[in] _entity Entity to view collisions
+    public: void ViewCollisions(const Entity &_entity);
 
     /// \brief Get the scene manager
     /// Returns reference to the scene manager.
