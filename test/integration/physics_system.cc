@@ -416,6 +416,7 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
   ecm->CreateComponent(linkEntity, components::CanonicalLink());
   ecm->CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
   ecm->CreateComponent(linkEntity, components::Name("link"));
+  ecm->CreateComponent(modelEntity, components::ModelCanonicalLink(linkEntity));
 
   math::MassMatrix3d massMatrix;
   massMatrix.SetMass(1.0);

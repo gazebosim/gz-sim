@@ -221,6 +221,12 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
+  /// \brief Link entities and their latest frame data.
+  public: std::unordered_map<Entity, physics::FrameData3d> linkFrameData;
+
+  /// \brief Model entities and their world poses.
+  public: std::unordered_map<Entity, math::Pose3d> modelWorldPoses;
+
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
 
@@ -1698,14 +1704,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
 
-  // Link poses, velocities...
-  IGN_PROFILE_BEGIN("Links");
-  _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
-      [&](const Entity &_entity, components::Link * /*_link*/,
-          components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
+  this->linkFrameData.clear();
+  this->modelWorldPoses.clear();
+
+  // Go through and retrieve frame data for each link in a non-static model
+  IGN_PROFILE_BEGIN("Links Frame Data");
+  _ecm.Each<components::Link>(
+      [&](const Entity &_entity, components::Link *) -> bool
       {
-        // If parent is static, don't process pose changes as periodic
         if (this->staticEntities.find(_entity) != this->staticEntities.end())
           return true;
 
@@ -1717,59 +1723,137 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           return true;
         }
 
+        auto frameData = linkPhys->FrameDataRelativeToWorld();
+        this->linkFrameData[_entity] = frameData;
+        return true;
+      });
+  IGN_PROFILE_END();
+
+  IGN_PROFILE_BEGIN("Models");
+  _ecm.Each<components::Model, components::Pose, components::ParentEntity,
+            components::Static, components::ModelCanonicalLink>(
+      [&](const Entity &_entity, components::Model *, components::Pose *_pose,
+          components::ParentEntity *_parentEntity, components::Static *_static,
+          components::ModelCanonicalLink *_canonicalLink) -> bool
+      {
+        if (_static->Data())
+        {
+          return true;
+        }
+
+        auto linkFrameIt = this->linkFrameData.find(_canonicalLink->Data());
+        if (linkFrameIt == this->linkFrameData.end())
+        {
+          ignerr << "Internal error: Frame data for link [" << _entity
+                 << "] not found" << std::endl;
+          return true;
+        }
+        std::optional<math::Pose3d> parentWorldPose;
+
+        // If this model is nested, we assume the pose of the parent model has
+        // already been updated. We expect to find the updated pose in
+        // modelWorldPoses. If not found, this must not be nested, so this
+        // model's pose component would reflect it's absolute pose.
+        auto parentModelPoseIt =
+            this->modelWorldPoses.find(_parentEntity->Data());
+        if (parentModelPoseIt != this->modelWorldPoses.end())
+        {
+          parentWorldPose = parentModelPoseIt->second;
+        }
+
+        // Given the following frame names:
+        // W: World/inertial frame
+        // P: Parent frame (this could be a parent model or the World frame)
+        // M: This model's frame
+        // L: The frame of this model's canonical link
+        //
+        // And the following quantities:
+        // (See http://sdformat.org/tutorials?tut=specify_pose for pose
+        // convention)
+        // parentWorldPose (X_WP): Pose of the parent frame w.r.t the world
+        // linkPoseFromModel (X_ML): Pose of the canonical link frame w.r.t the
+        // model frame
+        // linkWorldPose (X_WL): Pose of the canonical link w.r.t the world
+        // modelWorldPose (X_WM): Pose of this model w.r.t the world
+        //
+        // The Pose component of this model entity stores the pose of M w.r.t P
+        // (X_PM) and is calculated as
+        //   X_PM = (X_WP)^-1 * X_WM
+        //
+        // And X_WM is calculated from X_WL, which is obtained from physics as:
+        //   X_WM = X_WL * (X_ML)^-1
+        auto linkPoseFromModel =
+            this->RelativePose(_entity, linkFrameIt->first, _ecm);
+        const auto &linkWorldPose = linkFrameIt->second.pose;
+        const auto &modelWorldPose =
+            math::eigen3::convert(linkWorldPose) * linkPoseFromModel.Inverse();
+
+        this->modelWorldPoses[_entity] = modelWorldPose;
+
+        // update model's pose
+        if (parentWorldPose)
+        {
+          *_pose =
+              components::Pose(parentWorldPose->Inverse() * modelWorldPose);
+        }
+        else
+        {
+          // This is a non-nested model and parentWorldPose would be identity
+          // because it would be the pose of the parent (world) w.r.t the world.
+          *_pose = components::Pose(modelWorldPose);
+        }
+
+        _ecm.SetChanged(_entity, components::Pose::typeId,
+                        ComponentState::PeriodicChange);
+        return true;
+      });
+
+  IGN_PROFILE_END();
+
+  // Link poses, velocities...
+  IGN_PROFILE_BEGIN("Links");
+  _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
+      [&](const Entity &_entity, components::Link * /*_link*/,
+          components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        // If parent is static, don't process pose changes as periodic
+        if (this->staticEntities.find(_entity) != this->staticEntities.end())
+          return true;
+
         IGN_PROFILE_BEGIN("Local pose");
-        // get top level model of this link
-        auto topLevelModelEnt = this->topLevelModelMap[_parent->Data()];
 
         auto canonicalLink =
             _ecm.Component<components::CanonicalLink>(_entity);
 
-        auto frameData = linkPhys->FrameDataRelativeToWorld();
+        auto it = this->linkFrameData.find(_entity);
+        if (it == this->linkFrameData.end())
+        {
+          ignerr << "Internal error: Frame data for link [" << _entity
+                 << "] not found" << std::endl;
+          return true;
+        }
+        const auto &frameData = it->second;
         const auto &worldPose = frameData.pose;
 
-        if (canonicalLink)
+        if (!canonicalLink)
         {
-          // This is the canonical link, update the top level model.
-          // The pose of this link w.r.t its top level model never changes
-          // because it's "fixed" to the model. Instead, we change
-          // the top level model's pose here. The physics engine gives us the
-          // pose of this link relative to world so to set the top level
-          // model's pose, we have to post-multiply it by the inverse of the
-          // transform of the link w.r.t to its top level model.
-          math::Pose3d linkPoseFromTopLevelModel;
-          linkPoseFromTopLevelModel =
-              this->RelativePose(topLevelModelEnt, _entity, _ecm);
-
-          // update top level model's pose
-          auto mutableModelPose =
-             _ecm.Component<components::Pose>(topLevelModelEnt);
-          *(mutableModelPose) = components::Pose(
-              math::eigen3::convert(worldPose) *
-              linkPoseFromTopLevelModel.Inverse());
-
-          _ecm.SetChanged(topLevelModelEnt, components::Pose::typeId,
-              ComponentState::PeriodicChange);
-        }
-        else
-        {
-          // Compute the relative pose of this link from the top level model
+          // Compute the relative pose of this link from the parent model
           // first get the world pose of the top level model
-          auto worldComp =
-              _ecm.Component<components::ParentEntity>(topLevelModelEnt);
-          // if the worldComp is a nullptr, something is wrong with ECS
-          if (!worldComp)
+          auto parentModelPoseIt =
+              this->modelWorldPoses.find(_parent->Data());
+          if (parentModelPoseIt == this->modelWorldPoses.end())
           {
-            ignerr << "The parent component of " << topLevelModelEnt
-                   << " could not be found. This should never happen!\n";
+            ignerr << "Internal error: parent model [" << _parent->Data()
+                   << "] does not have a world pose available" << std::endl;
             return true;
           }
-          math::Pose3d parentWorldPose =
-              this->RelativePose(worldComp->Data(), _parent->Data(), _ecm);
+          const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
 
           // Unlike canonical links, pose of regular links can move relative.
           // to the parent. Same for links inside nested models.
-          *_pose = components::Pose(math::eigen3::convert(worldPose) +
-                                    parentWorldPose.Inverse());
+          *_pose = components::Pose(parentWorldPose.Inverse() *
+                                    math::eigen3::convert(worldPose));
           _ecm.SetChanged(_entity, components::Pose::typeId,
               ComponentState::PeriodicChange);
         }
@@ -1909,6 +1993,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         return true;
       });
   IGN_PROFILE_END();
+
 
   // pose/velocity/acceleration of non-link entities such as sensors /
   // collisions. These get updated only if another system has created a
