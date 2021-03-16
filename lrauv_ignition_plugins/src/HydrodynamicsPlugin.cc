@@ -118,15 +118,19 @@ void AddWorldPose (
     _ecm.CreateComponent(_entity,
       ignition::gazebo::components::WorldPose());
   }
-    // Create an angular velocity component if one is not present.
-  if (!_ecm.Component<ignition::gazebo::components::WorldPose>(
+}
+
+void AddWorldLinearVelocity(
+  const ignition::gazebo::Entity &_entity,
+  ignition::gazebo::EntityComponentManager &_ecm)
+{
+  if (!_ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(
       _entity))
   {
     _ecm.CreateComponent(_entity,
-      ignition::gazebo::components::WorldPose());
+      ignition::gazebo::components::WorldLinearVelocity());
   }
 }
-
 
 double SdfParamDouble(
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -179,14 +183,14 @@ void HydrodynamicsPlugin::Configure(
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
-  auto link_name = _sdf->Get<std::string>("linkName");
+  auto link_name = _sdf->Get<std::string>("link_name");
   _data->linkEntity = model.LinkByName(_ecm, link_name);
 
   _data->prevState = Eigen::VectorXd::Zero(6); 
 
   AddWorldPose(_data->linkEntity, _ecm);
   AddAngularVelocityComponent(_data->linkEntity, _ecm);
-
+  AddWorldLinearVelocity(_data->linkEntity, _ecm);
 }
 
 void HydrodynamicsPlugin::PreUpdate(
@@ -204,19 +208,25 @@ void HydrodynamicsPlugin::PreUpdate(
 
   // Get vehicle state
   ignition::gazebo::Link baseLink(_data->linkEntity);
-  auto linearVelocity = baseLink.WorldLinearVelocity(_ecm);
+  auto linearVelocity =
+    _ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(_data->linkEntity);
   auto rotationalVelocity = baseLink.WorldAngularVelocity(_ecm);
 
-  state(0) = linearVelocity->X();
-  state(1) = linearVelocity->Y();
-  state(2) = linearVelocity->Z();
+  if(!linearVelocity)
+  {
+    ignerr <<"no linear vel" <<"\n";
+    return;
+  }
+
+  state(0) = linearVelocity->Data().X();
+  state(1) = linearVelocity->Data().Y();
+  state(2) = linearVelocity->Data().Z();
 
   state(3) = rotationalVelocity->X();
   state(4) = rotationalVelocity->Y();
   state(5) = rotationalVelocity->Z();
 
-  auto dt = (double)_info.dt.count()/1000;
-  
+  auto dt = (double)_info.dt.count()/1e9;
   stateDot = (state - _data->prevState)/dt;
 
   _data->prevState = state;
@@ -228,7 +238,7 @@ void HydrodynamicsPlugin::PreUpdate(
   Ma(3,3) = _data->paramKdotP;
   Ma(4,4) = _data->paramMdotQ;
   Ma(5,5) = _data->paramNdotR;
-  const Eigen::VectorXd kAmassVec = -1.0 * Ma * stateDot;
+  const Eigen::VectorXd kAmassVec = Ma * stateDot;
 
   // Coriollis forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
@@ -259,9 +269,9 @@ void HydrodynamicsPlugin::PreUpdate(
   Dmat(2,2) = - _data->paramZw - _data->paramZww * abs(state(2));
   Dmat(3,3) = - _data->paramKp - _data->paramKpp * abs(state(3));
 
-  const Eigen::VectorXd kDvec = -1.0 * Dmat * state;
+  const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
+  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec;// + kCmatVec;
 
   ignition::math::Vector3d totalForce(kTotalWrench(0),  kTotalWrench(1), kTotalWrench(2));
   ignition::math::Vector3d totalTorque(kTotalWrench(3),  kTotalWrench(4), kTotalWrench(5)); 
