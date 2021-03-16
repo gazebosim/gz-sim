@@ -70,6 +70,7 @@ function(gz_add_system system_name)
   INSTALL(FILES ${PROJECT_BINARY_DIR}/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endfunction()
 
+add_subdirectory(ackermann_steering)
 add_subdirectory(air_pressure)
 add_subdirectory(altimeter)
 add_subdirectory(apply_joint_force)
