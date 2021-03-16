@@ -33,7 +33,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 /// \brief Class for handling about dialog
-class IGNITION_GAZEBO_VISIBLE AboutDialogHandler : public QObject
+class AboutDialogHandler : public QObject
 {
   Q_OBJECT
 
