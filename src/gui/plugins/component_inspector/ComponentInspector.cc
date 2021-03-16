@@ -49,8 +49,11 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
+#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
+#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
@@ -601,9 +604,37 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsCollisionDetector::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsCollisionDetector>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PhysicsSolver::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsSolver>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Pose::typeId)
     {
       auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineGuiPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineServerPlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
+          this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }

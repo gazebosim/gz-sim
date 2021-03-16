@@ -55,6 +55,7 @@
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/World.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
@@ -110,6 +111,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
@@ -356,6 +358,12 @@ class ignition::gazebo::systems::PhysicsPrivate
             physics::mesh::AttachMeshShapeFeature>{};
 
   //////////////////////////////////////////////////
+  // Physics options
+  /// \brief Feature list for setting and getting physics options
+  public: struct PhysicsOptionsFeatureList : ignition::physics::FeatureList<
+            ignition::physics::PhysicsOptions>{};
+
+  //////////////////////////////////////////////////
   // Nested Models
 
   /// \brief Feature list to construct nested models
@@ -369,7 +377,8 @@ class ignition::gazebo::systems::PhysicsPrivate
           physics::World,
           MinimumFeatureList,
           CollisionFeatureList,
-          NestedModelFeatureList>;
+          NestedModelFeatureList,
+          PhysicsOptionsFeatureList>;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
   /// ign-physics.
@@ -612,6 +621,40 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         world.SetGravity(_gravity->Data());
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
+
+        // Optional world features
+        auto collisionDetectorComp =
+            _ecm.Component<components::PhysicsCollisionDetector>(_entity);
+        auto solverComp = _ecm.Component<components::PhysicsSolver>(_entity);
+        if (collisionDetectorComp || solverComp)
+        {
+          auto physicsOptionsFeature =
+              this->entityWorldMap.EntityCast<PhysicsOptionsFeatureList>(
+              _entity);
+          if (!physicsOptionsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              igndbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[PhysicsOptionsFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return true;
+          }
+
+          if (collisionDetectorComp)
+          {
+            physicsOptionsFeature->SetCollisionDetector(
+                collisionDetectorComp->Data());
+          }
+          if (solverComp)
+          {
+            physicsOptionsFeature->SetSolver(solverComp->Data());
+          }
+        }
 
         return true;
       });
