@@ -180,10 +180,18 @@ void JointPositionController::Update(const UpdateInfo &,
 
   if (!this->dataPtr->xmlModelInitialized)
   {
-    this->SetModelEntity(_ecm.EntityByComponents(
-        components::Name(this->dataPtr->modelName.toStdString())));
+    auto entity = _ecm.EntityByComponents(
+        components::Name(this->dataPtr->modelName.toStdString()));
+
+    // Don't initialize until we get the entity
+    if (entity == kNullEntity)
+      return;
+
+    this->SetModelEntity(entity);
     this->SetLocked(true);
     this->dataPtr->xmlModelInitialized = true;
+    ignmsg << "Controller locked on [" << this->dataPtr->modelName.toStdString()
+           << "]" << std::endl;
   }
 
   if (this->dataPtr->modelEntity == kNullEntity ||

@@ -82,6 +82,31 @@ Rectangle {
       }
 
       ToolButton {
+        text: "?"
+        ToolTip.text: "Help"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          helpPopup.open();
+        }
+      }
+
+      Popup {
+        id: helpPopup
+        parent: ApplicationWindow.overlay
+        // From Qt 5.12 use
+        // anchors.centerIn: parent
+        x: 10
+        y: 10
+        Text {
+          text: "If your model is not responding, make\n" +
+                "sure all its joints have a \n" +
+                "JointPositionController attached to\n" +
+                "them, all using default topics."
+        }
+      }
+
+      ToolButton {
         id: lockButton
         checkable: true
         checked: false
@@ -95,7 +120,8 @@ Rectangle {
           sourceSize.width: 18;
           sourceSize.height: 18;
         }
-        ToolTip.text: lockButton.checked ? "Unlock model" : "Lock model"
+        ToolTip.text: lockButton.checked ? "Unlock model selection"
+            : "Lock model selection"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
