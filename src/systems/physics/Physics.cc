@@ -365,20 +365,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Feature list for heightmaps.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
-  public: using HeightmapFeatureList = physics::FeatureList<
+  public: struct HeightmapFeatureList : ignition::physics::FeatureList<
             CollisionFeatureList,
-            physics::heightmap::AttachHeightmapShapeFeature>;
-
-  /// \brief Link type with heightmapes.
-  public: using LinkHeightmapPtrType = physics::LinkPtr<
-            physics::FeaturePolicy3d, HeightmapFeatureList>;
-
-  /// \brief A map between link entity ids in the ECM to Link Entities in
-  /// ign-physics, with heightmap feature.
-  /// All links on this map are also in `entityLinkMap`. The difference is
-  /// that here they've been casted for `HeightmapFeatureList`.
-  public: std::unordered_map<Entity, LinkHeightmapPtrType>
-      entityLinkHeightmapMap;
+            physics::heightmap::AttachHeightmapShapeFeature>{};
 
   //////////////////////////////////////////////////
   // Nested Models
@@ -418,6 +407,7 @@ class ignition::gazebo::systems::PhysicsPrivate
             MinimumFeatureList,
             DetachableJointFeatureList,
             CollisionFeatureList,
+            HeightmapFeatureList,
             LinkForceFeatureList,
             MeshFeatureList>;
 
@@ -906,8 +896,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
         else if (_geom->Data().Type() == sdf::GeometryType::HEIGHTMAP)
         {
-          auto linkHeightmapFeature = entityCast(_parent->Data(), linkPtrPhys,
-              this->entityLinkHeightmapMap);
+          auto linkHeightmapFeature =
+              this->entityLinkMap.EntityCast<HeightmapFeatureList>(
+                  _parent->Data());
           if (!linkHeightmapFeature)
           {
             static bool informed{false};

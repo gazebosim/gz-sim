@@ -3,12 +3,15 @@
 
   Demonstrates a heightmap terrain.
 
-  At the moment, only the visuals work, but not the physics collisions, see
-  https://github.com/ignitionrobotics/ign-physics/issues/156.
-
 -->
 <sdf version="1.6">
   <world name="heightmap">
+    <physics name="1ms" type="ignored">
+      <dart>
+        <!-- Heightmaps behave better with the bullet collision detector -->
+        <collision_detector>bullet</collision_detector>
+      </dart>
+    </physics>
 
     <!-- 3D scene -->
     <gui>
