@@ -36,7 +36,7 @@ namespace ignition
     ///
     /// NetworkConfig can either be created programatically, or populated from
     /// environment variables set before the execution of the Gazebo server.
-    class IGNITION_GAZEBO_VISIBLE NetworkConfig
+    class NetworkConfig
     {
       /// \brief Populate a new NetworkConfig object based on
       /// values.

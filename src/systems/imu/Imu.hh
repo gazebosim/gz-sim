@@ -37,7 +37,7 @@ namespace systems
   /// \brief This system manages all IMU sensors in simulation.
   /// Each IMU sensor eports vertical position, angular velocity
   /// and lienar acceleration readings over Ignition Transport.
-  class IGNITION_GAZEBO_VISIBLE Imu:
+  class Imu:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate
