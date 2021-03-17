@@ -302,7 +302,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Feature list to handle collisions.
   public: struct CollisionFeatureList : ignition::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::GetContactsFromLastStepFeature,
             ignition::physics::sdf::ConstructSdfCollision>{};
 
   /// \brief Collision type with collision features.
@@ -312,6 +311,14 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief World type with just the minimum features. Non-pointer.
   public: using WorldShapeType = ignition::physics::World<
             ignition::physics::FeaturePolicy3d, CollisionFeatureList>;
+
+  //////////////////////////////////////////////////
+  // Contacts
+
+  /// \brief Feature list to handle contacts information.
+  public: struct ContactFeatureList : ignition::physics::FeatureList<
+            CollisionFeatureList,
+            ignition::physics::GetContactsFromLastStepFeature>{};
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
@@ -373,6 +380,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           physics::World,
           MinimumFeatureList,
           CollisionFeatureList,
+          ContactFeatureList,
           NestedModelFeatureList>;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -2155,14 +2163,14 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   }
 
   auto worldCollisionFeature =
-      this->entityWorldMap.EntityCast<CollisionFeatureList>(worldEntity);
+      this->entityWorldMap.EntityCast<ContactFeatureList>(worldEntity);
   if (!worldCollisionFeature)
   {
     static bool informed{false};
     if (!informed)
     {
       igndbg << "Attempting process contacts, but the physics "
-             << "engine doesn't support collision features. "
+             << "engine doesn't support contact features. "
              << "Contacts won't be computed."
              << std::endl;
       informed = true;
