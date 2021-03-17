@@ -304,21 +304,23 @@ class ignition::gazebo::systems::PhysicsPrivate
             MinimumFeatureList,
             ignition::physics::sdf::ConstructSdfCollision>{};
 
-  /// \brief Collision type with collision features.
-  public: using ShapePtrType = ignition::physics::ShapePtr<
-            ignition::physics::FeaturePolicy3d, CollisionFeatureList>;
-
-  /// \brief World type with just the minimum features. Non-pointer.
-  public: using WorldShapeType = ignition::physics::World<
-            ignition::physics::FeaturePolicy3d, CollisionFeatureList>;
-
-  //////////////////////////////////////////////////
-  // Contacts
-
   /// \brief Feature list to handle contacts information.
   public: struct ContactFeatureList : ignition::physics::FeatureList<
             CollisionFeatureList,
             ignition::physics::GetContactsFromLastStepFeature>{};
+
+  /// \brief Collision type with collision features.
+  public: using ShapePtrType = ignition::physics::ShapePtr<
+            ignition::physics::FeaturePolicy3d, ContactFeatureList>;
+
+  /// \brief World type with just the minimum features. Non-pointer.
+  public: using WorldShapeType = ignition::physics::World<
+            ignition::physics::FeaturePolicy3d, ContactFeatureList>;
+
+  //////////////////////////////////////////////////
+  // Contacts
+
+
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
