@@ -83,6 +83,7 @@ Rectangle {
 
       ToolButton {
         text: "?"
+        font.bold: true
         ToolTip.text: "Help"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -126,6 +127,17 @@ Rectangle {
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
           JointPositionController.locked = lockButton.checked
+        }
+      }
+
+      ToolButton {
+        id: resetButton
+        text: "\u21BA"
+        ToolTip.text: "Reset all joints to zero"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          JointPositionController.OnReset()
         }
       }
 

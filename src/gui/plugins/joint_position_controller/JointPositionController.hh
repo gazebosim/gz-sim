@@ -133,6 +133,9 @@ namespace gui
     /// \param[in] _pos New joint position
     public: Q_INVOKABLE void OnCommand(const QString &_jointName, double _pos);
 
+    /// \brief Callback in Qt thread when user requests a reset.
+    public: Q_INVOKABLE void OnReset();
+
     /// \brief Get the model currently controlled.
     /// \return Model entity ID.
     public: Q_INVOKABLE Entity ModelEntity() const;

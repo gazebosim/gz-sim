@@ -26,18 +26,16 @@ Rectangle {
   width: jointPositionController.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
-  // Position value
-  property double value: 0.0
+  // Position target value
+  property double targetValue: 0.0
 
   // Horizontal margins
   property int margin: 15
 
   Connections {
     target: joint
-    onValueChanged: {
-      jointPositionController.onCommand(model.name, joint.value);
-      spin.value = joint.value;
-      slider.value = joint.value;
+    onTargetValueChanged: {
+      jointPositionController.onCommand(model.name, joint.targetValue);
     }
   }
 
@@ -73,12 +71,13 @@ Rectangle {
 
     IgnSpinBox {
       id: spin
-      value: model.value
+      value: spin.activeFocus ? joint.targetValue : model.value
       minimumValue: model.min
       maximumValue: model.max
       decimals: 2
+      stepSize: 0.1
       onEditingFinished: {
-        joint.value = spin.value
+        joint.targetValue = spin.value
       }
     }
 
@@ -93,9 +92,9 @@ Rectangle {
       Layout.fillWidth: true
       from: model.min
       to: model.max
-      value: model.value
+      value: slider.activeFocus ? joint.targetValue : model.value
       onMoved: {
-        joint.value = slider.value
+        joint.targetValue = slider.value
       }
     }
 

@@ -231,6 +231,7 @@ void JointPositionController::Update(const UpdateInfo &,
     }
 
     // Get joint item
+    bool newItem{false};
     QStandardItem *item;
     auto itemIt = this->dataPtr->jointsModel.items.find(jointEntity);
     if (itemIt != this->dataPtr->jointsModel.items.end())
@@ -246,6 +247,7 @@ void JointPositionController::Update(const UpdateInfo &,
           Qt::BlockingQueuedConnection,
           Q_RETURN_ARG(QStandardItem *, item),
           Q_ARG(Entity, jointEntity));
+      newItem = true;
     }
 
     if (nullptr == item)
@@ -255,22 +257,25 @@ void JointPositionController::Update(const UpdateInfo &,
       continue;
     }
 
-    // Name
-    auto name = _ecm.ComponentData<components::Name>(jointEntity).value();
-    item->setData(QString::fromStdString(name),
-        JointsModel::RoleNames().key("name"));
-
-    // Limits
-    double min = -IGN_PI;
-    double max = IGN_PI;
-    auto axisComp = _ecm.Component<components::JointAxis>(jointEntity);
-    if (axisComp)
+    if (newItem)
     {
-      min = axisComp->Data().Lower();
-      max = axisComp->Data().Upper();
+      // Name
+      auto name = _ecm.ComponentData<components::Name>(jointEntity).value();
+      item->setData(QString::fromStdString(name),
+          JointsModel::RoleNames().key("name"));
+
+      // Limits
+      double min = -IGN_PI;
+      double max = IGN_PI;
+      auto axisComp = _ecm.Component<components::JointAxis>(jointEntity);
+      if (axisComp)
+      {
+        min = axisComp->Data().Lower();
+        max = axisComp->Data().Upper();
+      }
+      item->setData(min, JointsModel::RoleNames().key("min"));
+      item->setData(max, JointsModel::RoleNames().key("max"));
     }
-    item->setData(min, JointsModel::RoleNames().key("min"));
-    item->setData(max, JointsModel::RoleNames().key("max"));
 
     // Value
     double value = 0.0;
@@ -390,6 +395,37 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
 
   auto pub = this->dataPtr->node.Advertise<ignition::msgs::Double>(topic);
   pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
+void JointPositionController::OnReset()
+{
+  for (auto itemIt : this->dataPtr->jointsModel.items)
+  {
+    auto jointName = itemIt.second->data(JointsModel::RoleNames().key("name"))
+        .toString().toStdString();
+    if (jointName.empty())
+    {
+      ignerr << "Internal error: failed to get joint name." << std::endl;
+      continue;
+    }
+
+    ignition::msgs::Double msg;
+    msg.set_data(0);
+    auto topic = transport::TopicUtils::AsValidTopic("/model/" +
+        this->dataPtr->modelName.toStdString() + "/joint/" + jointName +
+        "/0/cmd_pos");
+
+    if (topic.empty())
+    {
+      ignerr << "Failed to create valid topic for joint [" << jointName << "]"
+             << std::endl;
+      return;
+    }
+
+    auto pub = this->dataPtr->node.Advertise<ignition::msgs::Double>(topic);
+    pub.Publish(msg);
+  }
 }
 
 // Register this plugin
