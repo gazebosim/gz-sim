@@ -2103,6 +2103,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           {
             _jointPos->Data()[i] = jointPhys->GetPosition(i);
           }
+          _ecm.SetChanged(_entity, components::JointPosition::typeId,
+              ComponentState::PeriodicChange);
         }
         return true;
       });

@@ -63,7 +63,7 @@ namespace systems
   ///                             negative frequency publishes as fast as
   ///                             possible (i.e, at the rate of the simulation
   ///                             step).
-  class IGNITION_GAZEBO_VISIBLE PosePublisher
+  class PosePublisher
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate
