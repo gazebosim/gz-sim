@@ -118,6 +118,7 @@ PlotComponent::PlotComponent(const std::string &_type,
     this->dataPtr->data["innerAngle"] = std::make_shared<PlotData>();
     this->dataPtr->data["outerAngle"] = std::make_shared<PlotData>();
     this->dataPtr->data["falloff"] = std::make_shared<PlotData>();
+    this->dataPtr->data["intensity"] = std::make_shared<PlotData>();
   }
   else if (_type == "double")
     this->dataPtr->data["value"] = std::make_shared<PlotData>();
@@ -267,6 +268,8 @@ void Plotting::SetData(std::string _Id, const ignition::msgs::Light &_light)
     _light.attenuation_quadratic());
   this->dataPtr->components[_Id]->SetAttributeValue("castshadows",
     _light.cast_shadows());
+  this->dataPtr->components[_Id]->SetAttributeValue("intensity",
+    _light.intensity());
   if (_light.has_direction())
   {
     this->dataPtr->components[_Id]->SetAttributeValue("directionX",

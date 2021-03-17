@@ -770,6 +770,12 @@ void RenderUtil::Update()
         }
         if (l->CastShadows() != light.second.cast_shadows())
           l->SetCastShadows(light.second.cast_shadows());
+        if (!ignition::math::equal(
+            l->Intensity(),
+            static_cast<double>(light.second.intensity())))
+        {
+          l->SetIntensity(light.second.intensity());
+        }
         auto lDirectional =
           std::dynamic_pointer_cast<rendering::DirectionalLight>(node);
         if (lDirectional)
@@ -2061,6 +2067,8 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
   else
   {
     ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    wireBox->SetBox(aabb);
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(true);
