@@ -348,7 +348,7 @@ TEST_F(UserCommandsTest, Remove)
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
   // collision + 3 x visual + 1 x light
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -371,7 +371,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));

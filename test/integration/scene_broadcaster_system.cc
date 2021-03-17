@@ -52,7 +52,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(17u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -102,7 +102,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(17u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -148,7 +148,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(17u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -162,7 +162,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
   EXPECT_TRUE(node.Request("/world/default/scene/graph", timeout, res, result));
   EXPECT_TRUE(result);
-
+  std::cout << res.data() << "\n";
   EXPECT_FALSE(res.data().empty());
   EXPECT_NE(res.data().find("default (1)"), std::string::npos);
   EXPECT_NE(res.data().find("box (4)"), std::string::npos);
@@ -174,6 +174,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   EXPECT_NE(res.data().find("sphere (12)"), std::string::npos);
   EXPECT_NE(res.data().find("sphere_link (13)"), std::string::npos);
   EXPECT_NE(res.data().find("sphere_visual (14)"), std::string::npos);
+  EXPECT_NE(res.data().find("altimeter (16)"), std::string::npos);
 }
 
 /////////////////////////////////////////////////
@@ -188,7 +189,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(17u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -218,6 +219,12 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, msg, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(google::protobuf::util::MessageDifferencer::Equals(msg, scene));
+
+  EXPECT_EQ(1, msg.model(2).link(0).sensor_size());
+  EXPECT_EQ("altimeter", msg.model(2).link(0).sensor(0).name());
+  EXPECT_DOUBLE_EQ(0.1, msg.model(2).link(0).sensor(0).pose().position().x());
+  EXPECT_DOUBLE_EQ(0.2, msg.model(2).link(0).sensor(0).pose().position().y());
+  EXPECT_DOUBLE_EQ(0.3, msg.model(2).link(0).sensor(0).pose().position().z());
 }
 
 /////////////////////////////////////////////////
@@ -233,7 +240,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 16;
+  const std::size_t initEntityCount = 17;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
@@ -293,7 +300,7 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 16;
+  const std::size_t initEntityCount = 17;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   server.Run(true, 1, false);
@@ -362,7 +369,7 @@ TEST_P(SceneBroadcasterTest, State)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(16u, *server.EntityCount());
+  EXPECT_EQ(17u, *server.EntityCount());
   transport::Node node;
 
   // Run server
@@ -392,7 +399,7 @@ TEST_P(SceneBroadcasterTest, State)
       [&](const msgs::SerializedStepMap &_res, const bool _success)
   {
     EXPECT_TRUE(_success);
-    checkMsg(_res, 16);
+    checkMsg(_res, 17);
   };
   std::function<void(const msgs::SerializedStepMap &)> cb2 =
       [&](const msgs::SerializedStepMap &_res)
@@ -404,7 +411,7 @@ TEST_P(SceneBroadcasterTest, State)
   std::function<void(const msgs::SerializedStepMap &)> cbAsync =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 16);
+    checkMsg(_res, 17);
   };
 
   // The request is blocking even though it's meant to be async, so we spin a
