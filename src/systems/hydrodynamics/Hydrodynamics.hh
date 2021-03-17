@@ -70,7 +70,7 @@ namespace systems
   /// # Example
   /// An example configuration is provided in the examples folder. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
-  /// thruster plugin to propell the craft and the buoyancy plugin for buoysnt
+  /// thruster plugin to propell the craft and the buoyancy plugin for buoyant
   /// force. To run th example run.
   /// ```
   /// ign gazebo auv_controls.sdf
