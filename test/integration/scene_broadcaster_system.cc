@@ -162,7 +162,6 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
   EXPECT_TRUE(node.Request("/world/default/scene/graph", timeout, res, result));
   EXPECT_TRUE(result);
-  std::cout << res.data() << "\n";
   EXPECT_FALSE(res.data().empty());
   EXPECT_NE(res.data().find("default (1)"), std::string::npos);
   EXPECT_NE(res.data().find("box (4)"), std::string::npos);
