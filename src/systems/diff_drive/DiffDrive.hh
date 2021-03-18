@@ -77,7 +77,7 @@ namespace systems
   /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
   /// `ignition.msgs.Odometry` message. This element if optional,
   ///  and the default value is `{name_of_model}/{name_of_link}`.
-  class IGNITION_GAZEBO_VISIBLE DiffDrive
+  class DiffDrive
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
