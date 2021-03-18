@@ -211,20 +211,33 @@ void HydrodynamicsPlugin::PreUpdate(
   auto linearVelocity =
     _ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(_data->linkEntity);
   auto rotationalVelocity = baseLink.WorldAngularVelocity(_ecm);
-
+  
   if(!linearVelocity)
   {
     ignerr <<"no linear vel" <<"\n";
     return;
   }
 
-  state(0) = linearVelocity->Data().X();
-  state(1) = linearVelocity->Data().Y();
-  state(2) = linearVelocity->Data().Z();
+  if(linearVelocity->Data().Length() < 1e-9) return;
 
-  state(3) = rotationalVelocity->X();
-  state(4) = rotationalVelocity->Y();
-  state(5) = rotationalVelocity->Z();
+  // Transform state to local frame
+  auto pose = baseLink.WorldPose(_ecm);
+  // Since we are transforming angular and linear velocity we only care about
+  // rotation
+  auto localLinearVelocity = pose->Rot().Inverse() * linearVelocity->Data();
+  auto localRotationalVelocity = pose->Rot().Inverse() * *rotationalVelocity;
+
+ // ignerr << "Craft position " << pose->Rot() << "\n" ;
+  ignerr << "\t Global velocity " << linearVelocity->Data() << "\n";
+  ignerr << "\t Local velocity " << localLinearVelocity << "\n";
+  //ignerr << "\t Local Rotational Velocity " << localLinearVelocity << "\n";
+  state(0) = localLinearVelocity.X();
+  state(1) = localLinearVelocity.Y();
+  state(2) = localLinearVelocity.Z();
+
+  state(3) = 0;//localRotationalVelocity->X();
+  state(4) = 0;//localRotationalVelocity->Y();
+  state(5) = 0;//localRotationalVelocity->Z();
 
   auto dt = (double)_info.dt.count()/1e9;
   stateDot = (state - _data->prevState)/dt;
@@ -268,15 +281,30 @@ void HydrodynamicsPlugin::PreUpdate(
   Dmat(1,1) = - _data->paramYv - _data->paramYvv * abs(state(1));
   Dmat(2,2) = - _data->paramZw - _data->paramZww * abs(state(2));
   Dmat(3,3) = - _data->paramKp - _data->paramKpp * abs(state(3));
+  Dmat(4,4) = - _data->paramMq - _data->paramMqq * abs(state(4));
+  Dmat(5,5) = - _data->paramNr - _data->paramNrr * abs(state(5));
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
   const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec;// + kCmatVec;
 
-  ignition::math::Vector3d totalForce(kTotalWrench(0),  kTotalWrench(1), kTotalWrench(2));
-  ignition::math::Vector3d totalTorque(kTotalWrench(3),  kTotalWrench(4), kTotalWrench(5)); 
+  static int debug_counter;
+  debug_counter++;
+  //if(debug_counter %1 ==0){
+  //  ignerr << "state:\n" <<state << "\n";
+  //  ignerr << "Dmat:\n" << Dmat << "\n";
+    //ignerr << "Ma:\n" << Ma << "\n";
+  //  ignerr << "stateDot:\n" << stateDot<< "\n";
+  //  ignerr << "Totoal outptut:\n" << kTotalWrench << "\n";
+  //}
+  
 
-  baseLink.AddWorldWrench(_ecm, totalForce, totalTorque);
+  ignition::math::Vector3d totalForce(-kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));
+  ignition::math::Vector3d totalTorque(-kTotalWrench(3),  -kTotalWrench(4), -kTotalWrench(5)); 
+
+  ignerr << "output force (my frame)" << totalForce  << "\n";
+  ignerr << "output force (world frame) " << pose->Rot()*(totalForce) << "\n";
+  baseLink.AddWorldWrench(_ecm, pose->Rot()*(totalForce), pose->Rot()*totalTorque);
 }
 
 };
