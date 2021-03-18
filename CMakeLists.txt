@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo3 VERSION 3.6.0)
+project(ignition-gazebo3 VERSION 3.8.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -75,7 +75,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui3 REQUIRED VERSION 3.4)
+ign_find_package(ignition-gui3 REQUIRED VERSION 3.5)
 set(IGN_GUI_VER ${ignition-gui3_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -121,6 +121,12 @@ set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+
+#--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
 
 #--------------------------------------
 # Find protobuf

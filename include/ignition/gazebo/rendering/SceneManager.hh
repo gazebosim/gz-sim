@@ -96,6 +96,19 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
+    /// \brief Create a collision visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _collision Collision sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Visual (collision) object created from the sdf dom
+    public: rendering::VisualPtr CreateCollision(Entity _id,
+        const sdf::Collision &_collision, Entity _parentId = 0);
+
+    /// \brief Retrieve visual
+    /// \param[in] _id Unique visual (entity) id
+    /// \return Pointer to requested visual
+    public: rendering::VisualPtr VisualById(Entity _id);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _visual Actor sdf dom

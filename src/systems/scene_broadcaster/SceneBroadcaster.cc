@@ -272,12 +272,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
-  auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-        jumpBackInTime;
-  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod;
+    _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
+    jumpBackInTime;
+  auto now = std::chrono::system_clock::now();
+  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 
@@ -293,12 +293,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Otherwise publish just selected components
+    // Otherwise publish just periodic change components
     else
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, {components::Pose::typeId});
+          {}, periodicComponents);
     }
 
     // Full state on demand
