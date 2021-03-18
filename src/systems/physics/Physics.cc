@@ -311,16 +311,11 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Collision type with collision features.
   public: using ShapePtrType = ignition::physics::ShapePtr<
-            ignition::physics::FeaturePolicy3d, ContactFeatureList>;
+            ignition::physics::FeaturePolicy3d, CollisionFeatureList>;
 
   /// \brief World type with just the minimum features. Non-pointer.
   public: using WorldShapeType = ignition::physics::World<
             ignition::physics::FeaturePolicy3d, ContactFeatureList>;
-
-  //////////////////////////////////////////////////
-  // Contacts
-
-
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
@@ -430,6 +425,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using EntityCollisionMap = EntityFeatureMap3d<
             physics::Shape,
             CollisionFeatureList,
+            ContactFeatureList,
             CollisionMaskFeatureList,
             FrictionPyramidSlipComplianceFeatureList
             >;
@@ -2199,8 +2195,10 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   for (const auto &contactComposite : allContacts)
   {
     const auto &contact = contactComposite.Get<WorldShapeType::ContactPoint>();
-    auto coll1Entity = this->entityCollisionMap.Get(contact.collision1);
-    auto coll2Entity = this->entityCollisionMap.Get(contact.collision2);
+    auto coll1Entity =
+      this->entityCollisionMap.Get(ShapePtrType(contact.collision1));
+    auto coll2Entity =
+      this->entityCollisionMap.Get(ShapePtrType(contact.collision2));
 
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
