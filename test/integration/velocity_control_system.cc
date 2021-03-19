@@ -167,7 +167,7 @@ TEST_F(VelocityControlTest, InitialVelocity)
     });
   server.AddSystem(testSystem.systemPtr);
 
-  // Run server and check that vehicle didn't move
+  // Run server and check that vehicle moved
   server.Run(true, 1000, false);
   EXPECT_EQ(1000u, poses.size());
 
