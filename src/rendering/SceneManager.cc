@@ -41,7 +41,6 @@
 #include <ignition/msgs/Utility.hh>
 
 #include "ignition/rendering/Capsule.hh"
-#include <ignition/rendering/Ellipsoid.hh>
 #include <ignition/rendering/Geometry.hh>
 #include <ignition/rendering/Heightmap.hh>
 #include <ignition/rendering/HeightmapDescriptor.hh>
