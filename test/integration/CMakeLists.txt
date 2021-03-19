@@ -34,6 +34,7 @@ set(tests
   model.cc
   multicopter.cc
   multiple_servers.cc
+  nested_model_physics.cc
   network_handshake.cc
   particle_emitter.cc
   performer_detector.cc
