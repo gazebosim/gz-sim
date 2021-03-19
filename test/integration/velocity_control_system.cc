@@ -136,6 +136,55 @@ TEST_P(VelocityControlTest, PublishCmd)
       "/model/vehicle_blue/cmd_vel");
 }
 
+/////////////////////////////////////////////////
+TEST_F(VelocityControlTest, InitialVelocity)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "velocity_control.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that records the vehicle poses
+  test::Relay testSystem;
+
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(),
+        components::Name("vehicle_green"));
+      EXPECT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check that vehicle didn't move
+  server.Run(true, 1000, false);
+  EXPECT_EQ(1000u, poses.size());
+
+  // verify that the vehicle is moving in +x and rotating towards -y
+  for (unsigned int i = 1u; i < poses.size(); ++i)
+  {
+    EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X()) << i;
+    EXPECT_LT(poses[i].Pos().Y(), poses[i-1].Pos().Y()) << i;
+    EXPECT_NEAR(poses[i].Pos().Z(), poses[i-1].Pos().Z(), 1e-5);
+    EXPECT_NEAR(poses[i].Rot().Euler().X(),
+        poses[i-1].Rot().Euler().X(), 1e-5) << i;
+    EXPECT_NEAR(poses[i].Rot().Euler().Y(),
+        poses[i-1].Rot().Euler().Y(), 1e-5) << i;
+    EXPECT_LT(poses[i].Rot().Euler().Z(), poses[i-1].Rot().Euler().Z()) << i;
+  }
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, VelocityControlTest,
     ::testing::Range(1, 2));

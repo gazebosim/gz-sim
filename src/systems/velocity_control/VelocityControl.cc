@@ -88,18 +88,19 @@ void VelocityControl::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("linear"))
+  if (_sdf->HasElement("initial_linear"))
   {
-    this->dataPtr->linearVelocity = _sdf->Get<math::Vector3d>("linear");
+    this->dataPtr->linearVelocity = _sdf->Get<math::Vector3d>("initial_linear");
     msgs::Set(this->dataPtr->targetVel.mutable_linear(),
         this->dataPtr->linearVelocity);
     ignmsg << "Linear velocity initialized to ["
            << this->dataPtr->linearVelocity << "]" << std::endl;
   }
 
-  if (_sdf->HasElement("angular"))
+  if (_sdf->HasElement("initial_angular"))
   {
-    this->dataPtr->angularVelocity = _sdf->Get<math::Vector3d>("angular");
+    this->dataPtr->angularVelocity =
+        _sdf->Get<math::Vector3d>("initial_angular");
     msgs::Set(this->dataPtr->targetVel.mutable_angular(),
         this->dataPtr->angularVelocity);
     ignmsg << "Angular velocity initialized to ["
