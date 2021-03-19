@@ -116,7 +116,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
           std::unordered_map<ComponentTypeId, ComponentKey>>::iterator>
             entityComponentIterators;
 
-  /// \brief A mutex to protect newly created entityes.
+  /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
 
   /// \brief A mutex to protect entity remove.

@@ -431,10 +431,10 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::CAPSULE)
   {
-    geom = this->dataPtr->scene->CreateCapsule();
-    scale.X() = _geom.CapsuleShape()->Radius() * 2;
-    scale.Y() = scale.X();
-    scale.Z() = _geom.CapsuleShape()->Length();
+    auto capsule = this->dataPtr->scene->CreateCapsule();
+    capsule->SetRadius(_geom.CapsuleShape()->Radius());
+    capsule->SetLength(_geom.CapsuleShape()->Length());
+    geom = capsule;
   }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
@@ -446,9 +446,9 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   else if (_geom.Type() == sdf::GeometryType::ELLIPSOID)
   {
     geom = this->dataPtr->scene->CreateSphere();
-    scale.X() = _geom.EllipsoidShape()->Radii().X();
-    scale.Y() = _geom.EllipsoidShape()->Radii().Y();
-    scale.Z() = _geom.EllipsoidShape()->Radii().Z();
+    scale.X() = _geom.EllipsoidShape()->Radii().X() * 2;
+    scale.Y() = _geom.EllipsoidShape()->Radii().Y() * 2;
+    scale.Z() = _geom.EllipsoidShape()->Radii().Z() * 2;
   }
   else if (_geom.Type() == sdf::GeometryType::PLANE)
   {

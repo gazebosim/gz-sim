@@ -85,7 +85,7 @@ void Shapes::OnMode(const QString &_mode)
   if (modelSdfString == "box")
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
+                                 "<sdf version=\"1.8\">"
                                    "<model name=\"box\">"
                                      "<pose>0 0 0.5 0 0 0</pose>"
                                      "<link name=\"box_link\">"
@@ -121,7 +121,7 @@ void Shapes::OnMode(const QString &_mode)
   else if (modelSdfString == "sphere")
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
+                                 "<sdf version=\"1.8\">"
                                    "<model name=\"sphere\">"
                                      "<pose>0 0 0.5 0 0 0</pose>"
                                      "<link name=\"sphere_link\">"
@@ -157,7 +157,7 @@ void Shapes::OnMode(const QString &_mode)
   else if (modelSdfString == "cylinder")
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
+                                 "<sdf version=\"1.8\">"
                                    "<model name=\"cylinder\">"
                                      "<pose>0 0 0.5 0 0 0</pose>"
                                      "<link name=\"cylinder_link\">"
@@ -172,7 +172,7 @@ void Shapes::OnMode(const QString &_mode)
                                          "</inertia>"
                                          "<mass>1.0</mass>"
                                        "</inertial>"
-                                      "<collision name=\"cylinder_collision\">"
+                                       "<collision name=\"cylinder_collision\">"
                                          "<geometry>"
                                            "<cylinder>"
                                              "<radius>0.5</radius>"
@@ -195,7 +195,7 @@ void Shapes::OnMode(const QString &_mode)
   else if (modelSdfString == "capsule")
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
+                                 "<sdf version=\"1.8\">"
                                    "<model name=\"capsule\">"
                                      "<pose>0 0 0.5 0 0 0</pose>"
                                      "<link name=\"capsule_link\">"
@@ -233,7 +233,7 @@ void Shapes::OnMode(const QString &_mode)
   else if (modelSdfString == "ellipsoid")
   {
     modelSdfString = std::string("<?xml version=\"1.0\"?>"
-                                 "<sdf version=\"1.6\">"
+                                 "<sdf version=\"1.8\">"
                                    "<model name=\"ellipsoid\">"
                                      "<pose>0 0 0.5 0 0 0</pose>"
                                      "<link name=\"ellipsoid_link\">"
