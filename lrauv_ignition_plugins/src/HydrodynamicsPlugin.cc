@@ -218,26 +218,20 @@ void HydrodynamicsPlugin::PreUpdate(
     return;
   }
 
-  if(linearVelocity->Data().Length() < 1e-9) return;
-
   // Transform state to local frame
   auto pose = baseLink.WorldPose(_ecm);
   // Since we are transforming angular and linear velocity we only care about
   // rotation
   auto localLinearVelocity = pose->Rot().Inverse() * linearVelocity->Data();
   auto localRotationalVelocity = pose->Rot().Inverse() * *rotationalVelocity;
-
- // ignerr << "Craft position " << pose->Rot() << "\n" ;
-  ignerr << "\t Global velocity " << linearVelocity->Data() << "\n";
-  ignerr << "\t Local velocity " << localLinearVelocity << "\n";
-  //ignerr << "\t Local Rotational Velocity " << localLinearVelocity << "\n";
+  
   state(0) = localLinearVelocity.X();
   state(1) = localLinearVelocity.Y();
   state(2) = localLinearVelocity.Z();
 
-  state(3) = 0;//localRotationalVelocity->X();
-  state(4) = 0;//localRotationalVelocity->Y();
-  state(5) = 0;//localRotationalVelocity->Z();
+  state(3) = localRotationalVelocity.X();
+  state(4) = localRotationalVelocity.Y();
+  state(5) = localRotationalVelocity.Z();
 
   auto dt = (double)_info.dt.count()/1e9;
   stateDot = (state - _data->prevState)/dt;
@@ -290,20 +284,10 @@ void HydrodynamicsPlugin::PreUpdate(
 
   static int debug_counter;
   debug_counter++;
-  //if(debug_counter %1 ==0){
-  //  ignerr << "state:\n" <<state << "\n";
-  //  ignerr << "Dmat:\n" << Dmat << "\n";
-    //ignerr << "Ma:\n" << Ma << "\n";
-  //  ignerr << "stateDot:\n" << stateDot<< "\n";
-  //  ignerr << "Totoal outptut:\n" << kTotalWrench << "\n";
-  //}
-  
 
   ignition::math::Vector3d totalForce(-kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));
   ignition::math::Vector3d totalTorque(-kTotalWrench(3),  -kTotalWrench(4), -kTotalWrench(5)); 
 
-  ignerr << "output force (my frame)" << totalForce  << "\n";
-  ignerr << "output force (world frame) " << pose->Rot()*(totalForce) << "\n";
   baseLink.AddWorldWrench(_ecm, pose->Rot()*(totalForce), pose->Rot()*totalTorque);
 }
 
