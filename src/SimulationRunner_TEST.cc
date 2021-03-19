@@ -152,7 +152,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
   // collision + 3 x visual + 1 x light
-  EXPECT_EQ(16u, runner.EntityCompMgr().EntityCount());
+  EXPECT_EQ(17u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
