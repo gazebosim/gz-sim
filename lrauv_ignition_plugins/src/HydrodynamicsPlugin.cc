@@ -282,8 +282,6 @@ void HydrodynamicsPlugin::PreUpdate(
 
   const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec;// + kCmatVec;
 
-  static int debug_counter;
-  debug_counter++;
 
   ignition::math::Vector3d totalForce(-kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));
   ignition::math::Vector3d totalTorque(-kTotalWrench(3),  -kTotalWrench(4), -kTotalWrench(5)); 
