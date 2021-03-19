@@ -22,7 +22,7 @@ documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.h
 As context to understand what we're migrating, here's a system diagram for how
 the ArduPilot Gazebo plugin works is used:
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/ign-gazebo4/tutorials/files/ardupilot_diagram.png"/>
+<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/ardupilot_diagram.png"/>
 
 *UAV icon credit: By Julian Herzog, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=60965475*
 
@@ -224,8 +224,8 @@ To better understand the ECS pattern as it is used in Ignition, it's helpful to
 learn about the EntityComponentManager (ECM), which is responsible for managing
 the ECS graph. A great resource to understand the logic under the hood of the
 ECM is the `SdfEntityCreator` class
-([header](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/include/ignition/gazebo/SdfEntityCreator.hh),
-[source](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/src/SdfEntityCreator.cc)).
+([header](https://github.com/ignitionrobotics/ign-gazebo/blob/main/include/ignition/gazebo/SdfEntityCreator.hh),
+[source](https://github.com/ignitionrobotics/ign-gazebo/blob/main/src/SdfEntityCreator.cc)).
 This class is responsible for mapping the content of an SDF file to the
 entities and components that form the graph handled by the ECM. For example, if
 you wonder which components can be accessed by default from the plugin, this
@@ -752,7 +752,7 @@ In the new code we explicitly reference each Ignition package that we use:
 ```
 # NEW
 find_package(sdformat11 REQUIRED)
-find_package(ignition-common3-all REQUIRED)
+find_package(ignition-common4-all REQUIRED)
 find_package(ignition-gazebo5-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs7-all REQUIRED)

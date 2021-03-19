@@ -7,6 +7,8 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 4.x to 5.x
 
+* Use `cli` component of `ignition-utils1`.
+
 * `ignition::gazebo::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code
   should create a copy if it needs to modify the vector in some way.
@@ -47,6 +49,13 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
       `public: void SetEnableSensors(bool, std::function<
           std::string(const gazebo::Entity &,
           const sdf::Sensor &, const std::string &)>)`
+
+* Log playback using `<path>` SDF parameter is removed. Use --playback command
+  line argument instead.
+
+* `rendering::SceneManager`
+    * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
+    * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
 
 ## Ignition Gazebo 2.x to 3.x
 

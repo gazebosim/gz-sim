@@ -27,6 +27,8 @@
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Physics.hh"
+#include "ignition/gazebo/components/PhysicsCmd.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Util.hh"
@@ -60,8 +62,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
-  // Get the first physics profile
-  // \todo(louise) Support picking a specific profile
+  // Get the physics profile
+  // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
   if (!physics)
   {
@@ -76,7 +78,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       dur);
 
   // Desired real time factor
-  double desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
+  this->desiredRtf = physics->RealTimeFactor();
 
   // The instantaneous real time factor is given as:
   //
@@ -102,7 +104,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   //
   // period = step_size / RTF
   this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(this->stepSize.count() / desiredRtf));
+      static_cast<int>(this->stepSize.count() / this->desiredRtf));
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -328,6 +330,47 @@ void SimulationRunner::UpdateCurrentInfo()
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
   }
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::UpdatePhysicsParams()
+{
+  auto worldEntity =
+    this->entityCompMgr.EntityByComponents(components::World());
+  const auto physicsCmdComp =
+    this->entityCompMgr.Component<components::PhysicsCmd>(worldEntity);
+  if (!physicsCmdComp)
+  {
+    return;
+  }
+  auto physicsComp =
+    this->entityCompMgr.Component<components::Physics>(worldEntity);
+
+  const auto& physicsParams = physicsCmdComp->Data();
+  const auto newStepSize =
+    std::chrono::duration<double>(physicsParams.max_step_size());
+  const double newRTF = physicsParams.real_time_factor();
+
+  const double eps = 0.00001;
+  if (newStepSize != this->stepSize ||
+      std::abs(newRTF - this->desiredRtf) > eps)
+  {
+    this->SetStepSize(
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        newStepSize));
+    this->desiredRtf = newRTF;
+    this->updatePeriod = std::chrono::nanoseconds(
+        static_cast<int>(this->stepSize.count() / this->desiredRtf));
+
+    this->simTimes.clear();
+    this->realTimes.clear();
+    // Update physics components
+    physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
+    physicsComp->Data().SetRealTimeFactor(newRTF);
+    this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+        ComponentState::OneTimeChange);
+  }
+  this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
 }
 
 /////////////////////////////////////////////////
@@ -647,6 +690,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        processedIterations < _iterations))
   {
     IGN_PROFILE("SimulationRunner::Run - Iteration");
+
+    // Update the step size and desired rtf
+    this->UpdatePhysicsParams();
+
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
     sleepTime = 0ns;
@@ -881,18 +928,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 {
   std::list<ServerConfig::PluginInfo> plugins;
 
-  if(_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
+  if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
   {
     ignwarn <<
       "Both recording and playback are specified, defaulting to playback\n";
   }
 
-  if(!_config.LogPlaybackPath().empty())
+  if (!_config.LogPlaybackPath().empty())
   {
     auto playbackPlugin = _config.LogPlaybackPlugin();
     plugins.push_back(playbackPlugin);
   }
-  else if(_config.UseLogRecord())
+  else if (_config.UseLogRecord())
   {
     auto recordPlugin = _config.LogRecordPlugin();
     plugins.push_back(recordPlugin);

@@ -26,6 +26,7 @@
 #include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/physics.pb.h>
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/msgs/sensor.pb.h>
 #include <ignition/msgs/sensor_noise.pb.h>
@@ -46,6 +47,7 @@
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
@@ -216,6 +218,12 @@ namespace ignition
     template<>
     msgs::Light convert(const sdf::Light &_in);
 
+    /// \brief Generic conversion from a SDF light type to string.
+    /// \param[in] _in SDF light type.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    std::string IGNITION_GAZEBO_VISIBLE
+    convert(const sdf::LightType &_in);
 
     /// \brief Generic conversion from a light message to another type.
     /// \param[in] _in Light message.
@@ -233,6 +241,12 @@ namespace ignition
     /// \return Light SDF object.
     template<>
     sdf::Light convert(const msgs::Light &_in);
+
+    /// \brief Specialized conversion from a string to a sdf light type
+    /// \param[in] _in String with the light type.
+    /// \return Light type emun SDF object.
+    sdf::LightType IGNITION_GAZEBO_VISIBLE
+    convert(const std::string &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.
@@ -420,6 +434,41 @@ namespace ignition
     sdf::Atmosphere convert(const msgs::Atmosphere &_in);
 
 
+    /// \brief Generic conversion from an SDF Physics to another type.
+    /// \param[in] _in SDF Physics.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Physics &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF physics to a physics
+    /// message.
+    /// \param[in] _in SDF physics.
+    /// \return Physics message.
+    template<>
+    msgs::Physics convert(const sdf::Physics &_in);
+
+    /// \brief Generic conversion from a physics message to another type.
+    /// \param[in] _in Physics message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Physics &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a physics message to a physics
+    /// SDF object.
+    /// \param[in] _in Physics message.
+    /// \return SDF physics.
+    template<>
+    sdf::Physics convert(const msgs::Physics &_in);
+
+
     /// \brief Generic conversion from an SDF Sensor to another type.
     /// \param[in] _in SDF Sensor.
     /// \return Conversion result.
@@ -432,7 +481,7 @@ namespace ignition
 
     /// \brief Specialized conversion from an SDF sensor to a sensor
     /// message.
-    /// \param[in] _in SDF geometry.
+    /// \param[in] _in SDF sensor.
     /// \return Sensor message.
     template<>
     msgs::Sensor convert(const sdf::Sensor &_in);

@@ -1,5 +1,146 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.6.0 (2021-03-01)
+
+1. Use a custom data structure to manage entity feature maps.
+    * [Pull Request 586](https://github.com/ignitionrobotics/ign-gazebo/pull/586)
+
+1. Limit scene broadcast publications when paused.
+    * [Pull Request 497](https://github.com/ignitionrobotics/ign-gazebo/pull/497)
+
+1. Report performer count in PerformerDetector plugin.
+    * [Pull Request 652](https://github.com/ignitionrobotics/ign-gazebo/pull/652)
+
+1. Cache top level and static to speed up physics system.
+    * [Pull Request 656](https://github.com/ignitionrobotics/ign-gazebo/pull/656)
+
+1. Support particle emitter modification using partial message.
+    * [Pull Request 651](https://github.com/ignitionrobotics/ign-gazebo/pull/651)
+
+1. Set LD_LIBRARY_PATH on Actions CI.
+    * [Pull Request 650](https://github.com/ignitionrobotics/ign-gazebo/pull/650)
+
+1. Fix flaky SceneBroadcaster test.
+    * [Pull Request 641](https://github.com/ignitionrobotics/ign-gazebo/pull/641)
+
+1. Add a convenience function for getting possibly non-existing components.
+    * [Pull Request 629](https://github.com/ignitionrobotics/ign-gazebo/pull/629)
+
+1. Add msg to show the computed temperature range computed from temperature
+   gradient.
+    * [Pull Request 643](https://github.com/ignitionrobotics/ign-gazebo/pull/643)
+
+1. Add TF/Pose_V pub in DiffDrive.
+    * [Pull Request 548](https://github.com/ignitionrobotics/ign-gazebo/pull/548)
+
+1. Relax flaky performance test.
+    * [Pull Request 640](https://github.com/ignitionrobotics/ign-gazebo/pull/640)
+
+1. Improve velocity control test.
+    * [Pull Request 642](https://github.com/ignitionrobotics/ign-gazebo/pull/642)
+
+1. Validity check for user defined topics in JointPositionController.
+    * [Pull Request 639](https://github.com/ignitionrobotics/ign-gazebo/pull/639)
+
+1. Add laser_retro support.
+    * [Pull Request 603](https://github.com/ignitionrobotics/ign-gazebo/pull/603)
+
+1. Fix pose of plane visual with non-default normal vector.
+    * [Pull Request 574](https://github.com/ignitionrobotics/ign-gazebo/pull/574)
+
+### Ignition Gazebo 4.5.0 (2020-02-17)
+
+1. Added particle system.
+    * [Pull Request 516](https://github.com/ignitionrobotics/ign-gazebo/pull/516)
+
+1. Add Light Usercommand and include Light parameters in the componentInspector
+    * [Pull Request 482](https://github.com/ignitionrobotics/ign-gazebo/pull/482)
+
+1. Added link to HW-accelerated video recording.
+    * [Pull Request 627](https://github.com/ignitionrobotics/ign-gazebo/pull/627)
+
+1. Fix EntityComponentManager race condition.
+    * [Pull Request 601](https://github.com/ignitionrobotics/ign-gazebo/pull/601)
+
+1. Add SDF topic validity check.
+    * [Pull Request 632](https://github.com/ignitionrobotics/ign-gazebo/pull/632)
+
+1. Add JointTrajectoryController system plugin.
+    * [Pull Request 473](https://github.com/ignitionrobotics/ign-gazebo/pull/473)
+
+### Ignition Gazebo 4.4.0 (2020-02-10)
+
+1. Added issue and PR templates
+    * [Pull Request 613](https://github.com/ignitionrobotics/ign-gazebo/pull/613)
+
+1. Fix segfault in SetRemovedComponentsMsgs method
+    * [Pull Request 495](https://github.com/ignitionrobotics/ign-gazebo/pull/495)
+
+1. Make topics configurable for joint controllers
+    * [Pull Request 584](https://github.com/ignitionrobotics/ign-gazebo/pull/584)
+
+1. Add about dialog
+    * [Pull Request 609](https://github.com/ignitionrobotics/ign-gazebo/pull/609)
+
+1. Add thermal sensor system for configuring thermal camera properties
+    * [Pull Request 614](https://github.com/ignitionrobotics/ign-gazebo/pull/614)
+
+### Ignition Gazebo 4.3.0 (2020-02-02)
+
+1. Non-blocking paths request.
+    * [Pull Request 555](https://github.com/ignitionrobotics/ign-gazebo/pull/555)
+
+1. Parallelize State call in ECM.
+    * [Pull Request 451](https://github.com/ignitionrobotics/ign-gazebo/pull/451)
+
+1. Allow to create light with the create service.
+    * [Pull Request 513](https://github.com/ignitionrobotics/ign-gazebo/pull/513)
+
+1. Added size to ground_plane in examples.
+    * [Pull Request 573](https://github.com/ignitionrobotics/ign-gazebo/pull/573)
+
+1. Fix finding PBR materials.
+    * [Pull Request 575](https://github.com/ignitionrobotics/ign-gazebo/pull/575)
+
+1. Publish all periodic change components in Scene Broadcaster.
+    * [Pull Request 544](https://github.com/ignitionrobotics/ign-gazebo/pull/544)
+
+1. Backport state update changes from pull request [#486](https://github.com/ignitionrobotics/ign-gazebo/pull/486).
+    * [Pull Request 583](https://github.com/ignitionrobotics/ign-gazebo/pull/583)
+
+1. Fix code_check errors.
+    * [Pull Request 582](https://github.com/ignitionrobotics/ign-gazebo/pull/582)
+
+1. Visualize collisions.
+    * [Pull Request 531](https://github.com/ignitionrobotics/ign-gazebo/pull/531)
+
+1. Remove playback <path> SDF param in Dome.
+    * [Pull Request 570](https://github.com/ignitionrobotics/ign-gazebo/pull/570)
+
+1. Tutorial on migrating SDF files from Gazebo classic.
+    * [Pull Request 400](https://github.com/ignitionrobotics/ign-gazebo/pull/400)
+
+1. World Exporter.
+    * [Pull Request 474](https://github.com/ignitionrobotics/ign-gazebo/pull/474)
+
+1. Model Creation tutorial using services.
+    * [Pull Request 530](https://github.com/ignitionrobotics/ign-gazebo/pull/530)
+
+1. Fix topLevelModel Method.
+    * [Pull Request 600](https://github.com/ignitionrobotics/ign-gazebo/pull/600)
+
+1. Add heat signature option to thermal system.
+    * [Pull Request 498](https://github.com/ignitionrobotics/ign-gazebo/pull/498)
+
+1. Add service and GUI to configure physics parameters (step size and RTF).
+    * [Pull Request 536](https://github.com/ignitionrobotics/ign-gazebo/pull/536)
+
+1. Refactor UNIT_Server_TEST.
+    * [Pull Request 594](https://github.com/ignitionrobotics/ign-gazebo/pull/594)
+
+1. Use Ignition GUI render event.
+    * [Pull Request 598](https://github.com/ignitionrobotics/ign-gazebo/pull/598)
+
 ### Ignition Gazebo 4.2.0 (2020-01-13)
 
 1. Automatically load a subset of world plugins.
