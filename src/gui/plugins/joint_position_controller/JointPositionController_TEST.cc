@@ -25,10 +25,11 @@
 #endif
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
-#include <ignition/gui/Plugin.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Plugin.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/SuppressWarning.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -67,7 +68,10 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
+  // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   auto runner = new gazebo::GuiRunner("test");
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->connect(app.get(), &gui::Application::PluginAdded,
                   runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());
@@ -142,7 +146,10 @@ TEST_F(JointPositionControllerGui,
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle gazebo::gui plugins
+  // TODO(anyone) Remove deprecation guard once GuiRunner becomes private
+  IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   auto runner = new gazebo::GuiRunner("test");
+  IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->connect(app.get(), &gui::Application::PluginAdded,
                   runner, &gazebo::GuiRunner::OnPluginAdded);
   runner->setParent(gui::App());

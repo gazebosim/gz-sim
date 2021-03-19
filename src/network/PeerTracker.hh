@@ -53,7 +53,7 @@ namespace ignition
     ///
     /// It is used to both announce the existence of a peer, as well as track
     /// announcements and heartbeats from other peers.
-    class PeerTracker {
+    class IGNITION_GAZEBO_VISIBLE PeerTracker {
       /// \brief Convenience type alias for NodeOptions
       public: using NodeOptions = ignition::transport::NodeOptions;
 
