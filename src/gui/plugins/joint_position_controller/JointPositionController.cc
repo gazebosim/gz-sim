@@ -49,7 +49,7 @@ namespace ignition::gazebo::gui
     public: Entity modelEntity{kNullEntity};
 
     /// \brief Name of the model
-    public: QString modelName;
+    public: QString modelName{"No model selected"};
 
     /// \brief Whether currently locked on a given entity
     public: bool locked{false};
@@ -58,7 +58,7 @@ namespace ignition::gazebo::gui
     public: transport::Node node;
 
     /// \brief Whether the initial model set from XML has been setup.
-    public: bool xmlModelInitialized{false};
+    public: bool xmlModelInitialized{true};
   };
 }
 
@@ -157,11 +157,10 @@ void JointPositionController::LoadConfig(
     if (auto elem = _pluginElem->FirstChildElement("model_name"))
     {
       this->dataPtr->modelName = QString::fromStdString(elem->GetText());
+      // If model name isn't set, initialization is not complete yet.
+      this->dataPtr->xmlModelInitialized = false;
     }
   }
-
-  // If model name isn't set, initialization is complete.
-  this->dataPtr->xmlModelInitialized = this->dataPtr->modelName.isEmpty();
 
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->installEventFilter(this);
