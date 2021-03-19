@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SYSTEMS_VELOCITYCONTROL_HH_
 
 #include <memory>
-#include <optional>
 
 #include <ignition/gazebo/System.hh>
 
