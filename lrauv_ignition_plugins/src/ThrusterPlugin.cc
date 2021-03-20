@@ -35,6 +35,10 @@ class ThrusterPrivateData
 
   public: ignition::math::PID _rpmController;
 
+  public: double cmdMax = 1000;
+
+  public: double cmdMin = -1000;
+
   public: double _thrust_coefficient;
 
   public: double _fluid_density = 1000;
@@ -130,8 +134,8 @@ void ThrusterPlugin::Configure(
   double d         =  0;
   double iMax      =  1;
   double iMin      = -1;
-  double cmdMax    =  1000;
-  double cmdMin    = -1000;
+  double cmdMax    = this->_data->cmdMax;
+  double cmdMin    = this->_data->cmdMin;
   double cmdOffset =  0;
 
   if (_sdf->HasElement("p_gain")) 
@@ -153,7 +157,8 @@ void ThrusterPlugin::Configure(
 void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
-  thrust = ignition::math::fixnan(_msg.data());
+  this->thrust = ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+    this->cmdMin, this->cmdMax);
 }
 
 void ThrusterPlugin::PreUpdate(
