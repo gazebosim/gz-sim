@@ -64,7 +64,14 @@ void ThrusterPlugin::Configure(
   ignition::gazebo::EntityComponentManager &_ecm,
   ignition::gazebo::EventManager &/*_eventMgr*/)
 {
-  // Get Joint name
+  // Get namespace
+  std::string ns {""};
+  if (_sdf->HasElement("namespace"))
+  {
+    ns = _sdf->Get<std::string>("namespace");
+  }
+
+  // Get joint name
   if (!_sdf->HasElement("joint_name")) 
   {
     ignerr << "No joint to treat as propeller found \n";
@@ -105,9 +112,9 @@ void ThrusterPlugin::Configure(
     _ecm.Component<ignition::gazebo::components::JointAxis>(joint_entity)
       ->Data().Xyz();
 
-  _data->node.Subscribe(
-    "/thruster_controls/"+joint_name, 
-    &ThrusterPrivateData::OnCmdThrust,
+  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+    "/model/" + ns + "/joint/" + joint_name + "/cmd_pos");
+  _data->node.Subscribe(thrusterTopic, &ThrusterPrivateData::OnCmdThrust,
     _data.get());
 
   // Get link entity
