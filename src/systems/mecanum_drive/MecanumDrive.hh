@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_MECANUMDRIVE_HH_
+#define IGNITION_GAZEBO_SYSTEMS_MECANUMDRIVE_HH_
 
 #include <memory>
 
@@ -30,7 +30,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class DiffDrivePrivate;
+  class MecanumDrivePrivate;
 
   /// \brief Differential drive controller which can be attached to a model
   /// with any number of left and right wheels.
@@ -77,17 +77,17 @@ namespace systems
   /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
   /// `ignition.msgs.Odometry` message. This element if optional,
   ///  and the default value is `{name_of_model}/{name_of_link}`.
-  class DiffDrive
+  class MecanumDrive
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: DiffDrive();
+    public: MecanumDrive();
 
     /// \brief Destructor
-    public: ~DiffDrive() override = default;
+    public: ~MecanumDrive() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -106,7 +106,7 @@ namespace systems
                 const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<DiffDrivePrivate> dataPtr;
+    private: std::unique_ptr<MecanumDrivePrivate> dataPtr;
   };
   }
 }

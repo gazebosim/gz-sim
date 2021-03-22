@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-#include "DiffDrive.hh"
+#include "MecanumDrive.hh"
 
 #include <ignition/msgs/odometry.pb.h>
 
@@ -56,7 +56,7 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::DiffDrivePrivate
+class ignition::gazebo::systems::MecanumDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -150,13 +150,13 @@ class ignition::gazebo::systems::DiffDrivePrivate
 };
 
 //////////////////////////////////////////////////
-DiffDrive::DiffDrive()
-  : dataPtr(std::make_unique<DiffDrivePrivate>())
+MecanumDrive::MecanumDrive()
+  : dataPtr(std::make_unique<MecanumDrivePrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::Configure(const Entity &_entity,
+void MecanumDrive::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
@@ -171,7 +171,7 @@ void DiffDrive::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "DiffDrive plugin should be attached to a model entity. "
+    ignerr << "MecanumDrive plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -271,7 +271,7 @@ void DiffDrive::Configure(const Entity &_entity,
   topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
 
-  this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
+  this->dataPtr->node.Subscribe(topic, &MecanumDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
   std::vector<std::string> odomTopics;
@@ -299,15 +299,15 @@ void DiffDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
+  ignmsg << "MecanumDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::PreUpdate");
+  IGN_PROFILE("MecanumDrive::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -421,10 +421,10 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::PostUpdate(const UpdateInfo &_info,
+void MecanumDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::PostUpdate");
+  IGN_PROFILE("MecanumDrive::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -434,10 +434,10 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
+void MecanumDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::UpdateOdometry");
+  IGN_PROFILE("MecanumDrive::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -530,10 +530,10 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+void MecanumDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("DiffDrive::UpdateVelocity");
+  IGN_PROFILE("MecanumDrive::UpdateVelocity");
 
   double linVel;
   double angVel;
@@ -562,16 +562,16 @@ void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
+void MecanumDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->targetVel = _msg;
 }
 
-IGNITION_ADD_PLUGIN(DiffDrive,
+IGNITION_ADD_PLUGIN(MecanumDrive,
                     ignition::gazebo::System,
-                    DiffDrive::ISystemConfigure,
-                    DiffDrive::ISystemPreUpdate,
-                    DiffDrive::ISystemPostUpdate)
+                    MecanumDrive::ISystemConfigure,
+                    MecanumDrive::ISystemPreUpdate,
+                    MecanumDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
+IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive, "ignition::gazebo::systems::MecanumDrive")
