@@ -127,7 +127,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Adds sensors to a msgs::Link object based on the contents of
   /// the scene graph
-  /// \param[in] _msg Pointer to msg object to which the sensors will be added
+  /// \param[inout] _msg Pointer to msg object to which the sensors will be added
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
   public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
