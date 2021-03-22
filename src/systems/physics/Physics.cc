@@ -226,12 +226,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
-  /// \brief Link entities and their latest frame data.
-  public: std::unordered_map<Entity, physics::FrameData3d> linkFrameData;
-
-  /// \brief Model entities and their world poses.
-  public: std::unordered_map<Entity, math::Pose3d> modelWorldPoses;
-
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
 
@@ -1710,8 +1704,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
 
-  this->linkFrameData.clear();
-  this->modelWorldPoses.clear();
+  // Link entities and their latest frame data.
+  std::unordered_map<Entity, physics::FrameData3d> linkFrameData;
 
   // Go through and retrieve frame data for each link in a non-static model
   IGN_PROFILE_BEGIN("Links Frame Data");
@@ -1730,12 +1724,15 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         }
 
         auto frameData = linkPhys->FrameDataRelativeToWorld();
-        this->linkFrameData[_entity] = frameData;
+        linkFrameData[_entity] = frameData;
         return true;
       });
   IGN_PROFILE_END();
 
   IGN_PROFILE_BEGIN("Models");
+  // Model entities and their world poses.
+  std::unordered_map<Entity, math::Pose3d> modelWorldPoses;
+
   _ecm.Each<components::Model, components::Pose, components::ParentEntity,
             components::Static, components::ModelCanonicalLink>(
       [&](const Entity &_entity, components::Model *, components::Pose *_pose,
@@ -1747,8 +1744,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           return true;
         }
 
-        auto linkFrameIt = this->linkFrameData.find(_canonicalLink->Data());
-        if (linkFrameIt == this->linkFrameData.end())
+        auto linkFrameIt = linkFrameData.find(_canonicalLink->Data());
+        if (linkFrameIt == linkFrameData.end())
         {
           ignerr << "Internal error: Frame data for link [" << _entity
                  << "] not found" << std::endl;
@@ -1760,9 +1757,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         // already been updated. We expect to find the updated pose in
         // modelWorldPoses. If not found, this must not be nested, so this
         // model's pose component would reflect it's absolute pose.
-        auto parentModelPoseIt =
-            this->modelWorldPoses.find(_parentEntity->Data());
-        if (parentModelPoseIt != this->modelWorldPoses.end())
+        auto parentModelPoseIt = modelWorldPoses.find(_parentEntity->Data());
+        if (parentModelPoseIt != modelWorldPoses.end())
         {
           parentWorldPose = parentModelPoseIt->second;
         }
@@ -1794,7 +1790,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         const auto &modelWorldPose =
             math::eigen3::convert(linkWorldPose) * linkPoseFromModel.Inverse();
 
-        this->modelWorldPoses[_entity] = modelWorldPose;
+        modelWorldPoses[_entity] = modelWorldPose;
 
         // update model's pose
         if (parentWorldPose)
@@ -1832,8 +1828,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         auto canonicalLink =
             _ecm.Component<components::CanonicalLink>(_entity);
 
-        auto it = this->linkFrameData.find(_entity);
-        if (it == this->linkFrameData.end())
+        auto it = linkFrameData.find(_entity);
+        if (it == linkFrameData.end())
         {
           ignerr << "Internal error: Frame data for link [" << _entity
                  << "] not found" << std::endl;
@@ -1857,9 +1853,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           {
             // Compute the relative pose of this link from the parent model
             // first get the world pose of the top level model
-            auto parentModelPoseIt =
-                this->modelWorldPoses.find(_parent->Data());
-            if (parentModelPoseIt == this->modelWorldPoses.end())
+            auto parentModelPoseIt = modelWorldPoses.find(_parent->Data());
+            if (parentModelPoseIt == modelWorldPoses.end())
             {
               ignerr << "Internal error: parent model [" << _parent->Data()
                     << "] does not have a world pose available" << std::endl;
