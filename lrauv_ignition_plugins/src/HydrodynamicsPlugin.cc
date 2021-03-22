@@ -200,6 +200,13 @@ void HydrodynamicsPlugin::PreUpdate(
   if(_info.paused)
     return;
 
+  // These variables are named following Fossen's scheme in "Guidance and Control 
+  // of Ocean Vehicles." The `state` vector contains the ship's current velocity
+  // in the formate [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
+  // `stateDot` consists of the first derivative in time of the state vector.
+  // `Cmat` corresponds to the Centripetal matrix
+  // `Dmat` is the drag matrix
+  // `Ma` is the added mass. 
   Eigen::VectorXd stateDot = Eigen::VectorXd(6);
   Eigen::VectorXd state    = Eigen::VectorXd(6);
   Eigen::MatrixXd Cmat     = Eigen::MatrixXd::Zero(6, 6);
@@ -247,7 +254,7 @@ void HydrodynamicsPlugin::PreUpdate(
   Ma(5,5) = _data->paramNdotR;
   const Eigen::VectorXd kAmassVec = Ma * stateDot;
 
-  // Coriollis forces for under water vehicles (Fossen P. 37)
+  // Coriollis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
   // for the under water vehicle's additional DOF
   Cmat(0,4) = - _data->paramZdotW * state(2);
