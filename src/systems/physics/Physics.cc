@@ -176,10 +176,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: void RemovePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
-  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdatePhysics(EntityComponentManager &_ecm);
 
-  /// \brief Step the simulationrfor each world
+  /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
   public: void Step(const std::chrono::steady_clock::duration &_dt);
 
@@ -212,6 +212,11 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Keep track of what entities are static (models and links).
   public: std::unordered_set<Entity> staticEntities;
+
+  /// \brief Keep track of poses for links attached to non-static models.
+  /// This allows for skipping pose updates if a link's pose didn't change
+  /// after a physics step.
+  public: std::unordered_map<Entity, ignition::math::Pose3d> linkWorldPoses;
 
   /// \brief A map between model entity ids in the ECM to whether its battery
   /// has drained.
@@ -1149,6 +1154,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
             this->entityLinkMap.Remove(childLink);
             this->topLevelModelMap.erase(childLink);
             this->staticEntities.erase(childLink);
+            this->linkWorldPoses.erase(childLink);
           }
 
           for (const auto &childJoint :
@@ -1836,26 +1842,38 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         const auto &frameData = it->second;
         const auto &worldPose = frameData.pose;
 
-        if (!canonicalLink)
+        // update the link or top level model pose if this is the first update,
+        // or if the link pose has changed since the last update
+        // (if the link pose hasn't changed, there's no need for a pose update)
+        const auto worldPoseMath3d = ignition::math::eigen3::convert(worldPose);
+        if ((this->linkWorldPoses.find(_entity) == this->linkWorldPoses.end())
+            || !this->pose3Eql(this->linkWorldPoses[_entity], worldPoseMath3d))
         {
-          // Compute the relative pose of this link from the parent model
-          // first get the world pose of the top level model
-          auto parentModelPoseIt =
-              this->modelWorldPoses.find(_parent->Data());
-          if (parentModelPoseIt == this->modelWorldPoses.end())
-          {
-            ignerr << "Internal error: parent model [" << _parent->Data()
-                   << "] does not have a world pose available" << std::endl;
-            return true;
-          }
-          const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
+          // cache the updated link pose to check if the link pose has changed
+          // during the next iteration
+          this->linkWorldPoses[_entity] = worldPoseMath3d;
 
-          // Unlike canonical links, pose of regular links can move relative.
-          // to the parent. Same for links inside nested models.
-          *_pose = components::Pose(parentWorldPose.Inverse() *
-                                    math::eigen3::convert(worldPose));
-          _ecm.SetChanged(_entity, components::Pose::typeId,
-              ComponentState::PeriodicChange);
+          if (!canonicalLink)
+          {
+            // Compute the relative pose of this link from the parent model
+            // first get the world pose of the top level model
+            auto parentModelPoseIt =
+                this->modelWorldPoses.find(_parent->Data());
+            if (parentModelPoseIt == this->modelWorldPoses.end())
+            {
+              ignerr << "Internal error: parent model [" << _parent->Data()
+                    << "] does not have a world pose available" << std::endl;
+              return true;
+            }
+            const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
+
+            // Unlike canonical links, pose of regular links can move relative.
+            // to the parent. Same for links inside nested models.
+            *_pose = components::Pose(parentWorldPose.Inverse() *
+                                      math::eigen3::convert(worldPose));
+            _ecm.SetChanged(_entity, components::Pose::typeId,
+                ComponentState::PeriodicChange);
+          }
         }
         IGN_PROFILE_END();
 
@@ -1993,7 +2011,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
         return true;
       });
   IGN_PROFILE_END();
-
 
   // pose/velocity/acceleration of non-link entities such as sensors /
   // collisions. These get updated only if another system has created a
@@ -2171,6 +2188,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           {
             _jointPos->Data()[i] = jointPhys->GetPosition(i);
           }
+          _ecm.SetChanged(_entity, components::JointPosition::typeId,
+              ComponentState::PeriodicChange);
         }
         return true;
       });
