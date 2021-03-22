@@ -268,7 +268,7 @@ void HydrodynamicsPlugin::PreUpdate(
   Cmat(5,1) = _data->paramXdotU * state(0);
   Cmat(5,3) = -_data->paramMdotQ * state(4);
   Cmat(5,4) = _data->paramKdotP * state(3);
-  const Eigen::VectorXd kCmatVec = -1.0 * Cmat * state;
+  const Eigen::VectorXd kCmatVec = - Cmat * state;
 
   // Damping forces (Fossen P. 43)
   Dmat(0,0) = - _data->paramXu - _data->paramXuu * abs(state(0));
@@ -280,8 +280,7 @@ void HydrodynamicsPlugin::PreUpdate(
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec;// + kCmatVec;
-
+  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
 
   ignition::math::Vector3d totalForce(-kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));
   ignition::math::Vector3d totalTorque(-kTotalWrench(3),  -kTotalWrench(4), -kTotalWrench(5)); 
