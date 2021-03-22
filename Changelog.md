@@ -2,7 +2,27 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.8.0 (2021-01-26)
+## Ignition Math 6.8.0 (2021-XX-XX)
+
+1. Add speed limiter class
+    * [Pull request #194](https://github.com/ignitionrobotics/ign-math/pull/194)
+
+1. Bazel Updates for math6
+    * [Pull request #171](https://github.com/ignitionrobotics/ign-math/pull/171)
+
+1. Add Equal tolerance method to Quaternion
+    * [Pull request #196](https://github.com/ignitionrobotics/ign-math/pull/196)
+
+1. Fix broken link in MassMatrix3.hh
+    * [Pull request #197](https://github.com/ignitionrobotics/ign-math/pull/197)
+
+1. Add instructions to build and run examples
+    * [Pull request #192](https://github.com/ignitionrobotics/ign-math/pull/192)
+
+1. Infrastructure and documentation
+    * [Pull request #189](https://github.com/ignitionrobotics/ign-math/pull/189)
+    * [Pull request #193](https://github.com/ignitionrobotics/ign-math/pull/193)
+    * [Pull request #195](https://github.com/ignitionrobotics/ign-math/pull/195)
 
 1. Remove unnecessary copy constructor declaration from Box
     * [Pull request 187](https://github.com/ignitionrobotics/ign-math/pull/187)
