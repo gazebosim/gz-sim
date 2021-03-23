@@ -832,7 +832,7 @@ In the new model, we do this instead:
 <!-- NEW -->
 <plugin
     name="ignition::gazebo::systems::LiftDrag"
-    filename="ignition-gazebo3-lift-drag-system">
+    filename="ignition-gazebo-lift-drag-system">
   <!-- ...configuration goes here... -->
   <link_name>rotor_0</link_name>
 </plugin>
