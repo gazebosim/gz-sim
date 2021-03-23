@@ -146,7 +146,7 @@ double SdfParamDouble(
 
 HydrodynamicsPlugin::HydrodynamicsPlugin()
 {
-  _data = std::make_unique<HydrodynamicsPrivateData>();
+  this->dataPtr = std::make_unique<HydrodynamicsPrivateData>();
 }
 
 HydrodynamicsPlugin::~HydrodynamicsPlugin()
@@ -161,36 +161,36 @@ void HydrodynamicsPlugin::Configure(
   ignition::gazebo::EventManager &/*_eventMgr*/
 )
 {
-  _data->waterDensity     = SdfParamDouble(_sdf, "waterDensity", 997.7735);
-  _data->paramXdotU       = SdfParamDouble(_sdf, "xDotU"       , 5);
-  _data->paramYdotV       = SdfParamDouble(_sdf, "yDotV"       , 5);
-  _data->paramZdotW       = SdfParamDouble(_sdf, "zDotW"       , 0.1);
-  _data->paramKdotP       = SdfParamDouble(_sdf, "kDotP"       , 0.1);
-  _data->paramMdotQ       = SdfParamDouble(_sdf, "mDotQ"       , 0.1);
-  _data->paramNdotR       = SdfParamDouble(_sdf, "nDotR"       , 1);
-  _data->paramXu          = SdfParamDouble(_sdf, "xU"          , 20);
-  _data->paramXuu         = SdfParamDouble(_sdf, "xUU"         , 0);
-  _data->paramYv          = SdfParamDouble(_sdf, "yV"          , 20);
-  _data->paramYvv         = SdfParamDouble(_sdf, "yVV"         , 0);
-  _data->paramZw          = SdfParamDouble(_sdf, "zW"          , 20);
-  _data->paramZww         = SdfParamDouble(_sdf, "zWW"         , 0);
-  _data->paramKp          = SdfParamDouble(_sdf, "kP"          , 20);
-  _data->paramKpp         = SdfParamDouble(_sdf, "kPP"         , 0);
-  _data->paramMq          = SdfParamDouble(_sdf, "mQ"          , 20);
-  _data->paramMqq         = SdfParamDouble(_sdf, "mQQ"         , 0);
-  _data->paramNr          = SdfParamDouble(_sdf, "nR"          , 20);
-  _data->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
+  this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "waterDensity", 997.7735);
+  this->dataPtr->paramXdotU       = SdfParamDouble(_sdf, "xDotU"       , 5);
+  this->dataPtr->paramYdotV       = SdfParamDouble(_sdf, "yDotV"       , 5);
+  this->dataPtr->paramZdotW       = SdfParamDouble(_sdf, "zDotW"       , 0.1);
+  this->dataPtr->paramKdotP       = SdfParamDouble(_sdf, "kDotP"       , 0.1);
+  this->dataPtr->paramMdotQ       = SdfParamDouble(_sdf, "mDotQ"       , 0.1);
+  this->dataPtr->paramNdotR       = SdfParamDouble(_sdf, "nDotR"       , 1);
+  this->dataPtr->paramXu          = SdfParamDouble(_sdf, "xU"          , 20);
+  this->dataPtr->paramXuu         = SdfParamDouble(_sdf, "xUU"         , 0);
+  this->dataPtr->paramYv          = SdfParamDouble(_sdf, "yV"          , 20);
+  this->dataPtr->paramYvv         = SdfParamDouble(_sdf, "yVV"         , 0);
+  this->dataPtr->paramZw          = SdfParamDouble(_sdf, "zW"          , 20);
+  this->dataPtr->paramZww         = SdfParamDouble(_sdf, "zWW"         , 0);
+  this->dataPtr->paramKp          = SdfParamDouble(_sdf, "kP"          , 20);
+  this->dataPtr->paramKpp         = SdfParamDouble(_sdf, "kPP"         , 0);
+  this->dataPtr->paramMq          = SdfParamDouble(_sdf, "mQ"          , 20);
+  this->dataPtr->paramMqq         = SdfParamDouble(_sdf, "mQQ"         , 0);
+  this->dataPtr->paramNr          = SdfParamDouble(_sdf, "nR"          , 20);
+  this->dataPtr->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
   auto link_name = _sdf->Get<std::string>("link_name");
-  _data->linkEntity = model.LinkByName(_ecm, link_name);
+  this->dataPtr->linkEntity = model.LinkByName(_ecm, link_name);
 
-  _data->prevState = Eigen::VectorXd::Zero(6); 
+  this->dataPtr->prevState = Eigen::VectorXd::Zero(6); 
 
-  AddWorldPose(_data->linkEntity, _ecm);
-  AddAngularVelocityComponent(_data->linkEntity, _ecm);
-  AddWorldLinearVelocity(_data->linkEntity, _ecm);
+  AddWorldPose(this->dataPtr->linkEntity, _ecm);
+  AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
+  AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
 }
 
 void HydrodynamicsPlugin::PreUpdate(
@@ -214,9 +214,9 @@ void HydrodynamicsPlugin::PreUpdate(
   Eigen::MatrixXd Ma = Eigen::MatrixXd::Zero(6,6);
 
   // Get vehicle state
-  ignition::gazebo::Link baseLink(_data->linkEntity);
+  ignition::gazebo::Link baseLink(this->dataPtr->linkEntity);
   auto linearVelocity =
-    _ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(_data->linkEntity);
+    _ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(this->dataPtr->linkEntity);
   auto rotationalVelocity = baseLink.WorldAngularVelocity(_ecm);
   
   if(!linearVelocity)
@@ -241,49 +241,49 @@ void HydrodynamicsPlugin::PreUpdate(
   state(5) = localRotationalVelocity.Z();
 
   auto dt = (double)_info.dt.count()/1e9;
-  stateDot = (state - _data->prevState)/dt;
+  stateDot = (state - this->dataPtr->prevState)/dt;
 
-  _data->prevState = state;
+  this->dataPtr->prevState = state;
 
   // Added mass according to Fossen's equations (p 37)
-  Ma(0,0) = _data->paramXdotU;
-  Ma(1,1) = _data->paramYdotV;
-  Ma(2,2) = _data->paramZdotW;
-  Ma(3,3) = _data->paramKdotP;
-  Ma(4,4) = _data->paramMdotQ;
-  Ma(5,5) = _data->paramNdotR;
+  Ma(0,0) = this->dataPtr->paramXdotU;
+  Ma(1,1) = this->dataPtr->paramYdotV;
+  Ma(2,2) = this->dataPtr->paramZdotW;
+  Ma(3,3) = this->dataPtr->paramKdotP;
+  Ma(4,4) = this->dataPtr->paramMdotQ;
+  Ma(5,5) = this->dataPtr->paramNdotR;
   const Eigen::VectorXd kAmassVec = Ma * stateDot;
 
   // Coriollis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
   // for the under water vehicle's additional DOF
-  Cmat(0,4) = - _data->paramZdotW * state(2);
-  Cmat(0,5) = - _data->paramYdotV * state(1);
-  Cmat(1,3) = _data->paramZdotW * state(2);
-  Cmat(1,5) = - _data->paramXdotU * state(0);
-  Cmat(2,3) = - _data->paramYdotV * state(1);
-  Cmat(2,4) = _data->paramXdotU * state(0);
-  Cmat(3,1) = - _data->paramZdotW * state(2);
-  Cmat(3,2) = _data->paramYdotV * state(1);
-  Cmat(3,4) = - _data->paramNdotR * state(5);
-  Cmat(3,5) = _data->paramMdotQ * state(4);
-  Cmat(4,0) = _data->paramZdotW * state(2);
-  Cmat(4,2) = - _data->paramXdotU * state(0);
-  Cmat(4,3) = _data->paramNdotR * state(5);
-  Cmat(4,5) = - _data->paramKdotP * state(3);
-  Cmat(5,0) = _data->paramZdotW * state(2);
-  Cmat(5,1) = _data->paramXdotU * state(0);
-  Cmat(5,3) = -_data->paramMdotQ * state(4);
-  Cmat(5,4) = _data->paramKdotP * state(3);
+  Cmat(0,4) = - this->dataPtr->paramZdotW * state(2);
+  Cmat(0,5) = - this->dataPtr->paramYdotV * state(1);
+  Cmat(1,3) = this->dataPtr->paramZdotW * state(2);
+  Cmat(1,5) = - this->dataPtr->paramXdotU * state(0);
+  Cmat(2,3) = - this->dataPtr->paramYdotV * state(1);
+  Cmat(2,4) = this->dataPtr->paramXdotU * state(0);
+  Cmat(3,1) = - this->dataPtr->paramZdotW * state(2);
+  Cmat(3,2) = this->dataPtr->paramYdotV * state(1);
+  Cmat(3,4) = - this->dataPtr->paramNdotR * state(5);
+  Cmat(3,5) = this->dataPtr->paramMdotQ * state(4);
+  Cmat(4,0) = this->dataPtr->paramZdotW * state(2);
+  Cmat(4,2) = - this->dataPtr->paramXdotU * state(0);
+  Cmat(4,3) = this->dataPtr->paramNdotR * state(5);
+  Cmat(4,5) = - this->dataPtr->paramKdotP * state(3);
+  Cmat(5,0) = this->dataPtr->paramZdotW * state(2);
+  Cmat(5,1) = this->dataPtr->paramXdotU * state(0);
+  Cmat(5,3) = - this->dataPtr->paramMdotQ * state(4);
+  Cmat(5,4) = this->dataPtr->paramKdotP * state(3);
   const Eigen::VectorXd kCmatVec = - Cmat * state;
 
   // Damping forces (Fossen P. 43)
-  Dmat(0,0) = - _data->paramXu - _data->paramXuu * abs(state(0));
-  Dmat(1,1) = - _data->paramYv - _data->paramYvv * abs(state(1));
-  Dmat(2,2) = - _data->paramZw - _data->paramZww * abs(state(2));
-  Dmat(3,3) = - _data->paramKp - _data->paramKpp * abs(state(3));
-  Dmat(4,4) = - _data->paramMq - _data->paramMqq * abs(state(4));
-  Dmat(5,5) = - _data->paramNr - _data->paramNrr * abs(state(5));
+  Dmat(1,1) = - this->dataPtr->paramYv - this->dataPtr->paramYvv * abs(state(1));
+  Dmat(0,0) = - this->dataPtr->paramXu - this->dataPtr->paramXuu * abs(state(0));
+  Dmat(2,2) = - this->dataPtr->paramZw - this->dataPtr->paramZww * abs(state(2));
+  Dmat(3,3) = - this->dataPtr->paramKp - this->dataPtr->paramKpp * abs(state(3));
+  Dmat(4,4) = - this->dataPtr->paramMq - this->dataPtr->paramMqq * abs(state(4));
+  Dmat(5,5) = - this->dataPtr->paramNr - this->dataPtr->paramNrr * abs(state(5));
 
   const Eigen::VectorXd kDvec = Dmat * state;
 

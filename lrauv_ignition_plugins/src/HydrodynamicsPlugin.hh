@@ -53,6 +53,6 @@ namespace tethys_hydro
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm);  
   
-  private: std::unique_ptr<HydrodynamicsPrivateData> _data;
+  private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;
   };
 }
