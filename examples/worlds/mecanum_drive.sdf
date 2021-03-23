@@ -131,10 +131,10 @@
         </inertial>
         <visual name='visual'>
           <geometry>
-            <!--sphere>
+            <sphere>
               <radius>0.3</radius>
-            </sphere-->
-            <box><size>0.6 0.6 0.6</size></box>
+            </sphere>
+            <!--box><size>0.6 0.6 0.6</size></box-->
             <!--mesh>
               <uri>https://raw.githubusercontent.com/robomaster-oss/rmoss_ign_resources/main/models/rmua19_standard_robot/meshes/wheel_left.dae</uri>
               <scale>2.4 2.4 2.4</scale>
@@ -179,10 +179,10 @@
         </inertial>
         <visual name='visual'>
           <geometry>
-            <!--sphere>
+            <sphere>
               <radius>0.3</radius>
-            </sphere-->
-            <box><size>0.6 0.6 0.6</size></box>
+            </sphere>
+            <!--box><size>0.6 0.6 0.6</size></box-->
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
@@ -223,10 +223,10 @@
         </inertial>
         <visual name='visual'>
           <geometry>
-            <!--sphere>
+            <sphere>
               <radius>0.3</radius>
-            </sphere-->
-            <box><size>0.6 0.6 0.6</size></box>
+            </sphere>
+            <!--box><size>0.6 0.6 0.6</size></box-->
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
@@ -267,10 +267,10 @@
         </inertial>
         <visual name='visual'>
           <geometry>
-            <!--sphere>
+            <sphere>
               <radius>0.3</radius>
-            </sphere-->
-            <box><size>0.6 0.6 0.6</size></box>
+            </sphere>
+            <!--box><size>0.6 0.6 0.6</size></box-->
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
