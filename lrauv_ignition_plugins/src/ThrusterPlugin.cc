@@ -35,6 +35,10 @@ class ThrusterPrivateData
 
   public: ignition::math::PID _rpmController;
 
+  public: double cmdMax = 1000;
+
+  public: double cmdMin = -1000;
+
   public: double _thrust_coefficient;
 
   public: double _fluid_density = 1000;
@@ -42,6 +46,8 @@ class ThrusterPrivateData
   public: double _propeller_diameter;
 
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+
+  public: double ThrustToAngularVec(double thrust);
 };
 
 ThrusterPlugin::ThrusterPlugin()
@@ -60,7 +66,14 @@ void ThrusterPlugin::Configure(
   ignition::gazebo::EntityComponentManager &_ecm,
   ignition::gazebo::EventManager &/*_eventMgr*/)
 {
-  // Get Joint name
+  // Get namespace
+  std::string ns {""};
+  if (_sdf->HasElement("namespace"))
+  {
+    ns = _sdf->Get<std::string>("namespace");
+  }
+
+  // Get joint name
   if (!_sdf->HasElement("joint_name")) 
   {
     ignerr << "No joint to treat as propeller found \n";
@@ -101,9 +114,9 @@ void ThrusterPlugin::Configure(
     _ecm.Component<ignition::gazebo::components::JointAxis>(joint_entity)
       ->Data().Xyz();
 
-  _data->node.Subscribe(
-    "/thruster_controls/"+joint_name, 
-    &ThrusterPrivateData::OnCmdThrust,
+  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+    "/model/" + ns + "/joint/" + joint_name + "/cmd_pos");
+  _data->node.Subscribe(thrusterTopic, &ThrusterPrivateData::OnCmdThrust,
     _data.get());
 
   // Get link entity
@@ -130,8 +143,8 @@ void ThrusterPlugin::Configure(
   double d         =  0;
   double iMax      =  1;
   double iMin      = -1;
-  double cmdMax    =  1000;
-  double cmdMin    = -1000;
+  double cmdMax    = _data->ThrustToAngularVec(_data->cmdMax);
+  double cmdMin    = _data->ThrustToAngularVec(_data->cmdMin);
   double cmdOffset =  0;
 
   if (_sdf->HasElement("p_gain")) 
@@ -153,7 +166,22 @@ void ThrusterPlugin::Configure(
 void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
-  thrust = ignition::math::fixnan(_msg.data());
+  this->thrust = ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+    this->cmdMin, this->cmdMax);
+}
+
+double ThrusterPrivateData::ThrustToAngularVec(double thrust)
+{
+  // Thrust is proprtional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  auto propAngularVelocity = sqrt(abs(
+    thrust / 
+      (this->_fluid_density 
+      * this->_thrust_coefficient * pow(this->_propeller_diameter, 4))));
+  
+  propAngularVelocity *= (thrust > 0) ? 1: -1;
+
+  return propAngularVelocity;
 }
 
 void ThrusterPlugin::PreUpdate(
@@ -171,16 +199,10 @@ void ThrusterPlugin::PreUpdate(
   auto unit_vector = pose.Rot().RotateVector(_data->_jointAxis.Normalize());
 
   std::lock_guard<std::mutex> lock(_data->mtx);
-  // Thrust is proprtional to the Rotation Rate squared
-  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  auto desired = sqrt(
-    abs(_data->thrust / 
-      (_data->_fluid_density 
-      * _data->_thrust_coefficient * pow(_data->_propeller_diameter, 4))));
-  
-  desired *= (_data->thrust > 0) ? 1: -1;   
+
+  auto desiredPropAngularVelocity = _data->ThrustToAngularVec(_data->thrust);
   auto _current_angular = (link.WorldAngularVelocity(_ecm))->Dot(unit_vector);
-  auto _angular_error = _current_angular - desired;
+  auto _angular_error = _current_angular - desiredPropAngularVelocity;
   double _torque = 0.0;
   if(abs(_angular_error) > 0.1)
     _torque = _data->_rpmController.Update(_angular_error, _info.dt);
