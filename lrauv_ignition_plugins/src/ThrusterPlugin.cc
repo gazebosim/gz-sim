@@ -46,6 +46,8 @@ class ThrusterPrivateData
   public: double _propeller_diameter;
 
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+
+  public: double ThrustToAngularVec(double thrust);
 };
 
 ThrusterPlugin::ThrusterPlugin()
@@ -141,8 +143,8 @@ void ThrusterPlugin::Configure(
   double d         =  0;
   double iMax      =  1;
   double iMin      = -1;
-  double cmdMax    = this->_data->cmdMax;
-  double cmdMin    = this->_data->cmdMin;
+  double cmdMax    = _data->ThrustToAngularVec(_data->cmdMax);
+  double cmdMin    = _data->ThrustToAngularVec(_data->cmdMin);
   double cmdOffset =  0;
 
   if (_sdf->HasElement("p_gain")) 
@@ -168,6 +170,20 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
     this->cmdMin, this->cmdMax);
 }
 
+double ThrusterPrivateData::ThrustToAngularVec(double thrust)
+{
+  // Thrust is proprtional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  auto propAngularVelocity = sqrt(abs(
+    thrust / 
+      (this->_fluid_density 
+      * this->_thrust_coefficient * pow(this->_propeller_diameter, 4))));
+  
+  propAngularVelocity *= (thrust > 0) ? 1: -1;
+
+  return propAngularVelocity;
+}
+
 void ThrusterPlugin::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
@@ -183,16 +199,10 @@ void ThrusterPlugin::PreUpdate(
   auto unit_vector = pose.Rot().RotateVector(_data->_jointAxis.Normalize());
 
   std::lock_guard<std::mutex> lock(_data->mtx);
-  // Thrust is proprtional to the Rotation Rate squared
-  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  auto desired = sqrt(
-    abs(_data->thrust / 
-      (_data->_fluid_density 
-      * _data->_thrust_coefficient * pow(_data->_propeller_diameter, 4))));
-  
-  desired *= (_data->thrust > 0) ? 1: -1;   
+
+  auto desiredPropAngularVelocity = _data->ThrustToAngularVec(_data->thrust);
   auto _current_angular = (link.WorldAngularVelocity(_ecm))->Dot(unit_vector);
-  auto _angular_error = _current_angular - desired;
+  auto _angular_error = _current_angular - desiredPropAngularVelocity;
   double _torque = 0.0;
   if(abs(_angular_error) > 0.1)
     _torque = _data->_rpmController.Update(_angular_error, _info.dt);
