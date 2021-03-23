@@ -355,6 +355,8 @@
         <wheel_separation>1.25</wheel_separation>
         <wheelbase>1.511</wheelbase>
         <wheel_radius>0.3</wheel_radius>
+        <min_acceleration>-5</min_acceleration>
+        <max_acceleration>5</max_acceleration>
       </plugin>
 
     </model>
