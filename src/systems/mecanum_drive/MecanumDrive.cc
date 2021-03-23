@@ -566,88 +566,97 @@ void MecanumDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_in
     return;
   }
 
-  if (this->leftJoints.empty() || this->rightJoints.empty())
+  if (this->frontLeftJoints.empty()  || this->backLeftJoints.empty() ||
+      this->frontRightJoints.empty() || this->backRightJoints.empty())
+  {
     return;
+  }
 
-  // Get the first joint positions for the left and right side.
-  auto leftPos = _ecm.Component<components::JointPosition>(this->leftJoints[0]);
-  auto rightPos = _ecm.Component<components::JointPosition>(
-      this->rightJoints[0]);
+  // Get the first joint positions.
+  auto frontLeftPos = _ecm.Component<components::JointPosition>(
+      this->frontLeftJoints[0]);
+  auto frontRightPos = _ecm.Component<components::JointPosition>(
+      this->frontRightJoints[0]);
+  auto backLeftPos = _ecm.Component<components::JointPosition>(
+      this->backLeftJoints[0]);
+  auto backRightPos = _ecm.Component<components::JointPosition>(
+      this->backRightJoints[0]);
 
   // Abort if the joints were not found or just created.
-  if (!leftPos || !rightPos || leftPos->Data().empty() ||
-      rightPos->Data().empty())
+  if (!frontLeftPos || !frontRightPos || !backLeftPos || !backRightPos ||
+      frontLeftPos->Data().empty() || frontRightPos->Data().empty() ||
+      backLeftPos->Data().empty() || backRightPos->Data().empty())
   {
     return;
   }
 
-  this->odom.Update(leftPos->Data()[0], rightPos->Data()[0],
-      std::chrono::steady_clock::time_point(_info.simTime));
+  //  this->odom.Update(leftPos->Data()[0], rightPos->Data()[0],
+  //      std::chrono::steady_clock::time_point(_info.simTime));
 
-  // Throttle publishing
-  auto diff = _info.simTime - this->lastOdomPubTime;
-  if (diff > std::chrono::steady_clock::duration::zero() &&
-      diff < this->odomPubPeriod)
-  {
-    return;
-  }
-  this->lastOdomPubTime = _info.simTime;
+  //  // Throttle publishing
+  //  auto diff = _info.simTime - this->lastOdomPubTime;
+  //  if (diff > std::chrono::steady_clock::duration::zero() &&
+  //      diff < this->odomPubPeriod)
+  //  {
+  //    return;
+  //  }
+  //  this->lastOdomPubTime = _info.simTime;
 
-  // Construct the odometry message and publish it.
-  msgs::Odometry msg;
-  msg.mutable_pose()->mutable_position()->set_x(this->odom.X());
-  msg.mutable_pose()->mutable_position()->set_y(this->odom.Y());
+  //  // Construct the odometry message and publish it.
+  //  msgs::Odometry msg;
+  //  msg.mutable_pose()->mutable_position()->set_x(this->odom.X());
+  //  msg.mutable_pose()->mutable_position()->set_y(this->odom.Y());
 
-  math::Quaterniond orientation(0, 0, *this->odom.Heading());
-  msgs::Set(msg.mutable_pose()->mutable_orientation(), orientation);
+  //  math::Quaterniond orientation(0, 0, *this->odom.Heading());
+  //  msgs::Set(msg.mutable_pose()->mutable_orientation(), orientation);
 
-  msg.mutable_twist()->mutable_linear()->set_x(this->odom.LinearVelocity());
-  msg.mutable_twist()->mutable_angular()->set_z(*this->odom.AngularVelocity());
+  //  msg.mutable_twist()->mutable_linear()->set_x(this->odom.LinearVelocity());
+  //  msg.mutable_twist()->mutable_angular()->set_z(*this->odom.AngularVelocity());
 
-  // Set the time stamp in the header
-  msg.mutable_header()->mutable_stamp()->CopyFrom(
-      convert<msgs::Time>(_info.simTime));
+  //  // Set the time stamp in the header
+  //  msg.mutable_header()->mutable_stamp()->CopyFrom(
+  //      convert<msgs::Time>(_info.simTime));
 
-  // Set the frame id.
-  auto frame = msg.mutable_header()->add_data();
-  frame->set_key("frame_id");
-  if (this->sdfFrameId.empty())
-  {
-    frame->add_value(this->model.Name(_ecm) + "/odom");
-  }
-  else
-  {
-    frame->add_value(this->sdfFrameId);
-  }
+  //  // Set the frame id.
+  //  auto frame = msg.mutable_header()->add_data();
+  //  frame->set_key("frame_id");
+  //  if (this->sdfFrameId.empty())
+  //  {
+  //    frame->add_value(this->model.Name(_ecm) + "/odom");
+  //  }
+  //  else
+  //  {
+  //    frame->add_value(this->sdfFrameId);
+  //  }
 
-  std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
-  if (this->sdfChildFrameId.empty())
-  {
-    if (linkName)
-    {
-      auto childFrame = msg.mutable_header()->add_data();
-      childFrame->set_key("child_frame_id");
-      childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
-    }
-  }
-  else
-  {
-    auto childFrame = msg.mutable_header()->add_data();
-    childFrame->set_key("child_frame_id");
-    childFrame->add_value(this->sdfChildFrameId);
-  }
+  //  std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
+  //  if (this->sdfChildFrameId.empty())
+  //  {
+  //    if (linkName)
+  //    {
+  //      auto childFrame = msg.mutable_header()->add_data();
+  //      childFrame->set_key("child_frame_id");
+  //      childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
+  //    }
+  //  }
+  //  else
+  //  {
+  //    auto childFrame = msg.mutable_header()->add_data();
+  //    childFrame->set_key("child_frame_id");
+  //    childFrame->add_value(this->sdfChildFrameId);
+  //  }
 
-  // Construct the Pose_V/tf message and publish it.
-  msgs::Pose_V tfMsg;
-  ignition::msgs::Pose *tfMsgPose = nullptr;
-  tfMsgPose = tfMsg.add_pose();
-  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
-  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
-  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
+  //  // Construct the Pose_V/tf message and publish it.
+  //  msgs::Pose_V tfMsg;
+  //  ignition::msgs::Pose *tfMsgPose = nullptr;
+  //  tfMsgPose = tfMsg.add_pose();
+  //  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
+  //  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
+  //  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
 
-  // Publish the messages
-  this->odomPub.Publish(msg);
-  this->tfPub.Publish(tfMsg);
+  //  // Publish the messages
+  //  this->odomPub.Publish(msg);
+  //  this->tfPub.Publish(tfMsg);
 }
 
 //////////////////////////////////////////////////
