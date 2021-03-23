@@ -46,6 +46,8 @@ class ThrusterPrivateData
   public: double propellerDiameter;
 
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+
+  public: double ThrustToAngularVec(double thrust);
 };
 
 ThrusterPlugin::ThrusterPlugin()
@@ -141,8 +143,8 @@ void ThrusterPlugin::Configure(
   double d         =  0;
   double iMax      =  1;
   double iMin      = -1;
-  double cmdMax    = this->dataPtr->cmdMax;
-  double cmdMin    = this->dataPtr->cmdMin;
+  double cmdMax    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMax);
+  double cmdMin    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMin);
   double cmdOffset =  0;
 
   if (_sdf->HasElement("p_gain")) 
@@ -168,6 +170,20 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
     this->cmdMin, this->cmdMax);
 }
 
+double ThrusterPrivateData::ThrustToAngularVec(double thrust)
+{
+  // Thrust is proprtional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  auto propAngularVelocity = sqrt(abs(
+    thrust / 
+      (this->fluidDensity 
+      * this->thrustCoefficient * pow(this->propellerDiameter, 4))));
+  
+  propAngularVelocity *= (thrust > 0) ? 1: -1;
+
+  return propAngularVelocity;
+}
+
 void ThrusterPlugin::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
@@ -185,14 +201,9 @@ void ThrusterPlugin::PreUpdate(
   std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
   // Thrust is proprtional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  auto desired = sqrt(
-    abs(this->dataPtr->thrust /
-      (this->dataPtr->fluidDensity
-      * this->dataPtr->thrustCoefficient * pow(this->dataPtr->propellerDiameter, 4))));
-  
-  desired *= (this->dataPtr->thrust > 0) ? 1: -1;
+  auto desiredPropellerAngVel = this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
   auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
-  auto angularError = currentAngular - desired;
+  auto angularError = currentAngular - desiredPropellerAngVel;
   double torque = 0.0;
   if(abs(angularError) > 0.1)
     torque = this->dataPtr->rpmController.Update(angularError, _info.dt);
