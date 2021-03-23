@@ -163,6 +163,7 @@ namespace ignition
       /// \return Model entity.
       private: Entity CreateEntities(const sdf::Model *_model,
                                      bool _staticParent);
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;
     };

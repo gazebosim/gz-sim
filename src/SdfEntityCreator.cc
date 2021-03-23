@@ -146,7 +146,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
 /// \return The Entity of the descendent link or kNullEntity if link was not
 /// found
 static Entity FindDescendentLinkEntityByName(const std::string &_name,
-                                             Entity _model,
+                                             const Entity &_model,
                                              const EntityComponentManager &_ecm)
 {
   auto ind = _name.find(sdf::kSdfScopeDelimiter);
