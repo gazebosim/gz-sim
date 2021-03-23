@@ -56,7 +56,7 @@ struct Commands
   /// \brief Angular velocity.
   double ang;
 
-  Commands() : lin(0.0), ang(0.0) {}
+  Commands() : lin(0.0), lat(0.0), ang(0.0) {}
 };
 
 class ignition::gazebo::systems::MecanumDrivePrivate
@@ -449,8 +449,8 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     if (vel == nullptr)
     {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->frontLeftJointSpeed}));
+      _ecm.CreateComponent(joint,
+          components::JointVelocityCmd({this->dataPtr->frontLeftJointSpeed}));
     }
     else
     {
@@ -470,7 +470,8 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
     else
     {
-      *vel = components::JointVelocityCmd({this->dataPtr->frontRightJointSpeed});
+      *vel =
+          components::JointVelocityCmd({this->dataPtr->frontRightJointSpeed});
     }
   }
 
@@ -481,8 +482,8 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     if (vel == nullptr)
     {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->backLeftJointSpeed}));
+      _ecm.CreateComponent(joint,
+          components::JointVelocityCmd({this->dataPtr->backLeftJointSpeed}));
     }
     else
     {
@@ -555,7 +556,8 @@ void MecanumDrive::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void MecanumDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
+void MecanumDrivePrivate::UpdateOdometry(
+    const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MecanumDrive::UpdateOdometry");
@@ -611,7 +613,8 @@ void MecanumDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_in
   //  msgs::Set(msg.mutable_pose()->mutable_orientation(), orientation);
 
   //  msg.mutable_twist()->mutable_linear()->set_x(this->odom.LinearVelocity());
-  //  msg.mutable_twist()->mutable_angular()->set_z(*this->odom.AngularVelocity());
+  //  msg.mutable_twist()->mutable_angular()->set_z(
+  //      *this->odom.AngularVelocity());
 
   //  // Set the time stamp in the header
   //  msg.mutable_header()->mutable_stamp()->CopyFrom(
@@ -652,7 +655,8 @@ void MecanumDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_in
   //  tfMsgPose = tfMsg.add_pose();
   //  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   //  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
-  //  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
+  //  tfMsgPose->mutable_orientation()->CopyFrom(
+  //      msg.mutable_pose()->orientation());
 
   //  // Publish the messages
   //  this->odomPub.Publish(msg);
@@ -660,7 +664,8 @@ void MecanumDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_in
 }
 
 //////////////////////////////////////////////////
-void MecanumDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
+void MecanumDrivePrivate::UpdateVelocity(
+    const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("MecanumDrive::UpdateVelocity");
@@ -719,4 +724,5 @@ IGNITION_ADD_PLUGIN(MecanumDrive,
                     MecanumDrive::ISystemPreUpdate,
                     MecanumDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive, "ignition::gazebo::systems::MecanumDrive")
+IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive,
+                          "ignition::gazebo::systems::MecanumDrive")
