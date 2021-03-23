@@ -693,6 +693,9 @@ void MecanumDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_in
   const double invWheelRadius = 1 / this->wheelRadius;
 
   // Convert the target velocities to joint velocities.
+  // These calculations are based on the following references:
+  // https://robohub.org/drive-kinematics-skid-steer-and-mecanum-ros-twist-included
+  // https://research.ijcaonline.org/volume113/number3/pxc3901586.pdf
   this->frontLeftJointSpeed =
     (linVel - latVel - angVel * angularLength) * invWheelRadius;
   this->frontRightJointSpeed =

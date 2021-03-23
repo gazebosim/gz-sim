@@ -32,20 +32,30 @@ namespace systems
   // Forward declaration
   class MecanumDrivePrivate;
 
-  /// \brief Differential drive controller which can be attached to a model
-  /// with any number of left and right wheels.
+  /// \brief Mecanum drive controller which can be attached to a model
+  /// with any number of front/back left/right wheels.
   ///
   /// # System Parameters
   ///
-  /// `<left_joint>`: Name of a joint that controls a left wheel. This
-  /// element can appear multiple times, and must appear at least once.
+  /// `<front_left_joint>`: Name of a joint that controls a front left wheel.
+  /// This element can appear multiple times, and must appear at least once.
   ///
-  /// `<right_joint>`: Name of a joint that controls a right wheel. This
-  /// element can appear multiple times, and must appear at least once.
+  /// `<front_right_joint>`: Name of a joint that controls a front right wheel.
+  /// This element can appear multiple times, and must appear at least once.
   ///
-  /// `<wheel_separation>`: Distance between wheels, in meters. This element
-  /// is optional, although it is recommended to be included with an
-  /// appropriate value. The default value is 1.0m.
+  /// `<back_left_joint>`: Name of a joint that controls a back left wheel.
+  /// This element can appear multiple times, and must appear at least once.
+  ///
+  /// `<back_right_joint>`: Name of a joint that controls a back right wheel.
+  /// This element can appear multiple times, and must appear at least once.
+  ///
+  /// `<wheelbase>`: Longitudinal distance between front and back wheels,
+  /// in meters. This element is optional, although it is recommended to be
+  /// included with an appropriate value. The default value is 1.0m.
+  ///
+  /// `<wheel_separation>`: Lateral distance between left and right wheels,
+  /// in meters. This element is optional, although it is recommended to be
+  /// included with an appropriate value. The default value is 1.0m.
   ///
   /// `<wheel_radius>`: Wheel radius in meters. This element is optional,
   /// although it is recommended to be included with an appropriate value. The
