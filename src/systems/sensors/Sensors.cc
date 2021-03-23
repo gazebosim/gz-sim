@@ -409,7 +409,8 @@ void Sensors::Configure(const Entity &/*_id*/,
     std::cerr << "Sensors::Configure" << '\n';
     if (renderEngineServerHeadlessComp)
     {
-      std::cerr << "Sensors::Configure " << renderEngineServerHeadlessComp->Data() << '\n';
+      this->dataPtr->renderUtil.SetHeadless(
+        renderEngineServerHeadlessComp->Data());
     }
   }
 

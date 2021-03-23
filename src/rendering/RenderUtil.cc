@@ -1843,7 +1843,6 @@ void RenderUtil::Init()
     params["useCurrentGLContext"] = "1";
   if (this->dataPtr->isHeadless)
     params["headless"] = "1";
-  std::cerr << "RenderUtil Headless: " << Headless() << '\n';
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
