@@ -50,6 +50,9 @@ struct Commands
   /// \brief Linear velocity.
   double lin;
 
+  /// \brief Lateral velocity.
+  double lat;
+
   /// \brief Angular velocity.
   double ang;
 
@@ -79,26 +82,47 @@ class ignition::gazebo::systems::MecanumDrivePrivate
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  /// \brief Entity of the left joint
-  public: std::vector<Entity> leftJoints;
+  /// \brief Entity of the front left joint
+  public: std::vector<Entity> frontLeftJoints;
 
-  /// \brief Entity of the right joint
-  public: std::vector<Entity> rightJoints;
+  /// \brief Entity of the front right joint
+  public: std::vector<Entity> frontRightJoints;
 
-  /// \brief Name of left joint
-  public: std::vector<std::string> leftJointNames;
+  /// \brief Entity of the back left joint
+  public: std::vector<Entity> backLeftJoints;
 
-  /// \brief Name of right joint
-  public: std::vector<std::string> rightJointNames;
+  /// \brief Entity of the back right joint
+  public: std::vector<Entity> backRightJoints;
 
-  /// \brief Calculated speed of left joint
-  public: double leftJointSpeed{0};
+  /// \brief Name of front left joint
+  public: std::vector<std::string> frontLeftJointNames;
 
-  /// \brief Calculated speed of right joint
-  public: double rightJointSpeed{0};
+  /// \brief Name of front right joint
+  public: std::vector<std::string> frontRightJointNames;
 
-  /// \brief Distance between wheels
+  /// \brief Name of back left joint
+  public: std::vector<std::string> backLeftJointNames;
+
+  /// \brief Name of back right joint
+  public: std::vector<std::string> backRightJointNames;
+
+  /// \brief Calculated speed of front left joint
+  public: double frontLeftJointSpeed{0};
+
+  /// \brief Calculated speed of front right joint
+  public: double frontRightJointSpeed{0};
+
+  /// \brief Calculated speed of back left joint
+  public: double backLeftJointSpeed{0};
+
+  /// \brief Calculated speed of back right joint
+  public: double backRightJointSpeed{0};
+
+  /// \brief Lateral distance between left and right wheels
   public: double wheelSeparation{1.0};
+
+  /// \brief Longitudinal distance between front and back wheels
+  public: double wheelbase{1.0};
 
   /// \brief Wheel radius
   public: double wheelRadius{0.2};
@@ -181,21 +205,36 @@ void MecanumDrive::Configure(const Entity &_entity,
   auto ptr = const_cast<sdf::Element *>(_sdf.get());
 
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
+  sdf::ElementPtr sdfElem = ptr->GetElement("front_left_joint");
   while (sdfElem)
   {
-    this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("left_joint");
+    this->dataPtr->frontLeftJointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("front_left_joint");
   }
-  sdfElem = ptr->GetElement("right_joint");
+  sdfElem = ptr->GetElement("front_right_joint");
   while (sdfElem)
   {
-    this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("right_joint");
+    this->dataPtr->frontRightJointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("front_right_joint");
+  }
+
+  sdfElem = ptr->GetElement("back_left_joint");
+  while (sdfElem)
+  {
+    this->dataPtr->backLeftJointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("back_left_joint");
+  }
+  sdfElem = ptr->GetElement("back_right_joint");
+  while (sdfElem)
+  {
+    this->dataPtr->backRightJointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("back_right_joint");
   }
 
   this->dataPtr->wheelSeparation = _sdf->Get<double>("wheel_separation",
       this->dataPtr->wheelSeparation).first;
+  this->dataPtr->wheelbase = _sdf->Get<double>("wheelbase",
+      this->dataPtr->wheelbase).first;
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
       this->dataPtr->wheelRadius).first;
 
@@ -320,15 +359,17 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   // If the joints haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
   auto modelName = this->dataPtr->model.Name(_ecm);
-  if (this->dataPtr->leftJoints.empty() ||
-      this->dataPtr->rightJoints.empty())
+  if (this->dataPtr->frontLeftJoints.empty() ||
+      this->dataPtr->frontRightJoints.empty() ||
+      this->dataPtr->backLeftJoints.empty() ||
+      this->dataPtr->backRightJoints.empty())
   {
     bool warned{false};
-    for (const std::string &name : this->dataPtr->leftJointNames)
+    for (const std::string &name : this->dataPtr->frontLeftJointNames)
     {
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->leftJoints.push_back(joint);
+        this->dataPtr->frontLeftJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         ignwarn << "Failed to find left joint [" << name << "] for model ["
@@ -337,11 +378,11 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->rightJointNames)
+    for (const std::string &name : this->dataPtr->frontRightJointNames)
     {
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->rightJoints.push_back(joint);
+        this->dataPtr->frontRightJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         ignwarn << "Failed to find right joint [" << name << "] for model ["
@@ -349,14 +390,46 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         warned = true;
       }
     }
+
+    for (const std::string &name : this->dataPtr->backLeftJointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+        this->dataPtr->backLeftJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find left joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
+    }
+
+    for (const std::string &name : this->dataPtr->backRightJointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+        this->dataPtr->backRightJoints.push_back(joint);
+      else if (warnedModels.find(modelName) == warnedModels.end())
+      {
+        ignwarn << "Failed to find right joint [" << name << "] for model ["
+                << modelName << "]" << std::endl;
+        warned = true;
+      }
+    }
+
     if (warned)
     {
       warnedModels.insert(modelName);
     }
   }
 
-  if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty())
+  if (this->dataPtr->frontLeftJoints.empty() ||
+      this->dataPtr->frontRightJoints.empty() ||
+      this->dataPtr->backLeftJoints.empty() ||
+      this->dataPtr->backRightJoints.empty())
+  {
     return;
+  }
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
@@ -369,7 +442,7 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  for (Entity joint : this->dataPtr->leftJoints)
+  for (Entity joint : this->dataPtr->frontLeftJoints)
   {
     // Update wheel velocity
     auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
@@ -377,15 +450,15 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     if (vel == nullptr)
     {
       _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
+          joint, components::JointVelocityCmd({this->dataPtr->frontLeftJointSpeed}));
     }
     else
     {
-      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
+      *vel = components::JointVelocityCmd({this->dataPtr->frontLeftJointSpeed});
     }
   }
 
-  for (Entity joint : this->dataPtr->rightJoints)
+  for (Entity joint : this->dataPtr->frontRightJoints)
   {
     // Update wheel velocity
     auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
@@ -393,29 +466,77 @@ void MecanumDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     if (vel == nullptr)
     {
       _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
+          components::JointVelocityCmd({this->dataPtr->frontRightJointSpeed}));
     }
     else
     {
-      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
+      *vel = components::JointVelocityCmd({this->dataPtr->frontRightJointSpeed});
+    }
+  }
+
+  for (Entity joint : this->dataPtr->backLeftJoints)
+  {
+    // Update wheel velocity
+    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(
+          joint, components::JointVelocityCmd({this->dataPtr->backLeftJointSpeed}));
+    }
+    else
+    {
+      *vel = components::JointVelocityCmd({this->dataPtr->backLeftJointSpeed});
+    }
+  }
+
+  for (Entity joint : this->dataPtr->backRightJoints)
+  {
+    // Update wheel velocity
+    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(joint,
+          components::JointVelocityCmd({this->dataPtr->backRightJointSpeed}));
+    }
+    else
+    {
+      *vel = components::JointVelocityCmd({this->dataPtr->backRightJointSpeed});
     }
   }
 
   // Create the left and right side joint position components if they
   // don't exist.
-  auto leftPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->leftJoints[0]);
-  if (!leftPos)
+  auto frontLeftPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->frontLeftJoints[0]);
+  if (!frontLeftPos)
   {
-    _ecm.CreateComponent(this->dataPtr->leftJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontLeftJoints[0],
         components::JointPosition());
   }
 
-  auto rightPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->rightJoints[0]);
-  if (!rightPos)
+  auto frontRightPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->frontRightJoints[0]);
+  if (!frontRightPos)
   {
-    _ecm.CreateComponent(this->dataPtr->rightJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontRightJoints[0],
+        components::JointPosition());
+  }
+
+  auto backLeftPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->backLeftJoints[0]);
+  if (!backLeftPos)
+  {
+    _ecm.CreateComponent(this->dataPtr->backLeftJoints[0],
+        components::JointPosition());
+  }
+
+  auto backRightPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->backRightJoints[0]);
+  if (!backRightPos)
+  {
+    _ecm.CreateComponent(this->dataPtr->backRightJoints[0],
         components::JointPosition());
   }
 }
@@ -536,10 +657,12 @@ void MecanumDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_in
   IGN_PROFILE("MecanumDrive::UpdateVelocity");
 
   double linVel;
+  double latVel;
   double angVel;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
     linVel = this->targetVel.linear().x();
+    latVel = this->targetVel.linear().y();
     angVel = this->targetVel.angular().z();
   }
 
@@ -547,18 +670,28 @@ void MecanumDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_in
 
   // Limit the target velocity if needed.
   this->limiterLin->Limit(linVel, this->last0Cmd.lin, this->last1Cmd.lin, dt);
+  this->limiterLin->Limit(latVel, this->last0Cmd.lat, this->last1Cmd.lat, dt);
   this->limiterAng->Limit(angVel, this->last0Cmd.ang, this->last1Cmd.ang, dt);
 
   // Update history of commands.
   this->last1Cmd = last0Cmd;
   this->last0Cmd.lin = linVel;
+  this->last0Cmd.lat = latVel;
   this->last0Cmd.ang = angVel;
 
+  // constant used in computing target velocities
+  const double angularLength = 0.5 * (this->wheelSeparation + this->wheelbase);
+  const double invWheelRadius = 1 / this->wheelRadius;
+
   // Convert the target velocities to joint velocities.
-  this->rightJointSpeed =
-    (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
-  this->leftJointSpeed =
-    (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
+  this->frontLeftJointSpeed =
+    (linVel - latVel - angVel * angularLength) * invWheelRadius;
+  this->frontRightJointSpeed =
+    (linVel + latVel + angVel * angularLength) * invWheelRadius;
+  this->backLeftJointSpeed =
+    (linVel + latVel - angVel * angularLength) * invWheelRadius;
+  this->backRightJointSpeed =
+    (linVel - latVel + angVel * angularLength) * invWheelRadius;
 }
 
 //////////////////////////////////////////////////
