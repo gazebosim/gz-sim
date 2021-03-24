@@ -2161,5 +2161,19 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     this->dataPtr->viewingCollisions[colEntity] = showCol;
     colVisual->SetVisible(showCol);
+
+    if (showCol)
+    {
+      // turn off wireboxes for collision entity
+      if (this->dataPtr->wireBoxes.find(colEntity)
+            != this->dataPtr->wireBoxes.end())
+      {
+        ignition::rendering::WireBoxPtr wireBox =
+          this->dataPtr->wireBoxes[colEntity];
+        auto visParent = wireBox->Parent();
+        if (visParent)
+          visParent->SetVisible(false);
+      }
+    }
   }
 }
