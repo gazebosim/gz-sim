@@ -416,6 +416,7 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
   ecm->CreateComponent(linkEntity, components::CanonicalLink());
   ecm->CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
   ecm->CreateComponent(linkEntity, components::Name("link"));
+  ecm->CreateComponent(modelEntity, components::ModelCanonicalLink(linkEntity));
 
   math::MassMatrix3d massMatrix;
   massMatrix.SetMass(1.0);
@@ -1270,4 +1271,67 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
   parentIt = parents.find("model_01::link_01");
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
+}
+
+// This tests whether the poses of nested models are updated correctly
+TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/nested_model_canonical_link.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the poses of the links after physics
+  test::Relay testSystem;
+
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
+  testSystem.OnPostUpdate(
+    [&postUpModelPoses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          // store model pose
+          postUpModelPoses[_name->Data()] = _pose->Data();
+          return true;
+        });
+
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 500;
+  server.Run(true, iters, false);
+  EXPECT_EQ(3u, postUpModelPoses.size());
+
+  auto modelIt = postUpModelPoses.find("model_00");
+  EXPECT_NE(postUpModelPoses.end(), modelIt);
+
+  // link_00 is resting on the ground_box, so it remains stationary. And since
+  // it is the canonical link of the parent model, model_00, the model frame
+  // should also remain stationary.
+  EXPECT_EQ(math::Pose3d::Zero, modelIt->second);
+
+  // link_01 is floating, so it should fall due to gravity. And since it is the
+  // canonical link of the nested model, model_01, the model frame should also
+  // fall. If the model pose is not updated according to this canonical link,
+  // the test would fail.
+  const double dt = 0.001;
+  const double zExpected = 0.5 * world->Gravity().Z() * pow(dt * iters, 2);
+  modelIt = postUpModelPoses.find("model_01");
+  EXPECT_NE(postUpModelPoses.end(), modelIt);
+  EXPECT_NEAR(zExpected, modelIt->second.Z(), 1e-2);
 }
