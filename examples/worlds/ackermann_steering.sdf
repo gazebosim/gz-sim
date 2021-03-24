@@ -315,12 +315,12 @@
             </cylinder>
           </geometry>
           <material>
-            <ambient>11 11 11</ambient>
-            <diffuse>11 11 11</diffuse>
+            <ambient>1 1 1</ambient>
+            <diffuse>1 1 1</diffuse>
           </material>
         </visual>
       </link>
-      
+
       <link name="front_right_wheel_steering_link">
         <pose>0.554283 -0.5 0.02 0 0 0</pose>
         <inertial>
@@ -340,8 +340,8 @@
             </cylinder>
           </geometry>
           <material>
-            <ambient>11 11 11</ambient>
-            <diffuse>11 11 11</diffuse>
+            <ambient>1 1 1</ambient>
+            <diffuse>1 1 1</diffuse>
           </material>
         </visual>
       </link>
@@ -360,7 +360,7 @@
           <use_parent_model_frame>1</use_parent_model_frame>
         </axis>
       </joint>
-      
+
       <joint name="front_right_wheel_steering_joint" type="revolute">
         <parent>chassis</parent>
         <child>front_right_wheel_steering_link</child>
