@@ -2164,11 +2164,9 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     if (showCol)
     {
-      // turn off wireboxes for collision entity except for most recent
-      // selected entity (it is still highlighted in entity tree)
+      // turn off wireboxes for collision entity
       if (this->dataPtr->wireBoxes.find(colEntity)
-            != this->dataPtr->wireBoxes.end()
-          && colEntity != this->dataPtr->selectedEntities.back())
+            != this->dataPtr->wireBoxes.end())
       {
         ignition::rendering::WireBoxPtr wireBox =
           this->dataPtr->wireBoxes[colEntity];
