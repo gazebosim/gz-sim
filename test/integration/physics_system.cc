@@ -1129,19 +1129,6 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
   parentIt = parents.find("model_01::link_01");
   ASSERT_NE(parents.end(), parentIt);
   EXPECT_EQ("model_01", parentIt->second);
-
-  const size_t iters = 200;
-  const double dt = 0.001;
-  server.Run(true, iters, false);
-  double fallDist = 0.5 * 9.81 * pow(dt * (iters + 1), 2);
-
-  modelIt = postUpModelPoses.find("include_nested_new_name");
-  EXPECT_NE(postUpModelPoses.end(), modelIt);
-  EXPECT_EQ(math::Pose3d(1, 2, 3 - fallDist, 0, 0, 0), modelIt->second);
-
-  modelIt = postUpModelPoses.find("nested_models_new_name");
-  EXPECT_NE(postUpModelPoses.end(), modelIt);
-  EXPECT_EQ(math::Pose3d(0.0, 0, 0.0, 0, 0, 0), modelIt->second);
 }
 
 // This tests whether nested models can be loaded correctly

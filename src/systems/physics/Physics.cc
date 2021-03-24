@@ -1838,7 +1838,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
       if (!canonicalLink)
       {
         // Compute the relative pose of this link from the parent model
-        // first get the world pose of the top level model
         auto parentModelPoseIt = modelWorldPoses.find(parentEntity);
         if (parentModelPoseIt == modelWorldPoses.end())
         {
