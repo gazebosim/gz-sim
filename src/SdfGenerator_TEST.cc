@@ -251,7 +251,9 @@ TEST_F(ModelElementFixture, ModelsInline)
 {
   this->LoadWorld("test/worlds/shapes.sdf");
   this->TestModel("box");
+  this->TestModel("capsule");
   this->TestModel("cylinder");
+  this->TestModel("ellipsoid");
   this->TestModel("sphere");
 }
 
