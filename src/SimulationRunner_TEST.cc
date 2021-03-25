@@ -581,7 +581,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 5.6, 1.6),
+        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
           _geometry->Data().EllipsoidShape()->Radii());
 
         EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
