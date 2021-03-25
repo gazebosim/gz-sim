@@ -315,8 +315,8 @@
             </cylinder>
           </geometry>
           <material>
-            <ambient>0.2 0.2 0.2 1</ambient>
-            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <ambient>1 1 1</ambient>
+            <diffuse>1 1 1</diffuse>
           </material>
         </visual>
       </link>
@@ -340,8 +340,8 @@
             </cylinder>
           </geometry>
           <material>
-            <ambient>0.2 0.2 0.2 1</ambient>
-            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <ambient>1 1 1</ambient>
+            <diffuse>1 1 1</diffuse>
           </material>
         </visual>
       </link>
