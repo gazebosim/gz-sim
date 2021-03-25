@@ -573,6 +573,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(capLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_DOUBLE_EQ(0.0, _transparency->Data());
+        EXPECT_DOUBLE_EQ(6.54, _laserRetro->Data());
         EXPECT_TRUE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::CAPSULE, _geometry->Data().Type());
@@ -580,14 +581,14 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_DOUBLE_EQ(2.12, _geometry->Data().CapsuleShape()->Radius());
         EXPECT_DOUBLE_EQ(1.23, _geometry->Data().CapsuleShape()->Length());
 
-        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
-        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
-        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
-        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f), _material->Data().Specular());
 
         EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
-      else if (visualCount == 2)
+      else if (visualCount == 5)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
@@ -597,18 +598,19 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
         EXPECT_EQ(ellipLinkEntity, this->ecm.ParentEntity(_entity));
 
-        EXPECT_DOUBLE_EQ(0.0, _transparency->Data());
-        EXPECT_TRUE(_castShadows->Data());
+        EXPECT_DOUBLE_EQ(0.5, _transparency->Data());
+        EXPECT_DOUBLE_EQ(3.21, _laserRetro->Data());
+        EXPECT_FALSE(_castShadows->Data());
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 5.6, 7.6),
+        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
           _geometry->Data().EllipsoidShape()->Radii());
 
-        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
-        EXPECT_EQ(math::Color(1, 0, 1), _material->Data().Ambient());
-        EXPECT_EQ(math::Color(1, 0, 1), _material->Data().Diffuse());
-        EXPECT_EQ(math::Color(1, 0, 1), _material->Data().Specular());
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Specular());
 
         EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }

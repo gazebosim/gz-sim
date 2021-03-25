@@ -191,6 +191,7 @@
           </geometry>
         </collision>
         <visual name="capsule_visual">
+          <laser_retro>6.54</laser_retro>
           <pose>0.52 0.52 0.52 0 0 0</pose>
           <geometry>
             <capsule>
@@ -231,6 +232,7 @@
           </geometry>
         </collision>
         <visual name="ellipsoid_visual">
+          <laser_retro>3.21</laser_retro>
           <pose>0.82 0.82 0.82 0 0 0</pose>
           <transparency>0.5</transparency>
           <cast_shadows>false</cast_shadows>

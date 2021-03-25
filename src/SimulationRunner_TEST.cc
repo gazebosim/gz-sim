@@ -570,7 +570,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
       }
-      else if (visualCount == 2)
+      else if (visualCount == 5)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
