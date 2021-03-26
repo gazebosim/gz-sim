@@ -48,7 +48,7 @@ Math types.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/math/6.6/install.html).
+See the [installation tutorial](https://ignitionrobotics.org/api/math/6.8/install.html).
 
 # Usage
 
