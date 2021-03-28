@@ -939,6 +939,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
       spotLight->SetInnerAngle(_light.SpotInnerAngle());
       spotLight->SetOuterAngle(_light.SpotOuterAngle());
       spotLight->SetFalloff(_light.SpotFalloff());
+      spotLight->SetDirection(_light.Direction());
       break;
     }
     case sdf::LightType::DIRECTIONAL:
