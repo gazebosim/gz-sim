@@ -70,7 +70,7 @@ This tutorial introduces how to create entities from SDF strings and light messa
 We will open an empty Ignition Gazebo world, let's start creating a sphere in the world.
 In the next snippet you can see how to create models based on strings.
 
-\snippet examples/standalone/model_creation/model_creation.cc create sphere
+\snippet examples/standalone/entity_creation/entity_creation.cc create sphere
 
 The variable `sphereStr` contains the SDF of the model that we want to create in the world.
 In this case we are creating a sphere of 1 meter of radius in the position: `x: 0 y: 0 z: 0.5 roll: 0 pitch: 0 yaw: 0`.
@@ -79,7 +79,7 @@ In this case we are creating a sphere of 1 meter of radius in the position: `x: 
 
 Then we need to call the service `/world/<world_name>/create`:
 
-\snippet examples/standalone/model_creation/model_creation.cc call service create sphere
+\snippet examples/standalone/entity_creation/entity_creation.cc call service create sphere
 
 **NOTE**: By default, if the entity name does not exist then the entity will be created
 in the world. On the other hand, if that entity name already exists, then nothing will
@@ -96,11 +96,11 @@ To insert a light in the world we have two options:
 
 In the following snippet you can see how the light's field is filled.
 
-\snippet examples/standalone/model_creation/model_creation.cc create light
+\snippet examples/standalone/entity_creation/entity_creation.cc create light
 
 Or we can create an SDF string:
 
-\snippet examples/standalone/model_creation/model_creation.cc create light str
+\snippet examples/standalone/entity_creation/entity_creation.cc create light str
 
 Please check the API to know which fields are available in the
 [Light message](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html).
@@ -108,4 +108,4 @@ There are three types of lights: Point, Directional and Spot.
 
 Finally we should call the same service `/world/<world_name>/create`:
 
-\snippet examples/standalone/model_creation/model_creation.cc call service create
+\snippet examples/standalone/entity_creation/entity_creation.cc call service create
