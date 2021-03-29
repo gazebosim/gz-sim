@@ -31,6 +31,11 @@ release will remove the deprecated code.
   * **Deprecated** `ignition::gazebo::gui::SnapPreviewPath`
   * **Replacement** `ignition::gui::SnapFromPath`
 
+* The `<direction>` tag of spot lights was previously not parsed by the
+  scene, so all spot lights shone in the direction corresponding to the
+  default `0 0 -1`. Since 5.x, the `<direction>` tag is correctly
+  processed.
+
 ## Ignition Gazebo 4.0.0 to 4.X.X
 
 * Ignition Gazebo 4.0.0 enabled double sided material by default but this
