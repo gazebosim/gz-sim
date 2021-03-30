@@ -142,7 +142,7 @@ namespace ignition
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
 
       /// \brief Create all entities that exist in the
-      /// sdf::ParticleEmimtter object.
+      /// sdf::ParticleEmitter object.
       /// \param[in] _emitter SDF ParticleEmitter object.
       /// \return ParticleEmitter entity.
       /// \sa CreateEntities(const sdf::Link *)

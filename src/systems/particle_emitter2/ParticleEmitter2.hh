@@ -39,8 +39,12 @@ namespace systems
   /// specified, the following topic naming scheme will be used:
   /// `/model/{model_name}/link/{link_name}/particle_emitter/{emitter_name}/cmd`
   ///
-  /// \todo(nkoenig) Deprecate ParticleEmitter and replace with
-  /// ParticleEmitter2
+  /// \todo(nkoenig) Plan for ParticleEmitter and ParticleEmitter2:
+  ///     1. Deprecate ParticleEmitter in Ignition Fortress.
+  ///     2. Remove ParticleEmitter in Ignition G.
+  ///     3. Copy ParticleEmitter2 to ParticleEmitter in Ignition G.
+  ///     4. Deprecrate ParticleEmitter2 in Ignition G.
+  ///     5. Remove ParticleEmitter2 in Ignition H.
   class IGNITION_GAZEBO_VISIBLE ParticleEmitter2
       : public System,
         public ISystemConfigure,

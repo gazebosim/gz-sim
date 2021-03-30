@@ -2017,7 +2017,6 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
       this->scene->CreateWireBox();
     ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
     wireBox->SetBox(aabb);
-    std::cout << "Bouding box[" << aabb.Size() << "]\n";
 
     // Create visual and add wire box
     ignition::rendering::VisualPtr wireBoxVis =
