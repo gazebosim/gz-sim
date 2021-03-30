@@ -27,10 +27,12 @@
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/World.hh>
 #include <ignition/gazebo/components/Inertial.hh>
+#include <ignition/gazebo/components/HaltMotion.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Link.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/Util.hh>
+#include <ignition/common/Profiler.hh>
 
 #include <ignition/plugin/Register.hh>
 
@@ -62,6 +64,9 @@ class ignition::gazebo::systems::KineticEnergyMonitorPrivate
 
   /// \brief The model this plugin is attached to.
   public: Model model;
+
+  /// \brief This model halt motion state.
+  public: bool haltMotionState {false};
 };
 
 //////////////////////////////////////////////////
@@ -161,12 +166,53 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
     _ecm.CreateComponent(this->dataPtr->linkEntity,
         components::WorldAngularVelocity());
   }
+
+  // Create a halt motion component if one is not present.
+  if (!_ecm.Component<components::HaltMotion>(
+        _ecm.ParentEntity(this->dataPtr->linkEntity)))
+  {
+    _ecm.CreateComponent(_ecm.ParentEntity(this->dataPtr->linkEntity),
+        components::HaltMotion(false));
+  }
 }
 
 //////////////////////////////////////////////////
-void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
+void KineticEnergyMonitor::Update(const UpdateInfo &_info,
+                                 EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("KineticEnergyMonitor::Update");
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    ignwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
+  }
+
+  if (_info.paused)
+    return;
+
+  // Update Halt Motion component
+  auto *haltMotionComp =
+    _ecm.Component<components::HaltMotion>(
+      _ecm.ParentEntity(this->dataPtr->linkEntity));
+
+  if (haltMotionComp->Data() != this->dataPtr->haltMotionState)
+  {
+    haltMotionComp->Data() = this->dataPtr->haltMotionState;
+  }
+}
+
+//////////////////////////////////////////////////
+void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("KineticEnergyMonitor::PostUpdate");
+  // Nothing left to do if paused or the publisher wasn't created.
+  if (_info.paused || !this->dataPtr->pub)
+    return;
+
   if (this->dataPtr->linkEntity != kNullEntity)
   {
     Link link(this->dataPtr->linkEntity);
@@ -186,15 +232,17 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &/*_info*/,
         msgs::Double msg;
         msg.set_data(deltaKE);
         this->dataPtr->pub.Publish(msg);
+        this->dataPtr->haltMotionState = true;
       }
     }
   }
 }
 
-IGNITION_ADD_PLUGIN(KineticEnergyMonitor, System,
-  KineticEnergyMonitor::ISystemConfigure,
-  KineticEnergyMonitor::ISystemPostUpdate
-)
+IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
+                    ignition::gazebo::System,
+                    KineticEnergyMonitor::ISystemConfigure,
+                    KineticEnergyMonitor::ISystemUpdate,
+                    KineticEnergyMonitor::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "ignition::gazebo::systems::KineticEnergyMonitor")

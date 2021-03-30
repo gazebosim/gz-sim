@@ -118,6 +118,7 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/HaltMotion.hh"
 
 #include "EntityFeatureMap.hh"
 
@@ -1232,8 +1233,17 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == jointPhys)
           return true;
 
+        auto haltMotionComp = _ecm.Component<components::HaltMotion>(
+            _ecm.ParentEntity(_entity));
+        bool haltMotion = false;
+        if (haltMotionComp)
+        {
+          haltMotion = haltMotionComp->Data();
+        }
+
+
         // Model is out of battery
-        if (this->entityOffMap[_ecm.ParentEntity(_entity)])
+        if (this->entityOffMap[_ecm.ParentEntity(_entity)] || haltMotion)
         {
           std::size_t nDofs = jointPhys->GetDegreesOfFreedom();
           for (std::size_t i = 0; i < nDofs; ++i)
