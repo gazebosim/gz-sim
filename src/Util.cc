@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -213,6 +214,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::Actor>(_entity))
   {
     type = "actor";
+  }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = "particle_emitter";
   }
 
   return type;
