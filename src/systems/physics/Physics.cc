@@ -1419,23 +1419,20 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
-        // The canonical link as specified by sdformat is different from the
-        // canonical link of the FreeGroup object
-
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelPtrPhys->FindFreeGroup();
         if (!freeGroup)
           return true;
 
-        // Get canonical link offset
+        // Get root link offset
         const auto linkEntity =
-            this->entityLinkMap.Get(freeGroup->CanonicalLink());
+            this->entityLinkMap.Get(freeGroup->RootLink());
         if (linkEntity == kNullEntity)
           return true;
 
-        // set world pose of canonical link in freegroup
-        // canonical link might be in a nested model so use RelativePose to get
+        // set world pose of root link in freegroup
+        // root link might be in a nested model so use RelativePose to get
         // its pose relative to this model
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntity, _ecm);
