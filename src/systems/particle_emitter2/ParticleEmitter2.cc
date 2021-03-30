@@ -141,13 +141,13 @@ void ParticleEmitter2::Configure(const Entity &_entity,
   if (this->dataPtr->node.Advertise(emittersService,
         &ParticleEmitter2Private::EmittersService, this->dataPtr.get()))
   {
-    ignmsg << "\n\n\n\nServing particle emitter information on ["
-      << emittersService << "]\n\n\n\n" << std::endl;
+    ignmsg << "Serving particle emitter information on ["
+      << emittersService << "]" << std::endl;
   }
   else
   {
-    ignerr << "\n\n\nSomething went wrong, failed to advertise [" << emittersService
-           << "]\n\n\n\n" << std::endl;
+    ignerr << "Something went wrong, failed to advertise [" << emittersService
+           << "]" << std::endl;
   }
 }
 

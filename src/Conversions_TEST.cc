@@ -832,7 +832,7 @@ TEST(Conversions, ParticleEmitter)
 
   auto pbrMsg = emitterMsg.material().pbr();
   EXPECT_EQ(msgs::Material::PBR::METAL, pbrMsg.type());
-  EXPECT_EQ("albedo_map.png",pbrMsg.albedo_map());
+  EXPECT_EQ("albedo_map.png", pbrMsg.albedo_map());
 
   // Convert the message back to SDF.
   sdf::ParticleEmitter emitter2 = convert<sdf::ParticleEmitter>(emitterMsg);
