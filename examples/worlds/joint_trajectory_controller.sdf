@@ -115,8 +115,8 @@
 
   Progress of each trajectory can then be tracked by subscribing to the corresponding topic:
 
-    ign topic -e -t "/model/RR_velocity_control/joint_trajectory_progress"
     ign topic -e -t "/model/RR_position_control/joint_trajectory_progress"
+    ign topic -e -t "/model/RR_velocity_control/joint_trajectory_progress"
     ign topic -e -t "/custom_topic_effort_control_progress"
 
 
