@@ -2,7 +2,7 @@
 
 ## Ignition Math 6.x.x
 
-## Ignition Math 6.8.0 (2021-XX-XX)
+## Ignition Math 6.8.0 (2021-03-30)
 
 1. Add speed limiter class
     * [Pull request #194](https://github.com/ignitionrobotics/ign-math/pull/194)
@@ -23,6 +23,7 @@
     * [Pull request #189](https://github.com/ignitionrobotics/ign-math/pull/189)
     * [Pull request #193](https://github.com/ignitionrobotics/ign-math/pull/193)
     * [Pull request #195](https://github.com/ignitionrobotics/ign-math/pull/195)
+    * [Pull request #201](https://github.com/ignitionrobotics/ign-math/pull/201)
 
 1. Remove unnecessary copy constructor declaration from Box
     * [Pull request 187](https://github.com/ignitionrobotics/ign-math/pull/187)
