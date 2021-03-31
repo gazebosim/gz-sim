@@ -67,6 +67,9 @@ class ignition::gazebo::systems::KineticEnergyMonitorPrivate
 
   /// \brief This model halt motion state.
   public: bool haltMotionState {false};
+
+  /// \brief Halting motion Mode
+  public: bool haltMode;
 };
 
 //////////////////////////////////////////////////
@@ -128,6 +131,8 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   ignmsg << "KineticEnergyMonitor publishing messages on "
     << "[" << topic << "]" << std::endl;
+
+  this->dataPtr->haltMode = sdfClone->Get<bool>("halt_mode", false).first;
 
   transport::Node node;
   this->dataPtr->pub = node.Advertise<msgs::Double>(topic);
@@ -198,7 +203,8 @@ void KineticEnergyMonitor::Update(const UpdateInfo &_info,
     _ecm.Component<components::HaltMotion>(
       _ecm.ParentEntity(this->dataPtr->linkEntity));
 
-  if (haltMotionComp->Data() != this->dataPtr->haltMotionState)
+  if (this->dataPtr->haltMode &&
+      haltMotionComp->Data() != this->dataPtr->haltMotionState)
   {
     haltMotionComp->Data() = this->dataPtr->haltMotionState;
   }
