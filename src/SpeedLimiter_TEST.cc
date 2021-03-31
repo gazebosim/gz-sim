@@ -57,8 +57,8 @@ TEST(SpeedLimiterTest, Default)
   EXPECT_DOUBLE_EQ(5.0, vel);
 
   vel = 0.0;
-  EXPECT_DOUBLE_EQ(0.0, limiter.Limit(vel, 4.0, 3.0, 1ms));
-  EXPECT_DOUBLE_EQ(0.0, vel);
+  EXPECT_NEAR(0.0, limiter.Limit(vel, 4.0, 3.0, 1ms), 1e-6);
+  EXPECT_NEAR(0.0, vel, 1e-6);
 }
 
 /////////////////////////////////////////////////
