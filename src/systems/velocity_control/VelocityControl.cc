@@ -18,6 +18,8 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/Vector3.hh>
@@ -115,10 +117,12 @@ void VelocityControl::Configure(const Entity &_entity,
   }
 
   // Subscribe to model commands
-  std::string modelTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  std::string modelTopic{
+      "/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
   if (_sdf->HasElement("topic"))
     modelTopic = _sdf->Get<std::string>("topic");
   modelTopic = transport::TopicUtils::AsValidTopic(modelTopic);
+
   this->dataPtr->node.Subscribe(
     modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
   ignmsg << "VelocityControl subscribing to twist messages on ["
