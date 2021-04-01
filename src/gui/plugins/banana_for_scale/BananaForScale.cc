@@ -59,10 +59,10 @@ namespace ignition::gazebo
   };
 }
 
-const std::string kBanana =
+const char kBanana[] =
   "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/banana for scale";
 
-const std::string kBigBanana =
+const char kBigBanana[] =
   "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/big banana for scale";
 
 using namespace ignition;
