@@ -1137,6 +1137,9 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
       const std::string key = "particle_scatter_ratio";
       if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
       {
+        // \todo(anyone) switch to use the follow API when merging forward to
+        // edifice
+        // emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
         emitter->SetUserData(key, math::parseFloat(data.value(0)));
         break;
       }
