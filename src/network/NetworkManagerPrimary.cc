@@ -18,6 +18,7 @@
 #include "NetworkManagerPrimary.hh"
 
 #include <algorithm>
+#include <future>
 #include <set>
 #include <string>
 #include <utility>
@@ -41,6 +42,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
 NetworkManagerPrimary::NetworkManagerPrimary(
@@ -142,21 +144,17 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
   // Send step to all secondaries
   this->secondaryStates.clear();
+  this->secondaryStatesPromise = std::promise<void>{};
+  auto future = this->secondaryStatesPromise.get_future();
   this->simStepPub.Publish(step);
 
   // Block until all secondaries are done
   {
     IGN_PROFILE("Waiting for secondaries");
 
-    int sleep = 0;
-    int maxSleep = 10 * 1000 * 1000;
-    for (; sleep < maxSleep &&
-       (this->secondaryStates.size() < this->secondaries.size()); ++sleep)
-    {
-      std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-    }
+    auto result = future.wait_for(10s);
 
-    if (sleep == maxSleep)
+    if (std::future_status::ready != result)
     {
       ignerr << "Waited 10 s and got only [" << this->secondaryStates.size()
              << " / " << this->secondaries.size()
@@ -202,6 +200,10 @@ std::map<std::string, SecondaryControl::Ptr>
 void NetworkManagerPrimary::OnStepAck(const msgs::SerializedStateMap &_msg)
 {
   this->secondaryStates.push_back(_msg);
+  if (this->secondaryStates.size() == this->secondaries.size())
+  {
+    this->secondaryStatesPromise.set_value();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -316,4 +318,3 @@ void NetworkManagerPrimary::SetAffinity(Entity _performer,
   auto newAffinity = components::PerformerAffinity(_secondary);
   this->dataPtr->ecm->CreateComponent(_performer, newAffinity);
 }
-
