@@ -26,30 +26,33 @@
 #include <mutex>
 #include <string>
 
-namespace tethys_thrusters 
+namespace tethys_hydro 
 {
-  class ThrusterPrivateData;
+  class HydrodynamicsPrivateData;
 
-  class ThrusterPlugin:
+  /// This class provides hydrodynamic behaviour for underwater vehicles
+  /// It is shamelessly based off Brian Bingham's plugin for VRX
+  /// which in turn is based of fossen's equations.
+  class HydrodynamicsPlugin:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
     public ignition::gazebo::ISystemPreUpdate
   {
-    public: ThrusterPlugin();
+  public: HydrodynamicsPlugin();
 
-    public: ~ThrusterPlugin() override;
-
-    public: void Configure(
-        const ignition::gazebo::Entity &_entity,
-        const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/
-    );
-
-    public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm);
-
-    private: std::unique_ptr<ThrusterPrivateData> dataPtr;
+  public: ~HydrodynamicsPlugin() override;  
+  
+  public: void Configure(
+      const ignition::gazebo::Entity &_entity,
+      const std::shared_ptr<const sdf::Element> &_sdf,
+      ignition::gazebo::EntityComponentManager &_ecm,
+      ignition::gazebo::EventManager &/*_eventMgr*/
+      );  
+  
+  public: void PreUpdate(
+      const ignition::gazebo::UpdateInfo &_info,
+      ignition::gazebo::EntityComponentManager &_ecm);  
+  
+  private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;
   };
 }

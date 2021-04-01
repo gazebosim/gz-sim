@@ -14,6 +14,9 @@
  * limitations under the License.
  *
  */
+
+#include <ignition/math/Helpers.hh>
+
 #include "ThrusterPlugin.hh"
 
 namespace tethys_thrusters
@@ -24,26 +27,32 @@ class ThrusterPrivateData
 
   public: double thrust = 0.0;
   
-  public: ignition::gazebo::Entity _linkEntity;
+  public: ignition::gazebo::Entity linkEntity;
   
-  public: ignition::math::Vector3d _jointAxis;
+  public: ignition::math::Vector3d jointAxis;
   
   public: ignition::transport::Node node;
 
-  public: ignition::math::PID _rpmController;
+  public: ignition::math::PID rpmController;
 
-  public: double _thrust_coefficient;
+  public: double cmdMax = 1000;
 
-  public: double _fluid_density = 1000;
+  public: double cmdMin = -1000;
 
-  public: double _propeller_diameter;
+  public: double thrustCoefficient;
+
+  public: double fluidDensity = 1000;
+
+  public: double propellerDiameter;
 
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+
+  public: double ThrustToAngularVec(double thrust);
 };
 
 ThrusterPlugin::ThrusterPlugin()
 {
-    _data = std::make_unique<ThrusterPrivateData>();
+    this->dataPtr = std::make_unique<ThrusterPrivateData>();
 }
 
 ThrusterPlugin::~ThrusterPlugin()
@@ -57,13 +66,20 @@ void ThrusterPlugin::Configure(
   ignition::gazebo::EntityComponentManager &_ecm,
   ignition::gazebo::EventManager &/*_eventMgr*/)
 {
-  // Get Joint name
+  // Get namespace
+  std::string ns {""};
+  if (_sdf->HasElement("namespace"))
+  {
+    ns = _sdf->Get<std::string>("namespace");
+  }
+
+  // Get joint name
   if (!_sdf->HasElement("joint_name")) 
   {
     ignerr << "No joint to treat as propeller found \n";
     return;
   }
-  auto joint_name = _sdf->Get<std::string>("joint_name");
+  auto jointName = _sdf->Get<std::string>("joint_name");
 
   // Get thrust coefficient
   if(!_sdf->HasElement("thrust_coefficient"))
@@ -71,54 +87,54 @@ void ThrusterPlugin::Configure(
     ignerr << "Failed to get thrust_coefficient" << "\n";
     return;
   }
-  _data->_thrust_coefficient = _sdf->Get<double>("thrust_coefficient");
+  this->dataPtr->thrustCoefficient = _sdf->Get<double>("thrust_coefficient");
 
   // Get propeller diameter
   if(!_sdf->HasElement("propeller_diameter"))
   {
     ignerr << "Failed to get propeller_diameter \n";
   }
-  _data->_propeller_diameter = _sdf->Get<double>("propeller_diameter");
+  this->dataPtr->propellerDiameter = _sdf->Get<double>("propeller_diameter");
 
   // Get fluid density, default to water otherwise
   if(_sdf->HasElement("fluid_density"))
   {
-    _data->_fluid_density = _sdf->Get<double>("fluid_density");
+    this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
-  igndbg << "Setting fluid density to: " << _data->_fluid_density << "\n";
+  igndbg << "Setting fluid density to: " << this->dataPtr->fluidDensity << "\n";
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
 
-  auto joint_entity = model.JointByName(_ecm, joint_name);
-  auto child_link =
-    _ecm.Component<ignition::gazebo::components::ChildLinkName>(joint_entity);
+  auto jointEntity = model.JointByName(_ecm, jointName);
+  auto childLink =
+    _ecm.Component<ignition::gazebo::components::ChildLinkName>(jointEntity);
 
-  _data->_jointAxis = 
-    _ecm.Component<ignition::gazebo::components::JointAxis>(joint_entity)
+  this->dataPtr->jointAxis =
+    _ecm.Component<ignition::gazebo::components::JointAxis>(jointEntity)
       ->Data().Xyz();
 
-  _data->node.Subscribe(
-    "/thruster_controls/"+joint_name, 
-    &ThrusterPrivateData::OnCmdThrust,
-    _data.get());
+  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
+    "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
+  this->dataPtr->node.Subscribe(thrusterTopic, &ThrusterPrivateData::OnCmdThrust,
+    this->dataPtr.get());
 
   // Get link entity
-  _data->_linkEntity = model.LinkByName(_ecm, child_link->Data());
+  this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
 
   // Create an angular velocity component if one is not present.
   if (!_ecm.Component<ignition::gazebo::components::AngularVelocity>(
-      _data->_linkEntity))
+      this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(_data->_linkEntity,
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
       ignition::gazebo::components::AngularVelocity());
   }
 
     // Create an angular velocity component if one is not present.
   if (!_ecm.Component<ignition::gazebo::components::WorldAngularVelocity>(
-      _data->_linkEntity))
+      this->dataPtr->linkEntity))
   {
-    _ecm.CreateComponent(_data->_linkEntity,
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
       ignition::gazebo::components::WorldAngularVelocity());
   }
 
@@ -127,8 +143,8 @@ void ThrusterPlugin::Configure(
   double d         =  0;
   double iMax      =  1;
   double iMin      = -1;
-  double cmdMax    =  1000;
-  double cmdMin    = -1000;
+  double cmdMax    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMax);
+  double cmdMin    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMin);
   double cmdOffset =  0;
 
   if (_sdf->HasElement("p_gain")) 
@@ -144,13 +160,28 @@ void ThrusterPlugin::Configure(
     d = _sdf->Get<double>("d_gain");
   }
 
-  _data->_rpmController.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
+  this->dataPtr->rpmController.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 }
 
 void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
-  thrust = _msg.data();
+  this->thrust = ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+    this->cmdMin, this->cmdMax);
+}
+
+double ThrusterPrivateData::ThrustToAngularVec(double thrust)
+{
+  // Thrust is proprtional to the Rotation Rate squared
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  auto propAngularVelocity = sqrt(abs(
+    thrust / 
+      (this->fluidDensity 
+      * this->thrustCoefficient * pow(this->propellerDiameter, 4))));
+  
+  propAngularVelocity *= (thrust > 0) ? 1: -1;
+
+  return propAngularVelocity;
 }
 
 void ThrusterPlugin::PreUpdate(
@@ -160,29 +191,24 @@ void ThrusterPlugin::PreUpdate(
   if (_info.paused)
     return;
 
-  ignition::gazebo::Link link(_data->_linkEntity);
+  ignition::gazebo::Link link(this->dataPtr->linkEntity);
 
-  auto pose = worldPose(_data->_linkEntity, _ecm);
+  auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
   //TODO: add logic for custom coordinate frame
-  auto unit_vector = pose.Rot().RotateVector(_data->_jointAxis.Normalize());
+  auto unitVector = pose.Rot().RotateVector(this->dataPtr->jointAxis.Normalize());
 
-  std::lock_guard<std::mutex> lock(_data->mtx);
+  std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
   // Thrust is proprtional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  auto desired = sqrt(
-    abs(_data->thrust / 
-      (_data->_fluid_density 
-      * _data->_thrust_coefficient * pow(_data->_propeller_diameter, 4))));
-  
-  desired *= (_data->thrust > 0) ? 1: -1;   
-  auto _current_angular = (link.WorldAngularVelocity(_ecm))->Dot(unit_vector);
-  auto _angular_error = _current_angular - desired;
-  double _torque = 0.0;
-  if(abs(_angular_error) > 0.1)
-    _torque = _data->_rpmController.Update(_angular_error, _info.dt);
+  auto desiredPropellerAngVel = this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
+  auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
+  auto angularError = currentAngular - desiredPropellerAngVel;
+  double torque = 0.0;
+  if(abs(angularError) > 0.1)
+    torque = this->dataPtr->rpmController.Update(angularError, _info.dt);
 
-  link.AddWorldWrench(_ecm, unit_vector * _data->thrust, unit_vector * _torque);
+  link.AddWorldWrench(_ecm, unitVector * this->dataPtr->thrust, unitVector * torque);
 }
 } //end namespace tethys thrusters
 
