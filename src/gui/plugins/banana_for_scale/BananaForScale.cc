@@ -53,11 +53,17 @@ namespace ignition::gazebo
     public: std::string service;
 
     /// \brief Fuel client
-    public:  std::unique_ptr<ignition::fuel_tools::FuelClient> 
+    public:  std::unique_ptr<ignition::fuel_tools::FuelClient>
              fuelClient {nullptr};
 
   };
 }
+
+const std::string kBanana =
+  "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/banana for scale";
+
+const std::string kBigBanana =
+  "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/big banana for scale";
 
 using namespace ignition;
 using namespace gazebo;
@@ -67,7 +73,8 @@ BananaForScale::BananaForScale()
   : ignition::gui::Plugin(),
   dataPtr(std::make_unique<BananaPrivate>())
 {
-  this->dataPtr->fuelClient = std::make_unique<ignition::fuel_tools::FuelClient>();
+  this->dataPtr->fuelClient =
+    std::make_unique<ignition::fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
@@ -94,11 +101,11 @@ void BananaForScale::OnMode(const QString &_mode)
   ignition::common::URI modelUri;
   if (_mode == "banana")
   {
-    modelUri = ignition::common::URI("https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/banana for scale");
+    modelUri = ignition::common::URI(kBanana);
   }
   else if (_mode == "bigbanana")
   {
-    modelUri = ignition::common::URI("https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/big banana for scale");
+    modelUri = ignition::common::URI(kBigBanana);
   }
 
   std::string path;
