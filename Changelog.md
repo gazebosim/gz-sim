@@ -2,7 +2,7 @@
 
 ### Ignition Gazebo 5.X.X (20XX-XX-XX)
 
-### Ignition Gazebo 5.0.0 (20XX-XX-XX)
+### Ignition Gazebo 5.0.0 (2021-03-30)
 
 1. Added Ellipsoid and Capsule geometries
     * [Pull request #581](https://github.com/ignitionrobotics/ign-gazebo/pull/581)
@@ -83,6 +83,19 @@
     * [Pull request #565](https://github.com/ignitionrobotics/ign-gazebo/pull/565)
     * [Pull request #616](https://github.com/ignitionrobotics/ign-gazebo/pull/616)
     * [Pull request #622](https://github.com/ignitionrobotics/ign-gazebo/pull/622)
+
+1. Documentation fixes
+    * [Pull request #727](https://github.com/ignitionrobotics/ign-gazebo/pull/727)
+    * [Pull request #710](https://github.com/ignitionrobotics/ign-gazebo/pull/710)
+
+1. Replace deprecated function FreeGroup::CanonicalLink with FreeGroup::RootLink
+    * [Pull request #723](https://github.com/ignitionrobotics/ign-gazebo/pull/723)
+
+1. Respect spotlight direction
+    * [Pull request #718](https://github.com/ignitionrobotics/ign-gazebo/pull/718)
+
+1. Add UserCommands plugin to fuel.sdf
+    * [Pull request #719](https://github.com/ignitionrobotics/ign-gazebo/pull/719)
 
 1. Change SelectedEntities to return a const ref
     * [Pull request #571](https://github.com/ignitionrobotics/ign-gazebo/pull/571)
