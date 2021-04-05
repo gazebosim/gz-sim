@@ -753,7 +753,7 @@ In the new code we explicitly reference each Ignition package that we use:
 # NEW
 find_package(sdformat11 REQUIRED)
 find_package(ignition-common4-all REQUIRED)
-find_package(ignition-gazebo5-all REQUIRED)
+find_package(ignition-gazebo6-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs7-all REQUIRED)
 find_package(ignition-physics4-all REQUIRED)
