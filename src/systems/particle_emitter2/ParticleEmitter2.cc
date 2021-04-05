@@ -189,15 +189,24 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           std::vector<std::string> nameParts = common::split(
               emitterScopedName, "/");
 
-          if (nameParts.size() != 3)
+          if (nameParts.size() == 3)
           {
-            ignerr << "Particle emitter missing model name, link name, or its :"
-            " own name.\n";
+            topic = "/model/" + nameParts[0] + "/link/" + nameParts[1] +
+              "/particle_emitter/" + nameParts[2] + "/cmd";
+          }
+          // Handle nested models
+          else if (nameParts.size() == 4)
+          {
+            topic = "/model/" + nameParts[0] + "/model/" + nameParts[1] +
+              "/link/" + nameParts[2] + "/particle_emitter/" + nameParts[3] +
+              "/cmd";
+          }
+          else
+          {
+            ignerr << "Particle emitter missing model name, link name, or its "
+            "own name.\n";
             return false;
           }
-
-          topic = "/model/" + nameParts[0] + "/link/" + nameParts[1] +
-            "/particle_emitter/" + nameParts[2] + "/cmd";
         }
 
         // Subscribe to the topic that receives particle emitter commands.
@@ -208,6 +217,9 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
             << "Particle emitter will not receive updates." << std::endl;
           return false;
         }
+        ignmsg << "Particle emitter["
+          << scopedName(_entity, _ecm, "::", false) << "] subscribed "
+          << "to command messages on topic[" << topic << "]\n";
 
         // Store the topic name so that we can apply user commands
         // correctly.
