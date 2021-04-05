@@ -169,6 +169,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::Actor::typeId;
   }
+  else if (_ecm.Component<components::ParticleEmitter>(_entity))
+  {
+    type = components::ParticleEmitter::typeId;
+  }
 
   return type;
 }

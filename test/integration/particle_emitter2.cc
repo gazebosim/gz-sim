@@ -116,9 +116,7 @@ TEST_F(ParticleEmitter2Test, SDFLoad)
 
                 // color range image is empty because the emitter system
                 // will not be able to find a file that does not exist
-                // TODO(anyone) this should return  "/path/to/dummy_image.png"
-                // and let rendering do the findFile instead
-                EXPECT_EQ(std::string(),
+                EXPECT_EQ("/path/to/dummy_image.png",
                     _emitter->Data().color_range_image().data());
               }
               else

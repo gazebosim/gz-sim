@@ -28,6 +28,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -272,6 +273,10 @@ TEST_F(UtilTest, EntityTypeId)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
   EXPECT_EQ(components::Actor::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::ParticleEmitter());
+  EXPECT_EQ(components::ParticleEmitter::typeId, entityTypeId(entity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -317,6 +322,10 @@ TEST_F(UtilTest, EntityTypeStr)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
   EXPECT_EQ("actor", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::ParticleEmitter());
+  EXPECT_EQ("particle_emitter", entityTypeStr(entity, ecm));
 }
 
 /////////////////////////////////////////////////
