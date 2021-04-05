@@ -46,7 +46,7 @@ void MyPlugin::Configure(const Entity &_entity,
     EventManager &/*_eventMgr*/)
 
 {       
-	printf("Hello World!\n");
+   printf("Hello World!\n");
 }
 
 // Register the plugin
