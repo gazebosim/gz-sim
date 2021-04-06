@@ -14,19 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
+#define IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
 
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
 #include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/Link.hh>
-#include <ignition/gazebo/components.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/msgs.hh>
-#include <mutex>
-#include <string>
 
 namespace ignition
 {
@@ -46,9 +37,9 @@ namespace systems
     public ignition::gazebo::ISystemConfigure,
     public ignition::gazebo::ISystemPreUpdate
   {
-  public: HydrodynamicsPlugin();
+  public: Hydrodynamics();
 
-  public: ~HydrodynamicsPlugin() override;  
+  public: ~Hydrodynamics() override;  
   
   public: void Configure(
       const ignition::gazebo::Entity &_entity,

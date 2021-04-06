@@ -14,10 +14,27 @@
  * limitations under the License.
  *
  */
-
-#include "Hydrodynamics.hh"
+#include <mutex>
+#include <string>
 
 #include <Eigen/Eigen>
+
+#include <ignition/plugin/Register.hh>
+
+#include <ignition/transport/Node.hh>
+
+#include <ignition/msgs.hh>
+
+#include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Link.hh"
+#include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/Util.hh"
+
+#include "Hydrodynamics.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -299,9 +316,9 @@ void Hydrodynamics::PreUpdate(
 
 
 IGNITION_ADD_PLUGIN(
-  tethys_hydro::HydrodynamicsPlugin, System,
-  HydrodynamicsPlugin::ISystemConfigure,
-  HydrodynamicsPlugin::ISystemPreUpdate
+  Hydrodynamics, System,
+  Hydrodynamics::ISystemConfigure,
+  Hydrodynamics::ISystemPreUpdate
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Hydrodynamics, "ignition::gazebo::systems::Hydrodynamics")
