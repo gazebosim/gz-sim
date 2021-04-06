@@ -26,18 +26,25 @@
 #include <mutex>
 #include <string>
 
-namespace tethys_thrusters 
+namespace ignition
+{
+namespace gazebo
+{
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+
+namespace systems
 {
   class ThrusterPrivateData;
 
-  class ThrusterPlugin:
+  class Thruster:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
     public ignition::gazebo::ISystemPreUpdate
   {
-    public: ThrusterPlugin();
+    public: Thruster();
 
-    public: ~ThrusterPlugin() override;
+    public: ~Thruster() override;
 
     public: void Configure(
         const ignition::gazebo::Entity &_entity,
@@ -52,4 +59,7 @@ namespace tethys_thrusters
 
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;
   };
+}
+}
+}
 }

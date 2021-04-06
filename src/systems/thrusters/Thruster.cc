@@ -17,10 +17,12 @@
 
 #include <ignition/math/Helpers.hh>
 
-#include "ThrusterPlugin.hh"
+#include "Thruster.hh"
 
-namespace tethys_thrusters
-{
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
+
 class ThrusterPrivateData
 {
   public: std::mutex mtx;
@@ -50,17 +52,17 @@ class ThrusterPrivateData
   public: double ThrustToAngularVec(double thrust);
 };
 
-ThrusterPlugin::ThrusterPlugin()
+Thruster::Thruster()
 {
-    this->dataPtr = std::make_unique<ThrusterPrivateData>();
+  this->dataPtr = std::make_unique<ThrusterPrivateData>();
 }
 
-ThrusterPlugin::~ThrusterPlugin()
+Thruster::~Thruster()
 {
 
 }
 
-void ThrusterPlugin::Configure(
+void Thruster::Configure(
   const ignition::gazebo::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
   ignition::gazebo::EntityComponentManager &_ecm,
@@ -184,7 +186,7 @@ double ThrusterPrivateData::ThrustToAngularVec(double thrust)
   return propAngularVelocity;
 }
 
-void ThrusterPlugin::PreUpdate(
+void Thruster::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
@@ -210,10 +212,9 @@ void ThrusterPlugin::PreUpdate(
 
   link.AddWorldWrench(_ecm, unitVector * this->dataPtr->thrust, unitVector * torque);
 }
-} //end namespace tethys thrusters
+
 
 IGNITION_ADD_PLUGIN(
-  tethys_thrusters::ThrusterPlugin,
-  ignition::gazebo::System,
-  tethys_thrusters::ThrusterPlugin::ISystemConfigure,
-  tethys_thrusters::ThrusterPlugin::ISystemPreUpdate)
+  Thruster, System,
+  Thruster::ISystemConfigure,
+  Thruster::ISystemPreUpdate)
