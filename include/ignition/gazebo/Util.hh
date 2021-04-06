@@ -134,7 +134,8 @@ namespace ignition
     /// \brief Get the top level model of an entity
     /// \param[in] _entity Input entity
     /// \param[in] _ecm Constant reference to ECM.
-    /// \return Entity of top level model
+    /// \return Entity of top level model. If _entity has no top level model,
+    /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity,
         const EntityComponentManager &_ecm);
@@ -160,6 +161,9 @@ namespace ignition
     /// \brief Environment variable used by SDFormat to find URIs inside
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
+
+    /// \breif Environment variable holding server config paths.
+    const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.

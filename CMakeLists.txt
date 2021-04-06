@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.1.0)
+project(ignition-gazebo4 VERSION 4.6.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat10 REQUIRED)
+ign_find_package(sdformat10 REQUIRED VERSION 10.3)
 set(SDF_VER ${sdformat10_VERSION_MAJOR})
 
 #--------------------------------------
@@ -53,13 +53,13 @@ set(IGN_TRANSPORT_VER ${ignition-transport9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs6 REQUIRED)
+ign_find_package(ignition-msgs6 REQUIRED VERSION 6.4)
 set(IGN_MSGS_VER ${ignition-msgs6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 VERSION 3.5
+ign_find_package(ignition-common3 VERSION 3.8
   COMPONENTS
     profiler
     events
@@ -114,13 +114,19 @@ set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED VERSION 4.1.0)
+ign_find_package(ignition-rendering4 REQUIRED VERSION 4.7.0)
 set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.6)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+
+#--------------------------------------
+# Find ignition-tools
+ign_find_package(ignition-tools
+                 REQUIRED
+                 PKGCONFIG "ignition-tools")
 
 #--------------------------------------
 # Find protobuf

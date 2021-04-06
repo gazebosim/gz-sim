@@ -28,6 +28,10 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
+#include "ignition/gazebo/components/Physics.hh"
+
+#include <ignition/msgs/light.pb.h>
+
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 
 namespace ignition
@@ -69,11 +73,23 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const math::Pose3d &_data);
 
+  /// \brief Specialized to set light data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const msgs::Light &_data);
+
   /// \brief Specialized to set vector data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const math::Vector3d &_data);
+
+  /// \brief Specialized to set Physics data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::Physics &_data);
 
   /// \brief Specialized to set boolean data.
   /// \param[in] _item Item whose data will be set.
@@ -206,6 +222,42 @@ namespace gazebo
     /// \param[in] _yaw Yaw
     public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
         double _roll, double _pitch, double _yaw);
+
+    /// \brief Callback in Qt thread when specular changes.
+    /// \param[in] _rSpecular specular red
+    /// \param[in] _gSpecular specular green
+    /// \param[in] _bSpecular specular blue
+    /// \param[in] _aSpecular specular alpha
+    /// \param[in] _rDiffuse Diffuse red
+    /// \param[in] _gDiffuse Diffuse green
+    /// \param[in] _bDiffuse Diffuse blue
+    /// \param[in] _aDiffuse Diffuse alpha
+    /// \param[in] _attRange Range attenuation
+    /// \param[in] _attLinear Linear attenuation
+    /// \param[in] _attConstant Constant attenuation
+    /// \param[in] _attQuadratic Quadratic attenuation
+    /// \param[in] _castShadows Specify if this light should cast shadows
+    /// \param[in] _directionX X direction of the light
+    /// \param[in] _directionY Y direction of the light
+    /// \param[in] _directionZ Z direction of the light
+    /// \param[in] _innerAngle Inner angle of the spotlight
+    /// \param[in] _outerAngle Outer angle of the spotlight
+    /// \param[in] _falloff Falloff of the spotlight
+    /// \param[in] _type light type
+    public: Q_INVOKABLE void OnLight(
+      double _rSpecular, double _gSpecular, double _bSpecular,
+      double _aSpecular, double _rDiffuse, double _gDiffuse,
+      double _bDiffuse, double _aDiffuse, double _attRange,
+      double _attLinear, double _attConstant, double _attQuadratic,
+      bool _castShadows, double _directionX, double _directionY,
+      double _directionZ, double _innerAngle, double _outerAngle,
+      double _falloff, int _type);
+
+    /// \brief Callback in Qt thread when physics' properties change.
+    /// \param[in] _stepSize step size
+    /// \param[in] _realTimeFactor real time factor
+    public: Q_INVOKABLE void OnPhysics(double _stepSize,
+        double _realTimeFactor);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise

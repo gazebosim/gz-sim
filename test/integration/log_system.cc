@@ -27,6 +27,7 @@
 #include <string>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/fuel_tools/Zip.hh>
 #include <ignition/transport/Node.hh>
@@ -152,8 +153,8 @@ class LogSystemTest : public ::testing::Test
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 
   // Create a temporary directory in build path for recorded data
@@ -165,7 +166,6 @@ class LogSystemTest : public ::testing::Test
       common::removeAll(this->logsDir);
     }
     common::createDirectories(this->logsDir);
-    common::createDirectories(this->logPlaybackDir);
   }
 
   // Append extension to the end of a path, removing the separator at
@@ -266,10 +266,6 @@ class LogSystemTest : public ::testing::Test
   /// \brief Path to recorded log file
   public: std::string logDir = common::joinPaths(logsDir,
       "test_logs_record");
-
-  /// \brief Path to log file for playback
-  public: std::string logPlaybackDir =
-      common::joinPaths(this->logsDir, "test_logs_playback");
 };
 
 /////////////////////////////////////////////////
@@ -338,19 +334,19 @@ TEST_F(LogSystemTest, LogDefaults)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
-  // No path specified, on both command line and SDF. This does not go through
+  // No path specified on command line. This does not go through
   // ign.cc, so ignLogDirectory() is not initialized (empty string). Recording
   // should not take place.
   {
-    // Change log path in SDF to empty
+    // Load SDF
     sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
-        " ");
+    EXPECT_EQ(recordSdfRoot.Load(recordSdfPath).size(), 0lu);
+    EXPECT_GT(recordSdfRoot.WorldCount(), 0lu);
 
-    // Pass changed SDF to server
+    // Pass SDF to server
     ServerConfig recordServerConfig;
     recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
@@ -422,7 +418,7 @@ TEST_F(LogSystemTest, LogDefaults)
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -478,7 +474,7 @@ TEST_F(LogSystemTest, LogPaths)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
@@ -691,7 +687,7 @@ TEST_F(LogSystemTest, LogPaths)
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
@@ -743,25 +739,17 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   auto logFile = common::joinPaths(this->logDir, "state.tlog");
   EXPECT_TRUE(common::exists(logFile));
 
-  // move the log file to the playback directory
-  auto logPlaybackFile = common::joinPaths(this->logPlaybackDir, "state.tlog");
+  // Path to log file for playback
+  std::string logPlaybackDir =
+      common::joinPaths(this->logsDir, "test_logs_playback");
+  common::createDirectories(logPlaybackDir);
+
+  // Move the log file to the playback directory
+  auto logPlaybackFile = common::joinPaths(logPlaybackDir, "state.tlog");
   common::moveFile(logFile, logPlaybackFile);
   EXPECT_TRUE(common::exists(logPlaybackFile));
 
-  // World file to load
-  const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_playback.sdf");
-
-  // Change log path in world SDF to build directory
-  sdf::Root playSdfRoot;
-  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
-      this->logPlaybackDir);
-  ASSERT_EQ(1u, playSdfRoot.WorldCount());
-
-  const auto sdfWorld = playSdfRoot.WorldByIndex(0);
-  EXPECT_EQ("default", sdfWorld->Name());
-
-  // Load log file recorded above
+  // Load log file recorded above for validation
   transport::log::Log log;
   log.Open(logPlaybackFile);
 
@@ -794,10 +782,6 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   EXPECT_EQ(32, stateMsg.entities_size());
   EXPECT_EQ(batch.end(), ++recordedIter);
 
-  // Pass changed SDF to server
-  ServerConfig playServerConfig;
-  playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
-
   // Keep track of total number of pose comparisons
   int nTotal{0};
 
@@ -817,6 +801,10 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   ASSERT_TRUE(recordedMsg.header().has_stamp());
   EXPECT_EQ(0, recordedMsg.header().stamp().sec());
   EXPECT_EQ(1000000, recordedMsg.header().stamp().nsec());
+
+  // Playback config
+  ServerConfig playServerConfig;
+  playServerConfig.SetLogPlaybackPath(logPlaybackDir);
 
   // Start server
   Server playServer(playServerConfig);
@@ -1026,7 +1014,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   // Create temp directory to store log
   this->CreateLogsDir();
 #ifndef __APPLE__
-  EXPECT_EQ(1, entryCount(this->logsDir));
+  EXPECT_EQ(0, entryCount(this->logsDir));
   EXPECT_EQ(0, entryCount(this->logDir));
 #endif
 
@@ -1062,7 +1050,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 
 #ifndef __APPLE__
   // Log files were created
-  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(1, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
   std::filesystem::path tlogStdPath = tlogPath;
   auto tlogPrevTime = std::filesystem::last_write_time(tlogStdPath);
@@ -1088,7 +1076,7 @@ TEST_F(LogSystemTest, LogOverwrite)
 
 #ifndef __APPLE__
   // No new files were created
-  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(1, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
 
   // Test timestamp is newer
@@ -1116,7 +1104,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   EXPECT_TRUE(common::exists(clogPath));
 
   // No new files were created
-  EXPECT_EQ(2, entryCount(this->logsDir));
+  EXPECT_EQ(1, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
 
   // Test timestamp is newer
@@ -1158,7 +1146,7 @@ TEST_F(LogSystemTest, LogOverwrite)
       "server_console.log")));
 
   // New files were created
-  EXPECT_EQ(3, entryCount(this->logsDir));
+  EXPECT_EQ(2, entryCount(this->logsDir));
   EXPECT_EQ(2, entryCount(this->logDir));
   EXPECT_EQ(2, entryCount(this->logDir + "(1)"));
 
@@ -1175,16 +1163,8 @@ TEST_F(LogSystemTest, LogControlLevels)
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "levels_log");
 
-  const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_playback.sdf");
-
-  // Change log path in world SDF to build directory
-  sdf::Root playSdfRoot;
-  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
-      logPath);
-
   ServerConfig config;
-  config.SetSdfString(playSdfRoot.Element()->ToString(""));
+  config.SetLogPlaybackPath(logPath);
 
   Server server(config);
 
@@ -1390,29 +1370,25 @@ TEST_F(LogSystemTest, LogCompress)
   // Test compressed file exists
   EXPECT_TRUE(common::exists(customCmpPath));
 
+  // Path to log file for playback
+  std::string logPlaybackDir =
+      common::joinPaths(this->logsDir, "test_logs_playback");
+  common::createDirectories(logPlaybackDir);
+
   // Move recorded file to playback directory
   // Prefix the zip by the name of the original recorded folder. Playback will
   // extract and assume subdirectory to take on the name of the zip file
   // without extension.
-  auto newCmpPath = common::joinPaths(this->logPlaybackDir,
+  auto newCmpPath = common::joinPaths(logPlaybackDir,
     common::basename(defaultCmpPath));
   common::moveFile(customCmpPath, newCmpPath);
   EXPECT_TRUE(common::exists(newCmpPath));
 
   // Play back compressed file
   {
-    // World with playback plugin
-    const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-        "test", "worlds", "log_playback.sdf");
-
-    // Change log path in world SDF to build directory
-    sdf::Root playSdfRoot;
-    this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
-        newCmpPath);
-
     // Pass changed SDF to server
     ServerConfig playServerConfig;
-    playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
+    playServerConfig.SetLogPlaybackPath(newCmpPath);
 
     // Run server
     Server playServer(playServerConfig);
@@ -1568,7 +1544,7 @@ TEST_F(LogSystemTest, LogResources)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1633,7 +1609,7 @@ TEST_F(LogSystemTest, LogResources)
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeOrig.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1655,7 +1631,7 @@ TEST_F(LogSystemTest, LogTopics)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_EQ(setenv(IGN_HOMEDIR, homeFake.c_str(), 1), 0);
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");

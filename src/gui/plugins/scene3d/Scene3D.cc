@@ -231,6 +231,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Helper object to move user camera
     public: MoveToHelper moveToHelper;
 
+    /// \brief Target to view collisions
+    public: std::string viewCollisionsTarget;
+
     /// \brief Helper object to select entities. Only the latest selection
     /// request is kept.
     public: SelectionHelper selectionHelper;
@@ -429,6 +432,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief mutex to protect the render condition variable
     /// Used when recording in lockstep mode.
     public: std::mutex renderMutex;
+
+    /// \brief View collisions service
+    public: std::string viewCollisionsService;
   };
 }
 }
@@ -803,12 +809,44 @@ void IgnRenderer::Render()
     }
   }
 
+  // View collisions
+  {
+    IGN_PROFILE("IgnRenderer::Render ViewCollisions");
+    if (!this->dataPtr->viewCollisionsTarget.empty())
+    {
+      rendering::NodePtr targetNode =
+          scene->NodeByName(this->dataPtr->viewCollisionsTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis)
+      {
+        Entity targetEntity =
+            std::get<int>(targetVis->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ViewCollisions(targetEntity);
+      }
+      else
+      {
+        ignerr << "Unable to find node name ["
+               << this->dataPtr->viewCollisionsTarget
+               << "] to view collisions" << std::endl;
+      }
+
+      this->dataPtr->viewCollisionsTarget.clear();
+    }
+  }
+
   if (ignition::gui::App())
   {
-    gui::events::Render event;
+    ignition::gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
+
+    // This will be deprecated on v5 and removed on v6
+    ignition::gazebo::gui::events::Render oldEvent;
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &oldEvent);
   }
 
   // only has an effect in video recording lockstep mode
@@ -1933,6 +1971,13 @@ void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
 }
 
 /////////////////////////////////////////////////
+void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->viewCollisionsTarget = _target;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::SetFollowPGain(double _gain)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2651,6 +2696,13 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Camera pose topic advertised on ["
          << this->dataPtr->cameraPoseTopic << "]" << std::endl;
 
+  // view collisions service
+  this->dataPtr->viewCollisionsService = "/gui/view/collisions";
+  this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
+      &Scene3D::OnViewCollisions, this);
+  ignmsg << "View collisions service on ["
+         << this->dataPtr->viewCollisionsService << "]" << std::endl;
+
   ignition::gui::App()->findChild<
       ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
   ignition::gui::App()->findChild<
@@ -2669,29 +2721,31 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
+    Entity worldEntity;
     _ecm.Each<components::World, components::Name>(
-        [&](const Entity &/*_entity*/,
+        [&](const Entity &_entity,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
+          worldEntity = _entity;
           return true;
         });
 
-    renderWindow->SetWorldName(this->dataPtr->worldName);
-    auto worldEntity =
-      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
-        components::World());
-    auto renderEngineGuiComp =
-      _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
-    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+    if (!this->dataPtr->worldName.empty())
     {
-      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
-    }
-    else
-    {
-      igndbg << "RenderEngineGuiPlugin component not found, "
-        "render engine won't be set from the ECM" << std::endl;
+      renderWindow->SetWorldName(this->dataPtr->worldName);
+      auto renderEngineGuiComp =
+        _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+      if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+      {
+        this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
+      }
+      else
+      {
+        igndbg << "RenderEngineGuiPlugin component not found, "
+          "render engine won't be set from the ECM " << std::endl;
+      }
     }
   }
 
@@ -2700,6 +2754,7 @@ void Scene3D::Update(const UpdateInfo &_info,
     msgs::Pose poseMsg = msgs::Convert(renderWindow->CameraPose());
     this->dataPtr->cameraPosePub.Publish(poseMsg);
   }
+  this->dataPtr->renderUtil->UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
 
   // check if video recording is enabled and if we need to lock step
@@ -2798,6 +2853,18 @@ bool Scene3D::OnMoveToPose(const msgs::GUICamera &_msg, msgs::Boolean &_res)
     pose.Pos().X() = math::INF_D;
 
   renderWindow->SetMoveToPose(pose);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnViewCollisions(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
+
+  renderWindow->SetViewCollisionsTarget(_msg.data());
 
   _res.set_data(true);
   return true;
@@ -3056,6 +3123,12 @@ void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
+{
+  this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
 }
 
 /////////////////////////////////////////////////

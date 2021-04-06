@@ -242,6 +242,11 @@ void PerformerDetector::Publish(
     headerData->set_key("state");
     headerData->add_value(std::to_string(_state));
   }
+  {
+    auto *headerData = msg.mutable_header()->add_data();
+    headerData->set_key("count");
+    headerData->add_value(std::to_string(this->detectedEntities.size()));
+  }
 
   // Include the optional extra header data.
   for (const auto &data : this->extraHeaderData)
