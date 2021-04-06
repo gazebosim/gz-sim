@@ -21,10 +21,6 @@
 
 #include <ignition/plugin/Register.hh>
 
-#include <ignition/transport/Node.hh>
-
-#include <ignition/msgs.hh>
-
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
