@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<!--
+  Log record resources demo.
+
+  Running this world will record log files to ~/.ignition/gazebo/log/<timestamp>
+  by default.
+
+  Running `ign gazebo` with `-v 3` or `-v 4` will output a message indicating where
+  your logfile is being stored to (e.g., [Msg] Recording to log file 
+  [/home/username/.ignition/gazebo/log/<timestamp>/state.tlog]).
+
+  You can playback the logs with:
+
+      ign gazebo --playback ~/.ignition/gazebo/log/<timestamp>
+-->
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+     filename="ignition-gazebo-physics-system"
+     name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-log-system"
+      name="ignition::gazebo::systems::LogRecord">
+      <record_resources>1</record_resources>
+      <compress>0</compress>
+    </plugin>
+
+    <scene>
+      <ambient>0.8 0.8 0.8 1.0</ambient>
+      <background>0.34 0.39 0.43 1.0</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <include>
+      <static>false</static>
+      <name>staging_area</name>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X2 Config 1</uri>
+    </include>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <pose>0 0 -0.5 0 0.52 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

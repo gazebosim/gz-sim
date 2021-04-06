@@ -1,0 +1,885 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo lift-drag system demo
+
+  This file was adapted from osrf/gazebo/worlds/propeller_plane_demo.world
+
+  Try sending commands:
+
+    ign topic -t "/model/propeller_plane/joint/rod_1_joint/cmd_force" -m ignition.msgs.Double  -p "data: 70"
+
+-->
+<sdf version="1.6">
+  <world name="lift_drag">
+
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>20 0 3 0 0.0 3.14</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100000 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100000 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="propeller_plane">
+      <pose>0 0 0 0 0 0</pose>
+      <static>false</static>
+      <link name="body">
+        <pose>5.0 0 1.5 0 0 0</pose>
+        <inertial>
+          <pose>-1.5 0.0 0.0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>5.8</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>10.8</iyy>
+            <iyz>0.0</iyz>
+            <izz>10.8</izz>
+          </inertia>
+          <mass>200.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10 1 1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.3</mu>
+                <mu2>0.3</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+        <sensor name="camera" type="camera">
+          <pose>25 0 0.0 0 0.0 3.1416</pose>
+          <camera>
+            <horizontal_fov>1.347</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>1000</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+      <link name="wheel_1">
+        <pose>9.0 0 0.25 1.57079 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.8</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.8</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.8</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.03</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.3</mu>
+                <mu2>0.3</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.03</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="wheel_2">
+        <pose>1.0 -2.0 0.25 1.57079 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.8</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.8</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.8</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.03</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.3</mu>
+                <mu2>0.3</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.03</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="wheel_3">
+        <pose>1.0 2.0 0.25 1.57079 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.8</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.8</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.8</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.03</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.3</mu>
+                <mu2>0.3</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.03</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="rod_1">
+        <pose>-0.25 0 1.5 0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.0012</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.012</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.012</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.25 0.02 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.25 0.02 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+
+
+      <!-- propeller -->
+      <link name="blade_1">
+        <pose>-0.25 0 1.5 0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.00465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.00006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.00470</izz>
+          </inertia>
+          <mass>0.1</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.01 1.0 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.01 1.0 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="blade_2">
+        <pose>-0.25 0 1.5 0 0 3.141593</pose>
+        <inertial>
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.00465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.00006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.00470</izz>
+          </inertia>
+          <mass>0.1</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.01 1.0 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0.5 0 0.0 0.0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 1.0 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.5 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="blade_1_joint" type="fixed">
+        <parent>rod_1</parent>
+        <child>blade_1</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      </joint>
+      <joint name="blade_2_joint" type="fixed">
+        <parent>rod_1</parent>
+        <child>blade_2</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      </joint>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.2</a0>
+        <cla>10.000</cla>
+        <cda>0.0001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>10.0</alpha_stall>
+        <cla_stall>1.0</cla_stall>
+        <cda_stall>0.001</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 0.5 0</cp>
+        <area>0.2</area>
+        <air_density>1.2041</air_density>
+        <forward>0 0 -1</forward>
+        <upward>-1 0 0</upward>
+        <link_name>blade_1</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.2</a0>
+        <cla>10.000</cla>
+        <cda>0.0001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>10.0</alpha_stall>
+        <cla_stall>1.0</cla_stall>
+        <cda_stall>0.001</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 0.5 0</cp>
+        <area>0.2</area>
+        <air_density>1.2041</air_density>
+        <forward>0 0 1</forward>
+        <upward>1 0 0</upward>
+        <link_name>blade_2</link_name>
+      </plugin>
+      <joint name="wheel_1_joint" type="revolute">
+        <parent>body</parent>
+        <child>wheel_1</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <use_parent_model_frame>1</use_parent_model_frame>
+          <limit>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
+          </limit>
+          <xyz>0.0 1.0 0.0</xyz>
+          <dynamics>
+            <damping>0.0001</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+      <joint name="wheel_2_joint" type="revolute">
+        <parent>body</parent>
+        <child>wheel_2</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <use_parent_model_frame>1</use_parent_model_frame>
+          <limit>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
+          </limit>
+          <xyz>0.0 1.0 0.0</xyz>
+          <dynamics>
+            <damping>0.0001</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+      <joint name="wheel_3_joint" type="revolute">
+        <parent>body</parent>
+        <child>wheel_3</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <use_parent_model_frame>1</use_parent_model_frame>
+          <limit>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
+          </limit>
+          <xyz>0.0 1.0 0.0</xyz>
+          <dynamics>
+            <damping>0.0001</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+      <joint name="rod_1_joint" type="revolute">
+        <parent>body</parent>
+        <child>rod_1</child>
+        <axis>
+          <use_parent_model_frame>0</use_parent_model_frame>
+          <limit>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
+          </limit>
+          <xyz>-1.0 0.0 0.0</xyz>
+          <dynamics>
+            <damping>0.001</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+
+      <link name="wing_right">
+        <pose>3 0 1.5 0.2 0 0</pose>
+        <inertial>
+          <pose>0.0 5.5 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.470</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 5.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>1.0 10.0 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 5.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>1.0 10.0 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="wing_left">
+        <pose>3 0 1.5 -0.2 0 0</pose>
+        <inertial>
+          <pose>0.0 -5.5 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.470</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 -5.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>1.0 10.0 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 -5.5 0 0.0 0.0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 10.0 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.5 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- <joint name="wing_right_joint" type="revolute"> -->
+      <joint name="wing_right_joint" type="fixed">
+        <parent>body</parent>
+        <child>wing_right</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <limit>
+            <lower>-0.3</lower>
+            <upper>0.3</upper>
+          </limit>
+          <xyz>0.0 0.98 0.198669</xyz>
+          <dynamics>
+            <damping>5.000000</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+      <!-- <joint name="wing_left_joint" type="revolute"> -->
+      <joint name="wing_left_joint" type="fixed">
+        <parent>body</parent>
+        <child>wing_left</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <limit>
+            <lower>-0.3</lower>
+            <upper>0.3</upper>
+          </limit>
+          <xyz>0.0 -0.98 0.198669</xyz>
+          <dynamics>
+            <damping>5.000000</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+
+
+      <link name="elevator">
+        <pose>9 0 1.5 0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.0465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.0470</izz>
+          </inertia>
+          <mass>4.0</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0.0 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>1.0 6.0 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0.0 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>1.0 6.0 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- <joint name="elevator_joint" type="revolute"> -->
+      <joint name="elevator_joint" type="fixed">
+        <parent>body</parent>
+        <child>elevator</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <limit>
+            <lower>-0.5</lower>
+            <upper>0.5</upper>
+          </limit>
+          <xyz>0.0 1.0 0.0</xyz>
+          <dynamics>
+            <damping>5.000000</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+
+      <link name="rudder">
+        <pose>9 0 2.0 0 0 0</pose>
+        <inertial>
+          <pose>0.0 0 1 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.0465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.0006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.0470</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0 1 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>1.5 0.01 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0 1 0.0 0.0 0</pose>
+          <geometry>
+            <box>
+              <size>1.5 0.01 2.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.5 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- <joint name="rudder_joint" type="revolute"> -->
+      <joint name="rudder_joint" type="fixed">
+        <parent>body</parent>
+        <child>rudder</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <limit>
+            <lower>-0.3</lower>
+            <upper>0.3</upper>
+          </limit>
+          <xyz>0.0 0.0 1.0</xyz>
+          <dynamics>
+            <damping>5.000000</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <implicit_spring_damper>1</implicit_spring_damper>
+          </ode>
+        </physics>
+      </joint>
+
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.1</a0>
+        <cla>4.000</cla>
+        <cda>0.001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>1.0</alpha_stall>
+        <cla_stall>-1.0</cla_stall>
+        <cda_stall>0.00</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 5.0 0</cp>
+        <area>10</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>wing_right</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.1</a0>
+        <cla>4.000</cla>
+        <cda>0.001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>1.0</alpha_stall>
+        <cla_stall>-1.0</cla_stall>
+        <cda_stall>0.0</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 -5.0 0</cp>
+        <area>10</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>wing_left</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.02</a0>
+        <cla>4.000</cla>
+        <cda>0.001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>1.0</alpha_stall>
+        <cla_stall>-1.0</cla_stall>
+        <cda_stall>0.0</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 1.5 0</cp>
+        <area>3</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>elevator</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.02</a0>
+        <cla>4.000</cla>
+        <cda>0.001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>1.0</alpha_stall>
+        <cla_stall>-1.0</cla_stall>
+        <cda_stall>0.0</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 -1.5 0</cp>
+        <area>3</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>elevator</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <!-- force turn -->
+        <a0>0.00</a0>
+        <cla>2.000</cla>
+        <cda>0.001</cda>
+        <cma>0.00</cma>
+        <alpha_stall>1.0</alpha_stall>
+        <cla_stall>-1.0</cla_stall>
+        <cda_stall>0.0</cda_stall>
+        <cma_stall>0.0</cma_stall>
+        <cp>0.0 0 1</cp>
+        <area>3</area>
+        <air_density>1.2041</air_density>
+        <forward>-1 0 0</forward>
+        <upward>0 -1 0</upward>
+        <link_name>rudder</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-apply-joint-force-system"
+        name="ignition::gazebo::systems::ApplyJointForce">
+        <joint_name>rod_1_joint</joint_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>

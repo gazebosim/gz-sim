@@ -1,0 +1,154 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="world_one">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <physics name="default" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>2.0</real_time_factor>
+    </physics>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="box">
+      <pose>1 2 3 0 0 1</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry>
+            <box>
+              <size>3 4 5</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="vis">
+          <geometry>
+            <box>
+              <size>1 2 3</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+
+  <world name="world_two">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <!-- no SceneBroadcaster -->
+
+    <physics name="default" type="ode">
+      <max_step_size>0.005</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="cylinder">
+      <pose>-1 -2 -3 0 0 1</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="vis">
+          <geometry>
+            <cylinder>
+              <radius>2.1</radius>
+              <length>10.2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+
+  <world name="world_three">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <physics name="default" type="ode">
+      <max_step_size>0.02</max_step_size>
+      <real_time_factor>0.5</real_time_factor>
+    </physics>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="sphere">
+      <pose>0 0 0 0 0 1</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry>
+            <sphere>
+              <radius>23.4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="vis">
+          <geometry>
+            <sphere>
+              <radius>100.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

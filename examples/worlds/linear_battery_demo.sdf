@@ -1,0 +1,490 @@
+<?xml version="1.0" ?>
+<!--
+  Linear battery demo
+
+  This demo has 2 vehicles: a green one with a rechargeable battery, and blue one with a normal battery.
+
+  It's recommended to run this demo at a high RTF, so it's faster to observe the battery drain:
+
+      ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
+
+  Move both vehicles:
+
+      ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+
+  Listen to battery state of charge:
+      ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
+
+  Recharge the battery using a service (default):
+      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/start --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
+
+  Recharge the battery using a topic (optional if <recharge_by_topic> is true):
+      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/start -m ignition.msgs.Boolean -p 'data:true'
+
+  Stop recharging the battery using a service (default):
+      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/stop --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
+
+  Stop recharging the battery using a topic (optional if <recharge_by_topic> is true):
+      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m ignition.msgs.Boolean -p 'data:true'
+
+  The blue vehicle should stop when it runs out of battery.
+  The green vehicle will not stop with recharge function.
+
+-->
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+     filename="ignition-gazebo-physics-system"
+     name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <scene>
+      <ambient>0.8 0.8 0.8 1.0</ambient>
+      <background>0.34 0.39 0.43 1.0</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <pose>30 0 0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <pose>0 0 -5 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>100 100 10</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0 0 -5 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>100 100 10</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name='vehicle_green'>
+      <pose>0 -2 0.325 0 0 0</pose>
+      <link name='chassis_green'>
+        <pose>-0.151427 -0 0.175 0 -0 0</pose>
+        <inertial>
+          <mass>1.14395</mass>
+          <inertia>
+            <ixx>0.126164</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.416519</iyy>
+            <iyz>0</iyz>
+            <izz>0.481014</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>2.01142 1 0.568726</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 1.0 0.5 1</ambient>
+            <diffuse>0.5 1.0 0.5 1</diffuse>
+            <specular>0.5 1.0 0.5 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>2.01142 1 0.568726</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name='left_wheel_green'>
+        <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name='right_wheel_green'>
+        <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name='caster_green'>
+        <pose>-0.957138 -0 -0.125 0 -0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name='left_wheel_joint_green' type='revolute'>
+        <parent>chassis_green</parent>
+        <child>left_wheel_green</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name='right_wheel_joint_green' type='revolute'>
+        <parent>chassis_green</parent>
+        <child>right_wheel_green</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name='caster_wheel_green' type='ball'>
+        <parent>chassis_green</parent>
+        <child>caster_green</child>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-diff-drive-system"
+        name="ignition::gazebo::systems::DiffDrive">
+        <left_joint>left_wheel_joint_green</left_joint>
+        <right_joint>right_wheel_joint_green</right_joint>
+        <wheel_separation>1.25</wheel_separation>
+        <wheel_radius>0.3</wheel_radius>
+      </plugin>
+
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        <!--Li-ion battery spec from LIR18650 datasheet-->
+        <battery_name>linear_battery</battery_name>
+        <voltage>4.2</voltage>
+        <open_circuit_voltage_constant_coef>4.2</open_circuit_voltage_constant_coef>
+        <open_circuit_voltage_linear_coef>-2.0</open_circuit_voltage_linear_coef>
+        <initial_charge>2.5</initial_charge>
+        <capacity>2.5 </capacity>
+        <resistance>0.07</resistance>
+        <smooth_current_tau>2.0</smooth_current_tau>
+        <enable_recharge>true</enable_recharge>
+        <!-- charging I = c / t, discharging I = P / V, 
+          charging I should be > discharging I -->
+        <charging_time>3.0</charging_time>
+        <soc_threshold>0.51</soc_threshold>
+        <!-- Consumer-specific -->
+        <power_load>2.1</power_load>
+        <start_on_motion>true</start_on_motion>
+      </plugin>
+
+    </model>
+
+    <model name='vehicle_blue'>
+      <pose>0 2 0.325 0 0 0</pose>
+      <link name='chassis_blue'>
+        <pose>-0.151427 -0 0.175 0 -0 0</pose>
+        <inertial>
+          <mass>1.14395</mass>
+          <inertia>
+            <ixx>0.126164</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.416519</iyy>
+            <iyz>0</iyz>
+            <izz>0.481014</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>2.01142 1 0.568726</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.5 0.5 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>2.01142 1 0.568726</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name='left_wheel_blue'>
+        <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name='right_wheel_blue'>
+        <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name='caster_blue'>
+        <pose>-0.957138 -0 -0.125 0 -0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name='left_wheel_joint_blue' type='revolute'>
+        <parent>chassis_blue</parent>
+        <child>left_wheel_blue</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name='right_wheel_joint_blue' type='revolute'>
+        <parent>chassis_blue</parent>
+        <child>right_wheel_blue</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name='caster_wheel_blue' type='ball'>
+        <parent>chassis_blue</parent>
+        <child>caster_blue</child>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-diff-drive-system"
+        name="ignition::gazebo::systems::DiffDrive">
+        <left_joint>left_wheel_joint_blue</left_joint>
+        <right_joint>right_wheel_joint_blue</right_joint>
+        <wheel_separation>1.25</wheel_separation>
+        <wheel_radius>0.3</wheel_radius>
+      </plugin>
+
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+          name="ignition::gazebo::systems::LinearBatteryPlugin">
+        <battery_name>linear_battery</battery_name>
+        <voltage>12.592</voltage>
+        <open_circuit_voltage_constant_coef>12.592</open_circuit_voltage_constant_coef>
+        <capacity>1.2009</capacity>
+        <power_load>6.6</power_load>
+        <fix_issue_225>true</fix_issue_225>
+        <enable_recharge>true</enable_recharge>
+        <!-- charging I = c / t, discharging I = P / V, 
+          charging I should be > discharging I -->
+        <charging_time>3.0</charging_time>
+        <!-- Consumer-specific -->
+        <power_load>2.1</power_load>
+        <recharge_by_topic>true</recharge_by_topic>
+      </plugin>
+
+    </model>
+
+  </world>
+</sdf>

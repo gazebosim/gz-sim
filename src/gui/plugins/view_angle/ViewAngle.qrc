@@ -1,0 +1,12 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="ViewAngle/">
+  <file>ViewAngle.qml</file>
+  <file>view_angle_back.png</file>
+  <file>view_angle_bottom.png</file>
+  <file>view_angle_front.png</file>
+  <file>view_angle_left.png</file>
+  <file>view_angle_right.png</file>
+  <file>view_angle_top.png</file>
+  <file>view_angle_home.png</file>
+</qresource>
+</RCC>

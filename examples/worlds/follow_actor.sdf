@@ -1,0 +1,364 @@
+<?xml version="1.0" ?>
+<!--
+  Follow actor plugin demo.
+
+  There are 4 actors, each following a diffetent box.
+  Two actors use a walking animation, and two use a running animation.
+  Two actors are slow (1 m/s) and two actors are fast (4 m/s).
+
+  Move the boxes with the transform controls tool to see the actors follow them.
+-->
+<sdf version="1.6">
+  <world name="actors">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/actors/control</service>
+        <stats_topic>/world/actors/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/actors/stats</topic>
+
+      </plugin>
+
+      <!-- Transform Control -->
+      <plugin filename="TransformControl" name="Transform Control">
+      <ignition-gui>
+        <property key="x" type="double">0</property>
+        <property key="y" type="double">0</property>
+        <property key="width" type="double">263</property>
+        <property key="height" type="double">50</property>
+        <property key="state" type="string">floating</property>
+        <property key="showTitleBar" type="bool">false</property>
+        <property key="cardBackground" type="string">#03a9f4</property>
+      </ignition-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="red_box">
+      <pose>1 -2 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="green_box">
+      <pose>1 0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="blue_box">
+      <pose>1 2 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="yellow_box">
+      <pose>1 4 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>1 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <name>walker_slow_red</name>
+      <!-- Root node pose (torso) -->
+      <pose>0 -2 1.0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
+      <plugin filename="ignition-gazebo-follow-actor-system"
+              name="ignition::gazebo::systems::FollowActor">
+        <target>red_box</target>
+        <min_distance>1.0</min_distance>
+        <max_distance>8.0</max_distance>
+        <velocity>1</velocity>
+        <animation_x_vel>4.58837</animation_x_vel>
+      </plugin>
+    </include>
+
+    <include>
+      <name>walker_fast_green</name>
+      <pose>0 0 1.0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
+      <plugin filename="ignition-gazebo-follow-actor-system"
+              name="ignition::gazebo::systems::FollowActor">
+        <target>green_box</target>
+        <min_distance>1.0</min_distance>
+        <max_distance>8.0</max_distance>
+        <velocity>4</velocity>
+        <animation_x_vel>4.58837</animation_x_vel>
+      </plugin>
+    </include>
+
+    <include>
+      <name>runner_slow_blue</name>
+      <pose>0 2 1.0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <plugin filename="ignition-gazebo-follow-actor-system"
+              name="ignition::gazebo::systems::FollowActor">
+        <target>blue_box</target>
+        <min_distance>1.0</min_distance>
+        <max_distance>8.0</max_distance>
+        <velocity>1</velocity>
+        <animation>run</animation>
+        <animation_x_vel>1.5</animation_x_vel>
+      </plugin>
+    </include>
+
+    <include>
+      <name>runner_fast_yellow</name>
+      <pose>0 4 1.0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <plugin filename="ignition-gazebo-follow-actor-system"
+              name="ignition::gazebo::systems::FollowActor">
+        <target>yellow_box</target>
+        <min_distance>1.0</min_distance>
+        <max_distance>8.0</max_distance>
+        <velocity>4</velocity>
+        <animation>run</animation>
+        <animation_x_vel>1.5</animation_x_vel>
+      </plugin>
+    </include>
+  </world>
+</sdf>

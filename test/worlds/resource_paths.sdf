@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <!-- Physics plugin to load meshes -->
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <include>
+      <uri>model://scheme_resource_uri</uri>
+    </include>
+  </world>
+</sdf>

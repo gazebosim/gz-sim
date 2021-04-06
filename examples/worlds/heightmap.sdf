@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<!--
+
+  Demonstrates a heightmap terrain.
+
+  At the moment, only the visuals work, but not the physics collisions, see
+  https://github.com/ignitionrobotics/ign-physics/issues/156.
+
+-->
+<sdf version="1.6">
+  <world name="heightmap">
+
+    <!-- 3D scene -->
+    <gui>
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-16.6 7.3 8.6 0.0 0.4 -0.45</camera_pose>
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <include>
+      <uri>
+        https://fuel.ignitionrobotics.org/1.0/chapulina/models/Heightmap Bowl
+      </uri>
+    </include>
+  </world>
+</sdf>

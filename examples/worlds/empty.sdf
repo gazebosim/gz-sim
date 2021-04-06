@@ -1,0 +1,127 @@
+<?xml version="1.0" ?>
+<!--
+  Try inserting a model:
+
+ign service -s /world/empty/create \
+--reqtype ignition.msgs.EntityFactory \
+--reptype ignition.msgs.Boolean \
+--timeout 300 \
+--req 'sdf: '\
+'"<?xml version=\"1.0\" ?>'\
+'<sdf version=\"1.6\">'\
+'<model name=\"spawned_model\">'\
+'<link name=\"link\">'\
+'<visual name=\"visual\">'\
+'<geometry><sphere><radius>1.0</radius></sphere></geometry>'\
+'</visual>'\
+'<collision name=\"visual\">'\
+'<geometry><sphere><radius>1.0</radius></sphere></geometry>'\
+'</collision>'\
+'</link>'\
+'</model>'\
+'</sdf>" '\
+'pose: {position: {z: 10}} '\
+'name: "new_name" '\
+'allow_renaming: true'
+
+  Then try deleting it:
+
+ign service -s /world/empty/remove \
+--reqtype ignition.msgs.Entity \
+--reptype ignition.msgs.Boolean \
+--timeout 300 \
+--req 'name: "new_name" type: MODEL'
+
+  Try inserting a light:
+
+ign service -s /world/empty/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: '\
+'"<?xml version=\"1.0\" ?>'\
+'<sdf version=\"1.6\">'\
+'<light name=\"spawned_light\" type=\"directional\">'\
+'<pose>0 0 10 0.1 1.0 0</pose>'\
+'</light>'\
+'</sdf>"'
+
+  Then try deleting it:
+
+ign service -s /world/empty/remove \
+--reqtype ignition.msgs.Entity \
+--reptype ignition.msgs.Boolean \
+--timeout 300 \
+--req 'name: "spawned_light" type: LIGHT'
+
+  Insert a light using a message and allow_renaming:
+
+ign service -s /world/empty/create \
+--reqtype ignition.msgs.EntityFactory \
+--reptype ignition.msgs.Boolean \
+--timeout 300 \
+--req 'allow_renaming: true, light: {name: "spawned_light", type: 2, diffuse: {r: 1}}'
+
+-->
+<sdf version="1.6">
+  <world name="empty">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-contact-system"
+      name="ignition::gazebo::systems::Contact">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

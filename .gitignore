@@ -1,0 +1,14 @@
+# CMake folders
+build
+build_*
+
+# OS generated files
+.DS_Store
+*.swp
+*.swo
+
+# Qt generated files
+*.qmlc
+
+.ycm_extra_conf.py
+*.orig

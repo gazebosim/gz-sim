@@ -1,0 +1,139 @@
+<?xml version="1.0" ?>
+<!--
+This is an example demonstrating the use of the TouchPlugin.  The plugin
+requires that the Contact system be loaded and contact sensors be placed in at
+least one link on the model on which this plugin is attached.
+
+The plugin's parameters are documented in src/systems/touchplugin/TouchPlugin.hh
+
+If the plugin is not enabled by default send this command to enable
+  ign service -s /white_touches_only_green/enable \
+  --reqtype ignition.msgs.Boolean \
+  --reptype ignition.msgs.Empty \
+  --timeout 3000 \
+  --req 'data:true'
+
+The output of the plugin is via
+
+  ign topic -e -t /white_touches_only_green/touched
+
+-->
+
+<sdf version="1.6">
+  <world name="touch">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-contact-system"
+      name="ignition::gazebo::systems::Contact">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="white_box">
+      <pose>0 0 4 0 0 0</pose>
+
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+        </visual>
+
+        <sensor name="white_box_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+
+      </link>
+
+      <plugin
+        filename="ignition-gazebo-touchplugin-system"
+        name="ignition::gazebo::systems::TouchPlugin">
+        <target>green_box_for_white</target>
+        <time>3</time>
+        <namespace>white_touches_only_green</namespace>
+        <enabled>true</enabled>
+      </plugin>
+    </model>
+
+    <model name="green_box_for_white">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

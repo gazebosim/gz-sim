@@ -1,0 +1,170 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo joint position controller plugin demo
+
+  Try sending joint position commands:
+
+    ign topic -t "/rotor_cmd" -m ignition.msgs.Double -p "data: -1.0"
+
+    ign topic -t "/rotor_cmd" -m ignition.msgs.Double -p "data: 1.0"
+-->
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>1 0 0.1 0 0.05 3.14</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+
+      </plugin>
+    </gui>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name="joint_position_controller_demo">
+      <pose>0 0 0 0 1.57 0</pose>
+      <link name="base_link">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>2.501</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2.501</iyy>
+            <iyz>0</iyz>
+            <izz>5</izz>
+          </inertia>
+          <mass>120.0</mass>
+        </inertial>
+        <visual name="base_visual">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.01</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="base_collision">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="rotor">
+        <pose>0.0 0.0 0.1 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>0.032</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.032</iyy>
+            <iyz>0</iyz>
+            <izz>0.00012</izz>
+          </inertia>
+          <mass>0.6</mass>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.25 0.1 0.05</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.8 0.2 1</ambient>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.25 0.1 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="world_fixed" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+
+      <joint name="j1" type="revolute">
+        <pose>0 0 -0.5 0 0 0</pose>
+        <parent>base_link</parent>
+        <child>rotor</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <dynamics>
+            <damping>0.5</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <plugin
+        filename="ignition-gazebo-joint-position-controller-system"
+        name="ignition::gazebo::systems::JointPositionController">
+        <joint_name>j1</joint_name>
+        <topic>rotor_cmd</topic>
+        <p_gain>1</p_gain>
+        <i_gain>0.1</i_gain>
+        <d_gain>0.01</d_gain>
+        <i_max>1</i_max>
+        <i_min>-1</i_min>
+        <cmd_max>1000</cmd_max>
+        <cmd_min>-1000</cmd_min>
+      </plugin>
+    </model>
+  </world>
+</sdf>

@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="TransformControl/">
+  <file>TransformControl.qml</file>
+  <file>arrow.png</file>
+  <file>translate.png</file>
+  <file>rotate.png</file>
+  <file>scale.png</file>
+  <file>snap.png</file>
+  <file>snap_to_grid.png</file>
+</qresource>
+</RCC>

@@ -1,0 +1,253 @@
+<?xml version="1.0" ?>
+<!--
+  Demo of simple shapes rolling downhill.
+-->
+<sdf version="1.6">
+  <world name="shapes">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <pose>0 0 -0.5 0 -0.52 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box">
+      <pose>0 0 0.5 0 0.4 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>0.16666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.16666</iyy>
+            <iyz>0</iyz>
+            <izz>0.16666</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="cylinder">
+      <pose>0 -1.5 0.5 1.57079632679 0 0</pose>
+      <link name="cylinder_link">
+        <inertial>
+          <inertia>
+            <ixx>0.0938</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0938</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="cylinder_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="cylinder_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere">
+      <pose>0 1.5 0.5 0 0 0</pose>
+      <link name="sphere_link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="capsule">
+      <pose>0 -3.0 0.5 1.57079632679 0 0</pose>
+      <link name="capsule_link">
+        <inertial>
+          <inertia>
+            <ixx>0.074154</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.074154</iyy>
+            <iyz>0</iyz>
+            <izz>0.018769</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="capsule_collision">
+          <geometry>
+            <capsule>
+              <radius>0.2</radius>
+              <length>0.6</length>
+            </capsule>
+          </geometry>
+        </collision>
+        <visual name="capsule_visual">
+          <geometry>
+            <capsule>
+              <radius>0.2</radius>
+              <length>0.6</length>
+            </capsule>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>1 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="ellipsoid">
+      <pose>0 3.0 0.5 1.57079632679 0 0</pose>
+      <link name="ellipsoid_link">
+        <inertial>
+          <inertia>
+            <ixx>0.068</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.058</iyy>
+            <iyz>0</iyz>
+            <izz>0.026</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="ellipsoid_collision">
+          <geometry>
+            <ellipsoid>
+              <radii>0.2 0.3 0.5</radii>
+            </ellipsoid>
+          </geometry>
+        </collision>
+        <visual name="ellipsoid_visual">
+          <geometry>
+            <ellipsoid>
+              <radii>0.2 0.3 0.5</radii>
+            </ellipsoid>
+          </geometry>
+          <material>
+            <ambient>1 0 1 1</ambient>
+            <diffuse>1 0 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

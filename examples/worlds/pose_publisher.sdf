@@ -1,0 +1,280 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo pose publisher plugin demo
+
+  Try listening to topic:
+
+    ign topic -e -t "/model/double_pendulum_with_base/pose"
+-->
+<sdf version="1.6">
+  <world name="pose_publisher">
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="double_pendulum_with_base">
+      <link name="base">
+        <inertial>
+          <mass>100</mass>
+        </inertial>
+        <visual name="vis_plate_on_ground">
+          <pose>0 0 0.01 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <visual name="vis_pole">
+          <pose>-0.275 0 1.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_plate_on_ground">
+          <pose>0 0 0.01 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="col_pole">
+          <pose>-0.275 0 1.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- upper link, length 1, IC -90 degrees -->
+      <link name="upper_link">
+        <pose>0 0 2.1 -1.5708 0 0</pose>
+        <self_collide>0</self_collide>
+        <inertial>
+          <pose>0 0 0.5 0 0 0</pose>
+        </inertial>
+        <visual name="vis_upper_joint">
+          <pose>-0.05 0 0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <visual name="vis_lower_joint">
+          <pose>0 0 1.0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <visual name="vis_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_upper_joint">
+          <pose>-0.05 0 0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="col_lower_joint">
+          <pose>0 0 1.0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="col_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+      <!-- lower link, length 1, IC ~-120 degrees more -->
+      <link name="lower_link">
+        <pose>0.25 1.0 2.1 -2 0 0</pose>
+        <self_collide>0</self_collide>
+        <inertial>
+          <pose>0 0 0.5 0 0 0</pose>
+        </inertial>
+        <visual name="vis_lower_joint">
+          <pose>0 0 0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <visual name="vis_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_lower_joint">
+          <pose>0 0 0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.08</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="col_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+      <!-- pin joint for upper link, at origin of upper link -->
+      <joint name="upper_joint" type="revolute">
+        <parent>base</parent>
+        <child>upper_link</child>
+        <axis>
+          <xyz>1.0 0 0</xyz>
+        </axis>
+      </joint>
+      <!-- pin joint for lower link, at origin of child link -->
+      <joint name="lower_joint" type="revolute">
+        <parent>upper_link</parent>
+        <child>lower_link</child>
+        <axis>
+          <xyz>1.0 0 0</xyz>
+        </axis>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-pose-publisher-system"
+        name="ignition::gazebo::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_collision_pose>false</publish_collision_pose>
+        <publish_visual_pose>false</publish_visual_pose>
+        <publish_nested_model_pose>false</publish_nested_model_pose>
+      </plugin>
+
+    </model>
+
+  </world>
+</sdf>

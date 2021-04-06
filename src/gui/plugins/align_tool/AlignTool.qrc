@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="AlignTool/">
+  <file>AlignTool.qml</file>
+  <file>x_min.png</file>
+  <file>x_mid.png</file>
+  <file>x_max.png</file>
+  <file>y_min.png</file>
+  <file>y_mid.png</file>
+  <file>y_max.png</file>
+  <file>z_min.png</file>
+  <file>z_mid.png</file>
+  <file>z_max.png</file>
+</qresource>
+</RCC>

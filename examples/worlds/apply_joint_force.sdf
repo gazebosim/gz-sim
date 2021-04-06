@@ -1,0 +1,153 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo apply joint force system demo
+
+  Try sending commands:
+
+  This will apply a constant force on the joint
+    ign topic -t "/model/joint_force_example/joint/j1/cmd_force" -m ignition.msgs.Double  -p "data: 0.001"
+
+  This will stop applying the force. The joint may continue to rotate for some time before coming to a stop
+    ign topic -t "/model/joint_force_example/joint/j1/cmd_force" -m ignition.msgs.Double  -p "data: 0.0"
+-->
+<sdf version="1.6">
+  <world name="apply_joint_force">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="joint_force_example">
+      <pose>0 0 0.005 0 0 0</pose>
+      <link name="base_link">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>2.501</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2.501</iyy>
+            <iyz>0</iyz>
+            <izz>5</izz>
+          </inertia>
+          <mass>120.0</mass>
+        </inertial>
+        <visual name="base_visual">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+        <collision name="base_collision">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="rotor">
+        <pose>0.0 0.0 1.0 0.0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <inertia>
+            <ixx>0.032</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.032</iyy>
+            <iyz>0</iyz>
+            <izz>0.00012</izz>
+          </inertia>
+          <mass>0.6</mass>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.25 0.25 0.05</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.0 0.0 1.0 1</ambient>
+            <diffuse>0.0 0.0 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.25 0.25 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="j1" type="revolute">
+        <pose>0 0 -0.5 0 0 0</pose>
+        <parent>base_link</parent>
+        <child>rotor</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <dynamics>
+            <damping>0.0001</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <plugin
+        filename="ignition-gazebo-apply-joint-force-system"
+        name="ignition::gazebo::systems::ApplyJointForce">
+        <joint_name>j1</joint_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>

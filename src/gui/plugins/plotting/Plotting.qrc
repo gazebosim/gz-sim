@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="Plotting/">
+  <file>Plotting.qml</file>
+</qresource>
+</RCC>

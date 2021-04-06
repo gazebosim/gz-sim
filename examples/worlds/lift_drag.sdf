@@ -1,0 +1,288 @@
+<?xml version="1.0" ?>
+<!--
+  Ignition Gazebo lift-drag system demo
+
+  This file was adapted from osrf/gazebo/worlds/single_rotor_demo.world
+
+  Try sending commands:
+
+    ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m ignition.msgs.Double  -p "data: 0.7"
+
+  Listen to joint states:
+
+    ign topic -e -t /world/lift_drag/model/lift_drag_demo_model/joint_state
+
+-->
+<sdf version="1.6">
+  <world name="lift_drag">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="lift_drag_demo_model">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="body">
+        <pose>0.0 0 0.5 0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>1.8</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>1.8</iyy>
+            <iyz>0.0</iyz>
+            <izz>1.8</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.1</mu>
+                <mu2>0.1</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="rod_1">
+        <pose>0 0 1.25 0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.0 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.012</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.012</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.0012</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.02 0.02 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.02 0.02 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="blade_1">
+        <pose>0 0 1.5 0.0 0 0</pose>
+        <inertial>
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.0000465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.0000006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.0000470</izz>
+          </inertia>
+          <mass>0.01</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.2 1.0 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.2 1.0 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.2 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="blade_2">
+        <pose>0 0 1.5 0.0 0 3.141593</pose>
+        <inertial>
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <inertia>
+            <ixx>0.0000465</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>0.0000006</iyy>
+            <iyz>0.0</iyz>
+            <izz>0.0000470</izz>
+          </inertia>
+          <mass>0.01</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0.0 0.5 0 0.0 0.0 0.0</pose>
+          <geometry>
+            <box>
+              <size>0.2 1.0 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <pose>0.0 0.5 0 0.0 0.0 0</pose>
+          <geometry>
+            <box>
+              <size>0.2 1.0 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.5 0.2 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="rod_1_joint" type="revolute">
+        <parent>body</parent>
+        <child>rod_1</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <axis>
+          <limit>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
+          </limit>
+          <xyz>0.0 0.0 -1.0</xyz>
+          <dynamics>
+            <damping>0.0001</damping>
+          </dynamics>
+        </axis>
+        <physics>
+          <ode>
+            <cfm_damping>1</cfm_damping>
+          </ode>
+        </physics>
+      </joint>
+      <joint name="blade_1_joint" type="fixed">
+        <parent>rod_1</parent>
+        <child>blade_1</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      </joint>
+      <joint name="blade_2_joint" type="fixed">
+        <parent>rod_1</parent>
+        <child>blade_2</child>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      </joint>
+
+      <plugin
+        filename="ignition-gazebo-joint-state-publisher-system"
+        name="ignition::gazebo::systems::JointStatePublisher"></plugin>
+
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.1</a0>
+        <cla>0.1</cla>
+        <cda>0.001</cda>
+        <cma>0.0</cma>
+        <cp>0.0 0.5 0</cp>
+        <area>0.2</area>
+        <air_density>1.2041</air_density>
+        <forward>1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>blade_1</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-lift-drag-system"
+        name="ignition::gazebo::systems::LiftDrag">
+        <a0>0.1</a0>
+        <cla>0.1</cla>
+        <cda>0.001</cda>
+        <cma>0.0</cma>
+        <cp>0.0 0.5 0</cp>
+        <area>0.2</area>
+        <air_density>1.2041</air_density>
+        <forward>1 0 0</forward>
+        <upward>0 0 1</upward>
+        <link_name>blade_2</link_name>
+      </plugin>
+      <plugin
+        filename="ignition-gazebo-apply-joint-force-system"
+        name="ignition::gazebo::systems::ApplyJointForce">
+        <joint_name>rod_1_joint</joint_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>

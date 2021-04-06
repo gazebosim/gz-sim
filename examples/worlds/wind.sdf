@@ -1,0 +1,472 @@
+<?xml version="1.0" ?>
+<!-- Adapted from Gazebo classic (gazebo/world/wind_demo.world)
+
+After starting the simulation, the wind velocity can be adjusted by publishing a Wind message
+Example:
+
+  ign topic -t "/world/wind_demo/wind/" -m ignition.msgs.Wind  -p "linear_velocity: {x:-50, y:50}, enable_wind: true"
+-->
+
+<sdf version="1.6">
+  <world name="wind_demo">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="GzScene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-1 0 1 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wind_model">
+      <pose>0 0 0 0 0 0</pose>
+      <static>false</static>
+      <enable_wind>true</enable_wind>
+      <self_collide>true</self_collide>
+      <link name="roof">
+        <pose>0 0 1 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 0.1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.1</mu>
+                <mu2>0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+      </link>
+      <joint name="roofJoint" type="fixed">
+        <parent>world</parent>
+        <child>roof</child>
+      </joint>
+      <link name="sphere_1">
+        <pose>0 0 0.93 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_1_joint" type="ball">
+        <parent>roof</parent>
+        <child>sphere_1</child>
+      </joint>
+      <link name="sphere_2">
+        <pose>0 0 0.89 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_2_joint" type="ball">
+        <parent>sphere_1</parent>
+        <child>sphere_2</child>
+      </joint>
+      <link name="sphere_3">
+        <pose>0 0 0.85 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_3_joint" type="ball">
+        <parent>sphere_2</parent>
+        <child>sphere_3</child>
+      </joint>
+      <link name="sphere_4">
+        <pose>0 0 0.81 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_4_joint" type="ball">
+        <parent>sphere_3</parent>
+        <child>sphere_4</child>
+      </joint>
+      <link name="sphere_5">
+        <pose>0 0 0.77 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_5_joint" type="ball">
+        <parent>sphere_4</parent>
+        <child>sphere_5</child>
+      </joint>
+      <link name="sphere_6">
+        <pose>0 0 0.73 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_6_joint" type="ball">
+        <parent>sphere_5</parent>
+        <child>sphere_6</child>
+      </joint>
+      <link name="sphere_7">
+        <pose>0 0 0.69 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_7_joint" type="ball">
+        <parent>sphere_6</parent>
+        <child>sphere_7</child>
+      </joint>
+      <link name="sphere_8">
+        <pose>0 0 0.65 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_8_joint" type="ball">
+        <parent>sphere_7</parent>
+        <child>sphere_8</child>
+      </joint>
+      <link name="sphere_9">
+        <pose>0 0 0.61 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_9_joint" type="ball">
+        <parent>sphere_8</parent>
+        <child>sphere_9</child>
+      </joint>
+      <link name="sphere_10">
+        <pose>0 0 0.57 0 0 0</pose>
+        <enable_wind>true</enable_wind>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.02</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1.0</ambient>
+            <diffuse>.421 0.225 0.0 1.0</diffuse>
+            <specular>1.0 0 0 1.0</specular>
+          </material>
+        </visual>
+      </link>
+      <joint name="sphere_10_joint" type="ball">
+        <parent>sphere_9</parent>
+        <child>sphere_10</child>
+      </joint>
+    </model>
+
+    <wind>
+      <linear_velocity>0 10 0</linear_velocity>
+    </wind>
+
+    <!-- Load the plugin for the wind -->
+    <plugin
+      filename="ignition-gazebo-wind-effects-system"
+      name="ignition::gazebo::systems::WindEffects">
+      <force_approximation_scaling_factor>1</force_approximation_scaling_factor>
+      <horizontal>
+        <magnitude>
+          <time_for_rise>10</time_for_rise>
+          <sin>
+            <amplitude_percent>0.05</amplitude_percent>
+            <period>60</period>
+          </sin>
+          <noise type="gaussian">
+           <mean>0</mean>
+           <stddev>0.0002</stddev>
+          </noise>
+        </magnitude>
+        <direction>
+          <time_for_rise>30</time_for_rise>
+          <sin>
+            <amplitude>5</amplitude>
+            <period>20</period>
+          </sin>
+          <noise type="gaussian">
+           <mean>0</mean>
+           <stddev>0.03</stddev>
+          </noise>
+        </direction>
+      </horizontal>
+      <vertical>
+        <noise type="gaussian">
+         <mean>0</mean>
+         <stddev>0.03</stddev>
+        </noise>
+      </vertical>
+    </plugin>
+
+  </world>
+</sdf>
