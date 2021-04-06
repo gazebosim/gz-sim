@@ -17,6 +17,16 @@
 
 #include <ignition/math/Helpers.hh>
 
+#include <ignition/plugin/Register.hh>
+
+#include <ignition/transport/Node.hh>
+
+#include <ignition/msgs.hh>
+
+#include "ignition/gazebo/Link.hh"
+#include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
+
 #include "Thruster.hh"
 
 using namespace ignition;

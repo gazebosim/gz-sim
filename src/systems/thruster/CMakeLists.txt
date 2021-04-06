@@ -1,6 +1,6 @@
-gz_add_system(thrusters
+gz_add_system(thruster
   SOURCES
-  Thrusters.cc
+  Thruster.cc
   PUBLIC_LINK_LIBS
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )
