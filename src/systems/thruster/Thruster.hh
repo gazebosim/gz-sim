@@ -28,9 +28,9 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
 namespace systems
 {
+  // Forward declaration
   class ThrusterPrivateData;
 
   class Thruster:

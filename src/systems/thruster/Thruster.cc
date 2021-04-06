@@ -23,6 +23,12 @@
 
 #include <ignition/msgs.hh>
 
+#include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
@@ -33,7 +39,7 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-class ThrusterPrivateData
+class ignition::gazebo::systems::ThrusterPrivateData
 {
   public: std::mutex mtx;
 
@@ -182,16 +188,16 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
     this->cmdMin, this->cmdMax);
 }
 
-double ThrusterPrivateData::ThrustToAngularVec(double thrust)
+double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 {
   // Thrust is proprtional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto propAngularVelocity = sqrt(abs(
-    thrust / 
+    _thrust / 
       (this->fluidDensity 
       * this->thrustCoefficient * pow(this->propellerDiameter, 4))));
   
-  propAngularVelocity *= (thrust > 0) ? 1: -1;
+  propAngularVelocity *= (_thrust > 0) ? 1: -1;
 
   return propAngularVelocity;
 }
@@ -228,3 +234,5 @@ IGNITION_ADD_PLUGIN(
   Thruster, System,
   Thruster::ISystemConfigure,
   Thruster::ISystemPreUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thrusters")
