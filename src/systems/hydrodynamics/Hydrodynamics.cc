@@ -15,14 +15,16 @@
  *
  */
 
-#include "HydrodynamicsPlugin.hh"
+#include "Hydrodynamics.hh"
 
 #include <Eigen/Eigen>
 
-namespace tethys_hydro
-{
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
 
-class HydrodynamicsPrivateData
+/// \brief Private Hydrodynamics data class.
+class ignition::gazebo::systems::HydrodynamicsPrivateData
 {
   /// \brief Values to set via Plugin Parameters.
   /// Plugin Parameter: Added mass in surge, X_\dot{u}.
@@ -144,17 +146,17 @@ double SdfParamDouble(
   return _sdf->Get<double>(_field);
 }
 
-HydrodynamicsPlugin::HydrodynamicsPlugin()
+Hydrodynamics::Hydrodynamics()
 {
   this->dataPtr = std::make_unique<HydrodynamicsPrivateData>();
 }
 
-HydrodynamicsPlugin::~HydrodynamicsPlugin()
+Hydrodynamics::~Hydrodynamics()
 {
     
 }
 
-void HydrodynamicsPlugin::Configure(
+void Hydrodynamics::Configure(
   const ignition::gazebo::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
   ignition::gazebo::EntityComponentManager &_ecm,
@@ -193,7 +195,7 @@ void HydrodynamicsPlugin::Configure(
   AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
 }
 
-void HydrodynamicsPlugin::PreUpdate(
+void Hydrodynamics::PreUpdate(
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm)
 {
@@ -295,10 +297,11 @@ void HydrodynamicsPlugin::PreUpdate(
   baseLink.AddWorldWrench(_ecm, pose->Rot()*(totalForce), pose->Rot()*totalTorque);
 }
 
-};
 
 IGNITION_ADD_PLUGIN(
-  tethys_hydro::HydrodynamicsPlugin,
-  ignition::gazebo::System,
-  tethys_hydro::HydrodynamicsPlugin::ISystemConfigure,
-  tethys_hydro::HydrodynamicsPlugin::ISystemPreUpdate)
+  tethys_hydro::HydrodynamicsPlugin, System,
+  HydrodynamicsPlugin::ISystemConfigure,
+  HydrodynamicsPlugin::ISystemPreUpdate
+)
+
+IGNITION_ADD_PLUGIN_ALIAS(Hydrodynamics, "ignition::gazebo::systems::Hydrodynamics")

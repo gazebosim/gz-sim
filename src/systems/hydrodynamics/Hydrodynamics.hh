@@ -14,6 +14,8 @@
  * limitations under the License.
  *
  */
+#ifndef IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
+#define IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
 
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/Util.hh>
@@ -26,14 +28,20 @@
 #include <mutex>
 #include <string>
 
-namespace tethys_hydro 
+namespace ignition
+{
+namespace gazebo
+{
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace systems
 {
   class HydrodynamicsPrivateData;
 
   /// This class provides hydrodynamic behaviour for underwater vehicles
   /// It is shamelessly based off Brian Bingham's plugin for VRX
   /// which in turn is based of fossen's equations.
-  class HydrodynamicsPlugin:
+  class Hydrodynamics:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
     public ignition::gazebo::ISystemPreUpdate
@@ -56,3 +64,7 @@ namespace tethys_hydro
   private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;
   };
 }
+}
+}
+}
+#endif
