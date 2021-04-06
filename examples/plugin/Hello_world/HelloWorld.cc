@@ -15,43 +15,33 @@
  *
 */
 
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/Util.hh>
+
 #include <ignition/plugin/Register.hh>
+#include "HelloWorld.hh"
 
 
-namespace ignition;
-namespace gazebo;
-namespace systems;
+// Include a line in your source file for each interface implemented.
+IGNITION_ADD_PLUGIN(
+    hello_world::HelloWorld,
+    ignition::gazebo::System,
+    hello_world::HelloWorld::ISystemPostUpdate)
+//! [registerSampleSystem]
+//! [implementSampleSystem]
+using namespace hello_world;
 
-// A simple Hello world plugin
-class ignition::gazebo::systems::HelloWorld
-
-{   
-};
-
-/// \ brief Hello World data class
-HelloWorld::Hello_world() : System(), dataPtr(std::make_unique<HelloWorld>())
-
-
-HelloWworld::~HelloWorld() = default;
-
-// Implement Configure callback, provided by ISystemConfigure
-// and called once at startup.
-
-void MyPlugin::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm,
-    EventManager &/*_eventMgr*/)
-
-{       
-   printf("Hello World!\n");
+HelloWorld::HelloWorld()
+{
 }
 
-// Register the plugin
+HelloWorld::~HelloWorld()
+{
+}
 
-IGNITION_ADD_PLUGIN(HelloWorld, System, HelloWorld::ISystemConfigure)
+void HelloWorld::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
+    const ignition::gazebo::EntityComponentManager &_ecm)
+{
+  ignmsg << "HelloWorld::PostUpdate" << std::endl;
+}
+//! [implementSampleSystem]
 
 
-IGNITION_ADD_PLUGIN_ALIAS(HelloWorld,"ignition::gazebo::systems::HelloWorld")
