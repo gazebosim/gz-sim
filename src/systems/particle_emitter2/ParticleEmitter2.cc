@@ -180,34 +180,9 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         }
 
         // If a topic has not been specified, then generate topic based
-        // on the model, link, and emitter names.
-        if (topic.empty())
-        {
-          std::string emitterScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "/", false), "/");
-
-          std::vector<std::string> nameParts = common::split(
-              emitterScopedName, "/");
-
-          if (nameParts.size() == 3)
-          {
-            topic = "/model/" + nameParts[0] + "/link/" + nameParts[1] +
-              "/particle_emitter/" + nameParts[2] + "/cmd";
-          }
-          // Handle nested models
-          else if (nameParts.size() == 4)
-          {
-            topic = "/model/" + nameParts[0] + "/model/" + nameParts[1] +
-              "/link/" + nameParts[2] + "/particle_emitter/" + nameParts[3] +
-              "/cmd";
-          }
-          else
-          {
-            ignerr << "Particle emitter missing model name, link name, or its "
-            "own name.\n";
-            return false;
-          }
-        }
+        // on the scoped name.
+        topic = !topic.empty() ? topic :
+          topicFromScopedName(_entity, _ecm) + "/cmd";
 
         // Subscribe to the topic that receives particle emitter commands.
         if (!this->dataPtr->node.Subscribe(

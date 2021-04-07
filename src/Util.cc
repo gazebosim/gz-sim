@@ -445,6 +445,23 @@ ignition::gazebo::Entity topLevelModel(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
+std::string topicFromScopedName(const Entity &_entity,
+    const EntityComponentManager &_ecm, bool _excludeWorld)
+{
+  std::string topic = scopedName(_entity, _ecm, "/", true);
+
+  if (_excludeWorld)
+  {
+    // Exclude the world name. If the entity is a world, then return an
+    // empty string.
+    topic = _ecm.Component<components::World>(_entity) ? "" :
+      topic = removeParentScope(removeParentScope(topic, "/"), "/");
+  }
+
+  return transport::TopicUtils::AsValidTopic("/" + topic);
+}
+
+//////////////////////////////////////////////////
 std::string validTopic(const std::vector<std::string> &_topics)
 {
   for (const auto &topic : _topics)
