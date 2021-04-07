@@ -215,7 +215,7 @@ void Hydrodynamics::PreUpdate(
   if(_info.paused)
     return;
 
-  // These variables are named following Fossen's scheme in "Guidance and Control
+  // These variables follow Fossen's scheme in "Guidance and Control
   // of Ocean Vehicles." The `state` vector contains the ship's current velocity
   // in the formate [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
   // `stateDot` consists of the first derivative in time of the state vector.
