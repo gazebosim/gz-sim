@@ -95,7 +95,7 @@ void Thruster::Configure(
   }
 
   // Get joint name
-  if (!_sdf->HasElement("joint_name")) 
+  if (!_sdf->HasElement("joint_name"))
   {
     ignerr << "No joint to treat as propeller found \n";
     return;
@@ -171,15 +171,15 @@ void Thruster::Configure(
   double cmdMin    = this->dataPtr->ThrustToAngularVec(this->dataPtr->cmdMin);
   double cmdOffset =  0;
 
-  if (_sdf->HasElement("p_gain")) 
+  if (_sdf->HasElement("p_gain"))
   {
     p = _sdf->Get<double>("p_gain");
   }
-  if (!_sdf->HasElement("i_gain")) 
+  if (!_sdf->HasElement("i_gain"))
   {
     i = _sdf->Get<double>("i_gain");
   }
-  if (!_sdf->HasElement("d_gain")) 
+  if (!_sdf->HasElement("d_gain"))
   {
     d = _sdf->Get<double>("d_gain");
   }
@@ -227,7 +227,7 @@ void Thruster::PreUpdate(
 
   auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
-  // TODO: add logic for custom coordinate frame
+  // TODO(arjo129): add logic for custom coordinate frame
   auto unitVector = pose.Rot().RotateVector(
     this->dataPtr->jointAxis.Normalize());
 
