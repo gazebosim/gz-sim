@@ -70,16 +70,15 @@
         <p_gain>0.1</p_gain>
       </plugin>
 
-      <!-- 
       <plugin
-        filename="ThrusterPlugin"
-        name="tethys_thrusters::ThrusterPlugin">     
+        filename="ignition-gazebo-thruster-system"
+        name="ignition::gazebo::systems::Thruster">
         <namespace>tethys</namespace>
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.004422</thrust_coefficient>
         <fluid_density>1000</fluid_density>
         <propeller_diameter>0.2</propeller_diameter>
-      </plugin> -->
+      </plugin>
 
       <!-- Lift and drag -->
 
@@ -120,12 +119,10 @@
       </plugin>
 
 
-      <!-- interfacing plugin-->
-
-
-      <!--<plugin
-        filename="HydrodynamicsPlugin"
-        name="tethys_hydro::HydrodynamicsPlugin">
+      <!-- hydrodynamics plugin-->
+      <plugin
+        filename="ignition-gazebo-hydrodynamics-system"
+        name="ignition::gazebo::systems::Hydrodynamics">
         <link_name>base_link</link_name>
         <xDotU>-4.876161</xDotU>
         <yDotV>-126.324739</yDotV>
@@ -145,7 +142,7 @@
         <mQ>0</mQ>
         <nRR>-632.698957</nRR>
         <nR>0</nR>
-      </plugin>-->
+      </plugin>
 
     </include>
 

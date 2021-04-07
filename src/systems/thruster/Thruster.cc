@@ -255,4 +255,4 @@ IGNITION_ADD_PLUGIN(
   Thruster::ISystemConfigure,
   Thruster::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thrusters")
+IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")
