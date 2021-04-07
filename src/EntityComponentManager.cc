@@ -211,7 +211,6 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   this->dataPtr->newlyCreatedEntities.clear();
-  this->dataPtr->modifiedComponents.clear();
 
   for (auto &view : this->dataPtr->views)
   {
@@ -1282,7 +1281,10 @@ void EntityComponentManager::SetState(
         // values.
         // igndbg << *comp << "  " << *newComp.get() << std::endl;
         // *comp = *newComp.get();
-        this->dataPtr->AddModifiedComponent(entity);
+
+        // When above TODO is addressed, uncomment AddModifiedComponent below
+        // unless calling SetChanged (which already calls AddModifiedComponent)
+        // this->dataPtr->AddModifiedComponent(entity);
       }
     }
   }
@@ -1393,7 +1395,6 @@ void EntityComponentManager::SetState(
           }
         }
         this->SetChanged(entity, compIter.first, flag);
-        this->dataPtr->AddModifiedComponent(entity);
       }
     }
   }
@@ -1429,6 +1430,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 {
   this->dataPtr->periodicChangedComponents.clear();
   this->dataPtr->oneTimeChangedComponents.clear();
+  this->dataPtr->modifiedComponents.clear();
 }
 
 /////////////////////////////////////////////////

@@ -1917,14 +1917,14 @@ TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
       manager.CreateComponent<StringComponent>(e1, StringComponent(e1c1));
   changedStateMsg = manager.ChangedState();
   EXPECT_EQ(1, changedStateMsg.entities_size());
+  manager.State(stateMsg);
 
-  // Mark entities/components as not new
-  manager.RunClearNewlyCreatedEntities();
+  // Mark components as not new
+  manager.RunSetAllComponentsUnchanged();
   changedStateMsg = manager.ChangedState();
   EXPECT_EQ(0, changedStateMsg.entities_size());
 
   // modify component
-  manager.State(stateMsg);
   auto iter = stateMsg.mutable_entities()->find(e1);
   ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
 
@@ -1943,8 +1943,8 @@ TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
   changedStateMsg = manager.ChangedState();
   EXPECT_EQ(1, changedStateMsg.entities_size());
 
-  // Mark entities/components as not new
-  manager.RunClearNewlyCreatedEntities();
+  // Mark components as not new
+  manager.RunSetAllComponentsUnchanged();
   changedStateMsg = manager.ChangedState();
   EXPECT_EQ(0, changedStateMsg.entities_size());
 
