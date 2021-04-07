@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
 
 #include <ignition/gazebo/System.hh>
+#include <memory>
 
 namespace ignition
 {
@@ -39,19 +40,19 @@ namespace systems
   {
   public: Hydrodynamics();
 
-  public: ~Hydrodynamics() override;  
-  
+  public: ~Hydrodynamics() override;
+
   public: void Configure(
       const ignition::gazebo::Entity &_entity,
       const std::shared_ptr<const sdf::Element> &_sdf,
       ignition::gazebo::EntityComponentManager &_ecm,
       ignition::gazebo::EventManager &/*_eventMgr*/
-      );  
-  
+      );
+
   public: void PreUpdate(
       const ignition::gazebo::UpdateInfo &_info,
-      ignition::gazebo::EntityComponentManager &_ecm);  
-  
+      ignition::gazebo::EntityComponentManager &_ecm);
+
   private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;
   };
 }

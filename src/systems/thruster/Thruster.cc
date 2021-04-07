@@ -14,6 +14,9 @@
  * limitations under the License.
  *
  */
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include <ignition/math/Helpers.hh>
 
@@ -44,11 +47,11 @@ class ignition::gazebo::systems::ThrusterPrivateData
   public: std::mutex mtx;
 
   public: double thrust = 0.0;
-  
+
   public: ignition::gazebo::Entity linkEntity;
-  
+
   public: ignition::math::Vector3d jointAxis;
-  
+
   public: ignition::transport::Node node;
 
   public: ignition::math::PID rpmController;
@@ -134,7 +137,10 @@ void Thruster::Configure(
 
   std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
     "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
-  this->dataPtr->node.Subscribe(thrusterTopic, &ThrusterPrivateData::OnCmdThrust,
+
+  this->dataPtr->node.Subscribe(
+    thrusterTopic,
+    &ThrusterPrivateData::OnCmdThrust,
     this->dataPtr.get());
 
   // Get link entity
@@ -178,7 +184,15 @@ void Thruster::Configure(
     d = _sdf->Get<double>("d_gain");
   }
 
-  this->dataPtr->rpmController.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
+  this->dataPtr->rpmController.Init(
+    p,
+    i,
+    d,
+    iMax,
+    iMin,
+    cmdMax,
+    cmdMin,
+    cmdOffset);
 }
 
 void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
@@ -193,10 +207,10 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
   // Thrust is proprtional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto propAngularVelocity = sqrt(abs(
-    _thrust / 
-      (this->fluidDensity 
+    _thrust /
+      (this->fluidDensity
       * this->thrustCoefficient * pow(this->propellerDiameter, 4))));
-  
+
   propAngularVelocity *= (_thrust > 0) ? 1: -1;
 
   return propAngularVelocity;
@@ -213,20 +227,26 @@ void Thruster::PreUpdate(
 
   auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
-  //TODO: add logic for custom coordinate frame
-  auto unitVector = pose.Rot().RotateVector(this->dataPtr->jointAxis.Normalize());
+  // TODO: add logic for custom coordinate frame
+  auto unitVector = pose.Rot().RotateVector(
+    this->dataPtr->jointAxis.Normalize());
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
   // Thrust is proprtional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  auto desiredPropellerAngVel = this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
+  auto desiredPropellerAngVel =
+    this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
+
   auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
   auto angularError = currentAngular - desiredPropellerAngVel;
   double torque = 0.0;
   if(abs(angularError) > 0.1)
     torque = this->dataPtr->rpmController.Update(angularError, _info.dt);
 
-  link.AddWorldWrench(_ecm, unitVector * this->dataPtr->thrust, unitVector * torque);
+  link.AddWorldWrench(
+    _ecm,
+    unitVector * this->dataPtr->thrust,
+    unitVector * torque);
 }
 
 

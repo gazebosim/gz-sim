@@ -19,8 +19,7 @@
 
 #include <ignition/gazebo/System.hh>
 
-#include <mutex>
-#include <string>
+#include <memory>
 
 namespace ignition
 {
