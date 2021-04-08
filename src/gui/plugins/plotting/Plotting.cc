@@ -49,6 +49,9 @@ namespace ignition::gazebo
     /// map key: string contains EntityID + "," + ComponentID
     public: std::map<std::string,
       std::shared_ptr<PlotComponent>> components;
+
+    /// \brief Mutex to protect the components map.
+    public: std::recursive_mutex componentsMutex;
   };
 
   class PlotComponentPrivate
@@ -229,13 +232,16 @@ void Plotting::LoadConfig(const tinyxml2::XMLElement *)
 //////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const ignition::math::Vector3d &_vector)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   this->dataPtr->components[_Id]->SetAttributeValue("x", _vector.X());
   this->dataPtr->components[_Id]->SetAttributeValue("y", _vector.Y());
   this->dataPtr->components[_Id]->SetAttributeValue("z", _vector.Z());
 }
 
+//////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const ignition::msgs::Light &_light)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   if (_light.has_specular())
   {
     this->dataPtr->components[_Id]->SetAttributeValue("specularR",
@@ -290,6 +296,7 @@ void Plotting::SetData(std::string _Id, const ignition::msgs::Light &_light)
 //////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   this->dataPtr->components[_Id]->SetAttributeValue("x", _pose.Pos().X());
   this->dataPtr->components[_Id]->SetAttributeValue("y", _pose.Pos().Y());
   this->dataPtr->components[_Id]->SetAttributeValue("z", _pose.Pos().Z());
@@ -302,6 +309,7 @@ void Plotting::SetData(std::string _Id, const ignition::math::Pose3d &_pose)
 //////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const sdf::Physics &_physics)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   this->dataPtr->components[_Id]->SetAttributeValue("stepSize",
       _physics.MaxStepSize());
   this->dataPtr->components[_Id]->SetAttributeValue("realTimeFactor",
@@ -311,6 +319,7 @@ void Plotting::SetData(std::string _Id, const sdf::Physics &_physics)
 //////////////////////////////////////////////////
 void Plotting::SetData(std::string _Id, const double &_value)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   this->dataPtr->components[_Id]->SetAttributeValue("value", _value);
 }
 
@@ -321,6 +330,7 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
                                         std::string _attribute,
                                         int _chart)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   std::string Id = std::to_string(_entity) + "," + std::to_string(_typeId);
 
   if (this->dataPtr->components.count(Id) == 0)
@@ -336,6 +346,7 @@ void Plotting::RegisterChartToComponent(uint64_t _entity, uint64_t _typeId,
 void Plotting::UnRegisterChartFromComponent(uint64_t _entity, uint64_t _typeId,
                                             std::string _attribute, int _chart)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   std::string id = std::to_string(_entity) + "," + std::to_string(_typeId);
   igndbg << "UnRegister [" << id  << "]" << std::endl;
 
@@ -345,7 +356,7 @@ void Plotting::UnRegisterChartFromComponent(uint64_t _entity, uint64_t _typeId,
   this->dataPtr->components[id]->UnRegisterChart(_attribute, _chart);
 
   if (!this->dataPtr->components[id]->HasCharts())
-      this->dataPtr->components.erase(id);
+    this->dataPtr->components.erase(id);
 }
 
 //////////////////////////////////////////////////
@@ -362,9 +373,10 @@ std::string Plotting::ComponentName(const uint64_t &_typeId)
 }
 
 //////////////////////////////////////////////////
-void Plotting ::Update(const ignition::gazebo::UpdateInfo &_info,
+void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
                        ignition::gazebo::EntityComponentManager &_ecm)
 {
+  std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   for (auto component : this->dataPtr->components)
   {
     auto entity = component.second->Entity();
