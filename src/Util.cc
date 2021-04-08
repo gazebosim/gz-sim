@@ -455,7 +455,7 @@ std::string topicFromScopedName(const Entity &_entity,
     // Exclude the world name. If the entity is a world, then return an
     // empty string.
     topic = _ecm.Component<components::World>(_entity) ? "" :
-      topic = removeParentScope(removeParentScope(topic, "/"), "/");
+      removeParentScope(removeParentScope(topic, "/"), "/");
   }
 
   return transport::TopicUtils::AsValidTopic("/" + topic);
