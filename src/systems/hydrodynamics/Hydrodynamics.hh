@@ -81,11 +81,11 @@ namespace systems
   ///    -m ignition.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
-  /// The vehicle should move in a circle.
   /// ```
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos \
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
+  /// The vehicle should move in a circle.
   class Hydrodynamics:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,
