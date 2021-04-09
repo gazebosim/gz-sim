@@ -1310,7 +1310,7 @@ void EntityComponentManager::SetChanged(
   }
   else if (_c == ComponentState::OneTimeChange)
   {
-    this->dataPtr->periodicChangedComponents.erase(key});
+    this->dataPtr->periodicChangedComponents.erase(key);
     this->dataPtr->oneTimeChangedComponents.insert(key);
   }
   else
