@@ -1805,7 +1805,7 @@ TEST_P(EntityComponentManagerFixture, State)
   {
     // Check the changed state
     auto changedStateMsg = manager.ChangedState();
-    EXPECT_EQ(2, changedStateMsg.entities_size());
+    EXPECT_EQ(4, changedStateMsg.entities_size());
 
     const auto &e4Msg = changedStateMsg.entities(0);
     EXPECT_EQ(e4, e4Msg.id());
@@ -1885,6 +1885,74 @@ TEST_P(EntityComponentManagerFixture, State)
     EXPECT_EQ(IntComponent::typeId, e4c0Msg.type());
     EXPECT_EQ(e4c0, std::stoi(e4c0Msg.component()));
   }
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
+{
+  // Entity and component
+  Entity e1{1};
+  int e1c0{123};
+  std::string e1c1{"string"};
+
+  // Fill manager with entity
+  EXPECT_EQ(e1, manager.CreateEntity());
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Component
+  manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // Mark entities/components as not new
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // create component
+  auto compKey =
+      manager.CreateComponent<StringComponent>(e1, StringComponent(e1c1));
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+  manager.State(stateMsg);
+
+  // Mark components as not new
+  manager.RunSetAllComponentsUnchanged();
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // modify component
+  auto iter = stateMsg.mutable_entities()->find(e1);
+  ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
+
+  msgs::SerializedEntityMap &e1Msg = iter->second;
+
+  auto compIter = e1Msg.mutable_components()->find(compKey.first);
+  ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
+
+  msgs::SerializedComponent &e1c1Msg = compIter->second;
+  EXPECT_EQ(e1c1, e1c1Msg.component());
+  e1c1Msg.set_component("test");
+  EXPECT_EQ("test", e1c1Msg.component());
+  (*e1Msg.mutable_components())[e1c1Msg.type()] = e1c1Msg;
+
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // Mark components as not new
+  manager.RunSetAllComponentsUnchanged();
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // remove component
+  manager.RemoveComponent(e1, StringComponent::typeId);
+
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
 }
 
 /////////////////////////////////////////////////
