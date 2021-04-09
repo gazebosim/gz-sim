@@ -2158,6 +2158,11 @@ TEST_P(EntityComponentManagerFixture, SetEntityCreateOffset)
   manager.SetEntityCreateOffset(1000);
   Entity entity2 = manager.CreateEntity();
   EXPECT_EQ(1001u, entity2);
+
+  // Apply a lower offset, prints warning but goes through.
+  manager.SetEntityCreateOffset(500);
+  Entity entity3 = manager.CreateEntity();
+  EXPECT_EQ(501u, entity3);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
