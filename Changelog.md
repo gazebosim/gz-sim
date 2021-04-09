@@ -1,5 +1,7 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.x.x (202x-xx-xx)
+
 ### Ignition Gazebo 4.7.0 (2021-04-09)
 
 1. Particle emitter based on SDF.
