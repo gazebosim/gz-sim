@@ -1,5 +1,69 @@
 ## Ignition Gazebo 4.x
 
+### Ignition Gazebo 4.x.x (202x-xx-xx)
+
+### Ignition Gazebo 4.7.0 (2021-04-09)
+
+1. Particle emitter based on SDF.
+    * [Pull Request 730](https://github.com/ignitionrobotics/ign-gazebo/pull/730)
+
+1. Fix log playback for particle emitters.
+    * [Pull Request 745](https://github.com/ignitionrobotics/ign-gazebo/pull/745)
+
+1. ECM's ChangedState gets message with modified components.
+    * [Pull Request 742](https://github.com/ignitionrobotics/ign-gazebo/pull/742)
+
+1. Fixed collision visual bounding boxes.
+    * [Pull Request 746](https://github.com/ignitionrobotics/ign-gazebo/pull/746)
+
+1. Fix compute_rtfs arguments.
+    * [Pull Request 737](https://github.com/ignitionrobotics/ign-gazebo/pull/737)
+
+1. Validate step size and RTF parameters.
+    * [Pull Request 740](https://github.com/ignitionrobotics/ign-gazebo/pull/740)
+
+1. Use Protobuf_IMPORT_DIRS instead of PROTOBUF_IMPORT_DIRS for
+   compatibility with Protobuf CMake config.
+    * [Pull Request 715](https://github.com/ignitionrobotics/ign-gazebo/pull/715)
+
+1. Do not pass -Wno-unused-parameter to MSVC compiler.
+    * [Pull Request 716](https://github.com/ignitionrobotics/ign-gazebo/pull/716)
+
+1. Support configuring particle scatter ratio in particle emitter system.
+    * [Pull Request 674](https://github.com/ignitionrobotics/ign-gazebo/pull/674)
+
+1. Fix diffuse and ambient values for ackermann example. 
+    * [Pull Request 707](https://github.com/ignitionrobotics/ign-gazebo/pull/707)
+
+1. Scenebroadcaster sensors.
+    * [Pull Request 698](https://github.com/ignitionrobotics/ign-gazebo/pull/698)
+
+1. Add thermal camera test for object temperature below 0.
+    * [Pull Request 621](https://github.com/ignitionrobotics/ign-gazebo/pull/621)
+
+1. [BULLET] Making GetContactsFromLastStepFeature optional in Collision Features
+    * [Pull Request 690](https://github.com/ignitionrobotics/ign-gazebo/pull/690)
+
+1. Fix joint controller GUI test.
+    * [Pull Request 697](https://github.com/ignitionrobotics/ign-gazebo/pull/697)
+
+1. Quiet warnings from Joint State Publisher.
+    * [Pull Request 696](https://github.com/ignitionrobotics/ign-gazebo/pull/696)
+
+1. Ackermann Steering Plugin.
+    * [Pull Request 618](https://github.com/ignitionrobotics/ign-gazebo/pull/618)
+
+1. Remove bounding box when model is deleted 
+    * [Pull Request 675](https://github.com/ignitionrobotics/ign-gazebo/pull/675)
+
+1. Cache link poses to improve performance.
+    * [Pull Request 669](https://github.com/ignitionrobotics/ign-gazebo/pull/669)
+
+1. Check empty world name in Scene3d.
+    * [Pull Request 662](https://github.com/ignitionrobotics/ign-gazebo/pull/662)
+
+1. All changes up to 3.8.0. 
+
 ### Ignition Gazebo 4.6.0 (2021-03-01)
 
 1. Use a custom data structure to manage entity feature maps.
