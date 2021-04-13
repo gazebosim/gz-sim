@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
 #define IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
 
-#include <map>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include "ignition/gazebo/components/Component.hh"
@@ -212,7 +212,7 @@ namespace ignition
       private: ComponentId idCounter = 0;
 
       /// \brief Map of ComponentId to Components (see the components vector).
-      private: std::map<ComponentId, int> idMap;
+      private: std::unordered_map<ComponentId, int> idMap;
 
       /// \brief Sequential storage of components.
       public: std::vector<ComponentTypeT> components;

@@ -17,9 +17,9 @@
 #ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
 #define IGNITION_GAZEBO_DETAIL_VIEW_HH_
 
-#include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -126,9 +126,32 @@ class IGNITION_GAZEBO_VISIBLE View
   /// \brief List of entities about to be removed
   public: std::set<Entity> toRemoveEntities;
 
+  /// \brief Hash functor for std::pair<Entity, ComponentTypeId>
+  public: struct Hasher
+          {
+            std::size_t operator()(
+                std::pair<Entity, ComponentTypeId> _pair) const
+            {
+              _pair.first ^= _pair.second + 0x9e3779b9 + (_pair.second << 6)
+                 + (_pair.second >> 2);
+              return _pair.first;
+            }
+          };
+
+  /// \brief Equality functor for std::pair<Entity, ComponentTypeId>
+  public: struct EqualTo
+          {
+            bool operator()(const std::pair<Entity, ComponentTypeId> &_lhs,
+                const std::pair<Entity, ComponentTypeId> &_rhs) const
+            {
+              return _lhs.first == _rhs.first &&
+                _lhs.second == _rhs.second;
+            }
+          };
+
   /// \brief All of the components for each entity.
-  public: std::map<std::pair<Entity, ComponentTypeId>,
-          ComponentId> components;
+  public: std::unordered_map<std::pair<Entity, ComponentTypeId>, ComponentId,
+            Hasher, EqualTo> components;
 };
 /// \endcond
 }
