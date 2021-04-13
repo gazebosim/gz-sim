@@ -7,14 +7,14 @@ endif()
 project(RenderingPlugins)
 
 # Common to both plugins
-find_package(ignition-rendering5 REQUIRED)
+find_package(ignition-rendering6 REQUIRED)
 
 # GUI plugin
 set(GUI_PLUGIN RenderingGuiPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(ignition-gui5 REQUIRED)
+find_package(ignition-gui6 REQUIRED)
 
 QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
@@ -24,8 +24,8 @@ add_library(${GUI_PLUGIN} SHARED
 )
 target_link_libraries(${GUI_PLUGIN}
   PRIVATE
-    ignition-gui5::ignition-gui5
-    ignition-rendering5::ignition-rendering5
+    ignition-gui6::ignition-gui6
+    ignition-rendering6::ignition-rendering6
 )
 
 # Server plugin
@@ -40,5 +40,5 @@ target_link_libraries(${SERVER_PLUGIN}
   PRIVATE
     ignition-plugin1::ignition-plugin1
     ignition-gazebo6::ignition-gazebo6
-    ignition-rendering5::ignition-rendering5
+    ignition-rendering6::ignition-rendering6
 )

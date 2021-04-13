@@ -236,7 +236,7 @@ line is using symbolic links to each library's YAML file.
 mkdir ~/.ignition/tools/configs -p
 cd ~/.ignition/tools/configs/
 ln -s /usr/local/share/ignition/fuel6.yaml .
-ln -s /usr/local/share/ignition/transport10.yaml .
+ln -s /usr/local/share/ignition/transport11.yaml .
 ln -s /usr/local/share/ignition/transportlog10.yaml .
 ...
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs

@@ -38,8 +38,8 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat11 REQUIRED)
-set(SDF_VER ${sdformat11_VERSION_MAJOR})
+ign_find_package(sdformat12 REQUIRED)
+set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -48,13 +48,13 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport10 REQUIRED COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport10_VERSION_MAJOR})
+ign_find_package(ignition-transport11 REQUIRED COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs7 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs7_VERSION_MAJOR})
+ign_find_package(ignition-msgs8 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
@@ -70,13 +70,13 @@ set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools6 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools6_VERSION_MAJOR})
+ign_find_package(ignition-fuel_tools7 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui5 REQUIRED)
-set(IGN_GUI_VER ${ignition-gui5_VERSION_MAJOR})
+ign_find_package(ignition-gui6 REQUIRED)
+set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
     Core
@@ -87,17 +87,17 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics4
+ign_find_package(ignition-physics5
   COMPONENTS
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics4_VERSION_MAJOR})
+set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors5 REQUIRED
+ign_find_package(ignition-sensors6 REQUIRED
   COMPONENTS
     rendering
     air_pressure
@@ -110,12 +110,12 @@ ign_find_package(ignition-sensors5 REQUIRED
     depth_camera
     thermal_camera
 )
-set(IGN_SENSORS_VER ${ignition-sensors5_VERSION_MAJOR})
+set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering5 REQUIRED)
-set(IGN_RENDERING_VER ${ignition-rendering5_VERSION_MAJOR})
+ign_find_package(ignition-rendering6 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
@@ -143,7 +143,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${ignition-msgs7_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${ignition-msgs8_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
