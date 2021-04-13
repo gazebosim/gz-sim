@@ -176,10 +176,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: void RemovePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
-  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdatePhysics(EntityComponentManager &_ecm);
 
-  /// \brief Step the simulationrfor each world
+  /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
   public: void Step(const std::chrono::steady_clock::duration &_dt);
 
@@ -212,6 +212,11 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Keep track of what entities are static (models and links).
   public: std::unordered_set<Entity> staticEntities;
+
+  /// \brief Keep track of poses for links attached to non-static models.
+  /// This allows for skipping pose updates if a link's pose didn't change
+  /// after a physics step.
+  public: std::unordered_map<Entity, ignition::math::Pose3d> linkWorldPoses;
 
   /// \brief A map between model entity ids in the ECM to whether its battery
   /// has drained.
@@ -1143,6 +1148,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
             this->entityLinkMap.Remove(childLink);
             this->topLevelModelMap.erase(childLink);
             this->staticEntities.erase(childLink);
+            this->linkWorldPoses.erase(childLink);
           }
 
           for (const auto &childJoint :
@@ -1413,23 +1419,20 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
-        // The canonical link as specified by sdformat is different from the
-        // canonical link of the FreeGroup object
-
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelPtrPhys->FindFreeGroup();
         if (!freeGroup)
           return true;
 
-        // Get canonical link offset
+        // Get root link offset
         const auto linkEntity =
-            this->entityLinkMap.Get(freeGroup->CanonicalLink());
+            this->entityLinkMap.Get(freeGroup->RootLink());
         if (linkEntity == kNullEntity)
           return true;
 
-        // set world pose of canonical link in freegroup
-        // canonical link might be in a nested model so use RelativePose to get
+        // set world pose of root link in freegroup
+        // root link might be in a nested model so use RelativePose to get
         // its pose relative to this model
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntity, _ecm);
@@ -1698,14 +1701,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
 
-  // Link poses, velocities...
-  IGN_PROFILE_BEGIN("Links");
-  _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
-      [&](const Entity &_entity, components::Link * /*_link*/,
-          components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
+  // Link entities and their latest frame data.
+  std::unordered_map<Entity, physics::FrameData3d> linkFrameData;
+
+  // Go through and retrieve frame data for each link in a non-static model
+  IGN_PROFILE_BEGIN("Links Frame Data");
+  _ecm.Each<components::Link>(
+      [&](const Entity &_entity, components::Link *) -> bool
       {
-        // If parent is static, don't process pose changes as periodic
         if (this->staticEntities.find(_entity) != this->staticEntities.end())
           return true;
 
@@ -1717,197 +1720,273 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           return true;
         }
 
-        IGN_PROFILE_BEGIN("Local pose");
-        // get top level model of this link
-        auto topLevelModelEnt = this->topLevelModelMap[_parent->Data()];
-
-        auto canonicalLink =
-            _ecm.Component<components::CanonicalLink>(_entity);
-
         auto frameData = linkPhys->FrameDataRelativeToWorld();
-        const auto &worldPose = frameData.pose;
+        linkFrameData[_entity] = frameData;
+        return true;
+      });
+  IGN_PROFILE_END();
 
-        if (canonicalLink)
+  IGN_PROFILE_BEGIN("Models");
+  // Model entities and their world poses.
+  std::unordered_map<Entity, math::Pose3d> modelWorldPoses;
+
+  _ecm.Each<components::Model, components::Pose, components::ParentEntity,
+            components::Static, components::ModelCanonicalLink>(
+      [&](const Entity &_entity, components::Model *, components::Pose *_pose,
+          components::ParentEntity *_parentEntity, components::Static *_static,
+          components::ModelCanonicalLink *_canonicalLink) -> bool
+      {
+        if (_static->Data())
         {
-          // This is the canonical link, update the top level model.
-          // The pose of this link w.r.t its top level model never changes
-          // because it's "fixed" to the model. Instead, we change
-          // the top level model's pose here. The physics engine gives us the
-          // pose of this link relative to world so to set the top level
-          // model's pose, we have to post-multiply it by the inverse of the
-          // transform of the link w.r.t to its top level model.
-          math::Pose3d linkPoseFromTopLevelModel;
-          linkPoseFromTopLevelModel =
-              this->RelativePose(topLevelModelEnt, _entity, _ecm);
+          return true;
+        }
 
-          // update top level model's pose
-          auto mutableModelPose =
-             _ecm.Component<components::Pose>(topLevelModelEnt);
-          *(mutableModelPose) = components::Pose(
-              math::eigen3::convert(worldPose) *
-              linkPoseFromTopLevelModel.Inverse());
+        auto linkFrameIt = linkFrameData.find(_canonicalLink->Data());
+        if (linkFrameIt == linkFrameData.end())
+        {
+          ignerr << "Internal error: Frame data for link [" << _entity
+                 << "] not found" << std::endl;
+          return true;
+        }
+        std::optional<math::Pose3d> parentWorldPose;
 
-          _ecm.SetChanged(topLevelModelEnt, components::Pose::typeId,
-              ComponentState::PeriodicChange);
+        // If this model is nested, we assume the pose of the parent model has
+        // already been updated. We expect to find the updated pose in
+        // modelWorldPoses. If not found, this must not be nested, so this
+        // model's pose component would reflect it's absolute pose.
+        auto parentModelPoseIt = modelWorldPoses.find(_parentEntity->Data());
+        if (parentModelPoseIt != modelWorldPoses.end())
+        {
+          parentWorldPose = parentModelPoseIt->second;
+        }
+
+        // Given the following frame names:
+        // W: World/inertial frame
+        // P: Parent frame (this could be a parent model or the World frame)
+        // M: This model's frame
+        // L: The frame of this model's canonical link
+        //
+        // And the following quantities:
+        // (See http://sdformat.org/tutorials?tut=specify_pose for pose
+        // convention)
+        // parentWorldPose (X_WP): Pose of the parent frame w.r.t the world
+        // linkPoseFromModel (X_ML): Pose of the canonical link frame w.r.t the
+        // model frame
+        // linkWorldPose (X_WL): Pose of the canonical link w.r.t the world
+        // modelWorldPose (X_WM): Pose of this model w.r.t the world
+        //
+        // The Pose component of this model entity stores the pose of M w.r.t P
+        // (X_PM) and is calculated as
+        //   X_PM = (X_WP)^-1 * X_WM
+        //
+        // And X_WM is calculated from X_WL, which is obtained from physics as:
+        //   X_WM = X_WL * (X_ML)^-1
+        auto linkPoseFromModel =
+            this->RelativePose(_entity, linkFrameIt->first, _ecm);
+        const auto &linkWorldPose = linkFrameIt->second.pose;
+        const auto &modelWorldPose =
+            math::eigen3::convert(linkWorldPose) * linkPoseFromModel.Inverse();
+
+        modelWorldPoses[_entity] = modelWorldPose;
+
+        // update model's pose
+        if (parentWorldPose)
+        {
+          *_pose =
+              components::Pose(parentWorldPose->Inverse() * modelWorldPose);
         }
         else
         {
-          // Compute the relative pose of this link from the top level model
-          // first get the world pose of the top level model
-          auto worldComp =
-              _ecm.Component<components::ParentEntity>(topLevelModelEnt);
-          // if the worldComp is a nullptr, something is wrong with ECS
-          if (!worldComp)
-          {
-            ignerr << "The parent component of " << topLevelModelEnt
-                   << " could not be found. This should never happen!\n";
-            return true;
-          }
-          math::Pose3d parentWorldPose =
-              this->RelativePose(worldComp->Data(), _parent->Data(), _ecm);
-
-          // Unlike canonical links, pose of regular links can move relative.
-          // to the parent. Same for links inside nested models.
-          *_pose = components::Pose(math::eigen3::convert(worldPose) +
-                                    parentWorldPose.Inverse());
-          _ecm.SetChanged(_entity, components::Pose::typeId,
-              ComponentState::PeriodicChange);
-        }
-        IGN_PROFILE_END();
-
-        // Populate world poses, velocities and accelerations of the link. For
-        // now these components are updated only if another system has created
-        // the corresponding component on the entity.
-        auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
-        if (worldPoseComp)
-        {
-          auto state =
-              worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
-              this->pose3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::WorldPose::typeId, state);
+          // This is a non-nested model and parentWorldPose would be identity
+          // because it would be the pose of the parent (world) w.r.t the world.
+          *_pose = components::Pose(modelWorldPose);
         }
 
-        // Velocity in world coordinates
-        auto worldLinVelComp =
-            _ecm.Component<components::WorldLinearVelocity>(_entity);
-        if (worldLinVelComp)
-        {
-          auto state = worldLinVelComp->SetData(
-                math::eigen3::convert(frameData.linearVelocity),
-                this->vec3Eql) ?
-                ComponentState::PeriodicChange :
-                ComponentState::NoChange;
-          _ecm.SetChanged(_entity,
-              components::WorldLinearVelocity::typeId, state);
-        }
-
-        // Angular velocity in world frame coordinates
-        auto worldAngVelComp =
-            _ecm.Component<components::WorldAngularVelocity>(_entity);
-        if (worldAngVelComp)
-        {
-          auto state = worldAngVelComp->SetData(
-              math::eigen3::convert(frameData.angularVelocity),
-              this->vec3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity,
-              components::WorldAngularVelocity::typeId, state);
-        }
-
-        // Acceleration in world frame coordinates
-        auto worldLinAccelComp =
-            _ecm.Component<components::WorldLinearAcceleration>(_entity);
-        if (worldLinAccelComp)
-        {
-          auto state = worldLinAccelComp->SetData(
-              math::eigen3::convert(frameData.linearAcceleration),
-              this->vec3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity,
-              components::WorldLinearAcceleration::typeId, state);
-        }
-
-        // Angular acceleration in world frame coordinates
-        auto worldAngAccelComp =
-            _ecm.Component<components::WorldAngularAcceleration>(_entity);
-
-        if (worldAngAccelComp)
-        {
-          auto state = worldAngAccelComp->SetData(
-              math::eigen3::convert(frameData.angularAcceleration),
-              this->vec3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity,
-              components::WorldAngularAcceleration::typeId, state);
-        }
-
-        const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
-
-        // Velocity in body-fixed frame coordinates
-        auto bodyLinVelComp =
-            _ecm.Component<components::LinearVelocity>(_entity);
-        if (bodyLinVelComp)
-        {
-          Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
-          auto state =
-              bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
-              this->vec3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::LinearVelocity::typeId, state);
-        }
-
-        // Angular velocity in body-fixed frame coordinates
-        auto bodyAngVelComp =
-            _ecm.Component<components::AngularVelocity>(_entity);
-        if (bodyAngVelComp)
-        {
-          Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
-          auto state =
-              bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
-              this->vec3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::AngularVelocity::typeId,
-              state);
-        }
-
-        // Acceleration in body-fixed frame coordinates
-        auto bodyLinAccelComp =
-            _ecm.Component<components::LinearAcceleration>(_entity);
-        if (bodyLinAccelComp)
-        {
-          Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
-          auto state =
-              bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
-              this->vec3Eql)?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::LinearAcceleration::typeId,
-              state);
-        }
-
-        // Angular acceleration in world frame coordinates
-        auto bodyAngAccelComp =
-            _ecm.Component<components::AngularAcceleration>(_entity);
-        if (bodyAngAccelComp)
-        {
-          Eigen::Vector3d bodyAngAccel = R_bs * frameData.angularAcceleration;
-          auto state =
-              bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
-              this->vec3Eql) ?
-              ComponentState::PeriodicChange :
-              ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::AngularAcceleration::typeId,
-              state);
-        }
+        _ecm.SetChanged(_entity, components::Pose::typeId,
+                        ComponentState::PeriodicChange);
         return true;
       });
+
+  IGN_PROFILE_END();
+
+  // Link poses, velocities...
+  IGN_PROFILE_BEGIN("Links");
+  for (const auto &[entity, frameData] : linkFrameData)
+  {
+    IGN_PROFILE_BEGIN("Local pose");
+
+    auto canonicalLink =
+        _ecm.Component<components::CanonicalLink>(entity);
+
+    const auto &worldPose = frameData.pose;
+    const auto parentEntity = _ecm.ParentEntity(entity);
+
+    // update the link or top level model pose if this is the first update,
+    // or if the link pose has changed since the last update
+    // (if the link pose hasn't changed, there's no need for a pose update)
+    const auto worldPoseMath3d = ignition::math::eigen3::convert(worldPose);
+    if ((this->linkWorldPoses.find(entity) == this->linkWorldPoses.end())
+        || !this->pose3Eql(this->linkWorldPoses[entity], worldPoseMath3d))
+    {
+      // cache the updated link pose to check if the link pose has changed
+      // during the next iteration
+      this->linkWorldPoses[entity] = worldPoseMath3d;
+
+      if (!canonicalLink)
+      {
+        // Compute the relative pose of this link from the parent model
+        auto parentModelPoseIt = modelWorldPoses.find(parentEntity);
+        if (parentModelPoseIt == modelWorldPoses.end())
+        {
+          ignerr << "Internal error: parent model [" << parentEntity
+                << "] does not have a world pose available" << std::endl;
+          continue;
+        }
+        const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
+
+        // Unlike canonical links, pose of regular links can move relative.
+        // to the parent. Same for links inside nested models.
+        auto pose = _ecm.Component<components::Pose>(entity);
+        *pose = components::Pose(parentWorldPose.Inverse() *
+                                  math::eigen3::convert(worldPose));
+        _ecm.SetChanged(entity, components::Pose::typeId,
+            ComponentState::PeriodicChange);
+      }
+    }
+    IGN_PROFILE_END();
+
+    // Populate world poses, velocities and accelerations of the link. For
+    // now these components are updated only if another system has created
+    // the corresponding component on the entity.
+    auto worldPoseComp = _ecm.Component<components::WorldPose>(entity);
+    if (worldPoseComp)
+    {
+      auto state =
+          worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
+          this->pose3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity, components::WorldPose::typeId, state);
+    }
+
+    // Velocity in world coordinates
+    auto worldLinVelComp =
+        _ecm.Component<components::WorldLinearVelocity>(entity);
+    if (worldLinVelComp)
+    {
+      auto state = worldLinVelComp->SetData(
+            math::eigen3::convert(frameData.linearVelocity),
+            this->vec3Eql) ?
+            ComponentState::PeriodicChange :
+            ComponentState::NoChange;
+      _ecm.SetChanged(entity,
+          components::WorldLinearVelocity::typeId, state);
+    }
+
+    // Angular velocity in world frame coordinates
+    auto worldAngVelComp =
+        _ecm.Component<components::WorldAngularVelocity>(entity);
+    if (worldAngVelComp)
+    {
+      auto state = worldAngVelComp->SetData(
+          math::eigen3::convert(frameData.angularVelocity),
+          this->vec3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity,
+          components::WorldAngularVelocity::typeId, state);
+    }
+
+    // Acceleration in world frame coordinates
+    auto worldLinAccelComp =
+        _ecm.Component<components::WorldLinearAcceleration>(entity);
+    if (worldLinAccelComp)
+    {
+      auto state = worldLinAccelComp->SetData(
+          math::eigen3::convert(frameData.linearAcceleration),
+          this->vec3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity,
+          components::WorldLinearAcceleration::typeId, state);
+    }
+
+    // Angular acceleration in world frame coordinates
+    auto worldAngAccelComp =
+        _ecm.Component<components::WorldAngularAcceleration>(entity);
+
+    if (worldAngAccelComp)
+    {
+      auto state = worldAngAccelComp->SetData(
+          math::eigen3::convert(frameData.angularAcceleration),
+          this->vec3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity,
+          components::WorldAngularAcceleration::typeId, state);
+    }
+
+    const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
+
+    // Velocity in body-fixed frame coordinates
+    auto bodyLinVelComp =
+        _ecm.Component<components::LinearVelocity>(entity);
+    if (bodyLinVelComp)
+    {
+      Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
+      auto state =
+          bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
+          this->vec3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity, components::LinearVelocity::typeId, state);
+    }
+
+    // Angular velocity in body-fixed frame coordinates
+    auto bodyAngVelComp =
+        _ecm.Component<components::AngularVelocity>(entity);
+    if (bodyAngVelComp)
+    {
+      Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
+      auto state =
+          bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
+          this->vec3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity, components::AngularVelocity::typeId,
+          state);
+    }
+
+    // Acceleration in body-fixed frame coordinates
+    auto bodyLinAccelComp =
+        _ecm.Component<components::LinearAcceleration>(entity);
+    if (bodyLinAccelComp)
+    {
+      Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
+      auto state =
+          bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
+          this->vec3Eql)?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity, components::LinearAcceleration::typeId,
+          state);
+    }
+
+    // Angular acceleration in world frame coordinates
+    auto bodyAngAccelComp =
+        _ecm.Component<components::AngularAcceleration>(entity);
+    if (bodyAngAccelComp)
+    {
+      Eigen::Vector3d bodyAngAccel = R_bs * frameData.angularAcceleration;
+      auto state =
+          bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
+          this->vec3Eql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(entity, components::AngularAcceleration::typeId,
+          state);
+    }
+  }
   IGN_PROFILE_END();
 
   // pose/velocity/acceleration of non-link entities such as sensors /
@@ -2086,6 +2165,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm)
           {
             _jointPos->Data()[i] = jointPhys->GetPosition(i);
           }
+          _ecm.SetChanged(_entity, components::JointPosition::typeId,
+              ComponentState::PeriodicChange);
         }
         return true;
       });

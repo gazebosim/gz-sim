@@ -198,7 +198,7 @@ sure you're loading the correct plugins.
 Both simulators are installed with several built-in plugins.
 [Gazebo classic's plugins](https://github.com/osrf/gazebo/tree/gazebo11/plugins)
 and
-[Ignition Gazebo's plugins](https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo3/src/systems)
+[Ignition Gazebo's plugins](https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems)
 have different file names. For example, to use Gazebo classic's differential drive
 plugin, the user can refer to it as follows:
 

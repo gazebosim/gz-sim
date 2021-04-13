@@ -2764,29 +2764,31 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
+    Entity worldEntity;
     _ecm.Each<components::World, components::Name>(
-        [&](const Entity &/*_entity*/,
+        [&](const Entity &_entity,
           const components::World * /* _world */ ,
           const components::Name *_name)->bool
         {
           this->dataPtr->worldName = _name->Data();
+          worldEntity = _entity;
           return true;
         });
 
-    renderWindow->SetWorldName(this->dataPtr->worldName);
-    auto worldEntity =
-      _ecm.EntityByComponents(components::Name(this->dataPtr->worldName),
-        components::World());
-    auto renderEngineGuiComp =
-      _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
-    if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+    if (!this->dataPtr->worldName.empty())
     {
-      this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
-    }
-    else
-    {
-      igndbg << "RenderEngineGuiPlugin component not found, "
-        "render engine won't be set from the ECM" << std::endl;
+      renderWindow->SetWorldName(this->dataPtr->worldName);
+      auto renderEngineGuiComp =
+        _ecm.Component<components::RenderEngineGuiPlugin>(worldEntity);
+      if (renderEngineGuiComp && !renderEngineGuiComp->Data().empty())
+      {
+        this->dataPtr->renderUtil->SetEngineName(renderEngineGuiComp->Data());
+      }
+      else
+      {
+        igndbg << "RenderEngineGuiPlugin component not found, "
+          "render engine won't be set from the ECM " << std::endl;
+      }
     }
   }
 

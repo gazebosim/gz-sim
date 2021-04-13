@@ -753,7 +753,7 @@ In the new code we explicitly reference each Ignition package that we use:
 # NEW
 find_package(sdformat11 REQUIRED)
 find_package(ignition-common4-all REQUIRED)
-find_package(ignition-gazebo5-all REQUIRED)
+find_package(ignition-gazebo6-all REQUIRED)
 find_package(ignition-math6-all REQUIRED)
 find_package(ignition-msgs7-all REQUIRED)
 find_package(ignition-physics4-all REQUIRED)
@@ -832,7 +832,7 @@ In the new model, we do this instead:
 <!-- NEW -->
 <plugin
     name="ignition::gazebo::systems::LiftDrag"
-    filename="ignition-gazebo3-lift-drag-system">
+    filename="ignition-gazebo-lift-drag-system">
   <!-- ...configuration goes here... -->
   <link_name>rotor_0</link_name>
 </plugin>

@@ -40,7 +40,7 @@ Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.ignition/gazebo/plugins`
-3. [Systems that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo4/src/systems/)
+3. [Systems that are installed with Ignition Gazebo](https://ignitionrobotics.org/api/gazebo/4.6/namespaceignition_1_1gazebo_1_1systems.html)
 
 ### Ignition GUI plugins
 
@@ -59,7 +59,7 @@ GUI plugins may be loaded through:
 Ignition will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
-2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo4/src/gui/plugins)
+2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/gui/plugins)
 3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
 4. `~/.ignition/gui/plugins`
 5. [Plugins which are installed with Ignition GUI](https://ignitionrobotics.org/api/gui/4.2/namespaceignition_1_1gui_1_1plugins.html)
