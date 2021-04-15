@@ -149,7 +149,8 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
 
     std::vector<math::Pose3d> modelPoses;
     std::vector<math::Pose3d> linkPoses;
-    testSystem.OnPostUpdate([&linkPoses, &modelPoses](const gazebo::UpdateInfo &,
+    testSystem.OnPostUpdate([&linkPoses, &modelPoses](
+      const gazebo::UpdateInfo &,
       const gazebo::EntityComponentManager &_ecm)
       {
         auto modelId = _ecm.EntityByComponents(
@@ -228,7 +229,8 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
           linkPoses[i-1].Rot().Euler().X(), 1e-5) << i;
       EXPECT_NEAR(linkPoses[i].Rot().Euler().Y(),
           linkPoses[i-1].Rot().Euler().Y(), 1e-5) << i;
-      EXPECT_GT(linkPoses[i].Rot().Euler().Z(), linkPoses[i-1].Rot().Euler().Z()) << i;
+      EXPECT_GT(linkPoses[i].Rot().Euler().Z(),
+          linkPoses[i-1].Rot().Euler().Z()) << i;
     }
   }
 };
