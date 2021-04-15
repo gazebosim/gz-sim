@@ -1653,8 +1653,13 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // Trajectory info from SDF so ign-rendering can calculate bone poses
         else
         {
-          this->actorAnimationData[_entity] =
-              this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+          auto animData =
+            this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+
+          if (animData.valid)
+          {
+            this->actorAnimationData[_entity] = animData;
+          }
         }
 
         // Trajectory pose set by other systems
