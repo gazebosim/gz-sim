@@ -76,6 +76,12 @@ namespace sdf_generator
                           const EntityComponentManager &_ecm,
                           const Entity &_entity);
 
+  /// \brief Update a sdf::Element model to use //include instead of expanded
+  /// model (to be used when expand_include_tags is disabled)
+  /// \input[in, out] _elem sdf::Element to update
+  IGNITION_GAZEBO_VISIBLE
+  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem);
+
   /// \brief Update a sdf::Element of an included resource.
   /// Intended for internal use.
   /// \input[in, out] _elem sdf::Element to update

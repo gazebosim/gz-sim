@@ -324,6 +324,10 @@ namespace sdf_generator
           {
             auto modelElem = _elem->AddElement("model");
             updateModelElement(modelElem, _ecm, _modelEntity);
+
+            // Check & update possible //model/include(s)
+            if (!modelConfig.expand_include_tags().data())
+              updateModelElementWithNestedInclude(modelElem);
           }
           else if (uriMapIt != _includeUriMap.end())
           {
@@ -420,6 +424,29 @@ namespace sdf_generator
       relativeToAbsoluteUri(_elem, common::parentPath(pathComp->Data()));
     }
     return true;
+  }
+
+  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem)
+  {
+    sdf::ElementPtr e = _elem->GetFirstElement(), nextE = nullptr;
+    while (e != nullptr)
+    {
+      nextE = e->GetNextElement();
+
+      if (e->GetIncludeElement() != nullptr)
+      {
+        std::string uri = "file://" + e->FilePath();
+
+        if (uri.rfind(".sdf") != std::string::npos)
+          uri = common::parentPath(uri);
+
+        e->GetIncludeElement()->GetElement("uri")->Set(uri);
+        _elem->InsertElement(e->GetIncludeElement());
+        e->RemoveFromParent();
+      }
+
+      e = nextE;
+    }
   }
 
   /////////////////////////////////////////////////

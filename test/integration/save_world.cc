@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <ignition/msgs/sdf_generator_config.pb.h>
+#include <sstream>
 #include <tinyxml2.h>
 
 #include <sdf/Collision.hh>
@@ -29,6 +30,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -300,6 +302,95 @@ TEST_F(SdfGeneratorFixture, WorldWithNestedModel)
   ASSERT_NE(nullptr, genSdfDoc.RootElement());
   auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
   ASSERT_NE(nullptr, genWorld);
+}
+
+
+/////////////////////////////////////////////////
+TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
+{
+  this->LoadWorld("test/worlds/model_nested_include.sdf");
+
+  EXPECT_NE(kNullEntity, this->server->EntityByName("ground_plane"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("L0"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("C0"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("V0"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("M1"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("L1"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("C1"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("V1"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("include_nested_new_name"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("link_00"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("link_01"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("sphere"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("V"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("C"));
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("model_nested_include_world");
+
+  // check that model w/ nested includes are not expanded
+  tinyxml2::XMLDocument genSdfDoc;
+  genSdfDoc.Parse(worldGenSdfRes.c_str());
+  ASSERT_NE(nullptr, genSdfDoc.RootElement());
+  auto genWorld = genSdfDoc.RootElement()->FirstChildElement("world");
+  ASSERT_NE(nullptr, genWorld);
+
+  auto model = genWorld->FirstChildElement("model");  // ground_plane
+  ASSERT_NE(nullptr, model);
+  model = model->NextSiblingElement("model");  // M1
+  ASSERT_NE(nullptr, model);
+
+  // get first include
+  auto include = model->FirstChildElement("include");
+  ASSERT_NE(nullptr, include);
+
+  auto uri = include->FirstChildElement("uri");
+  ASSERT_NE(nullptr, uri);
+  ASSERT_NE(nullptr, uri->GetText());
+  std::string uriStr = uri->GetText();
+  EXPECT_NE(std::string::npos, uriStr.find("file://"));
+  EXPECT_NE(std::string::npos, uriStr.rfind("include_nested"));
+
+  auto name = include->FirstChildElement("name");
+  ASSERT_NE(nullptr, name);
+  ASSERT_NE(nullptr, name->GetText());
+  EXPECT_EQ("include_nested_new_name", std::string(name->GetText()));
+
+  auto pose = include->FirstChildElement("pose");
+  ASSERT_NE(nullptr, pose);
+  ASSERT_NE(nullptr, pose->GetText());
+
+  std::stringstream ss(pose->GetText());
+  ignition::math::Pose3d p;
+  ss >> p;
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), p);
+
+  // get second include
+  include = include->NextSiblingElement("include");
+  ASSERT_NE(nullptr, include);
+
+  uri = include->FirstChildElement("uri");
+  ASSERT_NE(nullptr, uri);
+  ASSERT_NE(nullptr, uri->GetText());
+  uriStr = uri->GetText();
+  EXPECT_NE(std::string::npos, uriStr.find("file://"));
+  EXPECT_NE(std::string::npos, uriStr.rfind("sphere"));
+
+  name = include->FirstChildElement("name");
+  EXPECT_EQ(nullptr, name);
+
+  pose = include->FirstChildElement("pose");
+  ASSERT_NE(nullptr, pose);
+  ASSERT_NE(nullptr, pose->GetText());
+
+  ss = std::stringstream(pose->GetText());
+  ss >> p;
+  EXPECT_EQ(ignition::math::Pose3d(0, 2, 2, 0, 0, 0), p);
+
+  // check reloading generated sdf
+  sdf::Root root;
+  sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
+  EXPECT_TRUE(err.empty());
 }
 
 /////////////////////////////////////////////////
