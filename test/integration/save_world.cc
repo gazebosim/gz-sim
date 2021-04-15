@@ -308,6 +308,10 @@ TEST_F(SdfGeneratorFixture, WorldWithNestedModel)
 /////////////////////////////////////////////////
 TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 {
+  std::string path =
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models");
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH", path);
+
   this->LoadWorld("test/worlds/model_nested_include.sdf");
 
   EXPECT_NE(kNullEntity, this->server->EntityByName("ground_plane"));
