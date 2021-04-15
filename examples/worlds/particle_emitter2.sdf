@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+
+<!--
+  Launch this example with:
+
+      ign gazebo -r particle_emitter.sdf
+
+  Try modifying some parameters of the emitter:
+
+    To disable the particle emitter:
+
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: false}'
+
+    Enable back the particle emitter:
+
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'emitting: {data: true}'
+
+    Then, change the particle rate:
+
+      ign topic -t /model/fog_generator/link/fog_link/particle_emitter/emitter/cmd -m ignition.msgs.ParticleEmitter -p 'rate: {data: 100}'
+-->
+
+<sdf version="1.6">
+  <world name="particle_emitters">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+      <!-- Use TPE in order to use nested models -->
+      <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-particle-emitter2-system"
+      name="ignition::gazebo::systems::ParticleEmitter2">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
+    </include>
+
+    <!-- Nested model example, where the particles are bright red
+         billboards -->
+    <model name="nested">
+      <static>true</static>
+      <pose>20 20 0 0 0 0</pose>
+      <model name="fog_generator">
+        <link name="fog_link_nested">
+        <particle_emitter name="emitter" type="box">
+          <emitting>true</emitting>
+          <size>10 10 0</size>
+          <particle_size>1 1 1</particle_size>
+          <lifetime>25</lifetime>
+          <min_velocity>0.1</min_velocity>
+          <max_velocity>0.2</max_velocity>
+          <scale_rate>0.5</scale_rate>
+          <rate>5</rate>
+          <material>
+            <diffuse>1.0 0.0 0.0</diffuse>
+            <specular>1.0 0.0 0.0</specular>
+          </material>
+        </particle_emitter>
+      </link>
+    </model>
+  </model>
+
+</world>
+</sdf>

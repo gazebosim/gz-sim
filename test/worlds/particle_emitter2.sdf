@@ -7,6 +7,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
+    <plugin
+      filename="ignition-gazebo-particle-emitter2-system"
+      name="ignition::gazebo::systems::ParticleEmitter2">
+    </plugin>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -22,7 +27,7 @@
           <anchor line="bottom" target="window" target_line="bottom"/>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -101,28 +106,24 @@
             </box>
           </geometry>
         </visual>
+        <particle_emitter name="smoke_emitter" type="box">
+          <pose>0 1 0 0 0 0</pose>
+          <size>2 2 2</size>
+          <rate>5</rate>
+          <duration>1</duration>
+          <emitting>true</emitting>
+          <particle_size>3 3 3</particle_size>
+          <lifetime>2</lifetime>
+          <!-- TODO(anyone) add <material> once other PRs are merged -->
+          <min_velocity>10</min_velocity>
+          <max_velocity>20</max_velocity>
+          <color_start>0 0 1</color_start>
+          <color_end>0 1 0</color_end>
+          <scale_rate>10</scale_rate>
+          <color_range_image>/path/to/dummy_image.png</color_range_image>
+        </particle_emitter>
       </link>
 
-      <plugin filename="ignition-gazebo-particle-emitter-system"
-        name="ignition::gazebo::systems::ParticleEmitter">
-        <emitter_name>smoke_emitter</emitter_name>
-        <type>box</type>
-        <pose>0 1 0 0 0 0</pose>
-        <size>2 2 2</size>
-        <rate>5</rate>
-        <duration>1</duration>
-        <emitting>true</emitting>
-        <particle_size>3 3 3</particle_size>
-        <lifetime>2</lifetime>
-        <!-- TODO(anyone) add <material> once other PRs are merged -->
-        <min_velocity>10</min_velocity>
-        <max_velocity>20</max_velocity>
-        <color_start>0 0 1</color_start>
-        <color_end>0 1 0</color_end>
-        <scale_rate>10</scale_rate>
-        <color_range_image>/path/to/dummy_image.png</color_range_image>
-        <particle_scatter_ratio>0.01</particle_scatter_ratio>
-      </plugin>
     </model>
 
     <!-- test default parameters -->

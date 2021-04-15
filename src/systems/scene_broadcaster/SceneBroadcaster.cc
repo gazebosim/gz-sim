@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -122,6 +123,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
   public: static void AddVisuals(msgs::Link *_msg, const Entity _entity,
+                                 const SceneGraphType &_graph);
+
+  /// \brief Adds sensors to a msgs::Link object based on the contents of
+  /// the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the sensors will be
+  /// added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
@@ -742,6 +752,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         return true;
       });
 
+  // Sensors
+  _manager.EachNew<components::Sensor, components::Name,
+                   components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Sensor *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto sensorMsg = std::make_shared<msgs::Sensor>();
+        sensorMsg->set_id(_entity);
+        sensorMsg->set_parent_id(_parentComp->Data());
+        sensorMsg->set_name(_nameComp->Data());
+        sensorMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
 
   // Update the whole scene graph from the new graph
   {
@@ -887,6 +917,24 @@ void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
+    const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto sensorMsg = std::dynamic_pointer_cast<msgs::Sensor>(
+        vertex.second.get().Data());
+    if (!sensorMsg)
+      continue;
+
+    _msg->add_sensor()->CopyFrom(*sensorMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -908,6 +956,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Lights
     AddLights(msgOut, vertex.second.get().Id(), _graph);
+
+    // Sensors
+    AddSensors(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

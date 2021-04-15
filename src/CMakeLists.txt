@@ -10,10 +10,12 @@ set_source_files_properties(
 )
 
 # Suppress compiler warnings in generated protobuf C++ code.
-set_source_files_properties(
-  ${PROTO_PRIVATE_SRC}
-  COMPILE_FLAGS -Wno-unused-parameter
-)
+if(NOT MSVC)
+  set_source_files_properties(
+    ${PROTO_PRIVATE_SRC}
+    COMPILE_FLAGS -Wno-unused-parameter
+  )
+endif()
 
 set(network_sources
   network/NetworkConfig.cc
