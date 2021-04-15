@@ -21,6 +21,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -126,6 +127,110 @@ class VelocityControlTest : public ::testing::TestWithParam<int>
       EXPECT_GT(poses[i].Rot().Euler().Z(), poses[i-1].Rot().Euler().Z()) << i;
     }
   }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _cmdVelTopic Command velocity topic.
+  protected: void TestPublishLinkCmd(const std::string &_sdfFile,
+                                 const std::string &_cmdVelTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    // currently only tpe supports link velocity cmds
+    serverConfig.SetPhysicsEngine("ignition-physics-tpe-plugin");
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    // Create a system that records the vehicle link poses
+    test::Relay testSystem;
+
+    std::vector<math::Pose3d> modelPoses;
+    std::vector<math::Pose3d> linkPoses;
+    testSystem.OnPostUpdate([&linkPoses, &modelPoses](const gazebo::UpdateInfo &,
+      const gazebo::EntityComponentManager &_ecm)
+      {
+        auto modelId = _ecm.EntityByComponents(
+          components::Model(),
+          components::Name("vehicle_blue"));
+        EXPECT_NE(kNullEntity, modelId);
+
+        auto modelPoseComp = _ecm.Component<components::Pose>(modelId);
+        ASSERT_NE(nullptr, modelPoseComp);
+
+        modelPoses.push_back(modelPoseComp->Data());
+
+        auto linkId = _ecm.EntityByComponents(
+          components::Link(),
+          components::Name("caster"));
+        EXPECT_NE(kNullEntity, linkId);
+
+        auto linkPoseComp = _ecm.Component<components::Pose>(linkId);
+        ASSERT_NE(nullptr, linkPoseComp);
+
+        linkPoses.push_back(linkPoseComp->Data());
+
+      });
+    server.AddSystem(testSystem.systemPtr);
+
+    // Run server and check that vehicle didn't move
+    server.Run(true, 1000, false);
+
+    EXPECT_EQ(1000u, modelPoses.size());
+
+    for (const auto &pose : modelPoses)
+    {
+      EXPECT_EQ(modelPoses[0], pose);
+    }
+    for (const auto &pose : linkPoses)
+    {
+      EXPECT_EQ(linkPoses[0], pose);
+    }
+
+    // Publish command and check that link moved
+    transport::Node node;
+    auto pub = node.Advertise<msgs::Twist>(_cmdVelTopic);
+
+    msgs::Twist msg;
+
+    const double desiredLinVel = 10.5;
+    const double desiredAngVel = 0.2;
+    msgs::Set(msg.mutable_linear(),
+              math::Vector3d(desiredLinVel, 0, 0));
+    msgs::Set(msg.mutable_angular(),
+              math::Vector3d(0.0, 0, desiredAngVel));
+    pub.Publish(msg);
+
+    // Give some time for message to be received
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    server.Run(true, 3000, false);
+
+    // Poses for 4s
+    ASSERT_EQ(4000u, modelPoses.size());
+    ASSERT_EQ(4000u, linkPoses.size());
+
+    // verify that the model is stationary
+    for (unsigned int i = 1001; i < modelPoses.size(); ++i)
+    {
+      EXPECT_EQ(modelPoses[0], modelPoses[i]);
+    }
+
+    // verify that the link is moving in +x and rotating about its origin
+    for (unsigned int i = 1001; i < linkPoses.size(); ++i)
+    {
+      EXPECT_GT(linkPoses[i].Pos().X(), linkPoses[i-1].Pos().X()) << i;
+      EXPECT_NEAR(linkPoses[i].Pos().Y(), linkPoses[i-1].Pos().Y(), 1e-5);
+      EXPECT_NEAR(linkPoses[i].Pos().Z(), linkPoses[i-1].Pos().Z(), 1e-5);
+      EXPECT_NEAR(linkPoses[i].Rot().Euler().X(),
+          linkPoses[i-1].Rot().Euler().X(), 1e-5) << i;
+      EXPECT_NEAR(linkPoses[i].Rot().Euler().Y(),
+          linkPoses[i-1].Rot().Euler().Y(), 1e-5) << i;
+      EXPECT_GT(linkPoses[i].Rot().Euler().Z(), linkPoses[i-1].Rot().Euler().Z()) << i;
+    }
+  }
 };
 
 /////////////////////////////////////////////////
@@ -134,6 +239,14 @@ TEST_P(VelocityControlTest, PublishCmd)
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
       "/model/vehicle_blue/cmd_vel");
+}
+
+/////////////////////////////////////////////////
+TEST_P(VelocityControlTest, PublishLinkCmd)
+{
+  TestPublishLinkCmd(
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
+      "/model/vehicle_blue/link/caster/cmd_vel");
 }
 
 // Run multiple times
