@@ -79,8 +79,10 @@ namespace sdf_generator
   /// \brief Update a sdf::Element model to use //include instead of expanded
   /// model (to be used when expand_include_tags is disabled)
   /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _saveFuelVersion True if "Save Fuel model versions" is enabled
   IGNITION_GAZEBO_VISIBLE
-  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem);
+  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem,
+                                           const bool _saveFuelVersion);
 
   /// \brief Update a sdf::Element of an included resource.
   /// Intended for internal use.

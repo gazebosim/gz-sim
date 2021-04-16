@@ -327,7 +327,10 @@ namespace sdf_generator
 
             // Check & update possible //model/include(s)
             if (!modelConfig.expand_include_tags().data())
-              updateModelElementWithNestedInclude(modelElem);
+            {
+              updateModelElementWithNestedInclude(modelElem,
+                    modelConfig.save_fuel_version().data());
+            }
           }
           else if (uriMapIt != _includeUriMap.end())
           {
@@ -426,7 +429,8 @@ namespace sdf_generator
     return true;
   }
 
-  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem)
+  void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem,
+                                           const bool _saveFuelVersion)
   {
     sdf::ElementPtr e = _elem->GetFirstElement(), nextE = nullptr;
     while (e != nullptr)
@@ -435,12 +439,25 @@ namespace sdf_generator
 
       if (e->GetIncludeElement() != nullptr)
       {
+        if (_saveFuelVersion && e->FilePath().find("fuel") != std::string::npos)
+        {
+          // find fuel model version from file path
+          std::string version = common::parentPath(e->FilePath());
+          version = common::basename(version);
+
+          sdf::ElementPtr uriElem = e->GetIncludeElement()->GetElement("uri");
+          std::string uri = uriElem->GetValue()->GetAsString();
+          uri = common::joinPaths(uri, version);
+
+          uriElem->Set(uri);
+        }
+
         _elem->InsertElement(e->GetIncludeElement());
         e->RemoveFromParent();
       }
       else if (e->GetName() == "model")
       {
-        updateModelElementWithNestedInclude(e);
+        updateModelElementWithNestedInclude(e, _saveFuelVersion);
       }
 
       e = nextE;
