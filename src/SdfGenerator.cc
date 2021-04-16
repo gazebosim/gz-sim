@@ -435,14 +435,12 @@ namespace sdf_generator
 
       if (e->GetIncludeElement() != nullptr)
       {
-        std::string uri = "file://" + e->FilePath();
-
-        if (uri.rfind(".sdf") != std::string::npos)
-          uri = common::parentPath(uri);
-
-        e->GetIncludeElement()->GetElement("uri")->Set(uri);
         _elem->InsertElement(e->GetIncludeElement());
         e->RemoveFromParent();
+      }
+      else if (e->GetName() == "model")
+      {
+        updateModelElementWithNestedInclude(e);
       }
 
       e = nextE;

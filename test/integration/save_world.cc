@@ -319,6 +319,9 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   EXPECT_NE(kNullEntity, this->server->EntityByName("C0"));
   EXPECT_NE(kNullEntity, this->server->EntityByName("V0"));
   EXPECT_NE(kNullEntity, this->server->EntityByName("M1"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("M2"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("M3"));
+  EXPECT_NE(kNullEntity, this->server->EntityByName("coke"));
   EXPECT_NE(kNullEntity, this->server->EntityByName("L1"));
   EXPECT_NE(kNullEntity, this->server->EntityByName("C1"));
   EXPECT_NE(kNullEntity, this->server->EntityByName("V1"));
@@ -344,16 +347,14 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   model = model->NextSiblingElement("model");  // M1
   ASSERT_NE(nullptr, model);
 
-  // get first include
+  // M1's child include
   auto include = model->FirstChildElement("include");
   ASSERT_NE(nullptr, include);
 
   auto uri = include->FirstChildElement("uri");
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
-  std::string uriStr = uri->GetText();
-  EXPECT_NE(std::string::npos, uriStr.find("file://"));
-  EXPECT_NE(std::string::npos, uriStr.rfind("include_nested"));
+  EXPECT_EQ("include_nested", std::string(uri->GetText()));
 
   auto name = include->FirstChildElement("name");
   ASSERT_NE(nullptr, name);
@@ -369,16 +370,18 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ss >> p;
   EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), p);
 
-  // get second include
-  include = include->NextSiblingElement("include");
+  // M2
+  model = model->FirstChildElement("model");
+  ASSERT_NE(nullptr, model);
+
+  // M2's child include
+  include = model->FirstChildElement("include");
   ASSERT_NE(nullptr, include);
 
   uri = include->FirstChildElement("uri");
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
-  uriStr = uri->GetText();
-  EXPECT_NE(std::string::npos, uriStr.find("file://"));
-  EXPECT_NE(std::string::npos, uriStr.rfind("sphere"));
+  EXPECT_EQ("sphere", std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");
   EXPECT_EQ(nullptr, name);
@@ -390,6 +393,34 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ss = std::stringstream(pose->GetText());
   ss >> p;
   EXPECT_EQ(ignition::math::Pose3d(0, 2, 2, 0, 0, 0), p);
+
+  // M3
+  model = model->FirstChildElement("model");
+  ASSERT_NE(nullptr, model);
+
+  // M3's child include
+  include = model->FirstChildElement("include");
+  ASSERT_NE(nullptr, include);
+
+  uri = include->FirstChildElement("uri");
+  ASSERT_NE(nullptr, uri);
+  ASSERT_NE(nullptr, uri->GetText());
+  EXPECT_EQ(
+    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can",
+     std::string(uri->GetText()));
+
+  name = include->FirstChildElement("name");
+  ASSERT_NE(nullptr, name);
+  ASSERT_NE(nullptr, name->GetText());
+  EXPECT_EQ("coke", std::string(name->GetText()));
+
+  pose = include->FirstChildElement("pose");
+  ASSERT_NE(nullptr, pose);
+  ASSERT_NE(nullptr, pose->GetText());
+
+  ss = std::stringstream(pose->GetText());
+  ss >> p;
+  EXPECT_EQ(ignition::math::Pose3d(2, 2, 2, 0, 0, 0), p);
 
   // check reloading generated sdf
   sdf::Root root;
