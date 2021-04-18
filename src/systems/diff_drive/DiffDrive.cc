@@ -285,7 +285,6 @@ void DiffDrive::Configure(const Entity &_entity,
   std::vector<std::string> enableTopics;
   enableTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
   auto enableTopic = validTopic(enableTopics);
-  ignerr << "enableTopic: " << enableTopic << std::endl;
 
   this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
       this->dataPtr.get());
