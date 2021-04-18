@@ -62,6 +62,10 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \param[in] _msg Velocity message
   public: void OnCmdVel(const ignition::msgs::Twist &_msg);
 
+  /// \brief Callback for enable/disable subscription
+  /// \param[in] _msg Boolean message
+  public: void OnEnable(const ignition::msgs::Boolean &_msg);
+
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
@@ -138,6 +142,9 @@ class ignition::gazebo::systems::DiffDrivePrivate
 
   /// \brief Last target velocity requested.
   public: msgs::Twist targetVel;
+
+  /// \brief Last enable/disable requested.
+  public: msgs::Boolean enable;
 
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
@@ -273,6 +280,16 @@ void DiffDrive::Configure(const Entity &_entity,
 
   this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
       this->dataPtr.get());
+
+  // Subscribe to enable/disable
+  std::vector<std::string> enableTopics;
+  enableTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
+  auto enableTopic = validTopic(enableTopics);
+  ignerr << "enableTopic: " << enableTopic << std::endl;
+
+  this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
+      this->dataPtr.get());
+  this->dataPtr->enable.set_data(true);
 
   std::vector<std::string> odomTopics;
   if (_sdf->HasElement("odom_topic"))
@@ -565,7 +582,20 @@ void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
 void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  this->targetVel = _msg;
+  if (this->enable.data()) {
+    this->targetVel = _msg;
+  }
+}
+
+void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->enable = _msg;
+  if (!this->enable.data()) {
+    math::Vector3d zeroVector{0, 0, 0};
+    msgs::Set(this->targetVel.mutable_linear(), zeroVector);
+    msgs::Set(this->targetVel.mutable_angular(), zeroVector);
+  }
 }
 
 IGNITION_ADD_PLUGIN(DiffDrive,
