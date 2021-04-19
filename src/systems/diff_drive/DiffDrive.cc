@@ -286,8 +286,11 @@ void DiffDrive::Configure(const Entity &_entity,
   enableTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
   auto enableTopic = validTopic(enableTopics);
 
-  this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
-      this->dataPtr.get());
+  if (enableTopic != "")
+  {
+    this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
+        this->dataPtr.get());
+  }
   this->dataPtr->enable.set_data(true);
 
   std::vector<std::string> odomTopics;
