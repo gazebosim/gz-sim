@@ -1,0 +1,8 @@
+prefix=/home/adwaitnaik/plugin_ws/src/random_vel/build/devel
+
+Name: random_vel
+Description: Description of random_vel
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
