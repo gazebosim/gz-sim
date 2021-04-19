@@ -37,6 +37,7 @@ set(tests
   multiple_servers.cc
   network_handshake.cc
   particle_emitter.cc
+  particle_emitter2.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc

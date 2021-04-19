@@ -35,7 +35,7 @@
 using namespace ignition;
 using namespace gazebo;
 
-class ParticleEmitterTest : public ::testing::Test
+class ParticleEmitter2Test : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -63,12 +63,12 @@ class ParticleEmitterTest : public ::testing::Test
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-TEST_F(ParticleEmitterTest, SDFLoad)
+TEST_F(ParticleEmitter2Test, SDFLoad)
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};
 
-  this->LoadWorld("test/worlds/particle_emitter.sdf");
+  this->LoadWorld("test/worlds/particle_emitter2.sdf");
 
   // Create a system that checks a particle emitter.
   test::Relay testSystem;
@@ -116,28 +116,8 @@ TEST_F(ParticleEmitterTest, SDFLoad)
 
                 // color range image is empty because the emitter system
                 // will not be able to find a file that does not exist
-                // TODO(anyone) this should return  "/path/to/dummy_image.png"
-                // and let rendering do the findFile instead
-                EXPECT_EQ(std::string(),
+                EXPECT_EQ("/path/to/dummy_image.png",
                     _emitter->Data().color_range_image().data());
-
-                // particle scatter ratio is temporarily stored in header
-                bool hasParticleScatterRatio = false;
-                for (int i = 0; i < _emitter->Data().header().data_size(); ++i)
-                {
-                  for (int j = 0;
-                      j < _emitter->Data().header().data(i).value_size(); ++j)
-                  {
-                    if (_emitter->Data().header().data(i).key() ==
-                        "particle_scatter_ratio")
-                    {
-                      EXPECT_DOUBLE_EQ(0.01, math::parseFloat(
-                          _emitter->Data().header().data(i).value(0)));
-                      hasParticleScatterRatio = true;
-                    }
-                  }
-                }
-                EXPECT_TRUE(hasParticleScatterRatio);
               }
               else
               {

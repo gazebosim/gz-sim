@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.6.0)
+project(ignition-gazebo4 VERSION 4.7.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -114,7 +114,7 @@ set(IGN_SENSORS_VER ${ignition-sensors4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering4 REQUIRED VERSION 4.1.0)
+ign_find_package(ignition-rendering4 REQUIRED VERSION 4.7.0)
 set(IGN_RENDERING_VER ${ignition-rendering4_VERSION_MAJOR})
 
 #--------------------------------------
@@ -136,7 +136,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${ignition-msgs6_INCLUDE_DIRS})
 
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
