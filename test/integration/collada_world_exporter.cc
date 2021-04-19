@@ -72,6 +72,27 @@ TEST_F(ColladaWorldExporterFixture, ExportWorld)
   common::removeAll("./collada_world_exporter_box_test");
 }
 
+TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
+{
+  this->LoadWorld(common::joinPaths("test", "worlds",
+        "collada_world_exporter_submesh.sdf"));
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_tiles_test");
+
+  // The export directory shouldn't exist.
+  EXPECT_FALSE(common::exists("./collada_world_exporter_tiles_test"));
+
+  // Run one iteration which should export the world.
+  server->Run(true, 1, false);
+
+  // The export directory should now exist.
+  EXPECT_TRUE(common::exists("./collada_world_exporter_tiles_test"));
+
+  // Cleanup
+  common::removeAll("./collada_world_exporter_tiles_test");
+}
+
 /////////////////////////////////////////////////
 /// Main
 int main(int _argc, char **_argv)

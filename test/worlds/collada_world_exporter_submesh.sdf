@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<!--
+  Test world downloading two tile files
+-->
+<sdf version="1.6">
+  <world name="collada_world_exporter_tiles_test">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <scene>
+      <ambient>0.1 0.1 0.1 1.0</ambient>
+      <background>0 0 0 1.0</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+    </scene>
+
+    <plugin
+    	filename="ignition-gazebo-collada-world-exporter-system"
+    	name="ignition::gazebo::systems::ColladaWorldExporter">
+    </plugin>
+
+    <atmosphere type="adiabatic">
+       <temperature>288</temperature>
+       <temperature_gradient>0.2</temperature_gradient>
+    </atmosphere>
+
+    <!-- Tunnel tile-->
+    <include>
+      <static>true</static>
+      <name>tile_1</name>
+      <pose>22 100 -10 0 -0 -3.14159</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile 6</uri>
+    </include>
+
+    <include>
+      <static>true</static>
+      <name>tile_2</name>
+      <pose>22 111 -10 0 -0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Tunnel Tile Blocker</uri>
+    </include>
+
+  </world>
+</sdf>
