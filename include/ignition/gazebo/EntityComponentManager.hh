@@ -474,11 +474,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified
@@ -535,11 +533,9 @@ namespace ignition
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
-      /// Currently supported:
+      /// This includes:
       /// * New entities and all of their components
       /// * Removed entities and all of their components
-      ///
-      /// Future work:
       /// * Entities which had a component added
       /// * Entities which had a component removed
       /// * Entities which had a component modified

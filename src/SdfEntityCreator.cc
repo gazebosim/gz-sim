@@ -55,6 +55,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include <ignition/gazebo/components/ParticleEmitter.hh>
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
@@ -458,6 +459,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     this->SetParent(sensorEntity, linkEntity);
   }
 
+  // Particle emitters
+  for (uint64_t emitterIndex = 0; emitterIndex  < _link->ParticleEmitterCount();
+       ++emitterIndex)
+  {
+    auto emitter = _link->ParticleEmitterByIndex(emitterIndex);
+    auto emitterEntity = this->CreateEntities(emitter);
+
+    this->SetParent(emitterEntity, linkEntity);
+  }
+
   return linkEntity;
 }
 
@@ -546,6 +557,25 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   this->dataPtr->newVisuals[visualEntity] = _visual->Element();
 
   return visualEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
+{
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
+
+  // Entity
+  Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(emitterEntity,
+      components::ParticleEmitter(convert<msgs::ParticleEmitter>(*_emitter)));
+  this->dataPtr->ecm->CreateComponent(emitterEntity,
+      components::Pose(ResolveSdfPose(_emitter->SemanticPose())));
+  this->dataPtr->ecm->CreateComponent(emitterEntity,
+      components::Name(_emitter->Name()));
+
+  return emitterEntity;
 }
 
 //////////////////////////////////////////////////
