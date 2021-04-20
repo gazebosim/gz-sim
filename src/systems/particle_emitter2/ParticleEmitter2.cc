@@ -61,9 +61,6 @@ class ignition::gazebo::systems::ParticleEmitter2Private
   /// \brief A mutex to protect the user command.
   public: std::mutex mutex;
 
-  /// \brief Used to coordinate the emitter service response.
-  public: std::condition_variable serviceCv;
-
   /// \brief Protects serviceMsg.
   public: std::mutex serviceMutex;
 
