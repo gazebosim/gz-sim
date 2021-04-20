@@ -69,10 +69,6 @@ class ignition::gazebo::systems::ParticleEmitter2Private
 
   /// \brief Filled on demand for the emitter service.
   public: msgs::ParticleEmitter_V serviceMsg;
-
-  /// \brief True if the emitter service has been requested.
-  public: bool serviceRequest = false;
-
 };
 
 //////////////////////////////////////////////////
@@ -100,20 +96,9 @@ bool ParticleEmitter2Private::EmittersService(
   _res.Clear();
 
   // Lock and wait for an iteration to be run and fill the state
-  std::unique_lock<std::mutex> lock(this->serviceMutex);
-
-  this->serviceRequest = true;
-  bool success = this->serviceCv.wait_for(lock, 5s, [&]
-  {
-    return !this->serviceRequest;
-  });
-
-  if (success)
-    _res.CopyFrom(this->serviceMsg);
-  else
-    ignerr << "Timed out waiting for state" << std::endl;
-
-  return success;
+  std::scoped_lock<std::mutex> lock(this->serviceMutex);
+  _res.CopyFrom(this->serviceMsg);
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -160,70 +145,70 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Create particle emitters
-  _ecm.EachNew<components::ParticleEmitter>(
-    [&](const Entity &_entity,
-        const components::ParticleEmitter *_emitter)->bool
-      {
-        std::string topic;
-
-        // Get the topic information from the header, which is currently a
-        // hack to avoid breaking the particle_emitter.proto message.
-        if (_emitter->Data().has_header())
-        {
-          for (const auto data : _emitter->Data().header().data())
-          {
-            if (data.key() == "topic" && !data.value().empty())
-            {
-              topic = data.value(0);
-            }
-          }
-        }
-
-        // If a topic has not been specified, then generate topic based
-        // on the scoped name.
-        topic = !topic.empty() ? topic :
-          topicFromScopedName(_entity, _ecm) + "/cmd";
-
-        // Subscribe to the topic that receives particle emitter commands.
-        if (!this->dataPtr->node.Subscribe(
-              topic, &ParticleEmitter2Private::OnCmd, this->dataPtr.get()))
-        {
-          ignerr << "Error subscribing to topic [" << topic << "]. "
-            << "Particle emitter will not receive updates." << std::endl;
-          return false;
-        }
-        ignmsg << "Particle emitter["
-          << scopedName(_entity, _ecm, "::", false) << "] subscribed "
-          << "to command messages on topic[" << topic << "]\n";
-
-        // Store the topic name so that we can apply user commands
-        // correctly.
-        this->dataPtr->emitterTopicMap[topic] = _entity;
-        return true;
-      });
-
-  // Populate teh service message on demand
-  if (this->dataPtr->serviceRequest)
   {
-    std::unique_lock<std::mutex> lockCv(this->dataPtr->serviceMutex);
-    this->dataPtr->serviceMsg.Clear();
-
-    // Get all the particle emitters
-    _ecm.Each<components::ParticleEmitter>([&](const Entity & /*_entity*/,
+    std::lock_guard<std::mutex> serviceLock(this->dataPtr->serviceMutex);
+    _ecm.EachNew<components::ParticleEmitter>(
+      [&](const Entity &_entity,
           const components::ParticleEmitter *_emitter)->bool
         {
+          std::string topic;
+
+          // Get the topic information from the header, which is currently a
+          // hack to avoid breaking the particle_emitter.proto message.
+          if (_emitter->Data().has_header())
+          {
+            for (const auto data : _emitter->Data().header().data())
+            {
+              if (data.key() == "topic" && !data.value().empty())
+              {
+                topic = data.value(0);
+              }
+            }
+          }
+
+          // If a topic has not been specified, then generate topic based
+          // on the scoped name.
+          topic = !topic.empty() ? topic :
+            topicFromScopedName(_entity, _ecm) + "/cmd";
+
+          // Subscribe to the topic that receives particle emitter commands.
+          if (!this->dataPtr->node.Subscribe(
+                topic, &ParticleEmitter2Private::OnCmd, this->dataPtr.get()))
+          {
+            ignerr << "Error subscribing to topic [" << topic << "]. "
+              << "Particle emitter will not receive updates." << std::endl;
+            return false;
+          }
+          ignmsg << "Particle emitter["
+            << scopedName(_entity, _ecm, "::", false) << "] subscribed "
+            << "to command messages on topic[" << topic << "]\n";
+
+          // Store the topic name so that we can apply user commands
+          // correctly.
+          this->dataPtr->emitterTopicMap[topic] = _entity;
+
+          // Store the emitter information in the service message, which
+          // can then be used in the particle_emitters service.
           msgs::ParticleEmitter *emitterMsg =
             this->dataPtr->serviceMsg.add_particle_emitter();
           emitterMsg->CopyFrom(_emitter->Data());
+          math::Pose3d pose = worldPose(_entity, _ecm);
+          msgs::Set(emitterMsg->mutable_pose(), pose);
+
+          // Set the topic information if it was not set via SDF.
+          if (!emitterMsg->has_header())
+          {
+            auto headerData = emitterMsg->mutable_header()->add_data();
+            headerData->set_key("topic");
+            headerData->add_value(topic);
+          }
+
           return true;
         });
-    this->dataPtr->serviceRequest = false;
-    this->dataPtr->serviceCv.notify_all();
   }
 
   if (this->dataPtr->userCmd.empty() || _info.paused)
     return;
-
 
   // Process each command
   for (const auto cmd : this->dataPtr->userCmd)
