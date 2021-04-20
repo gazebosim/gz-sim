@@ -283,10 +283,11 @@ void DiffDrive::Configure(const Entity &_entity,
 
   // Subscribe to enable/disable
   std::vector<std::string> enableTopics;
-  enableTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
+  enableTopics.push_back(
+    "/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
   auto enableTopic = validTopic(enableTopics);
 
-  if (enableTopic != "")
+  if (!enableTopic.empty())
   {
     this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
         this->dataPtr.get());
