@@ -36,6 +36,7 @@ set(tests
   multicopter.cc
   multiple_servers.cc
   network_handshake.cc
+  odometry_publisher.cc
   particle_emitter.cc
   particle_emitter2.cc
   performer_detector.cc
