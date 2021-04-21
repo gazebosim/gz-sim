@@ -29,7 +29,9 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gazebo/components/Name.hh>
+#include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/ParticleEmitter.hh>
+#include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/Util.hh>
 #include "ParticleEmitter2.hh"
 
@@ -92,7 +94,6 @@ bool ParticleEmitter2Private::EmittersService(
 {
   _res.Clear();
 
-  // Lock and wait for an iteration to be run and fill the state
   std::scoped_lock<std::mutex> lock(this->serviceMutex);
   _res.CopyFrom(this->serviceMsg);
   return true;
@@ -144,9 +145,12 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   // Create particle emitters
   {
     std::lock_guard<std::mutex> serviceLock(this->dataPtr->serviceMutex);
-    _ecm.EachNew<components::ParticleEmitter>(
+    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity,
+      components::Pose>(
       [&](const Entity &_entity,
-          const components::ParticleEmitter *_emitter)->bool
+          const components::ParticleEmitter *_emitter,
+          const components::ParentEntity *_parent,
+          const components::Pose *_pose)->bool
         {
           std::string topic;
 
@@ -189,8 +193,7 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           msgs::ParticleEmitter *emitterMsg =
             this->dataPtr->serviceMsg.add_particle_emitter();
           emitterMsg->CopyFrom(_emitter->Data());
-          math::Pose3d pose = worldPose(_entity, _ecm);
-          msgs::Set(emitterMsg->mutable_pose(), pose);
+          msgs::Set(emitterMsg->mutable_pose(), _pose->Data());
 
           // Set the topic information if it was not set via SDF.
           if (!emitterMsg->has_header())
@@ -199,6 +202,13 @@ void ParticleEmitter2::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
             headerData->set_key("topic");
             headerData->add_value(topic);
           }
+
+          // Set the particle emitter frame
+          auto frameData = emitterMsg->mutable_header()->add_data();
+          frameData->set_key("frame");
+          frameData->add_value(
+              removeParentScope(
+                scopedName(_parent->Data(), _ecm, "::", false), "::"));
 
           return true;
         });
