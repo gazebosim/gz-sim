@@ -65,9 +65,6 @@ class ignition::gazebo::systems::KineticEnergyMonitorPrivate
   /// \brief The model this plugin is attached to.
   public: Model model;
 
-  /// \brief This model halt motion state.
-  public: bool haltMotionState {false};
-
   /// \brief Halting motion Mode
   public: bool haltMode;
 };
@@ -172,41 +169,12 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
         components::WorldAngularVelocity());
   }
 
-  // Create a halt motion component if one is not present.
-  if (!_ecm.Component<components::HaltMotion>(
+  // Create a halt motion component if halt mode is true and one is not present.
+  if (this->dataPtr->haltMode && !_ecm.Component<components::HaltMotion>(
         _ecm.ParentEntity(this->dataPtr->linkEntity)))
   {
     _ecm.CreateComponent(_ecm.ParentEntity(this->dataPtr->linkEntity),
         components::HaltMotion(false));
-  }
-}
-
-//////////////////////////////////////////////////
-void KineticEnergyMonitor::Update(const UpdateInfo &_info,
-                                 EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("KineticEnergyMonitor::Update");
-
-  // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero())
-  {
-    ignwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
-  }
-
-  if (_info.paused)
-    return;
-
-  // Update Halt Motion component
-  auto *haltMotionComp =
-    _ecm.Component<components::HaltMotion>(
-      _ecm.ParentEntity(this->dataPtr->linkEntity));
-
-  if (this->dataPtr->haltMode &&
-      haltMotionComp->Data() != this->dataPtr->haltMotionState)
-  {
-    haltMotionComp->Data() = this->dataPtr->haltMotionState;
   }
 }
 
@@ -238,7 +206,6 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
         msgs::Double msg;
         msg.set_data(deltaKE);
         this->dataPtr->pub.Publish(msg);
-        this->dataPtr->haltMotionState = true;
       }
     }
   }
@@ -247,7 +214,6 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
 IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
                     ignition::gazebo::System,
                     KineticEnergyMonitor::ISystemConfigure,
-                    KineticEnergyMonitor::ISystemUpdate,
                     KineticEnergyMonitor::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
