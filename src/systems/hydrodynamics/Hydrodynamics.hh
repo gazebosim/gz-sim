@@ -49,18 +49,18 @@ namespace systems
   ///   <kDotP> - Added mass in roll direction
   ///   <mDotQ> - Added mass in pitch direction
   ///   <nDotR> - Added mass in yaw direction
-  ///   <xUU> - Stability derivative, 2nd order, x component
-  ///   <xU> - Stability derivative, 1st order, x component
-  ///   <yVV> - Stability derivative, 2nd order, y component
-  ///   <yV> - Stability derivative, 1st order, y component
-  ///   <zWW> - Stability derivative, 2nd order, z component
-  ///   <zW> - Stability derivative, 1st order, z component
-  ///   <kPP> - Stability derivative, 2nd order, roll component
-  ///   <kP> - Stability derivative, 1st order, roll component
-  ///   <mQQ> - Stability derivative, 2nd order, pitch component
-  ///   <mQ> - Stability derivative, 1st order, pitch component
-  ///   <nRR> - Stability derivative, 2nd order, yaw component
-  ///   <nR> - Stability derivative, 1st order, yaw component
+  ///   <xUU>   - Stability derivative, 2nd order, x component
+  ///   <xU>    - Stability derivative, 1st order, x component
+  ///   <yVV>   - Stability derivative, 2nd order, y component
+  ///   <yV>    - Stability derivative, 1st order, y component
+  ///   <zWW>   - Stability derivative, 2nd order, z component
+  ///   <zW>    - Stability derivative, 1st order, z component
+  ///   <kPP>   - Stability derivative, 2nd order, roll component
+  ///   <kP>    - Stability derivative, 1st order, roll component
+  ///   <mQQ>   - Stability derivative, 2nd order, pitch component
+  ///   <mQ>    - Stability derivative, 1st order, pitch component
+  ///   <nRR>   - Stability derivative, 2nd order, yaw component
+  ///   <nR>    - Stability derivative, 1st order, yaw component
   /// Additionally the system also supports the following parameters:
   ///   <waterDensity> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-2.
@@ -70,19 +70,19 @@ namespace systems
   /// # Example
   /// An example configuration is provided in the examples folder. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
-  /// thruster plugin to propell the craft and the buoyancy plugin for buoyant
+  /// thruster plugin to propel the craft and the buoyancy plugin for buoyant
   /// force. To run th example run.
   /// ```
   /// ign gazebo auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following
   /// ```
-  /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+  /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
   ///    -m ignition.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
   /// ```
-  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.

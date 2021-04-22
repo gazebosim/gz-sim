@@ -5,7 +5,7 @@ This capability is based on the equations described in Fossen's ["Guidance and
 Control of Ocean Vehicles"](https://www.wiley.com/en-sg/Guidance+and+Control+of+Ocean+Vehicles-p-9780471941132).
 This tutorial will guide you through the steps you
 need to setup simulation of an underwater vehicle. In this tutorial, we will
-guid you through the setup of the [MBARI Tethys](https://app.ignitionrobotics.org/accurrent/fuel/models/MBARI%20Tethys%20LRAUV).
+guide you through the setup of the [MBARI Tethys](https://app.ignitionrobotics.org/accurrent/fuel/models/MBARI%20Tethys%20LRAUV).
 One can find the final sdf file for this tutorial in the
 `examples/worlds/auv_controls.sdf` file.
 
@@ -17,7 +17,7 @@ a body can be seen in the following diagram:
 ![force diagram](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/underwater/MBARI%20forces.png)
 
 # Setting up the buoyancy plugin
-The buoyancy plugin in ignition uses the collision mnesh to calculate the volume
+The buoyancy plugin in ignition uses the collision mesh to calculate the volume
 of the vehicle. Additionally, it needs to know the density of the fluid in which
 it is moving. By default this is set to 1000kgm^-3. However, in real life this
 may vary depending on many factors like depth, salinity of water etc. To add
@@ -56,14 +56,14 @@ page 246 of Fossen's book. In particular it relates force to rpm as follows:
 The plugin takes in commands in newtons. So if you have a different thrust
 curve you can still use the plugin with some type of adapter script. The thrust
 constant is normally determined by individual manufacturers. In this case we are
-using the tethys's thrust coefficient. you may also build a test rig to measure
+using the Tethys's thrust coefficient. you may also build a test rig to measure
 your thruster's thrust coefficient.
 
 # Adding Hydrodynamic behaviour
 You may notice that the robot now keeps getting faster and faster. This is
 because there is no drag to oppose the thruster's force. We will be using
-Fossen's equations which describe the motion of a craft through the water for 
-this. For better understanding of the parameters here, I would reffer you to
+Fossen's equations which describe the motion of a craft through the water for
+this. For better understanding of the parameters here, I would refer you to
 his book. Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
 ```xml
@@ -96,7 +96,7 @@ name="ignition::gazebo::systems::Hydrodynamics">
 Just like aeroplanes, an underwater vehicle may also use fins for stability and
 control. Fortunately, Ignition already has a version of the LiftDrag plugin. In
 this tutorial, we will simply add two liftdrag plugins to the rudder and
-elevator of MBARI's tethys. For more info about the liftdrag plugin inluding
+elevator of MBARI's Tethys. For more info about the liftdrag plugin inluding
 what the parameters mean you may look
 at [this gazebo classic tutorial](http://gazebosim.org/tutorials?tut=aerodynamics&cat=physics).
 Essentially when we tilt the fins, we should experience a lift force which

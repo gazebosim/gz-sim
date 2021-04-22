@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-#include <mutex>
 #include <string>
 
 #include <Eigen/Eigen>
@@ -97,6 +96,7 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Water density [kg/m^3].
   public: double waterDensity;
 
+  /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
   /// Link entity
@@ -108,13 +108,13 @@ void AddAngularVelocityComponent(
   const ignition::gazebo::Entity &_entity,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
-  if (!_ecm.Component<ignition::gazebo::components::AngularVelocity>(
-      _entity))
+  if (!_ecm.Component<ignition::gazebo::components::AngularVelocity>(_entity))
   {
     _ecm.CreateComponent(_entity,
       ignition::gazebo::components::AngularVelocity());
   }
-    // Create an angular velocity component if one is not present.
+
+  // Create an angular velocity component if one is not present.
   if (!_ecm.Component<ignition::gazebo::components::WorldAngularVelocity>(
       _entity))
   {
@@ -128,11 +128,9 @@ void AddWorldPose(
   const ignition::gazebo::Entity &_entity,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
-  if (!_ecm.Component<ignition::gazebo::components::WorldPose>(
-      _entity))
+  if (!_ecm.Component<ignition::gazebo::components::WorldPose>(_entity))
   {
-    _ecm.CreateComponent(_entity,
-      ignition::gazebo::components::WorldPose());
+    _ecm.CreateComponent(_entity, ignition::gazebo::components::WorldPose());
   }
 }
 
@@ -204,8 +202,8 @@ void Hydrodynamics::Configure(
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
-  auto link_name = _sdf->Get<std::string>("link_name");
-  this->dataPtr->linkEntity = model.LinkByName(_ecm, link_name);
+  auto linkName = _sdf->Get<std::string>("link_name");
+  this->dataPtr->linkEntity = model.LinkByName(_ecm, linkName);
 
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
 
@@ -233,7 +231,7 @@ void Hydrodynamics::PreUpdate(
   Eigen::VectorXd state    = Eigen::VectorXd(6);
   Eigen::MatrixXd Cmat     = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Dmat     = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd Ma = Eigen::MatrixXd::Zero(6, 6);
+  Eigen::MatrixXd Ma       = Eigen::MatrixXd::Zero(6, 6);
 
   // Get vehicle state
   ignition::gazebo::Link baseLink(this->dataPtr->linkEntity);
@@ -243,7 +241,7 @@ void Hydrodynamics::PreUpdate(
 
   if (!linearVelocity)
   {
-    ignerr <<"no linear vel" <<"\n";
+    ignerr << "no linear vel" <<"\n";
     return;
   }
 
@@ -276,27 +274,27 @@ void Hydrodynamics::PreUpdate(
   Ma(5, 5) = this->dataPtr->paramNdotR;
   const Eigen::VectorXd kAmassVec = Ma * stateDot;
 
-  // Coriollis and Centripetal forces for under water vehicles (Fossen P. 37)
+  // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
   // for the under water vehicle's additional DOF
   Cmat(0, 4) = - this->dataPtr->paramZdotW * state(2);
   Cmat(0, 5) = - this->dataPtr->paramYdotV * state(1);
-  Cmat(1, 3) = this->dataPtr->paramZdotW * state(2);
+  Cmat(1, 3) =   this->dataPtr->paramZdotW * state(2);
   Cmat(1, 5) = - this->dataPtr->paramXdotU * state(0);
   Cmat(2, 3) = - this->dataPtr->paramYdotV * state(1);
-  Cmat(2, 4) = this->dataPtr->paramXdotU * state(0);
+  Cmat(2, 4) =   this->dataPtr->paramXdotU * state(0);
   Cmat(3, 1) = - this->dataPtr->paramZdotW * state(2);
-  Cmat(3, 2) = this->dataPtr->paramYdotV * state(1);
+  Cmat(3, 2) =   this->dataPtr->paramYdotV * state(1);
   Cmat(3, 4) = - this->dataPtr->paramNdotR * state(5);
-  Cmat(3, 5) = this->dataPtr->paramMdotQ * state(4);
-  Cmat(4, 0) = this->dataPtr->paramZdotW * state(2);
+  Cmat(3, 5) =   this->dataPtr->paramMdotQ * state(4);
+  Cmat(4, 0) =   this->dataPtr->paramZdotW * state(2);
   Cmat(4, 2) = - this->dataPtr->paramXdotU * state(0);
-  Cmat(4, 3) = this->dataPtr->paramNdotR * state(5);
+  Cmat(4, 3) =   this->dataPtr->paramNdotR * state(5);
   Cmat(4, 5) = - this->dataPtr->paramKdotP * state(3);
-  Cmat(5, 0) = this->dataPtr->paramZdotW * state(2);
-  Cmat(5, 1) = this->dataPtr->paramXdotU * state(0);
+  Cmat(5, 0) =   this->dataPtr->paramZdotW * state(2);
+  Cmat(5, 1) =   this->dataPtr->paramXdotU * state(0);
   Cmat(5, 3) = - this->dataPtr->paramMdotQ * state(4);
-  Cmat(5, 4) = this->dataPtr->paramKdotP * state(3);
+  Cmat(5, 4) =   this->dataPtr->paramKdotP * state(3);
   const Eigen::VectorXd kCmatVec = - Cmat * state;
 
   // Damping forces (Fossen P. 43)
@@ -318,9 +316,9 @@ void Hydrodynamics::PreUpdate(
   const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
 
   ignition::math::Vector3d
-    totalForce(-kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));
+    totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));
   ignition::math::Vector3d
-    totalTorque(-kTotalWrench(3),  -kTotalWrench(4), -kTotalWrench(5));
+    totalTorque(-kTotalWrench(3), -kTotalWrench(4), -kTotalWrench(5));
 
   baseLink.AddWorldWrench(
     _ecm,

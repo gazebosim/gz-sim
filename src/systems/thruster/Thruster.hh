@@ -54,20 +54,20 @@ namespace systems
   /// # Example
   /// An example configuration is provided in the examples folder. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
-  /// thruster plugin to propell the craft and the buoyancy plugin for buoysnt
+  /// thruster plugin to propell the craft and the buoyancy plugin for buoyant
   /// force. To run th example run.
   /// ```
   /// ign gazebo auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following
   /// ```
-  /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+  /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
   ///    -m ignition.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
   /// The vehicle should move in a circle.
   /// ```
-  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
   class Thruster:
@@ -75,21 +75,25 @@ namespace systems
     public ignition::gazebo::ISystemConfigure,
     public ignition::gazebo::ISystemPreUpdate
   {
+    /// \brief Constructor
     public: Thruster();
 
+    /// \brief Destructor
     public: ~Thruster() override;
 
+    /// Documentation inherited
     public: void Configure(
         const ignition::gazebo::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
         ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/
-    );
+        ignition::gazebo::EventManager &/*_eventMgr*/);
 
+    /// Documentation inherited
     public: void PreUpdate(
         const ignition::gazebo::UpdateInfo &_info,
         ignition::gazebo::EntityComponentManager &_ecm);
 
+    /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;
   };
 }

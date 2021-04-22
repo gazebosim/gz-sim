@@ -71,16 +71,18 @@ class ignition::gazebo::systems::ThrusterPrivateData
   public: double ThrustToAngularVec(double thrust);
 };
 
+/////////////////////////////////////////////////
 Thruster::Thruster()
 {
   this->dataPtr = std::make_unique<ThrusterPrivateData>();
 }
 
+/////////////////////////////////////////////////
 Thruster::~Thruster()
 {
-
 }
 
+/////////////////////////////////////////////////
 void Thruster::Configure(
   const ignition::gazebo::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
@@ -103,7 +105,7 @@ void Thruster::Configure(
   auto jointName = _sdf->Get<std::string>("joint_name");
 
   // Get thrust coefficient
-  if(!_sdf->HasElement("thrust_coefficient"))
+  if (!_sdf->HasElement("thrust_coefficient"))
   {
     ignerr << "Failed to get thrust_coefficient" << "\n";
     return;
@@ -111,14 +113,14 @@ void Thruster::Configure(
   this->dataPtr->thrustCoefficient = _sdf->Get<double>("thrust_coefficient");
 
   // Get propeller diameter
-  if(!_sdf->HasElement("propeller_diameter"))
+  if (!_sdf->HasElement("propeller_diameter"))
   {
     ignerr << "Failed to get propeller_diameter \n";
   }
   this->dataPtr->propellerDiameter = _sdf->Get<double>("propeller_diameter");
 
   // Get fluid density, default to water otherwise
-  if(_sdf->HasElement("fluid_density"))
+  if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
@@ -195,6 +197,7 @@ void Thruster::Configure(
     cmdOffset);
 }
 
+/////////////////////////////////////////////////
 void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
@@ -202,9 +205,10 @@ void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
     this->cmdMin, this->cmdMax);
 }
 
+/////////////////////////////////////////////////
 double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 {
-  // Thrust is proprtional to the Rotation Rate squared
+  // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto propAngularVelocity = sqrt(abs(
     _thrust /
@@ -216,6 +220,7 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
   return propAngularVelocity;
 }
 
+/////////////////////////////////////////////////
 void Thruster::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
@@ -232,7 +237,7 @@ void Thruster::PreUpdate(
     this->dataPtr->jointAxis.Normalize());
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
-  // Thrust is proprtional to the Rotation Rate squared
+  // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto desiredPropellerAngVel =
     this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
@@ -240,7 +245,7 @@ void Thruster::PreUpdate(
   auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
   auto angularError = currentAngular - desiredPropellerAngVel;
   double torque = 0.0;
-  if(abs(angularError) > 0.1)
+  if (abs(angularError) > 0.1)
     torque = this->dataPtr->rpmController.Update(angularError, _info.dt);
 
   link.AddWorldWrench(
@@ -248,7 +253,6 @@ void Thruster::PreUpdate(
     unitVector * this->dataPtr->thrust,
     unitVector * torque);
 }
-
 
 IGNITION_ADD_PLUGIN(
   Thruster, System,
