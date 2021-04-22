@@ -154,7 +154,8 @@ namespace systems
   /// subfield of a repeated field in the "field" attribute. i.e, if
   /// `field="f1.f2"`, `f1` cannot be a repeated field.
   class TriggeredPublisher : public System,
-                                                     public ISystemConfigure
+                             public ISystemConfigure,
+                             public ISystemPreUpdate
   {
     /// \brief Constructor
     public: TriggeredPublisher() = default;
@@ -167,6 +168,11 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
+
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Thread that handles publishing output messages
     public: void DoWork();
@@ -209,7 +215,7 @@ namespace systems
     private: transport::Node node;
 
     /// \brief Counter that tells the publisher how many times to publish
-    private: std::size_t publishCount{0};
+    //private: std::size_t publishCount{0};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
@@ -218,11 +224,14 @@ namespace systems
     private: std::condition_variable newMatchSignal;
 
     /// \brief Thread handle for worker thread
-    private: std::thread workerThread;
+    //private: std::thread workerThread;
 
     /// \brief Flag for when the system is done and the worker thread should
     /// stop
     private: std::atomic<bool> done{false};
+
+    private: std::chrono::steady_clock::duration delay{0};
+    private: std::vector<std::chrono::steady_clock::duration> publishQueue;
   };
   }
 }

@@ -462,11 +462,11 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 TriggeredPublisher::~TriggeredPublisher()
 {
   this->done = true;
-  this->newMatchSignal.notify_one();
+  /*this->newMatchSignal.notify_one();
   if (this->workerThread.joinable())
   {
     this->workerThread.join();
-  }
+  }*/
 }
 
 //////////////////////////////////////////////////
@@ -527,6 +527,12 @@ void TriggeredPublisher::Configure(const Entity &,
     return;
   }
 
+  if (sdfClone->HasElement("delay_ms"))
+  {
+    int ms = sdfClone->Get<int>("delay_ms");
+    this->delay = std::chrono::milliseconds(ms);
+  }
+
   if (sdfClone->HasElement("output"))
   {
     for (auto outputElem = sdfClone->GetElement("output"); outputElem;
@@ -584,9 +590,10 @@ void TriggeredPublisher::Configure(const Entity &,
         {
           {
             std::lock_guard<std::mutex> lock(this->publishCountMutex);
-            ++this->publishCount;
+            this->publishQueue.push_back(this->delay);
+            // ++this->publishCount;
           }
-          this->newMatchSignal.notify_one();
+          // this->newMatchSignal.notify_one();
         }
       });
   if (!this->node.Subscribe(this->inputTopic, msgCb))
@@ -607,16 +614,48 @@ void TriggeredPublisher::Configure(const Entity &,
   }
   igndbg << ss.str() << "\n";
 
-  this->workerThread =
+  /*this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
+      */
+}
+
+//////////////////////////////////////////////////
+void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+{
+  using namespace std::chrono_literals;
+  IGN_PROFILE("TriggeredPublisher::PreUpdate");
+
+  std::unique_lock<std::mutex> lock(this->publishCountMutex);
+  for (auto iter = std::begin(this->publishQueue);
+       iter != std::end(this->publishQueue);)
+  {
+    *iter -= _info.dt;
+    if (*iter <= 0s)
+    {
+      std::cout << "Time to publish\n";
+      for (auto &info : this->outputInfo)
+      {
+        info.pub.Publish(*info.msgData);
+      }
+      iter = this->publishQueue.erase(iter);
+    }
+    else
+    {
+      ++iter;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
 {
-  while (!this->done)
+
+  /*PROBLEM IS THAT THIS REQUIRES SIMULATION TO BE RUNNING, and it won't
+    instantly publish a message.
+    */
+  /*while (!this->done)
   {
-    std::size_t pending{0};
     {
       using namespace std::chrono_literals;
       std::unique_lock<std::mutex> lock(this->publishCountMutex);
@@ -629,17 +668,12 @@ void TriggeredPublisher::DoWork()
       if (this->publishCount == 0 || this->done)
         continue;
 
-      std::swap(pending, this->publishCount);
-    }
-
-    for (auto &info : this->outputInfo)
-    {
-      for (std::size_t i = 0; i < pending; ++i)
-      {
-        info.pub.Publish(*info.msgData);
-      }
+      std::cout << "Adding to publish queue[" << this->publishCount << "]\n";
+      this->publishQueue.push_back({this->delay, this->publishCount});
+      this->publishCount = 0;
     }
   }
+  */
 }
 
 //////////////////////////////////////////////////
@@ -661,7 +695,8 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 
 IGNITION_ADD_PLUGIN(TriggeredPublisher,
                     ignition::gazebo::System,
-                    TriggeredPublisher::ISystemConfigure)
+                    TriggeredPublisher::ISystemConfigure,
+                    TriggeredPublisher::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "ignition::gazebo::systems::TriggeredPublisher")
