@@ -779,15 +779,15 @@ TEST_F(ComponentsTest, Light)
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());
-  EXPECT_FLOAT_EQ(1.3, comp3.Data().AttenuationRange());
-  EXPECT_FLOAT_EQ(0.3, comp3.Data().LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
+  EXPECT_DOUBLE_EQ(1.3, comp3.Data().AttenuationRange());
+  EXPECT_DOUBLE_EQ(0.3, comp3.Data().LinearAttenuationFactor());
+  EXPECT_DOUBLE_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
+  EXPECT_DOUBLE_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
   EXPECT_EQ(math::Angle(0.3), comp3.Data().SpotInnerAngle());
   EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
-  EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
+  EXPECT_DOUBLE_EQ(5.15, comp3.Data().SpotFalloff());
   EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
-  EXPECT_FLOAT_EQ(1.55, comp3.Data().Intensity());
+  EXPECT_DOUBLE_EQ(1.55, comp3.Data().Intensity());
 }
 
 /////////////////////////////////////////////////

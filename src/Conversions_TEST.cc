@@ -80,10 +80,10 @@ TEST(Conversions, Light)
       msgs::Convert(lightMsg.diffuse()));
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1),
       msgs::Convert(lightMsg.specular()));
-  EXPECT_FLOAT_EQ(3.2, lightMsg.range());
-  EXPECT_FLOAT_EQ(0.5, lightMsg.attenuation_constant());
-  EXPECT_FLOAT_EQ(0.1, lightMsg.attenuation_linear());
-  EXPECT_FLOAT_EQ(0.01, lightMsg.attenuation_quadratic());
+  EXPECT_DOUBLE_EQ(3.2, lightMsg.range());
+  EXPECT_DOUBLE_EQ(0.5, lightMsg.attenuation_constant());
+  EXPECT_DOUBLE_EQ(0.1, lightMsg.attenuation_linear());
+  EXPECT_DOUBLE_EQ(0.01, lightMsg.attenuation_quadratic());
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), msgs::Convert(lightMsg.direction()));
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
@@ -99,15 +99,15 @@ TEST(Conversions, Light)
   EXPECT_TRUE(newLight.CastShadows());
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1.0f), newLight.Diffuse());
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1.0f), newLight.Specular());
-  EXPECT_FLOAT_EQ(3.2, newLight.AttenuationRange());
-  EXPECT_FLOAT_EQ(0.5, newLight.ConstantAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.1, newLight.LinearAttenuationFactor());
-  EXPECT_FLOAT_EQ(0.01, newLight.QuadraticAttenuationFactor());
+  EXPECT_DOUBLE_EQ(3.2, newLight.AttenuationRange());
+  EXPECT_DOUBLE_EQ(0.5, newLight.ConstantAttenuationFactor());
+  EXPECT_DOUBLE_EQ(0.1, newLight.LinearAttenuationFactor());
+  EXPECT_DOUBLE_EQ(0.01, newLight.QuadraticAttenuationFactor());
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), newLight.Direction());
   EXPECT_EQ(math::Angle(1.9), newLight.SpotInnerAngle());
   EXPECT_EQ(math::Angle(3.3), newLight.SpotOuterAngle());
-  EXPECT_FLOAT_EQ(0.9, newLight.SpotFalloff());
-  EXPECT_FLOAT_EQ(1.7, newLight.Intensity());
+  EXPECT_DOUBLE_EQ(0.9, newLight.SpotFalloff());
+  EXPECT_DOUBLE_EQ(1.7, newLight.Intensity());
 
   EXPECT_EQ("", convert(sdf::LightType::INVALID));
   EXPECT_EQ("point", convert(sdf::LightType::POINT));
@@ -896,22 +896,22 @@ TEST(Conversions, Actor)
   EXPECT_EQ("walk.dae", actorMsg.skin_filename());
   EXPECT_FLOAT_EQ(2.0, actorMsg.skin_scale());
   EXPECT_TRUE(actorMsg.script_loop());
-  EXPECT_FLOAT_EQ(2.8, actorMsg.script_delay_start());
+  EXPECT_DOUBLE_EQ(2.8, actorMsg.script_delay_start());
   EXPECT_TRUE(actorMsg.script_auto_start());
 
   ASSERT_EQ(1, actorMsg.animations_size());
   EXPECT_EQ("animation", actorMsg.animations(0).name());
   EXPECT_EQ("animation_filename", actorMsg.animations(0).filename());
-  EXPECT_FLOAT_EQ(1.23, actorMsg.animations(0).scale());
+  EXPECT_DOUBLE_EQ(1.23, actorMsg.animations(0).scale());
   EXPECT_TRUE(actorMsg.animations(0).interpolate_x());
 
   ASSERT_EQ(1, actorMsg.trajectories_size());
   EXPECT_EQ(456u, actorMsg.trajectories(0).id());
   EXPECT_EQ("traj_type", actorMsg.trajectories(0).type());
-  EXPECT_FLOAT_EQ(7.89, actorMsg.trajectories(0).tension());
+  EXPECT_DOUBLE_EQ(7.89, actorMsg.trajectories(0).tension());
 
   ASSERT_EQ(1, actorMsg.trajectories(0).waypoints_size());
-  EXPECT_FLOAT_EQ(0.123, actorMsg.trajectories(0).waypoints(0).time());
+  EXPECT_DOUBLE_EQ(0.123, actorMsg.trajectories(0).waypoints(0).time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       msgs::Convert(actorMsg.trajectories(0).waypoints(0).pose()));
 
@@ -921,19 +921,19 @@ TEST(Conversions, Actor)
   EXPECT_EQ("walk.dae", newActor.SkinFilename());
   EXPECT_FLOAT_EQ(2.0, newActor.SkinScale());
   EXPECT_TRUE(newActor.ScriptLoop());
-  EXPECT_FLOAT_EQ(2.8, newActor.ScriptDelayStart());
+  EXPECT_DOUBLE_EQ(2.8, newActor.ScriptDelayStart());
   EXPECT_TRUE(newActor.ScriptAutoStart());
 
   ASSERT_EQ(1u, newActor.AnimationCount());
   EXPECT_EQ("animation", newActor.AnimationByIndex(0)->Name());
   EXPECT_EQ("animation_filename", newActor.AnimationByIndex(0)->Filename());
-  EXPECT_FLOAT_EQ(1.23, newActor.AnimationByIndex(0)->Scale());
+  EXPECT_DOUBLE_EQ(1.23, newActor.AnimationByIndex(0)->Scale());
   EXPECT_TRUE(newActor.AnimationByIndex(0)->InterpolateX());
 
   ASSERT_EQ(1u, newActor.TrajectoryCount());
   EXPECT_EQ(456u, newActor.TrajectoryByIndex(0)->Id());
   EXPECT_EQ("traj_type", newActor.TrajectoryByIndex(0)->Type());
-  EXPECT_FLOAT_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
+  EXPECT_DOUBLE_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
 
   ASSERT_EQ(1u, newActor.TrajectoryByIndex(0)->WaypointCount());
   EXPECT_FLOAT_EQ(0.123,
