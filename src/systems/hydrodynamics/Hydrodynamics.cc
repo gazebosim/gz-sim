@@ -103,7 +103,7 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   public: ignition::gazebo::Entity linkEntity;
 };
 
-
+/////////////////////////////////////////////////
 void AddAngularVelocityComponent(
   const ignition::gazebo::Entity &_entity,
   ignition::gazebo::EntityComponentManager &_ecm)
@@ -123,7 +123,8 @@ void AddAngularVelocityComponent(
   }
 }
 
-void AddWorldPose (
+/////////////////////////////////////////////////
+void AddWorldPose(
   const ignition::gazebo::Entity &_entity,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
@@ -135,6 +136,7 @@ void AddWorldPose (
   }
 }
 
+/////////////////////////////////////////////////
 void AddWorldLinearVelocity(
   const ignition::gazebo::Entity &_entity,
   ignition::gazebo::EntityComponentManager &_ecm)
@@ -147,28 +149,32 @@ void AddWorldLinearVelocity(
   }
 }
 
+/////////////////////////////////////////////////
 double SdfParamDouble(
     const std::shared_ptr<const sdf::Element> &_sdf,
     const std::string& _field,
     double _default)
 {
-  if(!_sdf->HasElement(_field))
+  if (!_sdf->HasElement(_field))
   {
     return _default;
   }
   return _sdf->Get<double>(_field);
 }
 
+/////////////////////////////////////////////////
 Hydrodynamics::Hydrodynamics()
 {
   this->dataPtr = std::make_unique<HydrodynamicsPrivateData>();
 }
 
+/////////////////////////////////////////////////
 Hydrodynamics::~Hydrodynamics()
 {
   // Do nothing
 }
 
+/////////////////////////////////////////////////
 void Hydrodynamics::Configure(
   const ignition::gazebo::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
@@ -208,11 +214,12 @@ void Hydrodynamics::Configure(
   AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
 }
 
+/////////////////////////////////////////////////
 void Hydrodynamics::PreUpdate(
       const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm)
 {
-  if(_info.paused)
+  if (_info.paused)
     return;
 
   // These variables follow Fossen's scheme in "Guidance and Control
@@ -234,7 +241,7 @@ void Hydrodynamics::PreUpdate(
     _ecm.Component<components::WorldLinearVelocity>(this->dataPtr->linkEntity);
   auto rotationalVelocity = baseLink.WorldAngularVelocity(_ecm);
 
-  if(!linearVelocity)
+  if (!linearVelocity)
   {
     ignerr <<"no linear vel" <<"\n";
     return;
@@ -320,7 +327,6 @@ void Hydrodynamics::PreUpdate(
     pose->Rot()*(totalForce),
     pose->Rot()*totalTorque);
 }
-
 
 IGNITION_ADD_PLUGIN(
   Hydrodynamics, System,
