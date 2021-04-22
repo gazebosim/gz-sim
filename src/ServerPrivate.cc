@@ -311,7 +311,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 
         // In the case that the --compress flag is set, then
         // this field will be populated with just the file extension
-        if(_config.LogRecordCompressPath() == ".zip")
+        if (_config.LogRecordCompressPath() == ".zip")
         {
           sdfCompressPath = std::string(sdfRecordPath);
           if (!std::string(1, sdfCompressPath.back()).compare(

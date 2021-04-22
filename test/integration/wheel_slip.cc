@@ -554,12 +554,12 @@ TEST_F(WheelSlipTest, TricyclesUphill)
   server.AddSystem(testSlipSystem.systemPtr);
   server.Run(true, 2000, false);
 
+  // Slip works on DART>=6.10, which isn't available on Ubuntu Focal
+#ifndef __linux__
   // compute expected slip
   // normal force as passed to Wheel Slip in test world
   const double wheelNormalForce = 32;
   const double mass = 14.5;
-  // Slip works on DART>=6.10, which isn't available on Ubuntu Focal
-#ifndef __linux__
   const double forceRatio =
     (mass/2) * std::abs(gravity->Data().X()) / wheelNormalForce;
 #endif
