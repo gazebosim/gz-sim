@@ -15,18 +15,17 @@
  *
 */
 
-
 #include <ignition/plugin/Register.hh>
+
 #include "HelloWorld.hh"
 
 
-// Include a line in your source file for each interface implemented.
 IGNITION_ADD_PLUGIN(
     hello_world::HelloWorld,
     ignition::gazebo::System,
     hello_world::HelloWorld::ISystemPostUpdate)
-//! [registerSampleSystem]
-//! [implementSampleSystem]
+
+
 using namespace hello_world;
 
 HelloWorld::HelloWorld()
@@ -42,6 +41,6 @@ void HelloWorld::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   ignmsg << "HelloWorld::PostUpdate" << std::endl;
 }
-//! [implementSampleSystem]
+
 
 

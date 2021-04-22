@@ -2,26 +2,29 @@
 
 A simple system plugin to print hello world.
 
-## Generate the Plugin 
-
-It is neccesary to have the repo [ign-plugin](https://github.com/ignitionrobotics/ign-plugin)
-
 ## Folder structure
 
-* Source file: HelloWorld.cc
+* Source file: HelloWorld.hh
+* Main file: HelloWorld.cc
 * CMakeLists.txt
+* Package.xml
+* libHelloWorld.so  
+
+## Generate the Plugin 
 
 ``` bash 
- cd hello_world
+cd Hello_world
 mkdir build/
 cd build/
 cmake ..
 make
 ```
 
-It should generate a _libHelloWorld.so_ file 
+It should generate a libHelloWorld.so file 
 we can import it to ignition gazebo:
 ``` bash 
-cd hello_world
+cd Hello_world
 export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 ```
+
+

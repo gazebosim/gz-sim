@@ -23,21 +23,22 @@
 
 namespace hello_world
 {
-  /// \brief Sample system that implemente the ISystemPostUpdate system
-  /// plugin interface.
-  class HelloWorld:
-    // This class is a system.
+
+  class HelloWorld: 
+
     public ignition::gazebo::System,
-    // This class also implements the ISystemPostUpdate interface.
+
     public ignition::gazebo::ISystemPostUpdate
+  
   {
+    
     public: HelloWorld();
 
-    public: ~HelloWorld() override;
+    public: ~HelloWorld();
 
     public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) override;
+                const ignition::gazebo::EntityComponentManager &_ecm);
   };
 
 }
-#endif //SYSTEM_PLUGIN_HELLOWORLD_HH_
+#endif 
