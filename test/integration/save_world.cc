@@ -62,16 +62,16 @@ class SdfGeneratorFixture : public ::testing::Test
     this->server = std::make_unique<Server>(serverConfig);
     EXPECT_FALSE(server->Running());
   }
-  public: std::string RequestGeneratedSdf(const std::string &_worldName)
+  public: std::string RequestGeneratedSdf(const std::string &_worldName,
+              const msgs::SdfGeneratorConfig &_req = msgs::SdfGeneratorConfig())
   {
     transport::Node node;
-    msgs::SdfGeneratorConfig req;
 
     msgs::StringMsg worldGenSdfRes;
     bool result;
     unsigned int timeout = 5000;
     std::string service{"/world/" + _worldName + "/generate_world_sdf"};
-    EXPECT_TRUE(node.Request(service, req, timeout, worldGenSdfRes, result));
+    EXPECT_TRUE(node.Request(service, _req, timeout, worldGenSdfRes, result));
     EXPECT_TRUE(result);
     return worldGenSdfRes.data();
   }
@@ -332,8 +332,12 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   EXPECT_NE(kNullEntity, this->server->EntityByName("V"));
   EXPECT_NE(kNullEntity, this->server->EntityByName("C"));
 
+  msgs::SdfGeneratorConfig req;
+  req.mutable_global_entity_gen_config()
+     ->mutable_save_fuel_version()->set_data(true);
+
   const std::string worldGenSdfRes =
-      this->RequestGeneratedSdf("model_nested_include_world");
+      this->RequestGeneratedSdf("model_nested_include_world", req);
 
   // check that model w/ nested includes are not expanded
   tinyxml2::XMLDocument genSdfDoc;
@@ -406,7 +410,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
   EXPECT_EQ(
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can",
+    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can/2",
      std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");

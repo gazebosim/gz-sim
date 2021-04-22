@@ -17,6 +17,7 @@
 
 #include "SdfGenerator.hh"
 
+#include <ctype.h>
 #include <memory>
 #include <vector>
 
@@ -329,7 +330,7 @@ namespace sdf_generator
             if (!modelConfig.expand_include_tags().data())
             {
               updateModelElementWithNestedInclude(modelElem,
-                    modelConfig.save_fuel_version().data());
+                    modelConfig.save_fuel_version().data(), _includeUriMap);
             }
           }
           else if (uriMapIt != _includeUriMap.end())
@@ -429,8 +430,22 @@ namespace sdf_generator
     return true;
   }
 
+  /////////////////////////////////////////////////
+  /// \brief Checks if a string is a number
+  /// \param[in] _str The string to check
+  /// \return True if the string is a number
+  bool isNumber(const std::string &_str)
+  {
+    for (const char &c : _str)
+      if (!std::isdigit(c)) return false;
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////
   void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem,
-                                           const bool _saveFuelVersion)
+                                           const bool _saveFuelVersion,
+                                           const IncludeUriMap &_includeUriMap)
   {
     sdf::ElementPtr e = _elem->GetFirstElement(), nextE = nullptr;
     while (e != nullptr)
@@ -439,17 +454,28 @@ namespace sdf_generator
 
       if (e->GetIncludeElement() != nullptr)
       {
-        if (_saveFuelVersion && e->FilePath().find("fuel") != std::string::npos)
+        std::string modelDir = common::parentPath(e->FilePath());
+        auto uriMapIt = _includeUriMap.find(modelDir);
+
+        if (_saveFuelVersion && uriMapIt != _includeUriMap.end())
         {
           // find fuel model version from file path
           std::string version = common::parentPath(e->FilePath());
           version = common::basename(version);
 
-          sdf::ElementPtr uriElem = e->GetIncludeElement()->GetElement("uri");
-          std::string uri = uriElem->GetValue()->GetAsString();
-          uri = common::joinPaths(uri, version);
-
-          uriElem->Set(uri);
+          if (isNumber(version))
+          {
+            sdf::ElementPtr uriElem = e->GetIncludeElement()->GetElement("uri");
+            std::string uri = uriElem->GetValue()->GetAsString();
+            uri = uri + "/" + version;
+            uriElem->Set(uri);
+          }
+          else
+          {
+            ignwarn << "Error retrieving Fuel model version,"
+                    << " saving model without version."
+                    << std::endl;
+          }
         }
 
         _elem->InsertElement(e->GetIncludeElement());
@@ -457,7 +483,8 @@ namespace sdf_generator
       }
       else if (e->GetName() == "model")
       {
-        updateModelElementWithNestedInclude(e, _saveFuelVersion);
+        updateModelElementWithNestedInclude(e,
+              _saveFuelVersion, _includeUriMap);
       }
 
       e = nextE;
