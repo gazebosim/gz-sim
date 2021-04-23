@@ -304,7 +304,24 @@ std::vector<Resource> ResourceSpawner::LocalResources(const std::string &_path)
       {
         std::string modelConfigPath =
           common::joinPaths(currentPath, "model.config");
-        resource = this->LocalResource(modelConfigPath);
+        if (common::isFile(modelConfigPath ))
+        {
+          resource = this->LocalResource(modelConfigPath);
+        }
+        else
+        {
+          // This will try to add models from a path containing Fuel models.
+          // The latest version of a model will be shown in the GUI based
+          // purely on iterating numerically through the list of verisons.
+          for (common::DirIter fuelFile(currentPath);
+               fuelFile != common::DirIter(); ++fuelFile)
+          {
+            std::string currentPathFuel(*fuelFile);
+            modelConfigPath = common::joinPaths(currentPathFuel,
+                "model.config");
+            resource = this->LocalResource(modelConfigPath);
+          }
+        }
       }
       else
       {
