@@ -44,30 +44,44 @@ using namespace systems;
 
 class ignition::gazebo::systems::ThrusterPrivateData
 {
+  /// \brief Mutex for read/write access to class
   public: std::mutex mtx;
 
+  /// \brief Thrust output by propeller in N
   public: double thrust = 0.0;
 
+  /// \brief The link entity which will spin
   public: ignition::gazebo::Entity linkEntity;
 
+  /// \brief Axis along which the propeller spins
   public: ignition::math::Vector3d jointAxis;
 
+  /// \brief ignition node for handling transport
   public: ignition::transport::Node node;
 
+  /// \brief The PID which controls the rpm
   public: ignition::math::PID rpmController;
 
+  /// \brief maximum input force [N], default: 1000N
   public: double cmdMax = 1000;
 
+  /// \brief minimum input force [N], default: 1000N
   public: double cmdMin = -1000;
 
-  public: double thrustCoefficient;
+  /// \brief Thrust coefficient relating the
+  /// propeller rpm to the thrust
+  public: double thrustCoefficient = 1;
 
+  /// \brief Density of fluid in kgm^-3, default: 1000kgm^-3
   public: double fluidDensity = 1000;
 
-  public: double propellerDiameter;
+  /// \brief Diameter of propeller in m, default: 0.02
+  public: double propellerDiameter = 0.02;
 
+  /// \brief callback for handling thrust update
   public: void OnCmdThrust(const ignition::msgs::Double &_msg);
 
+  /// \brief function which computes rpm from thrust
   public: double ThrustToAngularVec(double thrust);
 };
 
@@ -236,12 +250,15 @@ void Thruster::PreUpdate(
   auto unitVector = pose.Rot().RotateVector(
     this->dataPtr->jointAxis.Normalize());
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
+  double desiredThrust;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
+    desiredThrust = this->dataPtr->thrust;
+  }
   // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto desiredPropellerAngVel =
-    this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
-
+      this->dataPtr->ThrustToAngularVec(desiredThrust);
   auto currentAngular = (link.WorldAngularVelocity(_ecm))->Dot(unitVector);
   auto angularError = currentAngular - desiredPropellerAngVel;
   double torque = 0.0;
