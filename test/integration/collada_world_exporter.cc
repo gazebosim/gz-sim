@@ -74,23 +74,29 @@ TEST_F(ColladaWorldExporterFixture, ExportWorld)
 
 TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 {
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+    (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
+    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+
   this->LoadWorld(common::joinPaths("test", "worlds",
         "collada_world_exporter_submesh.sdf"));
 
+  const std::string outputPath = "./collada_world_exporter_submesh_test";
+
   // Cleanup
-  common::removeAll("./collada_world_exporter_tiles_test");
+  common::removeAll(outputPath);
 
   // The export directory shouldn't exist.
-  EXPECT_FALSE(common::exists("./collada_world_exporter_tiles_test"));
+  EXPECT_FALSE(common::exists(outputPath));
 
   // Run one iteration which should export the world.
   server->Run(true, 1, false);
 
   // The export directory should now exist.
-  EXPECT_TRUE(common::exists("./collada_world_exporter_tiles_test"));
+  EXPECT_TRUE(common::exists(outputPath));
 
   // Cleanup
-  common::removeAll("./collada_world_exporter_tiles_test");
+  common::removeAll(outputPath);
 }
 
 /////////////////////////////////////////////////
