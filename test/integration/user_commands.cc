@@ -754,12 +754,12 @@ TEST_F(UserCommandsTest, Light)
     ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
   ignition::msgs::Set(req.mutable_specular(),
     ignition::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
-  req.set_range(2.6);
+  req.set_range(2.6f);
   req.set_name("point");
   req.set_type(ignition::msgs::Light::POINT);
-  req.set_attenuation_linear(0.7);
-  req.set_attenuation_constant(0.6);
-  req.set_attenuation_quadratic(0.001);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(0.001f);
   req.set_cast_shadows(true);
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -815,12 +815,12 @@ TEST_F(UserCommandsTest, Light)
     ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
   ignition::msgs::Set(req.mutable_specular(),
     ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
-  req.set_range(2.6);
+  req.set_range(2.6f);
   req.set_name("directional");
   req.set_type(ignition::msgs::Light::DIRECTIONAL);
-  req.set_attenuation_linear(0.7);
-  req.set_attenuation_constant(0.6);
-  req.set_attenuation_quadratic(1);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(false);
   ignition::msgs::Set(req.mutable_direction(),
     ignition::math::Vector3d(1, 2, 3));
@@ -882,18 +882,18 @@ TEST_F(UserCommandsTest, Light)
     ignition::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
   ignition::msgs::Set(req.mutable_specular(),
     ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
-  req.set_range(2.6);
+  req.set_range(2.6f);
   req.set_name("spot");
   req.set_type(ignition::msgs::Light::SPOT);
-  req.set_attenuation_linear(0.7);
-  req.set_attenuation_constant(0.6);
-  req.set_attenuation_quadratic(1);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(true);
   ignition::msgs::Set(req.mutable_direction(),
     ignition::math::Vector3d(1, 2, 3));
-  req.set_spot_inner_angle(1.5);
-  req.set_spot_outer_angle(0.3);
-  req.set_spot_falloff(0.9);
+  req.set_spot_inner_angle(1.5f);
+  req.set_spot_outer_angle(0.3f);
+  req.set_spot_falloff(0.9f);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);

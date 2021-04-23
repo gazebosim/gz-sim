@@ -38,6 +38,7 @@ class ComponentTest : public ::testing::Test
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
+    common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
   }
 };
 

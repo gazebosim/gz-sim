@@ -87,8 +87,8 @@ TEST(Conversions, Light)
   EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), msgs::Convert(lightMsg.direction()));
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
-  EXPECT_FLOAT_EQ(0.9, lightMsg.spot_falloff());
-  EXPECT_FLOAT_EQ(1.7, lightMsg.intensity());
+  EXPECT_FLOAT_EQ(0.9f, lightMsg.spot_falloff());
+  EXPECT_FLOAT_EQ(1.7f, lightMsg.intensity());
 
   auto newLight = convert<sdf::Light>(lightMsg);
   EXPECT_EQ("test_convert_light", newLight.Name());
@@ -936,7 +936,7 @@ TEST(Conversions, Actor)
   EXPECT_DOUBLE_EQ(7.89, newActor.TrajectoryByIndex(0)->Tension());
 
   ASSERT_EQ(1u, newActor.TrajectoryByIndex(0)->WaypointCount());
-  EXPECT_FLOAT_EQ(0.123,
+  EXPECT_DOUBLE_EQ(0.123,
           newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Time());
   EXPECT_EQ(math::Pose3d(6, 5, 4, 0, 0, 0),
       newActor.TrajectoryByIndex(0)->WaypointByIndex(0)->Pose());
