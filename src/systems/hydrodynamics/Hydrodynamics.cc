@@ -286,6 +286,7 @@ void Hydrodynamics::PreUpdate(
 
   this->dataPtr->prevState = state;
 
+  // The added mass
   const Eigen::VectorXd kAmassVec = this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
