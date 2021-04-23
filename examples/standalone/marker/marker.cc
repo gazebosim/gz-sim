@@ -70,19 +70,19 @@ int main(int _argc, char **_argv)
   markerMsg.mutable_lifetime()->set_sec(0);
   node.Request("/marker", markerMsg);
 
-  std::cout << "Moving the sphere to x=0, y=1, z=1\n";
+  std::cout << "Moving the black sphere to x=0, y=1, z=1\n";
   std::this_thread::sleep_for(std::chrono::seconds(4));
   ignition::msgs::Set(markerMsg.mutable_pose(),
                       ignition::math::Pose3d(0, 1, 1, 0, 0, 0));
   node.Request("/marker", markerMsg);
 
-  std::cout << "Shrinking the sphere\n";
+  std::cout << "Shrinking the black sphere\n";
   std::this_thread::sleep_for(std::chrono::seconds(4));
   ignition::msgs::Set(markerMsg.mutable_scale(),
                     ignition::math::Vector3d(0.2, 0.2, 0.2));
   node.Request("/marker", markerMsg);
 
-  std::cout << "Changing the sphere to red\n";
+  std::cout << "Changing the black sphere to red\n";
   markerMsg.mutable_material()->mutable_ambient()->set_r(1);
   markerMsg.mutable_material()->mutable_ambient()->set_g(0);
   markerMsg.mutable_material()->mutable_ambient()->set_b(0);
@@ -92,7 +92,7 @@ int main(int _argc, char **_argv)
   std::this_thread::sleep_for(std::chrono::seconds(4));
   node.Request("/marker", markerMsg);
 
-  std::cout << "Adding a green box\n";
+  std::cout << "Adding a green ellipsoid\n";
   markerMsg.mutable_material()->mutable_ambient()->set_r(0);
   markerMsg.mutable_material()->mutable_ambient()->set_g(1);
   markerMsg.mutable_material()->mutable_ambient()->set_b(0);
@@ -102,16 +102,18 @@ int main(int _argc, char **_argv)
   std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_id(2);
   markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  markerMsg.set_type(ignition::msgs::Marker::BOX);
+  markerMsg.set_type(ignition::msgs::Marker::SPHERE);
   ignition::msgs::Set(markerMsg.mutable_scale(),
-                    ignition::math::Vector3d(1.0, 1.0, 1.0));
+                    ignition::math::Vector3d(0.5, 1.0, 1.5));
   ignition::msgs::Set(markerMsg.mutable_pose(),
                     ignition::math::Pose3d(2, 0, .5, 0, 0, 0));
   node.Request("/marker", markerMsg);
 
-  std::cout << "Changing the green box to a cylinder\n";
+  std::cout << "Changing the green ellipsoid to a cylinder\n";
   std::this_thread::sleep_for(std::chrono::seconds(4));
   markerMsg.set_type(ignition::msgs::Marker::CYLINDER);
+  ignition::msgs::Set(markerMsg.mutable_scale(),
+                    ignition::math::Vector3d(0.5, 0.5, 1.5));
   node.Request("/marker", markerMsg);
 
   std::cout << "Connecting the sphere and cylinder with a line\n";
@@ -279,12 +281,12 @@ int main(int _argc, char **_argv)
   ignition::msgs::Set(markerMsg2->mutable_pose(),
                       ignition::math::Pose3d(3, 3, 2, 0, 0, 0));
 
-  // Create third green cylinder marker
+  // Create green capsule marker
   auto markerMsg3 = markerMsgs.add_marker();
   markerMsg3->set_ns("default");
   markerMsg3->set_id(0);
   markerMsg3->set_action(ignition::msgs::Marker::ADD_MODIFY);
-  markerMsg3->set_type(ignition::msgs::Marker::CYLINDER);
+  markerMsg3->set_type(ignition::msgs::Marker::CAPSULE);
   markerMsg3->set_visibility(ignition::msgs::Marker::GUI);
 
   // Set color to Green

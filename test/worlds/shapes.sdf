@@ -165,5 +165,90 @@
         </visual>
       </link>
     </model>
+
+    <model name="capsule">
+      <pose>-4 -5 -6 0 0 1</pose>
+      <link name="capsule_link">
+        <pose>0.5 0.5 0.5 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="capsule_collision">
+          <pose>0.51 0.51 0.51 0 0 0</pose>
+          <geometry>
+            <capsule>
+              <radius>0.23</radius>
+              <length>0.14</length>
+            </capsule>
+          </geometry>
+        </collision>
+        <visual name="capsule_visual">
+          <laser_retro>6.54</laser_retro>
+          <pose>0.52 0.52 0.52 0 0 0</pose>
+          <geometry>
+            <capsule>
+              <radius>2.12</radius>
+              <length>1.23</length>
+            </capsule>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="ellipsoid">
+      <pose>4 5 6 0 0 1</pose>
+      <link name="ellipsoid_link">
+        <pose>0.8 0.8 0.8 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="ellipsoid_collision">
+          <pose>0.81 0.81 0.81 0 0 0</pose>
+          <geometry>
+            <ellipsoid>
+              <radii>0.4 0.6 1.6</radii>
+            </ellipsoid>
+          </geometry>
+        </collision>
+        <visual name="ellipsoid_visual">
+          <laser_retro>3.21</laser_retro>
+          <pose>0.82 0.82 0.82 0 0 0</pose>
+          <transparency>0.5</transparency>
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <ellipsoid>
+              <radii>0.4 0.6 1.6</radii>
+            </ellipsoid>
+          </geometry>
+          <material>
+            <ambient>1 0 1 1</ambient>
+            <diffuse>1 0 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>

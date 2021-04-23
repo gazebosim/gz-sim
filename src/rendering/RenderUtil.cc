@@ -611,6 +611,14 @@ void RenderUtil::Update()
         this->dataPtr->removeSensorCb(entity.first);
         this->dataPtr->sensorEntities.erase(sensorEntityIt);
       }
+
+      // delete associated bounding box, if existing
+      auto wireBoxIt = this->dataPtr->wireBoxes.find(entity.first);
+      if (wireBoxIt != this->dataPtr->wireBoxes.end())
+      {
+        this->dataPtr->scene->DestroyVisual(wireBoxIt->second->Parent());
+        this->dataPtr->wireBoxes.erase(wireBoxIt);
+      }
     }
   }
 
@@ -1645,8 +1653,13 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // Trajectory info from SDF so ign-rendering can calculate bone poses
         else
         {
-          this->actorAnimationData[_entity] =
-              this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+          auto animData =
+            this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+
+          if (animData.valid)
+          {
+            this->actorAnimationData[_entity] = animData;
+          }
         }
 
         // Trajectory pose set by other systems
@@ -2153,5 +2166,19 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
 
     this->dataPtr->viewingCollisions[colEntity] = showCol;
     colVisual->SetVisible(showCol);
+
+    if (showCol)
+    {
+      // turn off wireboxes for collision entity
+      if (this->dataPtr->wireBoxes.find(colEntity)
+            != this->dataPtr->wireBoxes.end())
+      {
+        ignition::rendering::WireBoxPtr wireBox =
+          this->dataPtr->wireBoxes[colEntity];
+        auto visParent = wireBox->Parent();
+        if (visParent)
+          visParent->SetVisible(false);
+      }
+    }
   }
 }
