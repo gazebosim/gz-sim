@@ -17,6 +17,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
+#include <sdf/Types.hh>
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -111,6 +112,7 @@ static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
   return pose;
 }
 
+/////////////////////////////////////////////////
 static std::optional<sdf::JointAxis> ResolveJointAxis(
     const sdf::JointAxis &_unresolvedAxis)
 {
@@ -133,6 +135,44 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
 
   resolvedAxis.SetXyzExpressedIn("");
   return resolvedAxis;
+}
+
+//////////////////////////////////////////////////
+/// \brief Find a descendent child link entity by name.
+/// \param[in] _name The relative name of the link with "::" as the scope
+/// delimiter
+/// \param[in] _model Model entity that defines the scope
+/// \param[in] _ecm Entity component manager
+/// \return The Entity of the descendent link or kNullEntity if link was not
+/// found
+static Entity FindDescendentLinkEntityByName(const std::string &_name,
+                                             const Entity &_model,
+                                             const EntityComponentManager &_ecm)
+{
+  auto ind = _name.find(sdf::kSdfScopeDelimiter);
+  std::vector<Entity> candidates;
+  if (ind != std::string::npos)
+  {
+    candidates = _ecm.ChildrenByComponents(
+        _model, components::Model(), components::Name(_name.substr(0, ind)));
+    if (candidates.size() != 1 || (ind + 2 >= _name.size()))
+    {
+      return kNullEntity;
+    }
+    return FindDescendentLinkEntityByName(_name.substr(ind + 2),
+                                          candidates.front(), _ecm);
+  }
+  else
+  {
+    candidates = _ecm.ChildrenByComponents(_model, components::Link(),
+                                           components::Name(_name));
+
+    if (candidates.size() != 1)
+    {
+      return kNullEntity;
+    }
+    return candidates.front();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -286,12 +326,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
-  // todo(anyone) Support multiple canonical links in nested models
-  // This version of CreateEntties keeps track whether or not to create a
-  // canonical link in a model tree using the second arg in this recursive
-  // function. We also override child nested models static property if parent
-  // model is static
-  auto ent = this->CreateEntities(_model, true, false);
+  auto ent = this->CreateEntities(_model, false);
 
   // Load all model plugins afterwards, so we get scoped name for nested models.
   for (const auto &[entity, element] : this->dataPtr->newModels)
@@ -319,7 +354,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
-    bool _createCanonicalLink, bool _staticParent)
+                                        bool _staticParent)
 {
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
@@ -344,7 +379,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
   // the parent frame until we get frames working.
 
   // Links
-  bool canonicalLinkCreated = false;
   const auto *canonicalLink = _model->CanonicalLink();
 
   for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
@@ -355,11 +389,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
     this->SetParent(linkEntity, modelEntity);
 
-    if (_createCanonicalLink && canonicalLink == link)
+    if (canonicalLink == link)
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
-      canonicalLinkCreated = true;
     }
 
     // Set wind mode if the link didn't override it
@@ -385,24 +418,32 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       ++modelIndex)
   {
     auto nestedModel = _model->ModelByIndex(modelIndex);
-
-    // Create nested model. Make sure to only create canonical link component
-    // in the nested model if a canonical link has not been created in this
-    // model yet and the canonical link of the top-level model is actually in
-    // the nested model. Also override static propery of the nested model if
-    // this model is static
-
-    const bool canonicalLinkInNestedModel =
-      (canonicalLink == nestedModel->CanonicalLink());
-    const bool createCanonicalLinkInNestedModel =
-      _createCanonicalLink
-      && !canonicalLinkCreated
-      && canonicalLinkInNestedModel;
-
-    auto nestedModelEntity = this->CreateEntities(nestedModel,
-        createCanonicalLinkInNestedModel, isStatic);
+    auto nestedModelEntity = this->CreateEntities(nestedModel, isStatic);
 
     this->SetParent(nestedModelEntity, modelEntity);
+  }
+
+  // Find canonical link
+  const auto canonicalLinkPair = _model->CanonicalLinkAndRelativeName();
+  if (canonicalLinkPair.first)
+  {
+    Entity canonicalLinkEntity = FindDescendentLinkEntityByName(
+        canonicalLinkPair.second, modelEntity, *this->dataPtr->ecm);
+    if (kNullEntity != canonicalLinkEntity)
+    {
+      this->dataPtr->ecm->CreateComponent(
+          modelEntity, components::ModelCanonicalLink(canonicalLinkEntity));
+    }
+    else
+    {
+      ignerr << "Could not find the canonical link entity for "
+             << canonicalLinkPair.second << "\n";
+    }
+  }
+  else
+  {
+    ignerr << "Could not resolve the canonical link for " << _model->Name()
+           << "\n";
   }
 
   // Store the model's SDF DOM to be used when saving the world to file
