@@ -153,11 +153,7 @@ double SdfParamDouble(
     const std::string& _field,
     double _default)
 {
-  if (!_sdf->HasElement(_field))
-  {
-    return _default;
-  }
-  return _sdf->Get<double>(_field);
+  return _sdf->Get<double>(_field, _default).first;
 }
 
 /////////////////////////////////////////////////
@@ -202,8 +198,19 @@ void Hydrodynamics::Configure(
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
+  if(!_sdf->HasElement("link_name"))
+  {
+    ignerr << "You musk specify a <link_name> for the hydrodynamic"
+      << " plugin to act upon";
+    return;
+  }
   auto linkName = _sdf->Get<std::string>("link_name");
   this->dataPtr->linkEntity = model.LinkByName(_ecm, linkName);
+  if(!_ecm.HasEntity(this->dataPtr->linkEntity))
+  {
+    ignerr << "Link name" << linkName << "does not exist";
+    return;
+  }
 
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
 
