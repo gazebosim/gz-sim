@@ -237,7 +237,7 @@ class ignition::gazebo::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadless(_cfg->isHeadless) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -282,7 +282,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: std::string renderEngineServer = "";
 
   /// \brief is the headless mode active.
-  public: bool isHeadless = false;
+  public: bool isHeadlessRendering = false;
 
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
@@ -543,15 +543,15 @@ void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetHeadless(const bool &_headless)
+void ServerConfig::SetHeadlessRendering(const bool &_headless)
 {
-  this->dataPtr->isHeadless = _headless;
+  this->dataPtr->isHeadlessRendering = _headless;
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::Headless() const
+bool ServerConfig::HeadlessRendering() const
 {
-  return this->dataPtr->isHeadless;
+  return this->dataPtr->isHeadlessRendering;
 }
 
 /////////////////////////////////////////////////

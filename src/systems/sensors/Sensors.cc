@@ -406,10 +406,9 @@ void Sensors::Configure(const Entity &/*_id*/,
     // Set headless mode if specified from command line
     auto renderEngineServerHeadlessComp =
       _ecm.Component<components::RenderEngineServerHeadless>(worldEntity);
-    std::cerr << "Sensors::Configure" << '\n';
     if (renderEngineServerHeadlessComp)
     {
-      this->dataPtr->renderUtil.SetHeadless(
+      this->dataPtr->renderUtil.SetHeadlessRendering(
         renderEngineServerHeadlessComp->Data());
     }
   }

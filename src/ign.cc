@@ -335,7 +335,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
-  serverConfig.SetHeadless(_headless);
+  serverConfig.SetHeadlessRendering(_headless);
 
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {

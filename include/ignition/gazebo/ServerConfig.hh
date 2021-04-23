@@ -337,11 +337,11 @@ namespace ignition
 
       /// \brief Set the headless mode
       /// \param[in] _headless Set to true to enable headless mode.
-      public: void SetHeadless(const bool &_headless);
+      public: void SetHeadlessRendering(const bool &_headless);
 
       /// \brief Get the headless mode
       /// \return True if headless mode is enable, false otherwise.
-      public: bool Headless() const;
+      public: bool HeadlessRendering() const;
 
       /// \brief Set the render engine server plugin library.
       /// \param[in] _renderEngine File containing render engine library.

@@ -125,7 +125,7 @@ void LevelManager::ReadLevelPerformerInfo()
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineServerHeadless(
-      this->runner->serverConfig.Headless()));
+      this->runner->serverConfig.HeadlessRendering()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineGuiPlugin(

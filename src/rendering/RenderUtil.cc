@@ -146,7 +146,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::vector<sdf::Scene> newScenes;
 
   /// \brief is headless mode active
-  public: bool isHeadless = false;
+  public: bool isHeadlessRendering = false;
 
   /// \brief New models to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
@@ -1828,15 +1828,15 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::SetHeadless(const bool &_headless)
+void RenderUtil::SetHeadlessRendering(const bool &_headless)
 {
-  this->dataPtr->isHeadless = _headless;
+  this->dataPtr->isHeadlessRendering = _headless;
 }
 
 /////////////////////////////////////////////////
-bool RenderUtil::Headless() const
+bool RenderUtil::HeadlessRendering() const
 {
-  return this->dataPtr->isHeadless;
+  return this->dataPtr->isHeadlessRendering;
 }
 
 /////////////////////////////////////////////////
@@ -1849,7 +1849,7 @@ void RenderUtil::Init()
   std::map<std::string, std::string> params;
   if (this->dataPtr->useCurrentGLContext)
     params["useCurrentGLContext"] = "1";
-  if (this->dataPtr->isHeadless)
+  if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)

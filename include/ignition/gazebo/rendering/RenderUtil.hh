@@ -86,11 +86,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the headless mode
     /// \param[in] _headless Set to true to enable headless mode.
-    public: void SetHeadless(const bool &_headless);
+    public: void SetHeadlessRendering(const bool &_headless);
 
     /// \brief Get the headless mode
     /// \return True if headless mode is enable, false otherwise.
-    public: bool Headless() const;
+    public: bool HeadlessRendering() const;
 
     /// \brief Set the scene to use
     /// \param[in] _sceneName Name of the engine.

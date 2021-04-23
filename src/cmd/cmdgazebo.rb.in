@@ -73,7 +73,7 @@ COMMANDS = { 'gazebo' =>
   "                               enable console logging to a console.log          \n"\
   "                               file in the specified path.                      \n"\
   "\n"\
-  "  --headless                   Run in headless mode                             \n"\
+  "  --headless-rendering         Run in rendering in headless mode                \n"\
   "\n"\
   "  --record-resources           Implicitly invokes --record, and records         \n"\
   "                               meshes and material files, in addition to        \n"\
@@ -227,7 +227,7 @@ class Cmd
       'physics_engine' => '',
       'rendering_engine_gui' => '',
       'rendering_engine_server' => '',
-      'headless' => 0
+      'headless-rendering' => 0
     }
 
     usage = COMMANDS[args[0]]
@@ -294,8 +294,8 @@ class Cmd
       opts.on('--physics-engine [arg]', String) do |e|
         options['physics_engine'] = e
       end
-      opts.on('--headless') do
-        options['headless'] = 1
+      opts.on('--headless-rendering') do
+        options['headless-rendering'] = 1
       end
       opts.on('--render-engine-gui [arg]', String) do |g|
         options['render_engine_gui'] = g
@@ -471,7 +471,7 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
-            options['headless'])
+            options['headless-rendering'])
         end
 
         guiPid = Process.fork do
@@ -507,7 +507,7 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
-            options['headless'])
+            options['headless-rendering'])
       # Otherwise run the gui
       else options['gui']
         if plugin.end_with? ".dylib"
