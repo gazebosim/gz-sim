@@ -934,7 +934,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             {
               igndbg << "Attempting to process heightmap geometries, but the physics"
                      << " engine doesn't support feature "
-                     << "[AttachHeightmapShapeFeature]. Heightmapes will be ignored."
+                     << "[AttachHeightmapShapeFeature]. Heightmaps will be ignored."
                      << std::endl;
               informed = true;
             }
