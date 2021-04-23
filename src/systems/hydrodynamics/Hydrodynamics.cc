@@ -96,6 +96,10 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Water density [kg/m^3].
   public: double waterDensity;
 
+  /// \brief Added mass of vehicle;
+  /// See: https://en.wikipedia.org/wiki/Added_mass
+  Eigen::MatrixXd Ma;
+
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
@@ -217,6 +221,17 @@ void Hydrodynamics::Configure(
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
   AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
   AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
+
+
+  // Added mass according to Fossen's equations (p 37)
+  this->dataPtr->Ma = Eigen::MatrixXd::Zero(6, 6);
+
+  this->dataPtr->Ma(0, 0) = this->dataPtr->paramXdotU;
+  this->dataPtr->Ma(1, 1) = this->dataPtr->paramYdotV;
+  this->dataPtr->Ma(2, 2) = this->dataPtr->paramZdotW;
+  this->dataPtr->Ma(3, 3) = this->dataPtr->paramKdotP;
+  this->dataPtr->Ma(4, 4) = this->dataPtr->paramMdotQ;
+  this->dataPtr->Ma(5, 5) = this->dataPtr->paramNdotR;
 }
 
 /////////////////////////////////////////////////
@@ -238,7 +253,7 @@ void Hydrodynamics::PreUpdate(
   Eigen::VectorXd state    = Eigen::VectorXd(6);
   Eigen::MatrixXd Cmat     = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Dmat     = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd Ma       = Eigen::MatrixXd::Zero(6, 6);
+  
 
   // Get vehicle state
   ignition::gazebo::Link baseLink(this->dataPtr->linkEntity);
@@ -272,14 +287,7 @@ void Hydrodynamics::PreUpdate(
 
   this->dataPtr->prevState = state;
 
-  // Added mass according to Fossen's equations (p 37)
-  Ma(0, 0) = this->dataPtr->paramXdotU;
-  Ma(1, 1) = this->dataPtr->paramYdotV;
-  Ma(2, 2) = this->dataPtr->paramZdotW;
-  Ma(3, 3) = this->dataPtr->paramKdotP;
-  Ma(4, 4) = this->dataPtr->paramMdotQ;
-  Ma(5, 5) = this->dataPtr->paramNdotR;
-  const Eigen::VectorXd kAmassVec = Ma * stateDot;
+  const Eigen::VectorXd kAmassVec = this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
