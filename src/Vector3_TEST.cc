@@ -143,6 +143,10 @@ TEST(Vector3dTest, Distance)
 
   double dist2 = vec1.Distance(1, 2, 3);
   EXPECT_DOUBLE_EQ(dist, dist2);
+
+  math::Vector3i vecInt(0, 0, 0);
+  int distInt = vecInt.Distance({2, 2, 1});
+  EXPECT_EQ(distInt, 3);
 }
 
 /////////////////////////////////////////////////
@@ -163,12 +167,15 @@ TEST(Vector3dTest, SquaredLength)
 {
   math::Vector3d vec1(0, 0, 0);
   math::Vector3d vec2(1, 2, 3);
+  math::Vector3i vec3(1, 2, 3);
 
   double sum1 = vec1.SquaredLength();
   double sum2 = vec2.SquaredLength();
+  int sum3 = vec3.SquaredLength();
 
   EXPECT_DOUBLE_EQ(sum1, 0);
   EXPECT_DOUBLE_EQ(sum2, 14);
+  EXPECT_EQ(sum3, 14);
 }
 
 /////////////////////////////////////////////////
@@ -194,6 +201,11 @@ TEST(Vector3dTest, Length)
   math::Vector3d v(0.1, -4.2, 2.5);
   EXPECT_NEAR(v.Length(), 4.88876262463, 1e-10);
   EXPECT_DOUBLE_EQ(v.SquaredLength(), 23.9);
+
+  // Integer vector
+  math::Vector3i vi(1, 2, 2);
+  EXPECT_EQ(vi.Length(), 3);
+  EXPECT_EQ(vi.SquaredLength(), 9);
 }
 
 /////////////////////////////////////////////////
