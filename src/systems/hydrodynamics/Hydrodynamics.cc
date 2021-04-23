@@ -253,7 +253,6 @@ void Hydrodynamics::PreUpdate(
   Eigen::VectorXd state    = Eigen::VectorXd(6);
   Eigen::MatrixXd Cmat     = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Dmat     = Eigen::MatrixXd::Zero(6, 6);
-  
 
   // Get vehicle state
   ignition::gazebo::Link baseLink(this->dataPtr->linkEntity);
