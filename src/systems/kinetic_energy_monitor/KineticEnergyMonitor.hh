@@ -52,10 +52,6 @@ namespace systems
   /// energy surpasses the threshold. This element if optional, and the
   /// default value is `/model/{name_of_model}/kinetic_energy`.
   ///
-  /// `<halt_mode>`: Boolean that decides if a Halt Motion Component for that
-  /// model is created. If created, a plugin can use this to disable the model's
-  /// joints. This element if optional, and the default value is `false`.
-  ///
   /// # Example Usage
   ///
   /** \verbatim

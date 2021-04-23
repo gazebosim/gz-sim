@@ -27,7 +27,6 @@
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/World.hh>
 #include <ignition/gazebo/components/Inertial.hh>
-#include <ignition/gazebo/components/HaltMotion.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Link.hh>
 #include <ignition/gazebo/Model.hh>
@@ -64,9 +63,6 @@ class ignition::gazebo::systems::KineticEnergyMonitorPrivate
 
   /// \brief The model this plugin is attached to.
   public: Model model;
-
-  /// \brief Halting motion Mode
-  public: bool haltMode;
 };
 
 //////////////////////////////////////////////////
@@ -129,8 +125,6 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   ignmsg << "KineticEnergyMonitor publishing messages on "
     << "[" << topic << "]" << std::endl;
 
-  this->dataPtr->haltMode = sdfClone->Get<bool>("halt_mode", false).first;
-
   transport::Node node;
   this->dataPtr->pub = node.Advertise<msgs::Double>(topic);
 
@@ -167,14 +161,6 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   {
     _ecm.CreateComponent(this->dataPtr->linkEntity,
         components::WorldAngularVelocity());
-  }
-
-  // Create a halt motion component if halt mode is true and one is not present.
-  if (this->dataPtr->haltMode && !_ecm.Component<components::HaltMotion>(
-        _ecm.ParentEntity(this->dataPtr->linkEntity)))
-  {
-    _ecm.CreateComponent(_ecm.ParentEntity(this->dataPtr->linkEntity),
-        components::HaltMotion(false));
   }
 }
 
