@@ -197,12 +197,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Must be called from worker thread when we want to block
     /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void requestQtThreadToBlock(std::unique_lock<std::mutex> &lock);
+    public: void RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock);
     /// \brief Must be called from worker thread when we are done
     /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void releaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock);
+    public: void ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock);
     /// \brief Must be called from Qt thread periodically
-    public: void waitForWorkerThread();
+    public: void WaitForWorkerThread();
   };
 
   /// \brief Ign-rendering renderer.

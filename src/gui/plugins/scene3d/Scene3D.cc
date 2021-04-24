@@ -449,7 +449,7 @@ using namespace gazebo;
 QList<QThread *> RenderWindowItemPrivate::threads;
 
 /////////////////////////////////////////////////
-void RenderSync::requestQtThreadToBlock(std::unique_lock<std::mutex> &lock)
+void RenderSync::RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock)
 {
   this->renderStallState = RenderStallState::WorkerThreadRequested;
   this->cv.wait(lock, [this]
@@ -457,7 +457,7 @@ void RenderSync::requestQtThreadToBlock(std::unique_lock<std::mutex> &lock)
 }
 
 /////////////////////////////////////////////////
-void RenderSync::releaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock)
+void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock)
 {
   this->renderStallState = RenderStallState::Unblocked;
   lock.unlock();
@@ -465,7 +465,7 @@ void RenderSync::releaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock)
 }
 
 /////////////////////////////////////////////////
-void RenderSync::waitForWorkerThread()
+void RenderSync::WaitForWorkerThread()
 {
   {
     std::unique_lock<std::mutex> lock(this->mutex);
@@ -526,10 +526,20 @@ void IgnRenderer::Render(RenderSync *renderSync)
 
   IGN_PROFILE_THREAD_NAME("RenderThread");
   IGN_PROFILE("IgnRenderer::Render");
+
+  std::unique_lock<std::mutex> lock(renderSync->mutex);
+  renderSync->RequestQtThreadToBlock(lock);
+
   if (this->textureDirty)
   {
-    std::unique_lock<std::mutex> lock(renderSync->mutex);
-    renderSync->requestQtThreadToBlock(lock);
+    // TODO(anyone) If SwapFromThread gets implemented,
+    // then we only need to lock when texture is dirty
+    // (but we still need to lock the whole routine if
+    // debugging from RenderDoc or if user is not willing
+    // to sacrifice VRAM)
+    //
+    // std::unique_lock<std::mutex> lock(renderSync->mutex);
+    // renderSync->RequestQtThreadToBlock(lock);
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
     this->dataPtr->camera->SetImageHeight(this->textureSize.height());
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
@@ -540,7 +550,9 @@ void IgnRenderer::Render(RenderSync *renderSync)
       this->dataPtr->camera->PreRender();
     }
     this->textureDirty = false;
-    renderSync->releaseQtThreadFromBlock(lock);
+
+    // TODO(anyone) See SwapFromThread comments
+    // renderSync->ReleaseQtThreadFromBlock(lock);
   }
 
   // texture id could change so get the value in every render update
@@ -899,7 +911,13 @@ void IgnRenderer::Render(RenderSync *renderSync)
   // this notifes ECM to continue updating the scene
   g_renderCv.notify_one();
 
-  this->dataPtr->camera->SwapFromThread();
+  // TODO(anyone) implement a SwapFromThread for parallel command generation
+  // See https://github.com/ignitionrobotics/ign-rendering/issues/304
+  // if( bForcedSerialization )
+  //   this->dataPtr->camera->SwapFromThread();
+  // else
+  //  renderSync->ReleaseQtThreadFromBlock(lock);
+  renderSync->ReleaseQtThreadFromBlock(lock);
 }
 
 /////////////////////////////////////////////////
@@ -2312,7 +2330,7 @@ void TextureNode::NewTexture(uint _id, const QSize &_size)
 /////////////////////////////////////////////////
 void TextureNode::PrepareNode()
 {
-  renderSync.waitForWorkerThread();
+  renderSync.WaitForWorkerThread();
   this->mutex.lock();
   uint newId = this->id;
   QSize sz = this->size;
