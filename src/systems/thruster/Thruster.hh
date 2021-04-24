@@ -46,7 +46,7 @@ namespace systems
   /// <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
   /// <thrust_coefficient> - This is the coefficient which relates the RPM to
-  ///   actual thrust. [Required, ]
+  ///   actual thrust. [Required, no units]
   /// <fluid_density> - The fluid density of the liquid in which the thruster
   ///   is operating in. [Required, kgm^-3]
   /// <propeller_diameter> - The propeller diameter is the diameter of the prop

@@ -43,29 +43,29 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 of
   /// Fossen's book. They are used to calculate added mass, linear and quadratic
   /// drag and coriolis force.
-  ///   <xDotU> - Added mass in x direction
-  ///   <yDotV> - Added mass in y direction
-  ///   <zDotW> - Added mass in z direction
-  ///   <kDotP> - Added mass in roll direction
-  ///   <mDotQ> - Added mass in pitch direction
-  ///   <nDotR> - Added mass in yaw direction
-  ///   <xUU>   - Stability derivative, 2nd order, x component
-  ///   <xU>    - Stability derivative, 1st order, x component
-  ///   <yVV>   - Stability derivative, 2nd order, y component
-  ///   <yV>    - Stability derivative, 1st order, y component
-  ///   <zWW>   - Stability derivative, 2nd order, z component
-  ///   <zW>    - Stability derivative, 1st order, z component
-  ///   <kPP>   - Stability derivative, 2nd order, roll component
-  ///   <kP>    - Stability derivative, 1st order, roll component
-  ///   <mQQ>   - Stability derivative, 2nd order, pitch component
-  ///   <mQ>    - Stability derivative, 1st order, pitch component
-  ///   <nRR>   - Stability derivative, 2nd order, yaw component
-  ///   <nR>    - Stability derivative, 1st order, yaw component
+  ///   <xDotU> - Added mass in x direction [kg]
+  ///   <yDotV> - Added mass in y direction [kg]
+  ///   <zDotW> - Added mass in z direction [kg]
+  ///   <kDotP> - Added mass in roll direction [kgm^2]
+  ///   <mDotQ> - Added mass in pitch direction [kgm^2]
+  ///   <nDotR> - Added mass in yaw direction [kgm^2]
+  ///   <xUU>   - Stability derivative, 2nd order, x component [kg/m]
+  ///   <xU>    - Stability derivative, 1st order, x component [kg]
+  ///   <yVV>   - Stability derivative, 2nd order, y component [kg/m]
+  ///   <yV>    - Stability derivative, 1st order, y component [kg]
+  ///   <zWW>   - Stability derivative, 2nd order, z component [kg/m]
+  ///   <zW>    - Stability derivative, 1st order, z component [kg]
+  ///   <kPP>   - Stability derivative, 2nd order, roll component [kg/m^2]
+  ///   <kP>    - Stability derivative, 1st order, roll component [kg/m]
+  ///   <mQQ>   - Stability derivative, 2nd order, pitch component [kg/m^2]
+  ///   <mQ>    - Stability derivative, 1st order, pitch component [kg/m]
+  ///   <nRR>   - Stability derivative, 2nd order, yaw component [kg/m^2]
+  ///   <nR>    - Stability derivative, 1st order, yaw component [kg/m]
   /// Additionally the system also supports the following parameters:
   ///   <waterDensity> - The density of the fluid its moving in.
-  ///     Defaults to 998kgm^-2.
+  ///     Defaults to 998kgm^-3. [kgm^-3]
   ///   <link_name> - The link of the model that is being subject to
-  ///     hydrodynamic forces.
+  ///     hydrodynamic forces. [Required]
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
@@ -102,12 +102,12 @@ namespace systems
         const ignition::gazebo::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
         ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/);
+        ignition::gazebo::EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
         const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm);
+        ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;
