@@ -306,6 +306,7 @@ namespace sdf_generator
 
           auto modelDir =
               common::parentPath(_modelSdf->Data().Element()->FilePath());
+
           const std::string modelName =
               scopedName(_modelEntity, _ecm, "::", false);
 
@@ -460,15 +461,13 @@ namespace sdf_generator
         if (_saveFuelVersion && uriMapIt != _includeUriMap.end())
         {
           // find fuel model version from file path
-          std::string version = common::parentPath(e->FilePath());
-          version = common::basename(version);
+          std::string version = common::basename(modelDir);
 
           if (isNumber(version))
           {
-            sdf::ElementPtr uriElem = e->GetIncludeElement()->GetElement("uri");
-            std::string uri = uriElem->GetValue()->GetAsString();
+            std::string uri = e->GetIncludeElement()->Get<std::string>("uri");
             uri = uri + "/" + version;
-            uriElem->Set(uri);
+            e->GetIncludeElement()->GetElement("uri")->Set(uri);
           }
           else
           {
@@ -478,8 +477,7 @@ namespace sdf_generator
           }
         }
 
-        _elem->InsertElement(e->GetIncludeElement());
-        e->RemoveFromParent();
+        e->Copy(e->GetIncludeElement());
       }
       else if (e->GetName() == "model")
       {
