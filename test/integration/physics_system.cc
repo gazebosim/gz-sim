@@ -470,13 +470,11 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
 
   // Create a system that records the poses of the 3 boxes
   test::Relay testSystem;
-  double dt = 0.0;
 
   testSystem.OnPostUpdate(
-    [&boxParams, &poses, &dt](const gazebo::UpdateInfo &_info,
+    [&boxParams, &poses](const gazebo::UpdateInfo &_info,
     const gazebo::EntityComponentManager &_ecm)
     {
-      dt = _info.dt.count();
       _ecm.Each<components::Model, components::Name, components::Pose>(
         [&](const ignition::gazebo::Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
