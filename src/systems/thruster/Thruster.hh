@@ -42,14 +42,15 @@ namespace systems
   /// ## System Parameters
   /// <namespace> - The namespace in which the robot exists. The plugin will
   ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_pos`.
+  ///   [Optional]
   /// <joint_name> - This is the joint in the model which corresponds to the
-  ///   propeller.
+  ///   propeller. [Required]
   /// <thrust_coefficient> - This is the coefficient which relates the RPM to
-  ///   actual thrust.
+  ///   actual thrust. [Required, ]
   /// <fluid_density> - The fluid density of the liquid in which the thruster
-  ///   is operating in.
+  ///   is operating in. [Required, kgm^-3]
   /// <propeller_diameter> - The propeller diameter is the diameter of the prop
-  ///   in meters.
+  ///   in meters. [Required, m]
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
@@ -86,12 +87,12 @@ namespace systems
         const ignition::gazebo::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
         ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/);
+        ignition::gazebo::EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
         const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm);
+        ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;
