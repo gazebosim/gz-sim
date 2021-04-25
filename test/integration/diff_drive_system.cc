@@ -304,11 +304,15 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
   EXPECT_EQ(3u, odomPoses.size());
 
   EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
-  EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
   EXPECT_NEAR(poses[0].Pos().Z(), poses[3999].Pos().Z(), tol);
   EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
   EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
+
+  // Slip works on DART>=6.10, which isn't available on Ubuntu Focal
+#ifndef __linux__
+  EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
   EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+#endif
 }
 
 /////////////////////////////////////////////////
