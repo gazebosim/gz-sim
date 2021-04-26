@@ -83,7 +83,6 @@ TEST_F(ParticleEmitter2Test, SDFLoad)
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool
             {
-
               if (_name->Data() == "smoke_emitter")
               {
                 updateCustomChecked = true;

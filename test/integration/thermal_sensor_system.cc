@@ -151,7 +151,7 @@ TEST_F(ThermalSensorTest,
   // Run server
   server.Run(true, 1, false);
 
- // verify camera properties from sdf
+  // verify camera properties from sdf
   unsigned int width = 320u;
   unsigned int height = 240u;
   EXPECT_EQ("thermal_camera_invalid", name);
