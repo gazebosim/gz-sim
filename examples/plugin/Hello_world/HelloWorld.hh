@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #ifndef SYSTEM_PLUGIN_HELLOWORLD_HH_
 #define SYSTEM_PLUGIN_HELLOWORLD_HH_
 
-
 #include <ignition/gazebo/System.hh>
 
 namespace hello_world
@@ -27,7 +26,6 @@ namespace hello_world
   class HelloWorld: 
 
     public ignition::gazebo::System,
-
     public ignition::gazebo::ISystemPostUpdate
   
   {
