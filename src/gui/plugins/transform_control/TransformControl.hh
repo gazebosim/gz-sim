@@ -142,6 +142,9 @@ namespace gazebo
     /// \brief Notify that rotation has been activated
     signals: void activateRotate();
 
+    /// \brief Notify that scale has been activated
+    signals: void activateScale();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<TransformControlPrivate> dataPtr;
