@@ -5,6 +5,12 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 5.x to 6.x
+
+* Entity creation is now required to be done through the
+  `ignition::gazebo::SdfEntityCreator`. In earlier versions of Ignition Gazebo,
+  usage of this class for entity creation is optional, but strongly encouraged.
+
 ## Ignition Gazebo 4.x to 5.x
 
 * Use `cli` component of `ignition-utils1`.
