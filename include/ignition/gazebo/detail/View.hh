@@ -45,6 +45,11 @@ using ComponentTypeKey = std::set<ComponentTypeId>;
 /// use a cache to improve performance. The assumption is that entities
 /// and the types of components assigned to entities change infrequently
 /// compared to the frequency of queries performed by systems.
+///
+/// Note that symbols for this class are visible because methods from this class
+/// are used in templated Ignition::Gazebo::EntityComponentManager methods.
+/// However, users should not use this class (or anything else in namespace
+/// ignition::gazebo::detail) directly.
 class IGNITION_GAZEBO_VISIBLE View
 {
   /// Get a pointer to a component for an entity based on a component type.
