@@ -17,7 +17,7 @@
     <include>
       <static>true</static>
       <pose>22 111 -10 0 -0 0</pose>
-      <uri>model://cordless_drill</uri>
+      <uri>model://mesh_with_submeshes</uri>
     </include>
 
   </world>
