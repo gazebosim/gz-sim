@@ -98,6 +98,13 @@ void JointController::Configure(const Entity &_entity,
     return;
   }
 
+  gazebo::Entity jointEntity = this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
+  if (jointEntity == kNullEntity)
+  {
+    ignerr << "Joint with name[" << this->dataPtr->jointName << "] not found. "
+    << "The JointController will not control this joint.\n";
+  }
+
   if (_sdf->HasElement("initial_velocity"))
   {
     this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
