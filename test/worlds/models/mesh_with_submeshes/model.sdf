@@ -6,14 +6,14 @@
       <visual name='the_visual'>
         <geometry>
           <mesh>
-            <uri>model://mesh_with_submeshes/meshes/box.dae</uri>
+            <uri>model://mesh_with_submeshes/meshes/mesh_with_submeshes.dae</uri>
           </mesh>
         </geometry>
       </visual>
       <collision name='the_collision'>
         <geometry>
           <mesh>
-            <uri>model://mesh_with_submeshes/meshes/box.dae</uri>
+            <uri>model://mesh_with_submeshes/meshes/mesh_with_submeshes.dae</uri>
           </mesh>
         </geometry>
       </collision>
