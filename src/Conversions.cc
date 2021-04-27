@@ -1263,8 +1263,8 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     if (_in.has_camera())
     {
       sensor.SetHorizontalFov(_in.camera().horizontal_fov());
-      sensor.SetImageWidth(_in.camera().image_size().x());
-      sensor.SetImageHeight(_in.camera().image_size().y());
+      sensor.SetImageWidth(static_cast<int>(_in.camera().image_size().x()));
+      sensor.SetImageHeight(static_cast<int>(_in.camera().image_size().y()));
       sensor.SetPixelFormatStr(_in.camera().image_format());
       sensor.SetNearClip(_in.camera().near_clip());
       sensor.SetFarClip(_in.camera().far_clip());
