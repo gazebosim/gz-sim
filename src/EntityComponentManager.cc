@@ -1063,8 +1063,8 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
   int maxThreads = std::thread::hardware_concurrency();
   uint64_t numThreads = std::min(numComponents, maxThreads);
 
-  int componentsPerThread = std::ceil(static_cast<double>(numComponents) /
-    numThreads);
+  int componentsPerThread = static_cast<int>(std::ceil(
+    static_cast<double>(numComponents) / numThreads));
 
   igndbg << "Updated state thread iterators: " << numThreads
          << " threads processing around " << componentsPerThread

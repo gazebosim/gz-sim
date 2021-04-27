@@ -7,6 +7,10 @@ set (gui_sources
   TmpIface.cc
 )
 
+set (gtest_sources
+  Gui_TEST.cc
+)
+
 add_subdirectory(plugins)
 
 if(POLICY CMP0100)
@@ -26,6 +30,16 @@ qt5_wrap_cpp(gui_sources
   # TODO (anyone) Remove in v6
   ${PROJECT_SOURCE_DIR}/include/ignition/gazebo/gui/TmpIface.hh
 )
+
+if (MSVC)
+  # Warning #4251 is the "dll-interface" warning that tells you when types used
+  # by a class are not being exported. These generated source files have private
+  # members that don't get exported, so they trigger this warning. However, the
+  # warning is not important since those members do not need to be interfaced
+  # with.
+  set_source_files_properties(${gui_sources} ${gtest_sources}
+      COMPILE_FLAGS "/wd4251 /wd4146")
+endif()
 
 ign_add_component(gui
   SOURCES ${gui_sources} resources/gazebo.qrc
@@ -51,10 +65,6 @@ install (FILES gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
 install (FILES playback_gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
 
 # Tests
-set (gtest_sources
-  ${gtest_sources}
-  Gui_TEST.cc
-)
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
 ign_build_tests(TYPE UNIT
