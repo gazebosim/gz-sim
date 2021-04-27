@@ -197,7 +197,7 @@ ComponentTypeId PlotComponent::TypeId()
 }
 
 //////////////////////////////////////////////////
-Plotting ::Plotting() : GuiSystem(),
+Plotting::Plotting() : GuiSystem(),
   dataPtr(std::make_unique<PlottingPrivate>())
 {
   this->dataPtr->plottingIface = std::make_unique<gui::PlottingInterface>();
@@ -218,7 +218,7 @@ Plotting ::Plotting() : GuiSystem(),
 }
 
 //////////////////////////////////////////////////
-Plotting ::~Plotting()
+Plotting::~Plotting()
 {
 }
 
@@ -521,6 +521,6 @@ void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Plotting ,
+IGNITION_ADD_PLUGIN(ignition::gazebo::Plotting,
                     ignition::gazebo::GuiSystem,
                     ignition::gui::Plugin)
