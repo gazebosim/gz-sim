@@ -40,8 +40,8 @@ class PerformerDetectorTest : public ::testing::Test
   protected: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 
   protected: std::unique_ptr<Server> StartServer(const std::string &_filePath,
@@ -74,8 +74,9 @@ TEST_F(PerformerDetectorTest, MovingPerformer)
   transport::Node node;
   auto cmdVelPub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
 
+  std::string expectedCount = "1";
   auto detectorCb = std::function<void(const msgs::Pose &)>(
-      [this](const auto &_msg)
+      [this, &expectedCount](const auto &_msg)
       {
         std::lock_guard<std::mutex> lock(this->poseMsgsMutex);
         this->poseMsgs.push_back(_msg);
@@ -89,6 +90,7 @@ TEST_F(PerformerDetectorTest, MovingPerformer)
 
         bool hasUniqueKey = false;
         bool hasDuplicateKey = false;
+        bool hasCount = false;
         for (int i = 0; i < _msg.header().data_size(); ++i)
         {
           EXPECT_NE(_msg.header().data(i).key(), "no_value");
@@ -104,18 +106,27 @@ TEST_F(PerformerDetectorTest, MovingPerformer)
             EXPECT_EQ(_msg.header().data(i).value(0), "second_value");
             hasDuplicateKey  = true;
           }
+          else if (_msg.header().data(i).key() == "count")
+          {
+            EXPECT_EQ(_msg.header().data(i).value(0), expectedCount);
+            hasCount = true;
+          }
         }
         if (detectorName == "detector1")
         {
-          EXPECT_EQ(4, _msg.header().data_size());
+          EXPECT_EQ(5, _msg.header().data_size());
           EXPECT_TRUE(hasDuplicateKey);
           EXPECT_TRUE(hasUniqueKey);
+          EXPECT_TRUE(hasCount);
         }
         else
         {
-          EXPECT_EQ(2, _msg.header().data_size());
+          EXPECT_EQ(3, _msg.header().data_size());
           EXPECT_FALSE(hasDuplicateKey);
           EXPECT_FALSE(hasUniqueKey);
+          EXPECT_TRUE(hasCount);
+          // Change the expected count after 'detector2' is triggered.
+          expectedCount = "0";
         }
       });
 

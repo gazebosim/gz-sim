@@ -437,6 +437,31 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_FALSE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(entity2, IntComponent::typeId));
 
+  // Query non-existing component, the default value is default-constructed
+  BoolComponent *boolComp = manager.ComponentDefault<BoolComponent>(entity);
+  ASSERT_NE(nullptr, boolComp);
+  EXPECT_TRUE(manager.HasComponentType(BoolComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, BoolComponent::typeId));
+  EXPECT_EQ(false, boolComp->Data());
+
+  // Query non-existing component, the default value is used
+  DoubleComponent *doubleComp =
+    manager.ComponentDefault<DoubleComponent>(entity, 1.0);
+  ASSERT_NE(nullptr, doubleComp);
+  EXPECT_TRUE(manager.HasComponentType(DoubleComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, DoubleComponent::typeId));
+  EXPECT_FALSE(
+    manager.EntityHasComponentType(entity2, DoubleComponent::typeId));
+  EXPECT_FLOAT_EQ(1.0, doubleComp->Data());
+
+  // Query existing component, the default value is not used
+  IntComponent *intComp = manager.ComponentDefault<IntComponent>(entity, 124);
+  ASSERT_NE(nullptr, intComp);
+  EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::typeId));
+  EXPECT_EQ(123, intComp->Data());
+
   // Remove all entities
   manager.RequestRemoveEntities();
   EXPECT_EQ(3u, manager.EntityCount());
@@ -1780,7 +1805,7 @@ TEST_P(EntityComponentManagerFixture, State)
   {
     // Check the changed state
     auto changedStateMsg = manager.ChangedState();
-    EXPECT_EQ(2, changedStateMsg.entities_size());
+    EXPECT_EQ(4, changedStateMsg.entities_size());
 
     const auto &e4Msg = changedStateMsg.entities(0);
     EXPECT_EQ(e4, e4Msg.id());
@@ -1860,6 +1885,74 @@ TEST_P(EntityComponentManagerFixture, State)
     EXPECT_EQ(IntComponent::typeId, e4c0Msg.type());
     EXPECT_EQ(e4c0, std::stoi(e4c0Msg.component()));
   }
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, ChangedStateComponents)
+{
+  // Entity and component
+  Entity e1{1};
+  int e1c0{123};
+  std::string e1c1{"string"};
+
+  // Fill manager with entity
+  EXPECT_EQ(e1, manager.CreateEntity());
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Component
+  manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // Mark entities/components as not new
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // create component
+  auto compKey =
+      manager.CreateComponent<StringComponent>(e1, StringComponent(e1c1));
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+  manager.State(stateMsg);
+
+  // Mark components as not new
+  manager.RunSetAllComponentsUnchanged();
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // modify component
+  auto iter = stateMsg.mutable_entities()->find(e1);
+  ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
+
+  msgs::SerializedEntityMap &e1Msg = iter->second;
+
+  auto compIter = e1Msg.mutable_components()->find(compKey.first);
+  ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
+
+  msgs::SerializedComponent &e1c1Msg = compIter->second;
+  EXPECT_EQ(e1c1, e1c1Msg.component());
+  e1c1Msg.set_component("test");
+  EXPECT_EQ("test", e1c1Msg.component());
+  (*e1Msg.mutable_components())[e1c1Msg.type()] = e1c1Msg;
+
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // Mark components as not new
+  manager.RunSetAllComponentsUnchanged();
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // remove component
+  manager.RemoveComponent(e1, StringComponent::typeId);
+
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
 }
 
 /////////////////////////////////////////////////
@@ -2285,6 +2378,86 @@ TEST_P(EntityComponentManagerFixture, SerializedStateMsgAfterRemoveComponent)
     // First component
     const auto &e1c0Msg = entityMsg.components(0);
     EXPECT_FALSE(e1c0Msg.remove());
+  }
+}
+
+//////////////////////////////////////////////////
+// Verify SerializedStateMap message with no changed components,
+// but some removed components
+TEST_P(EntityComponentManagerFixture, SerializedStateMapMsgCompsRemovedOnly)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("int"));
+
+  manager.RunSetAllComponentsUnchanged();
+  manager.RemoveComponent(e1, e1c0);
+  manager.RemoveComponent(e1, e1c2);
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // Check number of components
+    ASSERT_EQ(e1Msg.components().size(), 2u);
+
+    // First component
+    const auto &c0 = compIter->second;
+    compIter++;
+    ASSERT_EQ(c0.remove(), true);
+
+    // Second component
+    const auto &c2 = compIter->second;
+    ASSERT_EQ(c2.remove(), true);
+  }
+}
+
+//////////////////////////////////////////////////
+// Verify that removed components are correctly filtered when creating a
+// SerializedStateMap message
+TEST_P(EntityComponentManagerFixture, SetRemovedComponentsMsgTypesFilter)
+{
+  // Create entity
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("foo"));
+
+  manager.RunSetAllComponentsUnchanged();
+  manager.RemoveComponent(e1, e1c0);
+  manager.RemoveComponent(e1, e1c2);
+
+  // Serialize into a message, providing a list of types to be included
+  msgs::SerializedStateMap stateMsg;
+  std::unordered_set<Entity> entitySet{e1};
+  std::unordered_set<ComponentTypeId> types{e1c0.first, e1c1.first};
+  manager.State(stateMsg, entitySet, types, false);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // Check number of components
+    ASSERT_EQ(e1Msg.components().size(), 1u);
+
+    // Only component in message should be e1c2
+    const auto &c0 = compIter->second;
+    EXPECT_EQ(c0.remove(), true);
+    EXPECT_EQ(c0.type(), e1c0.first);
   }
 }
 

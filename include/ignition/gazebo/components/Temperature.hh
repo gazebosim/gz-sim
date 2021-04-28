@@ -35,6 +35,12 @@ namespace components
   using Temperature = Component<math::Temperature, class TemperatureTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Temperature",
       Temperature)
+
+  /// \brief A component that stores temperature linear resolution in Kelvin
+  using TemperatureLinearResolution = Component<double, class TemperatureTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.TemperatureLinearResolution",
+      TemperatureLinearResolution)
 }
 }
 }

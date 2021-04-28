@@ -36,7 +36,7 @@ namespace systems
   /// \class Magnetometer Magnetometer.hh
   /// \brief An magnetometer sensor that reports the magnetic field in its
   /// current location.
-  class IGNITION_GAZEBO_VISIBLE Magnetometer:
+  class Magnetometer:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate

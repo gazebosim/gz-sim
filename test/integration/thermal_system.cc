@@ -16,14 +16,22 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <sdf/Camera.hh>
+#include <sdf/Sensor.hh>
+
 #include <ignition/common/Console.hh>
+#include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/TemperatureRange.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -41,13 +49,13 @@ class ThermalTest : public ::testing::Test
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 };
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, TemperatureComponent)
+TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 {
   // Start server
   ServerConfig serverConfig;
@@ -168,4 +176,71 @@ TEST_F(ThermalTest, TemperatureComponent)
         heatSignatureTestResource) != std::string::npos);
   EXPECT_TRUE(heatSignatures[heatSignatureSphereVisual2].find(
         heatSignatureTestResource) != std::string::npos);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+        "test/worlds/thermal.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that checks for thermal component
+  test::Relay testSystem;
+
+  double resolution = 0;
+  double minTemp = std::numeric_limits<double>::max();
+  double maxTemp = 0.0;
+  std::string name;
+  sdf::Sensor sensorSdf;
+  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
+    gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::ThermalCamera, components::Name>(
+          [&](const ignition::gazebo::Entity &_id,
+              const components::ThermalCamera *_sensor,
+              const components::Name *_name) -> bool
+          {
+            // store temperature data
+            sensorSdf = _sensor->Data();
+            name = _name->Data();
+
+            auto resolutionComp =
+                _ecm.Component<components::TemperatureLinearResolution>(
+                _id);
+            EXPECT_NE(nullptr, resolutionComp);
+            resolution = resolutionComp->Data();
+
+            auto temperatureRangeComp =
+                _ecm.Component<components::TemperatureRange>(_id);
+            EXPECT_NE(nullptr, temperatureRangeComp);
+            auto info = temperatureRangeComp->Data();
+            minTemp = info.min.Kelvin();
+            maxTemp = info.max.Kelvin();
+            return true;
+          });
+
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server
+  server.Run(true, 1, false);
+
+  // verify camera properties from sdf
+  EXPECT_EQ("thermal_camera_8bit", name);
+  const sdf::Camera *cameraSdf = sensorSdf.CameraSensor();
+  ASSERT_NE(nullptr, cameraSdf);
+  EXPECT_EQ(320u, cameraSdf->ImageWidth());
+  EXPECT_EQ(240u, cameraSdf->ImageHeight());
+  EXPECT_EQ(sdf::PixelFormatType::L_INT8, cameraSdf->PixelFormat());
+
+  // verify camera properties set through plugin
+  EXPECT_DOUBLE_EQ(3.0, resolution);
+  EXPECT_DOUBLE_EQ(253.15, minTemp);
+  EXPECT_DOUBLE_EQ(673.15, maxTemp);
 }

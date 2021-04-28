@@ -56,15 +56,27 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
-  /// \param[out] _msg Entity message
+  /// \param[in, out] _msg Entity message
+  /// \param[in] _types _types Type IDs of components to be serialized. Leave
+  /// empty to get all removed components.
   public: void SetRemovedComponentsMsgs(Entity &_entity,
-                          msgs::SerializedEntity *_msg);
+      msgs::SerializedEntity *_msg,
+      const std::unordered_set<ComponentTypeId> &_types = {});
 
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
-  /// \param[out] _msg State message
+  /// \param[in, out] _msg State message
+  /// \param[in] _types _types Type IDs of components to be serialized. Leave
+  /// empty to get all removed components.
   public: void SetRemovedComponentsMsgs(Entity &_entity,
-                        msgs::SerializedStateMap &_msg);
+      msgs::SerializedStateMap &_msg,
+      const std::unordered_set<ComponentTypeId> &_types = {});
+
+  /// \brief Add newly modified (created/modified/removed) components to
+  /// modifiedComponents list. The entity is added to the list when it is not
+  /// a newly created entity or is not an entity to be removed
+  /// \param[in] _entity Entity that has component newly modified
+  public: void AddModifiedComponent(const Entity &_entity);
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
@@ -86,6 +98,12 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Entities that need to be removed.
   public: std::unordered_set<Entity> toRemoveEntities;
+
+  /// \brief Entities that have components newly modified
+  /// (created/modified/removed) but are not entities that have been
+  /// newly created or removed (ie. newlyCreatedEntities or toRemoveEntities).
+  /// This is used for the ChangedState functions
+  public: std::unordered_set<Entity> modifiedComponents;
 
   /// \brief Flag that indicates if all entities should be removed.
   public: bool removeAllEntities{false};
@@ -348,6 +366,8 @@ bool EntityComponentManager::RemoveComponent(
 
   this->UpdateViews(_entity);
 
+  this->dataPtr->AddModifiedComponent(_entity);
+
   // Add component to map of removed components
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
@@ -522,6 +542,8 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
       return ComponentKey();
     }
   }
+
+  this->dataPtr->AddModifiedComponent(_entity);
 
   // Instantiate the new component.
   std::pair<ComponentId, bool> componentIdPair =
@@ -774,45 +796,62 @@ void EntityComponentManager::RebuildViews()
 
 //////////////////////////////////////////////////
 void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
-                                        msgs::SerializedEntity *_entityMsg)
+    msgs::SerializedEntity *_entityMsg,
+    const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
-  uint64_t nEntityKeys = this->removedComponents.count(_entity);
-  if (nEntityKeys == 0)
-    return;
-
-  auto it = this->removedComponents.find(_entity);
-  for (uint64_t i = 0; i < nEntityKeys; ++i)
+  auto entRemovedComps = this->removedComponents.equal_range(_entity);
+  for (auto it = entRemovedComps.first; it != entRemovedComps.second; ++it)
   {
-    auto compMsg = _entityMsg->add_components();
-
     auto removedComponent = it->second;
+
+    if (!_types.empty() && _types.find(removedComponent.first) == _types.end())
+    {
+      continue;
+    }
+
+    auto compMsg = _entityMsg->add_components();
 
     // Empty data is needed for the component to be processed afterwards
     compMsg->set_component(" ");
     compMsg->set_type(removedComponent.first);
     compMsg->set_remove(true);
-
-    it++;
   }
 }
 
 //////////////////////////////////////////////////
 void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
-                                    msgs::SerializedStateMap &_msg)
+    msgs::SerializedStateMap &_msg,
+    const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
   uint64_t nEntityKeys = this->removedComponents.count(_entity);
   if (nEntityKeys == 0)
     return;
 
-  // Find the entity in the message
+  // The message need not necessarily contain the entity initially. For
+  // instance, when AddEntityToMessage() calls this function, the entity may
+  // have some removed components but none in entityComponents that changed,
+  // so the entity may not have been added to the message beforehand.
   auto entIter = _msg.mutable_entities()->find(_entity);
+  if (entIter == _msg.mutable_entities()->end())
+  {
+    msgs::SerializedEntityMap ent;
+    ent.set_id(_entity);
+    entIter =
+      (_msg.mutable_entities())->insert({static_cast<uint64_t>(_entity), ent})
+      .first;
+  }
 
-  auto it = this->removedComponents.find(_entity);
-  for (uint64_t i = 0; i < nEntityKeys; ++i)
+  auto entRemovedComps = this->removedComponents.equal_range(_entity);
+  for (auto it = entRemovedComps.first; it != entRemovedComps.second; ++it)
   {
     auto removedComponent = it->second;
+
+    if (!_types.empty() && _types.find(removedComponent.first) == _types.end())
+    {
+      continue;
+    }
 
     msgs::SerializedComponent compMsg;
 
@@ -823,8 +862,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
 
     (*(entIter->second.mutable_components()))[
       static_cast<int64_t>(removedComponent.first)] = compMsg;
-
-    it++;
   }
 }
 
@@ -878,7 +915,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
-  this->dataPtr->SetRemovedComponentsMsgs(_entity, entityMsg);
+  this->dataPtr->SetRemovedComponentsMsgs(_entity, entityMsg, _types);
 }
 
 //////////////////////////////////////////////////
@@ -980,7 +1017,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
   // Add a component to the message and set it to be removed if the component
   // exists in the removedComponents map.
-  this->dataPtr->SetRemovedComponentsMsgs(_entity, _msg);
+  this->dataPtr->SetRemovedComponentsMsgs(_entity, _msg, _types);
 }
 
 //////////////////////////////////////////////////
@@ -1000,7 +1037,11 @@ ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
     this->AddEntityToMessage(stateMsg, entity);
   }
 
-  // TODO(anyone) New / removed / changed components
+  // New / removed / changed components
+  for (const auto &entity : this->dataPtr->modifiedComponents)
+  {
+    this->AddEntityToMessage(stateMsg, entity);
+  }
 
   return stateMsg;
 }
@@ -1021,7 +1062,11 @@ void EntityComponentManager::ChangedState(
     this->AddEntityToMessage(_state, entity);
   }
 
-  // TODO(anyone) New / removed / changed components
+  // New / removed / changed components
+  for (const auto &entity : this->dataPtr->modifiedComponents)
+  {
+    this->AddEntityToMessage(_state, entity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1236,6 +1281,10 @@ void EntityComponentManager::SetState(
         // values.
         // igndbg << *comp << "  " << *newComp.get() << std::endl;
         // *comp = *newComp.get();
+
+        // When above TODO is addressed, uncomment AddModifiedComponent below
+        // unless calling SetChanged (which already calls AddModifiedComponent)
+        // this->dataPtr->AddModifiedComponent(entity);
       }
     }
   }
@@ -1381,6 +1430,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 {
   this->dataPtr->periodicChangedComponents.clear();
   this->dataPtr->oneTimeChangedComponents.clear();
+  this->dataPtr->modifiedComponents.clear();
 }
 
 /////////////////////////////////////////////////
@@ -1412,6 +1462,8 @@ void EntityComponentManager::SetChanged(
     this->dataPtr->periodicChangedComponents.erase(typeIter->second);
     this->dataPtr->oneTimeChangedComponents.erase(typeIter->second);
   }
+
+  this->dataPtr->AddModifiedComponent(_entity);
 }
 
 /////////////////////////////////////////////////
@@ -1443,4 +1495,20 @@ void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
   }
 
   this->dataPtr->entityCount = _offset;
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
+{
+  if (this->newlyCreatedEntities.find(_entity)
+        != this->newlyCreatedEntities.end() ||
+      this->toRemoveEntities.find(_entity) != this->toRemoveEntities.end() ||
+      this->modifiedComponents.find(_entity) != this->modifiedComponents.end())
+  {
+    // modified component is already in newlyCreatedEntities
+    // or toRemoveEntities list
+    return;
+  }
+
+  this->modifiedComponents.insert(_entity);
 }

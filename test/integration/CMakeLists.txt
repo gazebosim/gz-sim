@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  ackermann_steering_system.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
@@ -22,6 +23,7 @@ set(tests
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
+  joint_trajectory_controller_system.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
@@ -34,6 +36,9 @@ set(tests
   multicopter.cc
   multiple_servers.cc
   network_handshake.cc
+  odometry_publisher.cc
+  particle_emitter.cc
+  particle_emitter2.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
@@ -42,7 +47,6 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
-  thermal_system.cc
   touch_plugin.cc
   triggered_publisher.cc
   user_commands.cc
@@ -61,6 +65,8 @@ set(tests_needing_display
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
+  thermal_system.cc
+  thermal_sensor_system.cc
 )
 
 # Add systems that need a valid display here.

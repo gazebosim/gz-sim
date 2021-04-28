@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
@@ -42,8 +43,8 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
   protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
   }
 
   /// \param[in] _sdfFile SDF file to load.
@@ -404,6 +405,190 @@ TEST_P(DiffDriveTest, OdomCustomFrameId)
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
   node.Subscribe("/model/vehicle/odometry", odomCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest, Pose_VFrameId)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Pose_V &)> pose_VCb =
+    [&odomPosesCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
+                   "frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
+                   "vehicle/odom");
+
+      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
+                   "child_frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
+                   "vehicle/chassis");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/model/vehicle/tf", pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest, Pose_VCustomFrameId)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_frame_id.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Pose_V &)> Pose_VCb =
+    [&odomPosesCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
+                   "frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
+                   "odom");
+
+      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
+                   "child_frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
+            "base_footprint");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/model/vehicle/tf", Pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest, Pose_VCustomTfTopic)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_tf_topic.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Pose_V &)> pose_VCb =
+    [&odomPosesCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(0).value().Get(0).c_str(),
+            "vehicle/odom");
+
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).value().Get(0).c_str(),
+            "vehicle/chassis");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/tf_foo", pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
 
   server.Run(true, 100, false);
 
