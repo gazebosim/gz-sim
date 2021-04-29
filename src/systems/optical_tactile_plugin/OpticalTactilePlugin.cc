@@ -16,6 +16,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <optional>
 #include <string>
 #include <vector>
@@ -55,7 +56,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: void Load(const EntityComponentManager &_ecm);
 
   /// \brief Actual function that enables the plugin.
-  /// \param[in] _enable Whether to enable the plugin or disable it.
+  /// \param[in] _req Whether to enable the plugin or disable it.
   public: void Enable(const ignition::msgs::Boolean &_req);
 
   /// \brief Callback for the depth camera
@@ -115,7 +116,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: ignition::gazebo::Entity objectCollisionEntity;
 
   /// \brief Whether the plugin is enabled.
-  public: bool enabled{true};
+  public: std::atomic<bool> enabled{true};
 
   /// \brief Initialization flag.
   public: bool initialized{false};
@@ -153,7 +154,7 @@ class ignition::gazebo::systems::OpticalTactilePluginPrivate
   public: bool visualizeSensor{false};
 
   /// \brief Size of the contact sensor
-  public: ignition::math::Vector3d sensorSize;
+  public: ignition::math::Vector3d sensorSize{0.005, 0.02, 0.02};
 
   /// \brief Extended sensing distance. The sensor will output data coming from
   /// its volume plus this distance.
@@ -295,7 +296,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("namespace"))
   {
-    ignlog << "Missing parameter <namespace>, "
+    igndbg << "Missing parameter <namespace>, "
       << "setting to " << this->dataPtr->ns << std::endl;
   }
   else
@@ -306,7 +307,6 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   // Get the size of the sensor from the SDF
   // If there's no <collision> specified inside <link>, a default one
   // is set
-  this->dataPtr->sensorSize = ignition::math::Vector3d(0.005, 0.02, 0.02);
   if (_sdf->GetParent() != nullptr)
   {
     if (_sdf->GetParent()->GetElement("link") != nullptr)
@@ -324,6 +324,8 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
               _sdf->GetParent()->GetElement("link")->GetElement("collision")->
               GetElement("geometry")->GetElement("box")->
               Get<ignition::math::Vector3d>("size");
+            igndbg << "Setting sensor size to box collision size: ["
+                   << this->dataPtr->sensorSize << "]" << std::endl;
           }
         }
       }
@@ -339,6 +341,11 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
     ignerr << "Error advertising topic [" << normalForcesTopic << "]"
       << std::endl;
   }
+  else
+  {
+    ignmsg << "Topic publishing normal forces [" << normalForcesTopic << "]"
+           << std::endl;
+  }
 
   // Advertise enabling service
   std::string enableService = "/" + this->dataPtr->ns + "/enable";
@@ -347,6 +354,11 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
   {
     ignerr << "Error advertising service [" << enableService << "]"
       << std::endl;
+  }
+  else
+  {
+    ignmsg << "Service to enable tactile sensor [" << enableService << "]"
+           << std::endl;
   }
 }
 
@@ -411,14 +423,13 @@ void OpticalTactilePlugin::PostUpdate(
     return;
 
   // TODO(anyone) Get ContactSensor data and merge it with DepthCamera data
-
   if (this->dataPtr->visualizeContacts)
   {
-    auto* contacts =
+    auto *contacts =
       _ecm.Component<components::ContactSensorData>(
         this->dataPtr->sensorCollisionEntity);
 
-    if (contacts)
+    if (nullptr != contacts)
     {
       this->dataPtr->visualizePtr->RequestContactsMarkerMsg(contacts);
     }
@@ -613,10 +624,13 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void OpticalTactilePluginPrivate::Enable(const ignition::msgs::Boolean &_req)
 {
+  if (_req.data() != this->enabled)
   {
-    std::lock_guard<std::mutex> lock(this->serviceMutex);
-    this->enabled = _req.data();
+    ignmsg << "Enabling optical tactile sensor with namespace [" << this->ns
+           << "]: " << _req.data() << std::endl;
   }
+
+  this->enabled = _req.data();
 
   if (!_req.data())
   {

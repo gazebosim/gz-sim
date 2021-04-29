@@ -275,7 +275,7 @@ void OpticalTactilePluginVisualization::RemoveNormalForcesAndContactsMarkers()
   contactMarkerMsg.set_ns("contacts_" + this->modelName);
   contactMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
 
-  node.Request("/marker", positionMarkerMsg);
-  node.Request("/marker", forceMarkerMsg);
-  node.Request("/marker", contactMarkerMsg);
+  this->node.Request("/marker", positionMarkerMsg);
+  this->node.Request("/marker", forceMarkerMsg);
+  this->node.Request("/marker", contactMarkerMsg);
 }
