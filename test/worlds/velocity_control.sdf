@@ -310,6 +310,7 @@
       <plugin
         filename="ignition-gazebo-velocity-control-system"
         name="ignition::gazebo::systems::VelocityControl">
+        <link_name>caster</link_name>
       </plugin>
 
     </model>
