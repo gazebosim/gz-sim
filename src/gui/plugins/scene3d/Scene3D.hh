@@ -166,44 +166,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: std::unique_ptr<Scene3DPrivate> dataPtr;
   };
 
-  class RenderSync
-  {
-    /// \brief Cond. variable to synchronize rendering on specific events
-    /// (e.g. texture resize) or for debugging (e.g. keep
-    /// all API calls sequential)
-    public: std::mutex mutex;
-
-    /// \brief Cond. variable to synchronize rendering on specific events
-    /// (e.g. texture resize) or for debugging (e.g. keep
-    /// all API calls sequential)
-    public: std::condition_variable cv;
-
-    public: enum class RenderStallState
-            {
-              /// All threads will continue as normal
-              Unblocked,
-              /// Worker thread requested Qt thread to be blocked; and is
-              /// waiting for Qt thread to see this
-              WorkerThreadRequested,
-              /// Qt thread saw WorkerThreadRequested, set the variable to
-              /// QtThreadBlocked; and is now waiting for worker thread to do
-              /// its thing and set it back to Unblocked so that Qt can resume
-              QtThreadBlocked
-            };
-
-    /// \brief See TextureNode::RenderSync::RenderStallState
-    public: RenderStallState renderStallState =
-        RenderStallState::Unblocked /*GUARDED_BY(sharedRenderMutex)*/;
-
-    /// \brief Must be called from worker thread when we want to block
-    /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock);
-    /// \brief Must be called from worker thread when we are done
-    /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock);
-    /// \brief Must be called from Qt thread periodically
-    public: void WaitForWorkerThread();
-  };
+  class RenderSync;
 
   /// \brief Ign-rendering renderer.
   /// All ign-rendering calls should be performed inside this class as it makes
@@ -529,7 +492,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public slots: void RenderNext(RenderSync *renderSync);
 
     /// \brief Shutdown the thread and the render engine
-    public slots: void ShutDown();
+    public Q_SLOTS: void ShutDown();
 
     /// \brief Slot called to update render texture size
     public slots: void SizeChanged();
@@ -763,7 +726,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Constructor
     /// \param[in] _window Parent window
-    public: explicit TextureNode(QQuickWindow *_window);
+    public: explicit TextureNode(QQuickWindow *_window, RenderSync *_renderSync);
 
     /// \brief Destructor
     public: ~TextureNode() override;
@@ -796,7 +759,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: QMutex mutex;
 
     /// \brief See RenderSync
-    public: RenderSync renderSync;
+    public: RenderSync *renderSync;
 
     /// \brief Qt's scene graph texture
     public: QSGTexture *texture = nullptr;

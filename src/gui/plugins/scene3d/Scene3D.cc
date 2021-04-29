@@ -368,6 +368,53 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d scaleSnap = math::Vector3d::One;
   };
 
+  class RenderSync
+  {
+    /// \brief Cond. variable to synchronize rendering on specific events
+    /// (e.g. texture resize) or for debugging (e.g. keep
+    /// all API calls sequential)
+    public: std::mutex mutex;
+
+    /// \brief Cond. variable to synchronize rendering on specific events
+    /// (e.g. texture resize) or for debugging (e.g. keep
+    /// all API calls sequential)
+    public: std::condition_variable cv;
+
+    public: enum class RenderStallState
+            {
+              /// All RequestQtThreadToBlock calls will continue immediately
+              /// until the first WaitForWorkerThread call is made
+              Initializing,
+              /// All threads will continue as normal
+              Unblocked,
+              /// Worker thread requested Qt thread to be blocked; and is
+              /// waiting for Qt thread to see this
+              WorkerThreadRequested,
+              /// Qt thread saw WorkerThreadRequested, set the variable to
+              /// QtThreadBlocked; and is now waiting for worker thread to do
+              /// its thing and set it back to Unblocked so that Qt can resume
+              QtThreadBlocked,
+              /// Same as Unblocked, but RequestQtThreadToBlock and
+              /// ReleaseQtThreadFromBlock cannot be called
+              ShuttingDown,
+            };
+
+    /// \brief See TextureNode::RenderSync::RenderStallState
+    public: RenderStallState renderStallState =
+        RenderStallState::Initializing /*GUARDED_BY(sharedRenderMutex)*/;
+
+    /// \brief Must be called from worker thread when we want to block
+    /// \param[in] lock Acquired lock. Must be based on this->mutex
+    public: void RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock);
+    /// \brief Must be called from worker thread when we are done
+    /// \param[in] lock Acquired lock. Must be based on this->mutex
+    public: void ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock);
+    /// \brief Must be called from Qt thread periodically
+    public: void WaitForWorkerThread();
+    /// \brief Must be called from GUI thread when shutting down
+    public: void Shutdown();
+  };
+
   /// \brief Private data class for RenderWindowItem
   class RenderWindowItemPrivate
   {
@@ -376,6 +423,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
+
+    /// \brief See RenderSync
+    public: RenderSync renderSync;
 
     //// \brief Set to true after the renderer is initialized
     public: bool rendererInit = false;
@@ -451,15 +501,23 @@ QList<QThread *> RenderWindowItemPrivate::threads;
 /////////////////////////////////////////////////
 void RenderSync::RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock)
 {
+  if (this->renderStallState == RenderStallState::Initializing)
+    return;
+
   this->renderStallState = RenderStallState::WorkerThreadRequested;
   this->cv.wait(lock, [this]
-  { return this->renderStallState == RenderStallState::QtThreadBlocked; });
+  { return this->renderStallState == RenderStallState::QtThreadBlocked ||
+           this->renderStallState == RenderStallState::ShuttingDown; });
 }
 
 /////////////////////////////////////////////////
 void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock)
 {
-  this->renderStallState = RenderStallState::Unblocked;
+  if (this->renderStallState != RenderStallState::ShuttingDown &&
+      this->renderStallState != RenderStallState::Initializing)
+  {
+    this->renderStallState = RenderStallState::Unblocked;
+  }
   lock.unlock();
   this->cv.notify_one();
 }
@@ -469,7 +527,11 @@ void RenderSync::WaitForWorkerThread()
 {
   {
     std::unique_lock<std::mutex> lock(this->mutex);
-    if(this->renderStallState == RenderStallState::WorkerThreadRequested)
+    if(this->renderStallState == RenderStallState::Initializing)
+    {
+      this->renderStallState = RenderStallState::Unblocked;
+    }
+    else if(this->renderStallState == RenderStallState::WorkerThreadRequested)
     {
       // Worker thread asked us to wait!
       this->renderStallState = RenderStallState::QtThreadBlocked;
@@ -482,8 +544,27 @@ void RenderSync::WaitForWorkerThread()
   {
     // Wait until we're clear to go
     std::unique_lock<std::mutex> lock(this->mutex);
-    this->cv.wait(lock, [this]
-    { return this->renderStallState == RenderStallState::Unblocked; });
+    this->cv.wait( lock, [this]
+    {
+      return this->renderStallState == RenderStallState::Unblocked ||
+             this->renderStallState == RenderStallState::ShuttingDown;
+    } );
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderSync::Shutdown()
+{
+  {
+    std::unique_lock<std::mutex> lock(this->mutex);
+    const bool bWakeUpRequested =
+        this->renderStallState == RenderStallState::WorkerThreadRequested;
+    this->renderStallState = RenderStallState::ShuttingDown;
+    if(bWakeUpRequested)
+    {
+      lock.unlock();
+      this->cv.notify_one();
+    }
   }
 }
 
@@ -2271,6 +2352,7 @@ void RenderThread::ShutDown()
   this->surface->deleteLater();
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
+  this->exit();
   this->moveToThread(QGuiApplication::instance()->thread());
 }
 
@@ -2293,8 +2375,8 @@ void RenderThread::SizeChanged()
 }
 
 /////////////////////////////////////////////////
-TextureNode::TextureNode(QQuickWindow *_window)
-    : window(_window)
+TextureNode::TextureNode(QQuickWindow *_window, RenderSync *_renderSync)
+    : renderSync(_renderSync), window(_window)
 {
   // Our texture node must have a texture, so use the default 0 texture.
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
@@ -2330,7 +2412,7 @@ void TextureNode::NewTexture(uint _id, const QSize &_size)
 /////////////////////////////////////////////////
 void TextureNode::PrepareNode()
 {
-  renderSync.WaitForWorkerThread();
+  renderSync->WaitForWorkerThread();
   this->mutex.lock();
   uint newId = this->id;
   QSize sz = this->size;
@@ -2364,7 +2446,7 @@ void TextureNode::PrepareNode()
 
     // This will notify the rendering thread that the texture is now being
     // rendered and it can start rendering to the other one.
-    emit TextureInUse(&this->renderSync);
+    emit TextureInUse(this->renderSync);
   }
 }
 
@@ -2388,7 +2470,15 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
 }
 
 /////////////////////////////////////////////////
-RenderWindowItem::~RenderWindowItem() = default;
+RenderWindowItem::~RenderWindowItem()
+{
+  this->dataPtr->renderSync.Shutdown();
+  QMetaObject::invokeMethod(this->dataPtr->renderThread,
+                            "ShutDown",
+                            Qt::QueuedConnection);
+
+  this->dataPtr->renderThread->wait();
+}
 
 /////////////////////////////////////////////////
 void RenderWindowItem::Ready()
@@ -2410,10 +2500,6 @@ void RenderWindowItem::Ready()
       this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
-
-  this->connect(this, &QObject::destroyed,
-      this->dataPtr->renderThread, &RenderThread::ShutDown,
-      Qt::QueuedConnection);
 
   this->connect(this, &QQuickItem::widthChanged,
       this->dataPtr->renderThread, &RenderThread::SizeChanged);
@@ -2477,7 +2563,7 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 
   if (!node)
   {
-    node = new TextureNode(this->window());
+    node = new TextureNode(this->window(), &this->dataPtr->renderSync);
 
     // Set up connections to get the production of render texture in sync with
     // vsync on the rendering thread.
@@ -2508,7 +2594,7 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     // Get the production of FBO textures started..
     QMetaObject::invokeMethod(this->dataPtr->renderThread, "RenderNext",
                               Qt::QueuedConnection,
-                              Q_ARG( RenderSync*, &node->renderSync ));
+                              Q_ARG( RenderSync*, node->renderSync ));
   }
 
   node->setRect(this->boundingRect());
