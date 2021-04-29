@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="Scene3DNew/">
+  <file>Scene3DNew.qml</file>
+</qresource>
+</RCC>

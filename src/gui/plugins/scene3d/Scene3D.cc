@@ -70,6 +70,9 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
+#include <ignition/gazebo/gui/GuiRunner.hh>
+#include <ignition/gui/Application.hh>
+
 /// \brief condition variable for lockstepping video recording
 /// todo(anyone) avoid using a global condition variable when we support
 /// multiple viewports in the future.
@@ -163,6 +166,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Private data class for IgnRenderer
   class IgnRendererPrivate
   {
+    public: explicit IgnRendererPrivate(bool updateNewModels)
+      : renderUtil(updateNewModels), sameProcess(updateNewModels){}
+
+    public: bool sameProcess = false;
+
     /// \brief Flag to indicate if mouse event is dirty
     public: bool mouseDirty = false;
 
@@ -449,8 +457,28 @@ QList<QThread *> RenderWindowItemPrivate::threads;
 
 /////////////////////////////////////////////////
 IgnRenderer::IgnRenderer()
-  : dataPtr(new IgnRendererPrivate)
 {
+  auto runners = ignition::gui::App()->findChildren<ignition::gazebo::GuiRunner *>();
+  if (runners.empty() || runners[0] == nullptr)
+  {
+    ignerr << "Internal error: no GuiRunner found." << std::endl;
+    return;
+  }
+
+  bool sameProcess = false;
+  auto sameProcessVariant = runners[0]->property("sameProcess");
+  if (!sameProcessVariant.isValid())
+  {
+    ignwarn << "GuiRunner's worldName not set, using["
+            << sameProcess << "]" << std::endl;
+  }
+  else
+  {
+    sameProcess = sameProcessVariant.toBool();
+  }
+
+  this->dataPtr = std::make_unique<IgnRendererPrivate>(sameProcess);
+
   this->dataPtr->moveToHelper.initCameraPose = this->cameraPose;
 
   // recorder stats topic
@@ -2799,6 +2827,7 @@ void Scene3D::Update(const UpdateInfo &_info,
   }
   this->dataPtr->renderUtil->UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
+  // ignerr << "UpdateFromECM2\n";
 
   // check if video recording is enabled and if we need to lock step
   // ECM updates with GUI rendering during video recording
