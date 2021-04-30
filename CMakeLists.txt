@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo4 VERSION 4.7.0)
+project(ignition-gazebo4 VERSION 4.8.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -87,7 +87,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics3 VERSION 3.1
+ign_find_package(ignition-physics3 VERSION 3.2
   COMPONENTS
     mesh
     sdf
