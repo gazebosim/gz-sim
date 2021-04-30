@@ -43,7 +43,7 @@ namespace ignition::gazebo
     math::Pose3d pose{math::Pose3d::Zero};
 
     /// \brief Default color of grid
-    math::Color color{math::Color(0.7, 0.7, 0.7, 1.0)};
+    math::Color color{math::Color(0.7f, 0.7f, 0.7f, 1.0f)};
 
     /// \brief Default visible state
     bool visible{true};
