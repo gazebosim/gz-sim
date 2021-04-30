@@ -185,7 +185,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: ~IgnRenderer() override;
 
     ///  \brief Main render function
-    public: void Render(RenderSync *renderSync);
+    public: void Render(RenderSync *_renderSync);
 
     /// \brief Initialize the render engine
     public: void Initialize();
@@ -743,7 +743,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Signal emitted when the texture is being rendered and renderer
     /// can start rendering next frame
-    signals: void TextureInUse(RenderSync *renderSync);
+    signals: void TextureInUse(RenderSync *_renderSync);
 
     /// \brief Signal emitted when a new texture is ready to trigger window
     /// update

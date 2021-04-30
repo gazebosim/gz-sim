@@ -405,12 +405,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Must be called from worker thread when we want to block
     /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock);
+    public: void RequestQtThreadToBlock(std::unique_lock<std::mutex> &_lock);
+
     /// \brief Must be called from worker thread when we are done
     /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock);
+    public: void ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &_lock);
+
     /// \brief Must be called from Qt thread periodically
     public: void WaitForWorkerThread();
+
     /// \brief Must be called from GUI thread when shutting down
     public: void Shutdown();
   };
@@ -499,26 +502,26 @@ using namespace gazebo;
 QList<QThread *> RenderWindowItemPrivate::threads;
 
 /////////////////////////////////////////////////
-void RenderSync::RequestQtThreadToBlock(std::unique_lock<std::mutex> &lock)
+void RenderSync::RequestQtThreadToBlock(std::unique_lock<std::mutex> &_lock)
 {
   if (this->renderStallState == RenderStallState::Initializing)
     return;
 
   this->renderStallState = RenderStallState::WorkerThreadRequested;
-  this->cv.wait(lock, [this]
+  this->cv.wait(_lock, [this]
   { return this->renderStallState == RenderStallState::QtThreadBlocked ||
            this->renderStallState == RenderStallState::ShuttingDown; });
 }
 
 /////////////////////////////////////////////////
-void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &lock)
+void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &_lock)
 {
   if (this->renderStallState != RenderStallState::ShuttingDown &&
       this->renderStallState != RenderStallState::Initializing)
   {
     this->renderStallState = RenderStallState::Unblocked;
   }
-  lock.unlock();
+  _lock.unlock();
   this->cv.notify_one();
 }
 
@@ -593,7 +596,7 @@ RenderUtil *IgnRenderer::RenderUtil() const
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::Render(RenderSync *renderSync)
+void IgnRenderer::Render(RenderSync *_renderSync)
 {
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   if (!scene)
@@ -608,8 +611,8 @@ void IgnRenderer::Render(RenderSync *renderSync)
   IGN_PROFILE_THREAD_NAME("RenderThread");
   IGN_PROFILE("IgnRenderer::Render");
 
-  std::unique_lock<std::mutex> lock(renderSync->mutex);
-  renderSync->RequestQtThreadToBlock(lock);
+  std::unique_lock<std::mutex> lock(_renderSync->mutex);
+  _renderSync->RequestQtThreadToBlock(lock);
 
   if (this->textureDirty)
   {
@@ -620,7 +623,7 @@ void IgnRenderer::Render(RenderSync *renderSync)
     // to sacrifice VRAM)
     //
     // std::unique_lock<std::mutex> lock(renderSync->mutex);
-    // renderSync->RequestQtThreadToBlock(lock);
+    // _renderSync->RequestQtThreadToBlock(lock);
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
     this->dataPtr->camera->SetImageHeight(this->textureSize.height());
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
@@ -633,7 +636,7 @@ void IgnRenderer::Render(RenderSync *renderSync)
     this->textureDirty = false;
 
     // TODO(anyone) See SwapFromThread comments
-    // renderSync->ReleaseQtThreadFromBlock(lock);
+    // _renderSync->ReleaseQtThreadFromBlock(lock);
   }
 
   // texture id could change so get the value in every render update
@@ -823,7 +826,10 @@ void IgnRenderer::Render(RenderSync *renderSync)
   {
     IGN_PROFILE("IgnRenderer::Render Follow");
     if (!this->dataPtr->moveToTarget.empty())
+    {
+      _renderSync->ReleaseQtThreadFromBlock(lock);
       return;
+    }
     rendering::NodePtr followTarget = this->dataPtr->camera->FollowTarget();
     if (!this->dataPtr->followTarget.empty())
     {
@@ -997,8 +1003,8 @@ void IgnRenderer::Render(RenderSync *renderSync)
   // if( bForcedSerialization )
   //   this->dataPtr->camera->SwapFromThread();
   // else
-  //  renderSync->ReleaseQtThreadFromBlock(lock);
-  renderSync->ReleaseQtThreadFromBlock(lock);
+  //  _renderSync->ReleaseQtThreadFromBlock(lock);
+  _renderSync->ReleaseQtThreadFromBlock(lock);
 }
 
 /////////////////////////////////////////////////
@@ -2316,7 +2322,7 @@ RenderThread::RenderThread()
 }
 
 /////////////////////////////////////////////////
-void RenderThread::RenderNext(RenderSync *renderSync)
+void RenderThread::RenderNext(RenderSync *_renderSync)
 {
   this->context->makeCurrent(this->surface);
 
@@ -2333,7 +2339,7 @@ void RenderThread::RenderNext(RenderSync *renderSync)
     return;
   }
 
-  this->ignRenderer.Render(renderSync);
+  this->ignRenderer.Render(_renderSync);
 
   emit TextureReady(this->ignRenderer.textureId, this->ignRenderer.textureSize);
 }
@@ -2412,7 +2418,7 @@ void TextureNode::NewTexture(uint _id, const QSize &_size)
 /////////////////////////////////////////////////
 void TextureNode::PrepareNode()
 {
-  renderSync->WaitForWorkerThread();
+  this->renderSync->WaitForWorkerThread();
   this->mutex.lock();
   uint newId = this->id;
   QSize sz = this->size;
