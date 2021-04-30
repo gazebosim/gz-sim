@@ -158,6 +158,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _active True if active.
     public: void SetTransformActive(bool _active);
 
+    /// Scale a given wirebox.
+    /// \param[in] _entityId The entity Id.
+    /// \param[in] _scale Scale vector.
+    public: void ScaleWireBox(int _entityId, const math::Vector3d &_scale);
+
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;
   };

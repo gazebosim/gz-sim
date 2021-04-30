@@ -1607,10 +1607,53 @@ void IgnRenderer::HandleMouseTransformControl()
     else if (this->dataPtr->transformControl.Mode() ==
         rendering::TransformMode::TM_SCALE)
     {
+      // Check if the model that we're trying to scale looks like a simple shape
+      // It will need to have only two children nodes: one for the visual gizmo
+      // and another one for the link.
+      auto node = this->dataPtr->transformControl.Node();
+      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
+      if (!v)
+        return;
+
+      if (v->ChildCount() != 2)
+        return;
+
+      auto c1 = v->ChildByIndex(0);
+      auto c2 = v->ChildByIndex(1);
+      ignition::rendering::VisualPtr leafNode;
+
+      if (c1->Name().find("scene::Visual") != std::string::npos)
+      {
+        if (c2->ChildCount() != 1)
+          return;
+
+        leafNode = std::dynamic_pointer_cast<ignition::rendering::Visual>(
+          c2->ChildByIndex(0));
+      }
+      else
+      {
+        if (c1->ChildCount() != 1)
+          return;
+
+        leafNode = std::dynamic_pointer_cast<ignition::rendering::Visual>(
+          c1->ChildByIndex(0));
+      }
+
+      int userData = std::get<int>(leafNode->UserData("geometry-type"));
+      sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
+
+      // We only support scaling of simple shapes.
+      if (userData != static_cast<int>(sdf::GeometryType::BOX)      &&
+          userData != static_cast<int>(sdf::GeometryType::CYLINDER) &&
+          userData != static_cast<int>(sdf::GeometryType::SPHERE))
+      {
+        return;
+      }
+
       this->XYZConstraint(axis);
       // note: scaling is limited to local space
       math::Vector3d scale =
-          this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
+        this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
       if (this->dataPtr->keyEvent.Control())
       {
         math::Vector3d snapVals = this->ScaleSnap();
@@ -1624,7 +1667,47 @@ void IgnRenderer::HandleMouseTransformControl()
 
         SnapPoint(scale, snapVals);
       }
+
+      // Apply geometry constaints to the scaling.
+      if (geomType == sdf::GeometryType::SPHERE)
+      {
+        if (axis.X() > 0)
+        {
+          scale.Y(scale.X());
+          scale.Z(scale.X());
+        }
+        else if (axis.Y() > 0)
+        {
+          scale.X(scale.Y());
+          scale.Z(scale.Y());
+        }
+        else if (axis.Z() > 0)
+        {
+          scale.X(scale.Z());
+          scale.Y(scale.Z());
+        }
+      }
+      else if (geomType == sdf::GeometryType::CYLINDER)
+      {
+        if (axis.X() > 0)
+        {
+          scale.Y(scale.X());
+        }
+        else if (axis.Y() > 0)
+        {
+          scale.X(scale.Y());
+        }
+      }
+
+      // Scale.
       this->dataPtr->transformControl.Scale(scale);
+
+      // Update the bounding box.
+      if (v)
+      {
+        Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
+        this->dataPtr->renderUtil.ScaleWireBox(entityId, scale);
+      }
     }
     this->dataPtr->drag = 0;
     this->dataPtr->mouseDirty = false;

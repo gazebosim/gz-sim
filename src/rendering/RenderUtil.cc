@@ -2059,6 +2059,26 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::ScaleWireBox(int _entityId, const math::Vector3d &_scale)
+{
+  if (this->dataPtr->wireBoxes.find(_entityId) ==
+          this->dataPtr->wireBoxes.end())
+  {
+    return;
+  }
+
+  ignition::rendering::WireBoxPtr wireBox = this->dataPtr->wireBoxes[_entityId];
+  if (!wireBox)
+    return;
+
+  auto visParent = wireBox->Parent();
+  if (!visParent)
+    return;
+
+  visParent->SetLocalScale(_scale);
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
