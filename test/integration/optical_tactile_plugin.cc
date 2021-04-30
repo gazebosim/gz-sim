@@ -94,14 +94,12 @@ class OpticalTactilePluginTest : public ::testing::Test
 // The test checks the normal forces on the corners of the box-shaped sensor
 TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
 {
-  // TEMPORARY: Debugging Mac CI Ogre2 error
-  ignerr << "1111111111111111111111\n";
-
   // World with moving entities
   const auto sdfPath = common::joinPaths(
     PROJECT_SOURCE_PATH, "test", "worlds", "optical_tactile_plugin.sdf");
   this->StartServer(sdfPath);
 
+  bool receivedMsg{false};
   math::Vector3f upperLeftNormalForce(0, 0, 0);
   math::Vector3f upperRightNormalForce(0, 0, 0);
   math::Vector3f lowerLeftNormalForce(0, 0, 0);
@@ -116,6 +114,7 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
       lowerLeftNormalForce = this->MapPointCloudData(1, (_image.height() - 2));
       lowerRightNormalForce = this->MapPointCloudData(
         _image.width() - 2, _image.height() - 2);
+      receivedMsg = true;
     });
 
   transport::Node node;
@@ -127,18 +126,26 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerRightNormalForce);
 
-  ignerr << "2222222222222222222222\n";
-
-  // TODO: Mac CI has ogre 2 error here.
   // Let the depth camera generate data
   server->Run(true, 1000, false);
+
+  // Give some time for messages to propagate
+  int sleep{0};
+  int maxSleep{10};
+  while (!receivedMsg && sleep < maxSleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    sleep++;
+  }
+  EXPECT_EQ(maxSleep, sleep);
+  EXPECT_FALSE(receivedMsg);
+  receivedMsg = false;
+
   // Check that there are no forces before the plugin is enabled
   EXPECT_EQ(math::Vector3f(0, 0, 0), upperRightNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), upperLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerLeftNormalForce);
   EXPECT_EQ(math::Vector3f(0, 0, 0), lowerRightNormalForce);
-
-  ignerr << "3333333333333333333333\n";
 
   // Enable the plugin
   msgs::Boolean req;
@@ -146,12 +153,19 @@ TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
   bool executed = node.Request("/optical_tactile_sensor/enable", req);
   EXPECT_TRUE(executed);
 
-  ignerr << "4444444444444444444444\n";
-
   // Let the plugin generate data again
   server->Run(true, 2000, false);
 
-  ignerr << "5555555555555555555555\n";
+  // Give some time for messages to propagate
+  sleep = 0;
+  while (!receivedMsg && sleep < maxSleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    sleep++;
+  }
+  EXPECT_NE(maxSleep, sleep);
+  EXPECT_TRUE(receivedMsg);
+  receivedMsg = false;
 
   // Check the values of the forces
   EXPECT_EQ(math::Vector3f(-1, 0, 0), upperRightNormalForce);
