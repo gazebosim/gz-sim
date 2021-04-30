@@ -477,6 +477,7 @@ namespace sdf_generator
           }
         }
 
+        e->RemoveAllAttributes();
         e->Copy(e->GetIncludeElement());
       }
       else if (e->GetName() == "model")
