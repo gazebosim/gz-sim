@@ -14,24 +14,24 @@
 
 Given a set of changes to the codebase, it is often useful to see the difference in performance.
 
-Once two (or more) benchmarks have been executed, compare the results with:
+Once two (or more) benchmarks have been executed, compare the results by downloading the [benchmark tools](https://github.com/google/benchmark/tree/master/tools), and then run the following command:
 
-    ```
-    # From the build folder
-    ../test/gbenchmark/tools/compare.py benchmarks baseline.json contender.json
-    ```
+```
+# From the downloaded "tools" folder
+./compare.py benchmarks baseline.json contender.json
+```
 
 ### CPU Scaling Warnings
 
 Note: If you receive warnings about CPU scaling, you can change the CPU governor with:
 
-    ```
-    sudo cpupower frequency-set --governor performance
-    ```
+```
+sudo cpupower frequency-set --governor performance
+```
 
 The previous setting can be restored with:
 
-    ```
-    sudo cpupower frequency-set --governor powersave
-    ```
+```
+sudo cpupower frequency-set --governor powersave
+```
 
