@@ -1308,8 +1308,6 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
       if (data.key() == "particle_scatter_ratio" && data.value_size() > 0)
       {
         emitter->SetParticleScatterRatio(math::parseFloat(data.value(0)));
-        // TODO(anyone) Remove deprecated user data on ign-gazebo6
-        emitter->SetUserData(key, math::parseFloat(data.value(0)));
         break;
       }
     }

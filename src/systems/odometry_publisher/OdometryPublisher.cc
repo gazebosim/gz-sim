@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <ignition/common/Profiler.hh>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/RollingMean.hh>
@@ -233,8 +234,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
 
   double currentYaw = pose.Rot().Yaw();
   const double lastYaw = this->lastUpdatePose.Rot().Yaw();
-  while (currentYaw < lastYaw - M_PI) currentYaw += 2 * M_PI;
-  while (currentYaw > lastYaw + M_PI) currentYaw -= 2 * M_PI;
+  while (currentYaw < lastYaw - IGN_PI) currentYaw += 2 * IGN_PI;
+  while (currentYaw > lastYaw + IGN_PI) currentYaw -= 2 * IGN_PI;
   const float angularDiff = currentYaw - lastYaw;
 
   // Get velocities in robotBaseFrame and add to message.
