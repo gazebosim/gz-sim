@@ -64,6 +64,14 @@ Item {
     x: menu.x + menu.width
     y: menu.y + viewSubmenu.y
     MenuItem {
+      id: viewWireframesMenu
+      text: "Wireframe"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_wireframes", context.entity)
+      }
+    }
+    MenuItem {
       id: viewCollisionsMenu
       text: "Collisions"
       onTriggered: {
@@ -81,6 +89,7 @@ Item {
     moveToMenu.enabled = false
     followMenu.enabled = false
     removeMenu.enabled = false
+    viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
 
     // enable / disable menu items
@@ -99,6 +108,7 @@ Item {
 
     if (context.type == "model" || context.type == "link")
     {
+      viewWireframesMenu.enabled = true;
       viewCollisionsMenu.enabled = true;
     }
 

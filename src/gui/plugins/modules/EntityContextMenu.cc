@@ -47,6 +47,9 @@ namespace ignition::gazebo
     /// \brief Remove service name
     public: std::string removeService;
 
+    /// \brief View wireframes service name
+    public: std::string viewWireframesService;
+
     /// \brief View collisions service name
     public: std::string viewCollisionsService;
 
@@ -78,6 +81,9 @@ EntityContextMenu::EntityContextMenu()
 
   // For remove service requests
   this->dataPtr->removeService = "/world/default/remove";
+
+  // For view wireframes service requests
+  this->dataPtr->viewWireframesService = "/gui/view/wireframes";
 
   // For view collisions service requests
   this->dataPtr->viewCollisionsService = "/gui/view/collisions";
@@ -151,6 +157,12 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
+  }
+  else if (request == "view_wireframes")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewWireframesService, req, cb);
   }
   else if (request == "view_collisions")
   {
