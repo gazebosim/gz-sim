@@ -66,6 +66,12 @@ namespace systems
   ///     Defaults to 998kgm^-3. [kgm^-3]
   ///   <link_name> - The link of the model that is being subject to
   ///     hydrodynamic forces. [Required]
+  ///   <namespace> - This allows the robot to have an individual namespace for
+  ///     current. This is useful when you have multiple vehicles in different
+  ///     locations and you wish to control the currents of each vehicle
+  ///     separately. If no namespace is given then the plugin listens on
+  ///     the `/ocean_current` topic for a `Vector3d` message. Otherwise it
+  ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
@@ -86,6 +92,14 @@ namespace systems
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
+  /// ## Ocean Currents
+  /// When underwater, vehicles are often subject to ocean currents. The hydrodynamics
+  /// plugin allows simulation of such currents. We can add a current simply by
+  /// publishing the following:
+  /// ```
+  /// ign topic -t /ocean_current -m ignition.msgs.Vector3d -p 'x: 1, y:0, z:0'
+  /// ```
+  /// You should observe your vehicle slowly drift to the side.
   class Hydrodynamics:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,

@@ -177,3 +177,13 @@ ign topic -t /model/tethys/joint/propeller_joint/cmd_pos \
 -m ignition.msgs.Double -p 'data: -31'
 ```
 The vehicle should move in a circle.
+
+# Ocean Currents
+
+When underwater, vehicles are often subject to ocean currents. The hydrodynamics
+plugin allows simulation of such currents. We can add a current simply by
+publishing the following:
+```
+ign topic -t /ocean_current -m ignition.msgs.Vector3d -p 'x: 1, y:0, z:0'
+```
+You should observe your vehicle slowly drift to the side.
