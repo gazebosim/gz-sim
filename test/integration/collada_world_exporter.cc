@@ -17,8 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/common/ColladaLoader.hh>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Mesh.hh>
+#include <ignition/common/SubMesh.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -94,6 +97,14 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
 
   // The export directory should now exist.
   EXPECT_TRUE(common::exists(outputPath));
+
+  // Original .dae file has two submeshes
+  // .sdf loads them together and a submesh alone
+  // Check that output has three nodes
+  common::ColladaLoader loader;
+  const common::Mesh *meshExported = loader.Load(common::joinPaths(outputPath, "meshes",
+        "collada_world_exporter_submesh_test.dae"));
+  EXPECT_EQ(3u, meshExported->SubMeshCount());
 
   // Cleanup
   common::removeAll(outputPath);
