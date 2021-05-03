@@ -112,9 +112,33 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       ignition::common::MeshManager *meshManager =
           ignition::common::MeshManager::Instance();
 
-      auto addSubmeshFunc = [&](int i, int k) {
+      auto addSubmeshMatFunc = [&](
+        std::shared_ptr<ignition::common::SubMesh> subMeshLock)
+      {
+          int j = subMeshLock->MaterialIndex();
+          int i = 0;
+          if (j != -1)
+          {
+            i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(j).get());
+            if (i < 0)
+            {
+              i = worldMesh.AddMaterial(mesh->MaterialByIndex(j));
+            }
+          }
+          else
+          {
+            i = worldMesh.AddMaterial(mat);
+          }
+
+          subm = worldMesh.AddSubMesh(*subMeshLock.get());
+          subm.lock()->SetMaterialIndex(i);
+          subm.lock()->Scale(scale);
+          subMeshMatrix.push_back(matrix);
+      };
+
+      auto addSubmeshFunc = [&](int i) {
           subm = worldMesh.AddSubMesh(
-              *mesh->SubMeshByIndex(k).lock().get());
+              *mesh->SubMeshByIndex(0).lock().get());
           subm.lock()->SetMaterialIndex(i);
           subm.lock()->Scale(scale);
           subMeshMatrix.push_back(matrix);
@@ -128,7 +152,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale = _geom->Data().BoxShape()->Size();
           int i = worldMesh.AddMaterial(mat);
 
-          addSubmeshFunc(i, 0);
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
@@ -142,7 +166,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
 
           int i = worldMesh.AddMaterial(mat);
 
-          addSubmeshFunc(i, 0);
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
@@ -166,7 +190,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           matrix = math::Matrix4d(worldPose);
 
           int i = worldMesh.AddMaterial(mat);
-          addSubmeshFunc(i, 0);
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
@@ -180,7 +204,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           scale.Z() = scale.X();
 
           int i = worldMesh.AddMaterial(mat);
-          addSubmeshFunc(i, 0);
+          addSubmeshFunc(i);
         }
       }
       else if (_geom->Data().Type() == sdf::GeometryType::MESH)
@@ -200,27 +224,20 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
           return true;
         }
 
-        for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
+        const auto subMeshName = _geom->Data().MeshShape()->Submesh();
+        scale = _geom->Data().MeshShape()->Scale();
+        if(subMeshName == "")
         {
-          auto subMeshLock = mesh->SubMeshByIndex(k).lock();
-          int j = subMeshLock->MaterialIndex();
-
-          int i = 0;
-          if (j != -1)
+          for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
           {
-            i = worldMesh.IndexOfMaterial(mesh->MaterialByIndex(j).get());
-            if (i < 0)
-            {
-              i = worldMesh.AddMaterial(mesh->MaterialByIndex(j));
-            }
+            auto subMeshLock = mesh->SubMeshByIndex(k).lock();
+            addSubmeshMatFunc(subMeshLock);
           }
-          else
-          {
-            i = worldMesh.AddMaterial(mat);
-          }
-
-          scale = _geom->Data().MeshShape()->Scale();
-          addSubmeshFunc(i, k);
+        }
+        else
+        {
+          auto subMeshLock = mesh->SubMeshByName(subMeshName).lock();
+          addSubmeshMatFunc(subMeshLock);
         }
       }
       else
