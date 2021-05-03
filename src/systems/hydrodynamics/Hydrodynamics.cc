@@ -20,6 +20,8 @@
 
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/msgs/vector3d.pb.h"
+
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -28,6 +30,8 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Util.hh"
+
+#include "ignition/transport/Node.hh"
 
 #include "Hydrodynamics.hh"
 
@@ -96,6 +100,12 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Water density [kg/m^3].
   public: double waterDensity;
 
+  /// \brief The ignition transport node
+  public: transport::Node node;
+
+  /// \brief Ocean current experienced by this body
+  public: math::Vector3d currentVector {0, 0, 0};
+
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
   Eigen::MatrixXd Ma;
@@ -104,8 +114,22 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   public: Eigen::VectorXd prevState;
 
   /// Link entity
-  public: ignition::gazebo::Entity linkEntity;
+  public: Entity linkEntity;
+
+  /// Ocean current callback
+  public: void UpdateCurrent(const msgs::Vector3d &_msg);
+
+  /// Mutex
+  public: std::mutex mtx;
 };
+
+/////////////////////////////////////////////////
+void HydrodynamicsPrivateData::UpdateCurrent(const msgs::Vector3d &_msg)
+{
+  math::Vector3d newCurrVec {_msg.x(), _msg.y(), _msg.z()};
+  std::lock_guard<std::mutex> lock(this->mtx);
+  this->currentVector = newCurrVec;
+}
 
 /////////////////////////////////////////////////
 void AddAngularVelocityComponent(
@@ -202,6 +226,29 @@ void Hydrodynamics::Configure(
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
+
+  std::string ns {""};
+  if (_sdf->HasElement("namespace"))
+  {
+    ns = _sdf->Get<std::string>("namespace");
+  }
+  auto currentTopic = [=]() ->std::string
+  {
+    if(ns == "")
+    {
+      return "/ocean_current";
+    }
+    else
+    {
+      return ignition::transport::TopicUtils::AsValidTopic(
+        "/model/" + ns + "/ocean_current");
+    }
+  }();
+  this->dataPtr->node.Subscribe(
+    currentTopic,
+    &HydrodynamicsPrivateData::UpdateCurrent,
+    this->dataPtr.get());
+
   if(!_sdf->HasElement("link_name"))
   {
     ignerr << "You musk specify a <link_name> for the hydrodynamic"
@@ -266,11 +313,18 @@ void Hydrodynamics::PreUpdate(
     return;
   }
 
+  // Get current vector
+  math::Vector3d currentVector;
+  {
+    std::lock_guard lock(this->dataPtr->mtx);
+    currentVector = this->dataPtr->currentVector;
+  }
   // Transform state to local frame
   auto pose = baseLink.WorldPose(_ecm);
   // Since we are transforming angular and linear velocity we only care about
   // rotation
-  auto localLinearVelocity = pose->Rot().Inverse() * linearVelocity->Data();
+  auto localLinearVelocity = pose->Rot().Inverse() *
+    (linearVelocity->Data() - currentVector);
   auto localRotationalVelocity = pose->Rot().Inverse() * *rotationalVelocity;
 
   state(0) = localLinearVelocity.X();
