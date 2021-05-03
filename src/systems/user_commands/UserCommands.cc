@@ -459,7 +459,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Enable collision service
   std::string enableCollisionService{
-    "/world/" + worldName + "/enable_collision"};
+    "/world/" + validWorldName + "/enable_collision"};
   this->dataPtr->node.Advertise(enableCollisionService,
       &UserCommandsPrivate::EnableCollisionService, this->dataPtr.get());
 
@@ -468,7 +468,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Disable collision service
   std::string disableCollisionService{
-    "/world/" + worldName + "/disable_collision"};
+    "/world/" + validWorldName + "/disable_collision"};
   this->dataPtr->node.Advertise(disableCollisionService,
       &UserCommandsPrivate::DisableCollisionService, this->dataPtr.get());
 
@@ -948,7 +948,6 @@ bool RemoveCommand::Execute()
   return true;
 }
 
-
 //////////////////////////////////////////////////
 LightCommand::LightCommand(msgs::Light *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
@@ -1123,6 +1122,108 @@ bool PhysicsCommand::Execute()
     this->iface->ecm->CreateComponent(worldEntity,
         components::PhysicsCmd(*physicsMsg));
   }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+EnableCollisionCommand::EnableCollisionCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool EnableCollisionCommand::Execute()
+{
+  auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == entityMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check Entity type
+  if (entityMsg->type() != msgs::Entity::COLLISION)
+  {
+    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+      << std::endl;
+    return false;
+  }
+
+  // Check if collision is connected to a contact sensor
+  if (this->iface->HasContactSensor(entityMsg->id()))
+  {
+    ignwarn << "Requested collision is connected to a contact sensor, "
+      << "exiting service..." << std::endl;
+    return false;
+  }
+
+  // Create ContactSensorData component
+  auto contactDataComp =
+    this->iface->ecm->Component<
+      components::ContactSensorData>(entityMsg->id());
+  if (contactDataComp)
+  {
+    ignwarn << "Can't create component that already exists" << std::endl;
+    return false;
+  }
+
+  this->iface->ecm->
+    CreateComponent(entityMsg->id(), components::ContactSensorData());
+  igndbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+DisableCollisionCommand::DisableCollisionCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool DisableCollisionCommand::Execute()
+{
+  auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == entityMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check Entity type
+  if (entityMsg->type() != msgs::Entity::COLLISION)
+  {
+    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+      << std::endl;
+    return false;
+  }
+
+  // Check if collision is connected to a contact sensor
+  if (this->iface->HasContactSensor(entityMsg->id()))
+  {
+    ignwarn << "Requested collision is connected to a contact sensor, "
+      << "exiting service..." << std::endl;
+    return false;
+  }
+
+  // Remove ContactSensorData component
+  auto *contactDataComp =
+    this->iface->ecm->Component<
+      components::ContactSensorData>(entityMsg->id());
+  if (!contactDataComp)
+  {
+    ignwarn << "No ContactSensorData detected inside entity " << entityMsg->id()
+      << std::endl;
+    return false;
+  }
+
+  this->iface->ecm->
+    RemoveComponent(entityMsg->id(), components::ContactSensorData::typeId);
+
+  igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
 }

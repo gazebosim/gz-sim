@@ -2384,22 +2384,20 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             _collEntity1, components::ContactSensorData::typeId, state);
           return true;
         }
-        else
-        {
-          const auto &contactMap = entityContactMap[_collEntity1];
 
-          for (const auto &[collEntity2, contactData] : contactMap)
+        const auto &contactMap = entityContactMap[_collEntity1];
+
+        for (const auto &[collEntity2, contactData] : contactMap)
+        {
+          msgs::Contact *contactMsg = contactsComp.add_contact();
+          contactMsg->mutable_collision1()->set_id(_collEntity1);
+          contactMsg->mutable_collision2()->set_id(collEntity2);
+          for (const auto &contact : contactData)
           {
-            msgs::Contact *contactMsg = contactsComp.add_contact();
-            contactMsg->mutable_collision1()->set_id(_collEntity1);
-            contactMsg->mutable_collision2()->set_id(collEntity2);
-            for (const auto &contact : contactData)
-            {
-              auto *position = contactMsg->add_position();
-              position->set_x(contact->point.x());
-              position->set_y(contact->point.y());
-              position->set_z(contact->point.z());
-            }
+            auto *position = contactMsg->add_position();
+            position->set_x(contact->point.x());
+            position->set_y(contact->point.y());
+            position->set_z(contact->point.z());
           }
         }
 

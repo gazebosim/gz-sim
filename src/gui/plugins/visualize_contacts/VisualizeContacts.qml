@@ -72,29 +72,6 @@ GridLayout {
     onEditingFinished: VisualizeContacts.UpdateRadius(radius.value)
   }
 
-  // Uncomment when plugin is available to get the force information from the
-  // contact message
-  /*
-  Text {
-    Layout.columnSpan: 2
-    id: scaleText
-    color: "dimgrey"
-    text: "Force scale (m/N)"
-  }
-
-  IgnSpinBox {
-    Layout.columnSpan: 2
-    Layout.fillWidth: true
-    id: scale
-    maximumValue: 2.00
-    minimumValue: 0.01
-    value: 0.40
-    decimals: 2
-    stepSize: 0.05
-    onEditingFinished: VisualizeContacts.UpdateScale(scale.value)
-  }
-  */
-
   Text {
     Layout.columnSpan: 2
     id: updatePeriodText
@@ -114,9 +91,9 @@ GridLayout {
     onEditingFinished: VisualizeContacts.UpdatePeriod(updatePeriod.value)
   }
 
-  // Bottom spacer 
-  Item { 
-   Layout.columnSpan: 4 
-   Layout.fillHeight: true 
- } 
+  // Bottom spacer
+  Item {
+   Layout.columnSpan: 4
+   Layout.fillHeight: true
+ }
 }
