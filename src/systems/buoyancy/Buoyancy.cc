@@ -54,6 +54,17 @@ using namespace systems;
 
 class ignition::gazebo::systems::BuoyancyPrivate
 {
+  public: enum BuoyancyType
+  {
+    /// \brief Applies same buoyancy to whole world.
+    UNIFORM_BUOYANCY,
+    /// \brief Uses z-axis to determine buoyancy of the world
+    /// This is useful for worlds where we want to simulate the ocean interface.
+    /// Or for instance if we want to simulate different levels of buoyancies
+    /// at different depths.
+    GRADED_BUOYANCY
+  };
+  public: BuoyancyType buoyancyType{BuoyancyType::UNIFORM_BUOYANCY}
   /// \brief Get the fluid density based on a pose. This function can be
   /// used to adjust the fluid density based on the pose of an object in the
   /// world. This function currently returns a constant value, see the todo
@@ -62,7 +73,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// pose frame is left undefined because this function currently returns
   /// a constant value, see the todo in the function implementation.
   /// \return The fluid density at the givein pose.
-  public: double FluidDensity(const math::Pose3d &_pose) const;
+  public: double UniformFluidDensity(const math::Pose3d &_pose) const;
 
   /// \brief Model interface
   public: Entity world{kNullEntity};
@@ -73,7 +84,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
 };
 
 //////////////////////////////////////////////////
-double BuoyancyPrivate::FluidDensity(const math::Pose3d & /*_pose*/) const
+double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d & /*_pose*/) const
 {
   // \todo(nkoenig) Adjust the fluid density based on the provided pose.
   // This could take into acount:
@@ -234,21 +245,28 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   _ecm.Each<components::Link,
             components::Volume,
-            components::CenterOfVolume>(
+            components::CenterOfVolume,
+            components::CollisionElement>(
       [&](const Entity &_entity,
           const components::Link *,
           const components::Volume *_volume,
-          const components::CenterOfVolume *_centerOfVolume) -> bool
+          const components::CenterOfVolume *_centerOfVolume,
+          const components::CollisionElement *_collision_element) -> bool
     {
       // World pose of the link.
       math::Pose3d linkWorldPose = worldPose(_entity, _ecm);
 
+      math::Vector3d buoyancy;
       // By Archimedes' principle,
       // buoyancy = -(mass*gravity)*fluid_density/object_density
       // object_density = mass/volume, so the mass term cancels.
-      math::Vector3d buoyancy =
-        -this->dataPtr->FluidDensity(linkWorldPose) *
+      if(this->dataPtr->buoyancyType
+        == BuoyancyPrivate::BuoyancyType::UNIFORM_BUOYANCY)
+      {
+        buoyancy =
+        -this->dataPtr->UniformFluidDensity(linkWorldPose) *
         _volume->Data() * gravity->Data();
+      }
 
       // Convert the center of volume to the world frame
       math::Vector3d offsetWorld = linkWorldPose.Rot().RotateVector(
