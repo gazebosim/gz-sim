@@ -471,9 +471,9 @@ void SimulationRunner::ProcessSystemQueue()
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
     this->postUpdateStopBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
 
     this->postUpdateThreadsRunning = true;
     int id = 0;
