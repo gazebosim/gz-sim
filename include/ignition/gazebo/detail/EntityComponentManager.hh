@@ -32,6 +32,8 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
@@ -123,6 +125,20 @@ ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
 {
   return static_cast<ComponentTypeT *>(
       this->ComponentImplementation(_key));
+}
+
+//////////////////////////////////////////////////
+template<typename ComponentTypeT>
+ComponentTypeT *EntityComponentManager::ComponentDefault(Entity _entity,
+    const typename ComponentTypeT::Type &_default)
+{
+  auto comp = this->Component<ComponentTypeT>(_entity);
+  if (!comp)
+  {
+    this->CreateComponent(_entity, ComponentTypeT(_default));
+    comp = this->Component<ComponentTypeT>(_entity);
+  }
+  return comp;
 }
 
 //////////////////////////////////////////////////
@@ -544,6 +560,7 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
   const auto typeId = ComponentTypeT::typeId;
   return this->RemoveComponent(_entity, typeId);
+}
 }
 }
 }

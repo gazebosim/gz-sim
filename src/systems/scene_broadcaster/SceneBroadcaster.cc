@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -122,6 +123,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
   public: static void AddVisuals(msgs::Link *_msg, const Entity _entity,
+                                 const SceneGraphType &_graph);
+
+  /// \brief Adds sensors to a msgs::Link object based on the contents of
+  /// the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the sensors will be
+  /// added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
@@ -226,6 +236,11 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
+  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
+  this->dataPtr->statePublishPeriod =
+      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
+      std::chrono::milliseconds(1000/stateHerz.first));
+
   // Add to graph
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
@@ -267,12 +282,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
-  auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-        jumpBackInTime;
-  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod;
+    _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
+    jumpBackInTime;
+  auto now = std::chrono::system_clock::now();
+  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 
@@ -288,12 +303,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Otherwise publish just selected components
+    // Otherwise publish just periodic change components
     else
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, {components::Pose::typeId});
+          {}, periodicComponents);
     }
 
     // Full state on demand
@@ -444,8 +460,16 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
+  auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
+  if (ns.empty())
+  {
+    ignerr << "Failed to create valid namespace for world [" << _worldName
+           << "]" << std::endl;
+    return;
+  }
+
   transport::NodeOptions opts;
-  opts.SetNameSpace("/world/" + _worldName);
+  opts.SetNameSpace(ns);
   this->node = std::make_unique<transport::Node>(opts);
 
   // Scene info service
@@ -487,7 +511,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << stateAsyncService << "]" << std::endl;
 
   // Scene info topic
-  std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
+  std::string sceneTopic{ns + "/scene/info"};
 
   this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
 
@@ -495,7 +519,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << "]" << std::endl;
 
   // Entity deletion publisher
-  std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
+  std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
       this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
@@ -504,7 +528,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
          << std::endl;
 
   // State topic
-  std::string stateTopic{"/world/" + _worldName + "/state"};
+  std::string stateTopic{ns + "/state"};
 
   this->statePub =
       this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
@@ -728,6 +752,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         return true;
       });
 
+  // Sensors
+  _manager.EachNew<components::Sensor, components::Name,
+                   components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Sensor *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto sensorMsg = std::make_shared<msgs::Sensor>();
+        sensorMsg->set_id(_entity);
+        sensorMsg->set_parent_id(_parentComp->Data());
+        sensorMsg->set_name(_nameComp->Data());
+        sensorMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
 
   // Update the whole scene graph from the new graph
   {
@@ -873,6 +917,24 @@ void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
+    const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto sensorMsg = std::dynamic_pointer_cast<msgs::Sensor>(
+        vertex.second.get().Data());
+    if (!sensorMsg)
+      continue;
+
+    _msg->add_sensor()->CopyFrom(*sensorMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -894,6 +956,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Lights
     AddLights(msgOut, vertex.second.get().Id(), _graph);
+
+    // Sensors
+    AddSensors(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

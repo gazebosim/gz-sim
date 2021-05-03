@@ -38,7 +38,7 @@ namespace systems
   **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
-  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster:
+  class SceneBroadcaster:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
@@ -55,6 +55,7 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
+    // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 

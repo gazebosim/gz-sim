@@ -134,10 +134,45 @@ namespace ignition
     /// \brief Get the top level model of an entity
     /// \param[in] _entity Input entity
     /// \param[in] _ecm Constant reference to ECM.
-    /// \return Entity of top level model
+    /// \return Entity of top level model. If _entity has no top level model,
+    /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity,
         const EntityComponentManager &_ecm);
+
+    /// \brief Helper function to generate a valid transport topic, given
+    /// a list of topics ordered by preference. The generated topic will be,
+    /// in this order:
+    ///
+    /// 1. The first topic unchanged, if valid.
+    /// 2. A valid version of the first topic, if possible.
+    /// 3. The second topic unchanged, if valid.
+    /// 4. A valid version of the second topic, if possible.
+    /// 5. ...
+    /// 6. If no valid topics could be generated, return an empty string.
+    ///
+    /// \param[in] _topics Topics ordered by preference.
+    std::string IGNITION_GAZEBO_VISIBLE validTopic(
+        const std::vector<std::string> &_topics);
+
+    /// \brief Helper function that returns a valid Ignition Transport topic
+    /// consisting of the scoped name for the provided entity.
+    ///
+    /// For example, if the provided entity has a scoped name of
+    /// `my_model::my_link::my_sensor` then the resulting topic name will
+    /// be `/model/my_model/link/my_link/sensor/my_sensor`. If _excludeWorld
+    /// is false, then the topic name will be prefixed by `/world/WORLD_NAME/`,
+    /// where `WORLD_NAME` is the name of the world.
+    ///
+    /// \param[in] _entity The entity to generate the topic name for.
+    /// \param[in] _ecm The entity component manager.
+    /// \param[in] _excludeWorld True to exclude the world name from the topic.
+    /// \return An Ignition Transport topic name based on the scoped name of
+    /// the provided entity, or empty string if a topic name could not be
+    /// generated.
+    std::string topicFromScopedName(const Entity &_entity,
+        const EntityComponentManager &_ecm,
+        bool _excludeWorld = true);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
@@ -146,9 +181,13 @@ namespace ignition
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
 
+    /// \breif Environment variable holding server config paths.
+    const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
+
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
     const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
+
     }
   }
 }

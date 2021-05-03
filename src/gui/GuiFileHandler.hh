@@ -36,7 +36,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 /// \brief Class for handling saving and loading of SDFormat files
-class IGNITION_GAZEBO_VISIBLE GuiFileHandler : public QObject
+class GuiFileHandler : public QObject
 {
   Q_OBJECT
 

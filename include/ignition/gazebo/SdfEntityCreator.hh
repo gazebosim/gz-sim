@@ -26,6 +26,7 @@
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
+#include <sdf/ParticleEmitter.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Sensor.hh>
 #include <sdf/Visual.hh>
@@ -139,6 +140,13 @@ namespace ignition
       /// \return Sensor entity.
       /// \sa CreateEntities(const sdf::Model *)
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
+
+      /// \brief Create all entities that exist in the
+      /// sdf::ParticleEmitter object.
+      /// \param[in] _emitter SDF ParticleEmitter object.
+      /// \return ParticleEmitter entity.
+      /// \sa CreateEntities(const sdf::Link *)
+      public: Entity CreateEntities(const sdf::ParticleEmitter *_emitter);
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation

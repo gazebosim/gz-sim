@@ -57,7 +57,7 @@ namespace ignition
     /// \class NetworkManagerPrimary NetworkManagerPrimary.hh
     ///   ignition/gazebo/network/NetworkManagerPrimary.hh
     /// \brief Simulation primary specific behaviors
-    class IGNITION_GAZEBO_VISIBLE NetworkManagerPrimary:
+    class NetworkManagerPrimary:
       public NetworkManager
     {
       // Documentation inherited

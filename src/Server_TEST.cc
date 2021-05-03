@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 #include <csignal>
 #include <vector>
-#include <ignition/common/Console.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
@@ -34,26 +33,16 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../test/helpers/Relay.hh"
+#include "../test/helpers/EnvTestFixture.hh"
 
 using namespace ignition;
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
-
-class ServerFixture : public ::testing::TestWithParam<int>
-{
-  protected: void SetUp() override
-  {
-    // Augment the system plugin path.  In SetUp to avoid test order issues.
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-
-    ignition::common::Console::SetVerbosity(4);
-  }
-};
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
@@ -219,8 +208,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/air_pressure.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "air_pressure.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
@@ -228,7 +217,8 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "ignition::gazebo::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
-  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor",
+  serverConfig.AddPlugin({
+      "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
       "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
       sdf});
 
@@ -237,6 +227,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(2u, *server.SystemCount());
 
   // Run the server
   igndbg << "Run server" << std::endl;
@@ -315,6 +306,7 @@ TEST_P(ServerFixture, ServerConfigLogRecord)
     serverConfig.SetLogRecordPath(logPath);
 
     gazebo::Server server(serverConfig);
+
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
     EXPECT_EQ(4u, *server.SystemCount());
@@ -621,79 +613,6 @@ TEST_P(ServerFixture, SigInt)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersNonBlocking)
-{
-  ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(TestWorldSansPhysics::World());
-
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-  EXPECT_EQ(0u, *server1.IterationCount());
-  EXPECT_EQ(0u, *server2.IterationCount());
-
-  // Make the servers run fast.
-  server1.SetUpdatePeriod(1ns);
-  server2.SetUpdatePeriod(1ns);
-
-  // Start non-blocking
-  const size_t iters1 = 9999;
-  EXPECT_TRUE(server1.Run(false, iters1, false));
-
-  // Expect that we can't start another instance.
-  EXPECT_FALSE(server1.Run(true, 10, false));
-
-  // It's okay to start another server
-  EXPECT_TRUE(server2.Run(false, 500, false));
-
-  while (*server1.IterationCount() < iters1 || *server2.IterationCount() < 500)
-    IGN_SLEEP_MS(100);
-
-  EXPECT_EQ(iters1, *server1.IterationCount());
-  EXPECT_EQ(500u, *server2.IterationCount());
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-}
-
-/////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersMixedBlocking)
-{
-  ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(TestWorldSansPhysics::World());
-
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-  EXPECT_EQ(0u, *server1.IterationCount());
-  EXPECT_EQ(0u, *server2.IterationCount());
-
-  // Make the servers run fast.
-  server1.SetUpdatePeriod(1ns);
-  server2.SetUpdatePeriod(1ns);
-
-  server1.Run(false, 10, false);
-  server2.Run(true, 1000, false);
-
-  while (*server1.IterationCount() < 10)
-    IGN_SLEEP_MS(100);
-
-  EXPECT_EQ(10u, *server1.IterationCount());
-  EXPECT_EQ(1000u, *server2.IterationCount());
-  EXPECT_FALSE(server1.Running());
-  EXPECT_FALSE(*server1.Running(0));
-  EXPECT_FALSE(server2.Running());
-  EXPECT_FALSE(*server2.Running(0));
-}
-
-/////////////////////////////////////////////////
 TEST_P(ServerFixture, AddSystemWhileRunning)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -783,9 +702,9 @@ TEST_P(ServerFixture, Seed)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResourcePath)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str(), 1);
+          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -871,8 +790,8 @@ TEST_P(ServerFixture, ResourcePath)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -899,38 +818,12 @@ TEST_P(ServerFixture, GetResourcePaths)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, CachedFuelWorld)
-{
-  auto cachedWorldPath =
-    common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str(), 1);
-
-  ServerConfig serverConfig;
-  auto fuelWorldURL =
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
-  EXPECT_TRUE(serverConfig.SetSdfFile(fuelWorldURL));
-
-  EXPECT_EQ(fuelWorldURL, serverConfig.SdfFile());
-  EXPECT_TRUE(serverConfig.SdfString().empty());
-
-  // Check that world was loaded
-  auto server = Server(serverConfig);
-  EXPECT_NE(std::nullopt, server.Running(0));
-  EXPECT_FALSE(*server.Running(0));
-
-  server.Run(true /*blocking*/, 1, false/*paused*/);
-
-  EXPECT_NE(std::nullopt, server.Running(0));
-  EXPECT_FALSE(*server.Running(0));
-}
-
-/////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path", 1);
-  setenv("SDF_PATH", "", 1);
-  setenv("IGN_FILE_PATH", "", 1);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      "/tmp/some/path:/home/user/another_path");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -974,7 +867,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Check environment variables
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
-    char *pathCStr = getenv(env);
+    char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
     paths.erase(std::remove_if(paths.begin(), paths.end(),
@@ -995,4 +888,4 @@ TEST_P(ServerFixture, AddResourcePaths)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));

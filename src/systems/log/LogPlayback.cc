@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Material.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -124,6 +125,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Saves which entity poses have changed according to the latest
   /// LogPlaybackPrivate::Parse call.
   public: std::unordered_map<Entity, msgs::Pose> recentEntityPoseUpdates;
+
+  // \brief Saves which particle emitter emitting components have changed
+  public: std::unordered_map<Entity, bool> prevParticleEmitterCmds;
 };
 
 bool LogPlaybackPrivate::started{false};
@@ -183,7 +187,7 @@ void LogPlayback::Configure(const Entity &,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  this->dataPtr->logPath = _sdf->Get<std::string>("path");
+  this->dataPtr->logPath = _sdf->Get<std::string>("playback_path");
 
   this->dataPtr->eventManager = &_eventMgr;
 
@@ -632,6 +636,31 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
     _ecm.SetChanged(_entity, components::Pose::typeId,
         ComponentState::PeriodicChange);
+
+    return true;
+  });
+
+    // particle emitters
+  _ecm.Each<components::ParticleEmitterCmd>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitterCmd *_emitter) -> bool
+  {
+    if (this->dataPtr->prevParticleEmitterCmds.find(_entity) ==
+        this->dataPtr->prevParticleEmitterCmds.end())
+    {
+      this->dataPtr->prevParticleEmitterCmds[_entity]
+          = _emitter->Data().emitting().data();
+      return true;
+    }
+
+    if (this->dataPtr->prevParticleEmitterCmds[_entity] !=
+        _emitter->Data().emitting().data())
+    {
+      this->dataPtr->prevParticleEmitterCmds[_entity]
+          = _emitter->Data().emitting().data();
+      _ecm.SetChanged(_entity, components::ParticleEmitterCmd::typeId,
+          ComponentState::OneTimeChange);
+    }
 
     return true;
   });

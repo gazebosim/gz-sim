@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Util.hh"
 
 #include "SpeedLimiter.hh"
 
@@ -120,6 +121,9 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \brief Diff drive odometry message publisher.
   public: transport::Node::Publisher odomPub;
 
+  /// \brief Diff drive tf message publisher.
+  public: transport::Node::Publisher tfPub;
+
   /// \brief Linear velocity limiter.
   public: std::unique_ptr<SpeedLimiter> limiterLin;
 
@@ -137,6 +141,12 @@ class ignition::gazebo::systems::DiffDrivePrivate
 
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
+
+  /// \brief frame_id from sdf.
+  public: std::string sdfFrameId;
+
+  /// \brief child_frame_id from sdf.
+  public: std::string sdfChildFrameId;
 };
 
 //////////////////////////////////////////////////
@@ -253,18 +263,41 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
 
   // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
-    topic = _sdf->Get<std::string>("topic");
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  auto topic = validTopic(topics);
+
   this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
-  std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/odometry"};
+  std::vector<std::string> odomTopics;
   if (_sdf->HasElement("odom_topic"))
-    odomTopic = _sdf->Get<std::string>("odom_topic");
+  {
+    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+  }
+  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/odometry");
+  auto odomTopic = validTopic(odomTopics);
+
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
+
+  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+    "/tf"};
+  if (_sdf->HasElement("tf_topic"))
+    tfTopic = _sdf->Get<std::string>("tf_topic");
+  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+      tfTopic);
+
+  if (_sdf->HasElement("frame_id"))
+    this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
+
+  if (_sdf->HasElement("child_frame_id"))
+    this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
   ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
@@ -457,18 +490,43 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   // Set the frame id.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  frame->add_value(this->model.Name(_ecm) + "/odom");
+  if (this->sdfFrameId.empty())
+  {
+    frame->add_value(this->model.Name(_ecm) + "/odom");
+  }
+  else
+  {
+    frame->add_value(this->sdfFrameId);
+  }
 
   std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
-  if (linkName)
+  if (this->sdfChildFrameId.empty())
+  {
+    if (linkName)
+    {
+      auto childFrame = msg.mutable_header()->add_data();
+      childFrame->set_key("child_frame_id");
+      childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
+    }
+  }
+  else
   {
     auto childFrame = msg.mutable_header()->add_data();
     childFrame->set_key("child_frame_id");
-    childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
+    childFrame->add_value(this->sdfChildFrameId);
   }
 
-  // Publish the message
+  // Construct the Pose_V/tf message and publish it.
+  msgs::Pose_V tfMsg;
+  ignition::msgs::Pose *tfMsgPose = nullptr;
+  tfMsgPose = tfMsg.add_pose();
+  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
+  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
+  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
+
+  // Publish the messages
   this->odomPub.Publish(msg);
+  this->tfPub.Publish(tfMsg);
 }
 
 //////////////////////////////////////////////////

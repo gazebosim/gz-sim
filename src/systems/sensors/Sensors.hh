@@ -39,9 +39,10 @@ namespace systems
   /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
   /// \brief TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?
-  class IGNITION_GAZEBO_VISIBLE Sensors:
+  class Sensors:
     public System,
     public ISystemConfigure,
+    public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -55,6 +56,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
