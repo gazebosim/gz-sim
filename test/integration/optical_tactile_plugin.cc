@@ -23,8 +23,9 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
-#include <ignition/transport/Node.hh>
 #include <ignition/msgs/Utility.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -92,7 +93,9 @@ class OpticalTactilePluginTest : public ::testing::Test
 
 /////////////////////////////////////////////////
 // The test checks the normal forces on the corners of the box-shaped sensor
-TEST_F(OpticalTactilePluginTest, ForcesOnPlane)
+// Fails to load Ogre plugin on macOS
+TEST_F(OpticalTactilePluginTest,
+    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ForcesOnPlane))
 {
   // World with moving entities
   const auto sdfPath = common::joinPaths(
