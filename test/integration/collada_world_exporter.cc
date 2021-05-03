@@ -102,8 +102,8 @@ TEST_F(ColladaWorldExporterFixture, ExportWorldFromFuelWithSubmesh)
   // .sdf loads them together and a submesh alone
   // Check that output has three nodes
   common::ColladaLoader loader;
-  const common::Mesh *meshExported = loader.Load(common::joinPaths(outputPath, "meshes",
-        "collada_world_exporter_submesh_test.dae"));
+  const common::Mesh *meshExported = loader.Load(common::joinPaths(
+      outputPath, "meshes", "collada_world_exporter_submesh_test.dae"));
   EXPECT_EQ(3u, meshExported->SubMeshCount());
 
   // Cleanup
