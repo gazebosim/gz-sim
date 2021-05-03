@@ -32,73 +32,95 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 namespace systems
 {
-    // Forward declaration
-    class OpticalTactilePluginPrivate;
+  // Forward declaration
+  class OpticalTactilePluginPrivate;
 
-    /// \brief Plugin that implements an optical tactile sensor
-    ///
-    /// It requires that contact sensor and depth camera be placed in at least
-    /// one link on the model on which this plugin is attached.
-    ///
-    /// Parameters:
-    ///
-    /// <enabled> (todo) Set this to true so the plugin works from the start and
-    /// doesn't need to be enabled. This element is optional, and the
-    /// default value is true.
-    ///
-    /// <visualization_resolution> Number n of pixels to skip when visualizing
-    /// the forces. One vector representing a normal force is computed for
-    /// every nth pixel. This element must be positive and it is optional.
-    /// The default value is 30
-    ///
-    /// <visualize_forces> Set this to true so the plugin visualizes the normal
-    /// forces in the 3D world. This element is optional, and the
-    /// default value is false.
-    ///
-    /// <force_length> Length in meters of the forces visualized if
-    /// <visualize_forces> is set to true. This parameter is optional, and the
-    /// default value is 0.01.
-    ///
-    /// <extended_sensing> Extended sensing distance in meters. The sensor will
-    /// output data coming from its collision geometry plus this distance. This
-    ///  element is optional, and the default value is 0.001.
-    ///
-    /// <visualize_sensor> Whether to visualize the sensor or not. This element
-    /// is optional, and the default value is false.
+  /// \brief Plugin that implements an optical tactile sensor
+  ///
+  /// It requires that contact sensor and depth camera be placed in at least
+  /// one link on the model on which this plugin is attached.
+  /// TODO:
+  /// Currently, the contacts returned from the physics engine (which tends to
+  /// be sparse) and the normal forces separately computed from the depth
+  /// camera (which is dense, resolution adjustable) are disjoint. It is
+  /// left as future work to combine the two sets of data.
+  ///
+  /// Parameters:
+  ///
+  /// <enabled> Set this to true so the plugin works from the start and
+  ///           doesn't need to be enabled. This element is optional, and the
+  ///           default value is true.
+  ///
+  /// <namespace> Namespace for transport topics/services. If there are more
+  ///             than one optical tactile plugins, their namespaces should
+  ///             be different.
+  ///             This element is optional, and the default value is
+  ///             "optical_tactile_sensor".
+  ///             /<namespace>/enable : Service used to enable and disable the
+  ///                                   plugin.
+  ///             /<namespace>/normal_forces : Topic where a message is
+  ///                                          published each time the
+  ///                                          normal forces are computed
+  ///
+  /// <visualization_resolution> Number n of pixels to skip when visualizing
+  ///                            the forces. One vector representing a normal
+  ///                            force is computed for every nth pixel. This
+  ///                            element must be positive and it is optional.
+  ///                            The default value is 30.
+  ///
+  /// <force_length> Length in meters of the forces visualized if
+  ///                <visualize_forces> is set to true. This parameter is
+  ///                optional, and the default value is 0.01.
+  ///
+  /// <extended_sensing> Extended sensing distance in meters. The sensor will
+  ///                    output data coming from its collision geometry plus
+  ///                    this distance. This element is optional, and the
+  ///                    default value is 0.001.
+  ///
+  /// <visualize_sensor> Whether to visualize the sensor or not. This element
+  ///                    is optional, and the default value is false.
+  ///
+  /// <visualize_contacts> Whether to visualize the contacts from the contact
+  ///                      sensor based on physics. This element is optional,
+  ///                      and the default value is false.
+  ///
+  /// <visualize_forces> Whether to visualize normal forces computed from the
+  ///                    depth camera. This element is optional, and the
+  ///                    default value is false.
 
-    class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
-      public System,
-      public ISystemConfigure,
-      public ISystemPreUpdate,
-      public ISystemPostUpdate
-    {
-      /// \brief Constructor
-      public: OpticalTactilePlugin();
+  class IGNITION_GAZEBO_VISIBLE OpticalTactilePlugin :
+    public System,
+    public ISystemConfigure,
+    public ISystemPreUpdate,
+    public ISystemPostUpdate
+  {
+    /// \brief Constructor
+    public: OpticalTactilePlugin();
 
-      /// \brief Destructor
-      public: ~OpticalTactilePlugin() override = default;
+    /// \brief Destructor
+    public: ~OpticalTactilePlugin() override = default;
 
-      // Documentation inherited
-      public: void Configure(const Entity &_entity,
-        const std::shared_ptr<const sdf::Element> &_sdf,
-        EntityComponentManager &_ecm,
-        EventManager &_eventMgr) override;
+    // Documentation inherited
+    public: void Configure(const Entity &_entity,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) override;
 
-      /// Documentation inherited
-      public: void PreUpdate(const UpdateInfo &_info,
-        EntityComponentManager &_ecm) override;
+    /// Documentation inherited
+    public: void PreUpdate(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm) override;
 
-      // Documentation inherited
-      public: void PostUpdate(
+    // Documentation inherited
+    public: void PostUpdate(
         const ignition::gazebo::UpdateInfo &_info,
         const ignition::gazebo::EntityComponentManager &_ecm) override;
 
-      /// \brief Private data pointer
-      private: std::unique_ptr<OpticalTactilePluginPrivate> dataPtr;
-    };
-}
-}
-}
-}
+    /// \brief Private data pointer
+    private: std::unique_ptr<OpticalTactilePluginPrivate> dataPtr;
+  };
+}  // namespace systems
+}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace gazebo
+}  // namespace ignition
 
 #endif

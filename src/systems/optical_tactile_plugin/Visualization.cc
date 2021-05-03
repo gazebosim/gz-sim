@@ -15,21 +15,16 @@
  *
  */
 
+#include <ignition/msgs/marker.pb.h>
+#include <ignition/msgs/contact.pb.h>
 #include <ignition/transport/Node.hh>
 
 #include "Visualization.hh"
 
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-{
-namespace systems
-{
-namespace optical_tactile_sensor
-{
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
+using namespace optical_tactile_sensor;
 
 //////////////////////////////////////////////////
 OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
@@ -52,8 +47,10 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
 void OpticalTactilePluginVisualization::InitializeSensorMarkerMsg(
   ignition::msgs::Marker &_sensorMarkerMsg)
 {
-  // Initialize the marker for visualizing the sensor as a grey transparent box
+  // Reset all fields
+  _sensorMarkerMsg = ignition::msgs::Marker();
 
+  // Initialize the marker for visualizing the sensor as a grey transparent box
   _sensorMarkerMsg.set_ns("sensor_" + this->modelName);
   _sensorMarkerMsg.set_id(1);
   _sensorMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
@@ -86,15 +83,72 @@ void OpticalTactilePluginVisualization::RequestSensorMarkerMsg(
 }
 
 //////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::InitializeContactsMarkerMsg(
+  ignition::msgs::Marker &_contactsMarkerMsg)
+{
+  // Reset all fields
+  _contactsMarkerMsg = ignition::msgs::Marker();
+
+  // Initialize the marker for visualizing the physical contacts as red lines
+  _contactsMarkerMsg.set_ns("contacts_" + this->modelName);
+  _contactsMarkerMsg.set_id(1);
+  _contactsMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
+  _contactsMarkerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
+  _contactsMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
+
+  ignition::msgs::Set(_contactsMarkerMsg.mutable_material()->
+    mutable_ambient(), math::Color(1, 0, 0, 1));
+  ignition::msgs::Set(_contactsMarkerMsg.mutable_material()->
+    mutable_diffuse(), math::Color(1, 0, 0, 1));
+  _contactsMarkerMsg.mutable_lifetime()->set_sec(1);
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::AddContactToMarkerMsg(
+  ignition::msgs::Contact const &_contact,
+  ignition::msgs::Marker &_contactMarkerMsg)
+{
+  // todo(anyone) once available, use normal field in the Contact message
+  ignition::math::Vector3d contactNormal(0, 0, 0.03);
+
+  // For each contact, add a line marker starting from the contact position,
+  // ending at the endpoint of the normal.
+  for (auto const &position : _contact.position())
+  {
+    ignition::math::Vector3d startPoint = ignition::msgs::Convert(position);
+    ignition::math::Vector3d endPoint = startPoint + contactNormal;
+
+    ignition::msgs::Set(_contactMarkerMsg.add_point(), startPoint);
+    ignition::msgs::Set(_contactMarkerMsg.add_point(), endPoint);
+  }
+}
+
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::RequestContactsMarkerMsg(
+  const components::ContactSensorData *_contacts)
+{
+  ignition::msgs::Marker contactsMarkerMsg;
+  this->InitializeContactsMarkerMsg(contactsMarkerMsg);
+
+  for (const auto &contact : _contacts->Data().contact())
+  {
+    this->AddContactToMarkerMsg(contact, contactsMarkerMsg);
+  }
+
+  this->node.Request("/marker", contactsMarkerMsg);
+}
+
+//////////////////////////////////////////////////
 void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   ignition::msgs::Marker &_positionMarkerMsg,
   ignition::msgs::Marker &_forceMarkerMsg)
 {
+  _positionMarkerMsg = ignition::msgs::Marker();
+  _forceMarkerMsg = ignition::msgs::Marker();
+
   // Initialize marker messages for position and force of the contacts
 
-  // Blue points for positions
-  // Green lines for forces
-
+  // Positions computed from camera
   _positionMarkerMsg.set_ns("positions_" + this->modelName);
   _positionMarkerMsg.set_id(1);
   _positionMarkerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
@@ -110,6 +164,7 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   _forceMarkerMsg.set_visibility(ignition::msgs::Marker::GUI);
 
   // Set material properties and lifetime
+  // Blue points for positions
   ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
     mutable_ambient(), math::Color(0, 0, 1, 1));
   ignition::msgs::Set(_positionMarkerMsg.mutable_material()->
@@ -117,6 +172,7 @@ void OpticalTactilePluginVisualization::InitializeNormalForcesMarkerMsgs(
   _positionMarkerMsg.mutable_lifetime()->set_nsec(
     this->cameraUpdateRate * 1000000000);
 
+  // Green lines for forces
   ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
     mutable_ambient(), math::Color(0, 1, 0, 1));
   ignition::msgs::Set(_forceMarkerMsg.mutable_material()->
@@ -157,12 +213,12 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
     (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
   normalForcePoseFromWorld.Correct();
 
-  // Get the first point of the normal force
-  ignition::math::Vector3f firstPointFromWorld =
+  // Get the start point of the normal force
+  ignition::math::Vector3f startPointFromWorld =
     normalForcePoseFromWorld.Pos();
 
   // Move the normal force pose a distance of forceLength along the direction
-  // of _normalForce and get the second point
+  // of _normalForce and get the end point
   normalForcePoseFromSensor.Set(normalForcePositionFromSensor +
     _normalForce * this->forceLength, normalForceOrientationFromSensor);
 
@@ -170,27 +226,25 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
     (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
   normalForcePoseFromWorld.Correct();
 
-  ignition::math::Vector3f secondPointFromWorld =
+  ignition::math::Vector3f endPointFromWorld =
     normalForcePoseFromWorld.Pos();
 
   // Check invalid points to avoid data transfer overhead
-  if (firstPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0) ||
-      secondPointFromWorld == ignition::math::Vector3f(0.0, 0.0, 0.0))
+  if (abs(startPointFromWorld.Distance(endPointFromWorld)) < 1e-6)
     return;
 
-  // Add points to the messages
-
+  // Position
   ignition::msgs::Set(_positionMarkerMsg.add_point(),
-    ignition::math::Vector3d(firstPointFromWorld.X(),
-      firstPointFromWorld.Y(), firstPointFromWorld.Z()));
+    ignition::math::Vector3d(startPointFromWorld.X(),
+      startPointFromWorld.Y(), startPointFromWorld.Z()));
 
+  // Normal
   ignition::msgs::Set(_forceMarkerMsg.add_point(),
-    ignition::math::Vector3d(firstPointFromWorld.X(),
-      firstPointFromWorld.Y(), firstPointFromWorld.Z()));
-
+    ignition::math::Vector3d(startPointFromWorld.X(),
+      startPointFromWorld.Y(), startPointFromWorld.Z()));
   ignition::msgs::Set(_forceMarkerMsg.add_point(),
-    ignition::math::Vector3d(secondPointFromWorld.X(),
-      secondPointFromWorld.Y(), secondPointFromWorld.Z()));
+    ignition::math::Vector3d(endPointFromWorld.X(),
+      endPointFromWorld.Y(), endPointFromWorld.Z()));
 }
 
 //////////////////////////////////////////////////
@@ -198,15 +252,30 @@ void OpticalTactilePluginVisualization::RequestNormalForcesMarkerMsgs(
   ignition::msgs::Marker &_positionMarkerMsg,
   ignition::msgs::Marker &_forceMarkerMsg)
 {
-  this->node.Request("/marker", _forceMarkerMsg);
   this->node.Request("/marker", _positionMarkerMsg);
+  this->node.Request("/marker", _forceMarkerMsg);
 
   // Let the messages be initialized again
   this->normalForcesMsgsAreInitialized = false;
 }
 
-}
-}
-}
-}
+//////////////////////////////////////////////////
+void OpticalTactilePluginVisualization::RemoveNormalForcesAndContactsMarkers()
+{
+  ignition::msgs::Marker positionMarkerMsg;
+  ignition::msgs::Marker forceMarkerMsg;
+  ignition::msgs::Marker contactMarkerMsg;
+
+  positionMarkerMsg.set_ns("positions_" + this->modelName);
+  positionMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+
+  forceMarkerMsg.set_ns("forces_" + this->modelName);
+  forceMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+
+  contactMarkerMsg.set_ns("contacts_" + this->modelName);
+  contactMarkerMsg.set_action(ignition::msgs::Marker::DELETE_ALL);
+
+  this->node.Request("/marker", positionMarkerMsg);
+  this->node.Request("/marker", forceMarkerMsg);
+  this->node.Request("/marker", contactMarkerMsg);
 }
