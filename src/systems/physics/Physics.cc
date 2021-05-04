@@ -324,8 +324,12 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Feature list to handle collisions.
   public: struct CollisionFeatureList : ignition::physics::FeatureList<
             MinimumFeatureList,
-            ignition::physics::GetContactsFromLastStepFeature,
             ignition::physics::sdf::ConstructSdfCollision>{};
+
+  /// \brief Feature list to handle contacts information.
+  public: struct ContactFeatureList : ignition::physics::FeatureList<
+            CollisionFeatureList,
+            ignition::physics::GetContactsFromLastStepFeature>{};
 
   /// \brief Collision type with collision features.
   public: using ShapePtrType = ignition::physics::ShapePtr<
@@ -333,7 +337,7 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief World type with just the minimum features. Non-pointer.
   public: using WorldShapeType = ignition::physics::World<
-            ignition::physics::FeaturePolicy3d, CollisionFeatureList>;
+            ignition::physics::FeaturePolicy3d, ContactFeatureList>;
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
@@ -395,6 +399,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           physics::World,
           MinimumFeatureList,
           CollisionFeatureList,
+          ContactFeatureList,
           NestedModelFeatureList>;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -442,6 +447,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using EntityCollisionMap = EntityFeatureMap3d<
             physics::Shape,
             CollisionFeatureList,
+            ContactFeatureList,
             CollisionMaskFeatureList,
             FrictionPyramidSlipComplianceFeatureList
             >;
@@ -1625,6 +1631,111 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Update link angular velocity
+  _ecm.Each<components::Link, components::AngularVelocityCmd>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::AngularVelocityCmd *_angularVelocityCmd)
+      {
+        if (!this->entityLinkMap.HasEntity(_entity))
+        {
+          ignwarn << "Failed to find link [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto worldAngularVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+
+        if (!worldAngularVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set link angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
+        Entity modelEntity = topLevelModel(_entity, _ecm);
+        const components::Pose *modelEntityPoseComp =
+            _ecm.Component<components::Pose>(modelEntity);
+        math::Pose3d modelToLinkTransform = this->RelativePose(
+            modelEntity, _entity, _ecm);
+        math::Vector3d worldAngularVel = modelEntityPoseComp->Data().Rot()
+            * modelToLinkTransform.Rot() * _angularVelocityCmd->Data();
+        worldAngularVelFeature->SetWorldAngularVelocity(
+            math::eigen3::convert(worldAngularVel));
+
+        return true;
+      });
+
+  // Update link linear velocity
+  _ecm.Each<components::Link, components::LinearVelocityCmd>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::LinearVelocityCmd *_linearVelocityCmd)
+      {
+        if (!this->entityLinkMap.HasEntity(_entity))
+        {
+          ignwarn << "Failed to find link [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto worldLinearVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+        if (!worldLinearVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            igndbg << "Attempting to set link linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+
+        // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
+        Entity modelEntity = topLevelModel(_entity, _ecm);
+        const components::Pose *modelEntityPoseComp =
+            _ecm.Component<components::Pose>(modelEntity);
+        math::Pose3d modelToLinkTransform = this->RelativePose(
+            modelEntity, _entity, _ecm);
+        math::Vector3d worldLinearVel = modelEntityPoseComp->Data().Rot()
+            * modelToLinkTransform.Rot() * _linearVelocityCmd->Data();
+        worldLinearVelFeature->SetWorldLinearVelocity(
+            math::eigen3::convert(worldLinearVel));
+
+        return true;
+      });
+
+
   // Populate bounding box info
   // Only compute bounding box if component exists to avoid unnecessary
   // computations
@@ -2209,6 +2320,20 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       });
   IGN_PROFILE_END();
 
+  _ecm.Each<components::AngularVelocityCmd>(
+      [&](const Entity &, components::AngularVelocityCmd *_vel) -> bool
+      {
+        _vel->Data() = math::Vector3d::Zero;
+        return true;
+      });
+
+  _ecm.Each<components::LinearVelocityCmd>(
+      [&](const Entity &, components::LinearVelocityCmd *_vel) -> bool
+      {
+        _vel->Data() = math::Vector3d::Zero;
+        return true;
+      });
+
   // Update joint positions
   IGN_PROFILE_BEGIN("Joints");
   _ecm.Each<components::Joint, components::JointPosition>(
@@ -2277,14 +2402,14 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   }
 
   auto worldCollisionFeature =
-      this->entityWorldMap.EntityCast<CollisionFeatureList>(worldEntity);
+      this->entityWorldMap.EntityCast<ContactFeatureList>(worldEntity);
   if (!worldCollisionFeature)
   {
     static bool informed{false};
     if (!informed)
     {
       igndbg << "Attempting process contacts, but the physics "
-             << "engine doesn't support collision features. "
+             << "engine doesn't support contact features. "
              << "Contacts won't be computed."
              << std::endl;
       informed = true;
@@ -2311,8 +2436,10 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   for (const auto &contactComposite : allContacts)
   {
     const auto &contact = contactComposite.Get<WorldShapeType::ContactPoint>();
-    auto coll1Entity = this->entityCollisionMap.Get(contact.collision1);
-    auto coll2Entity = this->entityCollisionMap.Get(contact.collision2);
+    auto coll1Entity =
+      this->entityCollisionMap.Get(ShapePtrType(contact.collision1));
+    auto coll2Entity =
+      this->entityCollisionMap.Get(ShapePtrType(contact.collision2));
 
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)

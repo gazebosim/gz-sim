@@ -472,7 +472,7 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
   test::Relay testSystem;
 
   testSystem.OnPostUpdate(
-    [&boxParams, &poses](const gazebo::UpdateInfo &_info,
+    [&boxParams, &poses](const gazebo::UpdateInfo &,
     const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
