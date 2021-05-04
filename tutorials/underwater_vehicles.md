@@ -1,3 +1,4 @@
+\page underwater_vehicles Underwater vehicles
 # Simulating Autnomous Underwater Vehicles
 
 Ignition now supports basic simulation of underwater vehicles.
