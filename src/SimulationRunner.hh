@@ -254,7 +254,7 @@ namespace ignition
 
       /// \brief Get the EntityComponentManager
       /// \return Reference to the entity component manager.
-      public: const EntityComponentManager &EntityCompMgr() const;
+      public: EntityComponentManager &EntityCompMgr();
 
       /// \brief Return an entity with the provided name.
       /// \details If multiple entities with the same name exist, the first

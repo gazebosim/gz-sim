@@ -206,6 +206,14 @@ Server::Server(const ServerConfig &_config)
 /////////////////////////////////////////////////
 Server::~Server() = default;
 
+EntityComponentManager &Server::GetEntityComponentManager()
+{
+  for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
+  {
+    return runner->EntityCompMgr();
+  }
+}
+
 /////////////////////////////////////////////////
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
     const bool _paused)

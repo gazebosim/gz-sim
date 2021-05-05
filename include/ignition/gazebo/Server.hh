@@ -116,6 +116,8 @@ namespace ignition
       /// \brief Destructor
       public: ~Server();
 
+      public: EntityComponentManager &GetEntityComponentManager();
+
       /// \brief Set the update period. The update period is the wall-clock time
       /// between ECS updates.
       /// Note that this is different from the simulation update rate. ECS

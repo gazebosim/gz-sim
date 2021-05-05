@@ -175,6 +175,16 @@ namespace ignition
       /// \return The full contents of the SDF string, or empty string.
       public: std::string SdfString() const;
 
+      /// \brief Set if the server and GUI should run in the same process.
+      /// \param[in] _sameProcessAsGUI True if the server and GUI will run in
+      /// the same process, False otherwise
+      public: void SetSameProcessAsGUI(const bool &_sameProcessAsGUI);
+
+      /// \brief Get if the server and GUI are running in the same process
+      /// \return  True if the server and GUI will run in
+      /// the same process, False otherwise
+      public: bool SameProcessAsGUI() const;
+
       /// \brief Set the update rate in Hertz. Value <=0 are ignored.
       /// \param[in] _hz The desired update rate of the server in Hertz.
       public: void SetUpdateRate(const double &_hz);
@@ -426,7 +436,7 @@ namespace ignition
     /// \return A list of plugins to load, based on above ordering
     std::list<ServerConfig::PluginInfo>
     IGNITION_GAZEBO_VISIBLE
-    loadPluginInfo(bool _isPlayback = false);
+    loadPluginInfo(bool _isPlayback = false, bool _sameProcessAsGUI = false);
     }
   }
 }

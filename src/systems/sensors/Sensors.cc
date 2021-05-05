@@ -57,6 +57,9 @@ using namespace systems;
 // Private data class.
 class ignition::gazebo::systems::SensorsPrivate
 {
+  public: explicit SensorsPrivate()
+    : renderUtil(false){}
+
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
   public: sensors::Manager sensorManager;

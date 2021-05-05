@@ -22,6 +22,7 @@
 #include <ignition/gui/Application.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -42,7 +43,9 @@ namespace gui
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc, char **_argv,
-                                     const char *_guiConfig);
+                                     const char *_guiConfig,
+                                     EntityComponentManager &_ecm,
+                                     bool sameProcess);
 
   /// \brief Create a Gazebo GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
@@ -63,6 +66,8 @@ namespace gui
   IGNITION_GAZEBO_GUI_VISIBLE
   std::unique_ptr<ignition::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
+      EntityComponentManager &_ecm,
+      bool sameProcess,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 
 }  // namespace gui

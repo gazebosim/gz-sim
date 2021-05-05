@@ -31,6 +31,7 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
+#include "SimulationRunner.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
 
@@ -115,18 +116,19 @@ extern "C" const char *findFuelResource(
 }
 
 //////////////////////////////////////////////////
-extern "C" int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+int createServerConfig(ignition::gazebo::ServerConfig &_serverConfig,
+    const char *_sdfString,
+    float _hz, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics)
+    const char *_file, const char *_recordTopics, bool _sameProcessAsGUI)
 {
-  ignition::gazebo::ServerConfig serverConfig;
-
   // Path for logs
-  std::string recordPathMod = serverConfig.LogRecordPath();
+  std::string recordPathMod = _serverConfig.LogRecordPath();
+
+  _serverConfig.SetSameProcessAsGUI(_sameProcessAsGUI);
 
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
@@ -148,8 +150,8 @@ extern "C" int runServer(const char *_sdfString,
       return -1;
     }
 
-    serverConfig.SetUseLogRecord(true);
-    serverConfig.SetLogRecordResources(_recordResources);
+    _serverConfig.SetUseLogRecord(true);
+    _serverConfig.SetLogRecordResources(_recordResources);
 
     // If a record path is specified
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
@@ -261,23 +263,23 @@ extern "C" int runServer(const char *_sdfString,
       ignmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
     }
-    serverConfig.SetLogRecordPath(recordPathMod);
+    _serverConfig.SetLogRecordPath(recordPathMod);
 
     std::vector<std::string> topics = ignition::common::split(
         _recordTopics, ":");
     for (const std::string &topic : topics)
     {
-      serverConfig.AddLogRecordTopic(topic);
+      _serverConfig.AddLogRecordTopic(topic);
     }
   }
   else
   {
-    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    ignLogInit(_serverConfig.LogRecordPath(), "server_console.log");
   }
 
   if (_logCompress > 0)
   {
-    serverConfig.SetLogRecordCompressPath(cmpPath);
+    _serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
@@ -286,31 +288,31 @@ extern "C" int runServer(const char *_sdfString,
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
   {
-    if (!serverConfig.SetSdfString(_sdfString))
+    if (!_serverConfig.SetSdfString(_sdfString))
     {
       ignerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
       return -1;
     }
   }
-  serverConfig.SetSdfFile(_file);
+  _serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
-    serverConfig.SetUpdateRate(_hz);
+    _serverConfig.SetUpdateRate(_hz);
 
   // Set whether levels should be used.
   if (_levels > 0)
   {
     ignmsg << "Using the level system\n";
-    serverConfig.SetUseLevels(true);
+    _serverConfig.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
     ignmsg << "Using the distributed simulation and levels systems\n";
-    serverConfig.SetNetworkRole(_networkRole);
-    serverConfig.SetNetworkSecondaries(_networkSecondaries);
-    serverConfig.SetUseLevels(true);
+    _serverConfig.SetNetworkRole(_networkRole);
+    _serverConfig.SetNetworkSecondaries(_networkSecondaries);
+    _serverConfig.SetUseLevels(true);
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
@@ -324,34 +326,102 @@ extern "C" int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+      _serverConfig.SetLogPlaybackPath(ignition::common::absPath(
         std::string(_playback)));
     }
   }
 
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
-    serverConfig.SetPhysicsEngine(_physicsEngine);
+    _serverConfig.SetPhysicsEngine(_physicsEngine);
   }
 
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
-    serverConfig.SetRenderEngineServer(_renderEngineServer);
+    _serverConfig.SetRenderEngineServer(_renderEngineServer);
   }
 
   if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
   {
-    serverConfig.SetRenderEngineGui(_renderEngineGui);
+    _serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
-  // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  return 0;
+}
 
-  // Run the server
-  server.Run(true, _iterations, _run == 0);
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
+    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+    int _networkSecondaries, int _record, const char *_recordPath,
+    int _recordResources, int _logOverwrite, int _logCompress,
+    const char *_playback, const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file, const char *_recordTopics)
+{
+  // Create the Gazebo server
+  ignition::gazebo::ServerConfig serverConfig;
+
+  if (createServerConfig(serverConfig,
+          _sdfString, _hz, _levels, _networkRole,
+          _networkSecondaries, _record, _recordPath,
+          _recordResources, _logOverwrite, _logCompress,
+          _playback, _physicsEngine, _renderEngineServer,
+          _renderEngineGui, _file, _recordTopics, false) == 0)
+  {
+    ignition::gazebo::Server server(serverConfig);
+    // Run the server
+    server.Run(true, _iterations, _run == 0);
+    igndbg << "Shutting down ign-gazebo-server" << std::endl;
+    return 0;
+  }
 
   igndbg << "Shutting down ign-gazebo-server" << std::endl;
   return 0;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE int runCombined(const char *_sdfString,
+    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+    int _networkSecondaries, int _record, const char *_recordPath,
+    int _recordResources, int _logOverwrite, int _logCompress,
+    const char *_playback, const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_file, const char *_recordTopics, const char *_guiConfig)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  if (createServerConfig(serverConfig,
+        _sdfString, _hz, _levels, _networkRole,
+        _networkSecondaries, _record, _recordPath,
+        _recordResources, _logOverwrite, _logCompress,
+        _playback, _physicsEngine, _renderEngineServer,
+        _renderEngineGui, _file, _recordTopics, true) == 0)
+  {
+    // Create the Gazebo server
+    ignition::gazebo::Server server(serverConfig);
+
+    // Run the server
+    server.Run(false, _iterations, _run == 0);
+
+    auto &sharedEcm = server.GetEntityComponentManager();
+
+    // argc and argv are going to be passed to a QApplication. The Qt
+    // documentation has a warning about these:
+    //  "Warning: The data referred to by argc and argv must stay valid for the
+    //  entire lifetime of the QApplication object. In addition, argc must be
+    //  greater than zero and argv must contain at least one valid character
+    //  string."
+    int argc = 1;
+    // Converting a string literal to char * is forbidden as of C++11. It can only
+    // be converted to a const char *. The const cast is here to prevent a warning
+    // since we do need to pass a char* to runGui
+    char *argv = const_cast<char *>("ign-gazebo-gui");
+    return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, sharedEcm, true);
+  }
+
+  ignerr << "Unable to create server config\n";
+
+  return -1;
 }
 
 //////////////////////////////////////////////////
@@ -368,5 +438,6 @@ extern "C" int runGui(const char *_guiConfig)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
+  ignition::gazebo::v6::EntityComponentManager guiEcm;
+  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, guiEcm, false);
 }
