@@ -236,7 +236,8 @@ class ignition::gazebo::ServerConfigPrivate
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
-            logRecordTopics(_cfg->logRecordTopics) { }
+            logRecordTopics(_cfg->logRecordTopics),
+            sameProcessAsGUI(_cfg->sameProcessAsGUI) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -301,6 +302,10 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Topics to record.
   public: std::vector<std::string> logRecordTopics;
+
+  /// \brief Boolean to define if the server and gui run in the same process
+  /// True gui and server will run in the same process, False otherwise
+  public: bool sameProcessAsGUI;
 };
 
 //////////////////////////////////////////////////
@@ -344,6 +349,18 @@ bool ServerConfig::SetSdfString(const std::string &_sdfString)
 std::string ServerConfig::SdfString() const
 {
   return this->dataPtr->sdfString;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::SetSameProcessAsGUI(const bool &_sameProcessAsGUI)
+{
+  this->dataPtr->sameProcessAsGUI = _sameProcessAsGUI;
+}
+
+//////////////////////////////////////////////////
+bool ServerConfig::SameProcessAsGUI() const
+{
+  return this->dataPtr->sameProcessAsGUI;
 }
 
 //////////////////////////////////////////////////
@@ -824,7 +841,7 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::loadPluginInfo(bool _isPlayback)
+ignition::gazebo::loadPluginInfo(bool _isPlayback, bool _sameProcessAsGUI)
 {
   std::list<ServerConfig::PluginInfo> ret;
 

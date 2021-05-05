@@ -453,6 +453,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   else if (_geom.Type() == sdf::GeometryType::PLANE)
   {
     geom = this->dataPtr->scene->CreatePlane();
+    if (geom == nullptr)
+      return rendering::GeometryPtr();
     scale.X() = _geom.PlaneShape()->Size().X();
     scale.Y() = _geom.PlaneShape()->Size().Y();
 
@@ -1008,11 +1010,17 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
 
   rendering::LightPtr lightParent;
   auto it = this->dataPtr->lights.find(_parentId);
-  if (it != this->dataPtr->lights.end())
+  int attemps = 10;
+  while (it != this->dataPtr->lights.end())
   {
-    lightParent = it->second;
+    if (attemps < 0)
+      break;
+    attemps--;
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(5ms);
   }
-  else
+  lightParent = it->second;
+  if (it == this->dataPtr->lights.end())
   {
     ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
            << "Not adding light visual with ID[" << _id
@@ -1070,7 +1078,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   {
     ignerr << "Light with Id: [" << _id << "] already exists in the scene"
            << std::endl;
-    return rendering::LightPtr();
+    return this->dataPtr->lights.find(_id)->second;
   }
 
   rendering::VisualPtr parent;
@@ -1096,10 +1104,14 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   {
     case sdf::LightType::POINT:
       light = this->dataPtr->scene->CreatePointLight(name);
+      if (light == nullptr)
+        return rendering::LightPtr();
       break;
     case sdf::LightType::SPOT:
     {
       light = this->dataPtr->scene->CreateSpotLight(name);
+      if (light == nullptr)
+        return rendering::LightPtr();
       rendering::SpotLightPtr spotLight =
           std::dynamic_pointer_cast<rendering::SpotLight>(light);
       spotLight->SetInnerAngle(_light.SpotInnerAngle());
@@ -1111,6 +1123,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
     case sdf::LightType::DIRECTIONAL:
     {
       light = this->dataPtr->scene->CreateDirectionalLight(name);
+      if (light == nullptr)
+        return rendering::LightPtr();
       rendering::DirectionalLightPtr dirLight =
           std::dynamic_pointer_cast<rendering::DirectionalLight>(light);
 

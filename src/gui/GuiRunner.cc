@@ -35,11 +35,17 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class ignition::gazebo::GuiRunner::Implementation
 {
+
+  public: explicit Implementation(gazebo::EntityComponentManager &_ecm)
+  : ecm(_ecm){}
+
   /// \brief Update the plugins.
   public: void UpdatePlugins();
 
   /// \brief Entity-component manager.
-  public: gazebo::EntityComponentManager ecm;
+  public: gazebo::EntityComponentManager &ecm;
+
+  public: bool sameProcess;
 
   /// \brief Transport node.
   public: transport::Node node{};
@@ -61,10 +67,15 @@ class ignition::gazebo::GuiRunner::Implementation
 };
 
 /////////////////////////////////////////////////
-GuiRunner::GuiRunner(const std::string &_worldName)
-  : dataPtr(utils::MakeUniqueImpl<Implementation>())
+GuiRunner::GuiRunner(const std::string &_worldName,
+  EntityComponentManager &_ecm, bool _sameProcess)
+  : dataPtr(utils::MakeUniqueImpl<Implementation>(_ecm))
 {
+  this->dataPtr->sameProcess = _sameProcess;
+
   this->setProperty("worldName", QString::fromStdString(_worldName));
+  this->setProperty("sameProcess",
+    QString::fromStdString(std::to_string(_sameProcess)));
 
   auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
@@ -118,6 +129,9 @@ GuiRunner::~GuiRunner()
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
 {
+  if (this->dataPtr->sameProcess)
+    return;
+
   // set up service for async state response callback
   std::string id = std::to_string(gui::App()->applicationPid());
   std::string reqSrv =

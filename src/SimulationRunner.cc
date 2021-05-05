@@ -168,7 +168,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    auto plugins = ignition::gazebo::loadPluginInfo(
+      isPlayback, this->serverConfig.SameProcessAsGUI());
     this->LoadServerPlugins(plugins);
   }
 
@@ -1172,7 +1173,7 @@ bool SimulationRunner::Paused() const
 }
 
 /////////////////////////////////////////////////
-const EntityComponentManager &SimulationRunner::EntityCompMgr() const
+EntityComponentManager &SimulationRunner::EntityCompMgr()
 {
   return this->entityCompMgr;
 }

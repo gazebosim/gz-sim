@@ -327,13 +327,16 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity id to thermal camera sensor configuration
   /// properties. The elements in the tuple are:
   /// <resolution, temperature range (min, max)>
-  public:std::unordered_map<Entity,
+  public: std::unordered_map<Entity,
       std::tuple<double, components::TemperatureRangeInfo>> thermalCameraData;
+
+  public: bool sameProcess;
 };
 
 //////////////////////////////////////////////////
-RenderUtil::RenderUtil() : dataPtr(std::make_unique<RenderUtilPrivate>())
+RenderUtil::RenderUtil(bool _sameProcess) : dataPtr(std::make_unique<RenderUtilPrivate>())
 {
+  this->dataPtr->sameProcess = _sameProcess;
 }
 
 //////////////////////////////////////////////////
@@ -625,6 +628,7 @@ void RenderUtil::Update()
   // create new entities
   {
     IGN_PROFILE("RenderUtil::Update Create");
+    // std::cerr << "newModels size " << newModels.size() << '\n';
     for (const auto &model : newModels)
     {
       uint64_t iteration = std::get<3>(model);
@@ -709,13 +713,18 @@ void RenderUtil::Update()
         // scoped names
         // TODO(anyone) do this in ign-sensors?
         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-        if (!parentNode)
-        {
-          ignerr << "Failed to create sensor with name[" << dataSdf.Name()
-                 << "] for entity [" << entity
-                 << "]. Parent not found with ID[" << parent << "]."
-                 << std::endl;
-          continue;
+        while (!parentNode) {
+          using namespace std::chrono_literals;
+          std::this_thread::sleep_for(5ms);
+          if (!parentNode)
+          {
+            ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                   << "] for entity [" << entity
+                   << "]. Parent not found with ID[" << parent << "]."
+                   << std::endl;
+            continue;
+          }
+          parentNode = this->dataPtr->sceneManager.NodeById(parent);
         }
 
         std::string sensorName =
@@ -1151,9 +1160,18 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
+            _info.iterations);
+          bool found = false;
+          for (auto & data: this->newModels)
+          {
+            if (std::get<0>(data) == std::get<0>(tupleTemp))
+            {
+              found = true;
+            }
+          }
+          if (!found)
+            this->newModels.push_back(tupleTemp);
           return true;
         });
 
@@ -1379,9 +1397,18 @@ void RenderUtilPrivate::CreateRenderingEntities(
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
+          auto tupleTemp = std::make_tuple(_entity, model, _parent->Data(),
+            _info.iterations);
+          bool found = false;
+          for (auto & data: this->newModels)
+          {
+            if (std::get<0>(data) == std::get<0>(tupleTemp))
+            {
+              found = true;
+            }
+          }
+          if (!found)
+            this->newModels.push_back(tupleTemp);
           return true;
         });
 
@@ -1824,12 +1851,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       });
 }
 
+static std::mutex mutexInit;
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
   // Already initialized
   if (nullptr != this->dataPtr->scene)
     return;
+  std::lock_guard<std::mutex> lock(mutexInit);
 
   ignition::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
@@ -1849,11 +1878,13 @@ void RenderUtil::Init()
   // Scene
   this->dataPtr->scene =
       this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+  std::cerr << "this->dataPtr->scene " << this->dataPtr->scene << '\n';
   if (!this->dataPtr->scene)
   {
     igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
     this->dataPtr->scene =
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
+    std::cerr << "this->dataPtr->scene " << this->dataPtr->scene << '\n';
     if (this->dataPtr->scene)
     {
       this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
