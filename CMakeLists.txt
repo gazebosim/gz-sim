@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
@@ -38,7 +38,7 @@ endif()
 # Search for project-specific dependencies
 #============================================================================
 
-ign_find_package(sdformat11 REQUIRED)
+ign_find_package(sdformat11 REQUIRED VERSION 11.1)
 set(SDF_VER ${sdformat11_VERSION_MAJOR})
 
 #--------------------------------------
@@ -53,7 +53,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs7 REQUIRED)
+ign_find_package(ignition-msgs7 REQUIRED VERSION 7.1)
 set(IGN_MSGS_VER ${ignition-msgs7_VERSION_MAJOR})
 
 #--------------------------------------
