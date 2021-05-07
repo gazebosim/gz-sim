@@ -1719,7 +1719,8 @@ void IgnRenderer::HandleMouseTransformControl()
       if (v)
       {
         Entity entityId = std::get<int>(v->UserData("gazebo-entity"));
-        this->dataPtr->renderUtil.ScaleWireBox(entityId, scale);
+        auto s = this->dataPtr->transformControl.Node()->LocalScale();
+        this->dataPtr->renderUtil.SetWireBoxScale(entityId, s);
       }
     }
     this->dataPtr->drag = 0;

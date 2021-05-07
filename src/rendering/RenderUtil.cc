@@ -2059,7 +2059,7 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::ScaleWireBox(const Entity &_entityId,
+void RenderUtil::SetWireBoxScale(const Entity &_entityId,
     const math::Vector3d &_scale)
 {
   if (this->dataPtr->wireBoxes.find(_entityId) ==
