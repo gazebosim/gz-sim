@@ -2063,7 +2063,7 @@ void RenderUtil::SetWireBoxScale(const Entity &_entityId,
     const math::Vector3d &_scale)
 {
   /// \TODO(anyone) Consider to use this->dataPtr->sceneManager.NodeById()
-  /// when WireBox are tracked in the scene manager.
+  /// when WireBoxes are tracked in the scene manager.
   if (this->dataPtr->wireBoxes.find(_entityId) ==
           this->dataPtr->wireBoxes.end())
   {
