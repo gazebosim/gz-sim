@@ -263,6 +263,11 @@ void Hydrodynamics::Configure(
     return;
   }
 
+  if(_sdf->HasElement("defaultCurrent"))
+  {
+    this->dataPtr->currentVector= _sdf->Get<math::Vector3d>("defaultCurrent");
+  }
+
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
 
   AddWorldPose(this->dataPtr->linkEntity, _ecm);

@@ -72,6 +72,8 @@ namespace systems
   ///     separately. If no namespace is given then the plugin listens on
   ///     the `/ocean_current` topic for a `Vector3d` message. Otherwise it
   ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
+  ///   <defaultCurrent> - A generic current.
+  ///      [vector3d m/s, optional, default = [0,0,0]m/s]
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
