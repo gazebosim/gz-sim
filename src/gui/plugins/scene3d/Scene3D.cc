@@ -1342,6 +1342,51 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
+bool IgnRenderer::ContainsSimpleShape(const rendering::NodePtr &_node,
+    rendering::VisualPtr &_visual) const
+{
+  std::queue<rendering::NodePtr> q;
+
+  // Adding the root node.
+  q.push(_node);
+
+  while (!q.empty())
+  {
+    // Process the next node.
+    auto n = q.front();
+    q.pop();
+    if (n)
+    {
+      auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(n);
+      if (v)
+      {
+        try
+        {
+          int userData = std::get<int>(v->UserData("geometry-type"));
+
+          if (userData == static_cast<int>(sdf::GeometryType::BOX)      ||
+              userData == static_cast<int>(sdf::GeometryType::CYLINDER) ||
+              userData == static_cast<int>(sdf::GeometryType::SPHERE))
+          {
+            _visual = v;
+            return true;
+          }
+        }
+        catch (const std::bad_variant_access& ex)
+        {
+        }
+      }
+
+      // Add all children to the queue to be considered.
+      for (auto i = 0u; i < n->ChildCount(); ++i)
+        q.push(n->ChildByIndex(i));
+    }
+  }
+
+  return false;
+}
+
+/////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
@@ -1608,47 +1653,15 @@ void IgnRenderer::HandleMouseTransformControl()
         rendering::TransformMode::TM_SCALE)
     {
       // Check if the model that we're trying to scale looks like a simple shape
-      // It will need to have only two children nodes: one for the visual gizmo
-      // and another one for the link.
+      rendering::VisualPtr visualSimple;
       auto node = this->dataPtr->transformControl.Node();
       auto v = std::dynamic_pointer_cast<ignition::rendering::Visual>(node);
-      if (!v)
+      bool found = this->ContainsSimpleShape(node, visualSimple);
+      if (!found)
         return;
 
-      if (v->ChildCount() != 2)
-        return;
-
-      auto c1 = v->ChildByIndex(0);
-      auto c2 = v->ChildByIndex(1);
-      ignition::rendering::VisualPtr leafNode;
-
-      if (c1->Name().find("scene::Visual") != std::string::npos)
-      {
-        if (c2->ChildCount() != 1)
-          return;
-
-        leafNode = std::dynamic_pointer_cast<ignition::rendering::Visual>(
-          c2->ChildByIndex(0));
-      }
-      else
-      {
-        if (c1->ChildCount() != 1)
-          return;
-
-        leafNode = std::dynamic_pointer_cast<ignition::rendering::Visual>(
-          c1->ChildByIndex(0));
-      }
-
-      int userData = std::get<int>(leafNode->UserData("geometry-type"));
+      int userData = std::get<int>(v->UserData("geometry-type"));
       sdf::GeometryType geomType = static_cast<sdf::GeometryType>(userData);
-
-      // We only support scaling of simple shapes.
-      if (userData != static_cast<int>(sdf::GeometryType::BOX)      &&
-          userData != static_cast<int>(sdf::GeometryType::CYLINDER) &&
-          userData != static_cast<int>(sdf::GeometryType::SPHERE))
-      {
-        return;
-      }
 
       this->XYZConstraint(axis);
       // note: scaling is limited to local space
