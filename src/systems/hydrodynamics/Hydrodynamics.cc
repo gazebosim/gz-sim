@@ -108,27 +108,26 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
 
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
-  Eigen::MatrixXd Ma;
+  public: Eigen::MatrixXd Ma;
 
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
-  /// Link entity
+  /// \brief Link entity
   public: Entity linkEntity;
 
-  /// Ocean current callback
+  /// \brief Ocean current callback
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
-  /// Mutex
+  /// \brief Mutex
   public: std::mutex mtx;
 };
 
 /////////////////////////////////////////////////
 void HydrodynamicsPrivateData::UpdateCurrent(const msgs::Vector3d &_msg)
 {
-  math::Vector3d newCurrVec {_msg.x(), _msg.y(), _msg.z()};
   std::lock_guard<std::mutex> lock(this->mtx);
-  this->currentVector = newCurrVec;
+  this->currentVector = ignition::msgs::Convert(_msg);
 }
 
 /////////////////////////////////////////////////
@@ -228,28 +227,20 @@ void Hydrodynamics::Configure(
   auto model = ignition::gazebo::Model(_entity);
 
   std::string ns {""};
+  std::string currentTopic {"/ocean_current"};
   if (_sdf->HasElement("namespace"))
   {
     ns = _sdf->Get<std::string>("namespace");
-  }
-  auto currentTopic = [=]() ->std::string
-  {
-    if(ns == "")
-    {
-      return "/ocean_current";
-    }
-    else
-    {
-      return ignition::transport::TopicUtils::AsValidTopic(
+    currentTopic = ignition::transport::TopicUtils::AsValidTopic(
         "/model/" + ns + "/ocean_current");
-    }
-  }();
+  }
+
   this->dataPtr->node.Subscribe(
     currentTopic,
     &HydrodynamicsPrivateData::UpdateCurrent,
     this->dataPtr.get());
 
-  if(!_sdf->HasElement("link_name"))
+  if (!_sdf->HasElement("link_name"))
   {
     ignerr << "You musk specify a <link_name> for the hydrodynamic"
       << " plugin to act upon";
@@ -257,7 +248,7 @@ void Hydrodynamics::Configure(
   }
   auto linkName = _sdf->Get<std::string>("link_name");
   this->dataPtr->linkEntity = model.LinkByName(_ecm, linkName);
-  if(!_ecm.HasEntity(this->dataPtr->linkEntity))
+  if (!_ecm.HasEntity(this->dataPtr->linkEntity))
   {
     ignerr << "Link name" << linkName << "does not exist";
     return;

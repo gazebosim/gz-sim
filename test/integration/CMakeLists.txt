@@ -37,7 +37,9 @@ set(tests
   multiple_servers.cc
   nested_model_physics.cc
   network_handshake.cc
+  odometry_publisher.cc
   particle_emitter.cc
+  particle_emitter2.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc

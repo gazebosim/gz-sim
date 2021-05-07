@@ -989,4 +989,21 @@ TEST_F(UserCommandsTest, Physics)
   physicsComp = ecm->Component<components::Physics>(worldEntity);
   EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
+
+  // Send invalid values (not > 0) and make sure they are not updated
+  req.set_max_step_size(0.0);
+  req.set_real_time_factor(0.0);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the PhysicsCmd component is created
+  // in the second one it is processed
+  server.Run(true, 2, false);
+
+  // Check updated physics properties
+  physicsComp = ecm->Component<components::Physics>(worldEntity);
+  EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
+  EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 }
