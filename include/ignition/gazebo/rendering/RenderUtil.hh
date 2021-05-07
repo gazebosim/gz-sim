@@ -160,7 +160,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// Set the scale of a given wirebox.
     /// \param[in] _entityId The entity Id.
-    /// \param[in] _scale Scale vector.
+    /// \param[in] _scale Scale vector in absolute coordinates.
     public: void SetWireBoxScale(const Entity &_entityId,
        const math::Vector3d &_scale);
 

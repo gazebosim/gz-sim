@@ -1728,7 +1728,6 @@ void IgnRenderer::HandleMouseTransformControl()
   }
 }
 
-
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseViewControl()
 {
