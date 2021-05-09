@@ -36,6 +36,22 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+#define HYDRA_RIGHT_BUMPER 7
+#define HYDRA_RIGHT_1 8
+#define HYDRA_RIGHT_2 9
+#define HYDRA_RIGHT_3 10
+#define HYDRA_RIGHT_4 11
+#define HYDRA_RIGHT_CENTER 12
+#define HYDRA_RIGHT_JOY 13
+
+#define HYDRA_LEFT_LB 0
+#define HYDRA_LEFT_1 1
+#define HYDRA_LEFT_2 2
+#define HYDRA_LEFT_3 3
+#define HYDRA_LEFT_4 4
+#define HYDRA_LEFT_CENTER 5
+#define HYDRA_LEFT_JOY 6
+
 class ignition::gazebo::systems::HydraDemoPluginPrivate
 {
 
@@ -64,10 +80,23 @@ class ignition::gazebo::systems::HydraDemoPluginPrivate
   /// the user clicks the reset button and when the user starts a new
   /// measurement.
   public: void Reset();
+  
+
+  /// \publisher node
+  public: transport::Node::Publisher pub;
 
 
-  /// \brief linear velocity for the model
-  public: math::Vector3d linearVel{0.5, 0.3, 0.5};
+  /// \brief Analog joysticks
+  public: float analog[6];
+
+  /// \brief Buttons that have been pressed.
+  public: uint8_t buttons[14];
+
+  /// \brief Left and right controller positions.
+  public: ignition::math::Vector3d pos[2];
+
+  /// \brief Left and right controller orientations.
+  public: ignition::math::Quaterniond quat[2];
 
 };
 //////////////////////////////////////////////////////////////////
@@ -90,7 +119,7 @@ void HydraDemoPluginPrivate::OnHydra(const ignition::msgs::Hydra &_msg)
 
 	std::lock_guard<std::mutex> lock(this->msgMutex);
 
-  this->hydraMsgPtr = _msg;
+  	this->hydraMsgPtr = _msg;
 
 }
 ////////////////////////////////////////////////////////////////
@@ -137,16 +166,65 @@ void HydraDemoPlugin::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 	IGN_PROFILE("HydraDemoPlugin::PreUpdate");
 
-	std::lock_guard<std::mutex> lock(this->dataPtr->msgMutex);  
+	std::lock_guard<std::mutex> lock(this->dataPtr->msgMutex);
 
-  //double joyX = this->dataPtr->hydraMsgPtr.right().joy_x();
-  //double joyY = this->dataPtr->hydraMsgPtr.right().joy_y();
+	/// \This part of the code is borrowed from the original HydraPlugin
 
-  msgs::Twist msg;
+	ignition::math::Pose3d origRight(this->dataPtr->pos[1], this->dataPtr->quat[1]);
 
-  msgs::Set(msg.mutable_linear(), this->dataPtr->linearVel);
+  	ignition::math::Pose3d pivotRight = origRight;
+  	ignition::math::Pose3d grabRight = origRight;
 
-  this->dataPtr->Reset();
+  	pivotRight.Pos() +=
+      origRight.Rot() * ignition::math::Vector3d(-0.04, 0, 0);
+  	grabRight.Pos() +=
+      origRight.Rot() * ignition::math::Vector3d(-0.12, 0, 0);
+
+  	ignition::math::Pose3d origLeft(this->dataPtr->pos[0], this->dataPtr->quat[0]);
+
+  	ignition::math::Pose3d pivotLeft = origLeft;
+  	ignition::math::Pose3d grabLeft = origLeft;
+
+  	pivotLeft.Pos() +=
+      origLeft.Rot().RotateVector(ignition::math::Vector3d(-0.04, 0, 0));
+  	grabLeft.Pos() +=
+      origLeft.Rot().RotateVector(ignition::math::Vector3d(-0.12, 0, 0));
+
+	msgs::Hydra msg;
+	msgs::Hydra::Paddle *right_paddle = msg.mutable_right();   
+	msgs::Hydra::Paddle *left_paddle = msg.mutable_left();
+
+	right_paddle->set_joy_y(this->dataPtr->analog[3]);
+	right_paddle->set_joy_x(this->dataPtr->analog[4]);
+	right_paddle->set_trigger(this->dataPtr->analog[5]);
+
+	left_paddle->set_joy_y(this->dataPtr->analog[0]);
+	left_paddle->set_joy_x(this->dataPtr->analog[1]);
+	left_paddle->set_trigger(this->dataPtr->analog[2]);
+
+	left_paddle->set_button_bumper(this->dataPtr->buttons[0]);
+	left_paddle->set_button_1(this->dataPtr->buttons[1]);
+	left_paddle->set_button_2(this->dataPtr->buttons[2]);
+	left_paddle->set_button_3(this->dataPtr->buttons[3]);
+	left_paddle->set_button_4(this->dataPtr->buttons[4]);
+
+	left_paddle->set_button_center(this->dataPtr->buttons[5]);
+	left_paddle->set_button_joy(this->dataPtr->buttons[6]);
+
+	right_paddle->set_button_bumper(this->dataPtr->buttons[7]);
+	right_paddle->set_button_1(this->dataPtr->buttons[8]);
+	right_paddle->set_button_2(this->dataPtr->buttons[9]);
+	right_paddle->set_button_3(this->dataPtr->buttons[10]);
+	right_paddle->set_button_4(this->dataPtr->buttons[11]);
+	right_paddle->set_button_center(this->dataPtr->buttons[12]);
+	right_paddle->set_button_joy(this->dataPtr->buttons[13]);
+
+	msgs::Set(right_paddle->mutable_pose(), grabRight);
+	msgs::Set(left_paddle->mutable_pose(), grabLeft);
+
+	this->dataPtr->pub.Publish(msg);
+  
+    this->dataPtr->Reset();
 
 }
 IGNITION_ADD_PLUGIN(HydraDemoPlugin,
