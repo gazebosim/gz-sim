@@ -382,30 +382,27 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     public: enum class RenderStallState
             {
-              /// All RequestQtThreadToBlock calls will continue immediately
-              /// until the first WaitForWorkerThread call is made
-              Initializing,
-              /// All threads will continue as normal
-              Unblocked,
-              /// Worker thread requested Qt thread to be blocked; and is
-              /// waiting for Qt thread to see this
-              WorkerThreadRequested,
-              /// Qt thread saw WorkerThreadRequested, set the variable to
-              /// QtThreadBlocked; and is now waiting for worker thread to do
-              /// its thing and set it back to Unblocked so that Qt can resume
-              QtThreadBlocked,
-              /// Same as Unblocked, but RequestQtThreadToBlock and
-              /// ReleaseQtThreadFromBlock cannot be called
+              /// Qt is stuck inside WaitForWorkerThread
+              /// Worker thread can proceed
+              WorkerCanProceed,
+              /// Qt is stuck inside WaitForWorkerThread
+              /// Worker thread is between WaitForQtThreadAndBlock
+              /// and ReleaseQtThreadFromBlock
+              WorkerIsProceeding,
+              /// Worker is stuck inside WaitForQtThreadAndBlock
+              /// Qt can proceed
+              QtCanProceed,
+              /// Do not block
               ShuttingDown,
             };
 
     /// \brief See TextureNode::RenderSync::RenderStallState
     public: RenderStallState renderStallState =
-        RenderStallState::Initializing /*GUARDED_BY(sharedRenderMutex)*/;
+        RenderStallState::QtCanProceed /*GUARDED_BY(sharedRenderMutex)*/;
 
     /// \brief Must be called from worker thread when we want to block
     /// \param[in] lock Acquired lock. Must be based on this->mutex
-    public: void RequestQtThreadToBlock(std::unique_lock<std::mutex> &_lock);
+    public: void WaitForQtThreadAndBlock(std::unique_lock<std::mutex> &_lock);
 
     /// \brief Must be called from worker thread when we are done
     /// \param[in] lock Acquired lock. Must be based on this->mutex
@@ -502,25 +499,19 @@ using namespace gazebo;
 QList<QThread *> RenderWindowItemPrivate::threads;
 
 /////////////////////////////////////////////////
-void RenderSync::RequestQtThreadToBlock(std::unique_lock<std::mutex> &_lock)
+void RenderSync::WaitForQtThreadAndBlock(std::unique_lock<std::mutex> &_lock)
 {
-  if (this->renderStallState == RenderStallState::Initializing)
-    return;
-
-  this->renderStallState = RenderStallState::WorkerThreadRequested;
   this->cv.wait(_lock, [this]
-  { return this->renderStallState == RenderStallState::QtThreadBlocked ||
+  { return this->renderStallState == RenderStallState::WorkerCanProceed ||
            this->renderStallState == RenderStallState::ShuttingDown; });
+
+  this->renderStallState = RenderStallState::WorkerIsProceeding;
 }
 
 /////////////////////////////////////////////////
 void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &_lock)
 {
-  if (this->renderStallState != RenderStallState::ShuttingDown &&
-      this->renderStallState != RenderStallState::Initializing)
-  {
-    this->renderStallState = RenderStallState::Unblocked;
-  }
+  this->renderStallState = RenderStallState::QtCanProceed;
   _lock.unlock();
   this->cv.notify_one();
 }
@@ -528,31 +519,28 @@ void RenderSync::ReleaseQtThreadFromBlock(std::unique_lock<std::mutex> &_lock)
 /////////////////////////////////////////////////
 void RenderSync::WaitForWorkerThread()
 {
-  {
-    std::unique_lock<std::mutex> lock(this->mutex);
-    if(this->renderStallState == RenderStallState::Initializing)
-    {
-      this->renderStallState = RenderStallState::Unblocked;
-    }
-    else if(this->renderStallState == RenderStallState::WorkerThreadRequested)
-    {
-      // Worker thread asked us to wait!
-      this->renderStallState = RenderStallState::QtThreadBlocked;
-      lock.unlock();
-      // Wake up worker thread
-      this->cv.notify_one();
-    }
-  }
+  std::unique_lock<std::mutex> lock(this->mutex);
 
+  // Wait until we're clear to go
+  this->cv.wait( lock, [this]
   {
-    // Wait until we're clear to go
-    std::unique_lock<std::mutex> lock(this->mutex);
-    this->cv.wait( lock, [this]
-    {
-      return this->renderStallState == RenderStallState::Unblocked ||
-             this->renderStallState == RenderStallState::ShuttingDown;
-    } );
-  }
+    return this->renderStallState == RenderStallState::QtCanProceed ||
+           this->renderStallState == RenderStallState::ShuttingDown;
+  } );
+
+  // Worker thread asked us to wait!
+  this->renderStallState = RenderStallState::WorkerCanProceed;
+  lock.unlock();
+  // Wake up worker thread
+  this->cv.notify_one();
+  lock.lock();
+
+  // Wait until we're clear to go
+  this->cv.wait( lock, [this]
+  {
+    return this->renderStallState == RenderStallState::QtCanProceed ||
+           this->renderStallState == RenderStallState::ShuttingDown;
+  } );
 }
 
 /////////////////////////////////////////////////
@@ -560,14 +548,11 @@ void RenderSync::Shutdown()
 {
   {
     std::unique_lock<std::mutex> lock(this->mutex);
-    const bool bWakeUpRequested =
-        this->renderStallState == RenderStallState::WorkerThreadRequested;
+
     this->renderStallState = RenderStallState::ShuttingDown;
-    if(bWakeUpRequested)
-    {
-      lock.unlock();
-      this->cv.notify_one();
-    }
+
+    lock.unlock();
+    this->cv.notify_one();
   }
 }
 
@@ -612,7 +597,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   IGN_PROFILE("IgnRenderer::Render");
 
   std::unique_lock<std::mutex> lock(_renderSync->mutex);
-  _renderSync->RequestQtThreadToBlock(lock);
+  _renderSync->WaitForQtThreadAndBlock(lock);
 
   if (this->textureDirty)
   {
@@ -623,7 +608,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
     // to sacrifice VRAM)
     //
     // std::unique_lock<std::mutex> lock(renderSync->mutex);
-    // _renderSync->RequestQtThreadToBlock(lock);
+    // _renderSync->WaitForQtThreadAndBlock(lock);
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
     this->dataPtr->camera->SetImageHeight(this->textureSize.height());
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
@@ -2418,7 +2403,6 @@ void TextureNode::NewTexture(uint _id, const QSize &_size)
 /////////////////////////////////////////////////
 void TextureNode::PrepareNode()
 {
-  this->renderSync->WaitForWorkerThread();
   this->mutex.lock();
   uint newId = this->id;
   QSize sz = this->size;
@@ -2454,6 +2438,19 @@ void TextureNode::PrepareNode()
     // rendered and it can start rendering to the other one.
     emit TextureInUse(this->renderSync);
   }
+  else
+  {
+    // This is necessary because we're forcing serialization of
+    // of worker and Qt threads via renderSync; and if PrepareNode gets
+    // called twice in a row with the worker thread still finishing the
+    // 1st iteration, it may result in a deadlock for newer versions of Qt;
+    // as WaitForWorkerThread will be called with no corresponding
+    // WaitForQtThreadAndBlock as the worker thread thinks there is
+    // no more jobs to do.
+    emit TextureInUse(this->renderSync);
+  }
+
+  this->renderSync->WaitForWorkerThread();
 }
 
 /////////////////////////////////////////////////
