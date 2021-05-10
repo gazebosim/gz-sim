@@ -368,6 +368,42 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d scaleSnap = math::Vector3d::One;
   };
 
+  /// \brief Qt and Ogre rendering is happening in different threads
+  /// The original sample 'textureinthread' from Qt used a double-buffer
+  /// scheme so that the worker (Ogre) thread write to FBO A, while
+  /// Qt is displaying FBO B.
+  ///
+  /// However Qt's implementation doesn't handle all the edge cases
+  /// (like resizing a window), and also it increases our VRAM
+  /// consumption in multiple ways (since we have to double other
+  /// resources as well or re-architect certain parts of the code
+  /// to avoid it)
+  ///
+  /// Thus we just serialize both threads so that when Qt reaches
+  /// drawing preparation, it halts and Ogre worker thread starts rendering,
+  /// then resumes when Ogre is done.
+  ///
+  /// This code is admitedly more complicated than it should be
+  /// because Qt's synchronization using signals and slots causes
+  /// deadlocks when other means of synchronization are introduced.
+  /// The whole threaded loop should be rewritten.
+  ///
+  /// All RenderSync does is conceptually:
+  ///
+  /// \code
+  ///   TextureNode::PrepareNode()
+  ///   {
+  ///     renderSync.WaitForWorkerThread(); // Qt thread
+  ///       // WaitForQtThreadAndBlock();
+  ///       // Now worker thread begins executing what's between
+  ///       // ReleaseQtThreadFromBlock();
+  ///     continue with qt code...
+  ///   }
+  /// \endcode
+  ///
+  ///
+  /// For more info see
+  /// https://github.com/ignitionrobotics/ign-rendering/issues/304
   class RenderSync
   {
     /// \brief Cond. variable to synchronize rendering on specific events
@@ -2366,7 +2402,7 @@ void RenderThread::SizeChanged()
 }
 
 /////////////////////////////////////////////////
-TextureNode::TextureNode(QQuickWindow *_window, RenderSync *_renderSync)
+TextureNode::TextureNode(QQuickWindow *_window, RenderSync &_renderSync)
     : renderSync(_renderSync), window(_window)
 {
   // Our texture node must have a texture, so use the default 0 texture.
@@ -2436,7 +2472,7 @@ void TextureNode::PrepareNode()
 
     // This will notify the rendering thread that the texture is now being
     // rendered and it can start rendering to the other one.
-    emit TextureInUse(this->renderSync);
+    emit TextureInUse(&this->renderSync);
   }
   else
   {
@@ -2447,10 +2483,10 @@ void TextureNode::PrepareNode()
     // as WaitForWorkerThread will be called with no corresponding
     // WaitForQtThreadAndBlock as the worker thread thinks there is
     // no more jobs to do.
-    emit TextureInUse(this->renderSync);
+    emit TextureInUse(&this->renderSync);
   }
 
-  this->renderSync->WaitForWorkerThread();
+  this->renderSync.WaitForWorkerThread();
 }
 
 /////////////////////////////////////////////////
@@ -2566,7 +2602,7 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 
   if (!node)
   {
-    node = new TextureNode(this->window(), &this->dataPtr->renderSync);
+    node = new TextureNode(this->window(), this->dataPtr->renderSync);
 
     // Set up connections to get the production of render texture in sync with
     // vsync on the rendering thread.
@@ -2597,7 +2633,7 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     // Get the production of FBO textures started..
     QMetaObject::invokeMethod(this->dataPtr->renderThread, "RenderNext",
                               Qt::QueuedConnection,
-                              Q_ARG( RenderSync*, node->renderSync ));
+                              Q_ARG( RenderSync*, &node->renderSync ));
   }
 
   node->setRect(this->boundingRect());

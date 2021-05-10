@@ -726,7 +726,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Constructor
     /// \param[in] _window Parent window
-    public: explicit TextureNode(QQuickWindow *_window, RenderSync *_renderSync);
+    public: explicit TextureNode(QQuickWindow *_window,
+                                 RenderSync &_renderSync);
 
     /// \brief Destructor
     public: ~TextureNode() override;
@@ -759,7 +760,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: QMutex mutex;
 
     /// \brief See RenderSync
-    public: RenderSync *renderSync;
+    public: RenderSync &renderSync;
 
     /// \brief Qt's scene graph texture
     public: QSGTexture *texture = nullptr;
