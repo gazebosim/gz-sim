@@ -34,6 +34,7 @@
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/TopicUtils.hh>
+#include <sdf/Types.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -295,7 +296,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 #endif
 
   // When SDF is loaded from a string instead of a file
-  if ("data-string" == _filePath)
+  if (std::string(sdf::kSdfStringSource) == _filePath)
   {
     ignwarn << "Can't resolve full path for relative path ["
             << _uri << "]. Loaded from a data-string." << std::endl;
