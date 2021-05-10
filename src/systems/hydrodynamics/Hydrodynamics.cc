@@ -203,7 +203,9 @@ void Hydrodynamics::Configure(
   ignition::gazebo::EventManager &/*_eventMgr*/
 )
 {
-  this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "waterDensity", 998);
+  this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "waterDensity",
+                                      SdfParamDouble(_sdf, "water_density", 998)
+                                    );
   this->dataPtr->paramXdotU       = SdfParamDouble(_sdf, "xDotU"       , 5);
   this->dataPtr->paramYdotV       = SdfParamDouble(_sdf, "yDotV"       , 5);
   this->dataPtr->paramZdotW       = SdfParamDouble(_sdf, "zDotW"       , 0.1);

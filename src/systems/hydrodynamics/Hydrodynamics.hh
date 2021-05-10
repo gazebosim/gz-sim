@@ -43,36 +43,38 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 of
   /// Fossen's book. They are used to calculate added mass, linear and quadratic
   /// drag and coriolis force.
-  ///   <xDotU> - Added mass in x direction [kg]
-  ///   <yDotV> - Added mass in y direction [kg]
-  ///   <zDotW> - Added mass in z direction [kg]
-  ///   <kDotP> - Added mass in roll direction [kgm^2]
-  ///   <mDotQ> - Added mass in pitch direction [kgm^2]
-  ///   <nDotR> - Added mass in yaw direction [kgm^2]
-  ///   <xUU>   - Stability derivative, 2nd order, x component [kg/m]
-  ///   <xU>    - Stability derivative, 1st order, x component [kg]
-  ///   <yVV>   - Stability derivative, 2nd order, y component [kg/m]
-  ///   <yV>    - Stability derivative, 1st order, y component [kg]
-  ///   <zWW>   - Stability derivative, 2nd order, z component [kg/m]
-  ///   <zW>    - Stability derivative, 1st order, z component [kg]
-  ///   <kPP>   - Stability derivative, 2nd order, roll component [kg/m^2]
-  ///   <kP>    - Stability derivative, 1st order, roll component [kg/m]
-  ///   <mQQ>   - Stability derivative, 2nd order, pitch component [kg/m^2]
-  ///   <mQ>    - Stability derivative, 1st order, pitch component [kg/m]
-  ///   <nRR>   - Stability derivative, 2nd order, yaw component [kg/m^2]
-  ///   <nR>    - Stability derivative, 1st order, yaw component [kg/m]
+  ///   * <xDotU> - Added mass in x direction [kg]
+  ///   * <yDotV> - Added mass in y direction [kg]
+  ///   * <zDotW> - Added mass in z direction [kg]
+  ///   * <kDotP> - Added mass in roll direction [kgm^2]
+  ///   * <mDotQ> - Added mass in pitch direction [kgm^2]
+  ///   * <nDotR> - Added mass in yaw direction [kgm^2]
+  ///   * <xUU>   - Stability derivative, 2nd order, x component [kg/m]
+  ///   * <xU>    - Stability derivative, 1st order, x component [kg]
+  ///   * <yVV>   - Stability derivative, 2nd order, y component [kg/m]
+  ///   * <yV>    - Stability derivative, 1st order, y component [kg]
+  ///   * <zWW>   - Stability derivative, 2nd order, z component [kg/m]
+  ///   * <zW>    - Stability derivative, 1st order, z component [kg]
+  ///   * <kPP>   - Stability derivative, 2nd order, roll component [kg/m^2]
+  ///   * <kP>    - Stability derivative, 1st order, roll component [kg/m]
+  ///   * <mQQ>   - Stability derivative, 2nd order, pitch component [kg/m^2]
+  ///   * <mQ>    - Stability derivative, 1st order, pitch component [kg/m]
+  ///   * <nRR>   - Stability derivative, 2nd order, yaw component [kg/m^2]
+  ///   * <nR>    - Stability derivative, 1st order, yaw component [kg/m]
   /// Additionally the system also supports the following parameters:
-  ///   <waterDensity> - The density of the fluid its moving in.
+  ///   * <waterDensity> - The density of the fluid its moving in.
+  ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
+  ///   * <water_density> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-3. [kgm^-3]
-  ///   <link_name> - The link of the model that is being subject to
+  ///   * <link_name> - The link of the model that is being subject to
   ///     hydrodynamic forces. [Required]
-  ///   <namespace> - This allows the robot to have an individual namespace for
-  ///     current. This is useful when you have multiple vehicles in different
-  ///     locations and you wish to control the currents of each vehicle
+  ///   * <namespace> - This allows the robot to have an individual namespace
+  ///     for current. This is useful when you have multiple vehicles in
+  ///     different locations and you wish to set the currents of each vehicle
   ///     separately. If no namespace is given then the plugin listens on
   ///     the `/ocean_current` topic for a `Vector3d` message. Otherwise it
   ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
-  ///   <defaultCurrent> - A generic current.
+  ///   <default_current> - A generic current.
   ///      [vector3d m/s, optional, default = [0,0,0]m/s]
   ///
   /// # Example
