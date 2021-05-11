@@ -64,7 +64,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
     /// at different depths.
     GRADED_BUOYANCY
   };
-  public: BuoyancyType buoyancyType{BuoyancyType::UNIFORM_BUOYANCY}
+  public: BuoyancyType buoyancyType{BuoyancyType::UNIFORM_BUOYANCY};
   /// \brief Get the fluid density based on a pose. This function can be
   /// used to adjust the fluid density based on the pose of an object in the
   /// world. This function currently returns a constant value, see the todo
@@ -82,6 +82,39 @@ class ignition::gazebo::systems::BuoyancyPrivate
   /// kg/m^3. Defaults to 1000, the fluid density of water.
   public: double fluidDensity{1000};
 };
+
+struct CutPlane
+{
+  math::Vector3d normal;
+  math::Vector3d point;
+};
+
+double VolumeBelow(sdf::Box box, math::Vector3d position, CutPlane plane)
+{
+
+}
+
+double VolumeBelow(sdf::Sphere sphere, math::Pose3d position, CutPlane plane)
+{
+  auto r = sphere.Radius();
+  auto vec = plane.point - position.Pos();
+  auto h = vec.Dot(plane.normal)/plane.normal.Length();
+
+  if(h < r)
+  {
+    return IGN_PI*h*h*(3*r-h)/3;
+  }
+  else
+  {
+    return 4/3*IGN_PI*r*r*r;
+  }
+}
+
+double VolumeBelow(sdf::Cylinder cylinder, math::Vector3d position, CutPlane plane)
+{
+  
+}
+
 
 //////////////////////////////////////////////////
 double BuoyancyPrivate::UniformFluidDensity(const math::Pose3d & /*_pose*/) const
