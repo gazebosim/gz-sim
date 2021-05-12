@@ -13,7 +13,7 @@ jobs:
         id: ci
         uses: ignition-tooling/action-ignition-ci@bionic
         with:
-          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+          codecov-enabled: true
   # TODO(anyone) Enable Focal CI and fix failing tests
   # focal-ci:
   #   runs-on: ubuntu-latest
