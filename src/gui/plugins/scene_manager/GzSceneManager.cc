@@ -47,9 +47,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene;
 
-    /// \brief Name of the world
-    public: std::string worldName;
-
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
   };
@@ -62,7 +59,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 GzSceneManager::GzSceneManager()
-  : GuiSystem(), dataPtr(std::make_unique<GzSceneManagerPrivate>)
+  : GuiSystem(), dataPtr(std::make_unique<GzSceneManagerPrivate>())
 {
 }
 
@@ -70,7 +67,7 @@ GzSceneManager::GzSceneManager()
 GzSceneManager::~GzSceneManager() = default;
 
 /////////////////////////////////////////////////
-void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Scene Manager";
@@ -84,20 +81,6 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("GzSceneManager::Update");
-  if (this->dataPtr->worldName.empty())
-  {
-    // TODO(anyone) Only one scene is supported for now
-    Entity worldEntity;
-    _ecm.Each<components::World, components::Name>(
-        [&](const Entity &_entity,
-          const components::World * /* _world */ ,
-          const components::Name *_name)->bool
-        {
-          this->dataPtr->worldName = _name->Data();
-          worldEntity = _entity;
-          return false;
-        });
-  }
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
