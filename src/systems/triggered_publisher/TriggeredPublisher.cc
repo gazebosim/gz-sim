@@ -462,11 +462,11 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 TriggeredPublisher::~TriggeredPublisher()
 {
   this->done = true;
-  /*this->newMatchSignal.notify_one();
+  this->newMatchSignal.notify_one();
   if (this->workerThread.joinable())
   {
     this->workerThread.join();
-  }*/
+  }
 }
 
 //////////////////////////////////////////////////
@@ -475,6 +475,7 @@ void TriggeredPublisher::Configure(const Entity &,
     EntityComponentManager &,
     EventManager &)
 {
+  using namespace std::chrono_literals;
   sdf::ElementPtr sdfClone = _sdf->Clone();
   if (sdfClone->HasElement("input"))
   {
@@ -527,10 +528,12 @@ void TriggeredPublisher::Configure(const Entity &,
     return;
   }
 
+  // Read trigger delay, if present
   if (sdfClone->HasElement("delay_ms"))
   {
     int ms = sdfClone->Get<int>("delay_ms");
-    this->delay = std::chrono::milliseconds(ms);
+    if (ms > 0)
+      this->delay = std::chrono::milliseconds(ms);
   }
 
   if (sdfClone->HasElement("output"))
@@ -589,11 +592,20 @@ void TriggeredPublisher::Configure(const Entity &,
         if (this->MatchInput(_msg))
         {
           {
-            std::lock_guard<std::mutex> lock(this->publishCountMutex);
-            this->publishQueue.push_back(this->delay);
-            // ++this->publishCount;
+            if (this->delay > 0ms)
+            {
+              std::lock_guard<std::mutex> lock(this->publishQueueMutex);
+              this->publishQueue.push_back(this->delay);
+            }
+            else
+            {
+              {
+                std::lock_guard<std::mutex> lock(this->publishCountMutex);
+                ++this->publishCount;
+              }
+              this->newMatchSignal.notify_one();
+            }
           }
-          // this->newMatchSignal.notify_one();
         }
       });
   if (!this->node.Subscribe(this->inputTopic, msgCb))
@@ -614,48 +626,16 @@ void TriggeredPublisher::Configure(const Entity &,
   }
   igndbg << ss.str() << "\n";
 
-  /*this->workerThread =
+  this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
-      */
-}
-
-//////////////////////////////////////////////////
-void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/)
-{
-  using namespace std::chrono_literals;
-  IGN_PROFILE("TriggeredPublisher::PreUpdate");
-
-  std::unique_lock<std::mutex> lock(this->publishCountMutex);
-  for (auto iter = std::begin(this->publishQueue);
-       iter != std::end(this->publishQueue);)
-  {
-    *iter -= _info.dt;
-    if (*iter <= 0s)
-    {
-      std::cout << "Time to publish\n";
-      for (auto &info : this->outputInfo)
-      {
-        info.pub.Publish(*info.msgData);
-      }
-      iter = this->publishQueue.erase(iter);
-    }
-    else
-    {
-      ++iter;
-    }
-  }
 }
 
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
 {
-
-  /*PROBLEM IS THAT THIS REQUIRES SIMULATION TO BE RUNNING, and it won't
-    instantly publish a message.
-    */
-  /*while (!this->done)
+  while (!this->done)
   {
+    std::size_t pending{0};
     {
       using namespace std::chrono_literals;
       std::unique_lock<std::mutex> lock(this->publishCountMutex);
@@ -668,12 +648,56 @@ void TriggeredPublisher::DoWork()
       if (this->publishCount == 0 || this->done)
         continue;
 
-      std::cout << "Adding to publish queue[" << this->publishCount << "]\n";
-      this->publishQueue.push_back({this->delay, this->publishCount});
-      this->publishCount = 0;
+      std::swap(pending, this->publishCount);
+    }
+
+    for (auto &info : this->outputInfo)
+    {
+      for (std::size_t i = 0; i < pending; ++i)
+      {
+        info.pub.Publish(*info.msgData);
+      }
     }
   }
-  */
+}
+
+//////////////////////////////////////////////////
+void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+{
+  using namespace std::chrono_literals;
+  IGN_PROFILE("TriggeredPublisher::PreUpdate");
+
+  bool notify = false;
+  {
+    std::lock_guard<std::mutex> lock1(this->publishQueueMutex);
+    std::lock_guard<std::mutex> lock2(this->publishCountMutex);
+    // Iterate through the publish queue, and publish messages.
+    for (auto iter = std::begin(this->publishQueue);
+        iter != std::end(this->publishQueue);)
+    {
+      // Reduce the delay time left for this item in the queue.
+      *iter -= _info.dt;
+
+      // Publishe the message if time is less than or equal to zero
+      // milliseconds
+      if (*iter <= 0ms)
+      {
+        notify = true;
+        ++this->publishCount;
+
+        // Remove this publication
+        iter = this->publishQueue.erase(iter);
+      }
+      else
+      {
+        ++iter;
+      }
+    }
+  }
+
+  if (notify)
+    this->newMatchSignal.notify_one();
 }
 
 //////////////////////////////////////////////////

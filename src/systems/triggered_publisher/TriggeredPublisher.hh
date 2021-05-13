@@ -37,7 +37,8 @@ namespace systems
 
   /// \brief The triggered publisher system publishes a user specified message
   /// on an output topic in response to an input message that matches user
-  /// specified criteria.
+  /// specified criteria. An optional delay can be used to cause message
+  /// publication to occur at a future simulation time.
   ///
   /// ## System Parameters
   ///
@@ -72,6 +73,9 @@ namespace systems
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
   ///     `ign topic` for publishing messages
+  ///
+  /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
+  /// delay publication.
   ///
   /// Examples:
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
@@ -215,7 +219,7 @@ namespace systems
     private: transport::Node node;
 
     /// \brief Counter that tells the publisher how many times to publish
-    //private: std::size_t publishCount{0};
+    private: std::size_t publishCount{0};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
@@ -224,14 +228,20 @@ namespace systems
     private: std::condition_variable newMatchSignal;
 
     /// \brief Thread handle for worker thread
-    //private: std::thread workerThread;
+    private: std::thread workerThread;
 
     /// \brief Flag for when the system is done and the worker thread should
     /// stop
     private: std::atomic<bool> done{false};
 
+    /// \brief Publish delay time. This is in simulation time.
     private: std::chrono::steady_clock::duration delay{0};
+
+    /// \brief Queue of publication times.
     private: std::vector<std::chrono::steady_clock::duration> publishQueue;
+
+    /// \brief Mutex to synchronize access to publishQueue
+    private: std::mutex publishQueueMutex;
   };
   }
 }
